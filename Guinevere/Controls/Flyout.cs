@@ -32,7 +32,7 @@ public static partial class ControlsExtensions
     {
         if (!isOpen) return;
 
-        var id = Gui.NodeId(filePath, lineNumber);
+        var id = gui.NodeId(filePath, lineNumber);
         var state = GetOrCreateFlyoutState(id);
 
         var builder = new FlyoutBuilder();

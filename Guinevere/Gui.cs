@@ -55,6 +55,9 @@ public partial class Gui
     {
         Canvas = canvas;
 
+        // Initialize focus management for the new frame
+        BeginFrameFocus();
+
         // Clear the layout node stack to prevent accumulation
         LayoutNodeScopeStack.Clear();
 
@@ -81,6 +84,12 @@ public partial class Gui
     /// </summary>
     public void EndFrame()
     {
+        // Process focus management and keyboard navigation
+        ProcessFocusManagement();
+
+        // Finalize focus management for the frame
+        EndFrameFocus();
+
         ClearCompletedDrags();
         Canvas = null;
     }

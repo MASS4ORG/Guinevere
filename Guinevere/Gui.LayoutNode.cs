@@ -64,9 +64,12 @@ public partial class Gui : ILayoutNodeEnterExit
     /// <param name="lineNumber">The line number in the source file where the node is being defined.</param>
     /// <param name="extra">An optional integer to append additional uniqueness to the identifier. Defaults to 0.</param>
     /// <returns>A formatted string representing the unique node identifier.</returns>
-    public static string NodeId(string filePath, int lineNumber, int extra = 0)
+    public string NodeId(string filePath, int lineNumber, int extra = 0, LayoutNode? parentNode = null)
     {
-        return $"{filePath}:{lineNumber} {extra}";
+        var idLocal = $"{filePath}:{lineNumber} {extra}";
+        parentNode ??= CurrentNode;
+        var idGlobal = $"{parentNode?.Id}{idLocal}";
+        return idGlobal;
     }
 
     /// <summary>

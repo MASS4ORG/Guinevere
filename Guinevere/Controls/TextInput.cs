@@ -70,18 +70,24 @@ public static partial class ControlsExtensions
     {
         if (gui.Pass != Pass.Pass2Render) return state;
 
+        // Register this text input as focusable
+        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+
+        // Check if this control has focus from the focus manager
+        var hasFocus = gui.HasFocus();
+
+        // Handle mouse click for focus
         if (interactable.OnClick())
         {
-            state.IsFocused = true;
+            gui.RequestFocus(FocusReason.Mouse);
             state.CursorPosition =
                 calculateCursorPosition(gui.Input.MousePosition, gui.CurrentNode.InnerRect, text, fontSize);
             state.ShowCursor = true; // Show the cursor immediately when clicked
             state.BlinkTimer = 0f; // Reset blink timer
         }
-        else if (gui.Input.IsMouseButtonPressed(MouseButton.Left) && !interactable.OnHover())
-        {
-            state.IsFocused = false;
-        }
+
+        // Update the local focus state based on the global focus manager
+        state.IsFocused = hasFocus;
 
         return state;
     }
@@ -195,11 +201,19 @@ public static partial class ControlsExtensions
 
     private static void DrawInputBackground(Gui gui, InputState state, Color? backgroundColor, Color? borderColor)
     {
-        var finalBgColor = backgroundColor ?? (state.IsFocused ? Color.White : Color.LightGray);
-        var finalBorderColor = borderColor ?? (state.IsFocused ? Color.Blue : Color.Gray);
+        var finalBgColor = backgroundColor ?? Color.White;
+        var finalBorderColor = borderColor ?? Color.Gray;
+        var borderWidth = 1f;
+
+        // Use focus-aware styling
+        if (state.IsFocused)
+        {
+            finalBorderColor = Color.FromArgb(255, 100, 149, 237); // Focus blue
+            borderWidth = 2f;
+        }
 
         gui.DrawBackgroundRect(finalBgColor);
-        gui.DrawRectBorder(gui.CurrentNode.Rect, finalBorderColor);
+        gui.DrawRectBorder(gui.CurrentNode.Rect, finalBorderColor, borderWidth);
     }
 
     private static void DrawInputText(Gui gui, string displayText, string placeholder, float fontSize,
@@ -285,7 +299,7 @@ public static partial class ControlsExtensions
         Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
         float padding = 8, bool enabled = true, string id = "")
     {
-        var nodeId = string.IsNullOrEmpty(id) ? Gui.NodeId("TextInput", 0) : id;
+        var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         using (gui.Node(width, height).Padding(padding).Enter())
@@ -343,7 +357,7 @@ public static partial class ControlsExtensions
         Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
         float padding = 8, bool enabled = true, string id = "")
     {
-        var nodeId = string.IsNullOrEmpty(id) ? Gui.NodeId("PasswordInput", 0) : id;
+        var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("PasswordInput", 0) : id;
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         using (gui.Node(width, height).Padding(padding).Enter())
@@ -428,7 +442,7 @@ public static partial class ControlsExtensions
         bool enabled = true,
         string id = "")
     {
-        var nodeId = string.IsNullOrEmpty(id) ? Gui.NodeId("TextArea", 0) : id;
+        var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextArea", 0) : id;
 
         using (gui.Node(width, height).Padding(padding).Enter())
         {

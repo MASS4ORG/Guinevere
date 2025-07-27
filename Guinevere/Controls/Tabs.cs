@@ -23,7 +23,7 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = Gui.NodeId(filePath, lineNumber);
+        var id = gui.NodeId(filePath, lineNumber);
         var state = GetOrCreateTabsState(id, activeTabIndex, tabBarHeight);
 
         var builder = new TabBuilder();
@@ -253,7 +253,7 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = Gui.NodeId(filePath, lineNumber);
+        var id = gui.NodeId(filePath, lineNumber);
         var state = GetOrCreateTabsState(id, activeTabIndex, 32);
 
         var builder = new TabBuilder();
@@ -292,7 +292,7 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = Gui.NodeId(filePath, lineNumber);
+        var id = gui.NodeId(filePath, lineNumber);
         var state = GetOrCreateTabsState(id, activeTabIndex, tabBarHeight);
 
         var builder = new TabBuilder();

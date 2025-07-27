@@ -73,7 +73,7 @@ public static partial class ControlsExtensions
         Color? hoverColor, Color? selectedColor, float fontSize, float padding, float borderRadius,
         int maxVisibleItems, string filePath, int lineNumber)
     {
-        var id = Gui.NodeId(filePath, lineNumber);
+        var id = gui.NodeId(filePath, lineNumber);
         var state = GetOrCreateDropdownState(id, selectedIndex);
 
         var visibleItems = Math.Min(maxVisibleItems, options.Length);

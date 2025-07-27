@@ -67,9 +67,23 @@ public static partial class ControlsExtensions
     {
         if (gui.Pass == Pass.Pass2Render)
         {
+            // Register this toggle as focusable
+            gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+
             var interactable = gui.GetInteractable();
+
+            // Handle mouse click for focus and toggle
             if (interactable.OnClick())
+            {
+                gui.RequestFocus(FocusReason.Mouse);
                 isOn = !isOn;
+            }
+
+            // Handle keyboard interaction for focused toggle
+            if (gui.HasFocus() && gui.Input.IsKeyPressed(KeyboardKey.Space))
+            {
+                isOn = !isOn;
+            }
         }
     }
 
@@ -84,6 +98,13 @@ public static partial class ControlsExtensions
             var trackColor = GetToggleTrackColor(gui, isOn, onColor, offColor);
 
             gui.DrawBackgroundRect(trackColor, height * 0.5f);
+
+            // Draw focus indicator if this toggle has focus
+            if (gui.HasFocus())
+            {
+                var focusRect = new Rect(rect.X - 2, rect.Y - 2, rect.W + 4, rect.H + 4);
+                gui.DrawRectBorder(focusRect, Color.FromArgb(255, 100, 149, 237), 2f, height * 0.5f + 2);
+            }
 
             var thumbProps = CalculateThumbProperties(rect, width, height, isOn);
             DrawToggleThumb(gui, thumbProps, thumbColor ?? Color.White);

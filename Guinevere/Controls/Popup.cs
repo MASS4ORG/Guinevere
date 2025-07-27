@@ -35,7 +35,7 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = Gui.NodeId(filePath, lineNumber);
+        var id = gui.NodeId(filePath, lineNumber);
         var state = GetOrCreatePopupState(id, position, closeOnClickOutside, closeOnEscape);
 
         // Sync external state with internal state

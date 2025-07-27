@@ -161,7 +161,7 @@ public partial class LayoutNode : IDisposable
     /// in that dimension. This constructor also creates the associated <see cref="Scope"/>
     /// for managing the node's contextual state.
     /// </remarks>
-    public LayoutNode(string id, Gui gui, LayoutNode? parent, float? width = null, float? height = null)
+    public LayoutNode(string? id, Gui gui, LayoutNode? parent, float? width = null, float? height = null)
     {
         _gui = gui;
         _parent = parent;
@@ -170,7 +170,7 @@ public partial class LayoutNode : IDisposable
             Style.Width = width.Value;
         if (height.HasValue)
             Style.Height = height.Value;
-        Id = id;
+        Id = id ?? _gui.NodeId(string.Empty, 0);
         Scope = new LayoutNodeScope(gui, this);
         if (width == 0) ExpandWidth();
 
@@ -248,8 +248,8 @@ public partial class LayoutNode : IDisposable
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = Gui.NodeId(filePath, lineNumber);
-        var node = new LayoutNode(id, _gui, this, sizeX, sizeY);
+        // var id = gui.NodeId(filePath, lineNumber);
+        var node = new LayoutNode(null, _gui, this, sizeX, sizeY);
         return node;
     }
 
