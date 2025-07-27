@@ -33,12 +33,6 @@
         "Compile",
         "CreateSamplesReadme",
         "CreateTag",
-        "DailyBuild",
-        "DailyCheck",
-        "DailyCI",
-        "DailyPublish",
-        "DailyRelease",
-        "DailyStatus",
         "ExtractChangelogUnreleased",
         "GitHubCreateCommit",
         "GitHubCreateRelease",
@@ -145,10 +139,6 @@
           "description": "Minimum coverage threshold (default: 80)",
           "format": "int32"
         },
-        "ForceDailyRelease": {
-          "type": "boolean",
-          "description": "Force daily release even without changes"
-        },
         "GitHubApiBaseUrl": {
           "type": "string",
           "description": "GitHub API URL"
@@ -207,10 +197,6 @@
         "SamplesOutputDirectory": {
           "type": "string",
           "description": "Samples output directory (default: ./samples-output)"
-        },
-        "SkipDailyReleaseOnNoChanges": {
-          "type": "boolean",
-          "description": "Skip daily release if no changes found"
         },
         "SkipGitHubRelease": {
           "type": "boolean",

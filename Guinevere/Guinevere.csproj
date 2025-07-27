@@ -18,29 +18,30 @@
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Version>1.2.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="..\README.md" Pack="true" PackagePath="\"/>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="JetBrains.Annotations" Version="2024.3.0"/>
-        <PackageReference Include="SkiaSharp" Version="3.119.0"/>
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0"/>
-        <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="3.119.0"/>
-        <PackageReference Include="SkiaSharp.Vulkan.SharpVk" Version="3.119.0"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+        <PackageReference Include="SkiaSharp" Version="3.119.0" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
+        <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="3.119.0" />
+        <PackageReference Include="SkiaSharp.Vulkan.SharpVk" Version="3.119.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="Layout\Scope\LayoutNodeScopeValueIconFont.cs"/>
-        <Compile Remove="Layout\Scope\LayoutNodeScopeValueFontSize.cs"/>
-        <Compile Remove="Layout\Scope\LayoutNodeScopeValueFontColor.cs"/>
-        <Compile Remove="Layout\Scope\LayoutNodeScopeValueFont.cs"/>
-        <Compile Remove="Layout\Scope\LayoutNodeScopeValue.cs"/>
+        <Compile Remove="Layout\Scope\LayoutNodeScopeValueIconFont.cs" />
+        <Compile Remove="Layout\Scope\LayoutNodeScopeValueFontSize.cs" />
+        <Compile Remove="Layout\Scope\LayoutNodeScopeValueFontColor.cs" />
+        <Compile Remove="Layout\Scope\LayoutNodeScopeValueFont.cs" />
+        <Compile Remove="Layout\Scope\LayoutNodeScopeValue.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Layout\Scope\"/>
+        <Folder Include="Layout\Scope\" />
     </ItemGroup>
 </Project>
