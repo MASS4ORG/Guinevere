@@ -99,11 +99,12 @@ public static partial class ControlsExtensions
 
             gui.DrawBackgroundRect(trackColor, height * 0.5f);
 
-            // Draw focus indicator if this toggle has focus
+            // Draw stronger focus indicator if this toggle has focus
             if (gui.HasFocus())
             {
-                var focusRect = new Rect(rect.X - 2, rect.Y - 2, rect.W + 4, rect.H + 4);
-                gui.DrawRectBorder(focusRect, Color.FromArgb(255, 100, 149, 237), 2f, height * 0.5f + 2);
+                var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
+                gui.DrawRectBorder(focusRect, Color.FromArgb(128, 100, 149, 237), 4f, height * 0.5f + 4); // subtle glow
+                gui.DrawRectBorder(rect, Color.FromArgb(255, 100, 149, 237), 2f, height * 0.5f + 2); // strong blue border
             }
 
             var thumbProps = CalculateThumbProperties(rect, width, height, isOn);

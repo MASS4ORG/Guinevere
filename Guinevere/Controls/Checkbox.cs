@@ -96,12 +96,13 @@ public static partial class ControlsExtensions
             var bgColor = GetCheckboxBackgroundColor(isChecked, backgroundColor);
             var borderColorFinal = borderColor ?? Color.Gray;
 
-            // Use different border color/thickness if focused
+            // Use stronger border and subtle glow if focused
             if (gui.HasFocus())
             {
-                borderColorFinal = Color.FromArgb(255, 100, 149, 237); // Focus blue
+                var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
+                gui.DrawRectBorder(focusRect, Color.FromArgb(128, 100, 149, 237), 4f, 4); // subtle glow
                 gui.DrawBackgroundRect(bgColor, 2);
-                gui.DrawRectBorder(rect, borderColorFinal, 2f, 2);
+                gui.DrawRectBorder(rect, Color.FromArgb(255, 100, 149, 237), 2f, 2); // strong blue border
             }
             else
             {

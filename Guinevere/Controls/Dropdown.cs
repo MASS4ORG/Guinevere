@@ -111,13 +111,37 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render)
             {
+                // Register as focusable for keyboard navigation
+                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
                 var buttonInteractable = gui.GetInteractable();
                 var isHovered = buttonInteractable.OnHover();
                 var isClicked = buttonInteractable.OnClick();
                 var rect = gui.CurrentNode.Rect;
 
-                // Handle button click
-                if (isClicked) state.IsOpen = !state.IsOpen;
+                // Draw focus indicator if focused
+                var hasFocus = gui.HasFocus();
+                if (hasFocus)
+                {
+                    var focusRect = new Rect(rect.X - 2, rect.Y - 2, rect.W + 4, rect.H + 4);
+                    gui.DrawRectBorder(focusRect, Color.FromArgb(255, 100, 149, 237), 2f, borderRadius + 2);
+                }
+
+                // If dropdown is open and focus is lost, close it
+                if (state.IsOpen && !hasFocus && !gui.Input.IsAnyKeyDown)
+                {
+                    state.IsOpen = false;
+                }
+
+                // Handle button click or keyboard activation
+                var activated = isClicked;
+                if (hasFocus && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter)))
+                {
+                    activated = true;
+                }
+                if (activated) {
+                    state.IsOpen = !state.IsOpen;
+                    if (state.IsOpen) state.HoveredIndex = selectedIndex >= 0 ? selectedIndex : 0;
+                }
 
                 var bgColor = backgroundColor ?? (isHovered ? Color.FromArgb(255, 248, 248, 248) : Color.White);
                 var borderColorFinal = borderColor ??
@@ -183,22 +207,27 @@ public static partial class ControlsExtensions
                     }
                 }
 
-                // Handle keyboard navigation
+                // --- Keyboard navigation for dropdown list ---
                 if (gui.Input.IsKeyPressed(KeyboardKey.Escape))
                 {
                     state.IsOpen = false;
                 }
                 else if (gui.Input.IsKeyPressed(KeyboardKey.Down))
                 {
-                    state.HoveredIndex = Math.Min(state.HoveredIndex + 1, options.Length - 1);
+                    state.HoveredIndex = Math.Min((state.HoveredIndex < 0 ? 0 : state.HoveredIndex + 1), options.Length - 1);
                 }
                 else if (gui.Input.IsKeyPressed(KeyboardKey.Up))
                 {
-                    state.HoveredIndex = Math.Max(state.HoveredIndex - 1, 0);
+                    state.HoveredIndex = Math.Max((state.HoveredIndex < 0 ? 0 : state.HoveredIndex - 1), 0);
                 }
-                else if (gui.Input.IsKeyPressed(KeyboardKey.Enter) && state.HoveredIndex >= 0)
+                else if ((gui.Input.IsKeyPressed(KeyboardKey.Enter) || gui.Input.IsKeyPressed(KeyboardKey.Space)) && state.HoveredIndex >= 0)
                 {
                     state.SelectedIndex = state.HoveredIndex;
+                    state.IsOpen = false;
+                }
+                // Tab/Shift+Tab: close and move focus out
+                else if (gui.Input.IsKeyPressed(KeyboardKey.Tab))
+                {
                     state.IsOpen = false;
                 }
             }
