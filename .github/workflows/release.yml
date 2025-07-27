@@ -2,7 +2,7 @@ name: release
 
 on:
     schedule:
-        -   cron: "0 13 * * *" # 10:00 BRT
+        -   cron: "0 19 * * *" # 17:00 BRT
     workflow_dispatch:
 
 jobs:
