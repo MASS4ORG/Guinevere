@@ -71,12 +71,30 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass != Pass.Pass2Render) return false;
 
+            // Register as focusable for keyboard navigation
+            gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
             var interactable = gui.GetInteractable();
             RenderButtonBackground(gui, interactable, backgroundColor, hoverColor, pressedColor, radius);
             RenderButtonBorder(gui, interactable, borderColor, pressedBorderColor);
             RenderButtonText(gui, text, fontSizeEffective, color);
 
-            return interactable.OnClick();
+            // Draw strong focus indicator if focused
+            if (gui.HasFocus())
+            {
+                var rect = gui.CurrentNode.Rect;
+                var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
+                gui.DrawRectBorder(focusRect, Color.FromArgb(128, 100, 149, 237), 4f, radius + 4); // subtle glow
+                gui.DrawRectBorder(rect, Color.FromArgb(255, 100, 149, 237), 2f, radius + 2); // strong blue border
+            }
+
+            // Keyboard activation (Space/Enter)
+            var activated = false;
+            if (gui.HasFocus() && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter)))
+            {
+                activated = true;
+            }
+
+            return interactable.OnClick() || activated;
         }
     }
 
@@ -89,18 +107,37 @@ public static partial class ControlsExtensions
     {
         var node = gui.Node();
         var fontSizeEffective = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
-        var (buttonWidth, buttonHeight) = CalculateButtonDimensions(icon, size, size, fontSizeEffective);
+        var iconText = icon ?? new Text("");
+        var (buttonWidth, buttonHeight) = CalculateButtonDimensions(iconText, size, size, fontSizeEffective);
 
         using (gui.Node(buttonWidth, buttonHeight).Enter())
         {
             if (gui.Pass != Pass.Pass2Render) return false;
 
+            // Register as focusable for keyboard navigation
+            gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
             var interactable = gui.GetInteractable();
             RenderIconButtonBackground(gui, interactable, backgroundColor, hoverColor, pressedColor, radius);
             RenderButtonBorder(gui, interactable, borderColor, pressedBorderColor);
             RenderButtonIcon(gui, icon, fontSizeEffective, color);
 
-            return interactable.OnClick();
+            // Draw strong focus indicator if focused
+            if (gui.HasFocus())
+            {
+                var rect = gui.CurrentNode.Rect;
+                var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
+                gui.DrawRectBorder(focusRect, Color.FromArgb(128, 100, 149, 237), 4f, radius + 4); // subtle glow
+                gui.DrawRectBorder(rect, Color.FromArgb(255, 100, 149, 237), 2f, radius + 2); // strong blue border
+            }
+
+            // Keyboard activation (Space/Enter)
+            var activated = false;
+            if (gui.HasFocus() && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter)))
+            {
+                activated = true;
+            }
+
+            return interactable.OnClick() || activated;
         }
     }
 

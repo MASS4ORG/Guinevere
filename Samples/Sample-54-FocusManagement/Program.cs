@@ -69,6 +69,69 @@ public abstract class Program
                     }
                 }
 
+                // --- Focusable Controls Demo Section ---
+                using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Margin(0, 30, 0, 0).Enter())
+                {
+                    gui.DrawText("Focusable Controls Demo", size: 16, color: Color.FromArgb(255, 51, 51, 51));
+                    using (gui.Node().Direction(Axis.Horizontal).Gap(20).Enter())
+                    {
+                        // Buttons
+                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                        {
+                            gui.DrawText("Buttons:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                            gui.Button(new Text("Primary Button"));
+                            var iconClicked = false;
+                            gui.IconButton('★', ref iconClicked);
+                        }
+                        // Dropdown
+                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                        {
+                            gui.DrawText("Dropdown:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                            var dropdownOptions = new[] { "Option 1", "Option 2", "Option 3" };
+                            var dropdownIndex = 0;
+                            gui.Dropdown(dropdownOptions, ref dropdownIndex);
+                        }
+                        // Tabs
+                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                        {
+                            gui.DrawText("Tabs:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                            var tabIndex = 0;
+                            gui.Tabs(ref tabIndex, builder =>
+                            {
+                                builder.Tab("Tab 1", () => gui.DrawText("Tab 1 Content"));
+                                builder.Tab("Tab 2", () => gui.DrawText("Tab 2 Content"));
+                                builder.Tab("Tab 3", () => gui.DrawText("Tab 3 Content"));
+                            });
+                        }
+                        // Menu (simulate with MenuBarBuilder)
+                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                        {
+                            gui.DrawText("Menu:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                            var menuBar = new MenuBarBuilder(gui, 32, Color.Black, Color.FromArgb(255, 230, 230, 230), 14, 8);
+                            menuBar.Menu("File", flyout =>
+                            {
+                                flyout.Item("New", () => { });
+                                flyout.Item("Open", () => { });
+                                flyout.Item("Save", () => { });
+                            });
+                            menuBar.Menu("Edit", flyout =>
+                            {
+                                flyout.Item("Undo", () => { });
+                                flyout.Item("Redo", () => { });
+                            });
+                        }
+                        // Toggles & Checkboxes
+                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                        {
+                            gui.DrawText("Toggles & Checkboxes:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                            var toggleDemo = false;
+                            gui.Toggle(ref toggleDemo, "Demo Toggle");
+                            var checkboxDemo = false;
+                            gui.Checkbox(ref checkboxDemo, "Demo Checkbox");
+                        }
+                    }
+                }
+
                 // Footer with instructions
                 RenderFooter(gui);
             }

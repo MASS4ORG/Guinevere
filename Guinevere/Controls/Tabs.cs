@@ -139,18 +139,47 @@ public static partial class ControlsExtensions
     {
         var tab = state.Tabs[tabIndex];
         var isActive = state.ActiveTabIndex == tabIndex;
-
         var tabWidth = CalculateTabWidth(tab.Title, fontSize);
 
         using (gui.Node(tabWidth, state.TabBarHeight).Padding(8).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
             {
+                // Register as focusable for keyboard navigation
+                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: tab.Enabled);
                 var interactable = gui.GetInteractable();
                 var isHovered = interactable.OnHover();
                 var isClicked = interactable.OnClick();
+                var rect = gui.CurrentNode.Rect;
+                var hasFocus = gui.HasFocus();
 
-                if (isClicked && tab.Enabled) state.ActiveTabIndex = tabIndex;
+                // Draw focus indicator if focused
+                if (hasFocus)
+                {
+                    var focusRect = new Rect(rect.X - 2, rect.Y - 2, rect.W + 4, rect.H + 4);
+                    gui.DrawRectBorder(focusRect, Color.FromArgb(255, 100, 149, 237), 2f, borderRadius + 2);
+                }
+
+                // Keyboard navigation: Left/Right to move, Enter/Space to activate
+                var activated = isClicked;
+                if (hasFocus)
+                {
+                    if (gui.Input.IsKeyPressed(KeyboardKey.Left))
+                    {
+                        var prev = tabIndex - 1;
+                        for (var i = prev; i >= 0; i--) if (state.Tabs[i].Enabled) { state.ActiveTabIndex = i; break; }
+                    }
+                    else if (gui.Input.IsKeyPressed(KeyboardKey.Right))
+                    {
+                        var next = tabIndex + 1;
+                        for (var i = next; i < state.Tabs.Count; i++) if (state.Tabs[i].Enabled) { state.ActiveTabIndex = i; break; }
+                    }
+                    else if (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter))
+                    {
+                        activated = true;
+                    }
+                }
+                if (activated && tab.Enabled) state.ActiveTabIndex = tabIndex;
 
                 var tabColor = GetTabBackgroundColor(isActive, isHovered, tab.BackgroundColor,
                     activeTabColor, inactiveTabColor);
