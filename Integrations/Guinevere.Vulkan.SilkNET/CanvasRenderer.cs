@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Silk.NET.Core;
@@ -259,9 +260,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
             var createInfo = new XlibSurfaceCreateInfoKHR
             {
-                SType = StructureType.XlibSurfaceCreateInfoKhr,
-                Dpy = (nint*)x11Display,
-                Window = (nint)x11Window
+                SType = StructureType.XlibSurfaceCreateInfoKhr, Dpy = (nint*)x11Display, Window = (nint)x11Window
             };
 
             if (xlibSurface.CreateXlibSurface(_instance, in createInfo, null, out _surface) != Result.Success)
@@ -615,8 +614,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         var colorAttachmentRef = new AttachmentReference
         {
-            Attachment = 0,
-            Layout = ImageLayout.ColorAttachmentOptimal
+            Attachment = 0, Layout = ImageLayout.ColorAttachmentOptimal
         };
 
         var subpass = new SubpassDescription
@@ -664,9 +662,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         var layoutInfo = new DescriptorSetLayoutCreateInfo
         {
-            SType = StructureType.DescriptorSetLayoutCreateInfo,
-            BindingCount = 1,
-            PBindings = &samplerLayoutBinding
+            SType = StructureType.DescriptorSetLayoutCreateInfo, BindingCount = 1, PBindings = &samplerLayoutBinding
         };
 
         if (_vk.CreateDescriptorSetLayout(_device, in layoutInfo, null, out _descriptorSetLayout) != Result.Success)
@@ -677,9 +673,9 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     {
         Console.WriteLine("Creating graphics pipeline...");
         // For simplicity, create minimal shader bytecode inline
-        var vertShaderCode = GetVertexShaderSpirv();
+        var vertShaderCode = GetShaderSpirv("vert");
         Console.WriteLine($"✓ Vertex shader loaded: {vertShaderCode.Length} bytes");
-        var fragShaderCode = GetFragmentShaderSpirv();
+        var fragShaderCode = GetShaderSpirv("frag");
         Console.WriteLine($"✓ Fragment shader loaded: {fragShaderCode.Length} bytes");
 
         Console.WriteLine("Creating shader modules...");
@@ -836,45 +832,27 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         Console.WriteLine("✓ Graphics pipeline creation complete");
     }
 
-    private byte[] GetVertexShaderSpirv()
+    private byte[] GetShaderSpirv(string shaderName)
     {
         try
         {
-            var shaderPath = Path.Combine(AppContext.BaseDirectory, "Shaders", "vert.spv");
-            if (!File.Exists(shaderPath))
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = $"Guinevere.Vulkan.SilkNET.Shaders.{shaderName}.spv";
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
             {
-                // Try relative path from current directory
-                shaderPath = Path.Combine("Integrations", "Guinevere.Vulkan.SilkNET", "Shaders", "vert.spv");
+                throw new Exception($"Shader resource '{resourceName}' not found in assembly.");
             }
 
-            Console.WriteLine($"Loading vertex shader from: {shaderPath}");
-            return File.ReadAllBytes(shaderPath);
+            using var memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+            return memoryStream.ToArray();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to load vertex shader: {ex.Message}");
-            throw new Exception("Failed to load vertex shader SPIR-V file!");
-        }
-    }
-
-    private byte[] GetFragmentShaderSpirv()
-    {
-        try
-        {
-            var shaderPath = Path.Combine(AppContext.BaseDirectory, "Shaders", "frag.spv");
-            if (!File.Exists(shaderPath))
-            {
-                // Try relative path from current directory
-                shaderPath = Path.Combine("Integrations", "Guinevere.Vulkan.SilkNET", "Shaders", "frag.spv");
-            }
-
-            Console.WriteLine($"Loading fragment shader from: {shaderPath}");
-            return File.ReadAllBytes(shaderPath);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to load fragment shader: {ex.Message}");
-            throw new Exception("Failed to load fragment shader SPIR-V file!");
+            Console.WriteLine($"Failed to load shader '{shaderName}': {ex.Message}");
+            throw new Exception($"Failed to load {shaderName} shader SPIR-V resource!");
         }
     }
 
@@ -900,8 +878,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         var createInfo = new ShaderModuleCreateInfo
         {
-            SType = StructureType.ShaderModuleCreateInfo,
-            CodeSize = (nuint)code.Length
+            SType = StructureType.ShaderModuleCreateInfo, CodeSize = (nuint)code.Length
         };
 
         fixed (byte* codePtr = code)
@@ -1040,10 +1017,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     {
         BufferCreateInfo bufferInfo = new()
         {
-            SType = StructureType.BufferCreateInfo,
-            Size = size,
-            Usage = usage,
-            SharingMode = SharingMode.Exclusive,
+            SType = StructureType.BufferCreateInfo, Size = size, Usage = usage, SharingMode = SharingMode.Exclusive,
         };
 
         if (_vk.CreateBuffer(_device, in bufferInfo, null, out buffer) != Result.Success)
@@ -1151,10 +1125,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             BufferImageHeight = 0,
             ImageSubresource = new ImageSubresourceLayers
             {
-                AspectMask = ImageAspectFlags.ColorBit,
-                MipLevel = 0,
-                BaseArrayLayer = 0,
-                LayerCount = 1,
+                AspectMask = ImageAspectFlags.ColorBit, MipLevel = 0, BaseArrayLayer = 0, LayerCount = 1,
             },
             ImageOffset = new Offset3D { X = 0, Y = 0, Z = 0 },
             ImageExtent = new Extent3D { Width = width, Height = height, Depth = 1 },
@@ -1179,8 +1150,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         CommandBufferBeginInfo beginInfo = new()
         {
-            SType = StructureType.CommandBufferBeginInfo,
-            Flags = CommandBufferUsageFlags.OneTimeSubmitBit,
+            SType = StructureType.CommandBufferBeginInfo, Flags = CommandBufferUsageFlags.OneTimeSubmitBit,
         };
 
         _vk.BeginCommandBuffer(commandBuffer, in beginInfo);
@@ -1194,9 +1164,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         SubmitInfo submitInfo = new()
         {
-            SType = StructureType.SubmitInfo,
-            CommandBufferCount = 1,
-            PCommandBuffers = &commandBuffer,
+            SType = StructureType.SubmitInfo, CommandBufferCount = 1, PCommandBuffers = &commandBuffer,
         };
 
         _vk.QueueSubmit(_graphicsQueue, 1, in submitInfo, default);
@@ -1402,8 +1370,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     {
         DescriptorPoolSize poolSize = new()
         {
-            Type = DescriptorType.CombinedImageSampler,
-            DescriptorCount = MaxFramesInFlight,
+            Type = DescriptorType.CombinedImageSampler, DescriptorCount = MaxFramesInFlight,
         };
 
         DescriptorPoolCreateInfo poolInfo = new()
@@ -1685,8 +1652,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         FenceCreateInfo fenceInfo = new()
         {
-            SType = StructureType.FenceCreateInfo,
-            Flags = FenceCreateFlags.SignaledBit,
+            SType = StructureType.FenceCreateInfo, Flags = FenceCreateFlags.SignaledBit,
         };
 
         for (var i = 0; i < MaxFramesInFlight; i++)
