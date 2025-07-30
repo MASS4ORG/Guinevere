@@ -1,7 +1,6 @@
 # Guinevere.OpenGL.SilkNET
 
 OpenGL API using [Silk.NET](https://github.com/dotnet/Silk.NET).
--
 
 ## Basic Usage
 
@@ -20,7 +19,7 @@ public abstract class Program
 
         win.RunGui(() =>
         {
-            gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 29, 29, 29));
+            gui.DrawRect(gui.ScreenRect, Color.Blue);
             gui.DrawText("Hello, world!");
         });
     }

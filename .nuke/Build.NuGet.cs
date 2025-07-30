@@ -94,7 +94,7 @@ partial class Build
                     .SetAuthors("Bruno Massa")
                     .SetCopyright($"Copyright © Bruno Massa {DateTime.UtcNow.Year}")
                     .SetPackageProjectUrl("https://mass4.org/guinevere")
-                    .SetRepositoryUrl("https://github.com/mass4/guinevere.git")
+                    .SetRepositoryUrl("https://github.com/mass4org/guinevere.git")
                     .SetRepositoryType("git")
                     .SetPackageRequireLicenseAcceptance(false)
                     .SetPackageTags("gui imgui graphics opengl vulkan skia gamedev opentk raylib silk.net")

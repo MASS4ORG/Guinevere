@@ -1,7 +1,7 @@
 # Guinevere.OpenGL.OpenTK
 
 OpenGL API using [OpenTK](https://github.com/opentk/opentk).
--
+
 ## Basic Usage
 
 ```csharp
@@ -19,7 +19,7 @@ public abstract class Program
 
         win.RunGui(() =>
         {
-            gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 29, 29, 29));
+            gui.DrawRect(gui.ScreenRect, Color.Blue);
             gui.DrawText("Hello, world!");
         });
     }

@@ -1,12 +1,12 @@
 # Guinevere.Vulkan.SilkNET
 
 Modern Vulkan API using [Silk.NET](https://github.com/dotnet/Silk.NET).
--
+
 ## Basic Usage
 
 ```csharp
 using Guinevere;
-using Guinevere.OpenGL.OpenTK;
+using Guinevere.Vulkan.SilkNET;
 
 namespace Sample;
 
@@ -19,7 +19,7 @@ public abstract class Program
 
         win.RunGui(() =>
         {
-            gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 29, 29, 29));
+            gui.DrawRect(gui.ScreenRect, Blue;
             gui.DrawText("Hello, world!");
         });
     }
