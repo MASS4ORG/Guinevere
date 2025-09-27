@@ -1,5 +1,10 @@
 # Guinevere
 
+<<<<<<< HEAD
+=======
+![guinevere](/guinevere-badge.png)
+
+>>>>>>> 9eff633461f70c2d204194eaf4fac86d8ea9c7ee
 [![CI](https://github.com/mass4org/guinevere/actions/workflows/ci.yml/badge.svg)](https://github.com/brmassa/guinevere/actions/workflows/ci.yml)
 [![Release](https://github.com/mass4org/guinevere/actions/workflows/release.yml/badge.svg)](https://github.com/brmassa/guinevere/actions/workflows/release.yml)
 [![NuGet](https://img.shields.io/nuget/v/org.mass4.Guinevere.svg)](https://www.nuget.org/packages/org.mass4.Guinevere/)
@@ -11,10 +16,46 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 >
 > Guinevere is a very new library. While an earlier iteration is actively used within the Turian Game Engine, this specific library hasn't yet established a track record of reliability in production environments.
 
+<<<<<<< HEAD
 ## Features
 
 - **Cross-Platform: Windows, Linux & Mac**
 - **Immediate Mode**
+=======
+- [Features](#features)
+- [Quick Start](#quick-start)
+  - [Basic Usage](#basic-usage)
+  - [Layout](#layout)
+  - [Vertical Layout & Alignment](#vertical-layout--alignment)
+  - [Interactive Elements](#interactive-elements)
+  - [Text & Unicode](#text--unicode)
+  - [Text Wrapping & Styling](#text-wrapping--styling)
+  - [Rainbow Text Effect](#rainbow-text-effect)
+  - [Animation](#animation)
+  - [Smooth Value Animation](#smooth-value-animation)
+  - [Hover Animations](#hover-animations)
+  - [Shape](#shape)
+  - [Shape Operations](#shape-operations)
+  - [Shape Transformations](#shape-transformations)
+  - [Advanced Shape Effects](#advanced-shape-effects)
+  - [Basic Controls](#basic-controls)
+  - [Tab Controls](#tab-controls)
+- [Advanced Features](#advanced-features)
+  - [Layout System](#layout-system)
+  - [Animation System](#animation-system)
+  - [Interactive Elements](#interactive-elements)
+  - [Visual Effects](#visual-effects)
+  - [Scrolling and Clipping](#scrolling-and-clipping)
+  - [Advanced Controls](#advanced-controls)
+  - [Performance Features](#performance-features)
+- [Samples](#samples)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
+## Features
+
+- **Cross-Platform: Windows, Linux & Mac**
+>>>>>>> 9eff633461f70c2d204194eaf4fac86d8ea9c7ee
 - **100% C# with Latest .NET**
 - **GPU Accelerated Rendering**
 - **Fluent API**
