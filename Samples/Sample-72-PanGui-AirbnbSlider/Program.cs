@@ -74,7 +74,7 @@ public class Program
                 _gui.DrawCircle(center + Angle.Turns(i / 12.0f).GetDirectionVector() * (innerRadius + halfThickness), 2,
                     0x00000099);
 
-            _gui.SetClipArea(_gui.CurrentNode, arcLaneShape); // Clips the shadow to the lane.
+            // _gui.SetClipArea(_gui.CurrentNode, arcLaneShape); // Clips the shadow to the lane.
 
             _gui.DrawShape(center, arcShape)
                 .RadialGradientColor(0xBA0057FF, 0xF91E50FF, innerRadius, outerRadius)
@@ -92,8 +92,6 @@ public class Program
                 .LinearGradientColor(0xD4D1D5FF, 0xFFFCFFFF)
                 .InnerShadow(0xffffffff, 1, 2)
                 .OuterShadow(0x00000066, 4);
-
-            _gui.SetClipArea(_gui.CurrentNode, arcLaneShape);
         }
     }
 }
