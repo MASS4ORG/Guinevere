@@ -22,9 +22,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageDownload Include="coverlet.console" Version="[6.0.4]" />
-        <PackageDownload Include="GitVersion.Tool" Version="[6.3.0]" />
-        <PackageDownload Include="ReportGenerator" Version="[5.4.7]" />
+        <PackageDownload Include="coverlet.console" Version="[10.0.0]" />
+        <PackageDownload Include="GitVersion.Tool" Version="[6.7.0]" />
+        <PackageDownload Include="ReportGenerator" Version="[5.5.9]" />
     </ItemGroup>
 
 </Project>
