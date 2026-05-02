@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Changed: update to Dotnet 10
+- Changed: update dependencies up to 2026-05-02
+
 ## v[1.4.3][] 2025-09-28
 
 ## v[1.4.2][] 2025-07-30
