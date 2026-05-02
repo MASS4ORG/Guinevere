@@ -17,41 +17,41 @@
 name: publish-on-tag
 
 on:
-  push:
-    tags:
-      - "v*"
-  workflow_dispatch:
+    push:
+        tags:
+            - "v*"
+    workflow_dispatch:
 
 jobs:
-  ubuntu-latest:
-    name: ubuntu-latest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "9.0.x"
-      - name: "Cache: .nuke/temp, ~/.nuget/packages"
-        uses: actions/cache@v4
-        with:
-          path: |
-            .nuke/temp
-            ~/.nuget/packages
-          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
-      - name: "Run: Release (build, test, pack, publish, samples)"
-        run: ./build.cmd Release
-        env:
-          NuGetApiKey: ${{ secrets.NUGET_API_KEY }}
-          GitHubToken: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Publish: packages"
-        uses: actions/upload-artifact@v4
-        with:
-          name: packages
-          path: packages
-      - name: "Publish: samples-output"
-        uses: actions/upload-artifact@v4
-        with:
-          name: samples-output
-          path: samples-output
+    ubuntu-latest:
+        name: ubuntu-latest
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "10.0.x"
+            - name: "Cache: .nuke/temp, ~/.nuget/packages"
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      .nuke/temp
+                      ~/.nuget/packages
+                  key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
+            - name: "Run: Release (build, test, pack, publish, samples)"
+              run: ./build.cmd Release
+              env:
+                  NuGetApiKey: ${{ secrets.NUGET_API_KEY }}
+                  GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+            - name: "Publish: packages"
+              uses: actions/upload-artifact@v4
+              with:
+                  name: packages
+                  path: packages
+            - name: "Publish: samples-output"
+              uses: actions/upload-artifact@v4
+              with:
+                  name: samples-output
+                  path: samples-output

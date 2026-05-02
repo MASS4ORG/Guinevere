@@ -32,10 +32,8 @@ This project adheres to a code of conduct that we expect all contributors to fol
 
 Before you begin, ensure you have the following installed:
 
-- **.NET 9.0 SDK** or later
+- **.NET 10.0 SDK** or later
 - **Git** for version control
-- **Visual Studio 2022** or **JetBrains Rider** (recommended IDEs)
-- **GitVersion** for semantic versioning
 
 ### Fork and Clone
 
