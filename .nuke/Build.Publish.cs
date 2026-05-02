@@ -39,7 +39,7 @@ partial class Build
         {
             Log.Information("Publishing Guinevere core library for {Runtime}", RuntimeIdentifier);
 
-            var publishSettings = DotNetTasks.DotNetPublish(s => s
+            DotNetTasks.DotNetPublish(s => s
                 // .SetProject(Solution.Guinevere)
                 .SetConfiguration(ConfigurationSet)
                 .SetOutput(PublishDir)
@@ -98,10 +98,10 @@ partial class Build
         {
             var integrationProjects = new[]
             {
-                Solution.GetProject("Guinevere.OpenGL.OpenTK"),
-                Solution.GetProject("Guinevere.OpenGL.Raylib"),
-                Solution.GetProject("Guinevere.OpenGL.SilkNET"),
-                Solution.GetProject("Guinevere.Vulkan.SilkNET")
+                Solution.Integrations.Guinevere_OpenGL_OpenTK,
+                Solution.Integrations.Guinevere_OpenGL_Raylib,
+                Solution.Integrations.Guinevere_OpenGL_SilkNET,
+                Solution.Integrations.Guinevere_Vulkan_SilkNET
             };
 
             foreach (var project in integrationProjects)
