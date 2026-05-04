@@ -1,23 +1,20 @@
-# Sample - PanGui - HelloWorld
+# Sample-70-PanGui-HelloWorld
 
-https://pangui.io/
+The simplest possible Guinevere application. It demonstrates the absolute minimum code required to get a window running and display some text.
 
-Program.cs
-```cs
-using PanGui;
+## Code Overview
+```csharp
+var gui = new Gui();
+using var win = new GuiWindow(gui);
 
-public class Program
-{
-    public static void Main()
-    {
-        var gui = new Gui();
-        var win = new GuiWindow(gui);
-
-        win.RunGui(() =>
-        {
-            gui.DrawRect(gui.ScreenRect, 0x292929FF);
-            gui.DrawText("Hello, world!");
-        });
-    }
-}
+win.RunGui(() => {
+    gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 29, 29, 29));
+    gui.DrawText("Hello, world!");
+});
 ```
+
+## Features
+- Window initialization.
+- Basic frame loop.
+- Background clearing.
+- Simple text rendering.

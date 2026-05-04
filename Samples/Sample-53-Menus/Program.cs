@@ -23,35 +23,37 @@ public abstract class Program
     public static void Main()
     {
         var gui = new Gui();
-        using var win = new GuiWindow(gui, 1000, 700, "Flyout Menu Demo - Multi-Level Application Menus");
+        using var win = new GuiWindow(gui, 1200, 800, "Flyout Menu Demo");
 
-        win.RunGui(() =>
+        win.RunGui(() => Draw(gui));
+    }
+
+    private static void Draw(Gui gui)
+    {
+        var backgroundColor = _darkMode ? Color.FromArgb(255, 45, 45, 45) : Color.FromArgb(255, 248, 249, 250);
+        gui.DrawRect(gui.ScreenRect, backgroundColor);
+
+        using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
         {
-            var backgroundColor = _darkMode ? Color.FromArgb(255, 45, 45, 45) : Color.FromArgb(255, 248, 249, 250);
-            gui.DrawRect(gui.ScreenRect, backgroundColor);
+            // Menu Bar
+            RenderMenuBar(gui);
 
-            using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
+            // Main Content Area
+            using (gui.Node().Expand().Direction(Axis.Horizontal).Enter())
             {
-                // Menu Bar
-                RenderMenuBar(gui);
+                // Sidebar
+                RenderSidebar(gui);
 
-                // Main Content Area
-                using (gui.Node().Expand().Direction(Axis.Horizontal).Enter())
-                {
-                    // Sidebar
-                    RenderSidebar(gui);
-
-                    // Content Area
-                    RenderContentArea(gui);
-                }
-
-                // Status Bar
-                RenderStatusBar(gui);
+                // Content Area
+                RenderContentArea(gui);
             }
 
-            // Handle flyout rendering (must be after main UI)
-            HandleContextMenus(gui);
-        });
+            // Status Bar
+            RenderStatusBar(gui);
+        }
+
+        // Handle flyout rendering (must be after main UI)
+        HandleContextMenus(gui);
     }
 
     private static void RenderMenuBar(Gui gui)

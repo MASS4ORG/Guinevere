@@ -7,7 +7,7 @@ namespace Sample_73_PanGui_MusicApp;
 
 public partial class Program
 {
-// Style constants
+    // Style constants
     private readonly float _gap = 8;
     private readonly float _padding = 10;
     private readonly float _borderRadius = 5;
@@ -17,95 +17,98 @@ public partial class Program
     private Gui _gui = null!;
     private GuiWindow _window = null!;
 
-    public static int Main(string[] args)
+    public static void Main()
     {
         var program = new Program();
         program.Run();
-        return 0;
     }
 
     private void Run()
     {
         _gui = new Gui();
-        _window = new GuiWindow(_gui);
+        _window = new GuiWindow(_gui, 1600, 900, "PanGui Music Production App");
 
-        _window.RunGui(() =>
+        _window.RunGui(Draw);
+    }
+
+    private void Draw()
+    {
+        // Set default font, text color, and size for the windowHandler
+        _gui.SetTextFont(_arialNormal);
+        _gui.SetTextColor(Color.Blue);
+        _gui.SetTextSize(18);
+
+        // Draw the windowHandler background
+        _gui.DrawBackgroundRect().RadialGradientColor(0x292423FF, 0x322D29FF, 0, _gui.ScreenRect.MaxDimension);
+
+        DrawTopToolbar();
+
+        // The root layout node that helps us layout all the main sections of the application
+        using (_gui.Node().Expand().Gap(_gap).Margin(_gap).Direction(Axis.Horizontal).Enter())
         {
-            // Set default font, text color, and size for the windowHandler
-            _gui.SetTextFont(_arialNormal);
-            _gui.SetTextColor(Color.Blue);
-            _gui.SetTextSize(18);
-
-            // Draw the windowHandler background
-            _gui.DrawBackgroundRect().RadialGradientColor(0x292423FF, 0x322D29FF, 0, _gui.ScreenRect.MaxDimension);
-
-            DrawTopToolbar();
-
-            // The root layout node that helps us layout all the main sections of the application
-            using (_gui.Node().Expand().Gap(_gap).Margin(_gap).Direction(Axis.Horizontal).Enter())
+            // Section for instruments and snapshots on the left
+            using (_gui.Node().Expand().Gap(_gap).Enter())
             {
-                // Section for instruments and snapshots on the left
-                using (_gui.Node().Expand().Gap(_gap).Enter())
-                {
-                    // Draw the instrument controls
-                    DrawInstruments();
-                }
-
-                // Section for track list and pads on the right
-                using (_gui.Node(400, UnitValue.Expand()).Gap(_gap).Enter())
-                {
-                    // Draw the library
-                    using (_gui.Node().Expand().Enter())
-                    {
-                        DrawLibrary();
-                    }
-
-                    // Draw the pad player
-                    using (_gui.Node().ExpandWidth().Enter())
-                    {
-                        DrawPadPlayer(padPlayer);
-                    }
-                }
+                // Draw the instrument controls
+                DrawInstruments();
             }
 
-            // Section for the piano, mod wheel, and additional controls at the bottom
-            using (_gui.Node().ExpandWidth().Enter())
+            // Section for track list and pads on the right
+            using (_gui.Node(400, UnitValue.Expand()).Gap(_gap).Enter())
             {
-                // PanGui lets you pass LayoutNodes around as arguments to functions, which enables a sort of
-                // semi-retained pattern within the immediate mode pattern  - which is pretty cool!
-                // In this case, we give the DrawPianoSection function a LayoutNode to put the piano buttons into.
-                LayoutNode pianoButtonsLayoutNode;
-                float radius = 90;
-                ShapePos s1 = ShapePos.Rectangle(_gui.CurrentNode.LastChild.OuterRect);
-                ShapePos s2 =
-                    ShapePos.RectangleRounded(
-                        _gui.CurrentNode.FirstChild.ChildNodes[3].Rect.Expand(30, 0).AddHeight(80),
-                        radius);
-                ShapePos pianoBgShape = s1.SmoothUnion(s2, radius);
-
-                // Draw the snapshot controls and prepare layout for piano buttons
-                using (_gui.Node().Direction(Axis.Horizontal).Gap(_gap).Margin(_gap).MarginTop(0).ExpandWidth().Enter())
+                // Draw the library
+                using (_gui.Node().Expand().Enter())
                 {
-                    // The mask to cut off some of the snapshot buttons with
-                    ShapePos mask = pianoBgShape.Expand(10);
-
-                    DrawSnapshotButton(snapshots[0], default);
-                    DrawSnapshotButton(snapshots[1], default);
-                    DrawSnapshotButton(snapshots[2], mask);
-                    pianoButtonsLayoutNode = _gui.Node().ExpandHeight();
-                    DrawSnapshotButton(snapshots[3], mask);
-                    DrawSnapshotButton(snapshots[4], default);
-                    DrawSnapshotButton(snapshots[5], default);
+                    DrawLibrary();
                 }
 
+                // Draw the pad player
                 using (_gui.Node().ExpandWidth().Enter())
                 {
-                    DrawPianoSection(pianoButtonsLayoutNode, pianoBgShape);
+                    DrawPadPlayer(padPlayer);
                 }
             }
+        }
 
-            return;
-        });
+        // Section for the piano, mod wheel, and additional controls at the bottom
+        using (_gui.Node().ExpandWidth().Enter())
+        {
+            // PanGui lets you pass LayoutNodes around as arguments to functions, which enables a sort of
+            // semi-retained pattern within the immediate mode pattern  - which is pretty cool!
+            // In this case, we give the DrawPianoSection function a LayoutNode to put the piano buttons into.
+            LayoutNode pianoButtonsLayoutNode;
+            float radius = 90;
+            ShapePos s1 = ShapePos.Rectangle(_gui.CurrentNode.LastChild.OuterRect);
+            ShapePos s2 =
+                ShapePos.RectangleRounded(
+                    _gui.CurrentNode.FirstChild.ChildNodes[3].Rect.Expand(30, 0).AddHeight(80),
+                    radius);
+            ShapePos pianoBgShape = s1.SmoothUnion(s2, radius);
+
+            // Draw the snapshot controls and prepare layout for piano buttons
+            using (_gui.Node().Direction(Axis.Horizontal).Gap(_gap).Margin(_gap).MarginTop(0).ExpandWidth().Enter())
+            {
+                // The mask to cut off some of the snapshot buttons with
+                ShapePos mask = pianoBgShape.Expand(10);
+
+                DrawSnapshotButton(snapshots[0], default);
+                DrawSnapshotButton(snapshots[1], default);
+                DrawSnapshotButton(snapshots[2], mask);
+                pianoButtonsLayoutNode = _gui.Node().ExpandHeight();
+                DrawSnapshotButton(snapshots[3], mask);
+                DrawSnapshotButton(snapshots[4], default);
+                DrawSnapshotButton(snapshots[5], default);
+            }
+            ...
+
+                using (_gui.Node().ExpandWidth().Enter())
+            {
+                DrawPianoSection(pianoButtonsLayoutNode, pianoBgShape);
+            }
+        }
+
+        return;
+    });
     }
 
     private LayoutNode DrawSnapshotButton(Snapshot snapshot, ShapePos mask)
@@ -1208,22 +1211,22 @@ public partial class Program
     }
 
 
-// The user-code for this popup function looks like this:
-//
-// Popup popup = GetPopup();
-//
-// if (gui.Button("Show Popup"))
-// {
-//     popup.Show();
-// }
-//
-// if (popup.IsVisible())
-// {
-//     using (popup.BodyContainer.Enter())
-//     {
-//         gui.DrawText("Hello, world!");
-//     }
-// }
+    // The user-code for this popup function looks like this:
+    //
+    // Popup popup = GetPopup();
+    //
+    // if (gui.Button("Show Popup"))
+    // {
+    //     popup.Show();
+    // }
+    //
+    // if (popup.IsVisible())
+    // {
+    //     using (popup.BodyContainer.Enter())
+    //     {
+    //         gui.DrawText("Hello, world!");
+    //     }
+    // }
     private Popup GetPopup()
     {
         var popup = new Popup() { Visibility = _gui.GetAnimationFloat() };

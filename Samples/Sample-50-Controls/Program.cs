@@ -11,7 +11,10 @@ public abstract class Program
     private static bool _toggle2 = true;
     private static string _textInput = "Hello World";
     private static string _passwordInput = "";
-    private static string _textArea = "This is a\nmultiline\ntext area\nThis is a\nmultiline\ntext area\nThis is a\nmultiline\ntext area";
+
+    private static string _textArea =
+        "This is a\nmultiline\ntext area\nThis is a\nmultiline\ntext area\nThis is a\nmultiline\ntext area";
+
     private static int _dropdown1 = -1;
     private static int _dropdown2 = 1;
     private static readonly string[] DropdownOptions = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"];
@@ -24,49 +27,51 @@ public abstract class Program
         var gui = new Gui();
         using var win = new GuiWindow(gui, 1000, 1200, "Primitive UI Controls Demo");
 
-        win.RunGui(() =>
+        win.RunGui(() => Draw(gui));
+    }
+
+    private static void Draw(Gui gui)
+    {
+        gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 245, 245, 245));
+
+        using (gui.Node().Expand().Margin(20).Direction(Axis.Vertical).Gap(20).Enter())
         {
-            gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 245, 245, 245));
+            gui.DrawBackgroundRect(Color.White, radius: 10);
 
-            using (gui.Node().Expand().Margin(20).Direction(Axis.Vertical).Gap(20).Enter())
+            // Title
+            using (gui.Node().Height(50).Enter())
             {
-                gui.DrawBackgroundRect(Color.White, radius: 10);
+                gui.DrawText("Primitive UI Controls Demo", size: 24, color: Color.FromArgb(255, 51, 51, 51));
+            }
 
-                // Title
-                using (gui.Node().Height(50).Enter())
+            // Main content area
+            using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Margin(20).Enter())
+            {
+                // Left side - Tabs
+                using (gui.Node().Width(600).Enter())
                 {
-                    gui.DrawText("Primitive UI Controls Demo", size: 24, color: Color.FromArgb(255, 51, 51, 51));
+                    gui.Tabs(ref _activeTab, tabs =>
+                    {
+                        tabs.Tab("Buttons", () => RenderButtonsTab(gui));
+                        tabs.Tab("Inputs", () => RenderInputsTab(gui));
+                        tabs.Tab("Tab Controls", () => RenderTabControlsTab(gui));
+                    });
                 }
 
-                // Main content area
-                using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Margin(20).Enter())
+                // Right side - Current Values Display
+                using (gui.Node().Width(300).Enter())
                 {
-                    // Left side - Tabs
-                    using (gui.Node().Width(600).Enter())
-                    {
-                        gui.Tabs(ref _activeTab, tabs =>
-                        {
-                            tabs.Tab("Buttons", () => RenderButtonsTab(gui));
-                            tabs.Tab("Inputs", () => RenderInputsTab(gui));
-                            tabs.Tab("Tab Controls", () => RenderTabControlsTab(gui));
-                        });
-                    }
-
-                    // Right side - Current Values Display
-                    using (gui.Node().Width(300).Enter())
-                    {
-                        RenderCurrentValues(gui);
-                    }
-                }
-
-                // Footer
-                using (gui.Node().Height(40).Enter())
-                {
-                    gui.DrawText($"Frame: {gui.Time.Frames} | FPS: {gui.Time.SmoothFps:N1}",
-                        size: 12, color: Color.FromArgb(255, 153, 153, 153));
+                    RenderCurrentValues(gui);
                 }
             }
-        });
+
+            // Footer
+            using (gui.Node().Height(40).Enter())
+            {
+                gui.DrawText($"Frame: {gui.Time.Frames} | FPS: {gui.Time.SmoothFps:N1}",
+                    size: 12, color: Color.FromArgb(255, 153, 153, 153));
+            }
+        }
     }
 
     private static void RenderButtonsTab(Gui gui)

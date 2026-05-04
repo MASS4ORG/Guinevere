@@ -4,6 +4,12 @@ namespace Sample_52_TextInput_MultiPlatform;
 
 public abstract class Program
 {
+    private static string _textInput = "Hello World!";
+    private static string _passwordInput = "";
+    private static string _multilineText = "Multi-line text\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nEdit me!";
+    private static string _numberInput = "12345";
+    private static string _testInput = "";
+
     public static void Main(string[] args)
     {
         var integration = args.Length > 0 ? args[0].ToLower() : "silknet-opengl";
@@ -15,41 +21,26 @@ public abstract class Program
 
         var gui = new Gui();
 
-        // Test data
-        var textInput = "Hello World!";
-        var passwordInput = "";
-        var multilineText = "Multi-line text\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nEdit me!";
-        var numberInput = "12345";
-        var testInput = "";
-
         switch (integration)
         {
             case "opentk":
-                RunWithOpenTk(gui,
-                    () => DrawTextInputDemo(gui, ref textInput, ref passwordInput, ref multilineText, ref numberInput,
-                        ref testInput));
+                RunWithOpenTk(gui, () => Draw(gui));
                 break;
             case "silknet-opengl":
             case "silknet":
-                RunWithSilkNetOpenGl(gui,
-                    () => DrawTextInputDemo(gui, ref textInput, ref passwordInput, ref multilineText, ref numberInput,
-                        ref testInput));
+                RunWithSilkNetOpenGl(gui, () => Draw(gui));
                 break;
             case "silknet-vulkan":
             case "vulkan":
-                RunWithSilkNetVulkan(gui,
-                    () => DrawTextInputDemo(gui, ref textInput, ref passwordInput, ref multilineText, ref numberInput,
-                        ref testInput));
+                RunWithSilkNetVulkan(gui, () => Draw(gui));
                 break;
             case "raylib":
-                RunWithRaylib(gui,
-                    () => DrawTextInputDemo(gui, ref textInput, ref passwordInput, ref multilineText, ref numberInput,
-                        ref testInput));
+                RunWithRaylib(gui, () => Draw(gui));
                 break;
             default:
                 Console.WriteLine($"Unknown integration: {integration}");
                 Console.WriteLine("Available integrations: opentk, silknet-opengl, silknet-vulkan, raylib");
-                return;
+                break;
         }
     }
 
@@ -57,7 +48,7 @@ public abstract class Program
     {
         try
         {
-            var win = new Guinevere.OpenGL.OpenTK.GuiWindow(gui, 1000);
+            using var win = new Guinevere.OpenGL.OpenTK.GuiWindow(gui, 1200, 800, "Text Input Test - OpenTK");
             win.RunGui(drawCallback);
         }
         catch (Exception ex)
@@ -70,7 +61,7 @@ public abstract class Program
     {
         try
         {
-            var win = new Guinevere.OpenGL.SilkNET.GuiWindow(gui, 1000);
+            using var win = new Guinevere.OpenGL.SilkNET.GuiWindow(gui, 1200, 800, "Text Input Test - SilkNET OpenGL");
             win.RunGui(drawCallback);
         }
         catch (Exception ex)
@@ -83,7 +74,7 @@ public abstract class Program
     {
         try
         {
-            var win = new Guinevere.Vulkan.SilkNET.GuiWindow(gui, 1000);
+            using var win = new Guinevere.Vulkan.SilkNET.GuiWindow(gui, 1200, 800, "Text Input Test - SilkNET Vulkan");
             win.RunGui(drawCallback);
         }
         catch (Exception ex)
@@ -96,7 +87,7 @@ public abstract class Program
     {
         try
         {
-            var win = new Guinevere.OpenGL.Raylib.GuiWindow(gui, 1000);
+            using var win = new Guinevere.OpenGL.Raylib.GuiWindow(gui, 1200, 800, "Text Input Test - Raylib");
             win.RunGui(drawCallback);
         }
         catch (Exception ex)
@@ -105,8 +96,7 @@ public abstract class Program
         }
     }
 
-    private static void DrawTextInputDemo(Gui gui, ref string textInput, ref string passwordInput,
-        ref string multilineText, ref string numberInput, ref string testInput)
+    private static void Draw(Gui gui)
     {
         gui.DrawRect(gui.ScreenRect, Color.DarkGray);
         gui.DrawWindowTitlebar();
@@ -126,24 +116,24 @@ public abstract class Program
 
                     // Basic text input
                     gui.DrawText("Basic Text Input:");
-                    gui.TextInput(ref textInput, width: 400, placeholder: "Type here...");
+                    gui.TextInput(ref _textInput, width: 400, placeholder: "Type here...");
 
                     // Password input
                     gui.DrawText("Password Input:");
-                    gui.PasswordInput(ref passwordInput, width: 400, placeholder: "Enter password...");
+                    gui.PasswordInput(ref _passwordInput, width: 400, placeholder: "Enter password...");
 
                     // Number input
                     gui.DrawText("Number Input:");
-                    gui.TextInput(ref numberInput, width: 200, placeholder: "Numbers only...");
+                    gui.TextInput(ref _numberInput, width: 200, placeholder: "Numbers only...");
 
                     // Test input for experimentation
                     gui.DrawText("Test Input (experiment here):");
-                    gui.TextInput(ref testInput, width: 500,
+                    gui.TextInput(ref _testInput, width: 500,
                         placeholder: "Test various characters, copy/paste, etc...");
 
                     // Multi-line text area
                     gui.DrawText("Multi-line Text Area:");
-                    gui.TextArea(ref multilineText, width: 600, height: 120,
+                    gui.TextArea(ref _multilineText, width: 600, height: 120,
                         placeholder: "Multi-line text...\nPress Enter for new lines");
                 }
 
@@ -155,16 +145,16 @@ public abstract class Program
 
                     gui.Node(10, 10);
 
-                    gui.DrawText($"Text Input: '{textInput}' ({textInput.Length} chars)");
+                    gui.DrawText($"Text Input: '{_textInput}' ({_textInput.Length} chars)");
                     gui.DrawText(
-                        $"Password: {passwordInput} ({passwordInput.Length} chars)");
-                    gui.DrawText($"Number: '{numberInput}'");
-                    gui.DrawText($"Test Input: '{testInput}' ({testInput.Length} chars)");
+                        $"Password: {_passwordInput} ({_passwordInput.Length} chars)");
+                    gui.DrawText($"Number: '{_numberInput}'");
+                    gui.DrawText($"Test Input: '{_testInput}' ({_testInput.Length} chars)");
 
-                    var multilinePreview = multilineText.Replace('\n', '↵');
+                    var multilinePreview = _multilineText.Replace('\n', '↵');
                     if (multilinePreview.Length > 60)
                         multilinePreview = multilinePreview.Substring(0, 60) + "...";
-                    gui.DrawText($"Multiline: '{multilinePreview}' ({multilineText.Split('\n').Length} lines)");
+                    gui.DrawText($"Multiline: '{multilinePreview}' ({_multilineText.Split('\n').Length} lines)");
 
                     // Instructions
                     using (gui.Node().Expand().Direction(Axis.Vertical).Enter())

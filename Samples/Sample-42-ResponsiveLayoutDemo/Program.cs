@@ -3,40 +3,42 @@ using Guinevere.OpenGL.SilkNET;
 
 namespace Sample_42_ResponsiveLayoutDemo;
 
-public abstract class ResponsiveLayoutDemo
+public abstract class Program
 {
     public static void Main()
     {
         var gui = new Gui();
-        using var win = new GuiWindow(gui, 1024, 768);
+        using var win = new GuiWindow(gui, 1024, 768, "Responsive Layout Demo");
 
-        win.RunGui(() =>
+        win.RunGui(() => Draw(gui));
+    }
+
+    private static void Draw(Gui gui)
+    {
+        var screenWidth = gui.ScreenRect.W;
+        var isMobile = screenWidth < 600;
+        var isTablet = screenWidth is >= 600 and < 900;
+
+        gui.DrawRect(gui.ScreenRect, Color.AntiqueWhite);
+
+        using (gui.Node().Expand().Margin(isMobile ? 10 : 20).Enter())
         {
-            var screenWidth = gui.ScreenRect.W;
-            var isMobile = screenWidth < 600;
-            var isTablet = screenWidth is >= 600 and < 900;
-
-            gui.DrawRect(gui.ScreenRect, Color.AntiqueWhite);
-
-            using (gui.Node().Expand().Margin(isMobile ? 10 : 20).Enter())
+            if (isMobile)
             {
-                if (isMobile)
-                {
-                    // Mobile layout - single column
-                    DrawMobileLayout(gui);
-                }
-                else if (isTablet)
-                {
-                    // Tablet layout - flexible columns
-                    DrawTabletLayout(gui);
-                }
-                else
-                {
-                    // Desktop layout - full three-column
-                    DrawDesktopLayout(gui);
-                }
+                // Mobile layout - single column
+                DrawMobileLayout(gui);
             }
-        });
+            else if (isTablet)
+            {
+                // Tablet layout - flexible columns
+                DrawTabletLayout(gui);
+            }
+            else
+            {
+                // Desktop layout - full three-column
+                DrawDesktopLayout(gui);
+            }
+        }
     }
 
     private static void DrawMobileLayout(Gui gui)

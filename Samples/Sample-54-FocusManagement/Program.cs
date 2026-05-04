@@ -33,109 +33,116 @@ public abstract class Program
     public static void Main()
     {
         var gui = new Gui();
-        using var win = new GuiWindow(gui, 1200, 800, "Focus Management Demo - Use Tab/Shift+Tab to navigate");
+        using var win = new GuiWindow(gui, 1200, 800, "Focus Management Demo");
 
-        win.RunGui(() =>
+        win.RunGui(() => Draw(gui));
+    }
+
+    private static void Draw(Gui gui)
+    {
+        // Background
+        gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 240, 242, 247));
+
+        using (gui.Node().Expand().Margin(20).Direction(Axis.Vertical).Gap(15).Enter())
         {
-            // Background
-            gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 240, 242, 247));
+            // Header
+            RenderHeader(gui);
 
-            using (gui.Node().Expand().Margin(20).Direction(Axis.Vertical).Gap(15).Enter())
+            // Main content area
+            using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
             {
-                // Header
-                RenderHeader(gui);
-
-                // Main content area
-                using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
+                // Left panel - User Form
+                using (gui.Node().Width(400).Enter())
                 {
-                    // Left panel - User Form
-                    using (gui.Node().Width(400).Enter())
-                    {
-                        RenderUserForm(gui);
-                    }
-
-                    // Middle panel - Preferences
-                    using (gui.Node().Width(350).Enter())
-                    {
-                        RenderPreferences(gui);
-                    }
-
-                    // Right panel - Focus Info & Advanced Settings
-                    using (gui.Node().Expand().Enter())
-                    {
-                        RenderFocusInfo(gui);
-                        gui.Node().Height(20).Enter().Dispose(); // Spacer
-                        RenderAdvancedSettings(gui);
-                    }
+                    RenderUserForm(gui);
                 }
 
-                // --- Focusable Controls Demo Section ---
-                using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Margin(0, 30, 0, 0).Enter())
+                // Middle panel - Preferences
+                using (gui.Node().Width(350).Enter())
                 {
-                    gui.DrawText("Focusable Controls Demo", size: 16, color: Color.FromArgb(255, 51, 51, 51));
-                    using (gui.Node().Direction(Axis.Horizontal).Gap(20).Enter())
-                    {
-                        // Buttons
-                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
-                        {
-                            gui.DrawText("Buttons:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
-                            gui.Button(new Text("Primary Button"));
-                            var iconClicked = false;
-                            gui.IconButton('★', ref iconClicked);
-                        }
-                        // Dropdown
-                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
-                        {
-                            gui.DrawText("Dropdown:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
-                            var dropdownOptions = new[] { "Option 1", "Option 2", "Option 3" };
-                            var dropdownIndex = 0;
-                            gui.Dropdown(dropdownOptions, ref dropdownIndex);
-                        }
-                        // Tabs
-                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
-                        {
-                            gui.DrawText("Tabs:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
-                            var tabIndex = 0;
-                            gui.Tabs(ref tabIndex, builder =>
-                            {
-                                builder.Tab("Tab 1", () => gui.DrawText("Tab 1 Content"));
-                                builder.Tab("Tab 2", () => gui.DrawText("Tab 2 Content"));
-                                builder.Tab("Tab 3", () => gui.DrawText("Tab 3 Content"));
-                            });
-                        }
-                        // Menu (simulate with MenuBarBuilder)
-                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
-                        {
-                            gui.DrawText("Menu:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
-                            var menuBar = new MenuBarBuilder(gui, 32, Color.Black, Color.FromArgb(255, 230, 230, 230), 14, 8);
-                            menuBar.Menu("File", flyout =>
-                            {
-                                flyout.Item("New", () => { });
-                                flyout.Item("Open", () => { });
-                                flyout.Item("Save", () => { });
-                            });
-                            menuBar.Menu("Edit", flyout =>
-                            {
-                                flyout.Item("Undo", () => { });
-                                flyout.Item("Redo", () => { });
-                            });
-                        }
-                        // Toggles & Checkboxes
-                        using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
-                        {
-                            gui.DrawText("Toggles & Checkboxes:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
-                            var toggleDemo = false;
-                            gui.Toggle(ref toggleDemo, "Demo Toggle");
-                            var checkboxDemo = false;
-                            gui.Checkbox(ref checkboxDemo, "Demo Checkbox");
-                        }
-                    }
+                    RenderPreferences(gui);
                 }
 
-                // Footer with instructions
-                RenderFooter(gui);
+                // Right panel - Focus Info & Advanced Settings
+                using (gui.Node().Expand().Enter())
+                {
+                    RenderFocusInfo(gui);
+                    gui.Node().Height(20).Enter().Dispose(); // Spacer
+                    RenderAdvancedSettings(gui);
+                }
             }
-        });
+
+            // --- Focusable Controls Demo Section ---
+            using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Margin(0, 30, 0, 0).Enter())
+            {
+                gui.DrawText("Focusable Controls Demo", size: 16, color: Color.FromArgb(255, 51, 51, 51));
+                using (gui.Node().Direction(Axis.Horizontal).Gap(20).Enter())
+                {
+                    // Buttons
+                    using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                    {
+                        gui.DrawText("Buttons:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                        gui.Button(new Text("Primary Button"));
+                        var iconClicked = false;
+                        gui.IconButton('★', ref iconClicked);
+                    }
+
+                    // Dropdown
+                    using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                    {
+                        gui.DrawText("Dropdown:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                        var dropdownOptions = new[] { "Option 1", "Option 2", "Option 3" };
+                        var dropdownIndex = 0;
+                        gui.Dropdown(dropdownOptions, ref dropdownIndex);
+                    }
+
+                    // Tabs
+                    using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                    {
+                        gui.DrawText("Tabs:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                        var tabIndex = 0;
+                        gui.Tabs(ref tabIndex, builder =>
+                        {
+                            builder.Tab("Tab 1", () => gui.DrawText("Tab 1 Content"));
+                            builder.Tab("Tab 2", () => gui.DrawText("Tab 2 Content"));
+                            builder.Tab("Tab 3", () => gui.DrawText("Tab 3 Content"));
+                        });
+                    }
+
+                    // Menu (simulate with MenuBarBuilder)
+                    using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                    {
+                        gui.DrawText("Menu:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                        var menuBar = new MenuBarBuilder(gui, 32, Color.Black, Color.FromArgb(255, 230, 230, 230), 14,
+                            8);
+                        menuBar.Menu("File", flyout =>
+                        {
+                            flyout.Item("New", () => { });
+                            flyout.Item("Open", () => { });
+                            flyout.Item("Save", () => { });
+                        });
+                        menuBar.Menu("Edit", flyout =>
+                        {
+                            flyout.Item("Undo", () => { });
+                            flyout.Item("Redo", () => { });
+                        });
+                    }
+
+                    // Toggles & Checkboxes
+                    using (gui.Node().Direction(Axis.Vertical).Gap(8).Enter())
+                    {
+                        gui.DrawText("Toggles & Checkboxes:", size: 13, color: Color.FromArgb(255, 85, 85, 85));
+                        var toggleDemo = false;
+                        gui.Toggle(ref toggleDemo, "Demo Toggle");
+                        var checkboxDemo = false;
+                        gui.Checkbox(ref checkboxDemo, "Demo Checkbox");
+                    }
+                }
+            }
+
+            // Footer with instructions
+            RenderFooter(gui);
+        }
     }
 
     private static void RenderHeader(Gui gui)
@@ -276,7 +283,9 @@ public abstract class Program
                 var focusText = currentFocus.Length > 30 ? $"{currentFocus[..27]}..." : currentFocus;
 
                 gui.DrawText($"Current Focus: {focusText}", size: 12,
-                    color: gui.Focus.HasAnyFocus ? Color.FromArgb(255, 100, 149, 237) : Color.FromArgb(255, 102, 102, 102));
+                    color: gui.Focus.HasAnyFocus
+                        ? Color.FromArgb(255, 100, 149, 237)
+                        : Color.FromArgb(255, 102, 102, 102));
 
                 gui.DrawText($"Focus Changed: {(gui.Focus.FocusChangedThisFrame ? "Yes" : "No")}",
                     size: 12, color: Color.FromArgb(255, 102, 102, 102));
@@ -290,7 +299,8 @@ public abstract class Program
                 gui.DrawText("• Press Tab to move forward", size: 11, color: Color.FromArgb(255, 102, 102, 102));
                 gui.DrawText("• Press Shift+Tab to move backward", size: 11, color: Color.FromArgb(255, 102, 102, 102));
                 gui.DrawText("• Click controls to focus them", size: 11, color: Color.FromArgb(255, 102, 102, 102));
-                gui.DrawText("• Space bar activates focused toggles/checkboxes", size: 11, color: Color.FromArgb(255, 102, 102, 102));
+                gui.DrawText("• Space bar activates focused toggles/checkboxes", size: 11,
+                    color: Color.FromArgb(255, 102, 102, 102));
                 gui.DrawText("• Panel titles show focus status", size: 11, color: Color.FromArgb(255, 102, 102, 102));
             }
         }
@@ -324,7 +334,9 @@ public abstract class Program
                     }
 
                     var arrow = _showAdvanced ? "▼" : "▶";
-                    var textColor = gui.HasFocus() ? Color.FromArgb(255, 100, 149, 237) : Color.FromArgb(255, 51, 51, 51);
+                    var textColor = gui.HasFocus()
+                        ? Color.FromArgb(255, 100, 149, 237)
+                        : Color.FromArgb(255, 51, 51, 51);
 
                     // Draw focus indicator
                     if (gui.HasFocus())
@@ -386,7 +398,9 @@ public abstract class Program
                 gui.DrawText($"Frame: {gui.Time.Frames} | FPS: {gui.Time.SmoothFps:N1}",
                     size: 12, color: Color.FromArgb(255, 153, 153, 153));
 
-                var statusText = gui.Focus.HasAnyFocus ? $"Active Control: {gui.Focus.CurrentFocusedId}" : "No active control";
+                var statusText = gui.Focus.HasAnyFocus
+                    ? $"Active Control: {gui.Focus.CurrentFocusedId}"
+                    : "No active control";
 
                 using (gui.Node().ExpandWidth().Enter())
                 {

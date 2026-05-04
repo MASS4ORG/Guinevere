@@ -1,8 +1,19 @@
-# Sample - PanGui - AirBnB Slider
+# Sample-72-PanGui-AirbnbSlider
 
-> Warning: Code still not working!!
+This sample demonstrates advanced shape composition, custom interactions, and high-fidelity visual effects in Guinevere, inspired by the Airbnb mobile app slider.
 
-PanGui site shows a quick demos of would be a widget made in HTMl for Airbnb.
+## Features
+- **Complex Shapes**: Creating a circular lane and an arc handle using SkiaSharp-powered CSG (Constructive Solid Geometry) operations.
+- **Custom Interaction**: A polar-coordinate based slider handle that can be dragged in a circular motion.
+- **Advanced Rendering**:
+    - Multi-layered linear and radial gradients.
+    - Inner and outer shadows with custom offsets and blurs.
+    - Dynamic scaling of the handle on hover/hold.
+- **State Interpolation**: Smooth animation of the slider position when not being dragged.
+
+## Interaction
+- Drag the circular handle along the arc to select the number of months.
+- Watch the smooth transition as you release the mouse button.
 
 ## Original Code
 

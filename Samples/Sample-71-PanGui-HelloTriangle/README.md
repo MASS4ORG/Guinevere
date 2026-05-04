@@ -1,6 +1,7 @@
-# Sample - PanGui - HelloTriangle
+# Sample-71-PanGui-HelloTriangle
 
 https://pangui.io/
+A classic "Hello Triangle" demonstration, but with a Guinevere twist: an animated, vertex-colored triangle alongside text rendering.
 
 Program.cs
 ```cs
