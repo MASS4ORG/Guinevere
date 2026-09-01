@@ -1,6 +1,3 @@
-using Xunit;
-using Guinevere;
-
 namespace Guinevere.Tests;
 
 public class FocusManagerTests
@@ -246,7 +243,7 @@ public class FocusManagerTests
         var focusManager = new FocusManager();
 
         // Act & Assert - Multiple frame cycles
-        for (int i = 0; i < 5; i++)
+        for (var i = 0; i < 5; i++)
         {
             focusManager.BeginFrame();
             focusManager.RegisterFocusableControl("persistent-control", canReceiveFocus: true);
