@@ -13,12 +13,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="coverlet.msbuild" Version="10.0.0">
+        <PackageReference Include="coverlet.msbuild" Version="10.0.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Nuke.Common" Version="10.1.0" />
-        <PackageReference Include="Serilog" Version="4.3.1" />
+        <PackageReference Include="Serilog" Version="4.4.0" />
     </ItemGroup>
 
     <ItemGroup>
