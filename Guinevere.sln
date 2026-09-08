@@ -68,6 +68,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-54-FocusManagement",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-09-TextEffects", "Samples\Sample-09-TextEffects\Sample-09-TextEffects.csproj", "{6E72D5F7-5BA1-4D76-BA9D-F6511397B188}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-10-LayoutConstraints", "Samples\Sample-10-LayoutConstraints\Sample-10-LayoutConstraints.csproj", "{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -458,6 +460,18 @@ Global
 		{6E72D5F7-5BA1-4D76-BA9D-F6511397B188}.Release|x64.Build.0 = Release|Any CPU
 		{6E72D5F7-5BA1-4D76-BA9D-F6511397B188}.Release|x86.ActiveCfg = Release|Any CPU
 		{6E72D5F7-5BA1-4D76-BA9D-F6511397B188}.Release|x86.Build.0 = Release|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Debug|x64.Build.0 = Debug|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Debug|x86.Build.0 = Debug|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Release|x64.ActiveCfg = Release|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Release|x64.Build.0 = Release|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Release|x86.ActiveCfg = Release|Any CPU
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -492,5 +506,6 @@ Global
 		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
 		{34D80C20-6A81-455E-99E2-F88D1DD1E9AF} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
 		{6E72D5F7-5BA1-4D76-BA9D-F6511397B188} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
+		{DA2D38DB-ACA7-489E-A0F1-97C2DEE5889B} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
 	EndGlobalSection
 EndGlobal

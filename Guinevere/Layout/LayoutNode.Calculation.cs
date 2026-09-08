@@ -61,20 +61,26 @@ public partial class LayoutNode
 
     private float CalculateWidth(float availableWidth)
     {
-        return Style.ExpandWidth || Style.IsExpanded
+        var width = Style.ExpandWidth || Style.IsExpanded
             ? availableWidth * Style.ExpandWidthPercentage
-            : Style.Width >= 0
-                ? Style.Width
-                : CalculateContentWidth(availableWidth);
+            : Style.WidthPercent >= 0f
+                ? availableWidth * Style.WidthPercent
+                : Style.Width >= 0
+                    ? Style.Width
+                    : CalculateContentWidth(availableWidth);
+        return Style.ClampWidth(width);
     }
 
     private float CalculateHeight(float availableHeight)
     {
-        return Style.ExpandHeight || Style.IsExpanded
+        var height = Style.ExpandHeight || Style.IsExpanded
             ? availableHeight * Style.ExpandHeightPercentage
-            : Style.Height >= 0
-                ? Style.Height
-                : CalculateContentHeight(availableHeight);
+            : Style.HeightPercent >= 0f
+                ? availableHeight * Style.HeightPercent
+                : Style.Height >= 0
+                    ? Style.Height
+                    : CalculateContentHeight(availableHeight);
+        return Style.ClampHeight(height);
     }
 
     private float CalculateContentWidth(float availableWidth)
@@ -154,6 +160,17 @@ public partial class LayoutNode
         if (ChildNodes.Count == 0) return;
 
         var contentRect = InnerRect;
+
+        // Resolve percentage sizes against this node's content box into concrete pixels, so the
+        // rest of the flow treats them like any explicitly-sized child.
+        foreach (var child in ChildNodes)
+        {
+            if (child.Style.WidthPercent >= 0f)
+                child.Style.Width = contentRect.W * child.Style.WidthPercent;
+            if (child.Style.HeightPercent >= 0f)
+                child.Style.Height = contentRect.H * child.Style.HeightPercent;
+        }
+
         if (Style.Direction == Axis.Vertical)
             LayoutChildrenVertically(contentRect);
         else
@@ -199,6 +216,7 @@ public partial class LayoutNode
 
             var childHeight = CalculateChildHeight(child, context, remainingHeight, defaultChildHeight);
             childHeight = Math.Max(childHeight, context.AvailableHeight - marginHeight > 0 ? 10f : 0f);
+            childHeight = child.Style.ClampHeight(childHeight);
 
             dimensions[i] = new ChildDimensions { Height = childHeight };
         }
@@ -306,6 +324,7 @@ public partial class LayoutNode
             : child.Style.Width >= 0
                 ? child.Style.Width
                 : Math.Max(availableChildWidth, 0);
+        childWidth = child.Style.ClampWidth(childWidth);
 
         var extraSpaceX = Math.Max(0, contentRect.W - childWidth - child.Style.MarginLeft - child.Style.MarginRight);
         var alignmentOffsetX = extraSpaceX * Style.AlignContentHorizontal;
@@ -357,6 +376,7 @@ public partial class LayoutNode
             var availableChildWidthForMin = Math.Max(0,
                 context.AvailableWidth - child.Style.MarginLeft - child.Style.MarginRight);
             childWidth = Math.Max(childWidth, availableChildWidthForMin > 0 ? 10f : 0f);
+            childWidth = child.Style.ClampWidth(childWidth);
 
             dimensions[i] = new ChildDimensions { Width = childWidth };
         }
@@ -456,6 +476,7 @@ public partial class LayoutNode
         var childHeight = child.Style.Height >= 0
             ? child.Style.Height
             : Math.Max(0, availableChildHeight);
+        childHeight = child.Style.ClampHeight(childHeight);
 
         var extraSpaceY = Math.Max(0, contentRect.H - childHeight - child.Style.MarginTop - child.Style.MarginBottom);
         var alignmentOffsetY = extraSpaceY * Style.AlignContentVertical;

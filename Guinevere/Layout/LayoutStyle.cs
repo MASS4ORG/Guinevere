@@ -173,11 +173,55 @@ public struct LayoutStyle
     /// </summary>
     public bool Wrap { get; set; }
 
+    // Constraints — all default to -1, meaning "unset".
+
+    /// <summary>Lower bound on the resolved width in pixels, or -1 for none.</summary>
+    public float MinWidth { get; set; }
+
+    /// <summary>Upper bound on the resolved width in pixels, or -1 for none.</summary>
+    public float MaxWidth { get; set; }
+
+    /// <summary>Lower bound on the resolved height in pixels, or -1 for none.</summary>
+    public float MinHeight { get; set; }
+
+    /// <summary>Upper bound on the resolved height in pixels, or -1 for none.</summary>
+    public float MaxHeight { get; set; }
+
+    /// <summary>Width as a fraction (0..1) of the parent's inner width, or -1 to use <see cref="Width"/>.</summary>
+    public float WidthPercent { get; set; }
+
+    /// <summary>Height as a fraction (0..1) of the parent's inner height, or -1 to use <see cref="Height"/>.</summary>
+    public float HeightPercent { get; set; }
+
+    /// <summary>Clamps <paramref name="width"/> to <see cref="MinWidth"/> / <see cref="MaxWidth"/> when set.</summary>
+    /// <param name="width">The width to constrain.</param>
+    public readonly float ClampWidth(float width)
+    {
+        if (MinWidth >= 0f && width < MinWidth) width = MinWidth;
+        if (MaxWidth >= 0f && width > MaxWidth) width = MaxWidth;
+        return width;
+    }
+
+    /// <summary>Clamps <paramref name="height"/> to <see cref="MinHeight"/> / <see cref="MaxHeight"/> when set.</summary>
+    /// <param name="height">The height to constrain.</param>
+    public readonly float ClampHeight(float height)
+    {
+        if (MinHeight >= 0f && height < MinHeight) height = MinHeight;
+        if (MaxHeight >= 0f && height > MaxHeight) height = MaxHeight;
+        return height;
+    }
+
     /// <summary>
     /// Creates a new LayoutStyle with default values
     /// </summary>
     public static LayoutStyle Default => new()
     {
+        MinWidth = -1f,
+        MaxWidth = -1f,
+        MinHeight = -1f,
+        MaxHeight = -1f,
+        WidthPercent = -1f,
+        HeightPercent = -1f,
         Width = -1f,
         Height = -1f,
         Gap = 0f,

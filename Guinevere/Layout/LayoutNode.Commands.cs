@@ -406,6 +406,98 @@ public partial class LayoutNode
         return this;
     }
 
+    /// <summary>Sets the width as a fraction (0..1) of the parent's inner width.</summary>
+    /// <param name="fraction">Fraction of the parent's inner width, clamped to [0, 1].</param>
+    /// <returns>The current instance, for chaining.</returns>
+    public LayoutNode WidthPercent(float fraction)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.WidthPercent = Math.Clamp(fraction, 0f, 1f);
+        return this;
+    }
+
+    /// <summary>Sets the height as a fraction (0..1) of the parent's inner height.</summary>
+    /// <param name="fraction">Fraction of the parent's inner height, clamped to [0, 1].</param>
+    /// <returns>The current instance, for chaining.</returns>
+    public LayoutNode HeightPercent(float fraction)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.HeightPercent = Math.Clamp(fraction, 0f, 1f);
+        return this;
+    }
+
+    /// <summary>Constrains the resolved width to the range [<paramref name="min"/>, <paramref name="max"/>].</summary>
+    /// <param name="min">Lower bound in pixels, or -1 for none.</param>
+    /// <param name="max">Upper bound in pixels, or -1 for none.</param>
+    /// <returns>The current instance, for chaining.</returns>
+    public LayoutNode WidthConstraint(float min = -1f, float max = -1f)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.MinWidth = min;
+        Style.MaxWidth = max;
+        return this;
+    }
+
+    /// <summary>Constrains the resolved height to the range [<paramref name="min"/>, <paramref name="max"/>].</summary>
+    /// <param name="min">Lower bound in pixels, or -1 for none.</param>
+    /// <param name="max">Upper bound in pixels, or -1 for none.</param>
+    /// <returns>The current instance, for chaining.</returns>
+    public LayoutNode HeightConstraint(float min = -1f, float max = -1f)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.MinHeight = min;
+        Style.MaxHeight = max;
+        return this;
+    }
+
+    /// <summary>Sets the minimum resolved width in pixels.</summary>
+    /// <param name="value">Lower bound in pixels.</param>
+    /// <returns>The current instance, for chaining.</returns>
+    public LayoutNode MinWidth(float value)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.MinWidth = value;
+        return this;
+    }
+
+    /// <summary>Sets the maximum resolved width in pixels.</summary>
+    /// <param name="value">Upper bound in pixels.</param>
+    /// <returns>The current instance, for chaining.</returns>
+    public LayoutNode MaxWidth(float value)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.MaxWidth = value;
+        return this;
+    }
+
+    /// <summary>Sets the minimum resolved height in pixels.</summary>
+    /// <param name="value">Lower bound in pixels.</param>
+    /// <returns>The current instance, for chaining.</returns>
+    public LayoutNode MinHeight(float value)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.MinHeight = value;
+        return this;
+    }
+
+    /// <summary>Sets the maximum resolved height in pixels.</summary>
+    /// <param name="value">Upper bound in pixels.</param>
+    /// <returns>The current instance, for chaining.</returns>
+    public LayoutNode MaxHeight(float value)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.MaxHeight = value;
+        return this;
+    }
+
     /// <summary>
     /// Sets the left position of the layout node.
     /// </summary>
