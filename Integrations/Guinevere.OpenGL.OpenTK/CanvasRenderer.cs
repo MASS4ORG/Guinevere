@@ -20,7 +20,7 @@ public class CanvasRenderer : ICanvasRenderer
 
         // Init Skia
         _surface = SKSurface.Create(
-            new SKImageInfo(width, height));
+            new SKImageInfo(width, height, SKColorType.Rgba8888));
         _canvas = _surface?.Canvas;
 
         SetupTexture();
@@ -42,7 +42,7 @@ public class CanvasRenderer : ICanvasRenderer
         _surface?.Dispose();
 
         // Create new surface with new dimensions
-        _surface = SKSurface.Create(new SKImageInfo(width, height));
+        _surface = SKSurface.Create(new SKImageInfo(width, height, SKColorType.Rgba8888));
         _canvas = _surface?.Canvas;
 
         // Update texture

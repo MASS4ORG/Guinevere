@@ -38,11 +38,12 @@ public class CanvasRenderer : ICanvasRenderer
         _texture = _gl.GenTexture();
         _gl.BindTexture(TextureTarget.Texture2D, _texture);
 
-        // Initialize with empty data - use BGRA format for SilkNET compatibility
+        // Initialize with empty data. The Skia surface is RGBA8888 and uploads are RGBA, so the
+        // placeholder allocation matches.
         _gl.TexImage2D(TextureTarget.Texture2D,
             0, InternalFormat.Rgba,
             (uint)_width, (uint)_height, 0,
-            PixelFormat.Bgra, PixelType.UnsignedByte,
+            PixelFormat.Rgba, PixelType.UnsignedByte,
             null);
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
@@ -181,7 +182,7 @@ public class CanvasRenderer : ICanvasRenderer
         _height = height;
 
         _surface?.Dispose();
-        _surface = SKSurface.Create(new SKImageInfo(width, height));
+        _surface = SKSurface.Create(new SKImageInfo(width, height, SKColorType.Rgba8888));
         _canvas = _surface?.Canvas;
 
         // Recreate texture with a new size
@@ -196,7 +197,7 @@ public class CanvasRenderer : ICanvasRenderer
         _height = height;
 
         _surface = SKSurface.Create(
-            new SKImageInfo(width, height));
+            new SKImageInfo(width, height, SKColorType.Rgba8888));
         _canvas = _surface?.Canvas;
 
         // Set up OpenGL resources
