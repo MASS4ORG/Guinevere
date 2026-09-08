@@ -13,12 +13,13 @@ public partial class Gui
         Font? font = null,
         float wrapWidth = 0,
         bool centerInRect = true,
-        bool clip = false)
+        bool clip = false,
+        TextEffects? effects = null)
     {
         return DrawTextOrGlyph(new DrawConfig(
             text,
             font ?? CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value,
-            size, color, centerInRect, clip, wrapWidth));
+            size, color, centerInRect, clip, wrapWidth, effects));
     }
 
     /// <summary>
@@ -31,12 +32,13 @@ public partial class Gui
         Color? color = null,
         Font? font = null,
         bool centerInRect = true,
-        bool clip = false)
+        bool clip = false,
+        TextEffects? effects = null)
     {
         return DrawTextOrGlyph(new DrawConfig(
             iconCode.ToString(),
             font ?? CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value,
-            size, color, centerInRect, clip, 0));
+            size, color, centerInRect, clip, 0, effects));
     }
 
     private record struct DrawConfig(
@@ -46,7 +48,8 @@ public partial class Gui
         Color? Color,
         bool Center,
         bool Clip,
-        float WrapWidth);
+        float WrapWidth,
+        TextEffects? Effects = null);
 
     private record struct FontRun(
         string Text,
@@ -140,7 +143,7 @@ public partial class Gui
         if (Pass != Pass.Pass2Render)
             return node;
 
-        var paint = new SKPaint { IsAntialias = true, Color = color };
+        var layers = BuildTextPaints(color, cfg.Effects, node.InnerRect);
 
         // Draw each line
         for (var i = 0; i < lines.Length; i++)
@@ -153,10 +156,90 @@ public partial class Gui
 
             if (cfg.Center) pos.X += Math.Max((node.InnerRect.W - lineWidth) * 0.5f, 0f);
 
-            DrawLineWithFallback(line, pos, mainFont, iconFont, paint, cfg.Clip, node);
+            DrawLineWithFallback(line, pos, mainFont, iconFont, layers, cfg.Clip, node);
         }
 
         return node;
+    }
+
+    /// <summary>
+    /// Builds the ordered layers one line of text is drawn with, back to front: drop shadow,
+    /// outline, fill, inner shadow. Each layer carries a position offset (used for the inner
+    /// shadow). With no <see cref="TextEffects"/> this is a single flat-colour fill.
+    /// </summary>
+    private static List<(SKPaint Paint, Vector2 Offset)> BuildTextPaints(Color color, TextEffects? effects, Rect bounds)
+    {
+        if (effects is null)
+            return [(new SKPaint { IsAntialias = true, Color = color }, Vector2.Zero)];
+
+        var layers = new List<(SKPaint, Vector2)>(4);
+
+        if (effects.DropShadow is { } drop)
+        {
+            layers.Add((new SKPaint
+            {
+                IsAntialias = true,
+                Color = drop.Color,
+                ImageFilter = SKImageFilter.CreateDropShadowOnly(
+                    drop.Offset.X, drop.Offset.Y, drop.Blur, drop.Blur, drop.Color),
+            }, Vector2.Zero));
+        }
+
+        if (effects.Outline is { } outline && outline.Width > 0f)
+        {
+            layers.Add((new SKPaint
+            {
+                IsAntialias = true,
+                Color = outline.Color,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = outline.Width * 2f, // half is hidden behind the fill
+                StrokeJoin = SKStrokeJoin.Round,
+            }, Vector2.Zero));
+        }
+
+        var fill = new SKPaint { IsAntialias = true, Color = color };
+        if (effects.Gradient is { } gradient)
+            fill.Shader = BuildGradientShader(gradient, bounds);
+        layers.Add((fill, Vector2.Zero));
+
+        if (effects.InnerShadow is { } inner)
+        {
+            // The offset, blurred copy in shadow colour, kept only where the fill already painted:
+            // a soft dark band along the offset edge, inside the glyphs.
+            layers.Add((new SKPaint
+            {
+                IsAntialias = true,
+                Color = inner.Color,
+                BlendMode = SKBlendMode.SrcATop,
+                ImageFilter = inner.Blur > 0f ? SKImageFilter.CreateBlur(inner.Blur, inner.Blur) : null,
+            }, inner.Offset));
+        }
+
+        return layers;
+    }
+
+    private static SKShader BuildGradientShader(TextEffects.TextGradient gradient, Rect bounds)
+    {
+        var rect = new SKRect(bounds.X, bounds.Y, bounds.X + bounds.W, bounds.Y + bounds.H);
+        SKColor[] colors = [gradient.From, gradient.To];
+
+        if (gradient.Radial)
+        {
+            return SKShader.CreateRadialGradient(
+                new SKPoint(rect.MidX, rect.MidY),
+                Math.Max(rect.Width, rect.Height) * 0.5f,
+                colors, null, SKShaderTileMode.Clamp);
+        }
+
+        var radians = gradient.AngleDegrees * MathF.PI / 180f;
+        var half = Math.Max(rect.Width, rect.Height) * 0.5f;
+        var dx = MathF.Cos(radians) * half;
+        var dy = MathF.Sin(radians) * half;
+
+        return SKShader.CreateLinearGradient(
+            new SKPoint(rect.MidX - dx, rect.MidY - dy),
+            new SKPoint(rect.MidX + dx, rect.MidY + dy),
+            colors, null, SKShaderTileMode.Clamp);
     }
 
     /// <summary>
@@ -179,19 +262,25 @@ public partial class Gui
     /// <summary>
     /// Draws a line of text with font fallback support.
     /// </summary>
-    private void DrawLineWithFallback(string line, Vector2 startPos, Font mainFont, Font iconFont, SKPaint paint,
-        bool clip, LayoutNode node)
+    private void DrawLineWithFallback(string line, Vector2 startPos, Font mainFont, Font iconFont,
+        IReadOnlyList<(SKPaint Paint, Vector2 Offset)> layers, bool clip, LayoutNode node)
     {
         var runs = CreateFontRuns(line, mainFont, iconFont);
+
+        // Precompute each run's x once, then draw the whole line per layer (back to front).
+        var positions = new Vector2[runs.Count];
         var currentX = startPos.X;
-
-        foreach (var run in runs)
+        for (var i = 0; i < runs.Count; i++)
         {
-            var pos = new Vector2(currentX, startPos.Y);
-            AddDraw(new Text(run.Text, pos, run.Font.SkFont, paint), clip, node);
-
-            run.Font.SkFont.MeasureText(run.Text, out var bounds);
+            positions[i] = new Vector2(currentX, startPos.Y);
+            runs[i].Font.SkFont.MeasureText(runs[i].Text, out var bounds);
             currentX += bounds.Width;
+        }
+
+        foreach (var (paint, offset) in layers)
+        {
+            for (var i = 0; i < runs.Count; i++)
+                AddDraw(new Text(runs[i].Text, positions[i] + offset, runs[i].Font.SkFont, paint), clip, node);
         }
     }
 
