@@ -1,5 +1,3 @@
-using System.Numerics;
-
 namespace Guinevere.Tests.Styling;
 
 /// <summary>Integration tests for <see cref="Gui.StyledNode"/> — a stylesheet drives a real frame.</summary>

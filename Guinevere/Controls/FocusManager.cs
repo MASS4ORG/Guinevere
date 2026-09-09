@@ -41,10 +41,8 @@ public class FocusManager
         {
             _focusableControls[controlId] = new FocusableControl
             {
-                Id = controlId,
                 ParentId = parentId,
-                CanReceiveFocus = canReceiveFocus,
-                IsInteractable = isInteractable
+                CanReceiveFocus = canReceiveFocus
             };
         }
         else
@@ -53,7 +51,6 @@ public class FocusManager
             var control = _focusableControls[controlId];
             control.ParentId = parentId;
             control.CanReceiveFocus = canReceiveFocus;
-            control.IsInteractable = isInteractable;
         }
 
         // Track the order controls are registered this frame
@@ -253,11 +250,6 @@ public class FocusManager
 public class FocusableControl
 {
     /// <summary>
-    /// Unique identifier for this control.
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
-
-    /// <summary>
     /// ID of the parent control, or null if this is a root control.
     /// </summary>
     public string? ParentId { get; set; }
@@ -266,11 +258,6 @@ public class FocusableControl
     /// Whether this control can receive keyboard focus.
     /// </summary>
     public bool CanReceiveFocus { get; set; } = true;
-
-    /// <summary>
-    /// Whether this control responds to mouse interactions.
-    /// </summary>
-    public bool IsInteractable { get; set; } = true;
 }
 
 /// <summary>

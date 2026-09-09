@@ -48,9 +48,9 @@ public class DeferShape : Shape
     public new static DeferShape Rect(
         float left, float top, float right, float bottom)
     {
-        var path = new SKPath();
-        path.AddRect(new SKRect(left, top, right, bottom));
-        return new DeferShape(path);
+        var builder = new SKPathBuilder();
+        builder.AddRect(new SKRect(left, top, right, bottom));
+        return new DeferShape(builder.Detach());
     }
 
     /// <summary>

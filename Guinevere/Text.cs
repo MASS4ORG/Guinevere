@@ -44,7 +44,7 @@ public class Text(string label, Vector2? position = null, SKFont? font = null, S
     /// <param name="canvas">The canvas onto which the text will be drawn.</param>
     public void Render(Gui gui, LayoutNode node, SKCanvas canvas)
     {
-        canvas.DrawText(Label, Position, Font, Paint);
+        canvas.DrawText(Label, Position, SKTextAlign.Left, Font, Paint);
     }
 
     /// <summary>

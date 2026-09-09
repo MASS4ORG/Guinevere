@@ -65,8 +65,6 @@ public static class StyleLayout
                 case "margin":
                     ApplyBox(value, node.Margin, node.Margin, node.Margin);
                     break;
-                default:
-                    break;
             }
         }
     }

@@ -18,8 +18,8 @@ public class AnimationManager
     {
         public AnimationFloat Animation { get; }
         public bool LastTargetState { get; set; }
-        public float Duration { get; set; }
-        public Func<float, float> EasingFunction { get; set; }
+        [UsedImplicitly] public float Duration { get; set; }
+        [UsedImplicitly] public Func<float, float> EasingFunction { get; set; }
 
         public BoolAnimationState(AnimationFloat animation, bool initialState, float duration,
             Func<float, float> easingFunction)

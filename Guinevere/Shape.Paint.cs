@@ -29,13 +29,11 @@ public partial class Shape
         // Apply spread by expanding the shadow if needed
         if (spread != 0)
         {
-            var expandedPath = new SKPath();
             var strokePaint = new SKPaint
             {
                 Style = SKPaintStyle.Stroke, StrokeWidth = Math.Abs(spread) * 2, StrokeJoin = SKStrokeJoin.Round
             };
-            strokePaint.GetFillPath(shadowPath, expandedPath);
-            shadowPath = expandedPath;
+            shadowPath = strokePaint.GetFillPath(shadowPath);
         }
 
         // Create shadow paint with blur
@@ -91,13 +89,11 @@ public partial class Shape
         // Expand shadow if spread is specified
         if (spread != 0)
         {
-            var expandedPath = new SKPath();
             var strokePaint = new SKPaint
             {
                 Style = SKPaintStyle.Stroke, StrokeWidth = Math.Abs(spread) * 2, StrokeJoin = SKStrokeJoin.Round
             };
-            strokePaint.GetFillPath(shadowPath, expandedPath);
-            shadowPath = expandedPath;
+            shadowPath = strokePaint.GetFillPath(shadowPath);
         }
 
         // For outer shadow, subtract the original shape from the shadow to prevent overlap

@@ -10,7 +10,7 @@ public abstract class Program
     private static string _passwordInput = "";
     private static string _textArea =
         "Multi-line text area\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10\nLine 11\nLine 12\nLine 13\nLine 14\nLine 15\nLine 16\nLine 17\nLine 18\nLine 19\nLine 20";
-    private static int _activeTabIndex = 0;
+    private static int _activeTabIndex;
 
     public static void Main()
     {

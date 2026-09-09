@@ -53,9 +53,7 @@ public partial class Gui
 
     private record struct FontRun(
         string Text,
-        Font Font,
-        int StartIndex,
-        int Length);
+        Font Font);
 
     /// <summary>
     /// Checks if a character is supported by the given font by querying the underlying typeface.
@@ -67,7 +65,7 @@ public partial class Gui
     /// <returns>True if the font supports the character, false if fallback is needed.</returns>
     private static bool IsCharacterSupported(Font font, char character)
     {
-        return font.SkFont.Typeface.GetGlyph(character) != 0;
+        return font.SkFont.GetGlyph(character) != 0;
     }
 
     /// <summary>
@@ -91,9 +89,7 @@ public partial class Gui
                 // End current run and start a new one
                 runs.Add(new FontRun(
                     text.Substring(currentRunStart, i - currentRunStart),
-                    currentFont,
-                    currentRunStart,
-                    i - currentRunStart));
+                    currentFont));
 
                 currentRunStart = i;
                 currentFont = charFont;
@@ -103,9 +99,7 @@ public partial class Gui
         // Add the final run
         runs.Add(new FontRun(
             text.Substring(currentRunStart),
-            currentFont,
-            currentRunStart,
-            text.Length - currentRunStart));
+            currentFont));
 
         return runs;
     }
@@ -282,52 +276,6 @@ public partial class Gui
             for (var i = 0; i < runs.Count; i++)
                 AddDraw(new Text(runs[i].Text, positions[i] + offset, runs[i].Font.SkFont, paint), clip, node);
         }
-    }
-
-    private string[] WrapText(string text, SKFont font, float maxWidth)
-    {
-        var lines = new List<string>();
-        var paragraphs = text.Split('\n');
-
-        foreach (var paragraph in paragraphs)
-        {
-            if (string.IsNullOrEmpty(paragraph))
-            {
-                lines.Add("");
-                continue;
-            }
-
-            var words = paragraph.Split(' ');
-            var currentLine = "";
-
-            foreach (var word in words)
-            {
-                var testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
-                font.MeasureText(testLine, out var bounds);
-
-                if (bounds.Width <= maxWidth)
-                {
-                    currentLine = testLine;
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(currentLine))
-                    {
-                        lines.Add(currentLine);
-                        currentLine = word;
-                    }
-                    else
-                    {
-                        // Single word is too long, add it anyway
-                        lines.Add(word);
-                    }
-                }
-            }
-
-            if (!string.IsNullOrEmpty(currentLine)) lines.Add(currentLine);
-        }
-
-        return lines.ToArray();
     }
 
     /// <summary>

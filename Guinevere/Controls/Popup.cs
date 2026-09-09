@@ -149,6 +149,7 @@ public static partial class ControlsExtensions
         // Adjust position to keep tooltip on screen
         tooltipPos = ConstrainToScreen(gui, tooltipPos, tooltipWidth, tooltipHeight);
 
+        // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
         using (gui.Node(tooltipWidth, tooltipHeight, filePath: filePath, lineNumber: lineNumber)
                    .Left(tooltipPos.X)
                    .Top(tooltipPos.Y)
@@ -195,6 +196,7 @@ public static partial class ControlsExtensions
 
         menuPos = ConstrainToScreen(gui, menuPos, menuWidth, menuHeight);
 
+        // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
         using (gui.Node(menuWidth, menuHeight, filePath: filePath, lineNumber: lineNumber)
                    .Left(menuPos.X)
                    .Top(menuPos.Y)

@@ -79,7 +79,9 @@ public static partial class ControlsExtensions
         var visibleItems = Math.Min(maxVisibleItems, options.Length);
         var totalHeight = height + (state.IsOpen && options.Length > 0 ? visibleItems * height + 4 : 0);
 
-        using (gui.Node(width, totalHeight, filePath: filePath, lineNumber: lineNumber).Enter())
+        // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
+        using (gui.Node(width, totalHeight,
+                   filePath: filePath, lineNumber: lineNumber).Enter())
         {
             // Main dropdown button
             RenderDropdownButton(gui, state, options, selectedIndex, placeholder, width, height,

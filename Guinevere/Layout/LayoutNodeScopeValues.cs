@@ -93,7 +93,7 @@ public class LayoutNodeScopeScrollContainerId : ILayoutNodeScopeValue<LayoutNode
     /// <summary>
     /// Gets the scroll container ID value.
     /// </summary>
-    public required string? Value { get; init; }
+    public required string? Value { get; [UsedImplicitly] init; }
 }
 
 /// <summary>
@@ -125,7 +125,7 @@ public class LayoutNodeScopeCumulativeScrollOffset : ILayoutNodeScopeValue<Layou
     /// <summary>
     /// Gets the cumulative scroll offset value.
     /// </summary>
-    public required Vector2 Value { get; init; }
+    public required Vector2 Value { get; [UsedImplicitly] init; }
 }
 
 /// <summary>
@@ -141,7 +141,7 @@ public class LayoutNodeScopeIsScrollContainer : ILayoutNodeScopeValue<LayoutNode
     /// <summary>
     /// Gets the scroll container state value.
     /// </summary>
-    public required bool Value { get; init; }
+    public required bool Value { get; [UsedImplicitly] init; }
 }
 
 /// <summary>

@@ -1,5 +1,3 @@
-using System.Numerics;
-
 namespace Guinevere.Tests.Controls;
 
 /// <summary>Tests for the multi-state <c>ImageButton</c> control.</summary>
@@ -60,6 +58,7 @@ public class ImageButtonTests
         using var pressed = Solid(new SKColor(0, 0, 220, 255));
         var px = new byte[Surface * Surface * 4];
 
+        // ReSharper disable once AccessToDisposedClosure - RunFrame invokes the callback synchronously
         var clicked = RunFrame(px, OffscreenMouse(),
             gui => gui.ImageButton(normal, hover, pressed, width: 60, height: 40));
 
@@ -80,6 +79,7 @@ public class ImageButtonTests
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(20, 20)); // inside a button laid out at the origin
 
+        // ReSharper disable once AccessToDisposedClosure - RunFrame invokes the callback synchronously
         RunFrame(px, input, gui => gui.ImageButton(normal, hover, pressed, width: 60, height: 40));
 
         var (r, g, b, _) = At(px, 20, 20);
@@ -100,6 +100,7 @@ public class ImageButtonTests
         input.MousePosition.Returns(new Vector2(20, 20));
         input.IsMouseButtonPressed(Arg.Any<MouseButton>()).Returns(true);
 
+        // ReSharper disable once AccessToDisposedClosure - RunFrame invokes the callback synchronously
         var clicked = RunFrame(px, input, gui =>
             gui.ImageButton(normal, hover, pressed, disabled, text: "X", width: 60, height: 40, enabled: false));
 
@@ -116,6 +117,7 @@ public class ImageButtonTests
         using var normal = Solid(new SKColor(220, 30, 30, 255));
         var px = new byte[Surface * Surface * 4];
 
+        // ReSharper disable once AccessToDisposedClosure - RunFrame invokes the callback synchronously
         RunFrame(px, OffscreenMouse(), gui =>
             gui.ImageButton(normal, normal, normal, width: 70, height: 50, nineSlice: new Insets(4)));
 

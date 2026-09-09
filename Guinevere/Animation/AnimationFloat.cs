@@ -50,7 +50,7 @@ public class AnimationFloat
             else
             {
                 var normalizedTime = elapsedTime / _duration;
-                var easedTime = _easingFunction((float)normalizedTime);
+                var easedTime = _easingFunction(normalizedTime);
                 _currentValue = ImMath.Lerp(_startValue, _targetValue, easedTime);
             }
         }
@@ -85,7 +85,7 @@ public class AnimationFloat
         _startValue = GetValue(); // Get current value to start from current position
         _targetValue = targetValue;
         _duration = duration;
-        _startTime = (float)_time.Elapsed;
+        _startTime = _time.Elapsed;
         _easingFunction = easingFunction;
         _isAnimating = true;
     }

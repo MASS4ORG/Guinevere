@@ -1,5 +1,3 @@
-using System.Numerics;
-
 namespace Guinevere.Tests;
 
 /// <summary>

@@ -19,9 +19,9 @@ public readonly struct InteractableElement
     /// </summary>
     public InteractableElement(Rect rect, Gui gui, string? id)
     {
-        var path = new SKPath();
-        path.AddRect(rect);
-        _shape = path;
+        var builder = new SKPathBuilder();
+        builder.AddRect(rect);
+        _shape = builder.Detach();
         _gui = gui;
         _id = id ?? $"rect_{rect.X}_{rect.Y}_{rect.W}_{rect.H}";
     }

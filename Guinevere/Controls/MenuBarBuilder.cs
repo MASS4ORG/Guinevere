@@ -13,6 +13,15 @@ public class MenuBarBuilder
     private readonly float _padding;
     private readonly Dictionary<string, bool> _menuStates = new();
 
+    /// <summary>
+    /// Creates a new menu bar builder with the specified appearance settings.
+    /// </summary>
+    /// <param name="gui">The GUI context used to draw the menu bar.</param>
+    /// <param name="height">The height of the menu bar.</param>
+    /// <param name="textColor">The color used for menu text. If null, defaults to black.</param>
+    /// <param name="hoverColor">The color used for the hover highlight. If null, a default grey is used.</param>
+    /// <param name="fontSize">The font size for menu labels.</param>
+    /// <param name="padding">The horizontal padding applied to each menu item.</param>
     public MenuBarBuilder(Gui gui, float height, Color? textColor, Color? hoverColor, float fontSize, float padding)
     {
         _gui = gui;
@@ -34,18 +43,21 @@ public class MenuBarBuilder
 
         using (_gui.Node().Height(_height).Padding(_padding, 0).Enter())
         {
-            bool isHovered;
-            bool isClicked;
-            var hasFocus = false;
-
             if (_gui.Pass == Pass.Pass2Render)
             {
                 // Register as focusable for keyboard navigation
                 _gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
                 var interactable = _gui.GetInteractable();
-                isHovered = interactable.OnHover();
-                isClicked = interactable.OnClick();
-                hasFocus = _gui.HasFocus();
+                var isHovered = interactable.OnHover();
+                var isClicked = interactable.OnClick();
+                var hasFocus = _gui.HasFocus();
+
+                // Draw hover highlight
+                if (isHovered)
+                {
+                    var rect = _gui.CurrentNode.Rect;
+                    _gui.DrawBackgroundRect(_hoverColor ?? Color.FromArgb(255, 230, 230, 230));
+                }
 
                 // Draw focus indicator if focused
                 if (hasFocus)

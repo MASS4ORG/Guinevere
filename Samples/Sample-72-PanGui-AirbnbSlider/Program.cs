@@ -50,13 +50,8 @@ public abstract class Program
             if (handleElement.OnHold())
             {
                 Vector2 delta = center - gui.Input.MousePosition;
-                t = 1 - 0.5f + MathF.Atan2(delta.X, -delta.Y) / MathF.Tau;
-                t = Math.Clamp(t, 1 / 12f, 1);
+                t = Math.Clamp(0.5f + MathF.Atan2(delta.X, -delta.Y) / MathF.Tau, 1 / 12f, 1);
                 month = (int)Math.Round(t * 12);
-            }
-            else
-            {
-                t = ImMath.Lerp(t, month / 12.0f, gui.Time.DeltaTime * 10);
             }
 
             gui.DrawShape(center, arcLaneShape)
@@ -77,7 +72,7 @@ public abstract class Program
                 .InnerShadow(0xFA144BFF, new Vector2(0, 5), 25, -8)
                 .OuterShadow(0xEA1C5Acc, 90)
                 .OuterShadow(0x000000822, new Vector2(0, 3), 10, 3)
-                .OuterShadow(0x000000811, 5, 0)
+                .OuterShadow(0x000000811, 5)
                 .OuterShadow(0x22222244, 2);
 
             gui.DrawShape(handlePos,

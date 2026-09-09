@@ -92,9 +92,9 @@ public partial class Shape : IDrawable
     public static Shape Rect(
         float left, float top, float right, float bottom)
     {
-        var path = new SKPath();
-        path.AddRect(new SKRect(left, top, right, bottom));
-        return new Shape(path);
+        var builder = new SKPathBuilder();
+        builder.AddRect(new SKRect(left, top, right, bottom));
+        return new Shape(builder.Detach());
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public partial class Shape : IDrawable
         float topLeftX, float topLeftY, float bottomRightX, float bottomRightY,
         float radius, Corner corners = Corner.All)
     {
-        var path = new SKPath();
+        var builder = new SKPathBuilder();
         var rect = new SKRect(topLeftX, topLeftY, bottomRightX, bottomRightY);
         var roundRect = new SKRoundRect();
         var radii = new[]
@@ -123,8 +123,8 @@ public partial class Shape : IDrawable
         };
         roundRect.SetRectRadii(rect, radii);
 
-        path.AddRoundRect(roundRect);
-        return new Shape(path);
+        builder.AddRoundRect(roundRect);
+        return new Shape(builder.Detach());
     }
 
     /// <summary>
@@ -135,10 +135,10 @@ public partial class Shape : IDrawable
     /// <returns>A new <see cref="Shape"/> representing the specified circle.</returns>
     public static Shape Circle(float radius, Vector2? center = null)
     {
-        var path = new SKPath();
+        var builder = new SKPathBuilder();
         var pos = center ?? new Vector2(0, 0);
-        path.AddCircle(pos.X, pos.Y, radius);
-        return new Shape(path);
+        builder.AddCircle(pos.X, pos.Y, radius);
+        return new Shape(builder.Detach());
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public partial class Shape : IDrawable
         if (sweepAngle.Degree > 360) sweepAngle -= Angle.FullCircle;
 
         // Create the main arc body
-        var arc = new SKPath();
+        var arc = new SKPathBuilder();
         var outerStart = new SKPoint(
             MathF.Cos(startFinal.Radian) * outerRadius,
             MathF.Sin(startFinal.Radian) * outerRadius);
@@ -194,7 +194,7 @@ public partial class Shape : IDrawable
 
         arc.AddCircle(startCenterX, startCenterY, halfThickness);
         arc.AddCircle(endCenterX, endCenterY, halfThickness);
-        return new Shape(arc);
+        return new Shape(arc.Detach());
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public partial class Shape : IDrawable
         if (sweepAngle.Degree > 360) sweepAngle -= Angle.FullCircle;
 
         // Create the main arc body
-        var arc = new SKPath();
+        var arc = new SKPathBuilder();
         var outerStart = new SKPoint(
             MathF.Cos(startFinal.Radian) * outerRadius,
             MathF.Sin(startFinal.Radian) * outerRadius);
@@ -242,7 +242,7 @@ public partial class Shape : IDrawable
         arc.LineTo(outerStart);
         arc.Close();
 
-        return new Shape(arc);
+        return new Shape(arc.Detach());
     }
 
     /// <summary>
@@ -271,12 +271,12 @@ public partial class Shape : IDrawable
     /// <returns>A new instance of <see cref="Shape"/> representing the triangle defined by the provided vertices.</returns>
     public static Shape Triangle(float aX, float aY, float bX, float bY, float cX, float cY)
     {
-        var path = new SKPath();
-        path.MoveTo(aX, aY);
-        path.LineTo(bX, bY);
-        path.LineTo(cX, cY);
-        path.Close();
-        return new Shape(path);
+        var builder = new SKPathBuilder();
+        builder.MoveTo(aX, aY);
+        builder.LineTo(bX, bY);
+        builder.LineTo(cX, cY);
+        builder.Close();
+        return new Shape(builder.Detach());
     }
 
     /// <summary>
@@ -291,13 +291,13 @@ public partial class Shape : IDrawable
         var height = knobRadius * MathF.Sqrt(3) / 2;
         var halfBase = knobRadius / 2;
 
-        var path = new SKPath();
-        path.MoveTo(0, -height * 2 / 3); // Top vertex
-        path.LineTo(-halfBase, height / 3); // Bottom left
-        path.LineTo(halfBase, height / 3); // Bottom right
-        path.Close();
+        var builder = new SKPathBuilder();
+        builder.MoveTo(0, -height * 2 / 3); // Top vertex
+        builder.LineTo(-halfBase, height / 3); // Bottom left
+        builder.LineTo(halfBase, height / 3); // Bottom right
+        builder.Close();
 
-        return new Shape(path);
+        return new Shape(builder.Detach());
     }
 
     /// <summary>
@@ -308,9 +308,9 @@ public partial class Shape : IDrawable
     /// <returns>A new <see cref="Shape"/> representing the rectangle.</returns>
     public static Shape Rectangle(float width, float height)
     {
-        var path = new SKPath();
-        path.AddRect(new SKRect(0, 0, width, height));
-        return new Shape(path);
+        var builder = new SKPathBuilder();
+        builder.AddRect(new SKRect(0, 0, width, height));
+        return new Shape(builder.Detach());
     }
 
     /// <summary>
@@ -322,9 +322,9 @@ public partial class Shape : IDrawable
     /// <returns>A new <see cref="Shape"/> representing the rounded rectangle.</returns>
     public static Shape RectangleRounded(float width, float height, float radius)
     {
-        var path = new SKPath();
+        var builder = new SKPathBuilder();
         var rect = new SKRect(0, 0, width, height);
-        path.AddRoundRect(rect, radius, radius);
-        return new Shape(path);
+        builder.AddRoundRect(rect, radius, radius);
+        return new Shape(builder.Detach());
     }
 }

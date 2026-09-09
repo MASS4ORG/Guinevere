@@ -93,6 +93,7 @@ public struct LayoutStyle
     /// are utilized individually. When set to false, the general Margin value is applied
     /// uniformly to all sides.
     /// </summary>
+    [UsedImplicitly]
     public bool HasSpecificMargins { get; set; }
 
     // Alignment properties
@@ -116,6 +117,7 @@ public struct LayoutStyle
     /// to its parent. This property determines how the element positions itself
     /// within the available space when its parent's layout configuration is applied.
     /// </summary>
+    [UsedImplicitly]
     public float AlignSelf { get; set; }
 
     // Expansion properties

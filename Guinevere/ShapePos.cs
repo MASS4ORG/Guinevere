@@ -38,9 +38,9 @@ public class ShapePos : Shape
     /// <returns>A new instance of <see cref="ShapePos"/> representing the rectangular shape.</returns>
     public static ShapePos Rectangle(Rect rect)
     {
-        var path = new SKPath();
-        path.AddRect(new SKRect(rect.X, rect.Y, rect.X + rect.W, rect.Y + rect.H));
-        return new ShapePos(path, rect.Position);
+        var builder = new SKPathBuilder();
+        builder.AddRect(new SKRect(rect.X, rect.Y, rect.X + rect.W, rect.Y + rect.H));
+        return new ShapePos(builder.Detach(), rect.Position);
     }
 
     /// <summary>
@@ -51,8 +51,8 @@ public class ShapePos : Shape
     /// <returns>A new instance of <see cref="ShapePos"/> representing the rounded rectangle shape.</returns>
     public static ShapePos RectangleRounded(LayoutNode node, float radius)
     {
-        var path = new SKPath();
-        path.AddRoundRect(node.Rect, radius, radius);
-        return new ShapePos(path, node.Rect.Position);
+        var builder = new SKPathBuilder();
+        builder.AddRoundRect(node.Rect, radius, radius);
+        return new ShapePos(builder.Detach(), node.Rect.Position);
     }
 }

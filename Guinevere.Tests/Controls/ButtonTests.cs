@@ -1,9 +1,3 @@
-// using System.Numerics;
-// using NSubstitute;
-// using Xunit;
-//
-// namespace Guinevere.Tests.Controls;
-//
 // public class ButtonTests : PrimitiveControlsTestBase
 // {
 //     [Fact]

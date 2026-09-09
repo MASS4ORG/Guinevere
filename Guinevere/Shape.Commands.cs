@@ -99,8 +99,7 @@ public partial class Shape
                 StrokeCap = SKStrokeCap.Round
             };
 
-            var strokePath = new SKPath();
-            strokePaint.GetFillPath(Path, strokePath);
+            var strokePath = strokePaint.GetFillPath(Path);
 
             // Union the original path with the stroke to create a filled expanded shape
             Path.Op(strokePath, SKPathOp.Union, expandedPath);
@@ -199,7 +198,6 @@ public partial class Shape
     private static SKPath SmoothUnion(SKPath unionPath, float smoothness)
     {
         // Step 1: Dilate (expand) the union to fill gaps and smooth concave areas
-        var dilatedPath = new SKPath();
         var dilatePaint = new SKPaint
         {
             Style = SKPaintStyle.Stroke,
@@ -207,7 +205,7 @@ public partial class Shape
             StrokeJoin = SKStrokeJoin.Round,
             StrokeCap = SKStrokeCap.Round
         };
-        dilatePaint.GetFillPath(unionPath, dilatedPath);
+        var dilatedPath = dilatePaint.GetFillPath(unionPath);
 
         // Step 2: Unite the original with the dilated version
         var expandedPath = new SKPath();

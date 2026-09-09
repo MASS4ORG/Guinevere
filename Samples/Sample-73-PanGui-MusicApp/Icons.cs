@@ -4,7 +4,7 @@ namespace Sample_73_PanGui_MusicApp;
 
 static class Icons
 {
-    public static ImFont IconFont;
+    public static ImFont IconFont = null!;
     public const char MenuBurger = '\uf0c9';
     public const char ChartSimpleHorizontal = '\ue474';
     public const char FloppyDisk = '\uf0c7';

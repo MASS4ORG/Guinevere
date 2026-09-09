@@ -9,7 +9,6 @@ public static partial class ControlsExtensions
     private class FlyoutState
     {
         public int HoveredIndex { get; set; } = -1;
-        public Dictionary<int, FlyoutState> Submenus { get; set; } = new();
     }
 
     /// <summary>
@@ -46,6 +45,7 @@ public static partial class ControlsExtensions
         // Adjust position to keep menu on screen
         var adjustedPosition = ConstrainToScreen(gui, position, menuWidth, menuHeight);
 
+        // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
         using (gui.Node(menuWidth, menuHeight, filePath: filePath, lineNumber: lineNumber)
                    .Left(adjustedPosition.X)
                    .Top(adjustedPosition.Y)
@@ -100,7 +100,7 @@ public static partial class ControlsExtensions
             {
                 var bgColor = backgroundColor ?? Color.FromArgb(248, 249, 250);
                 gui.DrawBackgroundRect(bgColor);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, Color.FromArgb(200, 200, 200), 1f);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, Color.FromArgb(200, 200, 200));
             }
 
             var builder = new MenuBarBuilder(gui, height, textColor, hoverColor, fontSize, padding);
@@ -117,7 +117,6 @@ public static partial class ControlsExtensions
         float itemHeight, ref bool isOpen)
     {
         var mousePos = gui.Input.MousePosition;
-        var previousHovered = state.HoveredIndex;
         state.HoveredIndex = -1;
 
         if (IsMouseInRect(mousePos, rect))
@@ -135,8 +134,6 @@ public static partial class ControlsExtensions
                     if (item.HasSubmenu)
                     {
                         // Handle submenu (simplified for now)
-                        var submenuPos = new Vector2(rect.X + rect.W, rect.Y + state.HoveredIndex * itemHeight);
-                        // Submenu handling would go here
                     }
                     else
                     {
@@ -200,10 +197,6 @@ public static partial class ControlsExtensions
     private static void CloseFlyoutRecursive(FlyoutState state)
     {
         state.HoveredIndex = -1;
-
-        foreach (var submenu in state.Submenus.Values) CloseFlyoutRecursive(submenu);
-
-        state.Submenus.Clear();
     }
 
     private static float CalculateFlyoutWidth(List<FlyoutItem> items, float fontSize, float padding, float minWidth)

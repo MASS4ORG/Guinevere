@@ -66,3 +66,8 @@ generated_code = true
 indent_style = space
 indent_size = 4
 tab_width = 4
+
+# The Styling folder intentionally lives under the root 'Guinevere' namespace; suppress
+# the folder/namespace mismatch inspection for those files.
+[Guinevere/Styling/*.cs]
+resharper_check_namespace_highlighting = none

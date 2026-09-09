@@ -48,6 +48,7 @@ public class DrawImageTests
         using var surface = NewSurface();
         using var image = SolidImage(8, 8, new SKColor(255, 0, 0, 255));
 
+        // ReSharper disable once AccessToDisposedClosure - RunFrame invokes the callback synchronously
         RunFrame(surface, gui => gui.DrawImage(image, new Rect(16, 16, 24, 24)));
 
         Assert.Equal((255, 0, 0, 255), PixelAt(surface, 28, 28)); // inside
@@ -61,6 +62,7 @@ public class DrawImageTests
         using var surface = NewSurface();
         using var image = SolidImage(4, 4, new SKColor(255, 255, 255, 255));
 
+        // ReSharper disable once AccessToDisposedClosure - RunFrame invokes the callback synchronously
         RunFrame(surface, gui => gui.DrawImage(image, new Rect(0, 0, Surface, Surface), null, Color.FromArgb(255, 0, 128, 0)));
 
         var (r, g, b, a) = PixelAt(surface, 32, 32);
@@ -77,6 +79,7 @@ public class DrawImageTests
         using var surface = NewSurface();
         using var image = SolidImage(4, 4, new SKColor(255, 255, 255, 255));
 
+        // ReSharper disable once AccessToDisposedClosure - RunFrame invokes the callback synchronously
         RunFrame(surface, gui => gui.DrawImage(image, new Rect(0, 0, Surface, Surface), null, null, 0.5f));
 
         Assert.InRange(PixelAt(surface, 32, 32).A, 120, 135);
@@ -92,6 +95,7 @@ public class DrawImageTests
         using var image = SKImage.FromBitmap(bitmap);
         using var surface = NewSurface();
 
+        // ReSharper disable once AccessToDisposedClosure - RunFrame invokes the callback synchronously
         RunFrame(surface, gui =>
             gui.DrawImage(image, new Rect(0, 0, Surface, Surface), new Rect(1, 0, 1, 1))); // right (blue) half only
 

@@ -1,5 +1,7 @@
 namespace Guinevere.Tests.Animation;
 
+// ReSharper disable ExplicitCallerInfoArgument - tests deliberately pass explicit caller locations
+// to verify NodeId stability, which is a legitimate use of the [Caller*] targets.
 public class AnimationManagerTests
 {
     private Time CreateTestTime() => new();

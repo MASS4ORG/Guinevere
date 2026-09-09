@@ -89,7 +89,7 @@ public class TextEffectsTests
             effects: new TextEffects
             {
                 DropShadow = new TextEffects.TextShadow(
-                    Color.FromArgb(220, 0, 0, 0), new System.Numerics.Vector2(10, 10), 2f),
+                    Color.FromArgb(220, 0, 0, 0), new Vector2(10, 10), 2f),
             }));
 
         Assert.True(OpaqueCount(shadowed) > OpaqueCount(plain) + 50, "shadow should add coverage");
@@ -150,7 +150,7 @@ public class TextEffectsTests
         RenderFrame(gui => fxNode = gui.DrawText("Hello", size: Size, color: Color.White, effects: new TextEffects
         {
             Outline = new TextEffects.TextOutline(Color.White, 3f),
-            DropShadow = new TextEffects.TextShadow(Color.Black, new System.Numerics.Vector2(6, 6), 4f),
+            DropShadow = new TextEffects.TextShadow(Color.Black, new Vector2(6, 6), 4f),
         }));
 
         Assert.NotNull(plainNode);

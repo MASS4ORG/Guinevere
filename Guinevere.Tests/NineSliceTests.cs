@@ -61,6 +61,7 @@ public class NineSliceTests
     public void NineSlice_KeepsBorderAndStretchesCentre()
     {
         using var texture = BorderedTexture();
+        // ReSharper disable once AccessToDisposedClosure - Render invokes the callback synchronously
         var px = Render(gui => gui.DrawImageNineSlice(texture, new Rect(10, 10, 100, 100), new Insets(Border)));
 
         // Near each edge, well inside the border band: green.
@@ -79,6 +80,7 @@ public class NineSliceTests
     public void NineSlice_CornersAreUnscaled()
     {
         using var texture = BorderedTexture();
+        // ReSharper disable once AccessToDisposedClosure - Render invokes the callback synchronously
         var px = Render(gui => gui.DrawImageNineSlice(texture, new Rect(10, 10, 100, 100), new Insets(Border)));
 
         Assert.Equal((byte)200, At(px, 12, 12).G); // top-left corner region
@@ -91,6 +93,7 @@ public class NineSliceTests
     {
         using var texture = BorderedTexture();
 
+        // ReSharper disable once AccessToDisposedClosure - Render invokes the callback synchronously
         var ex = Record.Exception(() =>
             Render(gui => gui.DrawImageNineSlice(texture, new Rect(5, 5, 6, 6), new Insets(Border))));
 

@@ -15,20 +15,19 @@ public abstract class Program
 
     // Preferences
     private static bool _emailNotifications = true;
-    private static bool _smsNotifications = false;
+    private static bool _smsNotifications;
     private static bool _pushNotifications = true;
     private static bool _darkMode = false;
     private static bool _autoSave = true;
 
     // Settings
-    private static bool _enableLogging = false;
-    private static bool _debugMode = false;
+    private static bool _enableLogging;
+    private static bool _debugMode;
     private static string _logLevel = "Info";
     private static string _theme = "Default";
 
     // Panel states
-    private static bool _showAdvanced = false;
-    private static int _activeTab = 0;
+    private static bool _showAdvanced;
 
     public static void Main()
     {

@@ -1109,7 +1109,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             throw new Exception("Unsupported layout transition!");
         }
 
-        _vk.CmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, null, 0, null, 1, barrier);
+        _vk.CmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, null, 0, null, 1, in barrier);
 
         EndSingleTimeCommands(commandBuffer);
     }
@@ -1131,7 +1131,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             ImageExtent = new Extent3D { Width = width, Height = height, Depth = 1 },
         };
 
-        _vk.CmdCopyBufferToImage(commandBuffer, buffer, image, ImageLayout.TransferDstOptimal, 1, region);
+        _vk.CmdCopyBufferToImage(commandBuffer, buffer, image, ImageLayout.TransferDstOptimal, 1, in region);
 
         EndSingleTimeCommands(commandBuffer);
     }
@@ -1170,7 +1170,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _vk.QueueSubmit(_graphicsQueue, 1, in submitInfo, default);
         _vk.QueueWaitIdle(_graphicsQueue);
 
-        _vk.FreeCommandBuffers(_device, _commandPool, 1, commandBuffer);
+        _vk.FreeCommandBuffers(_device, _commandPool, 1, in commandBuffer);
     }
 
     private void CreateTextureImage()
@@ -1361,7 +1361,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         BufferCopy copyRegion = new() { Size = size, };
 
-        _vk.CmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, copyRegion);
+        _vk.CmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, in copyRegion);
 
         EndSingleTimeCommands(commandBuffer);
     }
@@ -1433,7 +1433,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
                 PImageInfo = &imageInfo,
             };
 
-            _vk.UpdateDescriptorSets(_device, 1, descriptorWrite, 0, null);
+            _vk.UpdateDescriptorSets(_device, 1, in descriptorWrite, 0, null);
         }
     }
 
@@ -1549,7 +1549,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         {
             SType = StructureType.RenderPassBeginInfo,
             RenderPass = _renderPass,
-            Framebuffer = _framebuffers[imageIndex],
+            Framebuffer = _framebuffers![imageIndex],
             RenderArea = new Rect2D { Offset = new Offset2D { X = 0, Y = 0 }, Extent = _swapchainExtent, },
             ClearValueCount = 1,
             PClearValues = &clearValue,
@@ -1569,7 +1569,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _vk.CmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, IndexType.Uint16);
 
         // Bind descriptor sets
-        var descriptorSets = stackalloc DescriptorSet[] { _descriptorSets[_currentFrame] };
+        var descriptorSets = stackalloc DescriptorSet[] { _descriptorSets![_currentFrame] };
         _vk.CmdBindDescriptorSets(commandBuffer, PipelineBindPoint.Graphics, _pipelineLayout, 0, 1, descriptorSets, 0,
             null);
 
@@ -1582,7 +1582,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
     private void CreateFramebuffers()
     {
-        _framebuffers = new Framebuffer[_swapchainImageViews.Length];
+        _framebuffers = new Framebuffer[_swapchainImageViews!.Length];
 
         for (var i = 0; i < _swapchainImageViews.Length; i++)
         {
