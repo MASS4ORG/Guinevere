@@ -1,9 +1,15 @@
 namespace Guinevere.Tests;
 
+/// <summary>
+/// Verifies that layout node calculation produces correct positioning and sizing for various configurations.
+/// </summary>
 public class LayoutNodeCalculationTests : LayoutNodeTestBase
 {
     #region Single Node Layout Tests
 
+    /// <summary>
+    /// Verifies that the root node uses the screen rectangle as its layout bounds.
+    /// </summary>
     [Theory]
     [InlineData(800f, 600f)]
     [InlineData(1024f, 768f)]
@@ -21,6 +27,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(root.Rect, 0f, 0f, screenWidth, screenHeight);
     }
 
+    /// <summary>
+    /// Verifies that a single child node with explicit width and height calculates its rect correctly.
+    /// </summary>
     [Theory]
     [InlineData(100f, 80f)]
     [InlineData(200f, 150f)]
@@ -40,6 +49,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child.Rect, 0f, 0f, width, height);
     }
 
+    /// <summary>
+    /// Verifies that a child node with full expansion fills its parent's entire bounds.
+    /// </summary>
     [Fact]
     public void SingleChildNode_WithExpansion_FillsParent()
     {
@@ -56,6 +68,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child.Rect, 0f, 0f, 800f, 600f);
     }
 
+    /// <summary>
+    /// Verifies that a child node with partial expansion calculates dimensions using the given percentages.
+    /// </summary>
     [Theory]
     [InlineData(0.5f, 0.7f)]
     [InlineData(0.3f, 0.8f)]
@@ -81,6 +96,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
 
     #region Margin and Padding Layout Tests
 
+    /// <summary>
+    /// Verifies that a child node with uniform margin is positioned correctly with reduced size and proper outer rect.
+    /// </summary>
     [Theory]
     [InlineData(10f)]
     [InlineData(20f)]
@@ -106,6 +124,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child.OuterRect, 0f, 0f, 200f, 200f);
     }
 
+    /// <summary>
+    /// Verifies that a child node with asymmetric margins positions correctly using individual top, right, bottom, and left values.
+    /// </summary>
     [Theory]
     [InlineData(5f, 10f, 15f, 20f)]
     [InlineData(2f, 4f, 6f, 8f)]
@@ -132,6 +153,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child.OuterRect, 0f, 0f, 200f, 200f);
     }
 
+    /// <summary>
+    /// Verifies that parent padding affects the child layout by offsetting and shrinking the child's rect.
+    /// </summary>
     [Theory]
     [InlineData(8f)]
     [InlineData(12f)]
@@ -160,6 +184,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
 
     #region Vertical Layout Tests
 
+    /// <summary>
+    /// Verifies that a vertical layout with two equal-height children divides the space evenly.
+    /// </summary>
     [Fact]
     public void VerticalLayout_WithTwoEqualChildren_DividesSpaceEvenly()
     {
@@ -179,6 +206,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child2.Rect, 0f, 100f, 200f, 100f);
     }
 
+    /// <summary>
+    /// Verifies that a vertical layout with a fixed-height child and an expanding child calculates dimensions correctly.
+    /// </summary>
     [Fact]
     public void VerticalLayout_WithFixedAndExpandingChild_CalculatesCorrectly()
     {
@@ -198,6 +228,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(expandingChild.Rect, 0f, 50f, 200f, 150f);
     }
 
+    /// <summary>
+    /// Verifies that a vertical layout with gap adds the correct amount of space between children.
+    /// </summary>
     [Theory]
     [InlineData(5f)]
     [InlineData(10f)]
@@ -220,6 +253,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child2.Rect, 0f, 50f + gap, 200f, 50f);
     }
 
+    /// <summary>
+    /// Verifies that child margins are applied correctly in a vertical layout affecting position and size.
+    /// </summary>
     [Fact]
     public void VerticalLayout_WithChildMargins_CalculatesCorrectly()
     {
@@ -245,6 +281,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child2.Rect, 25f, expectedChild2Y, 160f, 50f); // width = 200 - 25 - 15 = 160
     }
 
+    /// <summary>
+    /// Verifies that a vertical layout with three children distributes height based on different expansion ratios.
+    /// </summary>
     [Fact]
     public void VerticalLayout_WithThreeChildren_DifferentExpansionRatios()
     {
@@ -276,6 +315,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
 
     #region Horizontal Layout Tests
 
+    /// <summary>
+    /// Verifies that a horizontal layout with two equal-width children divides the space evenly.
+    /// </summary>
     [Fact]
     public void HorizontalLayout_WithTwoEqualChildren_DividesSpaceEvenly()
     {
@@ -295,6 +337,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child2.Rect, 100f, 0f, 100f, 200f);
     }
 
+    /// <summary>
+    /// Verifies that a horizontal layout with a fixed-width child and an expanding child calculates dimensions correctly.
+    /// </summary>
     [Fact]
     public void HorizontalLayout_WithFixedAndExpandingChild_CalculatesCorrectly()
     {
@@ -314,6 +359,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(expandingChild.Rect, 80f, 0f, 220f, 100f);
     }
 
+    /// <summary>
+    /// Verifies that a horizontal layout with gap adds the correct amount of space between children.
+    /// </summary>
     [Theory]
     [InlineData(8f)]
     [InlineData(12f)]
@@ -336,6 +384,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child2.Rect, 100f + gap, 0f, 100f, 100f);
     }
 
+    /// <summary>
+    /// Verifies that child margins are applied correctly in a horizontal layout affecting position and size.
+    /// </summary>
     [Fact]
     public void HorizontalLayout_WithChildMargins_CalculatesCorrectly()
     {
@@ -364,6 +415,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
 
     #region Nested Layout Tests
 
+    /// <summary>
+    /// Verifies that a nested vertical-in-horizontal layout calculates positions and sizes correctly across both axes.
+    /// </summary>
     [Fact]
     public void NestedLayout_VerticalInHorizontal_CalculatesCorrectly()
     {
@@ -402,6 +456,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(rightChild2.Rect, 200f, 60f, 200f, 140f);
     }
 
+    /// <summary>
+    /// Verifies that nested margins and padding compound correctly through multiple layout levels.
+    /// </summary>
     [Fact]
     public void NestedLayout_WithMarginsAndPadding_CalculatesCorrectly()
     {
@@ -439,6 +496,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child2.Rect, 150f, 23f, 127f, 84f);
     }
 
+    /// <summary>
+    /// Verifies that a three-level nested layout calculates all node positions and sizes correctly.
+    /// </summary>
     [Fact]
     public void NestedLayout_ThreeLevelsDeep_CalculatesCorrectly()
     {
@@ -477,6 +537,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
 
     #region Edge Cases and Complex Scenarios
 
+    /// <summary>
+    /// Verifies that a zero-sized parent handles layout gracefully without errors.
+    /// </summary>
     [Fact]
     public void Layout_WithZeroSizedParent_HandlesGracefully()
     {
@@ -494,6 +557,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child.Rect, 0f, 0f, 0f, 0f);
     }
 
+    /// <summary>
+    /// Verifies that negative margins cause the child to extend beyond the parent bounds correctly.
+    /// </summary>
     [Fact]
     public void Layout_WithNegativeMargins_CalculatesCorrectly()
     {
@@ -512,6 +578,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child.OuterRect, 0f, 0f, 200f, 200f);
     }
 
+    /// <summary>
+    /// Verifies that excessive margins clamp the child size to a minimum viable dimension.
+    /// </summary>
     [Fact]
     public void Layout_WithExcessiveMargins_ClampsToMinimumSize()
     {
@@ -531,6 +600,9 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         AssertRectValues(child.Rect, 60f, 60f, expectedWidth, expectedHeight);
     }
 
+    /// <summary>
+    /// Verifies that a mix of fixed and expanding children distributes remaining space correctly after fixed sizes are allocated.
+    /// </summary>
     [Fact]
     public void Layout_MixedFixedAndExpandingChildren_DistributesSpaceCorrectly()
     {

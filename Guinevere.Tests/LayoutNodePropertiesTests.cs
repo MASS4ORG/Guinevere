@@ -1,9 +1,15 @@
 namespace Guinevere.Tests;
 
+/// <summary>
+/// Verifies the behavior of layout node properties.
+/// </summary>
 public class LayoutNodePropertiesTests : LayoutNodeTestBase
 {
     #region Margin Properties Tests
 
+    /// <summary>
+    /// Verifies that margin properties with a uniform margin value return the correct values.
+    /// </summary>
     [Theory]
     [InlineData(10f)]
     [InlineData(0f)]
@@ -21,6 +27,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(margin, node.Style.MarginLeft);
     }
 
+    /// <summary>
+    /// Verifies that margin properties with horizontal and vertical values return the correct values.
+    /// </summary>
     [Theory]
     [InlineData(5f, 10f)]
     [InlineData(0f, 15f)]
@@ -38,6 +47,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(horizontal, node.Style.MarginLeft);
     }
 
+    /// <summary>
+    /// Verifies that margin properties with individual top, right, bottom, and left values return the correct values.
+    /// </summary>
     [Theory]
     [InlineData(1f, 2f, 3f, 4f)]
     [InlineData(0f, 5f, 10f, 15f)]
@@ -56,6 +68,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(left, node.Style.MarginLeft);
     }
 
+    /// <summary>
+    /// Verifies that margin properties have default values of zero.
+    /// </summary>
     [Fact]
     public void MarginProperties_DefaultValues_ReturnZero()
     {
@@ -73,6 +88,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region Padding Properties Tests
 
+    /// <summary>
+    /// Verifies that padding properties with a uniform padding value return the correct values.
+    /// </summary>
     [Theory]
     [InlineData(8f)]
     [InlineData(0f)]
@@ -90,6 +108,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(padding, node.Style.PaddingLeft);
     }
 
+    /// <summary>
+    /// Verifies that padding properties with horizontal and vertical values return the correct values.
+    /// </summary>
     [Theory]
     [InlineData(6f, 12f)]
     [InlineData(0f, 8f)]
@@ -107,6 +128,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(horizontal, node.Style.PaddingLeft);
     }
 
+    /// <summary>
+    /// Verifies that padding properties with individual top, right, bottom, and left values return the correct values.
+    /// </summary>
     [Theory]
     [InlineData(2f, 4f, 6f, 8f)]
     [InlineData(0f, 3f, 6f, 9f)]
@@ -125,6 +149,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(left, node.Style.PaddingLeft);
     }
 
+    /// <summary>
+    /// Verifies that padding properties have default values of zero.
+    /// </summary>
     [Fact]
     public void PaddingProperties_DefaultValues_ReturnZero()
     {
@@ -142,6 +169,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region InnerRect Tests
 
+    /// <summary>
+    /// Verifies that the inner rect is calculated correctly with uniform padding.
+    /// </summary>
     [Theory]
     [InlineData(100f, 100f, 200f, 150f, 10f)]
     [InlineData(50f, 75f, 120f, 80f, 5f)]
@@ -167,6 +197,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         AssertRectValues(innerRect, expectedX, expectedY, expectedW, expectedH);
     }
 
+    /// <summary>
+    /// Verifies that the inner rect is calculated correctly with asymmetric padding.
+    /// </summary>
     [Theory]
     [InlineData(50f, 60f, 150f, 120f, 5f, 10f, 15f, 20f)]
     [InlineData(0f, 0f, 100f, 100f, 2f, 4f, 6f, 8f)]
@@ -190,6 +223,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         AssertRectValues(innerRect, expectedX, expectedY, expectedW, expectedH);
     }
 
+    /// <summary>
+    /// Verifies that the inner rect equals the original rect when padding is zero.
+    /// </summary>
     [Fact]
     public void InnerRect_WithZeroPadding_EqualsOriginalRect()
     {
@@ -210,6 +246,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region OuterRect Tests
 
+    /// <summary>
+    /// Verifies that the outer rect is calculated correctly with uniform margin.
+    /// </summary>
     [Theory]
     [InlineData(100f, 100f, 200f, 150f, 10f)]
     [InlineData(50f, 75f, 120f, 80f, 5f)]
@@ -233,6 +272,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         AssertRectValues(outerRect, expectedX, expectedY, expectedW, expectedH);
     }
 
+    /// <summary>
+    /// Verifies that the outer rect is calculated correctly with asymmetric margin.
+    /// </summary>
     [Theory]
     [InlineData(50f, 60f, 150f, 120f, 5f, 10f, 15f, 20f)]
     [InlineData(0f, 0f, 100f, 100f, 2f, 4f, 6f, 8f)]
@@ -256,6 +298,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         AssertRectValues(outerRect, expectedX, expectedY, expectedW, expectedH);
     }
 
+    /// <summary>
+    /// Verifies that the outer rect equals the original rect when margin is zero.
+    /// </summary>
     [Fact]
     public void OuterRect_WithZeroMargin_EqualsOriginalRect()
     {
@@ -276,6 +321,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region Rect and Center Tests
 
+    /// <summary>
+    /// Verifies that the Rect property returns the correct rect.
+    /// </summary>
     [Theory]
     [InlineData(50f, 60f, 100f, 80f)]
     [InlineData(0f, 0f, 200f, 150f)]
@@ -294,6 +342,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         AssertRectValues(rect, x, y, w, h);
     }
 
+    /// <summary>
+    /// Verifies that the Center property is calculated correctly.
+    /// </summary>
     [Theory]
     [InlineData(50f, 60f, 100f, 80f)]
     [InlineData(0f, 0f, 200f, 150f)]
@@ -318,6 +369,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region Children and Parent Tests
 
+    /// <summary>
+    /// Verifies that the Children property returns a read-only list of child nodes.
+    /// </summary>
     [Fact]
     public void Children_ReturnsReadOnlyList()
     {
@@ -340,6 +394,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Contains(child2, children);
     }
 
+    /// <summary>
+    /// Verifies that the Parent property returns the correct parent node.
+    /// </summary>
     [Fact]
     public void Parent_ReturnsCorrectParent()
     {
@@ -357,6 +414,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region ZIndex Tests
 
+    /// <summary>
+    /// Verifies that SetZIndex sets and returns the correct value.
+    /// </summary>
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
@@ -378,6 +438,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(zIndex, scope.Get<LayoutNodeScopeZIndex>().Value);
     }
 
+    /// <summary>
+    /// Verifies that the ZIndex has a default value of zero.
+    /// </summary>
     [Fact]
     public void ZIndex_DefaultValue_IsZero()
     {
@@ -391,6 +454,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(0, nodeScope.Get<LayoutNodeScopeZIndex>().Value);
     }
 
+    /// <summary>
+    /// Verifies that the ZIndex inherits from the parent node.
+    /// </summary>
     [Fact]
     public void ZIndex_InheritsFromParent()
     {
@@ -408,6 +474,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(0, parentScope.Get<LayoutNodeScopeZIndex>().Value);
     }
 
+    /// <summary>
+    /// Verifies that a child node's ZIndex overrides the parent's ZIndex.
+    /// </summary>
     [Fact]
     public void ZIndex_ChildOverridesParent()
     {
@@ -427,6 +496,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.Equal(10, childScope.Get<LayoutNodeScopeZIndex>().Value); // Child's own ZIndex takes precedence
     }
 
+    /// <summary>
+    /// Verifies that ZIndex values across a complex node hierarchy are resolved and sorted correctly.
+    /// </summary>
     [Fact]
     public void ZIndex_HierarchyIntegrationTest()
     {
@@ -495,6 +567,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region DrawList Tests
 
+    /// <summary>
+    /// Verifies that the DrawList property is initialized.
+    /// </summary>
     [Fact]
     public void DrawList_IsInitialized()
     {
@@ -505,6 +580,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         Assert.NotNull(node.DrawList);
     }
 
+    /// <summary>
+    /// Verifies that the DrawList property can be set and retrieved.
+    /// </summary>
     [Fact]
     public void DrawList_CanBeSetAndRetrieved()
     {
@@ -523,6 +601,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region Complex Property Interactions
 
+    /// <summary>
+    /// Verifies that margin and padding do not affect each other.
+    /// </summary>
     [Fact]
     public void MarginAndPadding_DoNotAffectEachOther()
     {
@@ -548,6 +629,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         AssertRectValues(outerRect, 25f, 40f, 140f, 130f); // 50-25, 50-10, 100+15+25, 100+10+20
     }
 
+    /// <summary>
+    /// Verifies that negative margin and padding values produce valid rects.
+    /// </summary>
     [Fact]
     public void NegativeMarginAndPadding_ProduceValidRects()
     {

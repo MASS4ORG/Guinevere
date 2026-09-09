@@ -79,8 +79,8 @@ public static partial class ControlsExtensions
         var visibleItems = Math.Min(maxVisibleItems, options.Length);
         var totalHeight = height + (state.IsOpen && options.Length > 0 ? visibleItems * height + 4 : 0);
 
-        // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
         using (gui.Node(width, totalHeight,
+                   // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
                    filePath: filePath, lineNumber: lineNumber).Enter())
         {
             // Main dropdown button

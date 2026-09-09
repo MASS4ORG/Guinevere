@@ -30,7 +30,7 @@ public partial class Gui
         var node = Node(-1, -1, id, filePath, lineNumber);
         if (StyleSheets.Count == 0) return node;
 
-        var target = new StyleTarget(type, id, classes ?? [], StyleState.None);
+        var target = new StyleTarget(type, id, classes ?? []);
 
         if (Pass == Pass.Pass1Build)
         {

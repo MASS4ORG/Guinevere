@@ -2,10 +2,16 @@ using Guinevere.Tests.Mocks;
 
 namespace Guinevere.Tests;
 
+/// <summary>
+/// Provides shared helper methods for layout node tests.
+/// </summary>
 public abstract class LayoutNodeTestBase
 {
     private static uint _globalOrderTemp;
 
+    /// <summary>
+    /// Creates a testable GUI with the given screen dimensions and begins a frame.
+    /// </summary>
     protected TestableGui CreateTestGui(int width = 800, int height = 600)
     {
         var gui = new TestableGui();
@@ -22,6 +28,9 @@ public abstract class LayoutNodeTestBase
         return surface.Canvas;
     }
 
+    /// <summary>
+    /// Creates a layout node with an optional parent, width, and height, using the provided GUI or creating a new one.
+    /// </summary>
     protected LayoutNode CreateTestLayoutNode(Gui? gui = null, LayoutNode? parent = null, float? width = null,
         float? height = null)
     {
@@ -29,6 +38,9 @@ public abstract class LayoutNodeTestBase
         return new LayoutNode($"{_globalOrderTemp++}", gui, parent, width, height);
     }
 
+    /// <summary>
+    /// Asserts that all four margin values on the node's style match the expected values.
+    /// </summary>
     protected void AssertMarginValues(LayoutNode node, float expectedTop, float expectedRight, float expectedBottom,
         float expectedLeft)
     {
@@ -38,6 +50,9 @@ public abstract class LayoutNodeTestBase
         Assert.Equal(expectedLeft, node.Style.MarginLeft);
     }
 
+    /// <summary>
+    /// Asserts that all four padding values on the node's style match the expected values.
+    /// </summary>
     protected void AssertPaddingValues(LayoutNode node, float expectedTop, float expectedRight, float expectedBottom,
         float expectedLeft)
     {
@@ -47,6 +62,9 @@ public abstract class LayoutNodeTestBase
         Assert.Equal(expectedLeft, node.Style.PaddingLeft);
     }
 
+    /// <summary>
+    /// Asserts that the rect's X, Y, W, and H values match the expected values within a tolerance of two decimal places.
+    /// </summary>
     protected void AssertRectValues(Rect rect, float expectedX, float expectedY, float expectedW, float expectedH)
     {
         Assert.Equal(expectedX, rect.X, 2);
@@ -55,11 +73,17 @@ public abstract class LayoutNodeTestBase
         Assert.Equal(expectedH, rect.H, 2);
     }
 
+    /// <summary>
+    /// Sets the GUI stage to the specified pass.
+    /// </summary>
     protected void SetGuiStage(Gui gui, Pass pass)
     {
         gui.SetStage(pass);
     }
 
+    /// <summary>
+    /// Creates a layout node initialized with a build-stage GUI.
+    /// </summary>
     protected LayoutNode CreateNodeWithBuildStage()
     {
         var gui = CreateTestGui();
@@ -67,6 +91,9 @@ public abstract class LayoutNodeTestBase
         return CreateTestLayoutNode(gui);
     }
 
+    /// <summary>
+    /// Creates a layout node initialized with a render-stage GUI.
+    /// </summary>
     protected LayoutNode CreateNodeWithRenderStage()
     {
         var gui = CreateTestGui();
@@ -74,11 +101,17 @@ public abstract class LayoutNodeTestBase
         return CreateTestLayoutNode(gui);
     }
 
+    /// <summary>
+    /// Verifies that a fluent method returns the same original instance.
+    /// </summary>
     protected void VerifyFluentReturn<T>(T original, T returned) where T : LayoutNode
     {
         Assert.Same(original, returned);
     }
 
+    /// <summary>
+    /// Gets the value of a private instance field via reflection.
+    /// </summary>
     protected T GetPrivateField<T>(object obj, string fieldName)
     {
         var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -89,6 +122,9 @@ public abstract class LayoutNodeTestBase
         return value == null ? default(T)! : (T)value;
     }
 
+    /// <summary>
+    /// Gets a named property value from the node's style via reflection, treating -1f as null for nullable floats.
+    /// </summary>
     protected T GetStyleProperty<T>(LayoutNode node, string propertyName)
     {
         var styleField = node.GetType().GetField("Style", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);

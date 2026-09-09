@@ -1,5 +1,8 @@
 namespace Guinevere.Tests.Controls;
 
+/// <summary>
+/// Base class providing helper methods and mock setup for primitive control tests.
+/// </summary>
 public abstract class PrimitiveControlsTestBase
 {
     protected Gui CreateTestGui()

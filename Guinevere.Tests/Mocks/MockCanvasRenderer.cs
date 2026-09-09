@@ -1,14 +1,35 @@
+using JetBrains.Annotations;
+
 namespace Guinevere.Tests.Mocks;
 
+/// <summary>
+/// Mock implementation of ICanvasRenderer for testing rendering behavior.
+/// </summary>
 public class MockCanvasRenderer : ICanvasRenderer
 {
     private SKSurface? _surface;
     private SKCanvas? _canvas;
+
+    /// <summary>
+    /// Gets the width of the canvas surface.
+    /// </summary>
+    [UsedImplicitly]
     public int Width { get; private set; }
+
+    /// <summary>
+    /// Gets the height of the canvas surface.
+    /// </summary>
+    [UsedImplicitly]
     public int Height { get; private set; }
 
+    /// <summary>
+    /// Gets the underlying SkiaSharp canvas.
+    /// </summary>
     public SKCanvas Canvas => _canvas ?? throw new InvalidOperationException("Canvas not initialized");
 
+    /// <summary>
+    /// Initializes the mock canvas with the specified dimensions.
+    /// </summary>
     public void Initialize(int width, int height)
     {
         Width = width;
@@ -16,6 +37,9 @@ public class MockCanvasRenderer : ICanvasRenderer
         CreateSurface(width, height);
     }
 
+    /// <summary>
+    /// Resizes the canvas surface to the new dimensions.
+    /// </summary>
     public void Resize(int width, int height)
     {
         Width = width;
@@ -25,6 +49,9 @@ public class MockCanvasRenderer : ICanvasRenderer
         CreateSurface(width, height);
     }
 
+    /// <summary>
+    /// Executes a draw action on the canvas.
+    /// </summary>
     public void Render(Action<SKCanvas> draw)
     {
         if (_canvas == null)
@@ -45,6 +72,9 @@ public class MockCanvasRenderer : ICanvasRenderer
         _canvas.ClipRect(new SKRect(0, 0, width, height));
     }
 
+    /// <summary>
+    /// Disposes the canvas and surface resources.
+    /// </summary>
     public void Dispose()
     {
         _canvas?.Dispose();

@@ -14,7 +14,7 @@ public class StyleResolverTests
             #save { color: #ff0000; }
             .btn  { color: #00ff00; }
             Button { color: #0000ff; }
-            """, new StyleTarget("Button", "save", new[] { "btn" }, StyleState.None));
+            """, new StyleTarget("Button", "save", new[] { "btn" }));
 
         Assert.Equal("#ff0000", style.Get("color"));
     }
@@ -26,7 +26,7 @@ public class StyleResolverTests
         var style = Resolve("""
             .btn { color: #111111; }
             .btn { color: #222222; }
-            """, new StyleTarget("Button", null, new[] { "btn" }, StyleState.None));
+            """, new StyleTarget("Button", null, new[] { "btn" }));
 
         Assert.Equal("#222222", style.Get("color"));
     }
@@ -39,7 +39,7 @@ public class StyleResolverTests
             .btn        { background-color: #101010; }
             .btn:hover  { background-color: #303030; }
             """;
-        var target = new StyleTarget("Button", null, new[] { "btn" }, StyleState.None);
+        var target = new StyleTarget("Button", null, new[] { "btn" });
 
         Assert.Equal("#101010", Resolve(css, target).Get("background-color"));
         Assert.Equal("#303030", Resolve(css, target with { State = StyleState.Hover }).Get("background-color"));
@@ -53,7 +53,7 @@ public class StyleResolverTests
             --pad: 12;
             .card { background-color: #202020; border-radius: 8; }
             .card { padding: var(--pad); }
-            """, new StyleTarget("VisualElement", null, new[] { "card" }, StyleState.None));
+            """, new StyleTarget("VisualElement", null, new[] { "card" }));
 
         Assert.Equal(new Color?(Color.FromArgb(255, 32, 32, 32)).Value.R, style.GetColor("background-color")!.Value.R);
         Assert.Equal(8f, style.GetLength("border-radius"));
@@ -64,7 +64,7 @@ public class StyleResolverTests
     [Fact]
     public void NoMatch_ReturnsEmpty()
     {
-        var style = Resolve(".x { color: red; }", new StyleTarget("Button", null, new[] { "y" }, StyleState.None));
+        var style = Resolve(".x { color: red; }", new StyleTarget("Button", null, new[] { "y" }));
         Assert.False(style.Has("color"));
     }
 }

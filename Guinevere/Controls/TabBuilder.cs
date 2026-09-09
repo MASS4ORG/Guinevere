@@ -31,17 +31,6 @@ public class TabBuilder
     }
 
     /// <summary>
-    /// Adds a new tab to the current tab list with the specified title and content.
-    /// </summary>
-    /// <param name="title">The title of the tab to be displayed.</param>
-    /// <param name="content">The action that defines the content to be displayed within the tab.</param>
-    /// <returns>A TabBuilder instance with the tab added, enabling further configuration.</returns>
-    public TabBuilder Tab(string title, Action content)
-    {
-        return Tab(title, content, true);
-    }
-
-    /// <summary>
     /// Adds a new disabled tab to the current tab list.
     /// </summary>
     /// <param name="title">The title displayed on the tab.</param>

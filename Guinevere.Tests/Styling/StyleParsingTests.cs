@@ -3,6 +3,12 @@ namespace Guinevere.Tests.Styling;
 /// <summary>Tests for <see cref="StyleValue"/>, <see cref="Selector"/> and <see cref="StyleSheet.Parse"/>.</summary>
 public class StyleParsingTests
 {
+    /// <summary>
+    /// Verifies that length values are parsed correctly from plain numbers, pixel, and percentage strings.
+    /// </summary>
+    /// <param name="text">The input string to parse.</param>
+    /// <param name="expected">The expected numeric value.</param>
+    /// <param name="percent">Whether the value is a percentage.</param>
     [Theory]
     [InlineData("12", 12f, false)]
     [InlineData("12px", 12f, false)]
@@ -14,6 +20,9 @@ public class StyleParsingTests
         Assert.Equal(percent, p);
     }
 
+    /// <summary>
+    /// Verifies that hex and rgba colour strings are parsed correctly.
+    /// </summary>
     [Fact]
     public void Value_Colour_Hex_And_Rgb()
     {
@@ -25,28 +34,37 @@ public class StyleParsingTests
         Assert.InRange(rgba.A, 120, 132);
     }
 
+    /// <summary>
+    /// Verifies that compound selectors with type, classes, and pseudo-states match correctly.
+    /// </summary>
     [Fact]
     public void Selector_Parse_Compound()
     {
         var s = Selector.Parse("Button.primary.big:hover");
 
         Assert.True(s.Matches(new StyleTarget("Button", null, new[] { "primary", "big", "x" }, StyleState.Hover)));
-        Assert.False(s.Matches(new StyleTarget("Button", null, new[] { "primary", "big" }, StyleState.None)));
+        Assert.False(s.Matches(new StyleTarget("Button", null, new[] { "primary", "big" })));
         Assert.False(s.Matches(new StyleTarget("Label", null, new[] { "primary", "big" }, StyleState.Hover)));
     }
 
+    /// <summary>
+    /// Verifies that universal and ID selectors match correctly and have expected specificity.
+    /// </summary>
     [Fact]
     public void Selector_Universal_And_Id()
     {
-        Assert.True(Selector.Parse("*").Matches(new StyleTarget("Anything", null, [], StyleState.None)));
+        Assert.True(Selector.Parse("*").Matches(new StyleTarget("Anything", null, [])));
 
         var id = Selector.Parse("#save");
-        Assert.True(id.Matches(new StyleTarget("Button", "save", [], StyleState.None)));
-        Assert.False(id.Matches(new StyleTarget("Button", "load", [], StyleState.None)));
+        Assert.True(id.Matches(new StyleTarget("Button", "save", [])));
+        Assert.False(id.Matches(new StyleTarget("Button", "load", [])));
         Assert.True(id.Specificity > Selector.Parse(".save").Specificity);
         Assert.True(Selector.Parse(".save").Specificity > Selector.Parse("Button").Specificity);
     }
 
+    /// <summary>
+    /// Verifies that selectors containing combinators are rejected.
+    /// </summary>
     [Fact]
     public void Selector_RejectsCombinators()
     {
@@ -54,6 +72,9 @@ public class StyleParsingTests
         Assert.Throws<FormatException>(() => Selector.Parse("Panel Button"));
     }
 
+    /// <summary>
+    /// Verifies that a style sheet parses comments, variables, and multi-selector rules correctly.
+    /// </summary>
     [Fact]
     public void Sheet_Parse_Comments_Variables_MultiSelector()
     {
@@ -74,6 +95,9 @@ public class StyleParsingTests
         Assert.Equal(2, sheet.Rules[0].Selectors.Count);
     }
 
+    /// <summary>
+    /// Verifies that an unterminated rule throws a format exception.
+    /// </summary>
     [Fact]
     public void Sheet_UnterminatedRule_Throws()
     {

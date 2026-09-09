@@ -6,7 +6,7 @@ namespace Guinevere.Tests;
 /// </summary>
 public class LayoutConstraintsTests : LayoutNodeTestBase
 {
-    private (LayoutNode root, LayoutNode child) Tree(Gui gui, Action<LayoutNode> configure,
+    private LayoutNode Tree(Gui gui, Action<LayoutNode> configure,
         float rootW = 800f, float rootH = 600f)
     {
         var root = LayoutNode.CreateRoot(gui, rootW, rootH);
@@ -14,7 +14,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
         configure(child);
         root.AddChild(child);
         root.CalculateLayout();
-        return (root, child);
+        return child;
     }
 
     /// <summary>A percentage width resolves against the parent's inner width.</summary>
@@ -25,7 +25,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void WidthPercent_ResolvesAgainstParent(float fraction, float expected)
     {
         var gui = CreateTestGui();
-        var (_, child) = Tree(gui, c => c.WidthPercent(fraction).Height(50f));
+        var child = Tree(gui, c => c.WidthPercent(fraction).Height(50f));
 
         Assert.Equal(expected, child.Rect.W, 1);
     }
@@ -50,7 +50,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void MaxWidth_ClampsExpandingChild()
     {
         var gui = CreateTestGui();
-        var (_, child) = Tree(gui, c => c.Expand().MaxWidth(300f));
+        var child = Tree(gui, c => c.Expand().MaxWidth(300f));
 
         Assert.Equal(300f, child.Rect.W, 1);
     }
@@ -60,7 +60,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void MinWidth_WidensSmallChild()
     {
         var gui = CreateTestGui();
-        var (_, child) = Tree(gui, c => c.Width(40f).Height(40f).MinWidth(120f));
+        var child = Tree(gui, c => c.Width(40f).Height(40f).MinWidth(120f));
 
         Assert.Equal(120f, child.Rect.W, 1);
     }
@@ -70,7 +70,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void MaxHeight_ClampsPercentHeight()
     {
         var gui = CreateTestGui();
-        var (_, child) = Tree(gui, c => c.Width(100f).HeightPercent(0.9f).MaxHeight(200f));
+        var child = Tree(gui, c => c.Width(100f).HeightPercent(0.9f).MaxHeight(200f));
 
         Assert.Equal(200f, child.Rect.H, 1);
     }
@@ -80,7 +80,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void HeightConstraint_AppliesToOwnSize()
     {
         var gui = CreateTestGui();
-        var (_, child) = Tree(gui, c => c.Width(100f).HeightConstraint(min: 80f, max: 150f).Height(400f));
+        var child = Tree(gui, c => c.Width(100f).HeightConstraint(min: 80f, max: 150f).Height(400f));
 
         Assert.Equal(150f, child.Rect.H, 1);
     }
@@ -90,7 +90,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void UnsetConstraints_AreNoOps()
     {
         var gui = CreateTestGui();
-        var (_, child) = Tree(gui, c => c.Width(123f).Height(45f));
+        var child = Tree(gui, c => c.Width(123f).Height(45f));
 
         Assert.Equal(123f, child.Rect.W, 1);
         Assert.Equal(45f, child.Rect.H, 1);

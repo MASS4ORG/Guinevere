@@ -1,9 +1,15 @@
 namespace Guinevere.Tests;
 
+/// <summary>
+/// Verifies that layout node command chains work correctly when combined.
+/// </summary>
 public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
 {
     #region Margin and Padding Integration Tests
 
+    /// <summary>
+    /// Verifies that margin and padding commands combined with size and position produce the correct inner and outer rects.
+    /// </summary>
     [Theory]
     [InlineData(10f, 5f, 15f, 8f)]
     [InlineData(0f, 0f, 0f, 0f)]
@@ -37,6 +43,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         AssertRectValues(outerRect, expectedOuterX, expectedOuterY, expectedOuterW, expectedOuterH);
     }
 
+    /// <summary>
+    /// Verifies that specific asymmetric margin and padding values produce the correct inner and outer rects.
+    /// </summary>
     [Fact]
     public void SpecificMarginAndPadding_ProduceAsymmetricRects()
     {
@@ -64,6 +73,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
 
     #region Size and Expansion Integration Tests
 
+    /// <summary>
+    /// Verifies that explicit width and height take precedence over expansion settings.
+    /// </summary>
     [Theory]
     [InlineData(0.5f, 0.7f, 100f, 200f)]
     [InlineData(1.0f, 1.0f, 150f, 300f)]
@@ -84,6 +96,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.True(GetStyleProperty<bool>(node, "IsExpanded"));
     }
 
+    /// <summary>
+    /// Verifies that the size command sets both width and height dimensions.
+    /// </summary>
     [Fact]
     public void SizeCommand_SetsBothDimensions()
     {
@@ -100,6 +115,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.Equal(75f, GetStyleProperty<float?>(node, "Height"));
     }
 
+    /// <summary>
+    /// Verifies that expanding the width does not affect the height.
+    /// </summary>
     [Fact]
     public void ExpandWidth_DoesNotAffectHeight()
     {
@@ -118,6 +136,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.Equal(50f, GetStyleProperty<float?>(node, "Height"));
     }
 
+    /// <summary>
+    /// Verifies that expanding the height does not affect the width.
+    /// </summary>
     [Fact]
     public void ExpandHeight_DoesNotAffectWidth()
     {
@@ -140,6 +161,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
 
     #region Layout Direction and Alignment Integration Tests
 
+    /// <summary>
+    /// Verifies that direction combined with alignment produces the correct combination of properties.
+    /// </summary>
     [Theory]
     [InlineData(Axis.Horizontal, 0.0f, 0.5f)]
     [InlineData(Axis.Horizontal, 0.5f, 1.0f)]
@@ -162,6 +186,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.Equal(alignSelf, GetStyleProperty<float>(node, "AlignSelf"));
     }
 
+    /// <summary>
+    /// Verifies that direction combined with gap works correctly.
+    /// </summary>
     [Theory]
     [InlineData(Axis.Horizontal, 10f)]
     [InlineData(Axis.Vertical, 15f)]
@@ -185,6 +212,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
 
     #region Position Integration Tests
 
+    /// <summary>
+    /// Verifies that position combined with margin affects the outer rect.
+    /// </summary>
     [Theory]
     [InlineData(25f, 35f, 10f)]
     [InlineData(0f, 0f, 5f)]
@@ -211,6 +241,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.Equal(80f + (2 * margin), outerRect.H);
     }
 
+    /// <summary>
+    /// Verifies that position combined with padding affects the inner rect.
+    /// </summary>
     [Theory]
     [InlineData(50f, 60f, 8f)]
     [InlineData(0f, 0f, 12f)]
@@ -241,6 +274,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
 
     #region Complex Command Chains
 
+    /// <summary>
+    /// Verifies that a complex layout command chain applies all commands correctly.
+    /// </summary>
     [Fact]
     public void ComplexLayoutChain_AllCommandsWork()
     {
@@ -284,6 +320,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.Equal(150f, GetStyleProperty<float?>(node, "Height"));
     }
 
+    /// <summary>
+    /// Verifies that when commands are overridden, the last call wins.
+    /// </summary>
     [Fact]
     public void OverridingCommands_LastCallWins()
     {
@@ -319,6 +358,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
 
     #region Edge Cases
 
+    /// <summary>
+    /// Verifies that negative values are accepted and stored as-is.
+    /// </summary>
     [Fact]
     public void NegativeValues_AreAccepted()
     {
@@ -346,6 +388,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.Equal(-5f, GetStyleProperty<float>(node, "Gap"));
     }
 
+    /// <summary>
+    /// Verifies that zero values are accepted and stored as-is.
+    /// </summary>
     [Fact]
     public void ZeroValues_AreAccepted()
     {
@@ -383,6 +428,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.Equal(0f, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
     }
 
+    /// <summary>
+    /// Verifies that extreme float values are accepted and stored as-is.
+    /// </summary>
     [Fact]
     public void ExtremeValues_AreAccepted()
     {
@@ -420,6 +468,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
 
     #region Pass Transition Tests
 
+    /// <summary>
+    /// Verifies that transitioning from the build stage to the render stage stops accepting commands.
+    /// </summary>
     [Fact]
     public void StageTransition_BuildToRender_StopsAcceptingCommands()
     {
@@ -442,6 +493,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
         Assert.Equal(80f, GetStyleProperty<float?>(node, "Height"));
     }
 
+    /// <summary>
+    /// Verifies that transitioning from the render stage to the build stage starts accepting commands again.
+    /// </summary>
     [Fact]
     public void StageTransition_RenderToBuild_StartsAcceptingCommands()
     {

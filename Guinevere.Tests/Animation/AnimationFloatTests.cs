@@ -1,9 +1,15 @@
 namespace Guinevere.Tests.Animation;
 
+/// <summary>
+/// Tests for the <see cref="AnimationFloat"/> class.
+/// </summary>
 public class AnimationFloatTests
 {
     private Time CreateTestTime() => new();
 
+    /// <summary>
+    /// Verifies that the constructor sets the initial value correctly.
+    /// </summary>
     [Fact]
     public void Constructor_SetsInitialValue()
     {
@@ -20,6 +26,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat.IsAnimating);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AnimationFloat.SetValue"/> updates both current and target values.
+    /// </summary>
     [Fact]
     public void SetValue_UpdatesCurrentAndTargetValue()
     {
@@ -37,6 +46,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat.IsAnimating);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AnimationFloat.AnimateTo"/> with zero duration sets the value immediately.
+    /// </summary>
     [Fact]
     public void AnimateTo_WithZeroDuration_SetsValueImmediately()
     {
@@ -54,6 +66,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat.IsAnimating);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AnimationFloat.AnimateTo"/> with negative duration sets the value immediately.
+    /// </summary>
     [Fact]
     public void AnimateTo_WithNegativeDuration_SetsValueImmediately()
     {
@@ -71,6 +86,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat.IsAnimating);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AnimationFloat.AnimateTo"/> starts the animation.
+    /// </summary>
     [Fact]
     public void AnimateTo_StartsAnimation()
     {
@@ -88,6 +106,9 @@ public class AnimationFloatTests
         Assert.True(animationFloat.IsAnimating);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AnimationFloat.GetValue"/> updates the animation progress over time.
+    /// </summary>
     [Fact]
     public void GetValue_UpdatesAnimationProgress()
     {
@@ -111,6 +132,9 @@ public class AnimationFloatTests
         Assert.True(animationFloat.IsAnimating);
     }
 
+    /// <summary>
+    /// Verifies that the animation completes after the specified duration.
+    /// </summary>
     [Fact]
     public void GetValue_CompletesAnimationAfterDuration()
     {
@@ -134,6 +158,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat.IsAnimating);
     }
 
+    /// <summary>
+    /// Verifies that the implicit operator returns the current value.
+    /// </summary>
     [Fact]
     public void ImplicitOperator_ReturnsCurrentValue()
     {
@@ -148,6 +175,9 @@ public class AnimationFloatTests
         Assert.Equal(5.0f, value);
     }
 
+    /// <summary>
+    /// Verifies that the greater-than operator compares the current value.
+    /// </summary>
     [Fact]
     public void GreaterThanOperator_ComparesCurrentValue()
     {
@@ -160,6 +190,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat > 7.0f);
     }
 
+    /// <summary>
+    /// Verifies that the less-than operator compares the current value.
+    /// </summary>
     [Fact]
     public void LessThanOperator_ComparesCurrentValue()
     {
@@ -172,6 +205,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat < 3.0f);
     }
 
+    /// <summary>
+    /// Verifies that the greater-than-or-equal operator compares the current value.
+    /// </summary>
     [Fact]
     public void GreaterThanOrEqualOperator_ComparesCurrentValue()
     {
@@ -185,6 +221,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat >= 7.0f);
     }
 
+    /// <summary>
+    /// Verifies that the less-than-or-equal operator compares the current value.
+    /// </summary>
     [Fact]
     public void LessThanOrEqualOperator_ComparesCurrentValue()
     {
@@ -198,6 +237,9 @@ public class AnimationFloatTests
         Assert.False(animationFloat <= 3.0f);
     }
 
+    /// <summary>
+    /// Verifies that different easing functions produce expected intermediate values.
+    /// </summary>
     [Fact]
     public void AnimateTo_WithDifferentEasingFunctions_ProducesExpectedResults()
     {
@@ -226,6 +268,9 @@ public class AnimationFloatTests
             $"Linear should progress faster than EaseIn at midpoint. Linear: {linearMidValue}, EaseIn: {easeInMidValue}");
     }
 
+    /// <summary>
+    /// Verifies that chained animations work correctly in sequence.
+    /// </summary>
     [Fact]
     public void AnimateTo_ChainedAnimations_WorksCorrectly()
     {

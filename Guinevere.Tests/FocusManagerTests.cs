@@ -1,5 +1,8 @@
 namespace Guinevere.Tests;
 
+/// <summary>
+/// Tests for <see cref="FocusManager"/> focus registration, request, and frame lifecycle.
+/// </summary>
 public class FocusManagerTests
 {
     private static Gui CreateTestGui()
@@ -9,6 +12,9 @@ public class FocusManagerTests
         return gui;
     }
 
+    /// <summary>
+    /// Verifies that a new focus manager has no focused control.
+    /// </summary>
     [Fact]
     public void FocusManager_InitialState_HasNoFocus()
     {
@@ -21,6 +27,9 @@ public class FocusManagerTests
         Assert.False(focusManager.FocusChangedThisFrame);
     }
 
+    /// <summary>
+    /// Verifies that registering a focusable control does not immediately focus it.
+    /// </summary>
     [Fact]
     public void RegisterFocusableControl_AddsControlToSystem()
     {
@@ -35,6 +44,9 @@ public class FocusManagerTests
         Assert.False(focusManager.HasFocus("control1")); // Not focused yet, just registered
     }
 
+    /// <summary>
+    /// Verifies that requesting focus sets the current focused id.
+    /// </summary>
     [Fact]
     public void RequestFocus_SetsCurrentFocusedId()
     {
@@ -54,6 +66,9 @@ public class FocusManagerTests
         Assert.True(focusManager.HasFocus("control1"));
     }
 
+    /// <summary>
+    /// Verifies that requesting focus on a non-focusable control does not set focus.
+    /// </summary>
     [Fact]
     public void RequestFocus_OnNonFocusableControl_DoesNotSetFocus()
     {
@@ -72,6 +87,9 @@ public class FocusManagerTests
         Assert.False(focusManager.HasAnyFocus);
     }
 
+    /// <summary>
+    /// Verifies that clearing focus removes focus from all controls.
+    /// </summary>
     [Fact]
     public void ClearFocus_RemovesFocusFromAllControls()
     {
@@ -93,6 +111,9 @@ public class FocusManagerTests
         Assert.False(focusManager.HasAnyFocus);
     }
 
+    /// <summary>
+    /// Verifies that HasFocusWithin returns true for a parent when a child has focus.
+    /// </summary>
     [Fact]
     public void HasFocusWithin_WithParentChild_ReturnsTrueForParent()
     {
@@ -113,6 +134,9 @@ public class FocusManagerTests
         Assert.False(focusManager.HasFocus("parent")); // Parent doesn't have direct focus
     }
 
+    /// <summary>
+    /// Verifies that controls not re-registered are removed at frame end.
+    /// </summary>
     [Fact]
     public void EndFrame_RemovesUnregisteredControls()
     {
@@ -138,6 +162,9 @@ public class FocusManagerTests
         Assert.False(focusManager.HasAnyFocus);
     }
 
+    /// <summary>
+    /// Verifies that GetParentChain returns the correct parent hierarchy for a control.
+    /// </summary>
     [Fact]
     public void GetParentChain_ReturnsCorrectHierarchy()
     {
@@ -157,6 +184,9 @@ public class FocusManagerTests
         Assert.Equal("grandparent", parentChain[1]);
     }
 
+    /// <summary>
+    /// Verifies that FocusChangedThisFrame is true only when focus actually changes.
+    /// </summary>
     [Fact]
     public void FocusChangedThisFrame_TrueWhenFocusChanges()
     {
@@ -194,6 +224,9 @@ public class FocusManagerTests
         Assert.True(focusManager.FocusChangedThisFrame);
     }
 
+    /// <summary>
+    /// Verifies that Gui.Focus registration and request methods work correctly.
+    /// </summary>
     [Fact]
     public void GuiFocusMethods_WorkCorrectly()
     {
@@ -216,6 +249,10 @@ public class FocusManagerTests
         Assert.True(gui.Focus.HasAnyFocus);
     }
 
+    /// <summary>
+    /// Verifies that focus can be requested with different focus reasons.
+    /// </summary>
+    /// <param name="reason">The focus reason to test.</param>
     [Theory]
     [InlineData(FocusReason.Mouse)]
     [InlineData(FocusReason.Keyboard)]
@@ -236,6 +273,9 @@ public class FocusManagerTests
         Assert.True(focusManager.HasFocus("control1"));
     }
 
+    /// <summary>
+    /// Verifies that focus persists correctly across multiple frame cycles.
+    /// </summary>
     [Fact]
     public void MultipleFrameCycle_MaintainsFocusCorrectly()
     {
@@ -261,6 +301,9 @@ public class FocusManagerTests
         Assert.True(focusManager.HasFocus("persistent-control"));
     }
 
+    /// <summary>
+    /// Verifies that HasFocusWithin works correctly through a deep parent hierarchy.
+    /// </summary>
     [Fact]
     public void HasFocusWithin_DeepHierarchy_WorksCorrectly()
     {

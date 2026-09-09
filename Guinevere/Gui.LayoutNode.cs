@@ -69,7 +69,7 @@ public partial class Gui : ILayoutNodeEnterExit
     {
         var idLocal = $"{filePath}:{lineNumber} {extra}";
         parentNode ??= CurrentNode;
-        var idGlobal = $"{parentNode?.Id}{idLocal}";
+        var idGlobal = $"{parentNode.Id}{idLocal}";
         return idGlobal;
     }
 

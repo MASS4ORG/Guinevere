@@ -34,10 +34,10 @@ public class TextEffectsTests
         return pixmap.GetPixelSpan().ToArray();
     }
 
-    private static (byte R, byte G, byte B, byte A) At(byte[] px, int x, int y)
+    private static (byte R, byte B, byte A) At(byte[] px, int x, int y)
     {
         var i = ((y * W) + x) * 4;
-        return (px[i], px[i + 1], px[i + 2], px[i + 3]);
+        return (px[i], px[i + 2], px[i + 3]);
     }
 
     private static int OpaqueCount(byte[] px)
@@ -110,7 +110,7 @@ public class TextEffectsTests
             effects: new TextEffects
             {
                 Gradient = new TextEffects.TextGradient(
-                    Color.FromArgb(255, 255, 0, 0), Color.FromArgb(255, 0, 0, 255), 0f),
+                    Color.FromArgb(255, 255, 0, 0), Color.FromArgb(255, 0, 0, 255)),
             }));
 
         (long r, long b, int count) Sample(int x0, int x1)
@@ -120,7 +120,7 @@ public class TextEffectsTests
             for (var y = 0; y < H; y++)
             for (var x = x0; x < x1; x++)
             {
-                var (pr, _, pb, pa) = At(px, x, y);
+                var (pr, pb, pa) = At(px, x, y);
                 if (pa <= 60) continue;
                 r += pr;
                 b += pb;

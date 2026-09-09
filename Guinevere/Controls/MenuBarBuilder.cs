@@ -55,7 +55,6 @@ public class MenuBarBuilder
                 // Draw hover highlight
                 if (isHovered)
                 {
-                    var rect = _gui.CurrentNode.Rect;
                     _gui.DrawBackgroundRect(_hoverColor ?? Color.FromArgb(255, 230, 230, 230));
                 }
 

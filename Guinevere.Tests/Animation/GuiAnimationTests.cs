@@ -1,5 +1,8 @@
 namespace Guinevere.Tests.Animation;
 
+/// <summary>
+/// Tests for animation functionality on the Gui class.
+/// </summary>
 public class GuiAnimationTests
 {
     private Gui CreateTestGui()
@@ -8,6 +11,9 @@ public class GuiAnimationTests
         return gui;
     }
 
+    /// <summary>
+    /// Verifies that GetAnimationFloat returns a new instance each time.
+    /// </summary>
     [Fact]
     public void GetAnimationFloat_ReturnsNewInstance()
     {
@@ -25,6 +31,9 @@ public class GuiAnimationTests
         Assert.Equal(initialValue, animation2.GetValue());
     }
 
+    /// <summary>
+    /// Verifies that GetAnimationFloat with no arguments returns a zero initial value.
+    /// </summary>
     [Fact]
     public void GetAnimationFloat_DefaultValue_ReturnsZero()
     {
@@ -38,6 +47,9 @@ public class GuiAnimationTests
         Assert.Equal(0f, animation.GetValue());
     }
 
+    /// <summary>
+    /// Verifies that AnimateBool01 from the same location returns the same animation.
+    /// </summary>
     [Fact]
     public void AnimateBool01_SameLocation_ReturnsSameAnimation()
     {
@@ -56,6 +68,9 @@ public class GuiAnimationTests
 
     private float CallAnimateBool01FromSameLocation(Gui gui) => gui.AnimateBool01(true, 0.5f, Easing.Linear);
 
+    /// <summary>
+    /// Verifies that the initial state call returns the target value directly.
+    /// </summary>
     [Fact]
     public void AnimateBool01_InitialState_ReturnsTargetValue()
     {
@@ -72,6 +87,9 @@ public class GuiAnimationTests
         Assert.Equal(0.0f, resultFalse);
     }
 
+    /// <summary>
+    /// Verifies that a state change triggers an animation on the Gui class.
+    /// </summary>
     [Fact]
     public void AnimateBool01_StateChange_TriggersAnimation()
     {
@@ -96,6 +114,9 @@ public class GuiAnimationTests
     private float CallAnimateBool01StateChange1(Gui gui, bool state, float duration) =>
         gui.AnimateBool01(state, duration, Easing.Linear);
 
+    /// <summary>
+    /// Verifies that ActiveAnimationCount reflects the total number of managed animations.
+    /// </summary>
     [Fact]
     public void ActiveAnimationCount_ReflectsNumberOfManagedAnimations()
     {
@@ -112,6 +133,9 @@ public class GuiAnimationTests
         Assert.Equal(3, gui.ActiveAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that RunningAnimationCount reflects only actively animating entries.
+    /// </summary>
     [Fact]
     public void RunningAnimationCount_ReflectsActivelyAnimatingCount()
     {
@@ -142,6 +166,9 @@ public class GuiAnimationTests
     private void CallAnimateBool01Running2(Gui gui, bool state, float duration) =>
         gui.AnimateBool01(state, duration, Easing.Linear);
 
+    /// <summary>
+    /// Verifies that ClearAnimations removes all animations from the Gui.
+    /// </summary>
     [Fact]
     public void ClearAnimations_RemovesAllAnimations()
     {
@@ -162,6 +189,9 @@ public class GuiAnimationTests
         Assert.Equal(0, gui.RunningAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that different easing functions work correctly with AnimateBool01.
+    /// </summary>
     [Fact]
     public void AnimateBool01_DifferentEasingFunctions_WorkCorrectly()
     {
@@ -204,6 +234,9 @@ public class GuiAnimationTests
     private float CallAnimateBool01Easing3(Gui gui, bool state, float duration, Func<float, float> easing) =>
         gui.AnimateBool01(state, duration, easing);
 
+    /// <summary>
+    /// Verifies that a zero-duration animation sets the value immediately without animating.
+    /// </summary>
     [Fact]
     public void AnimateBool01_ZeroDuration_NoAnimation()
     {
@@ -221,6 +254,9 @@ public class GuiAnimationTests
         Assert.Equal(0, gui.RunningAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that calls from different caller locations create separate animations.
+    /// </summary>
     [Fact]
     public void AnimateBool01_CallsFromDifferentLocations_CreateSeparateAnimations()
     {
@@ -240,6 +276,9 @@ public class GuiAnimationTests
     private void CallAnimateBool01Line1(Gui gui) => gui.AnimateBool01(true, 0.5f, Easing.Linear);
     private void CallAnimateBool01Line2(Gui gui) => gui.AnimateBool01(false, 0.5f, Easing.Linear);
 
+    /// <summary>
+    /// Verifies that the animation system works correctly with multiple time updates.
+    /// </summary>
     [Fact]
     public void AnimationSystem_IntegrationWithTimeUpdates_WorksCorrectly()
     {
@@ -247,7 +286,7 @@ public class GuiAnimationTests
         var gui = CreateTestGui();
         // gui.Time.Update();
 
-        var animation = gui.GetAnimationFloat(0f);
+        var animation = gui.GetAnimationFloat();
         animation.AnimateTo(10f, 0.1f, Easing.Linear);
 
         // Act - Simulate multiple time updates
@@ -277,6 +316,9 @@ public class GuiAnimationTests
         }
     }
 
+    /// <summary>
+    /// Verifies that the Gui returns zero counts when no animations have been created.
+    /// </summary>
     [Fact]
     public void AnimationSystem_NoAnimationManager_ReturnsZeroCounts()
     {

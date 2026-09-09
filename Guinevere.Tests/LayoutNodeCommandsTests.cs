@@ -1,9 +1,15 @@
 namespace Guinevere.Tests;
 
+/// <summary>
+/// Tests for layout node command extension methods.
+/// </summary>
 public class LayoutNodeCommandsTests : LayoutNodeTestBase
 {
     #region Expand Tests
 
+    /// <summary>
+    /// Verifies that Expand sets expansion properties with the given width and height percentages during build stage.
+    /// </summary>
     [Theory]
     [InlineData(1.0f, 1.0f)]
     [InlineData(0.5f, 0.5f)]
@@ -25,6 +31,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(heightPercentage, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
     }
 
+    /// <summary>
+    /// Verifies that Expand with default parameters sets full expansion (1.0, 1.0).
+    /// </summary>
     [Fact]
     public void Expand_WithDefaultParameters_SetsFullExpansion()
     {
@@ -41,6 +50,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
     }
 
+    /// <summary>
+    /// Verifies that Expand does not set expansion properties during render stage.
+    /// </summary>
     [Fact]
     public void Expand_WithRenderStage_DoesNotSetProperties()
     {
@@ -61,6 +73,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region ExpandWidth Tests
 
+    /// <summary>
+    /// Verifies that ExpandWidth sets width expansion with the given percentage during build stage.
+    /// </summary>
     [Theory]
     [InlineData(0.25f)]
     [InlineData(0.5f)]
@@ -80,6 +95,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(percentage, GetStyleProperty<float>(node, "ExpandWidthPercentage"));
     }
 
+    /// <summary>
+    /// Verifies that ExpandWidth with default parameter sets full width expansion.
+    /// </summary>
     [Fact]
     public void ExpandWidth_WithDefaultParameter_SetsFullWidthExpansion()
     {
@@ -95,6 +113,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandWidthPercentage"));
     }
 
+    /// <summary>
+    /// Verifies that ExpandWidth does not set properties during render stage.
+    /// </summary>
     [Fact]
     public void ExpandWidth_WithRenderStage_DoesNotSetProperties()
     {
@@ -113,6 +134,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region ExpandHeight Tests
 
+    /// <summary>
+    /// Verifies that ExpandHeight sets height expansion with the given percentage during build stage.
+    /// </summary>
     [Theory]
     [InlineData(0.25f)]
     [InlineData(0.5f)]
@@ -132,6 +156,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(percentage, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
     }
 
+    /// <summary>
+    /// Verifies that ExpandHeight with default parameter sets full height expansion.
+    /// </summary>
     [Fact]
     public void ExpandHeight_WithDefaultParameter_SetsFullHeightExpansion()
     {
@@ -147,6 +174,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
     }
 
+    /// <summary>
+    /// Verifies that ExpandHeight does not set properties during render stage.
+    /// </summary>
     [Fact]
     public void ExpandHeight_WithRenderStage_DoesNotSetProperties()
     {
@@ -165,6 +195,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Gap Tests
 
+    /// <summary>
+    /// Verifies that Gap sets the gap value during build stage.
+    /// </summary>
     [Theory]
     [InlineData(0f)]
     [InlineData(5f)]
@@ -184,6 +217,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(gap, GetStyleProperty<float>(node, "Gap"));
     }
 
+    /// <summary>
+    /// Verifies that Gap does not set the property during render stage.
+    /// </summary>
     [Fact]
     public void Gap_WithRenderStage_DoesNotSetProperty()
     {
@@ -202,6 +238,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Margin Tests
 
+    /// <summary>
+    /// Verifies that Margin with a single value sets all margins equally during build stage.
+    /// </summary>
     [Theory]
     [InlineData(5f)]
     [InlineData(10f)]
@@ -221,6 +260,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.False(GetStyleProperty<bool>(node, "HasSpecificMargins"));
     }
 
+    /// <summary>
+    /// Verifies that Margin with horizontal and vertical values sets specific margins during build stage.
+    /// </summary>
     [Theory]
     [InlineData(10f, 5f)]
     [InlineData(0f, 15f)]
@@ -240,6 +282,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.True(GetStyleProperty<bool>(node, "HasSpecificMargins"));
     }
 
+    /// <summary>
+    /// Verifies that Margin with four values sets individual margins during build stage.
+    /// </summary>
     [Theory]
     [InlineData(1f, 2f, 3f, 4f)]
     [InlineData(0f, 5f, 10f, 15f)]
@@ -258,6 +303,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.True(GetStyleProperty<bool>(node, "HasSpecificMargins"));
     }
 
+    /// <summary>
+    /// Verifies that Margin does not set properties during render stage.
+    /// </summary>
     [Fact]
     public void Margin_WithRenderStage_DoesNotSetProperties()
     {
@@ -276,6 +324,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Padding Tests
 
+    /// <summary>
+    /// Verifies that Padding with a single value sets all paddings equally during build stage.
+    /// </summary>
     [Theory]
     [InlineData(5f)]
     [InlineData(10f)]
@@ -294,6 +345,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         AssertPaddingValues(node, padding, padding, padding, padding);
     }
 
+    /// <summary>
+    /// Verifies that Padding with horizontal and vertical values sets specific paddings during build stage.
+    /// </summary>
     [Theory]
     [InlineData(10f, 5f)]
     [InlineData(0f, 15f)]
@@ -312,6 +366,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         AssertPaddingValues(node, vertical, horizontal, vertical, horizontal);
     }
 
+    /// <summary>
+    /// Verifies that Padding with four values sets individual paddings during build stage.
+    /// </summary>
     [Theory]
     [InlineData(1f, 2f, 3f, 4f)]
     [InlineData(0f, 5f, 10f, 15f)]
@@ -329,6 +386,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         AssertPaddingValues(node, top, right, bottom, left);
     }
 
+    /// <summary>
+    /// Verifies that Padding does not set properties during render stage.
+    /// </summary>
     [Fact]
     public void Padding_WithRenderStage_DoesNotSetProperties()
     {
@@ -347,6 +407,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Alignment Tests
 
+    /// <summary>
+    /// Verifies that AlignContent sets the alignment during build stage.
+    /// </summary>
     [Theory]
     [InlineData(0.0f)]
     [InlineData(0.25f)]
@@ -367,6 +430,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(alignment, GetStyleProperty<float>(node, "AlignContentVertical"));
     }
 
+    /// <summary>
+    /// Verifies that AlignSelf sets the alignment during build stage.
+    /// </summary>
     [Theory]
     [InlineData(0.0f)]
     [InlineData(0.25f)]
@@ -386,6 +452,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(alignment, GetStyleProperty<float>(node, "AlignSelf"));
     }
 
+    /// <summary>
+    /// Verifies that AlignContent with two parameters sets separate horizontal and vertical values during build stage.
+    /// </summary>
     [Theory]
     [InlineData(0.0f, 0.5f)]
     [InlineData(0.25f, 0.75f)]
@@ -404,6 +473,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(vertical, GetStyleProperty<float>(node, "AlignContentVertical"));
     }
 
+    /// <summary>
+    /// Verifies that AlignContent does not set the property during render stage.
+    /// </summary>
     [Fact]
     public void AlignContent_WithRenderStage_DoesNotSetProperty()
     {
@@ -419,6 +491,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(0.0f, GetStyleProperty<float>(node, "AlignContentVertical")); // Default value
     }
 
+    /// <summary>
+    /// Verifies that AlignContent with two parameters does not set the properties during render stage.
+    /// </summary>
     [Fact]
     public void AlignContent_TwoParameters_WithRenderStage_DoesNotSetProperty()
     {
@@ -434,6 +509,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(0.0f, GetStyleProperty<float>(node, "AlignContentVertical")); // Default value
     }
 
+    /// <summary>
+    /// Verifies that AlignSelf does not set the property during render stage.
+    /// </summary>
     [Fact]
     public void AlignSelf_WithRenderStage_DoesNotSetProperty()
     {
@@ -452,6 +530,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Direction Tests
 
+    /// <summary>
+    /// Verifies that Direction sets the given direction during build stage.
+    /// </summary>
     [Theory]
     [InlineData(Axis.Horizontal)]
     [InlineData(Axis.Vertical)]
@@ -469,6 +550,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(direction, GetStyleProperty<Axis>(node, "Direction"));
     }
 
+    /// <summary>
+    /// Verifies that Direction does not set the property during render stage.
+    /// </summary>
     [Fact]
     public void Direction_WithRenderStage_DoesNotSetProperty()
     {
@@ -487,6 +571,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Wrap Tests
 
+    /// <summary>
+    /// Verifies that Wrap sets the wrap content flag during build stage.
+    /// </summary>
     [Fact]
     public void WrapContent_WithBuildStage_SetsWrapContent()
     {
@@ -501,6 +588,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.True(GetStyleProperty<bool>(node, "Wrap"));
     }
 
+    /// <summary>
+    /// Verifies that Wrap does not set the property during render stage.
+    /// </summary>
     [Fact]
     public void WrapContent_WithRenderStage_DoesNotSetProperty()
     {
@@ -519,6 +609,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Size Tests
 
+    /// <summary>
+    /// Verifies that Width sets the width during build stage.
+    /// </summary>
     [Theory]
     [InlineData(50f)]
     [InlineData(100f)]
@@ -537,6 +630,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(width, GetStyleProperty<float?>(node, "Width"));
     }
 
+    /// <summary>
+    /// Verifies that Height sets the height during build stage.
+    /// </summary>
     [Theory]
     [InlineData(50f)]
     [InlineData(100f)]
@@ -555,6 +651,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(height, GetStyleProperty<float?>(node, "Height"));
     }
 
+    /// <summary>
+    /// Verifies that Size sets both width and height during build stage.
+    /// </summary>
     [Theory]
     [InlineData(50f)]
     [InlineData(100f)]
@@ -573,6 +672,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(size, GetStyleProperty<float?>(node, "Height"));
     }
 
+    /// <summary>
+    /// Verifies that Width does not set the property during render stage.
+    /// </summary>
     [Fact]
     public void Width_WithRenderStage_DoesNotSetProperty()
     {
@@ -587,6 +689,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Null(GetStyleProperty<float?>(node, "Width"));
     }
 
+    /// <summary>
+    /// Verifies that Height does not set the property during render stage.
+    /// </summary>
     [Fact]
     public void Height_WithRenderStage_DoesNotSetProperty()
     {
@@ -605,6 +710,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Position Tests
 
+    /// <summary>
+    /// Verifies that Left sets the X position during build stage.
+    /// </summary>
     [Theory]
     [InlineData(0f)]
     [InlineData(50f)]
@@ -623,6 +731,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(value, node.Rect.X);
     }
 
+    /// <summary>
+    /// Verifies that Top sets the Y position during build stage.
+    /// </summary>
     [Theory]
     [InlineData(0f)]
     [InlineData(50f)]
@@ -641,6 +752,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(value, node.Rect.Y);
     }
 
+    /// <summary>
+    /// Verifies that Left does not set the X position during render stage.
+    /// </summary>
     [Fact]
     public void Left_WithRenderStage_DoesNotSetProperty()
     {
@@ -656,6 +770,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(originalX, node.Rect.X);
     }
 
+    /// <summary>
+    /// Verifies that Top does not set the Y position during render stage.
+    /// </summary>
     [Fact]
     public void Top_WithRenderStage_DoesNotSetProperty()
     {
@@ -675,6 +792,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
     #region Fluent Interface Chain Tests
 
+    /// <summary>
+    /// Verifies that a fluent chain of multiple commands applies correctly during build stage.
+    /// </summary>
     [Fact]
     public void FluentChain_WithMultipleCommands_WorksCorrectly()
     {
@@ -717,6 +837,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         Assert.Equal(30f, node.Rect.Y);
     }
 
+    /// <summary>
+    /// Verifies that a fluent chain of commands does not set any properties during render stage.
+    /// </summary>
     [Fact]
     public void FluentChain_WithRenderStage_DoesNotSetAnyProperties()
     {

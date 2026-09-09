@@ -93,7 +93,6 @@ public static class StyleLayout
             case 1: all(n[0]); break;
             case 2: hv(n[1], n[0]); break; // CSS "vertical horizontal" → Guinevere (horizontal, vertical)
             case 4: tblr(n[0], n[1], n[2], n[3]); break;
-            default: break;
         }
     }
 

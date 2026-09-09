@@ -119,11 +119,14 @@ public abstract class Program
         {
             canvas.Clear(SKColors.Transparent);
             var rect = new SKRect(1, 1, size - 1, size - 1);
-            using var f = new SKPaint { Color = fill, IsAntialias = true };
-            using var e = new SKPaint
-            {
-                Color = edge, IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = 2,
-            };
+            using var f = new SKPaint();
+            f.Color = fill;
+            f.IsAntialias = true;
+            using var e = new SKPaint();
+            e.Color = edge;
+            e.IsAntialias = true;
+            e.Style = SKPaintStyle.Stroke;
+            e.StrokeWidth = 2;
             canvas.DrawRoundRect(rect, 10, 10, f);
             canvas.DrawRoundRect(rect, 10, 10, e);
         }

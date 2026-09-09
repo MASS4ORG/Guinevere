@@ -2,10 +2,17 @@ namespace Guinevere.Tests.Animation;
 
 // ReSharper disable ExplicitCallerInfoArgument - tests deliberately pass explicit caller locations
 // to verify NodeId stability, which is a legitimate use of the [Caller*] targets.
+
+/// <summary>
+/// Tests for the AnimationManager class.
+/// </summary>
 public class AnimationManagerTests
 {
     private Time CreateTestTime() => new();
 
+    /// <summary>
+    /// Verifies that the constructor initializes active and running animation counts to zero.
+    /// </summary>
     [Fact]
     public void Constructor_InitializesCorrectly()
     {
@@ -20,6 +27,9 @@ public class AnimationManagerTests
         Assert.Equal(0, manager.RunningAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that the first call to AnimateBool01 creates a new animation and returns the target value.
+    /// </summary>
     [Fact]
     public void AnimateBool01_FirstCall_CreatesNewAnimation()
     {
@@ -36,6 +46,9 @@ public class AnimationManagerTests
         Assert.Equal(1, manager.ActiveAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that calls from the same location return the same animation instance.
+    /// </summary>
     [Fact]
     public void AnimateBool01_SameLocation_ReturnsSameAnimation()
     {
@@ -55,6 +68,9 @@ public class AnimationManagerTests
         Assert.Equal(1, manager.ActiveAnimationCount); // Should still be only one animation
     }
 
+    /// <summary>
+    /// Verifies that calls from different locations create separate animations.
+    /// </summary>
     [Fact]
     public void AnimateBool01_DifferentLocations_CreatesSeparateAnimations()
     {
@@ -72,6 +88,9 @@ public class AnimationManagerTests
         Assert.Equal(2, manager.ActiveAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that a state change triggers an animation.
+    /// </summary>
     [Fact]
     public void AnimateBool01_StateChange_TriggersAnimation()
     {
@@ -98,6 +117,9 @@ public class AnimationManagerTests
         Assert.Equal(1, manager.RunningAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that changing from false to true animates the value correctly.
+    /// </summary>
     [Fact]
     public void AnimateBool01_FalseToTrue_AnimatesCorrectly()
     {
@@ -122,6 +144,9 @@ public class AnimationManagerTests
         Assert.Equal(1, manager.RunningAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that changing from true to false animates the value correctly.
+    /// </summary>
     [Fact]
     public void AnimateBool01_TrueToFalse_AnimatesCorrectly()
     {
@@ -146,6 +171,9 @@ public class AnimationManagerTests
         Assert.Equal(1, manager.RunningAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that repeated calls with the same state do not restart the animation.
+    /// </summary>
     [Fact]
     public void AnimateBool01_SameStateRepeated_DoesNotRestartAnimation()
     {
@@ -177,6 +205,9 @@ public class AnimationManagerTests
         Assert.Equal(1, manager.ActiveAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that different easing functions are applied to their respective animations.
+    /// </summary>
     [Fact]
     public void AnimateBool01_DifferentEasingFunctions_AppliedCorrectly()
     {
@@ -205,6 +236,9 @@ public class AnimationManagerTests
         Assert.True(easeInAnimating >= 0.0f);
     }
 
+    /// <summary>
+    /// Verifies that Clear removes all animations from the manager.
+    /// </summary>
     [Fact]
     public void Clear_RemovesAllAnimations()
     {
@@ -226,6 +260,9 @@ public class AnimationManagerTests
         Assert.Equal(0, manager.RunningAnimationCount);
     }
 
+    /// <summary>
+    /// Verifies that RunningAnimationCount reflects only actively animating entries.
+    /// </summary>
     [Fact]
     public void RunningAnimationCount_ReflectsActiveAnimations()
     {
@@ -252,6 +289,9 @@ public class AnimationManagerTests
         Assert.Equal(2, manager.ActiveAnimationCount); // Total animations managed
     }
 
+    /// <summary>
+    /// Verifies that a zero-duration animation sets the value immediately without animating.
+    /// </summary>
     [Fact]
     public void AnimateBool01_ZeroDuration_SetsValueImmediately()
     {

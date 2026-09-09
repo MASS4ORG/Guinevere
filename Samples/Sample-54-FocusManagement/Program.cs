@@ -17,7 +17,7 @@ public abstract class Program
     private static bool _emailNotifications = true;
     private static bool _smsNotifications;
     private static bool _pushNotifications = true;
-    private static bool _darkMode = false;
+    private static bool _darkMode;
     private static bool _autoSave = true;
 
     // Settings
