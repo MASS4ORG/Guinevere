@@ -95,4 +95,30 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
         Assert.Equal(123f, child.Rect.W, 1);
         Assert.Equal(45f, child.Rect.H, 1);
     }
+
+    /// <summary>
+    /// A content-sized container's own padding is added to its size, so fixed-size children fit
+    /// inside its inner box instead of overflowing (the "content spills past the card" bug).
+    /// </summary>
+    [Fact]
+    public void ContentSizedContainer_IncludesOwnPadding()
+    {
+        var gui = CreateTestGui();
+        var root = LayoutNode.CreateRoot(gui, 800f, 600f);
+
+        var card = CreateTestLayoutNode(gui, root).Padding(16f).Direction(Axis.Vertical).Gap(10f);
+        root.AddChild(card);
+
+        var a = CreateTestLayoutNode(gui, card).Width(100f).Height(40f);
+        var b = CreateTestLayoutNode(gui, card).Width(100f).Height(60f);
+        card.AddChild(a);
+        card.AddChild(b);
+
+        root.CalculateLayout();
+
+        // children 40 + 60 + gap 10 = 110, plus 16 top + 16 bottom padding = 142
+        Assert.Equal(142f, card.Rect.H, 1);
+        Assert.True(b.Rect.Y + b.Rect.H <= card.Rect.Y + card.Rect.H - 16f + 0.5f,
+            "the bottom child must not overflow the card's bottom padding");
+    }
 }

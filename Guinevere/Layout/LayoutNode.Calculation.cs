@@ -85,12 +85,16 @@ public partial class LayoutNode
 
     private float CalculateContentWidth(float availableWidth)
     {
-        if (ChildNodes.Count == 0)
-            return _rect.W > 0 ? _rect.W : 10f;
+        var padding = Style.PaddingLeft + Style.PaddingRight;
 
-        return Style.Direction == Axis.Horizontal
-            ? CalculateHorizontalContentWidth(availableWidth)
-            : CalculateVerticalContentWidth(availableWidth);
+        if (ChildNodes.Count == 0)
+            return (_rect.W > 0 ? _rect.W : 10f) + padding;
+
+        var inner = Math.Max(0f, availableWidth - padding);
+        var content = Style.Direction == Axis.Horizontal
+            ? CalculateHorizontalContentWidth(inner)
+            : CalculateVerticalContentWidth(inner);
+        return content + padding;
     }
 
     private float CalculateHorizontalContentWidth(float availableWidth)
@@ -121,12 +125,16 @@ public partial class LayoutNode
 
     private float CalculateContentHeight(float availableHeight)
     {
-        if (ChildNodes.Count == 0)
-            return _rect.H > 0 ? _rect.H : 10f;
+        var padding = Style.PaddingTop + Style.PaddingBottom;
 
-        return Style.Direction == Axis.Vertical
-            ? CalculateVerticalContentHeight(availableHeight)
-            : CalculateHorizontalContentHeight(availableHeight);
+        if (ChildNodes.Count == 0)
+            return (_rect.H > 0 ? _rect.H : 10f) + padding;
+
+        var inner = Math.Max(0f, availableHeight - padding);
+        var content = Style.Direction == Axis.Vertical
+            ? CalculateVerticalContentHeight(inner)
+            : CalculateHorizontalContentHeight(inner);
+        return content + padding;
     }
 
     private float CalculateVerticalContentHeight(float availableHeight)
