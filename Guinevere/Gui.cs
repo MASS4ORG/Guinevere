@@ -127,8 +127,35 @@ public partial class Gui
                      .OrderBy(value => value.z)
                 )
         {
+            var restore = Canvas!.Save();
+            ApplyAncestorClips(node, Canvas!);
             node.DrawList.Render(this, node, Canvas!);
+            Canvas!.RestoreToCount(restore);
             node.Pass2NodeCount = 0;
+        }
+    }
+
+    /// <summary>
+    /// Re-applies the clip rect of every clipping ancestor of <paramref name="node"/> before it is
+    /// drawn. A scroll or <see cref="ClipContent"/> container records its clip only in its own
+    /// <see cref="DrawList"/> and never restores the canvas, so in this flat z-ordered render the
+    /// clip would otherwise leak onto — and wrongly hide — every node drawn after the container
+    /// rather than just its descendants.
+    /// </summary>
+    private static void ApplyAncestorClips(LayoutNode node, SKCanvas canvas)
+    {
+        var ancestors = new Stack<LayoutNode>();
+        for (var a = node.Parent; a is not null; a = a.Parent)
+            ancestors.Push(a);
+
+        foreach (var ancestor in ancestors)
+        {
+            if (!ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()) continue;
+            if (!ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value) continue;
+
+            var r = ancestor.InnerRect;
+            if (r is { W: > 0, H: > 0 })
+                canvas.ClipRect(r);
         }
     }
 

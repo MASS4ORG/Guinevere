@@ -96,6 +96,36 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
         Assert.Equal(45f, child.Rect.H, 1);
     }
 
+    /// <summary>A wrapped row breaks children onto new lines and stacks the lines on the cross axis.</summary>
+    [Fact]
+    public void WrappedRow_BreaksChildrenIntoLines()
+    {
+        var gui = CreateTestGui(250, 400);
+        var root = LayoutNode.CreateRoot(gui, 250f, 400f);
+
+        var row = CreateTestLayoutNode(gui, root).Direction(Axis.Horizontal).Wrap(0).Gap(10f);
+        root.AddChild(row);
+
+        // Five 100-wide items in a 250-wide row → 2 per line (100 + 10 + 100 = 210 ≤ 250).
+        var items = new LayoutNode[5];
+        for (var i = 0; i < 5; i++)
+        {
+            items[i] = CreateTestLayoutNode(gui, row).Width(100f).Height(30f);
+            row.AddChild(items[i]);
+        }
+
+        root.CalculateLayout();
+
+        Assert.Equal(items[0].Rect.Y, items[1].Rect.Y, 1);           // line 1
+        Assert.True(items[2].Rect.Y > items[0].Rect.Y + 20f);        // line 2 is lower
+        Assert.Equal(items[2].Rect.Y, items[3].Rect.Y, 1);
+        Assert.True(items[4].Rect.Y > items[2].Rect.Y + 20f);        // line 3
+        Assert.Equal(items[0].Rect.X, items[2].Rect.X, 1);           // lines start at the same X
+
+        // Three lines of 30 + two 10 gaps = 110.
+        Assert.Equal(110f, row.Rect.H, 1);
+    }
+
     /// <summary>
     /// A content-sized container's own padding is added to its size, so fixed-size children fit
     /// inside its inner box instead of overflowing (the "content spills past the card" bug).

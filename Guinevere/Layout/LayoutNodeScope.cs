@@ -90,4 +90,10 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
 
         return TValue.Default;
     }
+
+    /// <summary>
+    /// Returns <c>true</c> when a value of type <typeparamref name="T"/> was set directly on this
+    /// scope, as opposed to inherited from a parent scope by <see cref="Get{TValue}"/>.
+    /// </summary>
+    public bool HasLocal<T>() where T : class => _records.ContainsKey(typeof(T));
 }

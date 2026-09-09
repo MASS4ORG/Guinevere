@@ -51,10 +51,15 @@ public partial class LayoutNode
             );
     }
 
+    // Width is resolved before height; a wrapped horizontal container needs it to know how many
+    // lines its children break into when computing its own content height.
+    private float _resolvedWidthForHeightPass;
+
     private void InitializeChildLayout()
     {
         var parentInner = _parent!.InnerRect;
         var myWidth = CalculateWidth(parentInner.W);
+        _resolvedWidthForHeightPass = myWidth;
         var myHeight = CalculateHeight(parentInner.H);
         _rect = new Rect(0, 0, myWidth, myHeight);
     }
@@ -67,7 +72,11 @@ public partial class LayoutNode
                 ? availableWidth * Style.WidthPercent
                 : Style.Width >= 0
                     ? Style.Width
-                    : CalculateContentWidth(availableWidth);
+                    // A wrapping row fills the available width (like a block-level flex container),
+                    // so its children have a width to wrap against instead of sizing to their sum.
+                    : Style.Wrap && Style.Direction == Axis.Horizontal
+                        ? availableWidth
+                        : CalculateContentWidth(availableWidth);
         return Style.ClampWidth(width);
     }
 
@@ -123,7 +132,7 @@ public partial class LayoutNode
         return marginWidth + contentWidth;
     }
 
-    private float CalculateContentHeight(float availableHeight)
+    private float CalculateContentHeight(float availableHeight, float outerWidthForWrap = -1f)
     {
         var padding = Style.PaddingTop + Style.PaddingBottom;
 
@@ -131,9 +140,22 @@ public partial class LayoutNode
             return (_rect.H > 0 ? _rect.H : 10f) + padding;
 
         var inner = Math.Max(0f, availableHeight - padding);
-        var content = Style.Direction == Axis.Vertical
-            ? CalculateVerticalContentHeight(inner)
-            : CalculateHorizontalContentHeight(inner);
+        float content;
+        if (Style.Direction == Axis.Vertical)
+        {
+            content = CalculateVerticalContentHeight(inner);
+        }
+        else if (Style.Wrap)
+        {
+            var hpad = Style.PaddingLeft + Style.PaddingRight;
+            var outer = outerWidthForWrap >= 0f ? outerWidthForWrap : _resolvedWidthForHeightPass;
+            content = CalculateWrappedContentHeight(Math.Max(0f, outer - hpad));
+        }
+        else
+        {
+            content = CalculateHorizontalContentHeight(inner);
+        }
+
         return content + padding;
     }
 
@@ -158,7 +180,9 @@ public partial class LayoutNode
         var marginHeight = child.Style.MarginTop + child.Style.MarginBottom;
         var contentHeight = child.Style.Height >= 0
             ? child.Style.Height
-            : Math.Max(child.CalculateContentHeight(availableHeight), 10f);
+            : Math.Max(child.CalculateContentHeight(availableHeight,
+                Math.Max(0f, _resolvedWidthForHeightPass - Style.PaddingLeft - Style.PaddingRight)
+                - child.Style.MarginLeft - child.Style.MarginRight), 10f);
 
         return marginHeight + contentHeight;
     }
@@ -203,6 +227,7 @@ public partial class LayoutNode
         return new VerticalLayoutContext
         {
             AvailableHeight = availableHeight,
+            ContentWidth = contentRect.W,
             TotalGap = totalGap,
             ExpandingChildren = expandingChildren,
             TotalExpandPercentage =
@@ -250,7 +275,8 @@ public partial class LayoutNode
             ? child.Style.Height
             : child.ChildNodes.Count == 0 && child.Rect.H > 0
                 ? child.Rect.H
-                : child.CalculateContentHeight(context.AvailableHeight);
+                : child.CalculateContentHeight(context.AvailableHeight,
+                    context.ContentWidth - child.Style.MarginLeft - child.Style.MarginRight);
 
         return marginHeight + contentHeight;
     }
@@ -267,7 +293,8 @@ public partial class LayoutNode
         if (child.ChildNodes.Count == 0 && child.Rect.H > 0)
             return child.Rect.H;
 
-        return child.CalculateContentHeight(context.AvailableHeight);
+        return child.CalculateContentHeight(context.AvailableHeight,
+            context.ContentWidth - child.Style.MarginLeft - child.Style.MarginRight);
     }
 
     private float CalculateExpandingChildHeight(LayoutNode child, VerticalLayoutContext context, float remainingHeight,
@@ -349,9 +376,112 @@ public partial class LayoutNode
     {
         if (ChildNodes.Count == 0) return;
 
+        if (Style.Wrap)
+        {
+            LayoutChildrenHorizontallyWrapped(contentRect);
+            return;
+        }
+
         var layoutContext = CreateHorizontalLayoutContext(contentRect);
         var childDimensions = CalculateHorizontalChildDimensions(layoutContext);
         PositionChildrenHorizontally(contentRect, childDimensions, layoutContext);
+    }
+
+    /// <summary>
+    /// Flows children left-to-right, breaking to a new line when the next child (plus gap) would
+    /// overflow the content width. Line height is the tallest child on that line; lines stack on
+    /// the cross axis with the same gap. Children keep their natural size — no expand/justify on a
+    /// wrapped axis, matching CSS <c>flex-wrap</c> defaults for this engine's scope.
+    /// </summary>
+    private void LayoutChildrenHorizontallyWrapped(Rect contentRect)
+    {
+        var lines = BuildWrapLines(contentRect.W);
+        var currentY = contentRect.Y;
+
+        foreach (var line in lines)
+        {
+            var lineHeight = 0f;
+            foreach (var i in line)
+                lineHeight = Math.Max(lineHeight, NaturalChildHeight(ChildNodes[i], contentRect.W));
+
+            var currentX = contentRect.X;
+            foreach (var i in line)
+            {
+                var child = ChildNodes[i];
+                currentX += child.Style.MarginLeft;
+
+                var w = NaturalChildWidth(child, contentRect.W);
+                var h = child.Style.Height >= 0 ? child.Style.Height : lineHeight;
+                h = child.Style.ClampHeight(h);
+
+                var alignOffsetY = Math.Max(0f, lineHeight - h) * Style.AlignContentVertical;
+                child._rect = new Rect(currentX, currentY + child.Style.MarginTop + alignOffsetY, w, h);
+
+                if (child.ChildNodes.Count > 0) child.LayoutChildren();
+                child.ApplyScrollOffset();
+
+                currentX += w + child.Style.MarginRight + Style.Gap;
+            }
+
+            currentY += lineHeight + Style.Gap;
+        }
+    }
+
+    private List<List<int>> BuildWrapLines(float availableWidth)
+    {
+        var lines = new List<List<int>>();
+        var line = new List<int>();
+        var lineWidth = 0f;
+
+        for (var i = 0; i < ChildNodes.Count; i++)
+        {
+            var child = ChildNodes[i];
+            var w = NaturalChildWidth(child, availableWidth) + child.Style.MarginLeft + child.Style.MarginRight;
+            var withGap = line.Count == 0 ? w : lineWidth + Style.Gap + w;
+
+            if (line.Count > 0 && withGap > availableWidth)
+            {
+                lines.Add(line);
+                line = new List<int>();
+                lineWidth = 0f;
+            }
+
+            lineWidth = line.Count == 0 ? w : lineWidth + Style.Gap + w;
+            line.Add(i);
+        }
+
+        if (line.Count > 0) lines.Add(line);
+        return lines;
+    }
+
+    private static float NaturalChildWidth(LayoutNode child, float availableWidth) =>
+        child.Style.Width >= 0
+            ? child.Style.Width
+            : child.Style.WidthPercent >= 0f
+                ? availableWidth * child.Style.WidthPercent
+                : Math.Max(child.CalculateContentWidth(availableWidth), 10f);
+
+    private static float NaturalChildHeight(LayoutNode child, float availableWidth) =>
+        child.Style.Height >= 0
+            ? child.Style.Height
+            : Math.Max(child.CalculateContentHeight(availableWidth, availableWidth), 10f);
+
+    /// <summary>Cross-axis size of a wrapped horizontal container: stacked line heights plus gaps.</summary>
+    private float CalculateWrappedContentHeight(float availableWidth)
+    {
+        var lines = BuildWrapLines(availableWidth);
+        if (lines.Count == 0) return 0f;
+
+        var total = (lines.Count - 1) * Style.Gap;
+        foreach (var line in lines)
+        {
+            var lineHeight = 0f;
+            foreach (var i in line)
+                lineHeight = Math.Max(lineHeight, NaturalChildHeight(ChildNodes[i], availableWidth));
+            total += lineHeight;
+        }
+
+        return total;
     }
 
     private HorizontalLayoutContext CreateHorizontalLayoutContext(Rect contentRect)
@@ -506,6 +636,7 @@ public partial class LayoutNode
     private class VerticalLayoutContext
     {
         public float AvailableHeight { get; set; }
+        public float ContentWidth { get; set; }
         public float TotalGap { get; set; }
         public List<LayoutNode> ExpandingChildren { get; set; } = new();
         public float TotalExpandPercentage { get; set; }

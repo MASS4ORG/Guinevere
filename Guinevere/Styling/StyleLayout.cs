@@ -23,6 +23,9 @@ public static class StyleLayout
                 case "flex-direction":
                     node.Direction(value is "row" or "row-reverse" ? Axis.Horizontal : Axis.Vertical);
                     break;
+                case "flex-wrap":
+                    if (value is "wrap" or "wrap-reverse") node.Wrap(0);
+                    break;
                 case "gap":
                     if (StyleValue.TryFloat(value, out var gap)) node.Gap(gap);
                     break;
