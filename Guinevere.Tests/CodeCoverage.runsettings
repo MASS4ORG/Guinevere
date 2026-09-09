@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Code coverage settings for Microsoft.Testing.Platform.
+  Replaces coverlet's ExcludeByFile="**/*.g.cs", which no longer applies: coverlet.msbuild
+  instruments from the VSTest MSBuild target, and the .NET 10 SDK no longer runs it.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <CodeCoverage>
+            <Sources>
+              <Exclude>
+                <Source>.*\.g\.cs$</Source>
+              </Exclude>
+            </Sources>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

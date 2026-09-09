@@ -18,5 +18,6 @@ partial class Build
                                            ? ConfigurationPreset.Debug
                                            : ConfigurationPreset.Release);
 
-    [Solution(GenerateProjects = true)] private readonly Solution Solution;
+    [Solution(GenerateProjects = true)]
+    private readonly Solution Solution;
 }

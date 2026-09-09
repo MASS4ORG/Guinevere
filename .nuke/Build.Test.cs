@@ -1,10 +1,10 @@
 using System;
 using Nuke.Common;
 using Nuke.Common.IO;
-using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
 using Serilog;
+using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 
 namespace Guinevere.Nuke;
 
@@ -14,30 +14,33 @@ namespace Guinevere.Nuke;
 /// </summary>
 partial class Build
 {
-    private static AbsolutePath CoverageDirectory => RootDirectory / "coverage";
-    private static AbsolutePath CoverageResultFile => CoverageDirectory / "coverage.xml";
-    private static AbsolutePath CoverageReportDirectory => CoverageDirectory / "report";
-    private static AbsolutePath CoverageReportSummaryFile => CoverageReportDirectory / "Summary.txt";
+    AbsolutePath TestProjectDirectory => Solution.Guinevere_Tests.Directory;
+    static AbsolutePath CoverageDirectory => RootDirectory / "coverage";
+    static AbsolutePath CoverageResultDirectory => CoverageDirectory / "coverage";
+    static AbsolutePath CoverageResultFile => CoverageResultDirectory / "coverage.xml";
+    static AbsolutePath CoverageReportDirectory => CoverageDirectory / "report";
+    static AbsolutePath CoverageReportSummaryDirectory => CoverageReportDirectory / "Summary.txt";
+    AbsolutePath CoverageSettingsFile => TestProjectDirectory / "CodeCoverage.runsettings";
 
-    [Parameter("Minimum coverage threshold (default: 80)")]
-    public readonly int CoverageThreshold = 80;
+
+    [Parameter("Minimum coverage threshold (default: 80)")] public readonly int CoverageThreshold = 80;
 
     private Target Test => td => td
         .After(Compile)
         .Produces(CoverageResultFile)
         .Executes(() =>
-            DotNetTasks.DotNetTest(settings => settings
-                .SetProjectFile(Solution)
-                .SetConfiguration(ConfigurationSet)
-
-                // Test Coverage
-                .SetResultsDirectory(CoverageDirectory)
-                .SetCoverletOutput(CoverageResultFile)
-                .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
-                .SetExcludeByFile("**/*.g.cs") // Exclude source generated files
-                .EnableCollectCoverage()
-            )
-        );
+        {
+            _ = CoverageResultDirectory.CreateDirectory();
+            DotNetTasks.DotNetRun(settings => settings
+                .SetConfiguration(Configuration)
+                .SetProjectFile(Solution.Guinevere_Tests.Path)
+                .SetApplicationArguments(
+                    "--coverage",
+                    "--coverage-settings", CoverageSettingsFile, // Excludes source generated files
+                    "--coverage-output-format", "cobertura",
+                    "--coverage-output", CoverageResultFile)
+            );
+        });
 
     public Target TestReport => td => td
         .DependsOn(Test)
@@ -45,79 +48,15 @@ partial class Build
         .Produces(CoverageReportDirectory / "**")
         .Executes(() =>
         {
-            if (!CoverageResultFile.Exists())
-            {
-                Log.Warning("Coverage file not found: {File}", CoverageResultFile);
-                return;
-            }
 
-            CoverageReportDirectory.CreateDirectory();
-            
-            Log.Information("Generating coverage report from {File}", CoverageResultFile);
-
-            ReportGeneratorTasks.ReportGenerator(s => s
-                .SetTargetDirectory(CoverageReportDirectory)
-                .SetReportTypes(ReportTypes.Html, ReportTypes.TextSummary, ReportTypes.Badges)
-                .SetReports(CoverageResultFile)
-                .SetHistoryDirectory(CoverageReportDirectory / "history")
-                .SetVerbosity(ReportGeneratorVerbosity.Info)
+            _ = CoverageReportDirectory.CreateDirectory();
+            _ = ReportGenerator(
+                s => s
+                    .SetTargetDirectory(CoverageReportDirectory)
+                    .SetReportTypes([ReportTypes.Html, ReportTypes.TextSummary])
+                    .SetReports(CoverageResultFile)
             );
-
-            if (CoverageReportSummaryFile.Exists())
-            {
-                var summaryText = CoverageReportSummaryFile.ReadAllLines();
-                Log.Information("Coverage Summary:");
-                Log.Information(string.Join(Environment.NewLine, summaryText));
-
-                // Check coverage threshold
-                CheckCoverageThreshold(summaryText);
-            }
-            else
-            {
-                Log.Warning("Coverage summary file not found: {File}", CoverageReportSummaryFile);
-            }
-
-            Log.Information("Coverage report generated at: {Directory}", CoverageReportDirectory);
+            var summaryText = CoverageReportSummaryDirectory.ReadAllLines();
+            Log.Information(string.Join(Environment.NewLine, summaryText));
         });
-
-    /// <summary>
-    /// Checks if the coverage meets the minimum threshold
-    /// </summary>
-    private void CheckCoverageThreshold(string[] summaryLines)
-    {
-        try
-        {
-            foreach (var line in summaryLines)
-            {
-                if (line.Contains("Line coverage:") && line.Contains("%"))
-                {
-                    var percentageStart = line.IndexOf(": ") + 2;
-                    var percentageEnd = line.IndexOf("%");
-                    if (percentageStart > 1 && percentageEnd > percentageStart)
-                    {
-                        var percentageStr = line.Substring(percentageStart, percentageEnd - percentageStart);
-                        if (double.TryParse(percentageStr, out var coverage))
-                        {
-                            Log.Information("Line coverage: {Coverage}%", coverage);
-                            if (coverage < CoverageThreshold)
-                            {
-                                Log.Warning("Coverage {Coverage}% is below threshold {Threshold}%", 
-                                    coverage, CoverageThreshold);
-                            }
-                            else
-                            {
-                                Log.Information("Coverage {Coverage}% meets threshold {Threshold}%", 
-                                    coverage, CoverageThreshold);
-                            }
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Could not parse coverage percentage from summary");
-        }
-    }
 }
