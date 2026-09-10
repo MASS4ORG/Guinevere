@@ -103,8 +103,19 @@ public abstract class Program
                 if (interactable.OnClick()) _menuPanelId = _menuPanelId == panelId ? null : panelId;
             }
 
-            gui.DrawText("\u22ee", Theme.FontSize, _menuPanelId == panelId ? Theme.Ink : Theme.InkDim);
+            if (gui.Pass == Pass.Pass2Render)
+                DrawOverflowDots(gui, _menuPanelId == panelId ? Theme.Ink : Theme.InkDim);
         }
+    }
+
+    /// <summary>Three stacked dots, drawn rather than typed: most system fonts have no U+22EE.</summary>
+    private static void DrawOverflowDots(Gui gui, Color color)
+    {
+        var rect = gui.CurrentNode.Rect;
+        var centre = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);
+
+        for (var i = -1; i <= 1; i++)
+            gui.DrawCircleFilled(centre with { Y = centre.Y + i * 4f }, 1.4f, color);
     }
 
     private static void Toolbar(Gui gui)
@@ -150,7 +161,7 @@ public abstract class Program
             gui.DrawText(Titles.GetValueOrDefault(panelId, panelId), 15, Theme.Ink, centerInRect: false);
 
             if (_menuPanelId == panelId)
-                gui.DrawText("(the ⋮ menu for this panel is open)", 11, Theme.Accent, centerInRect: false);
+                gui.DrawText("(the overflow menu for this panel is open)", 11, Theme.Accent, centerInRect: false);
 
             switch (panelId)
             {

@@ -432,9 +432,8 @@ public partial class LayoutNode
 
     /// <summary>
     /// Flows children left-to-right, breaking to a new line when the next child (plus gap) would
-    /// overflow the content width. Line height is the tallest child on that line; lines stack on
-    /// the cross axis with the same gap. Children keep their natural size — no expand/justify on a
-    /// wrapped axis, matching CSS <c>flex-wrap</c> defaults for this engine's scope.
+    /// overflow the content width. Line height is the tallest child on that line; lines stack with
+    /// the same gap. Wrapped children keep their natural size — no expand on the cross axis.
     /// </summary>
     private void LayoutChildrenHorizontallyWrapped(Rect contentRect)
     {

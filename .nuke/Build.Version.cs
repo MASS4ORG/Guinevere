@@ -262,6 +262,7 @@ partial class Build
             var projectsToVersion = new List<Project>
             {
                 Solution.Guinevere,
+                Solution.GetProject("Guinevere.Scripting"),
                 Solution.GetProject("Guinevere.OpenGL.OpenTK"),
                 Solution.GetProject("Guinevere.OpenGL.Raylib"),
                 Solution.GetProject("Guinevere.OpenGL.SilkNET"),

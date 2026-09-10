@@ -230,6 +230,11 @@ public static partial class ControlsExtensions
     /// Overlays the five drop zones of a group while a tab is being dragged, and highlights the one
     /// under the cursor with a preview of the region the panel would take.
     /// </summary>
+    /// <summary>
+    /// While a tab is being dragged, offers the whole group as a drop target and previews where the
+    /// panel would land. The edge bands take priority and everything else is the centre, so no part of
+    /// a group is dead space that silently tears the panel off instead.
+    /// </summary>
     private static void DropZones(DockContext context, DockLeaf leaf, Rect rect)
     {
         var gui = context.Gui;
@@ -242,30 +247,38 @@ public static partial class ControlsExtensions
             if (gui.Pass != Pass.Pass2Render) return;
             if (rect is { W: <= 0 } or { H: <= 0 }) return;
 
-            foreach (var zone in DockZones)
-            {
-                var target = ZoneRect(rect, zone, context.Theme.DropZoneFraction);
-                var hovered = gui.DropTarget(target, $"__zone_{leaf.GetHashCode()}_{zone}",
-                    payload => payload is DockTabPayload p && !IsNoOpDrop(p, leaf, zone),
-                    payload => context.Layout.DockInto(((DockTabPayload)payload).PanelId, leaf, zone));
+            var zone = ZoneAt(rect, gui.Input.MousePosition, context.Theme.DropZoneFraction);
 
-                if (!hovered) continue;
+            var hovered = gui.DropTarget(rect, $"__zone_{leaf.GetHashCode()}",
+                payload => payload is DockTabPayload p && !IsNoOpDrop(p, leaf, zone),
+                payload => context.Layout.DockInto(((DockTabPayload)payload).PanelId, leaf, zone));
 
-                var preview = ZoneRect(rect, zone, zone == DockZone.Center ? 1f : 0.5f);
-                gui.DrawRect(preview, Color.FromArgb(70, context.Theme.Accent), 2);
-                gui.DrawRectBorder(preview, context.Theme.Accent, 2, 2);
-            }
+            if (!hovered) return;
+
+            var preview = ZoneRect(rect, zone, zone == DockZone.Center ? 1f : 0.5f);
+            gui.DrawRect(preview, Color.FromArgb(70, context.Theme.Accent), 2);
+            gui.DrawRectBorder(preview, context.Theme.Accent, 2, 2);
         }
     }
 
+    /// <summary>Which zone a point falls in: an edge band if it is within one, otherwise the centre.</summary>
+    private static DockZone ZoneAt(Rect rect, Vector2 point, float fraction)
+    {
+        foreach (var zone in EdgeZones)
+            if (ZoneRect(rect, zone, fraction).Contains(point))
+                return zone;
+
+        return DockZone.Center;
+    }
+
     private static bool IsNoOpDrop(DockTabPayload payload, DockLeaf leaf, DockZone zone) =>
-        zone == DockZone.Center && ReferenceEquals(payload.Leaf, leaf);
+        zone == DockZone.Center && ReferenceEquals(payload.Leaf, leaf) && leaf.PanelIds.Count == 1;
 
     /// <summary>Sentinel for "no drag anchor recorded"; a real window position never reaches it.</summary>
     private static readonly Vector2 NoAnchor = new(float.NaN, float.NaN);
 
-    private static readonly DockZone[] DockZones =
-        [DockZone.Center, DockZone.Left, DockZone.Right, DockZone.Top, DockZone.Bottom];
+    private static readonly DockZone[] EdgeZones =
+        [DockZone.Left, DockZone.Right, DockZone.Top, DockZone.Bottom];
 
     private static Rect ZoneRect(Rect rect, DockZone zone, float fraction) => zone switch
     {

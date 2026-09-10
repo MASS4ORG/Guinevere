@@ -28,6 +28,10 @@ public class PointerCaptureTests
         public bool RightDragged { get; private set; }
         public Gui Gui => _gui;
 
+        /// <summary>Renames the element that took the capture, standing in for a dock tab that lands in
+        /// another group and comes back under a different node id.</summary>
+        public bool RenameLeft { get; set; }
+
         public void Frame(Vector2 mouse, bool down, bool pressed = false, MouseButton button = MouseButton.Left)
         {
             _input.MousePosition.Returns(mouse);
@@ -42,7 +46,7 @@ public class PointerCaptureTests
             {
                 using (_gui.Node(Size, Size, "row").Direction(Axis.Horizontal).Enter())
                 {
-                    using (_gui.Node(100, Size, "left").Enter())
+                    using (_gui.Node(100, Size, RenameLeft ? "left-moved" : "left").Enter())
                         if (_gui.Pass == Pass.Pass2Render)
                             LeftDragged |= _gui.GetInteractable().OnDrag(out _, button);
 
@@ -131,5 +135,35 @@ public class PointerCaptureTests
         scene.Frame(OnRight, down: true, pressed: true, button: MouseButton.Right);
 
         Assert.False(scene.RightDragged);
+    }
+
+    [Fact]
+    public void ACaptureEndsOnTheButtonEvenIfItsElementIsGone()
+    {
+        var scene = new TwoTargets();
+
+        scene.Frame(OnLeft, down: true, pressed: true);
+        Assert.True(scene.Gui.IsPointerCaptured);
+
+        // The element that held the pointer is re-created under a different id, so it never runs its
+        // own release - which is what used to wedge the whole input system after one dock move.
+        scene.RenameLeft = true;
+        scene.Frame(OnLeft, down: false);
+
+        Assert.False(scene.Gui.IsPointerCaptured);
+    }
+
+    [Fact]
+    public void AnotherElementCanBeDraggedAfterTheCapturingOneDisappears()
+    {
+        var scene = new TwoTargets();
+
+        scene.Frame(OnLeft, down: true, pressed: true);
+        scene.RenameLeft = true;
+        scene.Frame(OnLeft, down: false);
+
+        scene.Frame(OnRight, down: true, pressed: true);
+
+        Assert.True(scene.RightDragged);
     }
 }

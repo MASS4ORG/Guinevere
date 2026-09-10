@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Guinevere</RootNamespace>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Version>1.6.2</Version>
+
+        <!-- NuGet Package Properties -->
+        <PackageId>org.mass4.Guinevere.Scripting</PackageId>
+        <Title>Guinevere - Scripting</Title>
+        <Description>
+            Drives a Guinevere UI from code or from a JSON script: injected pointer and keyboard input
+            replayed against a real frame loop, for tests, debugging and headless automation.
+        </Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="SkiaSharp" Version="4.152.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Guinevere\Guinevere.csproj"/>
+    </ItemGroup>
+
+</Project>

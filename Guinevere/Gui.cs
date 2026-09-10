@@ -90,6 +90,7 @@ public partial class Gui
         // Finalize focus management for the frame
         EndFrameFocus();
 
+        ReleaseFinishedCapture();
         ClearCompletedDrags();
         ResolveDrag();
         TrackPointerForNextFrame();
@@ -139,10 +140,8 @@ public partial class Gui
 
     /// <summary>
     /// Re-applies the clip rect of every clipping ancestor of <paramref name="node"/> before it is
-    /// drawn. A scroll or <see cref="ClipContent"/> container records its clip only in its own
-    /// <see cref="DrawList"/> and never restores the canvas, so in this flat z-ordered render the
-    /// clip would otherwise leak onto — and wrongly hide — every node drawn after the container
-    /// rather than just its descendants.
+    /// drawn. Clips are recorded per node in a flat z-ordered render, so without this a scroll or
+    /// <see cref="ClipContent"/> would leak its clip onto every node drawn after it.
     /// </summary>
     private static void ApplyAncestorClips(LayoutNode node, SKCanvas canvas)
     {

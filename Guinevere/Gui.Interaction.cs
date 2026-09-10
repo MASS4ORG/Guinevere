@@ -191,4 +191,19 @@ public partial class Gui
             _pressAnchors.Remove(key);
         }
     }
+
+    /// <summary>
+    /// Ends a capture once its button is up, whether or not the element that took it is still being
+    /// drawn. A dock tab dropped into another group comes back under a different node id and would
+    /// otherwise never run its own release, leaving the pointer captured for good.
+    /// </summary>
+    private void ReleaseFinishedCapture()
+    {
+        if (_pointerCapture is not { } held) return;
+        if (Input is not null && Input.IsMouseButtonDown(held.Button)) return;
+
+        _dragStates.Remove(held.Id);
+        _pressAnchors.Remove(held.Id);
+        _pointerCapture = null;
+    }
 }
