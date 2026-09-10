@@ -40,6 +40,21 @@ dotnet run --project Samples/Sample-01-BasicWindow/
 - `GuiWindow` — Integration bridge between windowing libraries and core GUI (lives in each integration)
 - `DrawList` — Collects rendering commands per frame with Z-ordering
 - `Shape` — Complex geometric operations (`Guinevere/Shape.cs`)
+- `DockLayout` / `gui.DockSpace` — Docking: a tree of tab groups and splits plus floating windows
+  (`Guinevere/Docking/`)
+
+### Positioning and input arbitration
+- A node is normally laid out by its parent's flow. `Absolute(x, y)` takes it out of the flow and
+  places it relative to the parent's content box; `AbsoluteScreen(x, y)` places it in screen space.
+  `Left()`/`Top()` are the single-axis form of `Absolute` — overlays such as `Popup`, `Flyout`,
+  `ContextMenu`, `Tooltip` and `Dropdown` rely on this.
+- `OnHover()` is a point-in-shape test with no depth awareness by default. A node that calls
+  `BlockInput()` swallows the pointer for everything drawn beneath it — its own subtree stays
+  interactive, and overlapping blockers are resolved by z-index. Floating dock windows and drag
+  ghosts use it.
+- Drag and drop lives on `Gui` (`Gui.DragDrop.cs`): `DragSource` / `DropTarget` / `DragGhost`. A drag
+  is detected during the render pass but goes live at the frame boundary, so both passes of a frame
+  agree on whether one is running — building nodes in only one pass leaves them without a rect.
 
 ### Project Structure
 ```
@@ -93,6 +108,7 @@ After any change that affects architecture, project structure, conventions, dev 
 
 The `Samples/` directory contains 20+ numbered examples demonstrating specific features. When adding new functionality, follow existing sample patterns. Key samples for architecture understanding:
 - `Sample-54-FocusManagement/` — Keyboard navigation with Tab/Shift+Tab
+- `Sample-60-Docking/` — Docking: split, tab, float, tear-off, close, and layout persistence
 - `Sample-72-PanGui-AirbnbSlider/` — Advanced shape composition
 - `Sample-75-PaperUI-Dashboard/` — Complex dashboard layout
 

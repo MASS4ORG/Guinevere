@@ -29,6 +29,34 @@ public partial class LayoutNode : IDisposable
     /// </remarks>
     public readonly List<LayoutNode> ChildNodes = new();
 
+    private int _absoluteChildCount;
+    private List<LayoutNode>? _flowChildrenCache;
+
+    /// <summary>
+    /// The children that take part in this node's flow layout — every child except the absolutely
+    /// positioned ones, which are placed independently after the flow pass.
+    /// </summary>
+    internal List<LayoutNode> FlowChildren =>
+        _absoluteChildCount == 0
+            ? ChildNodes
+            : _flowChildrenCache ??= ChildNodes.Where(c => !c.Style.IsAbsolute).ToList();
+
+    /// <summary>
+    /// Marks this node as absolutely positioned and tells the parent to drop it from the flow.
+    /// Idempotent: repeated calls (both passes, or Left() followed by Top()) count once.
+    /// </summary>
+    internal void MarkAbsolute(AbsoluteOrigin origin)
+    {
+        Style.AbsoluteOrigin = origin;
+        if (Style.IsAbsolute) return;
+
+        Style.IsAbsolute = true;
+        if (_parent is null) return;
+
+        _parent._absoluteChildCount++;
+        _parent._flowChildrenCache = null;
+    }
+
     /// <summary>
     /// Gets the unique identifier for this <see cref="LayoutNode"/>.
     /// </summary>

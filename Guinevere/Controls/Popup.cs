@@ -101,7 +101,7 @@ public static partial class ControlsExtensions
         [CallerLineNumber] int lineNumber = 0)
     {
         // Always create overlay node for consistent structure
-        using (gui.Node(gui.ScreenRect.W, gui.ScreenRect.H).Left(0).Top(0).Enter())
+        using (gui.Node(gui.ScreenRect.W, gui.ScreenRect.H).AbsoluteScreen(0, 0).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
                 // Only render overlay when modal is open
@@ -151,8 +151,7 @@ public static partial class ControlsExtensions
 
         // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
         using (gui.Node(tooltipWidth, tooltipHeight, filePath: filePath, lineNumber: lineNumber)
-                   .Left(tooltipPos.X)
-                   .Top(tooltipPos.Y)
+                   .AbsoluteScreen(tooltipPos.X, tooltipPos.Y)
                    .Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
@@ -198,8 +197,7 @@ public static partial class ControlsExtensions
 
         // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
         using (gui.Node(menuWidth, menuHeight, filePath: filePath, lineNumber: lineNumber)
-                   .Left(menuPos.X)
-                   .Top(menuPos.Y)
+                   .AbsoluteScreen(menuPos.X, menuPos.Y)
                    .Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
@@ -254,8 +252,7 @@ public static partial class ControlsExtensions
         var totalHeight = string.IsNullOrEmpty(title) ? height : height + titleBarHeight;
 
         using (gui.Node(width, totalHeight)
-                   .Left(state.Position.X)
-                   .Top(state.Position.Y)
+                   .AbsoluteScreen(state.Position.X, state.Position.Y)
                    .Enter())
         {
             if (gui.Pass == Pass.Pass2Render)

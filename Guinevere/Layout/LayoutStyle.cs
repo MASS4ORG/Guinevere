@@ -213,6 +213,33 @@ public struct LayoutStyle
         return height;
     }
 
+    // Absolute positioning
+
+    /// <summary>
+    /// Whether this node is taken out of its parent's flow and positioned at
+    /// <see cref="AbsolutePosition"/>. Set by <see cref="LayoutNode.Left"/>,
+    /// <see cref="LayoutNode.Top"/>, <see cref="LayoutNode.Absolute"/> and
+    /// <see cref="LayoutNode.AbsoluteScreen"/>.
+    /// </summary>
+    public bool IsAbsolute { get; set; }
+
+    /// <summary>
+    /// The position an absolute node is placed at, interpreted in <see cref="AbsoluteOrigin"/> space.
+    /// </summary>
+    public Vector2 AbsolutePosition { get; set; }
+
+    /// <summary>
+    /// The coordinate space <see cref="AbsolutePosition"/> is expressed in.
+    /// </summary>
+    public AbsoluteOrigin AbsoluteOrigin { get; set; }
+
+    /// <summary>
+    /// Whether this node swallows pointer input for everything drawn beneath it. Overlays — floating
+    /// dock windows, popups, drag ghosts — set this so a control underneath does not also report a
+    /// hover. See <see cref="LayoutNode.BlockInput"/>.
+    /// </summary>
+    public bool BlocksInput { get; set; }
+
     /// <summary>
     /// Creates a new LayoutStyle with default values
     /// </summary>
@@ -245,7 +272,11 @@ public struct LayoutStyle
         ExpandWidthPercentage = 1.0f,
         ExpandHeightPercentage = 1.0f,
         Direction = Axis.Vertical,
-        Wrap = false
+        Wrap = false,
+        IsAbsolute = false,
+        AbsolutePosition = Vector2.Zero,
+        AbsoluteOrigin = AbsoluteOrigin.Parent,
+        BlocksInput = false
     };
 
     /// <summary>

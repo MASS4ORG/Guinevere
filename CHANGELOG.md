@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Added: docking system (`Guinevere/Docking/`) — `DockLayout` (tab groups, nested splits, floating
+  windows, versioned JSON) rendered by `gui.DockSpace(...)`, with drag-to-dock, tab reorder,
+  tear-off and close. Sample: `Sample-60-Docking`
+- Added: drag-and-drop primitives — `gui.DragSource`, `gui.DropTarget`, `gui.DragGhost`,
+  `gui.CurrentDragPayload`, `gui.CancelDrag`, and `InteractableElement.OnDrag(out DragArgs)` which
+  reports the real press origin
+- Added: `gui.Splitter(ref fraction, axis)` — a draggable divider between two flow siblings
+- Added: out-of-flow positioning — `LayoutNode.Absolute(x, y)` (parent content box) and
+  `AbsoluteScreen(x, y)` (screen space)
+- Added: `LayoutNode.BlockInput()` — an overlay swallows hover for everything drawn beneath it,
+  resolved by z-index
+- Fixed: `Popup`, `ModalPopup`, `Tooltip`, `ContextMenu`, `Flyout` and `Dropdown` drew at their flow
+  position instead of where they asked to be — `Left()`/`Top()` wrote the node rect and
+  `CalculateLayout` then overwrote it
+- Fixed: an explicitly sized child is no longer widened to the 10px minimum meant for unsized nodes
+- Changed: `Left()`/`Top()` now position a node out of its parent's flow, relative to the parent's
+  content box
+
 ## v[1.6.2][] 2026-09-09
 
 ## v[1.6.1][] 2026-09-09

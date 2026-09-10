@@ -47,8 +47,7 @@ public static partial class ControlsExtensions
 
         // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
         using (gui.Node(menuWidth, menuHeight, filePath: filePath, lineNumber: lineNumber)
-                   .Left(adjustedPosition.X)
-                   .Top(adjustedPosition.Y)
+                   .AbsoluteScreen(adjustedPosition.X, adjustedPosition.Y)
                    .Enter())
         {
             if (gui.Pass == Pass.Pass2Render)

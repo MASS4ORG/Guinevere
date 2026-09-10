@@ -91,6 +91,7 @@ public partial class Gui
         EndFrameFocus();
 
         ClearCompletedDrags();
+        ResolveDrag();
         Canvas = null;
     }
 

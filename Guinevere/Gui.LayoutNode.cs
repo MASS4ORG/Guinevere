@@ -103,6 +103,7 @@ public partial class Gui : ILayoutNodeEnterExit
     public void CalculateLayout()
     {
         RootNode!.CalculateLayout();
+        UpdateInputBlocker();
     }
 
     private LayoutNodeScope RegisterLayoutNodeScope(LayoutNode node)

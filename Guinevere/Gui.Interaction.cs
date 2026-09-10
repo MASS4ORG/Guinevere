@@ -19,6 +19,8 @@ public partial class Gui
     public IInputHandler Input { get; set; } = null!;
 
     private readonly Dictionary<string, bool> _dragStates = new();
+    private readonly Dictionary<string, Vector2> _pressAnchors = new();
+    private LayoutNode? _inputBlocker;
 
     /// <summary>
     /// Retrieves an interactable element for the current layout node.
@@ -35,7 +37,7 @@ public partial class Gui
     /// <returns>An instance of <see cref="InteractableElement"/> that represents the interactable element for the current node.</returns>
     public InteractableElement GetInteractable(LayoutNode node)
     {
-        return new InteractableElement(node.Rect, this, node.Id);
+        return new InteractableElement(node.Rect, this, node.Id, node);
     }
 
     /// <summary>
@@ -48,7 +50,7 @@ public partial class Gui
     {
         var newShape = shape.Copy();
         newShape.Path.Transform(SKMatrix.CreateTranslation(position.X, position.Y));
-        return new InteractableElement(newShape, this, ShapeId(position));
+        return new InteractableElement(newShape, this, ShapeId(position), CurrentNode);
     }
 
     private string ShapeId(Vector2 position)
@@ -66,6 +68,61 @@ public partial class Gui
         return state ? _dragStates.TryAdd(id, true) : _dragStates.Remove(id);
     }
 
+    internal Vector2 GetPressAnchor(string id)
+    {
+        return _pressAnchors.TryGetValue(id, out var anchor) ? anchor : Input.MousePosition;
+    }
+
+    internal void SetPressAnchor(string id, Vector2 position)
+    {
+        _pressAnchors[id] = position;
+    }
+
+    /// <summary>
+    /// Finds the top-most node that has opted into blocking input and currently contains the cursor.
+    /// Run once per frame after layout, since it needs resolved rects; z-index decides overlap, and
+    /// equal z falls back to tree order so a later sibling wins.
+    /// </summary>
+    internal void UpdateInputBlocker()
+    {
+        _inputBlocker = null;
+        if (RootNode is null || Input is null) return;
+
+        var pos = Input.MousePosition;
+        var bestZ = int.MinValue;
+        Visit(RootNode);
+
+        void Visit(LayoutNode node)
+        {
+            if (node.Style.BlocksInput && node.Rect.Contains(pos))
+            {
+                var z = node.Scope.Get<LayoutNodeScopeZIndex>().Value;
+                if (z >= bestZ)
+                {
+                    bestZ = z;
+                    _inputBlocker = node;
+                }
+            }
+
+            foreach (var child in node.ChildNodes) Visit(child);
+        }
+    }
+
+    /// <summary>
+    /// Whether a blocking overlay is swallowing the pointer for this node. The blocker's own subtree
+    /// stays interactive, so the check is an ancestor walk rather than a rect test.
+    /// </summary>
+    internal bool IsHoverBlocked(LayoutNode? node)
+    {
+        if (_inputBlocker is null) return false;
+
+        for (var n = node; n is not null; n = n.Parent)
+            if (ReferenceEquals(n, _inputBlocker))
+                return false;
+
+        return true;
+    }
+
     private void ClearCompletedDrags()
     {
         var keysToRemove = new List<string>();
@@ -73,6 +130,10 @@ public partial class Gui
             if (!kvp.Value)
                 keysToRemove.Add(kvp.Key);
 
-        foreach (var key in keysToRemove) _dragStates.Remove(key);
+        foreach (var key in keysToRemove)
+        {
+            _dragStates.Remove(key);
+            _pressAnchors.Remove(key);
+        }
     }
 }

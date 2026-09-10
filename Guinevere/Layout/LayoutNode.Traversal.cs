@@ -12,7 +12,11 @@ public partial class LayoutNode
     /// </summary>
     public LayoutNode AddChild(LayoutNode child)
     {
-        if (!ChildNodes.Contains(child)) ChildNodes.Add(child);
+        if (ChildNodes.Contains(child)) return child;
+
+        ChildNodes.Add(child);
+        if (child.Style.IsAbsolute) _absoluteChildCount++;
+        _flowChildrenCache = null;
 
         return child;
     }
@@ -22,7 +26,11 @@ public partial class LayoutNode
     /// </summary>
     public bool RemoveChild(LayoutNode child)
     {
-        return ChildNodes.Remove(child);
+        if (!ChildNodes.Remove(child)) return false;
+
+        if (child.Style.IsAbsolute) _absoluteChildCount--;
+        _flowChildrenCache = null;
+        return true;
     }
 
     /// <summary>
@@ -32,7 +40,7 @@ public partial class LayoutNode
     {
         return ChildNodes.Where(c => c.Id == id)
             .Take(1)
-            .Aggregate(false, (_, child) => ChildNodes.Remove(child));
+            .Aggregate(false, (_, child) => RemoveChild(child));
     }
 
     /// <summary>
@@ -41,6 +49,8 @@ public partial class LayoutNode
     public void ClearChildren()
     {
         ChildNodes.Clear();
+        _absoluteChildCount = 0;
+        _flowChildrenCache = null;
     }
 
     /// <summary>
@@ -49,6 +59,8 @@ public partial class LayoutNode
     public void ClearRoot()
     {
         ChildNodes.Clear();
+        _absoluteChildCount = 0;
+        _flowChildrenCache = null;
         DrawList = new DrawList();
     }
 

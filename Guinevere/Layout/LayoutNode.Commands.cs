@@ -508,6 +508,8 @@ public partial class LayoutNode
         if (_gui.Pass != Pass.Pass1Build) return this;
 
         _rect = _rect with { X = value };
+        Style.AbsolutePosition = Style.AbsolutePosition with { X = value };
+        MarkAbsolute(Style.AbsoluteOrigin);
         return this;
     }
 
@@ -521,6 +523,8 @@ public partial class LayoutNode
         if (_gui.Pass != Pass.Pass1Build) return this;
 
         _rect = _rect with { Y = value };
+        Style.AbsolutePosition = Style.AbsolutePosition with { Y = value };
+        MarkAbsolute(Style.AbsoluteOrigin);
         return this;
     }
 
@@ -535,6 +539,57 @@ public partial class LayoutNode
 
         Style.Height = value;
         Style.Width = value;
+        return this;
+    }
+
+    /// <summary>
+    /// Takes this node out of its parent's flow and places it at <paramref name="x"/>,
+    /// <paramref name="y"/> measured from the top-left of the parent's content box.
+    /// </summary>
+    /// <param name="x">Horizontal offset from the parent's content box.</param>
+    /// <param name="y">Vertical offset from the parent's content box.</param>
+    /// <returns>The current instance of <see cref="LayoutNode"/>, enabling method chaining.</returns>
+    public LayoutNode Absolute(float x, float y)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        _rect = _rect with { X = x, Y = y };
+        Style.AbsolutePosition = new Vector2(x, y);
+        MarkAbsolute(AbsoluteOrigin.Parent);
+        return this;
+    }
+
+    /// <summary>
+    /// Takes this node out of its parent's flow and places it at the given screen position,
+    /// wherever the node happens to sit in the tree. Overlays that derive a position from the
+    /// cursor or from another node's rect want this rather than <see cref="Absolute"/>.
+    /// </summary>
+    /// <param name="x">Screen-space X coordinate.</param>
+    /// <param name="y">Screen-space Y coordinate.</param>
+    /// <returns>The current instance of <see cref="LayoutNode"/>, enabling method chaining.</returns>
+    public LayoutNode AbsoluteScreen(float x, float y)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        _rect = _rect with { X = x, Y = y };
+        Style.AbsolutePosition = new Vector2(x, y);
+        MarkAbsolute(AbsoluteOrigin.Screen);
+        return this;
+    }
+
+    /// <summary>
+    /// Makes this node swallow pointer input for anything drawn beneath it: while the cursor is
+    /// inside its rect, <see cref="InteractableElement.OnHover"/> reports false for every node that
+    /// is not this node or one of its descendants. Ties are broken by z-index, so a floating panel
+    /// raised with <see cref="Gui.SetZIndex"/> wins over one left at the default.
+    /// </summary>
+    /// <param name="value">Whether the node blocks input. Defaults to true.</param>
+    /// <returns>The current instance of <see cref="LayoutNode"/>, enabling method chaining.</returns>
+    public LayoutNode BlockInput(bool value = true)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+
+        Style.BlocksInput = value;
         return this;
     }
 
