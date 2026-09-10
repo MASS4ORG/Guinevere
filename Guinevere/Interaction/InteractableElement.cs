@@ -123,33 +123,37 @@ public readonly struct InteractableElement
         {
             Origin = _gui.GetPressAnchor(_id),
             CurrentPosition = _gui.Input.MousePosition,
-            FrameDelta = _gui.Input.MousePosition - _gui.Input.PrevMousePosition
+            FrameDelta = _gui.PointerFrameDelta
         };
         return true;
     }
 
     private bool IsHeld(MouseButton button = MouseButton.Left)
     {
-        var isHovering = OnHover();
         var mouseDown = _gui.Input.IsMouseButtonDown(button);
-
         var isDragging = _gui.GetDragState(_id);
 
-        // Stage 1: Start dragging only if hovering AND mouse is pressed this frame
-        if (isHovering && mouseDown)
+        // Stage 1: keep going while this element still holds the pointer.
+        if (isDragging && mouseDown && _gui.HoldsPointer(_id, button)) return true;
+
+        // Stage 2: release, and hand the pointer back.
+        if (isDragging && !mouseDown)
         {
-            if (!isDragging) _gui.SetPressAnchor(_id, _gui.Input.MousePosition);
-            _gui.SetDragState(_id, true);
-            return true;
+            _gui.SetDragState(_id, false);
+            _gui.ReleasePointer(_id);
+            return false;
         }
 
-        // Stage 2: Continue dragging if we were already dragging AND mouse is still down
-        if (isDragging && mouseDown) return true;
+        // Stage 3: begin only on the press itself, and only if nothing else already owns the pointer.
+        // Testing the button's level here instead of its edge is what used to let any element the
+        // cursor happened to cross mid-drag start a drag of its own.
+        if (!_gui.Input.IsMouseButtonPressed(button)) return false;
+        if (!OnHover()) return false;
+        if (!_gui.TryCapturePointer(_id, button)) return false;
 
-        // Stop dragging when mouse is released
-        if (isDragging && !mouseDown) _gui.SetDragState(_id, false);
-
-        return false;
+        if (!isDragging) _gui.SetPressAnchor(_id, _gui.Input.MousePosition);
+        _gui.SetDragState(_id, true);
+        return true;
     }
 
     /// <summary>

@@ -201,4 +201,68 @@ public class DockLayoutTests
     {
         Assert.Null(DockLayout.FromJson("{ not json"));
     }
+
+    /// <summary>
+    /// Walks the whole layout and fails if any node is reached twice. A cycle used to be created by
+    /// docking across groups, and it surfaced as a stack overflow inside <c>DockNode.Descend()</c>
+    /// rather than as anything pointing at the edit that caused it.
+    /// </summary>
+    private static void AssertAcyclic(DockLayout layout)
+    {
+        var seen = new HashSet<DockNode>(ReferenceEqualityComparer.Instance);
+
+        void Visit(DockNode node)
+        {
+            Assert.True(seen.Add(node), $"{node.GetType().Name} is reachable twice — the tree has a cycle.");
+            if (node is not DockSplit split) return;
+
+            Visit(split.First);
+            Visit(split.Second);
+        }
+
+        if (layout.Root is not null) Visit(layout.Root);
+        foreach (var window in layout.Floating) Visit(window.Root);
+    }
+
+    [Theory]
+    [InlineData(DockZone.Left)]
+    [InlineData(DockZone.Right)]
+    [InlineData(DockZone.Top)]
+    [InlineData(DockZone.Bottom)]
+    [InlineData(DockZone.Center)]
+    public void DockingAPanelFromOneGroupOntoAnotherLeavesNoCycle(DockZone zone)
+    {
+        // Guards the reported crash: cross-group docks once spliced a split in as its own child.
+        var layout = Seeded();
+        var target = layout.FindLeaf("inspector")!;
+
+        layout.DockInto("tree", target, zone);
+
+        AssertAcyclic(layout);
+        Assert.Equal(["inspector", "scene", "tree"], layout.PanelIds.Order());
+        Assert.NotNull(layout.FindLeaf("tree"));
+    }
+
+    [Fact]
+    public void DockingBetweenGroupsRepeatedlyStaysConsistent()
+    {
+        var layout = Seeded();
+
+        // Shuffle a panel around the layout the way a user would, then check nothing is corrupt.
+        layout.DockInto("tree", layout.FindLeaf("inspector")!, DockZone.Bottom);
+        layout.DockInto("inspector", layout.FindLeaf("scene")!, DockZone.Center);
+        layout.DockInto("scene", layout.FindLeaf("tree")!, DockZone.Right);
+
+        AssertAcyclic(layout);
+        Assert.Equal(["inspector", "scene", "tree"], layout.PanelIds.Order());
+    }
+
+    [Fact]
+    public void ASplitRefusesToBecomeItsOwnChild()
+    {
+        var split = new DockSplit(Axis.Horizontal, new DockLeaf("a"), new DockLeaf("b"));
+
+        Assert.Throws<ArgumentException>(() => split.First = split);
+        Assert.Throws<ArgumentException>(() => split.Second = split);
+    }
 }

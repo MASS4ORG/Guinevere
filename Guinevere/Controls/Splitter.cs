@@ -37,22 +37,33 @@ public static partial class ControlsExtensions
 
             var interactable = gui.GetInteractable();
             var dragging = interactable.OnDrag(out var args);
-            var active = dragging || interactable.OnHover();
+            // Not "grabbable" while something else owns the pointer - a tab being dragged past it.
+            var active = dragging || (!gui.IsPointerCaptured && interactable.OnHover());
 
             gui.DrawBackgroundRect(active
                 ? hoverColor ?? Color.FromArgb(255, 96, 104, 118)
                 : color ?? Color.FromArgb(255, 51, 56, 66));
 
-            if (!dragging) return false;
+            // The split position is anchored to where it was when the drag started and then offset by
+            // the pointer's total travel, rather than accumulated frame by frame: summing deltas cannot
+            // recover from a dropped or duplicated one, and it drifts away from the cursor.
+            ref var anchor = ref gui.GetValue(float.NaN, $"{gui.CurrentNode.Id}/splitterAnchor");
+
+            if (!dragging)
+            {
+                anchor = float.NaN;
+                return false;
+            }
 
             var track = gui.CurrentNode.Parent?.InnerRect;
             var span = horizontal ? track?.W ?? 0f : track?.H ?? 0f;
             if (span <= 0f) return false;
 
-            var delta = (horizontal ? args.FrameDelta.X : args.FrameDelta.Y) / span;
-            if (delta == 0f) return false;
+            if (float.IsNaN(anchor)) anchor = fraction;
 
-            var updated = Math.Clamp(fraction + delta, min, 1f - min);
+            var travel = horizontal ? args.TotalDelta.X : args.TotalDelta.Y;
+            var updated = Math.Clamp(anchor + travel / span, min, 1f - min);
+
             changed = Math.Abs(updated - fraction) > float.Epsilon;
             fraction = updated;
         }

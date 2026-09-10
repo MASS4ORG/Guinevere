@@ -128,11 +128,12 @@ public class InputArbitrationTests
 
         DragArgs args = default;
 
-        void Frame(Vector2 mouse, Vector2 prev, bool down)
+        void Frame(Vector2 mouse, Vector2 prev, bool down, bool pressed = false)
         {
             input.MousePosition.Returns(mouse);
             input.PrevMousePosition.Returns(prev);
             input.IsMouseButtonDown(MouseButton.Left).Returns(down);
+            input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
 
             void Draw()
             {
@@ -151,7 +152,7 @@ public class InputArbitrationTests
             gui.EndFrame();
         }
 
-        Frame(press, press, down: true);
+        Frame(press, press, down: true, pressed: true);
         Assert.Equal(press, args.Origin);
 
         Frame(moved, press, down: true);

@@ -36,6 +36,12 @@ public sealed class DockTheme
     /// <summary>Font size for tab labels.</summary>
     public float FontSize { get; init; } = 12f;
 
+    /// <summary>
+    /// The square a tab's <see cref="DockPanelInfo.Icon"/> is drawn in. A strip's tabs all reserve the
+    /// same width for it, so icons of differing sizes cannot make the row ragged.
+    /// </summary>
+    public float TabIconSize { get; init; } = 14f;
+
     /// <summary>Thickness of the splitter between two docked regions.</summary>
     public float SplitterThickness { get; init; } = 6f;
 

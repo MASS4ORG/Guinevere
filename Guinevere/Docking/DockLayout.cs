@@ -248,38 +248,51 @@ public sealed class DockLayout
         else Root = new DockSplit(Axis.Horizontal, Root, node);
     }
 
-    private void Replace(DockNode target, DockNode replacement)
+    /// <summary>
+    /// Swaps one node for another, wherever it sits. Walks explicitly and stops at the first match: a
+    /// lazy walk would find the replacement still holding <paramref name="target"/> and splice a split
+    /// in as its own child — unbounded recursion on every later traversal.
+    /// </summary>
+    private bool Replace(DockNode target, DockNode replacement)
     {
         if (ReferenceEquals(Root, target))
         {
             Root = replacement;
-            return;
+            return true;
         }
 
         foreach (var window in Floating)
         {
-            if (!ReferenceEquals(window.Root, target)) continue;
+            if (ReferenceEquals(window.Root, target))
+            {
+                window.Root = replacement;
+                return true;
+            }
 
-            window.Root = replacement;
-            return;
+            if (ReplaceChild(window.Root, target, replacement)) return true;
         }
 
-        foreach (var split in AllNodes().OfType<DockSplit>())
-        {
-            if (ReferenceEquals(split.First, target)) split.First = replacement;
-            else if (ReferenceEquals(split.Second, target)) split.Second = replacement;
-        }
+        return Root is not null && ReplaceChild(Root, target, replacement);
     }
 
-    private IEnumerable<DockNode> AllNodes()
+    private static bool ReplaceChild(DockNode node, DockNode target, DockNode replacement)
     {
-        if (Root is not null)
-            foreach (var node in Root.Descend())
-                yield return node;
+        if (node is not DockSplit split) return false;
 
-        foreach (var window in Floating)
-        foreach (var node in window.Root.Descend())
-            yield return node;
+        if (ReferenceEquals(split.First, target))
+        {
+            split.First = replacement;
+            return true;
+        }
+
+        if (ReferenceEquals(split.Second, target))
+        {
+            split.Second = replacement;
+            return true;
+        }
+
+        return ReplaceChild(split.First, target, replacement)
+               || ReplaceChild(split.Second, target, replacement);
     }
 
     private void Prune()

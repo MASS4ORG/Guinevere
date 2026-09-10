@@ -12,7 +12,8 @@ public class DockSpaceRenderTests
 
     private static readonly DockTheme Theme = new() { SplitterThickness = SplitterThickness, TabHeight = 20f };
 
-    private static Gui RenderDock(DockLayout layout, out List<string> rendered, int width = 400, int height = 300)
+    private static Gui RenderDock(DockLayout layout, out List<string> rendered, int width = 400, int height = 300,
+        Func<string, DockPanelInfo?>? panelInfo = null, Action<DockTabStrip, Gui>? tabStripActions = null)
     {
         var painted = new List<string>();
         using var surface = SKSurface.Create(new SKImageInfo(width, height));
@@ -25,12 +26,13 @@ public class DockSpaceRenderTests
         gui.SetScreenRect(width, height);
 
         void Draw() => gui.DockSpace(layout,
-            id => new DockPanelInfo(id),
+            panelInfo ?? (id => new DockPanelInfo(id)),
             (id, g) =>
             {
                 if (g.Pass == Pass.Pass2Render) painted.Add(id);
             },
-            Theme);
+            Theme,
+            tabStripActions);
 
         gui.SetStage(Pass.Pass1Build);
         gui.BeginFrame(surface.Canvas, Font.FromFamilyName("sans-serif", 12), Font.FromFamilyName("sans-serif", 12));
@@ -141,5 +143,90 @@ public class DockSpaceRenderTests
 
         Assert.Empty(rendered);
         Assert.NotNull(gui.RootNode!.FindChildById("dock:empty"));
+    }
+
+    [Fact]
+    public void ATabWithAnIconReservesTheThemesIconBoxAndDrawsItOncePerPass()
+    {
+        var layout = new DockLayout { Root = new DockLeaf("scene") };
+        var drawn = 0;
+
+        var gui = RenderDock(layout, out _, panelInfo: _ =>
+            new DockPanelInfo("Scene", Icon: g =>
+            {
+                drawn++;
+                g.DrawBackgroundRect(Color.Red);
+            }));
+
+        var icon = gui.RootNode!.FindChildById("dock:root/tabs/scene/icon");
+        Assert.NotNull(icon);
+        Assert.Equal(Theme.TabIconSize, icon.Rect.W, 1);
+        Assert.Equal(Theme.TabIconSize, icon.Rect.H, 1);
+
+        // Built in both passes: a node that only exists in the render pass never gets a rect.
+        Assert.Equal(2, drawn);
+    }
+
+    [Fact]
+    public void AnIconWidensTheTabItSitsOn()
+    {
+        var withIcon = new DockLayout { Root = new DockLeaf("scene") };
+        var plain = new DockLayout { Root = new DockLeaf("scene") };
+
+        var iconGui = RenderDock(withIcon, out _,
+            panelInfo: _ => new DockPanelInfo("Scene", Icon: g => g.DrawBackgroundRect(Color.Red)));
+        var plainGui = RenderDock(plain, out _, panelInfo: _ => new DockPanelInfo("Scene"));
+
+        var iconWidth = RectOf(iconGui, "dock:root/tabs/scene").W;
+        var plainWidth = RectOf(plainGui, "dock:root/tabs/scene").W;
+
+        Assert.True(iconWidth > plainWidth, $"icon tab {iconWidth} should be wider than plain {plainWidth}");
+    }
+
+    [Fact]
+    public void TabStripActionsGetTheGroupTheActivePanelAndTheLeftoverWidth()
+    {
+        var layout = new DockLayout { Root = new DockLeaf("scene", "game") { ActiveIndex = 1 } };
+        DockTabStrip captured = default;
+
+        var gui = RenderDock(layout, out _, tabStripActions: (strip, g) =>
+        {
+            if (g.Pass == Pass.Pass2Render) captured = strip;
+        });
+
+        Assert.Same(layout.FindLeaf("game"), captured.Leaf);
+        Assert.Equal("game", captured.ActivePanelId);
+
+        var strip = RectOf(gui, "dock:root/tabs");
+        var tabs = RectOf(gui, "dock:root/tabs/scene").W + RectOf(gui, "dock:root/tabs/game").W;
+        Assert.Equal(strip.W - tabs, captured.FreeArea.W, 1);
+        Assert.Equal(strip.X + tabs, captured.FreeArea.X, 1);
+    }
+
+    [Fact]
+    public void TabStripActionChildrenSitAtTheRightEdgeOfTheStrip()
+    {
+        var layout = new DockLayout { Root = new DockLeaf("scene") };
+
+        var gui = RenderDock(layout, out _, tabStripActions: (_, g) =>
+        {
+            using (g.Node(20, 20, "dock:test/menuButton").Enter())
+            {
+            }
+        });
+
+        var strip = RectOf(gui, "dock:root/tabs");
+        var button = RectOf(gui, "dock:test/menuButton");
+
+        Assert.Equal(strip.X + strip.W, button.X + button.W, 1);
+    }
+
+    [Fact]
+    public void TheTabStripHasItsActionRegionEvenWithNoCallback()
+    {
+        // The strip's structure must not change when a host adds or drops a callback.
+        var gui = RenderDock(new DockLayout { Root = new DockLeaf("scene") }, out _);
+
+        Assert.NotNull(gui.RootNode!.FindChildById("dock:root/tabs/actions"));
     }
 }

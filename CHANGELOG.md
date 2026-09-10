@@ -14,6 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `gui.CurrentDragPayload`, `gui.CancelDrag`, and `InteractableElement.OnDrag(out DragArgs)` which
   reports the real press origin
 - Added: `gui.Splitter(ref fraction, axis)` — a draggable divider between two flow siblings
+- Added: pointer capture — one element owns the pointer for the length of a gesture, exposed as
+  `gui.PointerCapture` / `gui.IsPointerCaptured`
+- Added: `DockPanelInfo.Icon` (drawn in a `DockTheme.TabIconSize` square before the title) and a
+  `renderTabStripActions` callback on `gui.DockSpace` for the space a group's tabs leave over
+- Fixed: docking a panel from one group onto another built a split holding itself, so the next
+  traversal recursed until the stack ran out
+- Fixed: a hold could begin on any element the cursor crossed while a button was already down, so
+  dragging a dock tab past a splitter dragged the splitter too — a hold now starts only on the press
+  itself, and only if nothing else holds the pointer
+- Fixed: `DragArgs.FrameDelta` came from `IInputHandler.PrevMousePosition`, which most integrations
+  update per pointer-move event rather than per frame; once the pointer stopped it kept reporting the
+  last movement forever and a dragged splitter slid on by itself. `Gui` now tracks this per frame
+- Fixed: `Splitter` and floating dock windows anchor to their value at the press plus the pointer's
+  total travel, instead of accumulating per-frame deltas that drift away from the cursor
 - Added: out-of-flow positioning — `LayoutNode.Absolute(x, y)` (parent content box) and
   `AbsoluteScreen(x, y)` (screen space)
 - Added: `LayoutNode.BlockInput()` — an overlay swallows hover for everything drawn beneath it,

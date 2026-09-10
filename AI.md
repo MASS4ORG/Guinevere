@@ -55,6 +55,13 @@ dotnet run --project Samples/Sample-01-BasicWindow/
 - Drag and drop lives on `Gui` (`Gui.DragDrop.cs`): `DragSource` / `DropTarget` / `DragGhost`. A drag
   is detected during the render pass but goes live at the frame boundary, so both passes of a frame
   agree on whether one is running — building nodes in only one pass leaves them without a rect.
+- **One element owns the pointer per gesture.** A hold starts only on the press edge and only if the
+  capture is free; it is held until the button comes up. `gui.PointerCapture` / `gui.IsPointerCaptured`
+  report it, so a control can drop affordances that would mislead mid-drag.
+- **Per-frame pointer movement is `DragArgs.FrameDelta`, not `IInputHandler.PrevMousePosition`.** The
+  integrations disagree about the latter — most update it from the pointer-move event, so it goes
+  stale the moment the pointer stops. Anything that follows the cursor should anchor to its value at
+  the press plus `DragArgs.TotalDelta` rather than accumulate deltas.
 
 ### Project Structure
 ```

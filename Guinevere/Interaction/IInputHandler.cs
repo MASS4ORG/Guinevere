@@ -41,6 +41,11 @@ public interface IInputHandler
     /// This represents the mouse position in the previous frame, which can be used
     /// to calculate movement or interactions based on changes in position.
     /// </summary>
+    /// <remarks>
+    /// Integrations differ on what "previous" means: most update this from the pointer-move event, so
+    /// once the pointer stops it keeps reporting the position before the last movement. For per-frame
+    /// movement use <see cref="DragArgs.FrameDelta"/>, which <see cref="Gui"/> tracks itself.
+    /// </remarks>
     Vector2 PrevMousePosition { get; }
 
     /// <summary>

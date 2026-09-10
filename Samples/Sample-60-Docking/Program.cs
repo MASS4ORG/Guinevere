@@ -24,8 +24,20 @@ public abstract class Program
 
     private static readonly DockTheme Theme = new();
 
+    // Cached: the resolver runs once per tab per pass, so building these each call would allocate
+    // two delegates per tab per frame.
+    private static readonly Dictionary<string, Action<Gui>> Icons = new()
+    {
+        ["scene"] = g => Dot(g, Color.FromArgb(255, 120, 170, 255)),
+        ["game"] = g => Dot(g, Color.FromArgb(255, 120, 210, 150)),
+        ["hierarchy"] = g => Dot(g, Color.FromArgb(255, 235, 190, 110)),
+        ["inspector"] = g => Dot(g, Color.FromArgb(255, 220, 130, 200)),
+        ["console"] = g => Dot(g, Color.FromArgb(255, 200, 200, 200))
+    };
+
     private static DockLayout _layout = SeedLayout();
     private static string? _saved;
+    private static string? _menuPanelId;
 
     public static void Main()
     {
@@ -55,13 +67,45 @@ public abstract class Program
 
             using (gui.Node().Expand().Enter())
             {
-                gui.DockSpace(_layout, PanelInfo, RenderPanel, Theme);
+                gui.DockSpace(_layout, PanelInfo, RenderPanel, Theme, TabStripActions);
             }
         }
     }
 
     private static DockPanelInfo? PanelInfo(string panelId) =>
-        Titles.TryGetValue(panelId, out var title) ? new DockPanelInfo(title) : null;
+        Titles.TryGetValue(panelId, out var title)
+            ? new DockPanelInfo(title, Icon: Icons.GetValueOrDefault(panelId))
+            : null;
+
+    /// <summary>A stand-in for a real panel icon — any drawing works here.</summary>
+    private static void Dot(Gui gui, Color color)
+    {
+        if (gui.Pass != Pass.Pass2Render) return;
+
+        var rect = gui.CurrentNode.Rect;
+        gui.DrawCircleFilled(new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f), rect.W * 0.32f, color);
+    }
+
+    /// <summary>
+    /// Fills the space a group's tabs leave over. Children flow from the right, so this is where
+    /// Unity would put its lock and overflow buttons.
+    /// </summary>
+    private static void TabStripActions(DockTabStrip strip, Gui gui)
+    {
+        if (strip.ActivePanelId is not { } panelId) return;
+
+        using (gui.Node(18, Theme.TabHeight).Enter())
+        {
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                var interactable = gui.GetInteractable();
+                if (interactable.OnHover()) gui.DrawBackgroundRect(Theme.Hover, 2);
+                if (interactable.OnClick()) _menuPanelId = _menuPanelId == panelId ? null : panelId;
+            }
+
+            gui.DrawText("\u22ee", Theme.FontSize, _menuPanelId == panelId ? Theme.Ink : Theme.InkDim);
+        }
+    }
 
     private static void Toolbar(Gui gui)
     {
@@ -104,6 +148,9 @@ public abstract class Program
         using (gui.Node().Expand().Padding(10).Gap(6).Enter())
         {
             gui.DrawText(Titles.GetValueOrDefault(panelId, panelId), 15, Theme.Ink, centerInRect: false);
+
+            if (_menuPanelId == panelId)
+                gui.DrawText("(the ⋮ menu for this panel is open)", 11, Theme.Accent, centerInRect: false);
 
             switch (panelId)
             {

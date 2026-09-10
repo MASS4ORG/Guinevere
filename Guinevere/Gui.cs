@@ -92,6 +92,7 @@ public partial class Gui
 
         ClearCompletedDrags();
         ResolveDrag();
+        TrackPointerForNextFrame();
         Canvas = null;
     }
 

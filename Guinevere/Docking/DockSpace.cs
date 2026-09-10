@@ -17,15 +17,22 @@ public static partial class ControlsExtensions
     /// <param name="panelInfo">Resolves a panel id to its tab label. Return null for an id the host no longer knows.</param>
     /// <param name="renderPanel">Draws a panel's body. Called for the active tab of every visible group.</param>
     /// <param name="theme">Colours and metrics. Defaults to <see cref="DockTheme.Dark"/>.</param>
+    /// <param name="renderTabStripActions">
+    /// Draws into the space a group's tab strip does not use. Children flow from the right edge, which
+    /// is where an overflow or lock button belongs; <see cref="DockTabStrip.FreeArea"/> is there for
+    /// anyone who would rather position content absolutely.
+    /// </param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void DockSpace(this Gui gui, DockLayout layout,
         Func<string, DockPanelInfo?> panelInfo,
         Action<string, Gui> renderPanel,
         DockTheme? theme = null,
+        Action<DockTabStrip, Gui>? renderTabStripActions = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        var context = new DockContext(gui, layout, panelInfo, renderPanel, theme ?? DockTheme.Dark);
+        var context = new DockContext(gui, layout, panelInfo, renderPanel, theme ?? DockTheme.Dark,
+            renderTabStripActions);
 
         using (gui.Node(filePath: filePath, lineNumber: lineNumber).Expand().Enter())
         {
@@ -102,6 +109,8 @@ public static partial class ControlsExtensions
 
                 for (var i = 0; i < leaf.PanelIds.Count; i++)
                     RenderTab(context, leaf, i, $"{path}/tabs/{leaf.PanelIds[i]}");
+
+                TabStripActions(context, leaf, $"{path}/tabs/actions");
             }
 
             using (gui.Node(-1, -1, $"{path}/body").Expand().Enter())
@@ -114,6 +123,25 @@ public static partial class ControlsExtensions
             }
 
             DropZones(context, leaf, leafRect);
+        }
+    }
+
+    /// <summary>
+    /// Hands the host whatever width the tabs left over. The node exists in both passes even without a
+    /// callback, so the strip's structure does not change when a host adds or drops one.
+    /// </summary>
+    private static void TabStripActions(DockContext context, DockLeaf leaf, string id)
+    {
+        var gui = context.Gui;
+
+        using (gui.Node(-1, context.Theme.TabHeight, id)
+                   .ExpandWidth()
+                   .Direction(Axis.Horizontal)
+                   .ContentAlignX(1f)
+                   .Enter())
+        {
+            context.RenderTabStripActions?.Invoke(
+                new DockTabStrip(leaf, leaf.ActivePanelId, gui.CurrentNode.Rect), gui);
         }
     }
 
@@ -154,7 +182,6 @@ public static partial class ControlsExtensions
                     }
                 });
 
-                // Reordering inside the strip is a drop on a sibling tab, so it never leaves the group.
                 gui.DropTarget(gui.CurrentNode.Rect, id,
                     payload => payload is DockTabPayload p && ReferenceEquals(p.Leaf, leaf) && p.PanelId != panelId,
                     payload =>
@@ -163,6 +190,10 @@ public static partial class ControlsExtensions
                         context.Layout.MarkChanged();
                     });
             }
+
+            if (info.Icon is { } icon)
+                using (gui.Node(theme.TabIconSize, theme.TabIconSize, $"{id}/icon").Enter())
+                    icon(gui);
 
             gui.DrawText(info.Title, theme.FontSize, active ? theme.Ink : theme.InkDim, centerInRect: false);
 
@@ -189,8 +220,10 @@ public static partial class ControlsExtensions
         var font = new SKFont { Size = theme.FontSize };
         font.MeasureText(info.Title, out var bounds);
 
-        // text + the node's own horizontal padding, plus the gap and box the close button needs.
-        return bounds.Width + 18 + (info.Closable ? 18 : 0);
+        // text + the node's own horizontal padding, plus the gap and box each affordance needs.
+        return bounds.Width + 18
+                            + (info.Closable ? 18 : 0)
+                            + (info.Icon is null ? 0 : theme.TabIconSize + 6);
     }
 
     /// <summary>
@@ -227,6 +260,9 @@ public static partial class ControlsExtensions
 
     private static bool IsNoOpDrop(DockTabPayload payload, DockLeaf leaf, DockZone zone) =>
         zone == DockZone.Center && ReferenceEquals(payload.Leaf, leaf);
+
+    /// <summary>Sentinel for "no drag anchor recorded"; a real window position never reaches it.</summary>
+    private static readonly Vector2 NoAnchor = new(float.NaN, float.NaN);
 
     private static readonly DockZone[] DockZones =
         [DockZone.Center, DockZone.Left, DockZone.Right, DockZone.Top, DockZone.Bottom];
@@ -285,13 +321,24 @@ public static partial class ControlsExtensions
                     {
                         gui.DrawBackgroundRect(theme.TabStrip);
 
-                        if (gui.GetInteractable().OnDrag(out var drag) && drag.FrameDelta != Vector2.Zero)
+                        // Anchored to the window's position at the press, then offset by the pointer's
+                        // total travel — accumulating per-frame deltas drifts away from the cursor.
+                        ref var anchor = ref gui.GetValue(NoAnchor, $"dock:float/{i}/gripAnchor");
+
+                        if (gui.GetInteractable().OnDrag(out var drag))
                         {
-                            window.Bounds = bounds with
+                            if (float.IsNaN(anchor.X)) anchor = new Vector2(bounds.X, bounds.Y);
+
+                            var moved = anchor + drag.TotalDelta;
+                            if (moved.X != bounds.X || moved.Y != bounds.Y)
                             {
-                                X = bounds.X + drag.FrameDelta.X, Y = bounds.Y + drag.FrameDelta.Y
-                            };
-                            context.Layout.MarkChanged();
+                                window.Bounds = bounds with { X = moved.X, Y = moved.Y };
+                                context.Layout.MarkChanged();
+                            }
+                        }
+                        else
+                        {
+                            anchor = NoAnchor;
                         }
                     }
                 }
@@ -322,13 +369,15 @@ public static partial class ControlsExtensions
         DockLayout layout,
         Func<string, DockPanelInfo?> panelInfo,
         Action<string, Gui> renderPanel,
-        DockTheme theme)
+        DockTheme theme,
+        Action<DockTabStrip, Gui>? renderTabStripActions)
     {
         public Gui Gui { get; } = gui;
         public DockLayout Layout { get; } = layout;
         public Func<string, DockPanelInfo?> PanelInfo { get; } = panelInfo;
         public Action<string, Gui> RenderPanel { get; } = renderPanel;
         public DockTheme Theme { get; } = theme;
+        public Action<DockTabStrip, Gui>? RenderTabStripActions { get; } = renderTabStripActions;
         public string? Closing { get; set; }
     }
 }

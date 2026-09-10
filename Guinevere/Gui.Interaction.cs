@@ -20,6 +20,9 @@ public partial class Gui
 
     private readonly Dictionary<string, bool> _dragStates = new();
     private readonly Dictionary<string, Vector2> _pressAnchors = new();
+    private Vector2 _pointerLastFrame;
+    private bool _hasPointerLastFrame;
+    private (string Id, MouseButton Button)? _pointerCapture;
     private LayoutNode? _inputBlocker;
 
     /// <summary>
@@ -58,6 +61,41 @@ public partial class Gui
         return $"{CurrentNode.Id}_{position.X}_{position.Y}";
     }
 
+    /// <summary>
+    /// The element currently holding the pointer, or null when nothing is. While a capture is held,
+    /// no other element can start a drag — so dragging something across a splitter or another
+    /// draggable does not hand the pointer over mid-gesture.
+    /// </summary>
+    public string? PointerCapture => _pointerCapture?.Id;
+
+    /// <summary>
+    /// Whether some element is currently holding the pointer. Controls use this to drop affordances
+    /// that would mislead mid-drag, such as a splitter highlighting itself as grabbable.
+    /// </summary>
+    public bool IsPointerCaptured => _pointerCapture is not null;
+
+    /// <summary>
+    /// Claims the pointer for an element, if it is free or already theirs. Keyed by button so a
+    /// right-drag cannot take over from a left-drag in progress.
+    /// </summary>
+    internal bool TryCapturePointer(string id, MouseButton button)
+    {
+        if (_pointerCapture is { } held) return held.Id == id && held.Button == button;
+
+        _pointerCapture = (id, button);
+        return true;
+    }
+
+    /// <summary>Whether this element currently holds the pointer for this button.</summary>
+    internal bool HoldsPointer(string id, MouseButton button) =>
+        _pointerCapture is { } held && held.Id == id && held.Button == button;
+
+    /// <summary>Gives the pointer back, if this element is the one holding it.</summary>
+    internal void ReleasePointer(string id)
+    {
+        if (_pointerCapture?.Id == id) _pointerCapture = null;
+    }
+
     internal bool GetDragState(string id)
     {
         return _dragStates.TryGetValue(id, out var state) && state;
@@ -66,6 +104,23 @@ public partial class Gui
     internal bool SetDragState(string id, bool state)
     {
         return state ? _dragStates.TryAdd(id, true) : _dragStates.Remove(id);
+    }
+
+    /// <summary>
+    /// How far the pointer moved since the previous frame. <see cref="IInputHandler.PrevMousePosition"/>
+    /// cannot answer this: most integrations update it from the move event, so it keeps reporting the
+    /// last movement once the pointer stops. Tracked per frame here, so it is the same everywhere.
+    /// </summary>
+    internal Vector2 PointerFrameDelta =>
+        _hasPointerLastFrame ? Input.MousePosition - _pointerLastFrame : Vector2.Zero;
+
+    /// <summary>Records the pointer for the next frame's delta. Called from <see cref="EndFrame"/>.</summary>
+    private void TrackPointerForNextFrame()
+    {
+        if (Input is null) return;
+
+        _pointerLastFrame = Input.MousePosition;
+        _hasPointerLastFrame = true;
     }
 
     internal Vector2 GetPressAnchor(string id)
