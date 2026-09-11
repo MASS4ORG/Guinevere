@@ -1,0 +1,28 @@
+{
+  "comment": "Dragging a tab across a splitter must not hand the splitter the pointer.",
+  "width": 1400,
+  "height": 900,
+  "steps": [
+    { "action": "dump", "path": "cross-00-before.png" },
+    { "action": "move", "x": 20, "y": 13 },
+    { "action": "press", "button": "left" },
+    { "action": "move", "x": 300, "y": 300 },
+    { "action": "expectCapture", "value": "tabs/tree" },
+
+    { "action": "move", "x": 211, "y": 300, "comment": "the Tree|Scene splitter" },
+    { "action": "expectCapture", "value": "tabs/tree" },
+    { "action": "move", "x": 1049, "y": 300, "comment": "the Scene|Inspector splitter" },
+    { "action": "expectCapture", "value": "tabs/tree" },
+    { "action": "move", "x": 1049, "y": 310 },
+    { "action": "expectCapture", "value": "tabs/tree" },
+
+    { "action": "move", "x": 500, "y": 674, "comment": "the horizontal splitter above Output" },
+    { "action": "expectCapture", "value": "tabs/tree" },
+    { "action": "move", "x": 505, "y": 674 },
+    { "action": "expectCapture", "value": "tabs/tree" },
+
+    { "action": "release", "button": "left" },
+    { "action": "expectCapture", "value": "none" },
+    { "action": "dump", "path": "cross-01-after.png" }
+  ]
+}

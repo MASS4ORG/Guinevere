@@ -1,0 +1,24 @@
+{
+  "comment": "Drag the Tree tab into the Inspector group. Used to build a split holding itself and overflow the stack, and to leave the pointer captured for good.",
+  "width": 1400,
+  "height": 900,
+  "steps": [
+    { "action": "move", "x": 20, "y": 13, "comment": "the Tree tab" },
+    { "action": "press", "button": "left" },
+    { "action": "move", "x": 300, "y": 300 },
+    { "action": "move", "x": 1226, "y": 350, "comment": "the Inspector group's centre zone" },
+    { "action": "dump", "path": "dock-01-mid-drag.png" },
+    { "action": "expectCapture", "value": "tabs/tree" },
+    { "action": "release", "button": "left" },
+    { "action": "dump", "path": "dock-02-after-drop.png" },
+    { "action": "expectCapture", "value": "none" },
+    { "action": "expectNode", "value": "dock:root/a/b/tabs/tree", "comment": "joined the Inspector's tabs" },
+
+    { "action": "move", "x": 20, "y": 13, "comment": "the shell must still respond after a dock" },
+    { "action": "press", "button": "left" },
+    { "action": "move", "x": 400, "y": 400 },
+    { "action": "expectCapture", "value": "tabs" },
+    { "action": "release", "button": "left" },
+    { "action": "expectCapture", "value": "none" }
+  ]
+}

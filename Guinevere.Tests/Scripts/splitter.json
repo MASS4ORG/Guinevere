@@ -1,0 +1,19 @@
+{
+  "comment": "A splitter takes the pointer only from its own press, follows it, and gives it back on release.",
+  "width": 1400,
+  "height": 900,
+  "steps": [
+    { "action": "move", "x": 1049, "y": 300, "comment": "the Scene|Inspector splitter" },
+    { "action": "expectCapture", "value": "none", "comment": "hovering alone must not capture" },
+    { "action": "press", "button": "left" },
+    { "action": "move", "x": 1000, "y": 300 },
+    { "action": "move", "x": 900, "y": 300 },
+    { "action": "dump", "path": "splitter-01-dragged.png" },
+    { "action": "frames", "count": 10, "comment": "stationary: a stale-delta splitter would keep sliding" },
+    { "action": "dump", "path": "splitter-02-still-held.png" },
+    { "action": "release", "button": "left" },
+    { "action": "frames", "count": 5 },
+    { "action": "dump", "path": "splitter-03-released.png" },
+    { "action": "expectCapture", "value": "none" }
+  ]
+}

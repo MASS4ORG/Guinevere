@@ -160,4 +160,64 @@ public class InputArbitrationTests
         Assert.Equal(moved - press, args.TotalDelta);
         Assert.Equal(moved - press, args.FrameDelta);
     }
+
+    /// <summary>
+    /// Runs a frame with a small child inside a big parent, both asking whether they are hovered.
+    /// This is the tree-row-and-expander shape: the child must be able to take the pointer from the
+    /// row it sits in.
+    /// </summary>
+    private static (bool Parent, bool Child) RunNestedFrame(Vector2 mouse, bool childBlocks)
+    {
+        var (gui, _) = NewFrame(mouse);
+        bool parent = false, child = false;
+
+        void Draw()
+        {
+            using (gui.Node(200, 200, "row").Enter())
+            {
+                if (gui.Pass == Pass.Pass2Render) parent = gui.GetInteractable().OnHover();
+
+                using (gui.Node(20, 20, "row/expander").BlockInput(childBlocks).Enter())
+                {
+                    if (gui.Pass == Pass.Pass2Render) child = gui.GetInteractable().OnHover();
+                }
+            }
+        }
+
+        Draw();
+        gui.CalculateLayout();
+        gui.SetStage(Pass.Pass2Render);
+        Draw();
+        gui.EndFrame();
+
+        return (parent, child);
+    }
+
+    [Fact]
+    public void ABlockingChildTakesThePointerFromItsParent()
+    {
+        var (parent, child) = RunNestedFrame(new Vector2(10, 10), childBlocks: true);
+
+        Assert.False(parent);
+        Assert.True(child);
+    }
+
+    [Fact]
+    public void WithoutBlockingBothTheChildAndItsParentReportTheHover()
+    {
+        // The default, and why a tree row and its expander both used to act on one click.
+        var (parent, child) = RunNestedFrame(new Vector2(10, 10), childBlocks: false);
+
+        Assert.True(parent);
+        Assert.True(child);
+    }
+
+    [Fact]
+    public void AParentStillReactsEverywhereOutsideItsBlockingChild()
+    {
+        var (parent, child) = RunNestedFrame(new Vector2(120, 120), childBlocks: true);
+
+        Assert.True(parent);
+        Assert.False(child);
+    }
 }
