@@ -4,8 +4,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private static readonly Dictionary<string, InputState> InputStates = new();
-
     private class InputState
     {
         public string Text = "";
@@ -19,6 +17,9 @@ public static partial class ControlsExtensions
 
         /// <summary>Set while the pointer is dragging out a selection.</summary>
         public bool IsSelecting;
+
+        /// <summary>The last value the caller supplied, so an external change can be told from an edit.</summary>
+        public string External = "";
 
         public int SelectionStart => Math.Min(SelectionAnchor, CursorPosition);
         public int SelectionEnd => Math.Max(SelectionAnchor, CursorPosition);
@@ -66,11 +67,20 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static InputState GetOrCreateState(string nodeId, string initialText)
+    private static InputState GetOrCreateState(Gui gui, string nodeId, string initialText)
     {
-        return InputStates.TryGetValue(nodeId, out var state)
-            ? state
-            : InputStates[nodeId] = new InputState { Text = initialText };
+        var state = gui.ControlState(nodeId, () => new InputState { Text = initialText, External = initialText });
+
+        // The caller is the source of truth: when the value it passes changes underneath the control —
+        // the inspector moving to another node, say — the field adopts it instead of showing the old one.
+        if (!string.Equals(state.External, initialText, StringComparison.Ordinal))
+        {
+            state.Text = initialText;
+            state.External = initialText;
+            state.MoveTo(initialText.Length, extend: false);
+        }
+
+        return state;
     }
 
     private static void UpdateCursorBlink(InputState state, float deltaTime)
@@ -110,11 +120,8 @@ public static partial class ControlsExtensions
         return Math.Min(positionBeforeTargetLine + positionInLine, text.Length);
     }
 
-    private static float MeasureTextWidth(SKFont font, string text)
-    {
-        font.MeasureText(text, out var bounds);
-        return bounds.Width;
-    }
+    private static float MeasureTextWidth(SKFont font, string text) =>
+        string.IsNullOrEmpty(text) ? 0f : font.MeasureText(text);
 
     private static InputState HandleFocusAndClick(InputState state, InteractableElement interactable, Gui gui,
         Func<Vector2, Rect, string, float, int> calculateCursorPosition, string text, float fontSize)
@@ -366,6 +373,19 @@ public static partial class ControlsExtensions
         gui.DrawRectBorder(gui.CurrentNode.Rect, outline, borderWidth);
     }
 
+    /// <summary>
+    /// Where the text actually begins inside the field, which is not the left edge once the content is
+    /// aligned right or centred.
+    /// </summary>
+    private static float TextOriginX(Gui gui, SKFont font, string text, Rect innerRect)
+    {
+        var align = gui.CurrentNode.Style.AlignContentHorizontal;
+        if (align <= 0f) return innerRect.X;
+
+        var slack = Math.Max(0f, innerRect.W - MeasureTextWidth(font, text));
+        return innerRect.X + (slack * align);
+    }
+
     /// <summary>Paints the selected run behind the glyphs, so the text stays readable over it.</summary>
     private static void DrawSelection(Gui gui, InputState state, string text, float fontSize)
     {
@@ -377,8 +397,9 @@ public static partial class ControlsExtensions
         var start = Math.Clamp(state.SelectionStart, 0, text.Length);
         var end = Math.Clamp(state.SelectionEnd, 0, text.Length);
 
-        var x1 = inner.X + MeasureTextWidth(font, text[..start]);
-        var x2 = inner.X + MeasureTextWidth(font, text[..end]);
+        var origin = TextOriginX(gui, font, text, inner);
+        var x1 = origin + MeasureTextWidth(font, text[..start]);
+        var x2 = origin + MeasureTextWidth(font, text[..end]);
 
         gui.DrawRect(new Rect(x1, inner.Y, Math.Max(1f, x2 - x1), inner.H),
             Color.FromArgb(110, gui.Controls.Accent));
@@ -405,7 +426,7 @@ public static partial class ControlsExtensions
         var textWidth = MeasureTextWidth(font, textBeforeCursor);
 
         var innerRect = gui.CurrentNode.InnerRect;
-        var cursorX = innerRect.X + textWidth;
+        var cursorX = TextOriginX(gui, font, text, innerRect) + textWidth;
         var cursorY1 = innerRect.Y;
         var cursorY2 = innerRect.Y + innerRect.H;
 
@@ -473,7 +494,7 @@ public static partial class ControlsExtensions
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
                    .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
-            var state = GetOrCreateState(nodeId, text);
+            var state = GetOrCreateState(gui, nodeId, text);
             var interactable = gui.GetInteractable();
 
             state = HandleFocusAndClick(state, interactable, gui, GetCursorPositionFromClick, state.Text, fontSize);
@@ -533,7 +554,7 @@ public static partial class ControlsExtensions
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
-            var state = GetOrCreateState(nodeId, text);
+            var state = GetOrCreateState(gui, nodeId, text);
             var interactable = gui.GetInteractable();
 
             var stateTemp = state;
@@ -617,7 +638,7 @@ public static partial class ControlsExtensions
 
         using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
-            var state = GetOrCreateState(nodeId, text);
+            var state = GetOrCreateState(gui, nodeId, text);
             var interactable = gui.GetInteractable();
 
             // Only process input if enabled
@@ -681,6 +702,6 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void ClearInputStates(this Gui gui)
     {
-        InputStates.Clear();
+        gui.ClearControlStates<InputState>();
     }
 }

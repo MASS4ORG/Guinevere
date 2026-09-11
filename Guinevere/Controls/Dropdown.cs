@@ -4,8 +4,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private static readonly Dictionary<string, DropdownState> DropdownStates = new();
-
     private class DropdownState
     {
         public bool IsOpen { get; set; }
@@ -66,7 +64,7 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(options);
 
         var id = gui.NodeId(filePath, lineNumber);
-        var state = DropdownStateFor(id);
+        var state = DropdownStateFor(gui, id);
         var palette = gui.Controls;
 
         if (gui.Pass == Pass.Pass1Build) state.Anchor = state.ButtonRect;
@@ -137,14 +135,11 @@ public static partial class ControlsExtensions
     public static void ClearDropdownStates(this Gui gui)
     {
         ArgumentNullException.ThrowIfNull(gui);
-        DropdownStates.Clear();
+        gui.ClearControlStates<DropdownState>();
     }
 
-    private static DropdownState DropdownStateFor(string id)
-    {
-        if (!DropdownStates.TryGetValue(id, out var state)) DropdownStates[id] = state = new DropdownState();
-        return state;
-    }
+    private static DropdownState DropdownStateFor(Gui gui, string id) =>
+        gui.ControlState(id, () => new DropdownState());
 
     private static void DrawButton(Gui gui, string id, string[] options, int selectedIndex,
         float width, float height, string placeholder, Color background, Color border, Color text,

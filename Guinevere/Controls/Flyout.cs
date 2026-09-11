@@ -4,8 +4,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private static readonly Dictionary<string, FlyoutState> FlyoutStates = new();
-
     private class FlyoutState
     {
         public int HoveredIndex { get; set; } = -1;
@@ -32,7 +30,7 @@ public static partial class ControlsExtensions
         if (!isOpen) return;
 
         var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateFlyoutState(id);
+        var state = GetOrCreateFlyoutState(gui, id);
 
         var builder = new FlyoutBuilder();
         buildMenu(builder);
@@ -107,10 +105,8 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static FlyoutState GetOrCreateFlyoutState(string id)
-    {
-        return FlyoutStates.TryGetValue(id, out var state) ? state : FlyoutStates[id] = new FlyoutState();
-    }
+    private static FlyoutState GetOrCreateFlyoutState(Gui gui, string id) =>
+        gui.ControlState(id, () => new FlyoutState());
 
     private static void HandleFlyoutInteraction(Gui gui, FlyoutState state, List<FlyoutItem> items, Rect rect,
         float itemHeight, ref bool isOpen)

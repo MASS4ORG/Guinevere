@@ -4,8 +4,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private static readonly Dictionary<string, PopupState> PopupStates = new();
-
     private class PopupState
     {
         public bool IsOpen { get; set; }
@@ -36,7 +34,7 @@ public static partial class ControlsExtensions
         [CallerLineNumber] int lineNumber = 0)
     {
         var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreatePopupState(id, position, closeOnClickOutside, closeOnEscape);
+        var state = GetOrCreatePopupState(gui, id, position, closeOnClickOutside, closeOnEscape);
 
         // Sync external state with internal state
         if (isOpen != state.IsOpen)
@@ -224,18 +222,14 @@ public static partial class ControlsExtensions
     }
 
     // Core implementation helpers
-    private static PopupState GetOrCreatePopupState(string id, Vector2? position,
-        bool closeOnClickOutside, bool closeOnEscape)
-    {
-        return PopupStates.TryGetValue(id, out var state)
-            ? state
-            : PopupStates[id] = new PopupState
-            {
-                Position = position ?? Vector2.Zero,
-                CloseOnClickOutside = closeOnClickOutside,
-                CloseOnEscape = closeOnEscape
-            };
-    }
+    private static PopupState GetOrCreatePopupState(Gui gui, string id, Vector2? position,
+        bool closeOnClickOutside, bool closeOnEscape) =>
+        gui.ControlState(id, () => new PopupState
+        {
+            Position = position ?? Vector2.Zero,
+            CloseOnClickOutside = closeOnClickOutside,
+            CloseOnEscape = closeOnEscape
+        });
 
     private static void HandlePopupInteraction(Gui gui, PopupState state)
     {
@@ -366,6 +360,6 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void ClearPopupStates(this Gui gui)
     {
-        PopupStates.Clear();
+        gui.ClearControlStates<PopupState>();
     }
 }

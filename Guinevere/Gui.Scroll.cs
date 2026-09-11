@@ -246,7 +246,9 @@ public partial class Gui
 
     private void HandleScrollbarDragging(LayoutNode node, ScrollState scrollState, Vector2 mousePos)
     {
-        var nodeRect = node.InnerRect;
+        // The node's own rect, matching where the bar is drawn. The content box is inset by the width
+        // the bar reserved, so hit-testing against it would sit the hot area beside the bar.
+        var nodeRect = node.Rect;
 
         // Update hover states
         scrollState.IsVerticalScrollbarHovered = scrollState.ShowScrollbarY &&

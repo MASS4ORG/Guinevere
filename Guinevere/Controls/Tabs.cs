@@ -4,8 +4,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private static readonly Dictionary<string, TabsState> TabsStates = new();
-
     /// <summary>
     /// Creates a tab container that manages multiple tabs with internal state management
     /// </summary>
@@ -24,7 +22,7 @@ public static partial class ControlsExtensions
         [CallerLineNumber] int lineNumber = 0)
     {
         var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateTabsState(id, activeTabIndex, tabBarHeight);
+        var state = GetOrCreateTabsState(gui, id, activeTabIndex, tabBarHeight);
 
         var builder = new TabBuilder();
         buildTabs(builder);
@@ -99,12 +97,9 @@ public static partial class ControlsExtensions
     }
 
     // Core implementation helpers
-    private static TabsState GetOrCreateTabsState(string id, int initialActiveIndex, float tabBarHeight)
-    {
-        return TabsStates.TryGetValue(id, out var state)
-            ? state
-            : TabsStates[id] = new TabsState { ActiveTabIndex = initialActiveIndex, TabBarHeight = tabBarHeight };
-    }
+    private static TabsState GetOrCreateTabsState(Gui gui, string id, int initialActiveIndex, float tabBarHeight) =>
+        gui.ControlState(id,
+            () => new TabsState { ActiveTabIndex = initialActiveIndex, TabBarHeight = tabBarHeight });
 
     private static float CalculateTabsHeight(TabsState state, float tabBarHeight)
     {
@@ -256,7 +251,7 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void ClearTabsStates(this Gui gui)
     {
-        TabsStates.Clear();
+        gui.ClearControlStates<TabsState>();
     }
 }
 
@@ -283,7 +278,7 @@ public static partial class ControlsExtensions
         [CallerLineNumber] int lineNumber = 0)
     {
         var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateTabsState(id, activeTabIndex, 32);
+        var state = GetOrCreateTabsState(gui, id, activeTabIndex, 32);
 
         var builder = new TabBuilder();
         buildTabs(builder);
@@ -322,7 +317,7 @@ public static partial class ControlsExtensions
         [CallerLineNumber] int lineNumber = 0)
     {
         var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateTabsState(id, activeTabIndex, tabBarHeight);
+        var state = GetOrCreateTabsState(gui, id, activeTabIndex, tabBarHeight);
 
         var builder = new TabBuilder();
         buildTabs(builder);

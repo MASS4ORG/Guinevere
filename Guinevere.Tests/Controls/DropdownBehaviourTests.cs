@@ -16,9 +16,9 @@ public class DropdownBehaviourTests
         private readonly IInputHandler input = Substitute.For<IInputHandler>();
         private readonly TestableGui gui;
 
-        // Dropdown state is static and keyed by call site, so each harness needs its own id or one
-        // test inherits the previous one's open/closed state.
-        private readonly string id = $"test/dropdown/{Guid.NewGuid():N}";
+        // A fixed id on purpose: control state belongs to the Gui, so two harnesses sharing an id no
+        // longer share an open/closed state.
+        private const string Id = "test/dropdown";
 
         public Harness()
         {
@@ -41,7 +41,7 @@ public class DropdownBehaviourTests
             var index = Selected;
 
             void Draw() => gui.Dropdown(Options, ref index, width: 120, height: 24,
-                filePath: id, lineNumber: 0);
+                filePath: Id, lineNumber: 0);
 
             gui.Time.Update(0.016);
             gui.SetStage(Pass.Pass1Build);
@@ -140,5 +140,18 @@ public class DropdownBehaviourTests
         harness.Frame(OnButton, pressed: true);
 
         Assert.True(harness.ListIsOpen);
+    }
+
+    [Fact]
+    public void TwoGuisDoNotShareOneDropdownsState()
+    {
+        var first = new Harness();
+        var second = new Harness();
+
+        first.Frame(OnButton, pressed: true);
+        second.Frame(Away);
+
+        Assert.True(first.ListIsOpen);
+        Assert.False(second.ListIsOpen, "a second Gui inherited the first one's open dropdown");
     }
 }

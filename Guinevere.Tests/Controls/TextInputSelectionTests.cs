@@ -31,6 +31,9 @@ public class TextInputSelectionTests
 
         public string Text { get; private set; }
 
+        /// <summary>Replaces the value the caller passes in, as a host rebinding the field would.</summary>
+        public void SetExternal(string value) => Text = value;
+
         public string Clipboard { get; private set; } = string.Empty;
 
         public void Frame(Vector2? mouse = null, bool pressed = false, KeyboardKey? press = null,
@@ -179,5 +182,18 @@ public class TextInputSelectionTests
         field.Type("bye ");
 
         Assert.Equal("bye world", field.Text);
+    }
+
+    [Fact]
+    public void ThePassedValueWinsWhenItChangesUnderneathTheField()
+    {
+        // The inspector moving to another node must not leave the previous node's name on screen.
+        var field = new Field("first");
+        Assert.Equal("first", field.Text);
+
+        field.SetExternal("second");
+        field.Frame();
+
+        Assert.Equal("second", field.Text);
     }
 }
