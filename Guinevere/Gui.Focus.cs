@@ -49,6 +49,9 @@ public partial class Gui
     /// Requests focus for the current layout node.
     /// </summary>
     /// <param name="reason">The reason for the focus request</param>
+    /// <summary>Why the focused control currently has focus.</summary>
+    public FocusReason FocusReason => Focus.CurrentFocusReason;
+
     public void RequestFocus(FocusReason reason = FocusReason.Programmatic)
     {
         Focus.RequestFocus(CurrentNode.Id, reason);

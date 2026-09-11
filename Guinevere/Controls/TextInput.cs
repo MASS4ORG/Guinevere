@@ -93,10 +93,13 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static int GetCursorPositionFromClick(Vector2 mousePos, Rect innerRect, string text, float fontSize)
+    private static int GetCursorPositionFromClick(Gui gui, Vector2 mousePos, Rect innerRect, string text,
+        float fontSize)
     {
-        var clickX = mousePos.X - innerRect.X;
-        var font = new SKFont { Size = fontSize };
+        var font = MeasuringFont(gui, fontSize);
+
+        // Measured from where the text starts, which is not the left edge in an aligned field.
+        var clickX = mousePos.X - TextOriginX(gui, font, text, innerRect);
 
         return Enumerable.Range(0, text.Length + 1)
             .Select(i => new { Position = i, X = MeasureTextWidth(font, text.Substring(0, i)) })
@@ -104,8 +107,8 @@ public static partial class ControlsExtensions
             .First().Position;
     }
 
-    private static int CalculateCursorPositionFromClickMultiline(Vector2 mousePos, Rect innerRect, string text,
-        float fontSize)
+    private static int CalculateCursorPositionFromClickMultiline(Gui gui, Vector2 mousePos, Rect innerRect,
+        string text, float fontSize)
     {
         var clickY = mousePos.Y - innerRect.Y;
         var lineHeight = fontSize * 1.2f;
@@ -114,17 +117,24 @@ public static partial class ControlsExtensions
 
         var positionBeforeTargetLine = lines.Take(targetLine).Sum(line => line.Length + 1); // +1 for \n
         var targetLineText = targetLine < lines.Length ? lines[targetLine] : "";
-        var positionInLine = GetCursorPositionFromClick(mousePos,
+        var positionInLine = GetCursorPositionFromClick(gui, mousePos,
             innerRect with { Y = innerRect.Y + targetLine * lineHeight }, targetLineText, fontSize);
 
         return Math.Min(positionBeforeTargetLine + positionInLine, text.Length);
     }
 
+    /// <summary>
+    /// A font that measures exactly what <see cref="Gui.DrawText"/> will draw. Measuring with the
+    /// default typeface instead drifts further from the glyphs the longer the line gets.
+    /// </summary>
+    private static SKFont MeasuringFont(Gui gui, float fontSize) =>
+        new(gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.SkFont.Typeface, fontSize);
+
     private static float MeasureTextWidth(SKFont font, string text) =>
         string.IsNullOrEmpty(text) ? 0f : font.MeasureText(text);
 
     private static InputState HandleFocusAndClick(InputState state, InteractableElement interactable, Gui gui,
-        Func<Vector2, Rect, string, float, int> calculateCursorPosition, string text, float fontSize)
+        Func<Gui, Vector2, Rect, string, float, int> calculateCursorPosition, string text, float fontSize)
     {
         if (gui.Pass != Pass.Pass2Render) return state;
 
@@ -139,7 +149,7 @@ public static partial class ControlsExtensions
         if (interactable.OnClick(out var clicks))
         {
             gui.RequestFocus(FocusReason.Mouse);
-            var at = calculateCursorPosition(gui.Input.MousePosition, inner, text, fontSize);
+            var at = calculateCursorPosition(gui, gui.Input.MousePosition, inner, text, fontSize);
 
             if (clicks >= 3)
             {
@@ -165,13 +175,14 @@ public static partial class ControlsExtensions
         if (state.IsSelecting)
         {
             if (gui.Input.IsMouseButtonDown(MouseButton.Left))
-                state.MoveTo(calculateCursorPosition(gui.Input.MousePosition, inner, text, fontSize), extend: true);
+                state.MoveTo(calculateCursorPosition(gui, gui.Input.MousePosition, inner, text, fontSize), extend: true);
             else
                 state.IsSelecting = false;
         }
 
-        // Tabbing into a field selects its value, so typing replaces it.
-        if (hasFocus && !state.IsFocused && !interactable.OnHover()) state.SelectAll();
+        // Tabbing into a field selects its value, so typing replaces it. Clicking does not — hover was
+        // the wrong proxy, since moving the pointer away after a click also looked like a tab.
+        if (hasFocus && !state.IsFocused && gui.FocusReason == FocusReason.Keyboard) state.SelectAll();
 
         state.IsFocused = hasFocus;
 
@@ -391,7 +402,7 @@ public static partial class ControlsExtensions
     {
         if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render) return;
 
-        var font = new SKFont { Size = fontSize };
+        var font = MeasuringFont(gui, fontSize);
         var inner = gui.CurrentNode.InnerRect;
 
         var start = Math.Clamp(state.SelectionStart, 0, text.Length);
@@ -421,7 +432,7 @@ public static partial class ControlsExtensions
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 
-        var font = new SKFont { Size = fontSize };
+        var font = MeasuringFont(gui, fontSize);
         var textBeforeCursor = text.Substring(0, Math.Min(state.CursorPosition, text.Length));
         var textWidth = MeasureTextWidth(font, textBeforeCursor);
 
@@ -437,7 +448,7 @@ public static partial class ControlsExtensions
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 
-        var font = new SKFont { Size = fontSize };
+        var font = MeasuringFont(gui, fontSize);
         var lineHeight = fontSize * 1.2f;
         var lines = text.Split('\n');
         var innerRect = gui.CurrentNode.InnerRect;
@@ -559,7 +570,7 @@ public static partial class ControlsExtensions
 
             var stateTemp = state;
             state = HandleFocusAndClick(state, interactable, gui,
-                (mousePos, rect, _, textFontSize) => GetCursorPositionFromClick(mousePos, rect,
+                (g, mousePos, rect, _, textFontSize) => GetCursorPositionFromClick(g, mousePos, rect,
                     new string(maskChar, stateTemp.Text.Length), textFontSize),
                 state.Text, fontSize);
             state = HandleKeyboardInput(state, gui);

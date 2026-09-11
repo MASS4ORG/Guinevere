@@ -34,6 +34,12 @@ public sealed class ControlPalette
     /// <summary>The knob of a toggle and the tick of a checkbox.</summary>
     public Color Knob { get; init; } = Color.White;
 
+    /// <summary>The groove a progress bar fills.</summary>
+    public Color ProgressTrack { get; init; } = Color.FromArgb(255, 224, 224, 224);
+
+    /// <summary>The filled part of a progress bar.</summary>
+    public Color ProgressFill { get; init; } = Color.FromArgb(255, 100, 149, 237);
+
     /// <summary>The groove a scrollbar thumb runs in. Opaque, so content does not read through it.</summary>
     public Color ScrollbarTrack { get; init; } = Color.FromArgb(255, 232, 232, 232);
 
@@ -61,6 +67,8 @@ public sealed class ControlPalette
         TextDim = Color.FromArgb(255, 139, 146, 156),
         Selected = Color.FromArgb(255, 84, 143, 224),
         Knob = Color.FromArgb(255, 226, 229, 234),
+        ProgressTrack = Color.FromArgb(255, 42, 46, 54),
+        ProgressFill = Color.FromArgb(255, 84, 143, 224),
         ScrollbarTrack = Color.FromArgb(255, 24, 27, 32),
         ScrollbarThumb = Color.FromArgb(255, 62, 68, 79),
         ScrollbarThumbHover = Color.FromArgb(255, 78, 85, 98),

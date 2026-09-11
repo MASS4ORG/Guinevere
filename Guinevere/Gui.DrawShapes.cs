@@ -37,11 +37,12 @@ public partial class Gui
         return shape;
     }
 
-    private Shape DrawRect(float x, float y, float w, float h, float radius = 0.0f, Corner corners = Corner.All)
+    private Shape DrawRect(float left, float top, float right, float bottom,
+        float radius = 0.0f, Corner corners = Corner.All)
     {
         return ImMath.ApproximatelyEquals(radius, 0.0f)
-            ? Shape.Rect(x, y, w, h)
-            : Shape.RoundRect(x, y, w, h, radius, corners);
+            ? Shape.Rect(left, top, right, bottom)
+            : Shape.RoundRect(left, top, right, bottom, radius, corners);
     }
 
     /// <summary>
@@ -64,11 +65,11 @@ public partial class Gui
     /// </summary>
     [PublicAPI]
     public Shape DrawRectFilled(
-        float x, float y, float w, float h,
+        float left, float top, float right, float bottom,
         Color? color,
         float radius = 0.0f, Corner corners = Corner.All)
     {
-        var shape = DrawRect(x, y, w, h, radius, corners);
+        var shape = DrawRect(left, top, right, bottom, radius, corners);
         if (color != null)
             shape.SolidColor(color.Value);
         AddDraw(shape);
@@ -126,7 +127,7 @@ public partial class Gui
         Color color,
         float radius = 0.0f, Corner corners = Corner.All)
     {
-        return DrawRectFilled(position.X, position.Y, size.X, size.Y, color, radius, corners);
+        return DrawRectFilled(position.X, position.Y, position.X + size.X, position.Y + size.Y, color, radius, corners);
     }
 
     /// <summary>
@@ -138,7 +139,7 @@ public partial class Gui
         Color? color = null,
         float radius = 0.0f, Corner corners = Corner.All)
     {
-        return DrawRectFilled(rect.Position.X, rect.Size.Y, rect.BottomRight.X, rect.BottomRight.Y, color, radius,
+        return DrawRectFilled(rect.Position.X, rect.Position.Y, rect.BottomRight.X, rect.BottomRight.Y, color, radius,
             corners);
     }
 

@@ -11,6 +11,10 @@ public class FocusManager
     private string? _currentFocusedId;
     private string? _nextFrameFocusId;
     private bool _focusChangedThisFrame;
+    private FocusReason _nextFrameFocusReason = FocusReason.Programmatic;
+
+    /// <summary>Why the focused control got focus, so a control can react to Tab differently to a click.</summary>
+    public FocusReason CurrentFocusReason { get; private set; } = FocusReason.Programmatic;
 
     /// <summary>
     /// Gets the ID of the currently focused control, or null if no control has focus.
@@ -112,6 +116,7 @@ public class FocusManager
             if (_currentFocusedId != controlId)
             {
                 _nextFrameFocusId = controlId;
+                _nextFrameFocusReason = reason;
                 _focusChangedThisFrame = true;
             }
         }
@@ -190,6 +195,7 @@ public class FocusManager
         if (_nextFrameFocusId != _currentFocusedId)
         {
             _currentFocusedId = _nextFrameFocusId;
+            CurrentFocusReason = _nextFrameFocusReason;
             _focusChangedThisFrame = true;
         }
     }

@@ -8,6 +8,9 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class TextInputSelectionTests
 {
+    /// <summary>A non-default typeface on purpose: caret maths measured with the wrong one drifts.</summary>
+    private static readonly Font TestFont = Font.FromFamilyName("serif", 12);
+
     private sealed class Field
     {
         private readonly SKSurface surface = SKSurface.Create(new SKImageInfo(300, 60));
@@ -63,7 +66,7 @@ public class TextInputSelectionTests
 
             gui.Time.Update(0.016);
             gui.SetStage(Pass.Pass1Build);
-            gui.BeginFrame(surface.Canvas, Font.FromFamilyName("sans-serif", 12));
+            gui.BeginFrame(surface.Canvas, TestFont);
             Draw();
             gui.CalculateLayout();
             gui.SetStage(Pass.Pass2Render);
@@ -196,4 +199,5 @@ public class TextInputSelectionTests
 
         Assert.Equal("second", field.Text);
     }
+
 }
