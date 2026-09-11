@@ -69,6 +69,9 @@ public sealed class TreeViewState
     /// </summary>
     internal float FrameScrollY { get; set; }
 
+    /// <summary>Set when a row was clicked, so the tree claims focus in its own scope.</summary>
+    internal bool WantsFocus { get; set; }
+
     /// <summary>The viewport height the virtualisation used this frame.</summary>
     internal float FrameViewportHeight { get; set; } = 600f;
 

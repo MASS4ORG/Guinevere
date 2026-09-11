@@ -219,16 +219,11 @@ public partial class Gui
     [PublicAPI]
     public void DrawLine(Vector2 start, Vector2 end, Color color, float thickness = 1f)
     {
-        var paint = new SKPaint
-        {
-            Color = color,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = thickness,
-            IsAntialias = true,
-            StrokeCap = SKStrokeCap.Round
-        };
-
-        if (Pass == Pass.Pass2Render) Canvas!.DrawLine(start.X, start.Y, end.X, end.Y, paint);
+        // Through the draw list like every other shape: drawing straight to the canvas here put the
+        // line under everything the z-ordered pass paints afterwards.
+        var shape = Shape.Line(start, end, thickness);
+        shape.SolidColor(color);
+        AddDraw(shape);
     }
 
     /// <summary>

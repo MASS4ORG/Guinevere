@@ -35,6 +35,7 @@ public class TreeViewTests
 
         input ??= OffscreenInput();
         var gui = reuse ?? new TestableGui { Input = input };
+        gui.Input = input;
         if (gui is TestableGui testable) testable.SetScreenRect(Width, Height);
 
         for (var frame = 0; frame < frames; frame++)
@@ -246,5 +247,109 @@ public class TreeViewTests
         }
 
         Assert.True(state.IsCollapsed("root0"), "a second click on the label should fold the row");
+    }
+
+    /// <summary>
+    /// Clicks the first row so the tree owns focus, then returns the gui to keep driving. Navigation
+    /// only answers the focused tree, since a window can hold several.
+    /// </summary>
+    private static Gui Focused(IReadOnlyList<TreeItem> items, TreeViewState state)
+    {
+        var click = Substitute.For<IInputHandler>();
+        click.MousePosition.Returns(new Vector2(200, 10));
+        click.PrevMousePosition.Returns(new Vector2(200, 10));
+        click.IsMouseButtonPressed(MouseButton.Left).Returns(true);
+
+        return RunFrames(items, state, frames: 1, input: click);
+    }
+
+    private static IInputHandler KeyInput(KeyboardKey key)
+    {
+        var input = Substitute.For<IInputHandler>();
+        input.MousePosition.Returns(new Vector2(-100, -100));
+        input.PrevMousePosition.Returns(new Vector2(-100, -100));
+        input.IsKeyPressed(Arg.Any<KeyboardKey>()).Returns(call => call.Arg<KeyboardKey>() == key);
+        return input;
+    }
+
+    [Fact]
+    public void DownAndUpWalkTheVisibleRows()
+    {
+        var state = new TreeViewState();
+        var items = Tree(roots: 3, childrenPerRoot: 0);
+        var gui = Focused(items, state);
+        state.SelectedId = "root0";
+
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.Down), reuse: gui);
+        Assert.Equal("root1", state.SelectedId);
+
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.Up), reuse: gui);
+        Assert.Equal("root0", state.SelectedId);
+    }
+
+    [Fact]
+    public void RightOpensARowAndThenStepsIntoIt()
+    {
+        var state = new TreeViewState();
+        var items = Tree(roots: 2, childrenPerRoot: 2);
+        var gui = Focused(items, state);
+        state.SelectedId = "root0";
+        state.SetExpanded("root0", expanded: false);
+
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.Right), reuse: gui);
+        Assert.False(state.IsCollapsed("root0", 0));
+
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.Right), reuse: gui);
+        Assert.Equal("root0/child0", state.SelectedId);
+    }
+
+    [Fact]
+    public void LeftClosesARowAndThenStepsOutToTheParent()
+    {
+        var state = new TreeViewState();
+        var items = Tree(roots: 2, childrenPerRoot: 2);
+        var gui = Focused(items, state);
+        state.SelectedId = "root0";
+        state.SetExpanded("root0", expanded: true);
+
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.Left), reuse: gui);
+        Assert.True(state.IsCollapsed("root0", 0));
+
+        state.SetExpanded("root0", expanded: true);
+        state.SelectedId = "root0/child1";
+
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.Left), reuse: gui);
+        Assert.Equal("root0", state.SelectedId);
+    }
+
+    [Fact]
+    public void HomeAndEndJumpToTheEnds()
+    {
+        var state = new TreeViewState();
+        var items = Tree(roots: 4, childrenPerRoot: 0);
+        var gui = Focused(items, state);
+        state.SelectedId = "root1";
+
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.End), reuse: gui);
+        Assert.Equal("root3", state.SelectedId);
+
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.Home), reuse: gui);
+        Assert.Equal("root0", state.SelectedId);
+    }
+
+    [Fact]
+    public void EnterReportsAnActivationOnTheSelectedRow()
+    {
+        var state = new TreeViewState();
+        var items = Tree(roots: 3, childrenPerRoot: 0);
+        var gui = Focused(items, state);
+        state.SelectedId = "root1";
+
+        TreeViewEvent? seen = null;
+        RunFrames(items, state, frames: 1, input: KeyInput(KeyboardKey.Enter), onClick: e => seen = e, reuse: gui);
+
+        Assert.NotNull(seen);
+        Assert.Equal("root1", seen.Value.Item.Id);
+        Assert.Equal(2, seen.Value.ClickCount);
     }
 }

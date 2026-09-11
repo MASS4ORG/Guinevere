@@ -93,16 +93,16 @@ public static partial class ControlsExtensions
             if (gui.Pass != Pass.Pass2Render) return;
 
             var rect = gui.CurrentNode.Rect;
-            var bgColor = GetCheckboxBackgroundColor(isChecked, backgroundColor);
-            var borderColorFinal = borderColor ?? Color.Gray;
+            var bgColor = GetCheckboxBackgroundColor(gui, isChecked, backgroundColor);
+            var borderColorFinal = borderColor ?? gui.Controls.Border;
 
             // Use stronger border and subtle glow if focused
             if (gui.HasFocus())
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, Color.FromArgb(128, 100, 149, 237), 4f, 4); // subtle glow
+                gui.DrawRectBorder(focusRect, Color.FromArgb(128, gui.Controls.Accent), 4f, 4);
                 gui.DrawBackgroundRect(bgColor, 2);
-                gui.DrawRectBorder(rect, Color.FromArgb(255, 100, 149, 237), 2f, 2); // strong blue border
+                gui.DrawRectBorder(rect, gui.Controls.Accent, 2f, 2);
             }
             else
             {
@@ -111,7 +111,7 @@ public static partial class ControlsExtensions
             }
 
             if (isChecked)
-                DrawCheckmark(gui, rect, size, checkColor ?? Color.White);
+                DrawCheckmark(gui, rect, size, checkColor ?? gui.Controls.Knob);
         }
     }
 
@@ -119,14 +119,14 @@ public static partial class ControlsExtensions
     {
         if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = labelColor ?? Color.Black;
+            var labelColorFinal = labelColor ?? gui.Controls.Text;
             gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
         }
     }
 
-    private static Color GetCheckboxBackgroundColor(bool isChecked, Color? backgroundColor)
+    private static Color GetCheckboxBackgroundColor(Gui gui, bool isChecked, Color? backgroundColor)
     {
-        return backgroundColor ?? (isChecked ? Color.FromArgb(255, 100, 149, 237) : Color.White);
+        return backgroundColor ?? (isChecked ? gui.Controls.Selected : gui.Controls.Surface);
     }
 
     private static void DrawCheckmark(Gui gui, Rect rect, float size, Color checkColor)

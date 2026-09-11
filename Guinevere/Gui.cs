@@ -159,7 +159,9 @@ public partial class Gui
             if (!ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()) continue;
             if (!ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value) continue;
 
-            var r = ancestor.InnerRect;
+            // The node's own rect, not its content box: clipping means "nothing outside this node",
+            // and a scroll container draws its bar in the padding it reserved.
+            var r = ancestor.Rect;
             if (r is { W: > 0, H: > 0 })
                 canvas.ClipRect(r);
         }

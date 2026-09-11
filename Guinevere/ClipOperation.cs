@@ -55,7 +55,7 @@ public class ClipOperation : IDrawListEntry
             {
                 // Use the node's current inner rect as the viewport bounds
                 // This ensures we clip to the actual container size, not the content size
-                var viewportRect = node.InnerRect;
+                var viewportRect = node.Rect;
 
                 // Only apply clipping if the viewport has valid dimensions
                 if (viewportRect is { W: > 0, H: > 0 }) canvas.ClipRect(viewportRect);

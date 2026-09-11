@@ -34,6 +34,18 @@ public sealed class ControlPalette
     /// <summary>The knob of a toggle and the tick of a checkbox.</summary>
     public Color Knob { get; init; } = Color.White;
 
+    /// <summary>The groove a scrollbar thumb runs in. Opaque, so content does not read through it.</summary>
+    public Color ScrollbarTrack { get; init; } = Color.FromArgb(255, 232, 232, 232);
+
+    /// <summary>The scrollbar thumb at rest.</summary>
+    public Color ScrollbarThumb { get; init; } = Color.FromArgb(255, 176, 176, 176);
+
+    /// <summary>The scrollbar thumb under the pointer.</summary>
+    public Color ScrollbarThumbHover { get; init; } = Color.FromArgb(255, 150, 150, 150);
+
+    /// <summary>The scrollbar thumb while dragged.</summary>
+    public Color ScrollbarThumbActive { get; init; } = Color.FromArgb(255, 120, 120, 120);
+
     /// <summary>The default light palette, matching the built-in controls' historical colours.</summary>
     public static ControlPalette Light { get; } = new();
 
@@ -48,6 +60,10 @@ public sealed class ControlPalette
         Text = Color.FromArgb(255, 215, 218, 224),
         TextDim = Color.FromArgb(255, 139, 146, 156),
         Selected = Color.FromArgb(255, 84, 143, 224),
-        Knob = Color.FromArgb(255, 226, 229, 234)
+        Knob = Color.FromArgb(255, 226, 229, 234),
+        ScrollbarTrack = Color.FromArgb(255, 24, 27, 32),
+        ScrollbarThumb = Color.FromArgb(255, 62, 68, 79),
+        ScrollbarThumbHover = Color.FromArgb(255, 78, 85, 98),
+        ScrollbarThumbActive = Color.FromArgb(255, 96, 104, 118)
     };
 }

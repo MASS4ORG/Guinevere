@@ -82,13 +82,40 @@ public partial class Shape : IDrawable
     }
 
     /// <summary>
-    /// Creates a rectangular shape defined by the specified corner coordinates.
+    /// Creates a straight line of the given thickness between two points.
     /// </summary>
-    /// <param name="left">The X-coordinate of the left side of the rectangle.</param>
-    /// <param name="top">The Y-coordinate of the top side of the rectangle.</param>
-    /// <param name="right">The X-coordinate of the right side of the rectangle.</param>
-    /// <param name="bottom">The Y-coordinate of the bottom side of the rectangle.</param>
-    /// <returns>A new <see cref="Shape"/> representing the specified rectangle.</returns>
+    /// <param name="start">Where the line begins.</param>
+    /// <param name="end">Where the line ends.</param>
+    /// <param name="thickness">How thick the line is, in pixels.</param>
+    /// <returns>A new <see cref="Shape"/> covering the line.</returns>
+    public static Shape Line(Vector2 start, Vector2 end, float thickness = 1f)
+    {
+        var direction = end - start;
+        var length = direction.Length();
+        var half = Math.Max(0.5f, thickness / 2f);
+
+        var normal = length > 0.0001f
+            ? new Vector2(-direction.Y, direction.X) / length * half
+            : new Vector2(half, 0);
+
+        var builder = new SKPathBuilder();
+        builder.MoveTo(start.X + normal.X, start.Y + normal.Y);
+        builder.LineTo(end.X + normal.X, end.Y + normal.Y);
+        builder.LineTo(end.X - normal.X, end.Y - normal.Y);
+        builder.LineTo(start.X - normal.X, start.Y - normal.Y);
+        builder.Close();
+
+        return new Shape(builder.Detach());
+    }
+
+    /// <summary>
+    /// Creates a rectangular shape from its edges.
+    /// </summary>
+    /// <param name="left">Left edge.</param>
+    /// <param name="top">Top edge.</param>
+    /// <param name="right">Right edge.</param>
+    /// <param name="bottom">Bottom edge.</param>
+    /// <returns>A new <see cref="Shape"/> for the rectangle.</returns>
     public static Shape Rect(
         float left, float top, float right, float bottom)
     {

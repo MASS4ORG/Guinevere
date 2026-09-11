@@ -34,6 +34,8 @@ public static partial class ControlsExtensions
         {
             gui.ScrollY();
 
+            if (gui.Pass == Pass.Pass2Render) gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+
             // Both passes must pick the same rows, and a node's rect is only resolved in the render
             // pass — so the window comes from what the previous frame measured.
             var first = Math.Max(0, (int)(state.FrameScrollY / theme.RowHeight) - Overscan);
@@ -47,7 +49,20 @@ public static partial class ControlsExtensions
 
             Spacer(gui, "treeview/padBottom", (visible.Count - last) * theme.RowHeight);
 
-            if (gui.Pass == Pass.Pass2Render) Measure(gui, state);
+            if (gui.Pass != Pass.Pass2Render) return;
+
+            Measure(gui, state);
+
+            // Focus belongs to the tree, not the row that was clicked, so it is claimed here where the
+            // container is the current node.
+            if (state.WantsFocus)
+            {
+                gui.RequestFocus(FocusReason.Mouse);
+                state.WantsFocus = false;
+            }
+
+            // Several trees can be on screen at once; only the focused one answers the arrow keys.
+            if (gui.HasFocus()) Navigate(gui, state, theme, visible, onClick);
         }
     }
 
@@ -71,6 +86,88 @@ public static partial class ControlsExtensions
         }
 
         return visible;
+    }
+
+    /// <summary>
+    /// Moves the selection with the arrow keys: up and down walk the visible rows, right opens a row
+    /// or steps into it, left closes it or steps out to the parent, Enter reports an activation.
+    /// </summary>
+    private static void Navigate(Gui gui, TreeViewState state, TreeViewTheme theme,
+        List<TreeItem> visible, Action<TreeViewEvent>? onClick)
+    {
+        if (visible.Count == 0) return;
+
+        var index = state.SelectedId is null
+            ? -1
+            : visible.FindIndex(item => item.Id == state.SelectedId);
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Down)) Select(state, visible, Math.Min(index + 1, visible.Count - 1));
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Up)) Select(state, visible, Math.Max(index - 1, 0));
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Home)) Select(state, visible, 0);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.End)) Select(state, visible, visible.Count - 1);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Right)) Open(state, visible, index);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Left)) Close(state, visible, index);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Enter) && index >= 0)
+            onClick?.Invoke(new TreeViewEvent(visible[index], MouseButton.Left, 2));
+        else return;
+
+        ScrollToSelection(gui, state, theme, visible);
+    }
+
+    private static void Select(TreeViewState state, List<TreeItem> visible, int index)
+    {
+        if (index < 0 || index >= visible.Count) return;
+
+        state.SelectedId = visible[index].Id;
+    }
+
+    private static void Open(TreeViewState state, List<TreeItem> visible, int index)
+    {
+        if (index < 0) return;
+
+        var item = visible[index];
+        if (item.HasChildren && state.IsCollapsed(item.Id, item.Depth)) state.SetExpanded(item.Id, true);
+        else Select(state, visible, index + 1);
+    }
+
+    private static void Close(TreeViewState state, List<TreeItem> visible, int index)
+    {
+        if (index < 0) return;
+
+        var item = visible[index];
+        if (item.HasChildren && !state.IsCollapsed(item.Id, item.Depth))
+        {
+            state.SetExpanded(item.Id, false);
+            return;
+        }
+
+        // Otherwise step out to the nearest shallower row, which is the parent.
+        for (var i = index - 1; i >= 0; i--)
+            if (visible[i].Depth < item.Depth)
+            {
+                state.SelectedId = visible[i].Id;
+                return;
+            }
+    }
+
+    /// <summary>Keeps the selected row inside the viewport after a keyboard move.</summary>
+    private static void ScrollToSelection(Gui gui, TreeViewState state, TreeViewTheme theme, List<TreeItem> visible)
+    {
+        var index = visible.FindIndex(item => item.Id == state.SelectedId);
+        if (index < 0) return;
+
+        var top = index * theme.RowHeight;
+        var bottom = top + theme.RowHeight;
+
+        var target = state.FrameScrollY;
+        if (top < target) target = top;
+        else if (bottom > target + state.FrameViewportHeight) target = bottom - state.FrameViewportHeight;
+
+        if (Math.Abs(target - state.FrameScrollY) < 0.5f) return;
+
+        gui.SetScrollPercentage(gui.CurrentNode.Id, Axis.Vertical,
+            Math.Clamp(target / Math.Max(1f, (visible.Count * theme.RowHeight) - state.FrameViewportHeight), 0f, 1f));
+        state.FrameScrollY = target;
     }
 
     /// <summary>
@@ -101,7 +198,7 @@ public static partial class ControlsExtensions
         using (gui.Node(-1, theme.RowHeight, $"treeview/row{row}")
                    .ExpandWidth()
                    .Direction(Axis.Horizontal)
-                   .Padding((item.Depth * theme.IndentWidth) + 4f, 0)
+                   .Padding((item.Depth * theme.IndentWidth) + theme.ContentPadding, 0)
                    .Gap(4f)
                    .Enter())
         {
@@ -136,6 +233,7 @@ public static partial class ControlsExtensions
         if (button == MouseButton.Left)
         {
             state.SelectedId = item.Id;
+            state.WantsFocus = true;
 
             // Single click selects, double click folds — the arrow is the one-click shortcut.
             if (clicks >= 2 && item.HasChildren) state.Toggle(item.Id, item.Depth);

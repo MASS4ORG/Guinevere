@@ -18,6 +18,9 @@ public sealed class TreeViewTheme
     /// <summary>Square reserved for a row's icon.</summary>
     public float IconSize { get; init; } = 12f;
 
+    /// <summary>Space left of the first indent level, so rows do not touch the panel edge.</summary>
+    public float ContentPadding { get; init; } = 6f;
+
     /// <summary>Label colour for the selected row.</summary>
     public Color Ink { get; init; } = Color.FromArgb(255, 215, 218, 224);
 

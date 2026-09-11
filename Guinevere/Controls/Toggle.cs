@@ -103,12 +103,12 @@ public static partial class ControlsExtensions
             if (gui.HasFocus())
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, Color.FromArgb(128, 100, 149, 237), 4f, height * 0.5f + 4); // subtle glow
-                gui.DrawRectBorder(rect, Color.FromArgb(255, 100, 149, 237), 2f, height * 0.5f + 2); // strong blue border
+                gui.DrawRectBorder(focusRect, Color.FromArgb(128, gui.Controls.Accent), 4f, (height * 0.5f) + 4);
+                gui.DrawRectBorder(rect, gui.Controls.Accent, 2f, (height * 0.5f) + 2);
             }
 
             var thumbProps = CalculateThumbProperties(rect, width, height, isOn);
-            DrawToggleThumb(gui, thumbProps, thumbColor ?? Color.White);
+            DrawToggleThumb(gui, thumbProps, thumbColor ?? gui.Controls.Knob);
         }
     }
 
@@ -126,12 +126,15 @@ public static partial class ControlsExtensions
         var interactable = gui.GetInteractable();
         var isHovered = interactable.OnHover();
 
+        var on = onColor ?? gui.Controls.Selected;
+        var off = offColor ?? gui.Controls.Border;
+
         return (isOn, isHovered) switch
         {
-            (true, true) => Color.FromArgb(255, 102, 187, 106),
-            (true, false) => onColor ?? Color.FromArgb(255, 76, 175, 80),
-            (false, true) => Color.FromArgb(255, 189, 189, 189),
-            (false, false) => offColor ?? Color.FromArgb(255, 158, 158, 158)
+            (true, true) => Lighten(on),
+            (true, false) => on,
+            (false, true) => Lighten(off),
+            (false, false) => off
         };
     }
 
@@ -146,6 +149,12 @@ public static partial class ControlsExtensions
 
         return (new Vector2(thumbX, thumbY), thumbRadius);
     }
+
+    private static Color Lighten(Color color) => Color.FromArgb(
+        color.A,
+        Math.Min(255, color.R + 24),
+        Math.Min(255, color.G + 24),
+        Math.Min(255, color.B + 24));
 
     private static void DrawToggleThumb(Gui gui, (Vector2 position, float radius) thumbProps, Color thumbColor)
     {

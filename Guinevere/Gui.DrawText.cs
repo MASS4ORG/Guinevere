@@ -41,6 +41,19 @@ public partial class Gui
             size, color, centerInRect, clip, 0, effects));
     }
 
+    /// <summary>
+    /// Where a line's baseline sits inside its line box, centring the ascent and descent. Placing it
+    /// at the bottom of the box left every glyph sitting low with no room for descenders.
+    /// </summary>
+    private static float Baseline(Font font, float lineHeight)
+    {
+        var metrics = font.SkFont.Metrics;
+        var ascent = -metrics.Ascent;
+        var descent = metrics.Descent;
+
+        return ((lineHeight - (ascent + descent)) / 2f) + ascent;
+    }
+
     private record struct DrawConfig(
         string Text,
         Font Font,
@@ -146,7 +159,7 @@ public partial class Gui
             var lineWidth = MeasureLineWidth(line, mainFont, iconFont);
 
             var pos = node.InnerRect.Position;
-            pos.Y += (i + 1) * lineHeight; // Move down for each line
+            pos.Y += (i * lineHeight) + Baseline(mainFont, lineHeight);
 
             if (cfg.Center) pos.X += Math.Max((node.InnerRect.W - lineWidth) * 0.5f, 0f);
 
