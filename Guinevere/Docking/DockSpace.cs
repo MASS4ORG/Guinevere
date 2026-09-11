@@ -103,15 +103,18 @@ public static partial class ControlsExtensions
         {
             var leafRect = gui.CurrentNode.Rect;
 
-            using (gui.Node(-1, theme.TabHeight, $"{path}/tabs").ExpandWidth().Direction(Axis.Horizontal).Enter())
-            {
-                gui.DrawBackgroundRect(theme.TabStrip);
+            var tabs = leaf.PanelIds
+                .Select(panelId => ToTabItem(context, leaf, panelId))
+                .ToList();
 
-                for (var i = 0; i < leaf.PanelIds.Count; i++)
-                    RenderTab(context, leaf, i, $"{path}/tabs/{leaf.PanelIds[i]}");
+            var outcome = gui.TabStrip(tabs, leaf.ActivePanelId, context.Theme.ToTabStripTheme(),
+                $"{path}/tabs",
+                g => context.RenderTabStripActions?.Invoke(
+                    new DockTabStrip(leaf, leaf.ActivePanelId, g.CurrentNode.Rect), g),
+                (item, id) => DragTab(context, leaf, item, id));
 
-                TabStripActions(context, leaf, $"{path}/tabs/actions");
-            }
+            if (outcome.Activated is { } activated) Activate(context, leaf, activated);
+            if (outcome.Closed is { } closed) context.Closing = closed.Id;
 
             using (gui.Node(-1, -1, $"{path}/body").Expand().Enter())
             {
@@ -145,87 +148,51 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderTab(DockContext context, DockLeaf leaf, int index, string id)
+    private static TabStripItem ToTabItem(DockContext context, DockLeaf leaf, string panelId)
+    {
+        var info = context.PanelInfo(panelId) ?? new DockPanelInfo(panelId);
+        return new TabStripItem(panelId, info.Title, info.Closable, Icon: info.Icon, Tag: leaf);
+    }
+
+    private static void Activate(DockContext context, DockLeaf leaf, TabStripItem item)
+    {
+        var index = leaf.PanelIds.IndexOf(item.Id);
+        if (index < 0 || index == leaf.ActiveIndex) return;
+
+        leaf.ActiveIndex = index;
+        context.Layout.MarkChanged();
+    }
+
+    /// <summary>Starts a tab drag, and accepts a drop from a sibling tab as a reorder.</summary>
+    private static bool DragTab(DockContext context, DockLeaf leaf, TabStripItem item, string id)
     {
         var gui = context.Gui;
-        var theme = context.Theme;
-        var panelId = leaf.PanelIds[index];
-        var info = context.PanelInfo(panelId) ?? new DockPanelInfo(panelId);
-        var active = index == leaf.ActiveIndex;
 
-        var width = MeasureTabWidth(info, theme);
-
-        using (gui.Node(width, theme.TabHeight, id).Direction(Axis.Horizontal).Padding(8, 0).Gap(6).Enter())
+        var dragging = gui.DragSource(id, new DockTabPayload(item.Id, leaf), g =>
         {
-            if (gui.Pass == Pass.Pass2Render)
+            using (g.Node(120, context.Theme.TabHeight).Enter())
             {
-                var interactable = gui.GetInteractable();
-                var hovered = interactable.OnHover();
-
-                gui.DrawBackgroundRect(active ? theme.Panel : hovered ? theme.Hover : theme.Tab);
-                if (active)
-                    gui.DrawRect(new Rect(gui.CurrentNode.Rect.X, gui.CurrentNode.Rect.Y, gui.CurrentNode.Rect.W, 2),
-                        theme.Accent);
-
-                if (interactable.OnClick())
-                {
-                    leaf.ActiveIndex = index;
-                    context.Layout.MarkChanged();
-                }
-
-                gui.DragSource(id, new DockTabPayload(panelId, leaf), g =>
-                {
-                    using (g.Node(width, theme.TabHeight).Enter())
-                    {
-                        g.DrawBackgroundRect(theme.Accent, 3);
-                        g.DrawText(info.Title, theme.FontSize, theme.Ink);
-                    }
-                });
-
-                gui.DropTarget(gui.CurrentNode.Rect, id,
-                    payload => payload is DockTabPayload p && ReferenceEquals(p.Leaf, leaf) && p.PanelId != panelId,
-                    payload =>
-                    {
-                        DockLayout.Reorder(leaf, leaf.PanelIds.IndexOf(((DockTabPayload)payload).PanelId), index);
-                        context.Layout.MarkChanged();
-                    });
+                g.DrawBackgroundRect(context.Theme.Accent, 3);
+                g.DrawText(item.Label, context.Theme.FontSize, context.Theme.Ink);
             }
+        });
 
-            if (info.Icon is { } icon)
-                using (gui.Node(theme.TabIconSize, theme.TabIconSize, $"{id}/icon").Enter())
-                    icon(gui);
-
-            gui.DrawText(info.Title, theme.FontSize, active ? theme.Ink : theme.InkDim, centerInRect: false);
-
-            if (!info.Closable) return;
-
-            using (gui.Node(12, theme.TabHeight, $"{id}/close").Enter())
+        var index = leaf.PanelIds.IndexOf(item.Id);
+        gui.DropTarget(gui.CurrentNode.Rect, id,
+            payload => payload is DockTabPayload p && ReferenceEquals(p.Leaf, leaf) && p.PanelId != item.Id,
+            payload =>
             {
-                if (gui.Pass == Pass.Pass2Render)
-                {
-                    var close = gui.GetInteractable();
-                    if (close.OnHover()) gui.DrawBackgroundRect(theme.Hover, 2);
-                    if (close.OnClick()) context.Closing = panelId;
-                }
+                DockLayout.Reorder(leaf, leaf.PanelIds.IndexOf(((DockTabPayload)payload).PanelId), index);
+                context.Layout.MarkChanged();
+            });
 
-                // Outside the pass check: DrawText creates a node, and one that exists in only one
-                // pass never gets a rect, so the glyph would land at the origin.
-                gui.DrawText("×", theme.FontSize, active ? theme.Ink : theme.InkDim);
-            }
-        }
+        return dragging;
     }
 
-    private static float MeasureTabWidth(DockPanelInfo info, DockTheme theme)
-    {
-        var font = new SKFont { Size = theme.FontSize };
-        font.MeasureText(info.Title, out var bounds);
-
-        // text + the node's own horizontal padding, plus the gap and box each affordance needs.
-        return bounds.Width + 18
-                            + (info.Closable ? 18 : 0)
-                            + (info.Icon is null ? 0 : theme.TabIconSize + 6);
-    }
-
+    /// <summary>
+    /// Hands the host whatever width the tabs left over. The node exists in both passes even without a
+    /// callback, so the strip's structure does not change when a host adds or drops one.
+    /// </summary>
     /// <summary>
     /// Overlays the five drop zones of a group while a tab is being dragged, and highlights the one
     /// under the cursor with a preview of the region the panel would take.

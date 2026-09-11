@@ -187,6 +187,9 @@ public partial class Gui
     /// Whether a blocking overlay is swallowing the pointer for this node. The blocker's own subtree
     /// stays interactive, so the check is an ancestor walk rather than a rect test.
     /// </summary>
+    /// <summary>Whether the pointer is inside some element that blocks input.</summary>
+    public bool IsPointerOverBlocker => _inputBlocker is not null;
+
     internal bool IsHoverBlocked(LayoutNode? node)
     {
         if (_inputBlocker is null) return false;

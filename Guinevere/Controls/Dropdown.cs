@@ -11,11 +11,39 @@ public static partial class ControlsExtensions
         public bool IsOpen { get; set; }
         public int SelectedIndex { get; set; } = -1;
         public int HoveredIndex { get; set; } = -1;
+
+        /// <summary>The button's rect as last measured, which is where the list anchors.</summary>
+        public Rect ButtonRect { get; set; } = new(0, 0, 0, 0);
+
+        /// <summary>
+        /// The anchor both passes of the current frame use. A node's rect only resolves in the render
+        /// pass, so reading it directly would place the list differently in each pass.
+        /// </summary>
+        public Rect Anchor { get; set; } = new(0, 0, 0, 0);
     }
 
     /// <summary>
-    /// Creates a dropdown/combobox that allows selection from a list of options with internal state management
+    /// A dropdown that opens a list of options over the rest of the frame.
     /// </summary>
+    /// <param name="gui">The GUI instance.</param>
+    /// <param name="options">The choices.</param>
+    /// <param name="selectedIndex">The chosen index, updated on selection. Negative shows the placeholder.</param>
+    /// <param name="width">Button width. Zero fills the parent.</param>
+    /// <param name="height">Button height.</param>
+    /// <param name="placeholder">Shown when nothing is selected.</param>
+    /// <param name="backgroundColor">Button fill. Defaults to the palette's surface.</param>
+    /// <param name="borderColor">Button outline. Defaults to the palette's border.</param>
+    /// <param name="textColor">Label colour. Defaults to the palette's text.</param>
+    /// <param name="placeholderColor">Placeholder colour. Defaults to the palette's dim text.</param>
+    /// <param name="dropdownColor">List fill. Defaults to the palette's popup.</param>
+    /// <param name="hoverColor">Fill of the option under the pointer.</param>
+    /// <param name="selectedColor">Fill of the chosen option.</param>
+    /// <param name="fontSize">Label size.</param>
+    /// <param name="padding">Horizontal padding inside the button and the options.</param>
+    /// <param name="borderRadius">Corner radius.</param>
+    /// <param name="maxVisibleItems">How many options the list shows before it scrolls.</param>
+    /// <param name="filePath">Call site, supplied by the compiler. Pass an id to separate two dropdowns sharing one.</param>
+    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void Dropdown(this Gui gui, string[] options, ref int selectedIndex,
         float width = 200,
         float height = 32,
@@ -34,14 +62,51 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        DropdownCore(gui, options, ref selectedIndex, width, height, placeholder, backgroundColor,
-            borderColor, textColor, placeholderColor, dropdownColor, hoverColor, selectedColor,
-            fontSize, padding, borderRadius, maxVisibleItems, filePath, lineNumber);
+        ArgumentNullException.ThrowIfNull(gui);
+        ArgumentNullException.ThrowIfNull(options);
+
+        var id = gui.NodeId(filePath, lineNumber);
+        var state = DropdownStateFor(id);
+        var palette = gui.Controls;
+
+        if (gui.Pass == Pass.Pass1Build) state.Anchor = state.ButtonRect;
+
+        DrawButton(gui, id, options, selectedIndex, width, height, placeholder,
+            backgroundColor ?? palette.Surface, borderColor ?? palette.Border,
+            textColor ?? palette.Text, placeholderColor ?? palette.TextDim,
+            fontSize, padding, borderRadius, state);
+
+        if (!state.IsOpen || state.Anchor.W <= 0) return;
+
+        DrawList(gui, id, options, ref selectedIndex, state.Anchor, height,
+            dropdownColor ?? palette.Popup, borderColor ?? palette.Border,
+            textColor ?? palette.Text, hoverColor ?? palette.SurfaceHover,
+            selectedColor ?? palette.Selected, fontSize, padding, borderRadius, maxVisibleItems, state);
     }
 
     /// <summary>
-    /// Creates a dropdown that returns the selected index without modifying the input
+    /// A dropdown that returns the chosen index instead of taking it by reference.
     /// </summary>
+    /// <param name="gui">The GUI instance.</param>
+    /// <param name="options">The choices.</param>
+    /// <param name="selectedIndex">The currently chosen index.</param>
+    /// <param name="width">Button width. Zero fills the parent.</param>
+    /// <param name="height">Button height.</param>
+    /// <param name="placeholder">Shown when nothing is selected.</param>
+    /// <param name="backgroundColor">Button fill.</param>
+    /// <param name="borderColor">Button outline.</param>
+    /// <param name="textColor">Label colour.</param>
+    /// <param name="placeholderColor">Placeholder colour.</param>
+    /// <param name="dropdownColor">List fill.</param>
+    /// <param name="hoverColor">Fill of the option under the pointer.</param>
+    /// <param name="selectedColor">Fill of the chosen option.</param>
+    /// <param name="fontSize">Label size.</param>
+    /// <param name="padding">Horizontal padding.</param>
+    /// <param name="borderRadius">Corner radius.</param>
+    /// <param name="maxVisibleItems">How many options the list shows before it scrolls.</param>
+    /// <param name="filePath">Call site, supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
+    /// <returns>The chosen index after this frame.</returns>
     public static int Dropdown(this Gui gui, string[] options, int selectedIndex = -1,
         float width = 200,
         float height = 32,
@@ -60,256 +125,143 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var temp = selectedIndex;
-        DropdownCore(gui, options, ref temp, width, height, placeholder, backgroundColor,
-            borderColor, textColor, placeholderColor, dropdownColor, hoverColor, selectedColor,
-            fontSize, padding, borderRadius, maxVisibleItems, filePath, lineNumber);
-        return temp;
+        var index = selectedIndex;
+        Dropdown(gui, options, ref index, width, height, placeholder, backgroundColor, borderColor,
+            textColor, placeholderColor, dropdownColor, hoverColor, selectedColor, fontSize, padding,
+            borderRadius, maxVisibleItems, filePath, lineNumber);
+        return index;
     }
 
-    private static void DropdownCore(Gui gui, string[] options, ref int selectedIndex,
-        float width, float height, string placeholder, Color? backgroundColor,
-        Color? borderColor, Color? textColor, Color? placeholderColor, Color? dropdownColor,
-        Color? hoverColor, Color? selectedColor, float fontSize, float padding, float borderRadius,
-        int maxVisibleItems, string filePath, int lineNumber)
+    /// <summary>Closes every open dropdown and forgets their state.</summary>
+    /// <param name="gui">The GUI instance.</param>
+    public static void ClearDropdownStates(this Gui gui)
     {
-        var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateDropdownState(id, selectedIndex);
-
-        var visibleItems = Math.Min(maxVisibleItems, options.Length);
-        var totalHeight = height + (state.IsOpen && options.Length > 0 ? visibleItems * height + 4 : 0);
-
-        using (gui.Node(width, totalHeight,
-                   // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
-                   filePath: filePath, lineNumber: lineNumber).Enter())
-        {
-            // Main dropdown button
-            RenderDropdownButton(gui, state, options, selectedIndex, placeholder, width, height,
-                backgroundColor, borderColor, textColor, placeholderColor, fontSize, padding, borderRadius);
-
-            // Always create dropdown list node for consistency
-            if (options.Length > 0)
-                RenderDropdownList(gui, state, options, width, height, visibleItems,
-                    dropdownColor, borderColor, hoverColor, selectedColor, textColor,
-                    fontSize, padding, borderRadius);
-
-            selectedIndex = state.SelectedIndex;
-        }
+        ArgumentNullException.ThrowIfNull(gui);
+        DropdownStates.Clear();
     }
 
-    private static DropdownState GetOrCreateDropdownState(string id, int initialIndex)
+    private static DropdownState DropdownStateFor(string id)
     {
-        return DropdownStates.TryGetValue(id, out var state)
-            ? state
-            : DropdownStates[id] = new DropdownState { SelectedIndex = initialIndex };
+        if (!DropdownStates.TryGetValue(id, out var state)) DropdownStates[id] = state = new DropdownState();
+        return state;
     }
 
-    private static void RenderDropdownButton(Gui gui, DropdownState state, string[] options,
-        int selectedIndex, string placeholder, float width, float height,
-        Color? backgroundColor, Color? borderColor, Color? textColor, Color? placeholderColor,
-        float fontSize, float padding, float borderRadius)
+    private static void DrawButton(Gui gui, string id, string[] options, int selectedIndex,
+        float width, float height, string placeholder, Color background, Color border, Color text,
+        Color placeholderText, float fontSize, float padding, float borderRadius, DropdownState state)
     {
-        using (gui.Node(width, height).Padding(padding).Enter())
+        using (gui.Node(width, height, $"{id}/button").Direction(Axis.Horizontal)
+                   .Padding(padding, 0).ContentAlignY(0.5f).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
             {
-                // Register as focusable for keyboard navigation
-                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-                var buttonInteractable = gui.GetInteractable();
-                var isHovered = buttonInteractable.OnHover();
-                var isClicked = buttonInteractable.OnClick();
                 var rect = gui.CurrentNode.Rect;
+                state.ButtonRect = rect;
+                if (state.Anchor.W <= 0) state.Anchor = rect;
 
-                // Draw focus indicator if focused
-                var hasFocus = gui.HasFocus();
-                if (hasFocus)
-                {
-                    var focusRect = new Rect(rect.X - 2, rect.Y - 2, rect.W + 4, rect.H + 4);
-                    gui.DrawRectBorder(focusRect, Color.FromArgb(255, 100, 149, 237), 2f, borderRadius + 2);
-                }
+                var interactable = gui.GetInteractable();
 
-                // If dropdown is open and focus is lost, close it
-                if (state.IsOpen && !hasFocus && !gui.Input.IsAnyKeyDown)
-                {
-                    state.IsOpen = false;
-                }
+                gui.DrawBackgroundRect(background, borderRadius);
+                gui.DrawRectBorder(rect, state.IsOpen ? gui.Controls.Accent : border,
+                    state.IsOpen ? 2f : 1f, borderRadius);
 
-                // Handle button click or keyboard activation
-                var activated = isClicked;
-                if (hasFocus && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter)))
-                {
-                    activated = true;
-                }
-                if (activated) {
-                    state.IsOpen = !state.IsOpen;
-                    if (state.IsOpen) state.HoveredIndex = selectedIndex >= 0 ? selectedIndex : 0;
-                }
+                if (interactable.OnClick()) state.IsOpen = !state.IsOpen;
 
-                var bgColor = backgroundColor ?? (isHovered ? Color.FromArgb(255, 248, 248, 248) : Color.White);
-                var borderColorFinal = borderColor ??
-                                       (isHovered
-                                           ? Color.FromArgb(255, 170, 170, 170)
-                                           : Color.FromArgb(255, 200, 200, 200));
-
-                gui.DrawBackgroundRect(bgColor, borderRadius);
-                gui.DrawRectBorder(rect, borderColorFinal, 1f, borderRadius);
-
-                // Draw dropdown arrow
-                var arrowX = rect.X + rect.W - padding - 8;
-                var arrowY = rect.Y + rect.H * 0.5f;
-                var arrowSize = 4f;
-                var arrowColor = textColor ?? Color.Black;
-                var arrowTop = new Vector2(arrowX - arrowSize, arrowY - arrowSize * 0.5f);
-                var arrowBottom = new Vector2(arrowX + arrowSize, arrowY - arrowSize * 0.5f);
-                var arrowPoint = new Vector2(arrowX, arrowY + arrowSize * 0.5f);
-
-                gui.DrawTriangle(arrowTop, arrowBottom, arrowPoint, arrowColor, arrowColor, arrowColor);
+                DrawArrow(gui, rect, padding, text);
             }
 
-            var displayText = selectedIndex >= 0 && selectedIndex < options.Length
-                ? options[selectedIndex]
-                : placeholder;
-            var displayColor = selectedIndex >= 0 ? textColor ?? Color.Black : placeholderColor ?? Color.Gray;
-
-            gui.DrawText(displayText, fontSize, displayColor, centerInRect: false);
+            var label = selectedIndex >= 0 && selectedIndex < options.Length ? options[selectedIndex] : placeholder;
+            gui.DrawText(label, fontSize, selectedIndex >= 0 ? text : placeholderText, centerInRect: false);
         }
     }
 
-    private static void RenderDropdownList(Gui gui, DropdownState state, string[] options,
-        float width, float height, int visibleItems, Color? dropdownColor, Color? borderColor,
-        Color? hoverColor, Color? selectedColor, Color? textColor, float fontSize, float padding,
-        float borderRadius)
+    private static void DrawArrow(Gui gui, Rect rect, float padding, Color color)
     {
-        var dropdownHeight = visibleItems * height;
+        const float size = 4f;
+        var x = rect.X + rect.W - padding - size;
+        var y = rect.Y + (rect.H / 2f);
 
-        using (gui.Node(width, dropdownHeight).Top(height + 2).Padding(0).Enter())
+        gui.DrawTriangleFilled(
+            new Vector2(x - size, y - (size / 2f)),
+            new Vector2(x + size, y - (size / 2f)),
+            new Vector2(x, y + (size / 2f)), color);
+    }
+
+    /// <summary>
+    /// The option list, positioned over the frame rather than inside the flow, so it is not clipped by
+    /// whatever panel the dropdown sits in.
+    /// </summary>
+    private static void DrawList(Gui gui, string id, string[] options, ref int selectedIndex,
+        Rect buttonRect, float rowHeight, Color background, Color border, Color text, Color hover,
+        Color selected, float fontSize, float padding, float borderRadius, int maxVisibleItems,
+        DropdownState state)
+    {
+        var visible = Math.Min(options.Length, Math.Max(1, maxVisibleItems));
+        var listHeight = visible * rowHeight;
+        var top = buttonRect.Y + buttonRect.H + 2;
+
+        if (top + listHeight > gui.ScreenRect.H) top = Math.Max(0, buttonRect.Y - listHeight - 2);
+
+        var chosen = -1;
+
+        using (gui.Node(buttonRect.W, listHeight, $"{id}/list")
+                   .AbsoluteScreen(buttonRect.X, top)
+                   .BlockInput()
+                   .Direction(Axis.Vertical)
+                   .Enter())
         {
-            if (gui.Pass == Pass.Pass2Render && state.IsOpen)
+            gui.SetZIndex(ListZIndex);
+
+            if (gui.Pass == Pass.Pass2Render)
             {
-                var rect = gui.CurrentNode.Rect;
-                var dropdownBgColor = dropdownColor ?? Color.White;
-                var borderColorFinal = borderColor ?? Color.FromArgb(255, 200, 200, 200);
-
-                gui.DrawBackgroundRect(dropdownBgColor, borderRadius);
-                gui.DrawRectBorder(rect, borderColorFinal, 1f, borderRadius);
-
-                // Handle mouse interaction with dropdown items
-                var mousePos = gui.Input.MousePosition;
-                state.HoveredIndex = -1;
-
-                if (IsMouseInRect(mousePos, rect))
-                {
-                    var relativeY = mousePos.Y - rect.Y;
-                    state.HoveredIndex = Math.Max(0, Math.Min((int)(relativeY / height), options.Length - 1));
-
-                    if (gui.Input.IsMouseButtonPressed(MouseButton.Left))
-                    {
-                        state.SelectedIndex = state.HoveredIndex;
-                        state.IsOpen = false;
-                    }
-                }
-
-                // --- Keyboard navigation for dropdown list ---
-                if (gui.Input.IsKeyPressed(KeyboardKey.Escape))
-                {
-                    state.IsOpen = false;
-                }
-                else if (gui.Input.IsKeyPressed(KeyboardKey.Down))
-                {
-                    state.HoveredIndex = Math.Min((state.HoveredIndex < 0 ? 0 : state.HoveredIndex + 1), options.Length - 1);
-                }
-                else if (gui.Input.IsKeyPressed(KeyboardKey.Up))
-                {
-                    state.HoveredIndex = Math.Max((state.HoveredIndex < 0 ? 0 : state.HoveredIndex - 1), 0);
-                }
-                else if ((gui.Input.IsKeyPressed(KeyboardKey.Enter) || gui.Input.IsKeyPressed(KeyboardKey.Space)) && state.HoveredIndex >= 0)
-                {
-                    state.SelectedIndex = state.HoveredIndex;
-                    state.IsOpen = false;
-                }
-                // Tab/Shift+Tab: close and move focus out
-                else if (gui.Input.IsKeyPressed(KeyboardKey.Tab))
-                {
-                    state.IsOpen = false;
-                }
+                gui.DrawBackgroundRect(background, borderRadius);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, border, 1f, borderRadius);
             }
 
-            // Always create item nodes for consistency, but only render when open
-            for (var i = 0; i < visibleItems; i++)
-                using (gui.Node(width, height).Padding(padding).Enter())
-                {
-                    if (gui.Pass == Pass.Pass2Render && state.IsOpen)
-                    {
-                        if (i == state.HoveredIndex)
-                        {
-                            var hoverColorFinal = hoverColor ?? Color.FromArgb(255, 230, 230, 230);
-                            gui.DrawBackgroundRect(hoverColorFinal);
-                        }
-
-                        if (i == state.SelectedIndex)
-                        {
-                            var selectedColorFinal = selectedColor ?? Color.FromArgb(255, 100, 149, 237);
-                            gui.DrawBackgroundRect(selectedColorFinal);
-                        }
-
-                        var itemTextColor = i == state.SelectedIndex ? Color.White : textColor ?? Color.Black;
-                        gui.DrawText(options[i], fontSize, itemTextColor, centerInRect: false);
-                    }
-                    else if (gui.Pass != Pass.Pass2Render)
-                    {
-                        // Always create text nodes during build pass for consistency
-                        gui.DrawText(options[i], fontSize, Color.Transparent, centerInRect: false);
-                    }
-                }
-
-            // Handle click outside to close
-            if (gui.Pass == Pass.Pass2Render && state.IsOpen && gui.Input.IsMouseButtonPressed(MouseButton.Left))
+            for (var i = 0; i < options.Length; i++)
             {
-                var mousePos = gui.Input.MousePosition;
-                var mainRect = gui.CurrentNode.Parent?.Rect ?? new Rect();
-                if (!IsMouseInRect(mousePos, mainRect)) state.IsOpen = false;
+                using (gui.Node(-1, rowHeight, $"{id}/list/{i}").ExpandWidth()
+                           .Padding(padding, 0).ContentAlignY(0.5f).Enter())
+                {
+                    if (gui.Pass == Pass.Pass2Render)
+                    {
+                        var interactable = gui.GetInteractable();
+
+                        if (i == selectedIndex) gui.DrawBackgroundRect(selected, borderRadius);
+                        else if (interactable.OnHover()) gui.DrawBackgroundRect(hover, borderRadius);
+
+                        if (interactable.OnClick()) chosen = i;
+                    }
+
+                    gui.DrawText(options[i], fontSize, text, centerInRect: false);
+                }
             }
         }
+
+        if (gui.Pass != Pass.Pass2Render) return;
+
+        if (chosen >= 0)
+        {
+            selectedIndex = chosen;
+            state.SelectedIndex = chosen;
+            state.IsOpen = false;
+            return;
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Escape)) state.IsOpen = false;
+
+        // A press that reached neither the button nor the list dismisses it. The list blocks input, so
+        // a press inside it never gets here.
+        if (gui.Input.IsMouseButtonPressed(MouseButton.Left)
+            && !buttonRect.Contains(gui.Input.MousePosition)
+            && !gui.IsPointerOverBlocker)
+            state.IsOpen = false;
     }
 
+    /// <summary>Where an open option list draws, above ordinary content but below a drag ghost.</summary>
+    private const int ListZIndex = 5_000;
 
-    private static bool IsMouseInRect(Vector2 mousePos, Rect rect)
-    {
-        return mousePos.X >= rect.X && mousePos.X <= rect.X + rect.W &&
-               mousePos.Y >= rect.Y && mousePos.Y <= rect.Y + rect.H;
-    }
-
-    /// <summary>
-    /// Creates a searchable dropdown/combobox (simplified version)
-    /// </summary>
-    public static int SearchableDropdown(this Gui gui, string[] options, int selectedIndex = -1,
-        float width = 200,
-        float height = 32,
-        string placeholder = "Search and select...",
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? textColor = null,
-        Color? placeholderColor = null,
-        Color? dropdownColor = null,
-        Color? hoverColor = null,
-        Color? selectedColor = null,
-        float fontSize = 14,
-        float padding = 8,
-        float borderRadius = 4,
-        int maxVisibleItems = 6,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
-    {
-        return gui.Dropdown(options, selectedIndex, width, height, placeholder, backgroundColor,
-            borderColor, textColor, placeholderColor, dropdownColor, hoverColor, selectedColor,
-            fontSize, padding, borderRadius, maxVisibleItems, filePath, lineNumber);
-    }
-
-    /// <summary>
-    /// Clears all dropdown states (useful for cleanup)
-    /// </summary>
-    public static void ClearDropdownStates(this Gui gui)
-    {
-        DropdownStates.Clear();
-    }
+    private static bool IsMouseInRect(Vector2 mousePos, Rect rect) =>
+        mousePos.X >= rect.X && mousePos.X <= rect.X + rect.W &&
+        mousePos.Y >= rect.Y && mousePos.Y <= rect.Y + rect.H;
 }

@@ -304,12 +304,13 @@ public static partial class ControlsExtensions
         float width = 200, float height = 32, string placeholder = "",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
         Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
-        float padding = 8, bool enabled = true, string id = "")
+        float padding = 8, bool enabled = true, string id = "", float alignX = 0f)
     {
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding))
+                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
             var state = GetOrCreateState(nodeId, text);
             var interactable = gui.GetInteractable();
@@ -343,15 +344,16 @@ public static partial class ControlsExtensions
     /// <param name="padding">The padding inside the text input field. Default is 8.</param>
     /// <param name="enabled">Indicates whether the text input field is enabled. Default is true.</param>
     /// <param name="id">The unique identifier for the text input control. Default is an empty string.</param>
+    /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
     /// <returns>The updated value of the text in the input field.</returns>
     public static string TextInput(this Gui gui, string text,
         float width = 200, float height = 32, string placeholder = "",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
         Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
-        float padding = 8, bool enabled = true, string id = "")
+        float padding = 8, bool enabled = true, string id = "", float alignX = 0f)
     {
         gui.TextInput(ref text, width, height, placeholder, backgroundColor, borderColor,
-            textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id);
+            textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id, alignX);
         return text;
     }
 

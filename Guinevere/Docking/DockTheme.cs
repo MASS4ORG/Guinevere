@@ -50,4 +50,19 @@ public sealed class DockTheme
 
     /// <summary>The default dark theme.</summary>
     public static DockTheme Dark { get; } = new();
+
+    /// <summary>Projects this theme onto the shared tab strip, so dock tabs and a host's own match.</summary>
+    public TabStripTheme ToTabStripTheme() => new()
+    {
+        Height = TabHeight,
+        FontSize = FontSize,
+        Strip = TabStrip,
+        Active = Panel,
+        Tab = Tab,
+        Hover = Hover,
+        Ink = Ink,
+        InkDim = InkDim,
+        Accent = Accent,
+        IconSize = TabIconSize
+    };
 }

@@ -109,16 +109,12 @@ public partial class Gui
 
         if (Pass == Pass.Pass2Render)
         {
-            // Handle input and draw scrollbars
             HandleScrollInput(node, scrollState);
 
-            if (scrollX && scrollState.ShowScrollbarX)
-                DrawScrollbar(node, scrollState, Axis.Horizontal, foregroundColor, backgroundColor);
-            if (scrollY && scrollState.ShowScrollbarY)
-                DrawScrollbar(node, scrollState, Axis.Vertical, foregroundColor, backgroundColor);
-
-            // Apply clipping after all input handling and layout is complete
+            // Clip first: the scrollbars live in their own raised node and must not be clipped away
+            // with the content.
             ClipContent();
+            DrawScrollbars(node, scrollState, scrollX, scrollY, foregroundColor, backgroundColor);
         }
         else if (Pass == Pass.Pass1Build)
         {
@@ -298,6 +294,29 @@ public partial class Gui
             }
         }
     }
+
+    /// <summary>
+    /// Draws the scrollbars into a raised, out-of-flow node. Drawing them into the container itself
+    /// put them under its own content, which paints later in the flat z-ordered pass.
+    /// </summary>
+    private void DrawScrollbars(LayoutNode node, ScrollState scrollState, bool scrollX, bool scrollY,
+        Color? foregroundColor, Color? backgroundColor)
+    {
+        if (!(scrollX && scrollState.ShowScrollbarX) && !(scrollY && scrollState.ShowScrollbarY)) return;
+
+        using (Node(-1, -1, $"{node.Id}/scrollbars").AbsoluteScreen(0, 0).Enter())
+        {
+            SetZIndex(ScrollbarZIndex);
+
+            if (scrollX && scrollState.ShowScrollbarX)
+                DrawScrollbar(node, scrollState, Axis.Horizontal, foregroundColor, backgroundColor);
+            if (scrollY && scrollState.ShowScrollbarY)
+                DrawScrollbar(node, scrollState, Axis.Vertical, foregroundColor, backgroundColor);
+        }
+    }
+
+    /// <summary>Where scrollbars draw: above their container's content, below popups and drag ghosts.</summary>
+    private const int ScrollbarZIndex = 2_000;
 
     private void DrawScrollbar(LayoutNode node, ScrollState scrollState, Axis axis, Color? foregroundColor,
         Color? backgroundColor)
