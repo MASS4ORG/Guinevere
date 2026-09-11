@@ -23,6 +23,7 @@ public partial class Gui
     private Vector2 _pointerLastFrame;
     private bool _hasPointerLastFrame;
     private (string Id, MouseButton Button)? _pointerCapture;
+    private readonly Dictionary<string, (float Time, int Count)> _clickRuns = new();
     private LayoutNode? _inputBlocker;
 
     /// <summary>
@@ -94,6 +95,25 @@ public partial class Gui
     internal void ReleasePointer(string id)
     {
         if (_pointerCapture?.Id == id) _pointerCapture = null;
+    }
+
+    /// <summary>
+    /// How long after a click a second one still counts as a double click, in seconds.
+    /// </summary>
+    public float DoubleClickInterval { get; set; } = 0.4f;
+
+    /// <summary>
+    /// Records a click and reports how many landed in a row on this element. Two means a double click.
+    /// </summary>
+    internal int RegisterClick(string id)
+    {
+        var now = Time.Elapsed;
+        var run = _clickRuns.TryGetValue(id, out var previous) && now - previous.Time <= DoubleClickInterval
+            ? previous.Count + 1
+            : 1;
+
+        _clickRuns[id] = (now, run);
+        return run;
     }
 
     internal bool GetDragState(string id)

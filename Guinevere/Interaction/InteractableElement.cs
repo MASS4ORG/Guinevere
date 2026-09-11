@@ -128,6 +128,22 @@ public readonly struct InteractableElement
         return true;
     }
 
+    /// <summary>
+    /// Whether this element was clicked, reporting how many clicks landed in a row so a caller can
+    /// tell a single click from a double one.
+    /// </summary>
+    /// <param name="clickCount">One for a single click, two for a double click, and so on.</param>
+    /// <param name="button">The mouse button to check.</param>
+    /// <returns>True on the frame the click happened.</returns>
+    public bool OnClick(out int clickCount, MouseButton button = MouseButton.Left)
+    {
+        clickCount = 0;
+        if (!OnClick(button)) return false;
+
+        clickCount = _gui.RegisterClick($"{_id}:{button}");
+        return true;
+    }
+
     private bool IsHeld(MouseButton button = MouseButton.Left)
     {
         var mouseDown = _gui.Input.IsMouseButtonDown(button);
