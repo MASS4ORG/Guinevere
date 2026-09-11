@@ -199,6 +199,13 @@ public static partial class ControlsExtensions
         return state;
     }
 
+    /// <summary>
+    /// Shrinks the padding so it never eats the whole field. A short input keeps a little breathing
+    /// room instead of squeezing its text out of the box.
+    /// </summary>
+    private static float FitPadding(float height, float padding) =>
+        height <= 0 ? padding : Math.Min(padding, Math.Max(2f, (height - 4f) / 2f));
+
     private static void DrawInputBackground(Gui gui, InputState state, Color? backgroundColor, Color? borderColor)
     {
         var finalBgColor = backgroundColor ?? Color.White;
@@ -302,7 +309,7 @@ public static partial class ControlsExtensions
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        using (gui.Node(width, height).Padding(padding).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
             var state = GetOrCreateState(nodeId, text);
             var interactable = gui.GetInteractable();
@@ -360,7 +367,7 @@ public static partial class ControlsExtensions
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("PasswordInput", 0) : id;
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        using (gui.Node(width, height).Padding(padding).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
             var state = GetOrCreateState(nodeId, text);
             var interactable = gui.GetInteractable();
@@ -444,7 +451,7 @@ public static partial class ControlsExtensions
     {
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextArea", 0) : id;
 
-        using (gui.Node(width, height).Padding(padding).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
             var state = GetOrCreateState(nodeId, text);
             var interactable = gui.GetInteractable();

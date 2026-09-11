@@ -40,8 +40,10 @@ public partial class LayoutNode
         {
             if (currentScope.Node.Style.IsAbsolute) break;
 
-            var localOffset = currentScope.Get<LayoutNodeScopeLocalScrollOffset>().Value;
-            if (localOffset != Vector2.Zero) scrollOffset += localOffset;
+            // Only scopes that hold an offset themselves: Get() inherits from ancestors, so counting
+            // it at every level shifted deep content once per level instead of once.
+            if (currentScope.HasLocal<LayoutNodeScopeLocalScrollOffset>())
+                scrollOffset += currentScope.Get<LayoutNodeScopeLocalScrollOffset>().Value;
 
             currentScope = currentScope.Node.Parent?.Scope;
         }

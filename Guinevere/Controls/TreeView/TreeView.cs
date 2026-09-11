@@ -67,7 +67,7 @@ public static partial class ControlsExtensions
             hiddenBelow = int.MaxValue;
             visible.Add(item);
 
-            if (item.HasChildren && state.IsCollapsed(item.Id)) hiddenBelow = item.Depth;
+            if (item.HasChildren && state.IsCollapsed(item.Id, item.Depth)) hiddenBelow = item.Depth;
         }
 
         return visible;
@@ -138,7 +138,7 @@ public static partial class ControlsExtensions
             state.SelectedId = item.Id;
 
             // Single click selects, double click folds — the arrow is the one-click shortcut.
-            if (clicks >= 2 && item.HasChildren) state.Toggle(item.Id);
+            if (clicks >= 2 && item.HasChildren) state.Toggle(item.Id, item.Depth);
         }
 
         onClick?.Invoke(new TreeViewEvent(item, button, clicks));
@@ -157,10 +157,10 @@ public static partial class ControlsExtensions
             var rect = gui.CurrentNode.Rect;
             var centre = new Vector2(rect.X + (rect.W / 2f), rect.Y + (rect.H / 2f));
 
-            DrawExpanderArrow(gui, centre, state.IsCollapsed(item.Id),
+            DrawExpanderArrow(gui, centre, state.IsCollapsed(item.Id, item.Depth),
                 interactable.OnHover() ? theme.Ink : theme.InkDim);
 
-            if (interactable.OnClick()) state.Toggle(item.Id);
+            if (interactable.OnClick()) state.Toggle(item.Id, item.Depth);
         }
     }
 
