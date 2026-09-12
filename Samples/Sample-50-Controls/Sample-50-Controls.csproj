@@ -7,7 +7,6 @@
         <Nullable>enable</Nullable>
         <RootNamespace>$(MSBuildProjectName.Replace("-", "_"))</RootNamespace>
         <IsPackable>false</IsPackable>
-
     </PropertyGroup>
 
     <ItemGroup>

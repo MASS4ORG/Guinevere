@@ -1,21 +1,23 @@
-# Sample-04-Texts
-
-This sample demonstrates text rendering and interactive text controls in Guinevere, as well as scrollable containers and tabs.
+# Text
 
 ## Features
-- **Basic Text**: Single line, multi-line, colored, and sized text.
-- **Special Characters**: Unicode, symbols, and mixed formatting.
-- **Text Wrapping**: Automatic text wrapping at specific widths.
-- **Interactive Controls**:
-    - `TextInput`: Single line text input.
-    - `PasswordInput`: Masked text input for passwords.
-    - `TextArea`: Multi-line scrollable text input.
-- **Layout & Navigation**:
-    - `Tabs`: Organizational component to switch between views.
-    - `ScrollY`: Vertical scrolling for content that exceeds container bounds.
-    - `ClipContent`: Clipping content within node boundaries.
+
+Organised into scrollable tabs:
+
+- **Basic Text**: single line, multi-line, coloured and sized text, special characters,
+  Unicode, symbols and font fallback.
+- **Wrapping**: unwrapped vs. wrapped text at different `wrapWidth`s, mixed sizes and colours.
+- **Color Demo**: rainbow and per-channel intensity shades.
+- **Text Effects**: `TextEffects` applied to one string — flat, outline, drop shadow, inner
+  shadow, linear/radial gradient and a combined effect.
+- **Text Inputs**: `TextInput`, `PasswordInput` and multi-line `TextArea` with live value preview.
+- **Long Content**: long lorem-ipsum text to demonstrate `ScrollY` inside the tab area.
+
+The `DrawImage` / 9-slice / `ImageButton` sections of `Sample-09-TextEffects` were not text
+effects and are not carried over.
 
 ## Controls
-- **Mouse Wheel**: Scroll vertically within scrollable areas.
-- **Mouse Drag**: Interact with scrollbars.
-- **Keyboard**: Type into text input fields when focused.
+
+- **Mouse Wheel**: scroll vertically within the content area.
+- **Click**: focus and position the cursor in text inputs.
+- **Tab / Shift+Tab**: move focus between text inputs.

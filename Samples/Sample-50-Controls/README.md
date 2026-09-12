@@ -1,22 +1,25 @@
-# Sample-50-Controls
+# Controls-01 — Buttons, Inputs, Tabs & Scrolling
 
-This sample provides a comprehensive demonstration of the built-in UI controls available in Guinevere.
-
-## Controls Demonstrated
-- **Buttons**: Primary, secondary, success, danger, and icon buttons.
-- **Inputs**:
-    - `Checkbox`: Standard binary selection.
-    - `Toggle`: Switch-style binary selection.
-    - `TextInput`: Single-line text.
-    - `PasswordInput`: Masked text input.
-    - `TextArea`: Multi-line text input.
-    - `Dropdown`: Selection from a list of options.
-- **Tabs**:
-    - `Tabs`: Standard top-level tabs.
-    - `PillTabs`: Modern pill-style navigation.
-    - `VerticalTabs`: Side-aligned navigation.
+Merges `Sample-50-Controls`, `Sample-51-Buttons`, `Sample-52-TextInput-MultiPlatform`, `Sample-07-Scroll`
+and `Sample-11-Styling` into one sample organised around five tabs.
 
 ## Features
-- Real-time "Current Values" display to show state synchronization.
-- Customizable colors and styles for various controls.
-- Integration with the layout system.
+
+- **Buttons**: every button style — filled, outline, text, rounded, icon, custom-size, with
+  hover/press visual feedback.
+- **Inputs**: text fields, password fields, text areas and clicking-to-focus; shows both the
+  ref-based and returning APIs for each.
+- **Tabs**: tab bar, pill tabs and vertical tabs.
+- **Scrolling**: turning a node into a scroll container, programmatic scroll
+  (`ScrollToTop` / `ScrollToBottom` / scroll-percentage sliders) and inner scroll regions.
+- **Styling**: two named-node styles applied through a `StyleSheet` added to the `Gui`
+  (`gui.StyledNode` + `gui.StyleSheets.Add`).
+
+Use the tab bar at the top to switch between the five demonstrations.
+
+## Controls
+
+- **Click** a tab to switch demo.
+- **Type** in any input once it has keyboard focus; **click** an input to focus it.
+- **Click** the scroll arrows (or scroll the wheel) over the list boxes.
+- The styling tab shows the same widget twice — once with each style.

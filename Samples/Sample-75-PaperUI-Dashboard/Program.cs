@@ -137,7 +137,7 @@ public abstract class Program
                 var buttonColor = element.On(Interactions.Hover) ? _secondaryColor : _primaryColor;
 
                 _gui.DrawBackgroundRect(buttonColor, 20);
-                _gui.DrawText(_isDarkTheme ? "☀️" : "🌙", 16, Color.White);
+                _gui.DrawText(_isDarkTheme ? "☀" : "🌙", 16);
 
                 if (element.OnClick())
                 {
@@ -164,10 +164,7 @@ public abstract class Program
             using (_gui.Node().Expand().Margin(15).Gap(10).Enter())
             {
                 // Menu header
-                using (_gui.Node().Height(40).AlignContent(0.5f).Enter())
-                {
-                    _gui.DrawText("Menu", 18, _textColor);
-                }
+                _gui.DrawText("Menu", 26, _textColor).ExpandWidth().AlignContent(0.5f);
 
                 // Menu items
                 string[] menuIcons = ["🏠", "📊", "👤", "⚙️"];
@@ -195,7 +192,7 @@ public abstract class Program
                         // Icon
                         using (_gui.Node(30, 30).AlignSelf(0.5f).Margin(10, 0).Enter())
                         {
-                            _gui.DrawText(menuIcons[i], 16, _textColor);
+                            _gui.DrawText(menuIcons[i], 16);
                         }
 
                         // Text
@@ -292,8 +289,6 @@ public abstract class Program
             // Cards row with hover-only effects
             using (_gui.Node().Height(120).Direction(Axis.Horizontal).Gap(15).Enter())
             {
-                _gui.DrawBackgroundRect(_cardBackground, CardBorder);
-
                 string[] statNames = ["Total Users", "Revenue", "Projects", "Conversion"];
                 string[] statValues = ["3,456", "$12,345", "24", "8.5%"];
 
@@ -307,11 +302,7 @@ public abstract class Program
 
                         using (_gui.Node().Expand().Margin(2).Enter())
                         {
-                            // Card background - only changes on hover
-                            var cardColor = isHovered
-                                ? Color.FromArgb(32, _colorPalette[i])
-                                : _cardBackground;
-                            _gui.DrawBackgroundRect(cardColor, CardBorder);
+                            _gui.DrawBackgroundRect(_cardBackground, CardBorder);
                             if (isHovered)
                             {
                                 _gui.DrawRectBorder(_gui.CurrentNode.Rect, _colorPalette[i], 2, CardBorder);
@@ -408,32 +399,27 @@ public abstract class Program
                         // Activity items
                         string[] activities =
                         [
-                            "John updated project",
-                            "Alice completed task",
+                            "John updated the project",
+                            "Alice completed a task",
                             "New user registered",
-                            "Meeting scheduled"
+                            "Project deadline updated",
+                            "Team meeting scheduled"
                         ];
 
-                        string[] times = ["5m ago", "23m ago", "1h ago", "2h ago"];
+                        string[] times = ["5m ago", "23m ago", "1h ago", "2h ago", "3h ago"];
 
                         for (var i = 0; i < activities.Length; i++)
                         {
                             using (_gui.Node().Height(50).Direction(Axis.Horizontal).Gap(10).Enter())
                             {
                                 // Animated activity dot with pulsing effect
-                                using (_gui.Node(8, CardBorder).AlignSelf(0.3f).Enter())
+                                using (_gui.Node(50, CardBorder).AlignSelf(0.3f).Enter())
                                 {
-                                    var pulseScale = (float)(1.0 + 0.3 * Math.Sin(_time * 2 + i * 0.5));
-                                    var dotSize = 8 * pulseScale;
                                     var dotRect = new Rect(
-                                        _gui.CurrentNode.Rect.X + (8 - dotSize) / 2,
-                                        _gui.CurrentNode.Rect.Y + (8 - dotSize) / 2,
-                                        dotSize, dotSize);
-
-                                    var animatedColor = Color.FromArgb(
-                                        (int)(255 * (0.7 + 0.3 * Math.Sin(_time * 3 + i))),
-                                        _colorPalette[i % _colorPalette.Length]);
-                                    _gui.DrawRect(dotRect, animatedColor, dotSize / 2);
+                                        _gui.CurrentNode.Rect.X - 6f,
+                                        _gui.CurrentNode.Rect.Y + 6f,
+                                        40, 40);
+                                    _gui.DrawRect(dotRect, _colorPalette[i % _colorPalette.Length], 10);
                                 }
 
                                 // Activity text
@@ -550,17 +536,17 @@ public abstract class Program
         using (_gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
         {
             // Profile info
-            using (_gui.Node().Expand(.45f).Enter())
+            using (_gui.Node().Expand(.4f).Enter())
             {
                 _gui.DrawBackgroundRect(Color.FromArgb(250, _cardBackground), CardBorder);
 
                 using (_gui.Node().Expand().Margin(20).Gap(15).AlignContent(0.5f).Enter())
                 {
                     // Avatar
-                    using (_gui.Node(100, 100).Enter())
+                    using (_gui.Node(100, 100).AlignContent(.5f).Enter())
                     {
-                        _gui.DrawBackgroundRect(_secondaryColor, 50);
-                        _gui.DrawText("JD", 32, Color.White);
+                        _gui.DrawBackgroundRect(_secondaryColor);
+                        _gui.DrawText("J", 32, Color.White);
                     }
 
                     // Name
@@ -601,7 +587,7 @@ public abstract class Program
             }
 
             // Skills and activity
-            using (_gui.Node().Expand().Gap(20).Enter())
+            using (_gui.Node().Expand(.6f).Gap(20).Enter())
             {
                 // Activity tracker with the animated contribution grid
                 using (_gui.Node().Expand().Margin(20).Gap(15).Enter())
@@ -793,6 +779,7 @@ public abstract class Program
 
             _gui.DrawText("© 2025 Dashboard Demo", 12, _lightTextColor);
             _gui.Node().Expand();
+            _gui.DrawText($"{_gui.Time.DeltaTime:F8} ms", 12, _lightTextColor);
             _gui.DrawText($"{_gui.Time.SmoothFps:N0} FPS", 12, _lightTextColor);
         }
     }
@@ -853,7 +840,7 @@ public abstract class Program
 
             // Create proper arc shape for pie slice
             var arcShape = Shape.Pie(radius, radius, Angle.Degrees(startAngle), Angle.Degrees(sweepAngle));
-            _gui.DrawShape(Vector2.Zero, arcShape).SolidColor(_colorPalette[i]);
+            _gui.DrawShape(center, arcShape).SolidColor(_colorPalette[i]);
 
             startAngle += sweepAngle;
         }

@@ -6,6 +6,11 @@ namespace Sample_03_ChildrenLayout;
 
 public abstract class Program
 {
+    private static int _activeTabIndex;
+
+    private static readonly Color Panel = Color.FromArgb(255, 46, 50, 62);
+    private static readonly Color Bar = Color.FromArgb(255, 90, 170, 255);
+
     public static void Main()
     {
         var gui = new Gui();
@@ -16,17 +21,23 @@ public abstract class Program
 
     private static void Draw(Gui gui)
     {
-        gui.DrawRect(gui.ScreenRect, Color.Black);
+        gui.DrawWindowTitlebar();
 
+        using (gui.Node().Expand().Enter())
+        {
+            gui.Tabs(ref _activeTabIndex, tabs =>
+            {
+                tabs.Tab("Children", () => ChildrenLayout(gui));
+                tabs.Tab("Constrains", () => Constrains(gui));
+            });
+        }
+    }
+
+    private static void ChildrenLayout(Gui gui)
+    {
         // Test AlignContent with separate horizontal/vertical values
         using (gui.Node().Expand().Margin(10).Direction(Axis.Vertical).Gap(20).Enter())
         {
-            // Title
-            using (gui.Node().Height(30).Enter())
-            {
-                gui.DrawText("AlignContent Test - Separate Horizontal & Vertical Control", color: Color.White, size: 18);
-            }
-
             // Test single value (affects both axes)
             using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
             {
@@ -61,7 +72,8 @@ public abstract class Program
         }
     }
 
-    private static void CreateLayout(Gui gui, float alignHorizontal, float alignVertical, string title, Color backgroundColor, Axis axis)
+    private static void CreateLayout(Gui gui, float alignHorizontal, float alignVertical, string title,
+        Color backgroundColor, Axis axis)
     {
         using (gui.Node().ExpandWidth().Height(150).Margin(5).Enter())
         {
@@ -74,7 +86,8 @@ public abstract class Program
             }
 
             // Container with vertical layout and AlignContent
-            using (gui.Node().Expand().Gap(5).Margin(10).Direction(axis).AlignContent(alignHorizontal, alignVertical).Enter())
+            using (gui.Node().Expand().Gap(5).Margin(10).Direction(axis).AlignContent(alignHorizontal, alignVertical)
+                       .Enter())
             {
                 gui.DrawBackgroundRect(Color.White, radius: 3);
 
@@ -87,6 +100,51 @@ public abstract class Program
                         gui.DrawBackgroundRect(color);
                         gui.DrawText($"{i + 1}", color: Color.White, size: 14);
                     }
+                }
+            }
+        }
+    }
+
+
+    private static void Constrains(Gui gui)
+    {
+        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(20).Enter())
+        {
+            gui.DrawText("WidthPercent — 25% / 50% / 75% / 100% of the container", 15);
+            using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Gap(8).Padding(12).Enter())
+            {
+                gui.DrawBackgroundRect(Panel, radius: 8);
+                foreach (var f in new[] { 0.25f, 0.5f, 0.75f, 1.0f })
+                    using (gui.Node(height: 24).WidthPercent(f).Enter())
+                        gui.DrawBackgroundRect(Bar, radius: 6);
+            }
+
+            gui.DrawText("MaxWidth(420) — an Expand child that stops growing", 15);
+            using (gui.Node(height: 36).ExpandWidth().MaxWidth(420f).Enter())
+            {
+                gui.DrawBackgroundRect(Bar, radius: 6);
+                gui.DrawText("420px max").Expand();
+            }
+
+            gui.DrawText("MinWidth(150) — chips forced to a minimum width", 15);
+            using (gui.Node(height: 44).ExpandWidth().Direction(Axis.Horizontal).Gap(12).Enter())
+            {
+                foreach (var label in new[] { "A", "BB", "CCC" })
+                    using (gui.Node(height: 44).MinWidth(150f).Enter())
+                    {
+                        gui.DrawBackgroundRect(Panel, radius: 8);
+                        gui.DrawText(label, 15, Bar).Expand();
+                    }
+            }
+
+            gui.DrawText("HeightPercent(0.6) — fills 60% of the remaining column", 15);
+            using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Padding(10).ExpandHeight().Enter())
+            {
+                gui.DrawBackgroundRect(Panel, radius: 8);
+                using (gui.Node().ExpandWidth().HeightPercent(0.6f).Enter())
+                {
+                    gui.DrawBackgroundRect(Bar, radius: 8);
+                    gui.DrawText("60%").Expand();
                 }
             }
         }
