@@ -8,24 +8,24 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class SliderTests
 {
-    private static readonly Font TestFont = Font.FromFamilyName("serif", 12);
+    private static readonly Font TestFont = Font.FromFamilyName("serif");
 
     private sealed class Harness
     {
-        private readonly SKSurface surface = SKSurface.Create(new SKImageInfo(400, 60));
-        private readonly IInputHandler input = Substitute.For<IInputHandler>();
-        private readonly TestableGui gui;
+        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(400, 60));
+        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        private readonly TestableGui _gui;
 
         public Harness(float initial = 5f)
         {
-            gui = new TestableGui { Input = input };
-            gui.SetScreenRect(400, 60);
+            _gui = new TestableGui { Input = _input };
+            _gui.SetScreenRect(400, 60);
             Value = initial;
 
-            input.MousePosition.Returns(new Vector2(-100, -100));
-            input.PrevMousePosition.Returns(new Vector2(-100, -100));
-            input.IsMouseButtonDown(Arg.Any<MouseButton>()).Returns(false);
-            input.IsKeyPressed(Arg.Any<KeyboardKey>()).Returns(false);
+            _input.MousePosition.Returns(new Vector2(-100, -100));
+            _input.PrevMousePosition.Returns(new Vector2(-100, -100));
+            _input.IsMouseButtonDown(Arg.Any<MouseButton>()).Returns(false);
+            _input.IsKeyPressed(Arg.Any<KeyboardKey>()).Returns(false);
         }
 
         public float Value { get; private set; }
@@ -33,26 +33,26 @@ public class SliderTests
         public void Frame(Vector2? mouse = null, bool pressed = false, bool down = false,
             KeyboardKey? key = null, float step = 0f, bool enabled = true)
         {
-            input.MousePosition.Returns(mouse ?? new Vector2(-100, -100));
-            input.PrevMousePosition.Returns(mouse ?? new Vector2(-100, -100));
-            input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
-            input.IsMouseButtonDown(MouseButton.Left).Returns(down);
-            input.IsKeyPressed(Arg.Any<KeyboardKey>())
+            _input.MousePosition.Returns(mouse ?? new Vector2(-100, -100));
+            _input.PrevMousePosition.Returns(mouse ?? new Vector2(-100, -100));
+            _input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
+            _input.IsMouseButtonDown(MouseButton.Left).Returns(down);
+            _input.IsKeyPressed(Arg.Any<KeyboardKey>())
                 .Returns(call => key is not null && call.Arg<KeyboardKey>() == key);
 
             var value = Value;
 
-            void Draw() => gui.Slider(ref value, 0f, 10f, step: step, width: 300, height: 30, enabled: enabled);
+            void Draw() => _gui.Slider(ref value, 0f, 10f, step: step, width: 300, height: 30, enabled: enabled);
 
-            gui.Time.Update(0.016);
-            gui.SetStage(Pass.Pass1Build);
-            gui.BeginFrame(surface.Canvas, TestFont);
+            _gui.Time.Update(0.016);
+            _gui.SetStage(Pass.Pass1Build);
+            _gui.BeginFrame(_surface.Canvas, TestFont);
             Draw();
-            gui.CalculateLayout();
-            gui.SetStage(Pass.Pass2Render);
+            _gui.CalculateLayout();
+            _gui.SetStage(Pass.Pass2Render);
             Draw();
-            gui.Render();
-            gui.EndFrame();
+            _gui.Render();
+            _gui.EndFrame();
 
             Value = value;
         }
@@ -72,7 +72,7 @@ public class SliderTests
     [Fact]
     public void DraggingBeyondTheTrackKeepsScrubbing()
     {
-        var h = new Harness(5f);
+        var h = new Harness();
 
         h.Frame(mouse: new Vector2(150, 15), pressed: true, down: true);
         h.Frame(mouse: new Vector2(1000, 15), down: true);
@@ -97,7 +97,7 @@ public class SliderTests
     [Fact]
     public void ArrowsAdjustByOneStepWhenFocused()
     {
-        var h = new Harness(5f);
+        var h = new Harness();
 
         h.Frame(mouse: new Vector2(150, 15), pressed: true, down: true);
         h.Frame(mouse: new Vector2(150, 15)); // release; focus lands this frame
@@ -114,7 +114,7 @@ public class SliderTests
     [Fact]
     public void DisabledSliderIgnoresInput()
     {
-        var h = new Harness(5f);
+        var h = new Harness();
 
         h.Frame(mouse: new Vector2(225, 15), pressed: true, down: true, enabled: false);
         h.Frame(mouse: new Vector2(225, 15), enabled: false);

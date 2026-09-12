@@ -38,7 +38,7 @@ internal sealed partial class Build : NukeBuild
     /// <summary>
     /// Complete CI pipeline: Clean, Restore, Compile, and Test
     /// </summary>
-    private Target CI => td => td
+    private Target Ci => td => td
         .DependsOn(Clean, Restore, Compile, Test)
         .Executes(() =>
         {

@@ -35,7 +35,7 @@ public class DockSpaceRenderTests
             tabStripActions);
 
         gui.SetStage(Pass.Pass1Build);
-        gui.BeginFrame(surface.Canvas, Font.FromFamilyName("sans-serif", 12), Font.FromFamilyName("sans-serif", 12));
+        gui.BeginFrame(surface.Canvas, Font.FromFamilyName("sans-serif"), Font.FromFamilyName("sans-serif"));
         Draw();
         gui.CalculateLayout();
         gui.SetStage(Pass.Pass2Render);

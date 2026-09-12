@@ -8,7 +8,8 @@ internal class TabInfo
     /// <summary>
     /// Whether the user may close this tab, with the middle-click or the "×" button. Defaults to false.
     /// </summary>
-    public bool Closable { get; set; } = false;
+    public bool Closable { get; set; }
+
     public Action? Content { get; set; }
     public Color? BackgroundColor { get; set; }
     public Color? TextColor { get; set; }

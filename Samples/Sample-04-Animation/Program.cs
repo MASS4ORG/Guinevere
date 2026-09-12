@@ -1,5 +1,6 @@
 using Guinevere;
 using Guinevere.OpenGL.SilkNET;
+using GuinevereDemos;
 
 namespace Sample_06_Animation;
 
@@ -17,21 +18,13 @@ internal abstract class Program
 
     private static void RenderGui()
     {
+        DemoHeader.Header(_gui, "Guinevere - Animation");
         _gui.DrawRect(_gui.ScreenRect, Color.FromArgb(32, 32, 48));
 
-        using (_gui.Node().Expand().Margin(20).Gap(15).Enter())
+        using (_gui.Node().Expand().Gap(20).Enter())
         {
-            using (_gui.Node().Height(60).Enter())
-            {
-                _gui.DrawText("Animation System Demo", 24, Color.White);
-                _gui.DrawText($"FPS: {_gui.Time.SmoothFps:F1}", 12, Color.FromArgb(170, 170, 170));
-            }
-
-            using (_gui.Node().Expand().Gap(20).Enter())
-            {
-                DrawSliderAnimationDemo();
-                DrawEasingFunctionsDemo();
-            }
+            DrawSliderAnimationDemo();
+            DrawEasingFunctionsDemo();
         }
     }
 

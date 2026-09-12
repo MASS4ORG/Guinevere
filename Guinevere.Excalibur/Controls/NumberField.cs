@@ -4,7 +4,7 @@ public static partial class ControlsExtensions
 {
     private sealed class NumberFieldState
     {
-        public InputState Buffer = new() { Text = "0", External = "0" };
+        public TextEditState Buffer = new("0");
         public bool Captured;
         public bool Scrubbing;
         public Vector2 PressPosition;
@@ -127,7 +127,7 @@ public static partial class ControlsExtensions
                 if (!field.Scrubbing)
                 {
                     gui.RequestFocus(FocusReason.Mouse);
-                    var at = GetCursorPositionFromClick(gui, mouse, gui.CurrentNode.InnerRect,
+                    var at = TextEditor.PositionAt(gui, mouse, gui.CurrentNode.InnerRect,
                         field.Buffer.Text, fontSize);
                     field.Buffer.MoveTo(at, extend: false);
                     field.Buffer.BlinkTimer = 0f;
@@ -150,7 +150,7 @@ public static partial class ControlsExtensions
             }
             else
             {
-                HandleKeyboardInput(field.Buffer, gui);
+                TextEditor.ProcessKeyboard(gui, field.Buffer);
             }
         }
         else if (wasEditing)
@@ -168,9 +168,7 @@ public static partial class ControlsExtensions
             ? Clamp(number, min, max)
             : Clamp(fallback, min, max);
 
-        field.Buffer.Text = FormatNumber(parsed, format);
-        field.Buffer.External = field.Buffer.Text;
-        field.Buffer.MoveTo(field.Buffer.Text.Length, extend: false);
+        field.Buffer.SetValue(FormatNumber(parsed, format));
         return parsed;
     }
 

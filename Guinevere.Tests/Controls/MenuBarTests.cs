@@ -170,7 +170,7 @@ public class MenuBarTests
         Frame(gui, log);
         var reopened = gui.RootNode!.FindChildById("/menubar/Edit/v0");
         Assert.NotNull(reopened);
-        Frame(gui, log, input: At(reopened!.Children[0].Center));
+        Frame(gui, log, input: At(reopened.Children[0].Center));
 
         Assert.Equal(2, log.Count);
         Assert.All(log, entry => Assert.Equal("copy", entry));
@@ -193,7 +193,7 @@ public class MenuBarTests
 
         var switched = gui.RootNode!.FindChildById("/menubar/Edit/v0");
         Assert.NotNull(switched);
-        Assert.Equal(bar.Children[1].Rect.X, switched!.Rect.X, 1f);
+        Assert.Equal(bar.Children[1].Rect.X, switched.Rect.X, 1f);
     }
 
     [Fact]
@@ -210,14 +210,14 @@ public class MenuBarTests
         var group = gui.RootNode!.FindChildById("/menubar/Edit/v0");
         Assert.NotNull(group);
 
-        Frame(gui, log, toggle, At(group!.Children[1].Center));
+        Frame(gui, log, toggle, At(group.Children[1].Center));
         Assert.True(toggle[0]);
 
         Frame(gui, log, toggle, At(bar.Children[1].Center));
         Frame(gui, log, toggle);
         var reopened = gui.RootNode!.FindChildById("/menubar/Edit/v0");
         Assert.NotNull(reopened);
-        Frame(gui, log, toggle, At(reopened!.Children[1].Center));
+        Frame(gui, log, toggle, At(reopened.Children[1].Center));
 
         Assert.False(toggle[0]);
         Assert.Empty(log);
@@ -237,7 +237,7 @@ public class MenuBarTests
         Assert.NotNull(group);
 
         // Without a toggle the rows are [Copy(0), Separator(1), Bold(2), Zoom(3)].
-        Frame(gui, log, input: At(group!.Children[2].Center));
+        Frame(gui, log, input: At(group.Children[2].Center));
         Frame(gui, log);
 
         Assert.Empty(log);
@@ -259,7 +259,7 @@ public class MenuBarTests
 
         // Without a toggle the "Mode" check item is skipped, so the rows are
         // [Copy(0), Separator(1), Bold(2), Zoom(3)].
-        Assert.Collection(group!.Children,
+        Assert.Collection(group.Children,
             n => Assert.EndsWith("/i0", n.Id),
             n => Assert.EndsWith("/s1", n.Id),
             n => Assert.EndsWith("/i2", n.Id),
@@ -269,7 +269,7 @@ public class MenuBarTests
 
         var submenu = gui.RootNode!.FindChildById("/menubar/Edit/Zoom/v1");
         Assert.NotNull(submenu);
-        Assert.Equal(group.Rect.W, submenu!.Rect.X - group.Rect.X, 1f);
+        Assert.Equal(group.Rect.W, submenu.Rect.X - group.Rect.X, 1f);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class MenuBarTests
         Assert.Null(gui.RootNode!.FindChildById("/menubar/Edit/v0"));
 
         // A stray click where the Copy row used to be must not trigger its action.
-        Frame(gui, log, input: At(group!.Children[0].Center));
+        Frame(gui, log, input: At(group.Children[0].Center));
         Assert.Empty(log);
     }
 

@@ -37,7 +37,6 @@ public abstract class Program
             Slide14,
             Slide15,
             Slide16,
-            Slide16,
             Slide16
         ];
         Color colorShape;
@@ -84,7 +83,8 @@ public abstract class Program
                 _gui.SetClipArea(_gui.CurrentNode, _shape);
 
                 _gui.DrawShape(_gui.CurrentNode.Rect.Center, _shape);
-                _gui.DrawText(_text);
+                _gui.Node(0, 75); // spacer
+                _gui.DrawText(_text, 20);
             }
         });
     }

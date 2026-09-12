@@ -26,7 +26,7 @@ public class StyledNodeTests
 
         using var snapshot = surface.Snapshot();
         using var pixmap = snapshot.PeekPixels();
-        return pixmap.GetPixelSpan().ToArray();
+        return [.. pixmap.GetPixelSpan()];
     }
 
     private static (byte R, byte G, byte B, byte A) At(byte[] px, int x, int y)
@@ -52,7 +52,7 @@ public class StyledNodeTests
             MouseAt(-100, -100),
             gui =>
             {
-                using (gui.StyledNode("VisualElement", new[] { "panel" }).Enter()) { }
+                using (gui.StyledNode("VisualElement", ["panel"]).Enter()) { }
             });
 
         var (r, g, b, _) = At(px, Size / 2, Size / 2);
@@ -84,9 +84,9 @@ public class StyledNodeTests
             """;
 
         var idle = RenderFrame(css, MouseAt(-100, -100),
-            gui => { using (gui.StyledNode("Button", new[] { "btn" }).Enter()) { } });
+            gui => { using (gui.StyledNode("Button", ["btn"]).Enter()) { } });
         var hot = RenderFrame(css, MouseAt(Size / 2f, Size / 2f),
-            gui => { using (gui.StyledNode("Button", new[] { "btn" }).Enter()) { } });
+            gui => { using (gui.StyledNode("Button", ["btn"]).Enter()) { } });
 
         Assert.True(At(idle, Size / 2, Size / 2) is { R: < 40, G: < 40, B: < 40 }, "idle should be dark");
         Assert.True(At(hot, Size / 2, Size / 2).B > 180, "hover should be blue");
@@ -101,7 +101,7 @@ public class StyledNodeTests
         gui.SetStage(Pass.Pass1Build);
         gui.BeginFrame(surface.Canvas);
 
-        var node = gui.StyledNode("Button", new[] { "x" });
+        var node = gui.StyledNode("Button", ["x"]);
         Assert.NotNull(node);
     }
 }

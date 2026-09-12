@@ -3,7 +3,7 @@ namespace Sample_73_PanGui_MusicApp;
 public partial class Program
 {
 
-    string[] trackLibrary =
+    string[] _trackLibrary =
     [
         "Into the Wild", "Midnight Serenade", "Echoes of Eternity", "Dreamscape", "Whispering Shadows",
         "Enchanted Journey",
@@ -12,17 +12,17 @@ public partial class Program
         "Whispers in the Wind", "Moonlit Sonata", "Sunset Serenade", "Ocean's Embrace"
     ];
 
-    string selectedTrack = "Lost in Time";
-    float modWheel = 0.5f;
-    int numOctaves = 8;
-    float[] keyPressures = new float[12 * numOctaves];
-    PadPlayer padPlayer = new();
-    Snapshot[] snapshots = GenerateSnapshots();
-    Snapshot selectedSnapshot = snapshots[0];
+    string _selectedTrack = "Lost in Time";
+    float _modWheel = 0.5f;
+    int _numOctaves = 8;
+    float[] _keyPressures = new float[12 * _numOctaves];
+    PadPlayer _padPlayer = new();
+    Snapshot[] _snapshots = GenerateSnapshots();
+    Snapshot _selectedSnapshot = _snapshots[0];
 
     (float left, float right) GetSimulatedOutputVolume()
     {
-        float maxPianoKeyPressure = _gui.Smoothdamp(keyPressures.Max());
+        float maxPianoKeyPressure = _gui.Smoothdamp(_keyPressures.Max());
         float mono = MathF.Cos(_gui.Time.Elapsed * 4.5f);
         float tLeft = mono + MathF.Cos(_gui.Time.Elapsed * 7.5f) * 0.5f;
         float tRight = mono + MathF.Cos(_gui.Time.Elapsed * 8.5f) * 0.5f;
@@ -55,7 +55,7 @@ public partial class Program
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
                 KeyLength = rnd.Next(50, 60),
-                adsr = new ADSR(),
+                Adsr = new Adsr(),
                 Pan = 0.5f
             },
             new()
@@ -66,7 +66,7 @@ public partial class Program
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
                 KeyLength = rnd.Next(50, 60),
-                adsr = new ADSR(),
+                Adsr = new Adsr(),
                 Pan = 0.3f
             },
             new()
@@ -77,7 +77,7 @@ public partial class Program
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
                 KeyLength = rnd.Next(50, 60),
-                adsr = new ADSR(),
+                Adsr = new Adsr(),
                 Pan = 0.6f
             },
             new()
@@ -88,7 +88,7 @@ public partial class Program
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
                 KeyLength = rnd.Next(50, 60),
-                adsr = new ADSR(),
+                Adsr = new Adsr(),
                 Pan = 0.5f
             },
             new()
@@ -99,7 +99,7 @@ public partial class Program
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
                 KeyLength = rnd.Next(50, 60),
-                adsr = new ADSR(),
+                Adsr = new Adsr(),
                 Pan = 0.5f
             },
         ];

@@ -1,5 +1,6 @@
 ﻿using Guinevere;
 using Guinevere.OpenGL.SilkNET;
+using GuinevereDemos;
 
 namespace Sample_42_ResponsiveLayoutDemo;
 
@@ -15,11 +16,11 @@ public abstract class Program
 
     private static void Draw(Gui gui)
     {
+        DemoHeader.Header(gui, "Guinevere - Responsive Layout");
+
         var screenWidth = gui.ScreenRect.W;
         var isMobile = screenWidth < 600;
         var isTablet = screenWidth is >= 600 and < 900;
-
-        gui.DrawRect(gui.ScreenRect, Color.AntiqueWhite);
 
         using (gui.Node().Expand().Margin(isMobile ? 10 : 20).Enter())
         {
@@ -154,10 +155,10 @@ public abstract class Program
 
     private static void DrawNavItem(Gui gui, string text, Color color)
     {
-        using (gui.Node().Direction(Axis.Horizontal).Margin(5).Enter())
+        using (gui.Node(75, 50).Direction(Axis.Horizontal).Margin(5).Enter())
         {
             gui.DrawBackgroundRect(color, 4);
-            gui.DrawText(text, 12, Color.White);
+            gui.DrawText(text, 12, Color.White).Expand();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.Numerics;
 using Guinevere;
 using Guinevere.OpenGL.SilkNET;
+using GuinevereDemos;
 
 namespace Sample_60_Docking;
 
@@ -53,23 +54,16 @@ public abstract class Program
         layout.DockAtEdge("game", DockZone.Center);
         layout.DockAtEdge("hierarchy", DockZone.Left, 0.2f);
         layout.DockAtEdge("inspector", DockZone.Right, 0.22f);
-        layout.DockAtEdge("console", DockZone.Bottom, 0.25f);
+        layout.DockAtEdge("console", DockZone.Bottom);
         return layout;
     }
 
     private static void Draw(Gui gui)
     {
-        gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 18, 20, 25));
+        DemoHeader.Header(gui, "Guinevere Excalibur - Docking");
 
-        using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
-        {
-            Toolbar(gui);
-
-            using (gui.Node().Expand().Enter())
-            {
-                gui.DockSpace(_layout, PanelInfo, RenderPanel, Theme, TabStripActions);
-            }
-        }
+        Toolbar(gui);
+        gui.DockSpace(_layout, PanelInfo, RenderPanel, Theme, TabStripActions);
     }
 
     private static DockPanelInfo? PanelInfo(string panelId) =>
@@ -131,7 +125,7 @@ public abstract class Program
 
             foreach (var panelId in PanelIds.Where(id => !_layout.Contains(id)))
                 if (ToolbarButton(gui, $"Reopen {Titles[panelId]}"))
-                    _layout.EnsurePanel(panelId, DockZone.Center);
+                    _layout.EnsurePanel(panelId);
         }
     }
 
@@ -167,7 +161,8 @@ public abstract class Program
             {
                 case "scene":
                 case "game":
-                    Viewport(gui, panelId == "scene" ? Color.FromArgb(255, 40, 52, 66) : Color.FromArgb(255, 30, 46, 40));
+                    Viewport(gui,
+                        panelId == "scene" ? Color.FromArgb(255, 40, 52, 66) : Color.FromArgb(255, 30, 46, 40));
                     break;
 
                 case "hierarchy":

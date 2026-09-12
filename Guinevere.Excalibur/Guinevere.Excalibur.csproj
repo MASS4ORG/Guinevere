@@ -9,6 +9,8 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
         <!-- NuGet Package Properties -->
+        <PackageId>org.mass4.Guinevere.Excalibur</PackageId>
+        <Title>Guinevere - Excalibur</Title>
         <Description>A ready-to-use set of default Guinevere controls: buttons, inputs, tabs, tree, menu bar, flyout, popup, docking and more, built on the Guinevere core engine.</Description>
         <Company>Guinevere</Company>
         <Product>Guinevere</Product>

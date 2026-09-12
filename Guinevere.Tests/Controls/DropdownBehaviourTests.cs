@@ -12,9 +12,9 @@ public class DropdownBehaviourTests
 
     private sealed class Harness
     {
-        private readonly SKSurface surface = SKSurface.Create(new SKImageInfo(300, 300));
-        private readonly IInputHandler input = Substitute.For<IInputHandler>();
-        private readonly TestableGui gui;
+        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(300, 300));
+        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        private readonly TestableGui _gui;
 
         // A fixed id on purpose: control state belongs to the Gui, so two harnesses sharing an id no
         // longer share an open/closed state.
@@ -22,36 +22,36 @@ public class DropdownBehaviourTests
 
         public Harness()
         {
-            gui = new TestableGui { Input = input };
-            gui.SetScreenRect(300, 300);
+            _gui = new TestableGui { Input = _input };
+            _gui.SetScreenRect(300, 300);
             Selected = -1;
         }
 
         public int Selected { get; private set; }
 
-        public Gui Gui => gui;
+        public Gui Gui => _gui;
 
         public void Frame(Vector2 mouse, bool pressed = false, KeyboardKey? key = null)
         {
-            input.MousePosition.Returns(mouse);
-            input.PrevMousePosition.Returns(mouse);
-            input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
-            input.IsKeyPressed(Arg.Any<KeyboardKey>()).Returns(call => key is not null && call.Arg<KeyboardKey>() == key);
+            _input.MousePosition.Returns(mouse);
+            _input.PrevMousePosition.Returns(mouse);
+            _input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
+            _input.IsKeyPressed(Arg.Any<KeyboardKey>()).Returns(call => key is not null && call.Arg<KeyboardKey>() == key);
 
             var index = Selected;
 
-            void Draw() => gui.Dropdown(Options, ref index, width: 120, height: 24,
+            void Draw() => _gui.Dropdown(Options, ref index, width: 120, height: 24,
                 filePath: Id, lineNumber: 0);
 
-            gui.Time.Update(0.016);
-            gui.SetStage(Pass.Pass1Build);
-            gui.BeginFrame(surface.Canvas);
+            _gui.Time.Update(0.016);
+            _gui.SetStage(Pass.Pass1Build);
+            _gui.BeginFrame(_surface.Canvas);
             Draw();
-            gui.CalculateLayout();
-            gui.SetStage(Pass.Pass2Render);
+            _gui.CalculateLayout();
+            _gui.SetStage(Pass.Pass2Render);
             Draw();
-            gui.Render();
-            gui.EndFrame();
+            _gui.Render();
+            _gui.EndFrame();
 
             Selected = index;
         }
@@ -60,7 +60,7 @@ public class DropdownBehaviourTests
         /// Whether the list is in the tree. It lags state by a frame: closing happens in the render
         /// pass, after that frame's nodes were built, so settle a frame before asserting it is gone.
         /// </summary>
-        public bool ListIsOpen => Exists(gui.RootNode!, "/list");
+        public bool ListIsOpen => Exists(_gui.RootNode!, "/list");
 
         private static bool Exists(LayoutNode node, string suffix) =>
             node.Id.EndsWith(suffix, StringComparison.Ordinal)

@@ -4,412 +4,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private class InputState
-    {
-        public string Text = "";
-        public int CursorPosition;
-        public bool IsFocused;
-        public float BlinkTimer;
-        public bool ShowCursor = true;
-
-        /// <summary>Where the current selection was started. Equal to the cursor when nothing is selected.</summary>
-        public int SelectionAnchor;
-
-        /// <summary>Set while the pointer is dragging out a selection.</summary>
-        public bool IsSelecting;
-
-        /// <summary>The last value the caller supplied, so an external change can be told from an edit.</summary>
-        public string External = "";
-
-        public int SelectionStart => Math.Min(SelectionAnchor, CursorPosition);
-        public int SelectionEnd => Math.Max(SelectionAnchor, CursorPosition);
-        public bool HasSelection => SelectionStart != SelectionEnd;
-        public string SelectedText => HasSelection
-            ? Text[Math.Clamp(SelectionStart, 0, Text.Length)..Math.Clamp(SelectionEnd, 0, Text.Length)]
-            : string.Empty;
-
-        /// <summary>Moves the cursor, extending the selection when <paramref name="extend"/> is set.</summary>
-        public void MoveTo(int position, bool extend)
-        {
-            CursorPosition = Math.Clamp(position, 0, Text.Length);
-            if (!extend) SelectionAnchor = CursorPosition;
-
-            ShowCursor = true;
-            BlinkTimer = 0f;
-        }
-
-        /// <summary>Removes the selected run and leaves the cursor where it was.</summary>
-        public bool DeleteSelection()
-        {
-            if (!HasSelection) return false;
-
-            var start = Math.Clamp(SelectionStart, 0, Text.Length);
-            var end = Math.Clamp(SelectionEnd, 0, Text.Length);
-
-            Text = Text.Remove(start, end - start);
-            CursorPosition = start;
-            SelectionAnchor = start;
-            return true;
-        }
-
-        /// <summary>Replaces the selection, or inserts at the cursor when there is none.</summary>
-        public void Insert(string value)
-        {
-            DeleteSelection();
-            Text = Text.Insert(Math.Clamp(CursorPosition, 0, Text.Length), value);
-            MoveTo(CursorPosition + value.Length, extend: false);
-        }
-
-        public void SelectAll()
-        {
-            SelectionAnchor = 0;
-            CursorPosition = Text.Length;
-        }
-    }
-
-    private static InputState GetOrCreateState(Gui gui, string nodeId, string initialText)
-    {
-        var state = gui.ControlState(nodeId, () => new InputState { Text = initialText, External = initialText });
-
-        // The caller is the source of truth: when the value it passes changes underneath the control —
-        // the inspector moving to another node, say — the field adopts it instead of showing the old one.
-        if (!string.Equals(state.External, initialText, StringComparison.Ordinal))
-        {
-            state.Text = initialText;
-            state.External = initialText;
-            state.MoveTo(initialText.Length, extend: false);
-        }
-
-        return state;
-    }
-
-    private static void UpdateCursorBlink(InputState state, float deltaTime)
-    {
-        state.BlinkTimer += deltaTime;
-        if (state.BlinkTimer >= 0.5f) // Faster blinking - 0.5 seconds
-        {
-            state.BlinkTimer = 0f;
-            state.ShowCursor = !state.ShowCursor;
-        }
-    }
-
-    private static int GetCursorPositionFromClick(Gui gui, Vector2 mousePos, Rect innerRect, string text,
-        float fontSize)
-    {
-        var font = MeasuringFont(gui, fontSize);
-
-        // Measured from where the text starts, which is not the left edge in an aligned field.
-        var clickX = mousePos.X - TextOriginX(gui, font, text, innerRect);
-
-        return Enumerable.Range(0, text.Length + 1)
-            .Select(i => new { Position = i, X = MeasureTextWidth(font, text.Substring(0, i)) })
-            .OrderBy(p => Math.Abs(clickX - p.X))
-            .First().Position;
-    }
-
-    private static int CalculateCursorPositionFromClickMultiline(Gui gui, Vector2 mousePos, Rect innerRect,
-        string text, float fontSize)
-    {
-        var clickY = mousePos.Y - innerRect.Y;
-        var lineHeight = fontSize * 1.2f;
-        var lines = text.Split('\n');
-        var targetLine = Math.Max(0, Math.Min((int)(clickY / lineHeight), lines.Length - 1));
-
-        var positionBeforeTargetLine = lines.Take(targetLine).Sum(line => line.Length + 1); // +1 for \n
-        var targetLineText = targetLine < lines.Length ? lines[targetLine] : "";
-        var positionInLine = GetCursorPositionFromClick(gui, mousePos,
-            innerRect with { Y = innerRect.Y + targetLine * lineHeight }, targetLineText, fontSize);
-
-        return Math.Min(positionBeforeTargetLine + positionInLine, text.Length);
-    }
-
-    /// <summary>
-    /// A font that measures exactly what <see cref="Gui.DrawText"/> will draw. Measuring with the
-    /// default typeface instead drifts further from the glyphs the longer the line gets.
-    /// </summary>
-    private static SKFont MeasuringFont(Gui gui, float fontSize) =>
-        new(gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.SkFont.Typeface, fontSize);
-
-    private static float MeasureTextWidth(SKFont font, string text) =>
-        string.IsNullOrEmpty(text) ? 0f : font.MeasureText(text);
-
-    private static InputState HandleFocusAndClick(InputState state, InteractableElement interactable, Gui gui,
-        Func<Gui, Vector2, Rect, string, float, int> calculateCursorPosition, string text, float fontSize)
-    {
-        if (gui.Pass != Pass.Pass2Render) return state;
-
-        // Register this text input as focusable
-        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-
-        // Check if this control has focus from the focus manager
-        var hasFocus = gui.HasFocus();
-
-        var inner = gui.CurrentNode.InnerRect;
-
-        if (interactable.OnClick(out var clicks))
-        {
-            gui.RequestFocus(FocusReason.Mouse);
-            var at = calculateCursorPosition(gui, gui.Input.MousePosition, inner, text, fontSize);
-
-            if (clicks >= 3)
-            {
-                state.SelectAll();
-            }
-            else if (clicks == 2)
-            {
-                var (wordStart, wordEnd) = WordAt(text, at);
-                state.SelectionAnchor = wordStart;
-                state.CursorPosition = wordEnd;
-            }
-            else
-            {
-                state.MoveTo(at, extend: gui.Input.IsKeyDown(KeyboardKey.LeftShift));
-                state.IsSelecting = true;
-            }
-
-            state.ShowCursor = true;
-            state.BlinkTimer = 0f;
-        }
-
-        // Dragging after a press extends the selection to wherever the pointer is.
-        if (state.IsSelecting)
-        {
-            if (gui.Input.IsMouseButtonDown(MouseButton.Left))
-                state.MoveTo(calculateCursorPosition(gui, gui.Input.MousePosition, inner, text, fontSize), extend: true);
-            else
-                state.IsSelecting = false;
-        }
-
-        // Tabbing into a field selects its value, so typing replaces it. Clicking does not — hover was
-        // the wrong proxy, since moving the pointer away after a click also looked like a tab.
-        if (hasFocus && !state.IsFocused && gui.FocusReason == FocusReason.Keyboard) state.SelectAll();
-
-        state.IsFocused = hasFocus;
-
-        return state;
-    }
-
-    private static InputState HandleKeyboardInput(InputState state, Gui gui)
-    {
-        if (!state.IsFocused || gui.Pass != Pass.Pass2Render) return state;
-
-        // Update blink timer
-        UpdateCursorBlink(state, gui.Time.DeltaTime);
-
-        // Handle typed characters
-        gui.Input.GetTypedCharacters()
-            .Where(c => c >= 32 && c != 127) // Printable characters only
-            .Aggregate(state, (s, c) =>
-            {
-                // Insert replaces the selection, the way typing over selected text does everywhere.
-                s.Insert(c.ToString());
-                return s;
-            });
-
-        // Handle special keys
-        return HandleSpecialKeys(state, gui);
-    }
-
-    private static InputState HandleKeyboardInputMultiline(InputState state, Gui gui)
-    {
-        if (!state.IsFocused || gui.Pass != Pass.Pass2Render) return state;
-
-        // Update blink timer
-        UpdateCursorBlink(state, gui.Time.DeltaTime);
-
-        // Handle typed characters including newlines
-        gui.Input.GetTypedCharacters()
-            .Aggregate(state, (s, c) =>
-            {
-                if (c >= 32 && c != 127) // Printable characters
-                {
-                    s.Text = s.Text.Insert(s.CursorPosition, c.ToString());
-                    s.CursorPosition++;
-                }
-                else if (c is '\r' or '\n') // Handle Enter for new lines
-                {
-                    s.Text = s.Text.Insert(s.CursorPosition, "\n");
-                    s.CursorPosition++;
-                }
-
-                s.ShowCursor = true; // Show cursor when typing
-                s.BlinkTimer = 0f; // Reset blink timer
-                return s;
-            });
-
-        return HandleSpecialKeys(state, gui);
-    }
-
-    private static InputState HandleSpecialKeys(InputState state, Gui gui)
-    {
-        var extend = gui.Input.IsKeyDown(KeyboardKey.LeftShift) || gui.Input.IsKeyDown(KeyboardKey.RightShift);
-        var word = gui.Input.IsKeyDown(KeyboardKey.LeftControl) || gui.Input.IsKeyDown(KeyboardKey.RightControl);
-
-        if (HandleClipboard(state, gui, word)) return state;
-
-        if (gui.Input.IsKeyPressed(KeyboardKey.Backspace)) Backspace(state, word);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Delete)) ForwardDelete(state, word);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Left))
-            state.MoveTo(word ? WordBoundaryLeft(state) : Collapse(state, extend, forward: false), extend);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Right))
-            state.MoveTo(word ? WordBoundaryRight(state) : Collapse(state, extend, forward: true), extend);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Up)) MoveToLine(state, gui, -1);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Down)) MoveToLine(state, gui, 1);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Home)) state.MoveTo(LineStart(state), extend);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.End)) state.MoveTo(LineEnd(state), extend);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Escape)) state.IsFocused = false;
-        else return state;
-
-        state.ShowCursor = true;
-        state.BlinkTimer = 0f;
-        return state;
-    }
-
-    /// <summary>
-    /// A plain arrow key with a selection collapses to that edge rather than moving one character,
-    /// which is what every text field does.
-    /// </summary>
-    private static int Collapse(InputState state, bool extend, bool forward)
-    {
-        if (!extend && state.HasSelection) return forward ? state.SelectionEnd : state.SelectionStart;
-
-        return state.CursorPosition + (forward ? 1 : -1);
-    }
-
-    /// <summary>Returns the (row, column) of a position, splitting on line breaks.</summary>
-    private static (int Row, int Column) LineAndColumn(string[] lines, int position)
-    {
-        var offset = 0;
-        for (var row = 0; row < lines.Length; row++)
-        {
-            if (position <= offset + lines[row].Length) return (row, position - offset);
-            offset += lines[row].Length + 1;
-        }
-        return (lines.Length - 1, lines.Length > 0 ? lines[^1].Length : 0);
-    }
-
-    private static int PositionOfLine(string[] lines, int row) =>
-        lines.Take(row).Sum(line => line.Length + 1);
-
-    /// <summary>Moves the cursor a line up or down, keeping the column when the target line is long enough.</summary>
-    private static void MoveToLine(InputState state, Gui gui, int direction)
-    {
-        var extend = gui.Input.IsKeyDown(KeyboardKey.LeftShift) || gui.Input.IsKeyDown(KeyboardKey.RightShift);
-        var lines = state.Text.Split('\n');
-        var (row, column) = LineAndColumn(lines, state.CursorPosition);
-        var targetRow = Math.Clamp(row + direction, 0, lines.Length - 1);
-
-        if (targetRow == row)
-        {
-            state.MoveTo(direction < 0 ? 0 : state.Text.Length, extend);
-            return;
-        }
-
-        state.MoveTo(PositionOfLine(lines, targetRow) + Math.Min(column, lines[targetRow].Length), extend);
-    }
-
-    /// <summary>The start of the line the cursor is on.</summary>
-    private static int LineStart(InputState state)
-    {
-        var position = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
-        if (position <= 0) return 0;
-        return state.Text.LastIndexOf('\n', position - 1) + 1;
-    }
-
-    /// <summary>The end of the line the cursor is on.</summary>
-    private static int LineEnd(InputState state)
-    {
-        var position = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
-        var newline = state.Text.IndexOf('\n', position);
-        return newline < 0 ? state.Text.Length : newline;
-    }
-
-    private static void Backspace(InputState state, bool word)
-    {
-        if (state.DeleteSelection()) return;
-        if (state.CursorPosition <= 0) return;
-
-        var from = word ? WordBoundaryLeft(state) : state.CursorPosition - 1;
-        state.Text = state.Text.Remove(from, state.CursorPosition - from);
-        state.MoveTo(from, extend: false);
-    }
-
-    private static void ForwardDelete(InputState state, bool word)
-    {
-        if (state.DeleteSelection()) return;
-        if (state.CursorPosition >= state.Text.Length) return;
-
-        var to = word ? WordBoundaryRight(state) : state.CursorPosition + 1;
-        state.Text = state.Text.Remove(state.CursorPosition, to - state.CursorPosition);
-        state.MoveTo(state.CursorPosition, extend: false);
-    }
-
-    private static bool HandleClipboard(InputState state, Gui gui, bool control)
-    {
-        if (!control) return false;
-
-        if (gui.Input.IsKeyPressed(KeyboardKey.A))
-        {
-            state.SelectAll();
-            return true;
-        }
-
-        if (gui.Input.IsKeyPressed(KeyboardKey.C))
-        {
-            gui.Input.SetClipboardText(state.HasSelection ? state.SelectedText : state.Text);
-            return true;
-        }
-
-        if (gui.Input.IsKeyPressed(KeyboardKey.X))
-        {
-            gui.Input.SetClipboardText(state.HasSelection ? state.SelectedText : state.Text);
-            if (!state.DeleteSelection()) state.Text = string.Empty;
-            state.MoveTo(state.CursorPosition, extend: false);
-            return true;
-        }
-
-        if (gui.Input.IsKeyPressed(KeyboardKey.V))
-        {
-            var clipboard = gui.Input.GetClipboardText();
-            if (!string.IsNullOrEmpty(clipboard)) state.Insert(clipboard);
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>The start of the word to the cursor's left, skipping any run of spaces first.</summary>
-    private static int WordBoundaryLeft(InputState state)
-    {
-        var i = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
-        while (i > 0 && char.IsWhiteSpace(state.Text[i - 1])) i--;
-        while (i > 0 && !char.IsWhiteSpace(state.Text[i - 1])) i--;
-        return i;
-    }
-
-    /// <summary>The end of the word to the cursor's right, then any run of spaces after it.</summary>
-    private static int WordBoundaryRight(InputState state)
-    {
-        var i = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
-        while (i < state.Text.Length && !char.IsWhiteSpace(state.Text[i])) i++;
-        while (i < state.Text.Length && char.IsWhiteSpace(state.Text[i])) i++;
-        return i;
-    }
-
-    /// <summary>The run of word characters containing an index, for double-click selection.</summary>
-    private static (int Start, int End) WordAt(string text, int index)
-    {
-        if (text.Length == 0) return (0, 0);
-
-        var i = Math.Clamp(index, 0, text.Length - 1);
-        var start = i;
-        var end = i;
-
-        while (start > 0 && !char.IsWhiteSpace(text[start - 1])) start--;
-        while (end < text.Length && !char.IsWhiteSpace(text[end])) end++;
-
-        return (start, end);
-    }
 
     /// <summary>
     /// Shrinks the padding so it never eats the whole field. A short input keeps a little breathing
@@ -418,7 +12,7 @@ public static partial class ControlsExtensions
     private static float FitPadding(float height, float padding) =>
         height <= 0 ? padding : Math.Min(padding, Math.Max(2f, (height - 4f) / 2f));
 
-    private static void DrawInputBackground(Gui gui, InputState state, Color? backgroundColor, Color? borderColor)
+    private static void DrawInputBackground(Gui gui, TextEditState state, Color? backgroundColor, Color? borderColor)
     {
         var fill = backgroundColor ?? gui.Controls.Surface;
         var outline = borderColor ?? gui.Controls.Border;
@@ -443,35 +37,35 @@ public static partial class ControlsExtensions
         var align = gui.CurrentNode.Style.AlignContentHorizontal;
         if (align <= 0f) return innerRect.X;
 
-        var slack = Math.Max(0f, innerRect.W - MeasureTextWidth(font, text));
+        var slack = Math.Max(0f, innerRect.W - TextEditor.MeasureWidth(font, text));
         return innerRect.X + (slack * align);
     }
 
     /// <summary>Paints the selected run behind the glyphs, so the text stays readable over it.</summary>
-    private static void DrawSelection(Gui gui, InputState state, string text, float fontSize)
+    private static void DrawSelection(Gui gui, TextEditState state, string text, float fontSize)
     {
         if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render) return;
 
-        var font = MeasuringFont(gui, fontSize);
+        var font = TextEditor.MeasuringFont(gui, fontSize);
         var inner = gui.CurrentNode.InnerRect;
 
         var start = Math.Clamp(state.SelectionStart, 0, text.Length);
         var end = Math.Clamp(state.SelectionEnd, 0, text.Length);
 
-        var origin = TextOriginX(gui, font, text, inner);
-        var x1 = origin + MeasureTextWidth(font, text[..start]);
-        var x2 = origin + MeasureTextWidth(font, text[..end]);
+        var origin = TextEditor.TextOriginX(gui, font, text, inner);
+        var x1 = origin + TextEditor.MeasureWidth(font, text[..start]);
+        var x2 = origin + TextEditor.MeasureWidth(font, text[..end]);
 
         gui.DrawRect(new Rect(x1, inner.Y, Math.Max(1f, x2 - x1), inner.H),
             Color.FromArgb(110, gui.Controls.Accent));
     }
 
     /// <summary>Paints the selected run per line in a multi-line field, so text areas get the same highlight as inputs.</summary>
-    private static void DrawSelectionMultiline(Gui gui, InputState state, string text, float fontSize)
+    private static void DrawSelectionMultiline(Gui gui, TextEditState state, string text, float fontSize)
     {
         if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render) return;
 
-        var font = MeasuringFont(gui, fontSize);
+        var font = TextEditor.MeasuringFont(gui, fontSize);
         var lineHeight = fontSize * 1.2f;
         var inner = gui.CurrentNode.InnerRect;
 
@@ -480,8 +74,8 @@ public static partial class ControlsExtensions
         if (start == end) return;
 
         var lines = text.Split('\n');
-        var (startRow, startCol) = LineAndColumn(lines, start);
-        var (endRow, endCol) = LineAndColumn(lines, end);
+        var (startRow, startCol) = TextEditor.LineAndColumn(lines, start);
+        var (endRow, endCol) = TextEditor.LineAndColumn(lines, end);
 
         for (var row = startRow; row <= endRow && row < lines.Length; row++)
         {
@@ -489,8 +83,8 @@ public static partial class ControlsExtensions
             var colEnd = row == endRow ? endCol : lines[row].Length;
             if (colEnd <= colStart) continue;
 
-            var x1 = inner.X + MeasureTextWidth(font, lines[row][..colStart]);
-            var x2 = inner.X + MeasureTextWidth(font, lines[row][..colEnd]);
+            var x1 = inner.X + TextEditor.MeasureWidth(font, lines[row][..colStart]);
+            var x2 = inner.X + TextEditor.MeasureWidth(font, lines[row][..colEnd]);
             var y = inner.Y + row * lineHeight;
 
             gui.DrawRect(new Rect(x1, y, Math.Max(1f, x2 - x1), lineHeight),
@@ -510,27 +104,27 @@ public static partial class ControlsExtensions
             gui.DrawText(finalDisplayText, fontSize, finalColor, centerInRect: false);
     }
 
-    private static void DrawCursor(Gui gui, InputState state, string text, float fontSize, Color cursorColor)
+    private static void DrawCursor(Gui gui, TextEditState state, string text, float fontSize, Color cursorColor)
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 
-        var font = MeasuringFont(gui, fontSize);
+        var font = TextEditor.MeasuringFont(gui, fontSize);
         var textBeforeCursor = text.Substring(0, Math.Min(state.CursorPosition, text.Length));
-        var textWidth = MeasureTextWidth(font, textBeforeCursor);
+        var textWidth = TextEditor.MeasureWidth(font, textBeforeCursor);
 
         var innerRect = gui.CurrentNode.InnerRect;
-        var cursorX = TextOriginX(gui, font, text, innerRect) + textWidth;
+        var cursorX = TextEditor.TextOriginX(gui, font, text, innerRect) + textWidth;
         var cursorY1 = innerRect.Y;
         var cursorY2 = innerRect.Y + innerRect.H;
 
         gui.DrawRect(new Rect(cursorX, cursorY1, 1.5f, cursorY2 - cursorY1), cursorColor);
     }
 
-    private static void DrawCursorMultiline(Gui gui, InputState state, string text, float fontSize, Color? cursorColor)
+    private static void DrawCursorMultiline(Gui gui, TextEditState state, string text, float fontSize, Color? cursorColor)
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 
-        var font = MeasuringFont(gui, fontSize);
+        var font = TextEditor.MeasuringFont(gui, fontSize);
         var lineHeight = fontSize * 1.2f;
         var lines = text.Split('\n');
         var innerRect = gui.CurrentNode.InnerRect;
@@ -559,7 +153,7 @@ public static partial class ControlsExtensions
             ? lines[cursorLine].Substring(0, cursorColumn)
             : "";
 
-        var textWidth = MeasureTextWidth(font, textBeforeCursor);
+        var textWidth = TextEditor.MeasureWidth(font, textBeforeCursor);
         var cursorY = cursorLine * lineHeight + 2;
         var cursorHeight = Math.Max(2, lineHeight - 4);
 
@@ -587,18 +181,10 @@ public static partial class ControlsExtensions
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
                    .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
-            var state = GetOrCreateState(gui, nodeId, text);
-            var interactable = gui.GetInteractable();
+            var state = TextEditor.State(gui, nodeId, text);
 
-            if (enabled)
-            {
-                state = HandleFocusAndClick(state, interactable, gui, GetCursorPositionFromClick, state.Text, fontSize);
-                state = HandleKeyboardInput(state, gui);
-            }
-            else
-            {
-                state.IsFocused = false;
-            }
+            if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize);
+            else state.IsFocused = false;
 
             // Rendering
             DrawInputBackground(gui, state, backgroundColor, borderColor);
@@ -654,22 +240,12 @@ public static partial class ControlsExtensions
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
-            var state = GetOrCreateState(gui, nodeId, text);
-            var interactable = gui.GetInteractable();
+            var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled)
-            {
-                var stateTemp = state;
-                state = HandleFocusAndClick(state, interactable, gui,
-                    (g, mousePos, rect, _, textFontSize) => GetCursorPositionFromClick(g, mousePos, rect,
-                        new string(maskChar, stateTemp.Text.Length), textFontSize),
-                    state.Text, fontSize);
-                state = HandleKeyboardInput(state, gui);
-            }
-            else
-            {
-                state.IsFocused = false;
-            }
+                TextEditor.Process(gui, state, gui.GetInteractable(), fontSize,
+                    displayText: new string(maskChar, state.Text.Length));
+            else state.IsFocused = false;
 
             // Rendering with masked text
             var maskedText = new string(maskChar, state.Text.Length);
@@ -745,16 +321,9 @@ public static partial class ControlsExtensions
 
         using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
-            var state = GetOrCreateState(gui, nodeId, text);
-            var interactable = gui.GetInteractable();
+            var state = TextEditor.State(gui, nodeId, text);
 
-            // Only process input if enabled
-            if (enabled)
-            {
-                state = HandleFocusAndClick(state, interactable, gui, CalculateCursorPositionFromClickMultiline,
-                    state.Text, fontSize);
-                state = HandleKeyboardInputMultiline(state, gui);
-            }
+            if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize, multiline: true);
 
             // Rendering - let the parent handle clipping/scrolling to avoid nested contexts
             DrawInputBackground(gui, state, backgroundColor, borderColor);
@@ -810,6 +379,6 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void ClearInputStates(this Gui gui)
     {
-        gui.ClearControlStates<InputState>();
+        gui.ClearControlStates<TextEditState>();
     }
 }

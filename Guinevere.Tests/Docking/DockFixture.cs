@@ -40,8 +40,8 @@ public sealed class DockFixture
         var layout = new DockLayout();
         layout.DockAtEdge("scene", DockZone.Center);
         layout.DockAtEdge("tree", DockZone.Left, 0.2f);
-        layout.DockAtEdge("inspector", DockZone.Right, 0.25f);
-        layout.DockAtEdge("output", DockZone.Bottom, 0.25f);
+        layout.DockAtEdge("inspector", DockZone.Right);
+        layout.DockAtEdge("output", DockZone.Bottom);
         return layout;
     }
 

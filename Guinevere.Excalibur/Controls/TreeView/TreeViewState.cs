@@ -6,8 +6,8 @@ namespace Guinevere;
 /// </summary>
 public sealed class TreeViewState
 {
-    private readonly HashSet<string> collapsed = [];
-    private readonly HashSet<string> expanded = [];
+    private readonly HashSet<string> _collapsed = [];
+    private readonly HashSet<string> _expanded = [];
 
     /// <summary>The selected row's id, or null.</summary>
     public string? SelectedId { get; set; }
@@ -24,15 +24,15 @@ public sealed class TreeViewState
     /// <param name="depth">The row's nesting level.</param>
     public bool IsCollapsed(string id, int depth)
     {
-        if (collapsed.Contains(id)) return true;
-        if (expanded.Contains(id)) return false;
+        if (_collapsed.Contains(id)) return true;
+        if (_expanded.Contains(id)) return false;
 
         return depth >= DefaultExpandedDepth;
     }
 
     /// <summary>Whether a row was explicitly collapsed by the user.</summary>
     /// <param name="id">The row id.</param>
-    public bool IsCollapsed(string id) => collapsed.Contains(id);
+    public bool IsCollapsed(string id) => _collapsed.Contains(id);
 
     /// <summary>Collapses an expanded row, or expands a collapsed one.</summary>
     /// <param name="id">The row id.</param>
@@ -48,18 +48,18 @@ public sealed class TreeViewState
     /// <param name="expanded">True to expand.</param>
     public void SetExpanded(string id, bool expanded)
     {
-        collapsed.Remove(id);
-        this.expanded.Remove(id);
+        _collapsed.Remove(id);
+        _expanded.Remove(id);
 
-        if (expanded) this.expanded.Add(id);
-        else collapsed.Add(id);
+        if (expanded) _expanded.Add(id);
+        else _collapsed.Add(id);
     }
 
     /// <summary>Expands every row, whatever its depth.</summary>
     public void ExpandAll()
     {
-        collapsed.Clear();
-        expanded.Clear();
+        _collapsed.Clear();
+        _expanded.Clear();
         DefaultExpandedDepth = int.MaxValue;
     }
 

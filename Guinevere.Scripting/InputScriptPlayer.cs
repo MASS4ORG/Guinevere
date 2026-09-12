@@ -179,11 +179,11 @@ public sealed class InputScriptPlayer(
             return;
         }
 
-        var target = System.IO.Path.IsPathRooted(path) || outputDirectory is null
+        var target = Path.IsPathRooted(path) || outputDirectory is null
             ? path
-            : System.IO.Path.Combine(outputDirectory, path);
+            : Path.Combine(outputDirectory, path);
 
-        var directory = System.IO.Path.GetDirectoryName(target);
+        var directory = Path.GetDirectoryName(target);
         if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
 
         using var image = surface.Snapshot();

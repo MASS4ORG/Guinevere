@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Text;
 using Guinevere;
 using Guinevere.OpenGL.SilkNET;
+using GuinevereDemos;
 
 namespace Sample;
 
@@ -36,24 +37,18 @@ public abstract class Program
     private static void Draw(Gui gui)
     {
         gui.DrawWindowTitlebar();
+        DemoHeader.Header(gui, "Guinevere - Texts");
 
-        using (gui.Node().Expand().Direction(Axis.Vertical).Padding(20).Enter())
+        using (gui.Node().Expand().Enter())
         {
-            gui.DrawText("Guinevere Text & Text Effects", 24, Color.White);
-
-            gui.Node(10, 10); // Spacer
-
-            using (gui.Node().Expand().Enter())
+            gui.Tabs(ref _activeTabIndex, tabs =>
             {
-                gui.Tabs(ref _activeTabIndex, tabs =>
-                {
-                    tabs.Tab("Basic", () => BasicText(gui));
-                    tabs.Tab("Wrapping", () => Wrapping(gui));
-                    tabs.Tab("Color", () => ColorDemo(gui));
-                    tabs.Tab("Effects", () => TextEffects(gui));
-                    tabs.Tab("Long Content", () => LongContent(gui));
-                });
-            }
+                tabs.Tab("Basic", () => BasicText(gui));
+                tabs.Tab("Wrapping", () => Wrapping(gui));
+                tabs.Tab("Color", () => ColorDemo(gui));
+                tabs.Tab("Effects", () => TextEffects(gui));
+                tabs.Tab("Long Content", () => LongContent(gui));
+            });
         }
     }
 

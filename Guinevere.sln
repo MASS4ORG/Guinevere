@@ -26,9 +26,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-01-OpenGL-Raylib", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-01-OpenGL-SilkNet", "Samples\Sample-01-OpenGL-SilkNet\Sample-01-OpenGL-SilkNet.csproj", "{01EF4323-1FDE-44C3-9F2A-43CAEEC51B2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-03-Layout", "Samples\Sample-03-Layout\Sample-03-Layout.csproj", "{07EEFED1-40E4-4333-86AE-8D23055C8FE9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-02-Layout", "Samples\Sample-02-Layout\Sample-02-Layout.csproj", "{07EEFED1-40E4-4333-86AE-8D23055C8FE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-42-ResponsiveLayout", "Samples\Sample-42-ResponsiveLayout\Sample-42-ResponsiveLayout.csproj", "{366D543A-749B-4F38-8C2A-2263CA21E071}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-10-ResponsiveLayout", "Samples\Sample-10-ResponsiveLayout\Sample-10-ResponsiveLayout.csproj", "{366D543A-749B-4F38-8C2A-2263CA21E071}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-75-PaperUI-Dashboard", "Samples\Sample-75-PaperUI-Dashboard\Sample-75-PaperUI-Dashboard.csproj", "{9E95AC6D-B8FE-43F2-98D2-24F2C6A9EE75}"
 EndProject
@@ -46,15 +46,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guinevere.Vulkan.SilkNET", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-01-Vulkan-SilkNet", "Samples\Sample-01-Vulkan-SilkNet\Sample-01-Vulkan-SilkNet.csproj", "{421603C7-D474-4E8E-B9DA-13C39F1864D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-06-Animation", "Samples\Sample-06-Animation\Sample-06-Animation.csproj", "{570A4F50-16A0-4844-BB4B-866D91385E0C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-04-Animation", "Samples\Sample-04-Animation\Sample-04-Animation.csproj", "{570A4F50-16A0-4844-BB4B-866D91385E0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-60-Docking", "Samples\Sample-60-Docking\Sample-60-Docking.csproj", "{5A2C1B94-6D3E-4F71-9C88-2E4A7B31D560}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-51-Docking", "Samples\Sample-51-Docking\Sample-51-Docking.csproj", "{5A2C1B94-6D3E-4F71-9C88-2E4A7B31D560}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-51-Scroll", "Samples\Sample-51-Scroll\Sample-51-Scroll.csproj", "{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-03-Texts", "Samples\Sample-03-Texts\Sample-03-Texts.csproj", "{448E25EF-F81A-40B0-8566-DEC1CA1FC2F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-04-Texts", "Samples\Sample-04-Texts\Sample-04-Texts.csproj", "{448E25EF-F81A-40B0-8566-DEC1CA1FC2F9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-50-Controls", "Samples\Sample-50-Controls\Sample-50-Controls.csproj", "{6EC47077-5185-4BCA-BA1B-9610D5D10BFC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-50-Excalibur-Controls", "Samples\Sample-50-Excalibur-Controls\Sample-50-Excalibur-Controls.csproj", "{6EC47077-5185-4BCA-BA1B-9610D5D10BFC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guinevere.Excalibur", "Guinevere.Excalibur\Guinevere.Excalibur.csproj", "{5093E30F-7B4B-479C-A941-DAD2ECF97437}"
 EndProject
@@ -340,18 +338,6 @@ Global
 		{5A2C1B94-6D3E-4F71-9C88-2E4A7B31D560}.Release|x64.Build.0 = Release|Any CPU
 		{5A2C1B94-6D3E-4F71-9C88-2E4A7B31D560}.Release|x86.ActiveCfg = Release|Any CPU
 		{5A2C1B94-6D3E-4F71-9C88-2E4A7B31D560}.Release|x86.Build.0 = Release|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Debug|x64.Build.0 = Debug|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Debug|x86.Build.0 = Debug|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Release|x64.ActiveCfg = Release|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Release|x64.Build.0 = Release|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Release|x86.ActiveCfg = Release|Any CPU
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8}.Release|x86.Build.0 = Release|Any CPU
 		{448E25EF-F81A-40B0-8566-DEC1CA1FC2F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{448E25EF-F81A-40B0-8566-DEC1CA1FC2F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{448E25EF-F81A-40B0-8566-DEC1CA1FC2F9}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -412,7 +398,6 @@ Global
 		{421603C7-D474-4E8E-B9DA-13C39F1864D4} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
 		{570A4F50-16A0-4844-BB4B-866D91385E0C} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
 		{5A2C1B94-6D3E-4F71-9C88-2E4A7B31D560} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
-		{3D57DC36-2F8D-4EF4-9C93-CC020900A8B8} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
 		{448E25EF-F81A-40B0-8566-DEC1CA1FC2F9} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
 		{6EC47077-5185-4BCA-BA1B-9610D5D10BFC} = {F337FCC2-DE28-4E95-8700-24A64E69EE3F}
 	EndGlobalSection

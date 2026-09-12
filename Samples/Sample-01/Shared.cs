@@ -1,4 +1,5 @@
 ﻿using Guinevere;
+using GuinevereDemos;
 
 namespace Sample_01;
 
@@ -6,6 +7,8 @@ public class Shared(Gui gui)
 {
     public void Draw()
     {
+        DemoHeader.Header(gui, "Guinevere");
+
         if (gui.Pass == Pass.Pass2Render && gui.Time.Elapsed % 1 < Math.Min(gui.Time.DeltaTime, .01f))
         {
             Console.WriteLine($"FPS {(gui.Time.SmoothFps):N0}");
@@ -37,8 +40,6 @@ public class Shared(Gui gui)
                        .Enter())
             {
                 gui.DrawBackgroundRect(Color.Green);
-
-                gui.DrawText($"FPS\n{(gui.Time.SmoothFps):N0}");
             }
 
             // 4. Test conditional rendering based on input

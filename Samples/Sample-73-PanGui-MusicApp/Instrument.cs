@@ -11,5 +11,5 @@ internal struct Instrument
     public int KeyStart;
     public int KeyLength;
     public Effect[] Effects;
-    public ADSR adsr;
+    public Adsr Adsr;
 }

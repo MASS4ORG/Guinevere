@@ -13,7 +13,7 @@ public partial class Program
     private readonly float _borderRadius = 5;
     private readonly Font _arialNormal = Font.LoadFont("arial");
     private readonly Font _arialBold = Font.LoadFont("arialbd");
-    private readonly Font fonts = Font.LoadFont("fa-regular-400");
+    private readonly Font _fonts = Font.LoadFont("fa-regular-400");
     private Gui _gui = null!;
     private GuiWindow _window = null!;
 
@@ -65,7 +65,7 @@ public partial class Program
                 // Draw the pad player
                 using (_gui.Node().ExpandWidth().Enter())
                 {
-                    DrawPadPlayer(padPlayer);
+                    DrawPadPlayer(_padPlayer);
                 }
             }
         }
@@ -91,13 +91,13 @@ public partial class Program
                 // The mask to cut off some of the snapshot buttons with
                 ShapePos mask = pianoBgShape.Expand(10);
 
-                DrawSnapshotButton(snapshots[0], default);
-                DrawSnapshotButton(snapshots[1], default);
-                DrawSnapshotButton(snapshots[2], mask);
+                DrawSnapshotButton(_snapshots[0], default);
+                DrawSnapshotButton(_snapshots[1], default);
+                DrawSnapshotButton(_snapshots[2], mask);
                 pianoButtonsLayoutNode = _gui.Node().ExpandHeight();
-                DrawSnapshotButton(snapshots[3], mask);
-                DrawSnapshotButton(snapshots[4], default);
-                DrawSnapshotButton(snapshots[5], default);
+                DrawSnapshotButton(_snapshots[3], mask);
+                DrawSnapshotButton(_snapshots[4], default);
+                DrawSnapshotButton(_snapshots[5], default);
             }
             ...
 
@@ -194,7 +194,7 @@ public partial class Program
                     _gui.DrawText(instrument.Name);
                     _gui.DrawRect(graphRect.Expand(1), 4, 0x00000088);
 
-                    DrawAdsrGraph(graphRect, instrument.adsr,
+                    DrawAdsrGraph(graphRect, instrument.Adsr,
                         new Color(instrument.Color, 0.4f + graphHover * 0.4f));
 
                     if (graphInteractable.OnClick())
@@ -208,7 +208,7 @@ public partial class Program
 
                         using (adsrPopup.BodyContainer.Enter())
                         {
-                            DrawAdsrSettings(instrument.adsr);
+                            DrawAdsrSettings(instrument.Adsr);
                         }
                     }
                 }
@@ -301,7 +301,7 @@ public partial class Program
         }
     }
 
-    private unsafe void DrawAdsrGraph(Rect graphRect, ADSR adsr, Color color)
+    private unsafe void DrawAdsrGraph(Rect graphRect, Adsr adsr, Color color)
     {
         Color colGradientTop = new Color(color, color.A * 0.4f);
         Color colGradientBottom = new Color(color, 0);
@@ -361,7 +361,7 @@ public partial class Program
         }
     }
 
-    private unsafe void DrawAdsrSettings(ADSR adsr)
+    private unsafe void DrawAdsrSettings(Adsr adsr)
     {
         // Draws the Attack, Decay, Sustain, Release settings for the selected instrument.
         Rect graphRect = _gui.Node(700, 300).MarginBottom(_gap).Rect;

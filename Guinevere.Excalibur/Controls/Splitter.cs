@@ -28,7 +28,7 @@ public static partial class ControlsExtensions
         var horizontal = axis == Axis.Horizontal;
 
         var node = horizontal
-            ? gui.Node(thickness, -1, filePath: filePath, lineNumber: lineNumber).ExpandHeight()
+            ? gui.Node(thickness, filePath: filePath, lineNumber: lineNumber).ExpandHeight()
             : gui.Node(-1, thickness, filePath: filePath, lineNumber: lineNumber).ExpandWidth();
 
         using (node.Enter())

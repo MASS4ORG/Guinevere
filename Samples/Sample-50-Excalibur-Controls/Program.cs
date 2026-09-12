@@ -1,5 +1,6 @@
 using Guinevere;
 using Guinevere.OpenGL.SilkNET;
+using GuinevereDemos;
 
 namespace Controls_01;
 
@@ -10,9 +11,7 @@ namespace Controls_01;
 /// </summary>
 public abstract partial class Program
 {
-    private static Color _sectionColor = Color.DarkGray;
-
-    private static readonly Bitmap Badge = LoadBadge();
+    private static readonly Color SectionColor = Color.DarkGray;
 
     public static void Main()
     {
@@ -23,28 +22,9 @@ public abstract partial class Program
         win.RunGui(() => Draw(gui));
     }
 
-    private static Bitmap LoadBadge()
-    {
-        // The badge sits at the repository root; walk up from the output directory to find it.
-        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-        {
-            var file = Path.Combine(dir.FullName, "guinevere-badge.png");
-            if (File.Exists(file)) return Bitmap.FromFile(file);
-        }
-
-        return Bitmap.FromFile("guinevere-badge.png");
-    }
-
     private static void Draw(Gui gui)
     {
-        using (gui.Node().Height(40).Padding(15, 0).Direction(Axis.Horizontal)
-                   .ContentAlignY(0.5f).Gap(8).Enter())
-        {
-            gui.Image(Badge, width: 26, height: 26);
-            gui.DrawText("Guinevere Excalibur", 16, Color.White);
-            gui.Node().Expand();
-            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Color.White);
-        }
+        DemoHeader.Header(gui, "Guinevere Excalibur");
 
         using (gui.Node().Expand().Enter())
         {
@@ -75,7 +55,7 @@ public abstract partial class Program
         using (gui.Node().ExpandWidth().Margin(5).Padding(5).Enter())
         {
             gui.DrawText(title, size: 18, color: Color.FromArgb(255, 51, 51, 51)).MarginBottom(5);
-            gui.DrawBackgroundRect(_sectionColor, 5);
+            gui.DrawBackgroundRect(SectionColor, 5);
             body();
         }
     }

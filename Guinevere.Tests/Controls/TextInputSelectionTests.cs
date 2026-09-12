@@ -9,24 +9,24 @@ namespace Guinevere.Tests.Controls;
 public class TextInputSelectionTests
 {
     /// <summary>A non-default typeface on purpose: caret maths measured with the wrong one drifts.</summary>
-    private static readonly Font TestFont = Font.FromFamilyName("serif", 12);
+    private static readonly Font TestFont = Font.FromFamilyName("serif");
 
     private sealed class Field
     {
-        private readonly SKSurface surface = SKSurface.Create(new SKImageInfo(300, 60));
-        private readonly IInputHandler input = Substitute.For<IInputHandler>();
-        private readonly TestableGui gui;
-        private readonly string id = $"field/{Guid.NewGuid():N}";
+        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(300, 60));
+        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        private readonly TestableGui _gui;
+        private readonly string _id = $"field/{Guid.NewGuid():N}";
 
         public Field(string initial)
         {
-            gui = new TestableGui { Input = input };
-            gui.SetScreenRect(300, 60);
+            _gui = new TestableGui { Input = _input };
+            _gui.SetScreenRect(300, 60);
             Text = initial;
 
-            input.MousePosition.Returns(new Vector2(-100, -100));
-            input.PrevMousePosition.Returns(new Vector2(-100, -100));
-            input.GetTypedCharacters().Returns(string.Empty);
+            _input.MousePosition.Returns(new Vector2(-100, -100));
+            _input.PrevMousePosition.Returns(new Vector2(-100, -100));
+            _input.GetTypedCharacters().Returns(string.Empty);
 
             // Focus comes from a click on the field.
             Frame(mouse: new Vector2(150, 15), pressed: true);
@@ -42,18 +42,18 @@ public class TextInputSelectionTests
         public void Frame(Vector2? mouse = null, bool pressed = false, KeyboardKey? press = null,
             bool shift = false, bool control = false, string typed = "")
         {
-            input.MousePosition.Returns(mouse ?? new Vector2(-100, -100));
-            input.PrevMousePosition.Returns(mouse ?? new Vector2(-100, -100));
-            input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
-            input.IsMouseButtonDown(MouseButton.Left).Returns(pressed);
-            input.GetTypedCharacters().Returns(typed);
-            input.GetClipboardText().Returns(_ => Clipboard);
-            input.When(i => i.SetClipboardText(Arg.Any<string>()))
+            _input.MousePosition.Returns(mouse ?? new Vector2(-100, -100));
+            _input.PrevMousePosition.Returns(mouse ?? new Vector2(-100, -100));
+            _input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
+            _input.IsMouseButtonDown(MouseButton.Left).Returns(pressed);
+            _input.GetTypedCharacters().Returns(typed);
+            _input.GetClipboardText().Returns(_ => Clipboard);
+            _input.When(i => i.SetClipboardText(Arg.Any<string>()))
                 .Do(call => Clipboard = call.Arg<string>());
 
-            input.IsKeyPressed(Arg.Any<KeyboardKey>())
+            _input.IsKeyPressed(Arg.Any<KeyboardKey>())
                 .Returns(call => press is not null && call.Arg<KeyboardKey>() == press);
-            input.IsKeyDown(Arg.Any<KeyboardKey>()).Returns(call => call.Arg<KeyboardKey>() switch
+            _input.IsKeyDown(Arg.Any<KeyboardKey>()).Returns(call => call.Arg<KeyboardKey>() switch
             {
                 KeyboardKey.LeftShift => shift,
                 KeyboardKey.LeftControl => control,
@@ -62,17 +62,17 @@ public class TextInputSelectionTests
 
             var text = Text;
 
-            void Draw() => gui.TextInput(ref text, width: 280, height: 24, fontSize: 12, id: id);
+            void Draw() => _gui.TextInput(ref text, width: 280, height: 24, fontSize: 12, id: _id);
 
-            gui.Time.Update(0.016);
-            gui.SetStage(Pass.Pass1Build);
-            gui.BeginFrame(surface.Canvas, TestFont);
+            _gui.Time.Update(0.016);
+            _gui.SetStage(Pass.Pass1Build);
+            _gui.BeginFrame(_surface.Canvas, TestFont);
             Draw();
-            gui.CalculateLayout();
-            gui.SetStage(Pass.Pass2Render);
+            _gui.CalculateLayout();
+            _gui.SetStage(Pass.Pass2Render);
             Draw();
-            gui.Render();
-            gui.EndFrame();
+            _gui.Render();
+            _gui.EndFrame();
 
             Text = text;
         }

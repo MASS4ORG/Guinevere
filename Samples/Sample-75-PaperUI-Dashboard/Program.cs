@@ -1,4 +1,3 @@
-using System.Numerics;
 using Guinevere;
 using Guinevere.OpenGL.SilkNET;
 

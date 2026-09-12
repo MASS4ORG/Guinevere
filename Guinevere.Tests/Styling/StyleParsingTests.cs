@@ -42,9 +42,9 @@ public class StyleParsingTests
     {
         var s = Selector.Parse("Button.primary.big:hover");
 
-        Assert.True(s.Matches(new StyleTarget("Button", null, new[] { "primary", "big", "x" }, StyleState.Hover)));
-        Assert.False(s.Matches(new StyleTarget("Button", null, new[] { "primary", "big" })));
-        Assert.False(s.Matches(new StyleTarget("Label", null, new[] { "primary", "big" }, StyleState.Hover)));
+        Assert.True(s.Matches(new StyleTarget("Button", null, ["primary", "big", "x"], StyleState.Hover)));
+        Assert.False(s.Matches(new StyleTarget("Button", null, ["primary", "big"])));
+        Assert.False(s.Matches(new StyleTarget("Label", null, ["primary", "big"], StyleState.Hover)));
     }
 
     /// <summary>

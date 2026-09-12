@@ -11,13 +11,13 @@ public static partial class ControlsExtensions
         public int HoveredIndex { get; set; } = -1;
 
         /// <summary>The button's rect as last measured, which is where the list anchors.</summary>
-        public Rect ButtonRect { get; set; } = new(0, 0, 0, 0);
+        public Rect ButtonRect { get; set; } = new();
 
         /// <summary>
         /// The anchor both passes of the current frame use. A node's rect only resolves in the render
         /// pass, so reading it directly would place the list differently in each pass.
         /// </summary>
-        public Rect Anchor { get; set; } = new(0, 0, 0, 0);
+        public Rect Anchor { get; set; } = new();
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public static partial class ControlsExtensions
             fontSize, padding, borderRadius, state, enabled);
 
         if (state.IsOpen && !enabled) state.IsOpen = false;
-        if (!enabled || state.IsOpen == false || state.Anchor.W <= 0) return;
+        if (!enabled || !state.IsOpen || state.Anchor.W <= 0) return;
 
         DrawList(gui, id, options, ref selectedIndex, state.Anchor, height,
             dropdownColor ?? palette.Popup, borderColor ?? palette.Border,

@@ -262,10 +262,8 @@ public static partial class ControlsExtensions
             if (hasCheckColumn)
             {
                 using (gui.Node(14f).Enter())
-                {
-                    var check = item.IsChecked?.Invoke() == true ? "✓" : "";
-                    gui.DrawText(check, fontSize, itemColor, centerInRect: true);
-                }
+                    if (gui.Pass == Pass.Pass2Render && item.IsChecked?.Invoke() == true)
+                        DrawTick(gui, gui.CurrentNode.Rect, itemColor ?? Color.Black);
             }
 
             gui.DrawText(item.Text, fontSize, itemColor, centerInRect: false);
@@ -273,10 +271,42 @@ public static partial class ControlsExtensions
             gui.Node().Expand();
 
             if (item.HasSubmenu)
-                gui.DrawText("▶", fontSize * 0.8f, itemColor, centerInRect: false);
+            {
+                using (gui.Node(fontSize).Enter())
+                    if (gui.Pass == Pass.Pass2Render)
+                        DrawSubmenuArrow(gui, gui.CurrentNode.Rect, itemColor ?? Color.Black);
+            }
             else if (!string.IsNullOrEmpty(item.Shortcut))
                 gui.DrawText(item.Shortcut, fontSize * 0.9f, Color.Gray, centerInRect: false);
         }
+    }
+
+    /// <summary>
+    /// The tick beside a checked item, drawn rather than typed. A host's font often has no U+2713, and
+    /// a missing glyph renders as a blank box in the middle of the menu.
+    /// </summary>
+    private static void DrawTick(Gui gui, Rect rect, Color color)
+    {
+        var x = rect.X + (rect.W * 0.22f);
+        var y = rect.Y + (rect.H * 0.52f);
+        var mid = new Vector2(rect.X + (rect.W * 0.42f), rect.Y + (rect.H * 0.72f));
+
+        gui.DrawLine(new Vector2(x, y), mid, color, 1.6f);
+        gui.DrawLine(mid, new Vector2(rect.X + (rect.W * 0.80f), rect.Y + (rect.H * 0.28f)), color, 1.6f);
+    }
+
+    /// <summary>The right-pointing arrow marking a submenu, drawn for the same reason as the tick.</summary>
+    private static void DrawSubmenuArrow(Gui gui, Rect rect, Color color)
+    {
+        var size = Math.Min(rect.W, rect.H) * 0.42f;
+        var cx = rect.X + (rect.W * 0.5f);
+        var cy = rect.Y + (rect.H * 0.5f);
+
+        gui.DrawTriangleFilled(
+            new Vector2(cx - (size * 0.5f), cy - size),
+            new Vector2(cx - (size * 0.5f), cy + size),
+            new Vector2(cx + (size * 0.8f), cy),
+            color);
     }
 
     private static void HandleMenuKeyboard(Gui gui, MenuBarState state, List<FlyoutItem> items)

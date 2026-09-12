@@ -1,6 +1,6 @@
 namespace Sample_73_PanGui_MusicApp;
 
-internal class ADSR
+internal class Adsr
 {
     public float Attack = 0.3f;
     public float Decay = 0.3f;

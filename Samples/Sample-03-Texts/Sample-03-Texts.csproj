@@ -5,8 +5,8 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>$(MSBuildProjectName.Replace("-", "_"))</RootNamespace>
         <IsPackable>false</IsPackable>
+        <RootNamespace>Sample-04-Texts</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

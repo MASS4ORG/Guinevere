@@ -217,9 +217,9 @@ public static partial class ControlsExtensions
                 if (isSelected) gui.DrawBackgroundRect(theme.Selected, 2);
                 else if (interactable.OnHover()) gui.DrawBackgroundRect(theme.Hover, 2);
 
-                Report(gui, state, item, interactable, MouseButton.Left, onClick);
-                Report(gui, state, item, interactable, MouseButton.Right, onClick);
-                Report(gui, state, item, interactable, MouseButton.Middle, onClick);
+                Report(state, item, interactable, MouseButton.Left, onClick);
+                Report(state, item, interactable, MouseButton.Right, onClick);
+                Report(state, item, interactable, MouseButton.Middle, onClick);
             }
 
             Expander(gui, state, theme, item, row);
@@ -243,7 +243,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void Report(Gui gui, TreeViewState state, TreeItem item, InteractableElement interactable,
+    private static void Report(TreeViewState state, TreeItem item, InteractableElement interactable,
         MouseButton button, Action<TreeViewEvent>? onClick)
     {
         if (!interactable.OnClick(out var clicks, button)) return;

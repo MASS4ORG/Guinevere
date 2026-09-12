@@ -1,6 +1,7 @@
 using Guinevere;
 using Guinevere.OpenGL.SilkNET;
 using Axis = Guinevere.Axis;
+using GuinevereDemos;
 
 namespace Sample_03_ChildrenLayout;
 
@@ -14,7 +15,7 @@ public abstract class Program
     public static void Main()
     {
         var gui = new Gui();
-        using var win = new GuiWindow(gui, 800, 800, "Children Layout Demo");
+        using var win = new GuiWindow(gui, 800, 800, "Layout");
 
         win.RunGui(() => Draw(gui));
     }
@@ -22,6 +23,7 @@ public abstract class Program
     private static void Draw(Gui gui)
     {
         gui.DrawWindowTitlebar();
+        DemoHeader.Header(gui, "Guinevere - Layout");
 
         using (gui.Node().Expand().Enter())
         {
@@ -41,48 +43,48 @@ public abstract class Program
             // Test single value (affects both axes)
             using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
             {
-                CreateLayout(gui, 0.0f, 0.0f, "Vertical: AlignContent(0.0)", Color.LightBlue, Axis.Vertical);
-                CreateLayout(gui, 0.5f, 0.5f, "Vertical: AlignContent(0.5)", Color.LightGreen, Axis.Vertical);
-                CreateLayout(gui, 1.0f, 1.0f, "Vertical: AlignContent(1.0)", Color.LightCoral, Axis.Vertical);
+                CreateLayout(gui, 0.0f, 0.0f, Axis.Vertical);
+                CreateLayout(gui, 0.5f, 0.5f, Axis.Vertical);
+                CreateLayout(gui, 1.0f, 1.0f, Axis.Vertical);
             }
 
             // Test separate horizontal/vertical values
             using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
             {
-                CreateLayout(gui, 0.0f, 1.0f, "Vertical: H=0.0, V=1.0", Color.LightSalmon, Axis.Vertical);
-                CreateLayout(gui, 1.0f, 0.0f, "Vertical: H=1.0, V=0.0", Color.LightSteelBlue, Axis.Vertical);
-                CreateLayout(gui, 0.5f, 0.2f, "Vertical: H=0.5, V=0.2", Color.LightSeaGreen, Axis.Vertical);
+                CreateLayout(gui, 0.0f, 1.0f, Axis.Vertical);
+                CreateLayout(gui, 1.0f, 0.0f, Axis.Vertical);
+                CreateLayout(gui, 0.5f, 0.2f, Axis.Vertical);
             }
 
             // Test horizontal layouts with separate values
             using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
             {
-                CreateLayout(gui, 0.0f, 0.0f, "Horizontal: AlignContent(0.0)", Color.LightBlue, Axis.Horizontal);
-                CreateLayout(gui, 0.5f, 0.5f, "Horizontal: AlignContent(0.5)", Color.LightGreen, Axis.Horizontal);
-                CreateLayout(gui, 1.0f, 1.0f, "Horizontal: AlignContent(1.0)", Color.LightCoral, Axis.Horizontal);
+                CreateLayout(gui, 0.0f, 0.0f, Axis.Horizontal);
+                CreateLayout(gui, 0.5f, 0.5f, Axis.Horizontal);
+                CreateLayout(gui, 1.0f, 1.0f, Axis.Horizontal);
             }
 
             // Test separate horizontal/vertical values
             using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
             {
-                CreateLayout(gui, 0.0f, 1.0f, "Horizontal: H=0.0, V=1.0", Color.LightSalmon, Axis.Horizontal);
-                CreateLayout(gui, 1.0f, 0.0f, "Horizontal: H=1.0, V=0.0", Color.LightSteelBlue, Axis.Horizontal);
-                CreateLayout(gui, 0.5f, 0.2f, "Horizontal: H=0.5, V=0.2", Color.LightSeaGreen, Axis.Horizontal);
+                CreateLayout(gui, 0.0f, 1.0f, Axis.Horizontal);
+                CreateLayout(gui, 1.0f, 0.0f, Axis.Horizontal);
+                CreateLayout(gui, 0.5f, 0.2f, Axis.Horizontal);
             }
         }
     }
 
-    private static void CreateLayout(Gui gui, float alignHorizontal, float alignVertical, string title,
-        Color backgroundColor, Axis axis)
+    private static void CreateLayout(Gui gui, float alignHorizontal, float alignVertical, Axis axis)
     {
         using (gui.Node().ExpandWidth().Height(150).Margin(5).Enter())
         {
-            gui.DrawBackgroundRect(backgroundColor, radius: 5);
+            gui.DrawBackgroundRect(Color.DarkGray, radius: 5);
 
-            // Title
-            using (gui.Node().Height(25).Enter())
+            using (gui.Node().Height(25).AlignContent(0, .5f).Enter())
             {
-                gui.DrawText(title, color: Color.Black, size: 12);
+                gui.DrawText(
+                    $".Direction(axis.{axis})\n.AlignContent({alignHorizontal}, {alignVertical}))",
+                    color: Color.Black, size: 12);
             }
 
             // Container with vertical layout and AlignContent

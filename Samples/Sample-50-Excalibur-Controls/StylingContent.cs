@@ -8,9 +8,9 @@ public abstract partial class Program
                                  /* variables */
                                  --bg:        #12151d;
                                  --card:      #202634;
-                                 --btn:       #39435a;
-                                 --btn-hover: #4a90e2;
-                                 --btn-down:  #2f6fc0;
+                                 --btn:       #ff0000;
+                                 --btn-hover: #00ff00;
+                                 --btn-down:  #0000ff;
                                  --border:    #556080;
 
                                  #root {
@@ -50,13 +50,13 @@ public abstract partial class Program
         {
             gui.DrawText("USS-styled widgets", 24, Color.FromArgb(255, 236, 238, 243));
 
-            using (gui.StyledNode("VisualElement", new[] { "card" }).Enter())
+            using (gui.StyledNode("VisualElement", ["card"]).Enter())
             {
                 gui.DrawText(
                     "A .card panel — padding, radius and background come from the stylesheet. Hover a .btn to see the :hover rule.",
                     14, Color.FromArgb(255, 154, 160, 166));
 
-                using (gui.StyledNode("VisualElement", new[] { "row" }).Enter())
+                using (gui.StyledNode("VisualElement", ["row"]).Enter())
                 {
                     StyledBtn(gui, "Normal", null);
                     StyledBtn(gui, "Primary", "primary");

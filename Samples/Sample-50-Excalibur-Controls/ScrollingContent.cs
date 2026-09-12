@@ -5,7 +5,6 @@ namespace Controls_01;
 public abstract partial class Program
 {
     private static int _scrollDemo;
-    private static float _scrollPercentage = 0.5f;
     private static string _scrollNodeId = "";
     private static readonly string[] ScrollDemoNames = ["List", "Nested", "Programmatic"];
 
@@ -35,7 +34,6 @@ public abstract partial class Program
                             if (gui.GetInteractable().OnClick())
                             {
                                 _scrollDemo = i;
-                                _scrollPercentage = 0.5f;
                             }
                         }
                     }
@@ -47,19 +45,16 @@ public abstract partial class Program
                         if (ProgrammaticButton(gui, "Top"))
                         {
                             gui.ScrollToTop(_scrollNodeId);
-                            _scrollPercentage = 0;
                         }
 
                         if (ProgrammaticButton(gui, "Mid"))
                         {
                             gui.SetScrollPercentage(_scrollNodeId, Axis.Vertical, 0.5f);
-                            _scrollPercentage = 0.5f;
                         }
 
                         if (ProgrammaticButton(gui, "Bottom"))
                         {
                             gui.ScrollToBottom(_scrollNodeId);
-                            _scrollPercentage = 1;
                         }
                     }
                 }
@@ -198,7 +193,6 @@ public abstract partial class Program
 
                 gui.ScrollContainer(scrollY: true);
                 _scrollNodeId = gui.CurrentNode.Id;
-                _scrollPercentage = gui.GetScrollPercentage(_scrollNodeId, Axis.Vertical);
 
                 for (var i = 0; i < 80; i++)
                 {
@@ -212,7 +206,6 @@ public abstract partial class Program
                         {
                             var target = i / 79f;
                             gui.SetScrollPercentage(_scrollNodeId, Axis.Vertical, target);
-                            _scrollPercentage = target;
                         }
                     }
                 }

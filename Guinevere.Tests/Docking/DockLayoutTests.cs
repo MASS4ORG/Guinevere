@@ -11,7 +11,7 @@ public class DockLayoutTests
         var layout = new DockLayout();
         layout.DockAtEdge("scene", DockZone.Center);
         layout.DockAtEdge("tree", DockZone.Left, 0.2f);
-        layout.DockAtEdge("inspector", DockZone.Right, 0.25f);
+        layout.DockAtEdge("inspector", DockZone.Right);
         return layout;
     }
 
