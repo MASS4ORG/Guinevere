@@ -8,6 +8,8 @@ public abstract partial class Program
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(16).Padding(10).Enter())
         {
+            Section(gui, "Toasts & Tooltips", () => ToastTooltipContent(gui));
+
             Section(gui, "Determinate Progress", () =>
             {
                 using (gui.Node().Direction(Axis.Vertical).Gap(12).Enter())
@@ -69,21 +71,70 @@ public abstract partial class Program
                         fillColor: Color.FromArgb(255, 76, 175, 80));
                 }
             });
+        }
+    }
 
-            Section(gui, "Custom Colors & Sizes", () =>
+    private static void ToastTooltipContent(Gui gui)
+    {
+        using (gui.Node().Direction(Axis.Vertical).Gap(10).Enter())
+        {
+            gui.DrawText(
+                "Toasts are transient, corner-pinned notifications. Re-triggering the same one " +
+                "refreshes its lifetime instead of stacking. Click a toast to dismiss it.",
+                size: 12, color: Color.FromArgb(255, 102, 102, 102), wrapWidth: 620);
+
+            using (gui.Node().Direction(Axis.Horizontal).Gap(8).Enter())
             {
-                using (gui.Node().Direction(Axis.Vertical).Gap(10).Enter())
-                {
-                    gui.ProgressBar(0.82f, height: 4, fillColor: Color.FromArgb(255, 156, 39, 176));
-                    gui.ProgressBar(0.82f, height: 8, fillColor: Color.FromArgb(255, 156, 39, 176));
-                    gui.ProgressBar(0.82f, height: 16,
-                        trackColor: Color.FromArgb(255, 238, 238, 238),
-                        fillColor: Color.FromArgb(255, 156, 39, 176));
-                    gui.ProgressBar(0.5f, height: 12,
-                        trackColor: Color.FromArgb(255, 255, 235, 59),
-                        fillColor: Color.FromArgb(255, 244, 67, 54));
-                }
-            });
+                if (gui.Button("Info", width: 80, height: 26))
+                    gui.Toast("Here is some information", new ToastOptions
+                    {
+                        Corner = ToastCorner.BottomRight,
+                        AccentColor = Color.FromArgb(255, 33, 150, 243)
+                    });
+
+                if (gui.Button("Success", width: 80, height: 26))
+                    gui.Toast("Operation completed successfully!", new ToastOptions
+                    {
+                        Corner = ToastCorner.BottomRight,
+                        AccentColor = Color.FromArgb(255, 76, 175, 80)
+                    });
+
+                if (gui.Button("Warning", width: 80, height: 26))
+                    gui.Toast("Something needs your attention", new ToastOptions
+                    {
+                        Corner = ToastCorner.TopRight,
+                        AccentColor = Color.FromArgb(255, 255, 152, 0)
+                    });
+
+                if (gui.Button("Danger", width: 80, height: 26))
+                    gui.Toast("That action could not be completed", new ToastOptions
+                    {
+                        Corner = ToastCorner.BottomLeft,
+                        AccentColor = Color.FromArgb(255, 229, 57, 53)
+                    });
+
+                if (gui.Button("Clear", width: 80, height: 26))
+                    gui.ClearToasts();
+            }
+
+            gui.Node(0, 6);
+
+            gui.DrawText("Hover the button below — its tooltip appears after a short delay.",
+                size: 12, color: Color.FromArgb(255, 102, 102, 102));
+
+            LayoutNode tooltipAnchor;
+            using (gui.Node(180, 28).Enter())
+            {
+                tooltipAnchor = gui.CurrentNode;
+
+                if (gui.Button("Hover me for a tooltip", width: 180, height: 28))
+                    gui.Toast("You clicked the tooltip button");
+            }
+
+            gui.Tooltip(tooltipAnchor, "Sticking around on a button reveals this hint",
+                delay: 0.35f);
+
+            gui.Toasts();
         }
     }
 }

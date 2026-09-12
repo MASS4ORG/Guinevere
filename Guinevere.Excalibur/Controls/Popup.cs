@@ -12,6 +12,16 @@ public static partial class ControlsExtensions
         public bool CloseOnEscape { get; set; } = true;
     }
 
+    private class TooltipState
+    {
+        public bool WasHovering { get; set; }
+        public float EnteredAt { get; set; }
+
+        /// <summary>The anchor's rect from the previous frame. Rects handed to the widget mid-pass1
+        /// are not laid out yet, so hover tests and the tooltip position use last frame's rect.</summary>
+        public Rect AnchorRect { get; set; } = new();
+    }
+
     /// <summary>
     /// Creates a popup that can be opened/closed with internal state management
     /// </summary>
@@ -167,6 +177,42 @@ public static partial class ControlsExtensions
             var textColorFinal = show && !string.IsNullOrEmpty(text) ? textColor ?? Color.Black : Color.Transparent;
             gui.DrawText(tooltipText, fontSize, textColorFinal, centerInRect: false);
         }
+    }
+
+    /// <summary>
+    /// Creates a tooltip that appears after the pointer has hovered <paramref name="node"/> for
+    /// <paramref name="delay"/> seconds, and hides as soon as the pointer leaves it. Positioned
+    /// just below the node rather than glued to the cursor.
+    /// </summary>
+    public static void Tooltip(this Gui gui, LayoutNode node, string text, float delay = 0.45f,
+        Vector2? offset = null,
+        float maxWidth = 200,
+        Color? backgroundColor = null,
+        Color? textColor = null,
+        Color? borderColor = null,
+        float fontSize = 12,
+        float padding = 8,
+        float borderRadius = 4,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        var id = gui.NodeId(filePath, lineNumber);
+        var state = gui.ControlState(id, () => new TooltipState());
+        var now = gui.Time.Elapsed;
+
+        var anchorRect = state.AnchorRect;
+        var hovering = anchorRect.W > 0 && IsMouseInRect(gui.Input.MousePosition, anchorRect);
+
+        if (hovering && !state.WasHovering) state.EnteredAt = now;
+        state.WasHovering = hovering;
+
+        var show = hovering && now - state.EnteredAt >= delay;
+
+        if (gui.Pass == Pass.Pass2Render && node is not null) state.AnchorRect = node.Rect;
+
+        gui.Tooltip(text, show, offset ?? new Vector2(0, anchorRect.H),
+            maxWidth, backgroundColor, textColor, borderColor, fontSize, padding, borderRadius,
+            filePath, lineNumber);
     }
 
     /// <summary>
