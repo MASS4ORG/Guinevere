@@ -12,6 +12,8 @@ public abstract partial class Program
 {
     private static Color _sectionColor = Color.DarkGray;
 
+    private static readonly Bitmap Badge = LoadBadge();
+
     public static void Main()
     {
         var gui = new Gui();
@@ -21,11 +23,26 @@ public abstract partial class Program
         win.RunGui(() => Draw(gui));
     }
 
+    private static Bitmap LoadBadge()
+    {
+        // The badge sits at the repository root; walk up from the output directory to find it.
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            var file = Path.Combine(dir.FullName, "guinevere-badge.png");
+            if (File.Exists(file)) return Bitmap.FromFile(file);
+        }
+
+        return Bitmap.FromFile("guinevere-badge.png");
+    }
+
     private static void Draw(Gui gui)
     {
-        using (gui.Node().Height(40).Padding(15, 0).Direction(Axis.Horizontal).Enter())
+        using (gui.Node().Height(40).Padding(15, 0).Direction(Axis.Horizontal)
+                   .ContentAlignY(0.5f).Gap(8).Enter())
         {
+            gui.Image(Badge, width: 26, height: 26);
             gui.DrawText("Guinevere Excalibur");
+            gui.Node().Expand();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Color.White);
         }
 

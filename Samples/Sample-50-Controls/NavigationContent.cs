@@ -41,6 +41,7 @@ public abstract partial class Program
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(16).Padding(10).Enter())
         {
+            gui.SetTextColor(Color.Green);
             gui.ScrollY();
 
             Section(gui, "Horizontal Tabs", () => HorizontalTabsContent(gui));
@@ -82,7 +83,6 @@ public abstract partial class Program
 
     private static void MenuBarContent(Gui gui)
     {
-        gui.SetTextColor(Color.Blue);
         gui.MenuBar(menu =>
         {
             menu.Menu("File", file =>
@@ -137,6 +137,7 @@ public abstract partial class Program
     {
         using (gui.Node().Height(250).Enter())
         {
+            gui.SetTextColor(Color.Blue);
             gui.Breadcrumb(FileTrail(), height: 32);
 
             using (gui.Node().Margin(0, 10, 0, 0).Height(190).Direction(Axis.Horizontal).Gap(12).Enter())

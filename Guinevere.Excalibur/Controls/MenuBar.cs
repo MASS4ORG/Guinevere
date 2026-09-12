@@ -92,45 +92,47 @@ public static partial class ControlsExtensions
     {
         using (gui.Node().Height(height).Padding(padding, 0).Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return;
-
-            var rect = gui.CurrentNode.Rect;
-            state.TitleRects[index] = rect;
-
-            gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-            var interactable = gui.GetInteractable();
-            var isHovered = interactable.OnHover();
-            var isClicked = interactable.OnClick();
-
-            var isOpen = state.OpenIndex == index;
-
-            if (isClicked ||
-                (gui.HasFocus() &&
-                 (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter))))
+            if (gui.Pass == Pass.Pass2Render)
             {
-                if (isOpen)
+                var rect = gui.CurrentNode.Rect;
+                state.TitleRects[index] = rect;
+
+                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+                var interactable = gui.GetInteractable();
+                var isHovered = interactable.OnHover();
+                var isClicked = interactable.OnClick();
+
+                var isOpen = state.OpenIndex == index;
+
+                if (isClicked ||
+                    (gui.HasFocus() &&
+                     (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter))))
                 {
-                    ResetMenuState(state);
+                    if (isOpen)
+                    {
+                        ResetMenuState(state);
+                    }
+                    else
+                    {
+                        state.OpenIndex = index;
+                        state.KeyboardActive = false;
+                        state.KeyboardIndex = -1;
+                        state.KeyboardSubmenu = false;
+                    }
                 }
-                else
+                else if (state.OpenIndex >= 0 && !isOpen && isHovered)
                 {
                     state.OpenIndex = index;
                     state.KeyboardActive = false;
                     state.KeyboardIndex = -1;
                     state.KeyboardSubmenu = false;
                 }
-            }
-            else if (state.OpenIndex >= 0 && !isOpen && isHovered)
-            {
-                state.OpenIndex = index;
-                state.KeyboardActive = false;
-                state.KeyboardIndex = -1;
-                state.KeyboardSubmenu = false;
+
+                if (state.OpenIndex == index || isHovered)
+                    gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 230, 230, 230), 2);
             }
 
-            if (state.OpenIndex == index || isHovered)
-                gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 230, 230, 230), 2);
-
+            // Built in both passes so the text node is measured during layout, not created after it.
             gui.DrawText(menu.Title, fontSize, textColor, centerInRect: false);
         }
     }
@@ -239,21 +241,24 @@ public static partial class ControlsExtensions
                    .ContentAlignY(0.5f)
                    .Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+                var interactable = gui.GetInteractable();
+                var isHovered = interactable.OnHover();
+                if (interactable.OnClick() && item.Enabled)
+                    ActivateRow(state, item);
 
-            gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-            var interactable = gui.GetInteractable();
-            var isHovered = interactable.OnHover();
-            if (interactable.OnClick() && item.Enabled)
-                ActivateRow(state, item);
+                var isSelectedRow = isHovered ||
+                                    (state.KeyboardActive && state.KeyboardIndex == index);
 
-            var isSelectedRow = isHovered ||
-                                (state.KeyboardActive && state.KeyboardIndex == index);
+                if (isSelectedRow && item.Enabled)
+                    gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 230, 230, 230), 2);
+            }
+
             var itemColor = item.Enabled ? textColor : Color.Gray;
 
-            if (isSelectedRow && item.Enabled)
-                gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 230, 230, 230), 2);
-
+            // Rows and their glyphs are built in both passes so they measure during layout.
             if (hasCheckColumn)
             {
                 using (gui.Node(14f).Enter())

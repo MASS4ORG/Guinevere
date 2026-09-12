@@ -11,6 +11,7 @@ public abstract partial class Program
 
     private static void SelectionContent(Gui gui)
     {
+        gui.SetTextColor(Color.Green);
         Section(gui, "Checkboxes", () => CheckboxRow(gui));
         Section(gui, "Toggles", () => ToggleRow(gui));
         Section(gui, "Radio Buttons", () => RadioButtonRow(gui));

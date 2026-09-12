@@ -108,6 +108,29 @@ public class MenuBarTests
     }
 
     [Fact]
+    public void TitleTextIsMeasuredAndDrawsInsideEachTitle()
+    {
+        var gui = CreateGui();
+        var log = new List<string>();
+
+        Frame(gui, log);
+        var bar = FindBar(gui.RootNode!);
+        Assert.NotEmpty(bar.Children);
+
+        // The text node must be built during Pass1 layout, not only in Pass2 — otherwise its rect is
+        // (0,0,0,0) and the glyphs are drawn at the canvas origin instead of inside the title.
+        foreach (var title in bar.Children)
+        {
+            var text = Assert.Single(title.Children);
+            var r = title.Rect;
+            var t = text.Rect;
+            Assert.True(t.W > 0 && t.H > 0, "Title text node must be measured during Pass1.");
+            Assert.True(r.X <= t.X && r.Y <= t.Y && t.X + t.W <= r.X + r.W && t.Y + t.H <= r.Y + r.H,
+                $"Title text must render inside the title rect (title={r}, text={t}).");
+        }
+    }
+
+    [Fact]
     public void ClickingATitleOpensItsMenu()
     {
         var gui = CreateGui();

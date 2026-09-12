@@ -163,6 +163,17 @@ public class ToastTests
     }
 
     [Fact]
+    public void ToastRendersAboveRegularContent()
+    {
+        var gui = CreateGui();
+        Frame(gui, g => g.Toast("Hello"));
+
+        var toast = Assert.Single(ToastsOf(gui.RootNode!));
+        Assert.True(toast.Scope.Get<LayoutNodeScopeZIndex>().Value > 0,
+            "Toasts must float above ordinary z=0 content so later sections cannot paint over them.");
+    }
+
+    [Fact]
     public void RecallingBeforeExpiryKeepsOneToastAlive()
     {
         var gui = CreateGui();

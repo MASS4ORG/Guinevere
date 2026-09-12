@@ -81,6 +81,9 @@ public static partial class ControlsExtensions
     private const string ToastStateId = "Guinevere.Toast";
     private const float ToastSpacing = 8f;
 
+    /// <summary>Above menu bars and scroll bars, below the drag ghost.</summary>
+    private const int ToastZIndex = 9000;
+
     /// <summary>
     /// Queues a toast notification to be shown by the next <see cref="Toasts"/> call. Calling with the
     /// same text and corner refreshes the toast's lifetime instead of stacking a duplicate, so it stays
@@ -148,6 +151,8 @@ public static partial class ControlsExtensions
 
             using (gui.Node(width, height).AbsoluteScreen(position.X, position.Y).Enter())
             {
+                gui.SetZIndex(ToastZIndex);
+
                 if (gui.Pass != Pass.Pass2Render) continue;
 
                 var alpha = ToastAlpha(now, entry, opts);

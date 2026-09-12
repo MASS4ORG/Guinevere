@@ -590,8 +590,15 @@ public static partial class ControlsExtensions
             var state = GetOrCreateState(gui, nodeId, text);
             var interactable = gui.GetInteractable();
 
-            state = HandleFocusAndClick(state, interactable, gui, GetCursorPositionFromClick, state.Text, fontSize);
-            state = HandleKeyboardInput(state, gui);
+            if (enabled)
+            {
+                state = HandleFocusAndClick(state, interactable, gui, GetCursorPositionFromClick, state.Text, fontSize);
+                state = HandleKeyboardInput(state, gui);
+            }
+            else
+            {
+                state.IsFocused = false;
+            }
 
             // Rendering
             DrawInputBackground(gui, state, backgroundColor, borderColor);
@@ -650,12 +657,19 @@ public static partial class ControlsExtensions
             var state = GetOrCreateState(gui, nodeId, text);
             var interactable = gui.GetInteractable();
 
-            var stateTemp = state;
-            state = HandleFocusAndClick(state, interactable, gui,
-                (g, mousePos, rect, _, textFontSize) => GetCursorPositionFromClick(g, mousePos, rect,
-                    new string(maskChar, stateTemp.Text.Length), textFontSize),
-                state.Text, fontSize);
-            state = HandleKeyboardInput(state, gui);
+            if (enabled)
+            {
+                var stateTemp = state;
+                state = HandleFocusAndClick(state, interactable, gui,
+                    (g, mousePos, rect, _, textFontSize) => GetCursorPositionFromClick(g, mousePos, rect,
+                        new string(maskChar, stateTemp.Text.Length), textFontSize),
+                    state.Text, fontSize);
+                state = HandleKeyboardInput(state, gui);
+            }
+            else
+            {
+                state.IsFocused = false;
+            }
 
             // Rendering with masked text
             var maskedText = new string(maskChar, state.Text.Length);

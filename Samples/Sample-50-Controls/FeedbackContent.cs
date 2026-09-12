@@ -113,6 +113,13 @@ public abstract partial class Program
                         AccentColor = Color.FromArgb(255, 229, 57, 53)
                     });
 
+                if (gui.Button("Note", width: 80, height: 26))
+                    gui.Toast("A reminder pinned to the top-left corner", new ToastOptions
+                    {
+                        Corner = ToastCorner.TopLeft,
+                        AccentColor = Color.FromArgb(255, 0, 150, 136)
+                    });
+
                 if (gui.Button("Clear", width: 80, height: 26))
                     gui.ClearToasts();
             }

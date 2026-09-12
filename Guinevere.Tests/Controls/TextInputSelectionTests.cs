@@ -200,4 +200,45 @@ public class TextInputSelectionTests
         Assert.Equal("second", field.Text);
     }
 
+    [Fact]
+    public void DisabledFieldNeverGainsFocusAndIgnoresTyping()
+    {
+        using var surface = SKSurface.Create(new SKImageInfo(300, 60));
+        var input = Substitute.For<IInputHandler>();
+        var gui = new TestableGui { Input = input };
+        gui.SetScreenRect(300, 60);
+        var text = "locked";
+        var id = $"field/{Guid.NewGuid():N}";
+
+        void Frame(Vector2 mouse, bool pressed = false, string typed = "")
+        {
+            input.MousePosition.Returns(mouse);
+            input.PrevMousePosition.Returns(mouse);
+            input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
+            input.IsMouseButtonDown(MouseButton.Left).Returns(pressed);
+            input.GetTypedCharacters().Returns(typed);
+            input.GetClipboardText().Returns(string.Empty);
+            input.IsKeyPressed(Arg.Any<KeyboardKey>()).Returns(false);
+            input.IsKeyDown(Arg.Any<KeyboardKey>()).Returns(false);
+
+            void Draw() => gui.TextInput(ref text, width: 280, height: 24, fontSize: 12,
+                enabled: false, id: id);
+
+            gui.Time.Update(0.016);
+            gui.SetStage(Pass.Pass1Build);
+            gui.BeginFrame(surface.Canvas, TestFont);
+            Draw();
+            gui.CalculateLayout();
+            gui.SetStage(Pass.Pass2Render);
+            Draw();
+            gui.Render();
+            gui.EndFrame();
+        }
+
+        Frame(new Vector2(150, 15), pressed: true);
+        Frame(new Vector2(150, 15), typed: "XYZ");
+
+        Assert.Equal("locked", text);
+    }
+
 }
