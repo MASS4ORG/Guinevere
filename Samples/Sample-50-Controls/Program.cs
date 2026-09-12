@@ -23,7 +23,11 @@ public abstract partial class Program
 
     private static void Draw(Gui gui)
     {
-        // gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 245, 245, 245));
+        using (gui.Node().Height(40).Padding(15, 0).Direction(Axis.Horizontal).Enter())
+        {
+            gui.DrawText("Guinevere Excalibur");
+            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Color.White);
+        }
 
         using (gui.Node().Expand().Enter())
         {
@@ -37,11 +41,6 @@ public abstract partial class Program
                 tabs.Tab("Scrolling", () => ScrollingContent(gui));
                 tabs.Tab("Styling", () => StylingContent(gui));
             });
-        }
-
-        using (gui.Node().Height(40).Padding(15, 0).Enter())
-        {
-            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Color.White);
         }
     }
 

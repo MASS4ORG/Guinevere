@@ -12,5 +12,6 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Integrations\Guinevere.OpenGL.Raylib\Guinevere.OpenGL.Raylib.csproj" />
         <ProjectReference Include="..\Sample-01\Sample-01.csproj"/>
+        <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
     </ItemGroup>
 </Project>

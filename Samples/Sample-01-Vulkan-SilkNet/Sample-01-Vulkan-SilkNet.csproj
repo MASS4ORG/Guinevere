@@ -12,6 +12,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Integrations\Guinevere.Vulkan.SilkNET\Guinevere.Vulkan.SilkNET.csproj" />
         <ProjectReference Include="..\Sample-01\Sample-01.csproj" />
+        <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
     </ItemGroup>
 
     <PropertyGroup>

@@ -12,6 +12,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Integrations\Guinevere.OpenGL.SilkNET\Guinevere.OpenGL.SilkNET.csproj" />
         <ProjectReference Include="..\Sample-01\Sample-01.csproj"/>
+        <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
     </ItemGroup>
 
 </Project>

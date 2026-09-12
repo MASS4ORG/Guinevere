@@ -131,7 +131,7 @@ public static partial class ControlsExtensions
             if (state.OpenIndex == index || isHovered)
                 gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 230, 230, 230), 2);
 
-            gui.DrawText(menu.Title, fontSize, textColor ?? Color.Black, centerInRect: false);
+            gui.DrawText(menu.Title, fontSize, textColor, centerInRect: false);
         }
     }
 
@@ -249,7 +249,7 @@ public static partial class ControlsExtensions
 
             var isSelectedRow = isHovered ||
                                 (state.KeyboardActive && state.KeyboardIndex == index);
-            var itemColor = item.Enabled ? textColor ?? Color.Black : Color.Gray;
+            var itemColor = item.Enabled ? textColor : Color.Gray;
 
             if (isSelectedRow && item.Enabled)
                 gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 230, 230, 230), 2);

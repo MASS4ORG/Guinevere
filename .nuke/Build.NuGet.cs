@@ -156,6 +156,7 @@ partial class Build
         project.Name switch
         {
             "Guinevere" => "Guinevere - GPU Accelerated IM GUI System",
+            "Guinevere.Excalibur" => "Guinevere Excalibur - Standard Control Set",
             "Guinevere.OpenGL.OpenTK" => "Guinevere OpenGL Integration for OpenTK",
             "Guinevere.OpenGL.Raylib" => "Guinevere OpenGL Integration for Raylib",
             "Guinevere.OpenGL.SilkNET" => "Guinevere OpenGL Integration for Silk.NET",
@@ -171,6 +172,8 @@ partial class Build
         {
             "Guinevere" =>
                 "A GPU accelerated immediate mode GUI system built on SkiaSharp. Provides high-performance rendering with modern graphics APIs support.",
+            "Guinevere.Excalibur" =>
+                "A ready-to-use set of default Guinevere controls built on the Guinevere core engine: buttons, inputs, tabs, tree view, menu bar, flyouts, popups, tooltips and docking.",
             "Guinevere.OpenGL.OpenTK" =>
                 "OpenGL integration package for Guinevere GUI system using OpenTK. Enables GPU-accelerated rendering through OpenGL.",
             "Guinevere.OpenGL.Raylib" =>
