@@ -81,11 +81,20 @@ public partial class Gui
         return font.SkFont.GetGlyph(character) != 0;
     }
 
+    private static readonly char[] UnsupportedVariationSelector =
+        Enumerable.Range('\uFE00', '\uFE0F' - '\uFE00' + 1).Select(i => (char)i).ToArray();
+
     /// <summary>
     /// Splits text into runs where each run uses the same font (either main font or icon font fallback).
     /// </summary>
     private List<FontRun> CreateFontRuns(string text, Font mainFont, Font iconFont)
     {
+        // Variation selectors (U+FE00-U+FE0F) sit after emoji like "⚙️" or "❤️". Most icon fonts
+        // have no glyph for them, so without this step every emoji picked up a trailing tofu box.
+        // They are zero-width combining marks - dropping them changes nothing visible.
+        if (text.IndexOfAny(UnsupportedVariationSelector) >= 0)
+            text = new string(text.Where(c => c is < '\uFE00' or > '\uFE0F').ToArray());
+
         var runs = new List<FontRun>();
         if (string.IsNullOrEmpty(text))
             return runs;
@@ -115,6 +124,17 @@ public partial class Gui
             currentFont));
 
         return runs;
+    }
+
+    /// <summary>
+    /// Splits text into main-font/icon-font runs so controls that draw text directly can match
+    /// <see cref="DrawText"/>'s emoji/icon fallback instead of rendering tofu for unsupported glyphs.
+    /// </summary>
+    internal IReadOnlyList<(string Text, Font Font)> CreateTextRuns(string text, Font mainFont, Font iconFont)
+    {
+        return CreateFontRuns(text, mainFont, iconFont)
+            .Select(run => (run.Text, run.Font))
+            .ToArray();
     }
 
     private LayoutNode DrawTextOrGlyph(DrawConfig cfg)

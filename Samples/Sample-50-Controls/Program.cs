@@ -10,6 +10,8 @@ namespace Controls_01;
 /// </summary>
 public abstract partial class Program
 {
+    private static Color _sectionColor = Color.DarkGray;
+
     public static void Main()
     {
         var gui = new Gui();
@@ -21,30 +23,26 @@ public abstract partial class Program
 
     private static void Draw(Gui gui)
     {
-        gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 245, 245, 245));
+        // gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 245, 245, 245));
 
-        // using (gui.Node().Expand().Margin(20).Direction(Axis.Vertical).Gap(15).Enter())
+        using (gui.Node().Expand().Enter())
         {
-            using (gui.Node().Expand().Margin(15, 0).Enter())
+            gui.Tabs(ref _activeTab, tabs =>
             {
-                gui.Tabs(ref _activeTab, tabs =>
-                {
-                    tabs.Tab("Buttons", () => ButtonsContent(gui));
-                    tabs.Tab("Selection", () => SelectionContent(gui));
-                    tabs.Tab("Text Inputs", () => TextInputsContent(gui));
-                    tabs.Tab("Navigation", () => NavigationContent(gui));
-                    tabs.Tab("Feedback", () => FeedbackContent(gui));
-                    tabs.Tab("Scrolling", () => ScrollingContent(gui));
-                    tabs.Tab("Focus", () => FocusContent(gui));
-                    tabs.Tab("Styling", () => StylingContent(gui));
-                });
-            }
+                tabs.Tab("Buttons", () => ButtonsContent(gui), closable: false);
+                tabs.Tab("Selection", () => SelectionContent(gui));
+                tabs.Tab("Text Inputs", () => TextInputsContent(gui));
+                tabs.Tab("Navigation", () => NavigationContent(gui));
+                tabs.Tab("Feedback", () => FeedbackContent(gui));
+                tabs.Tab("Scrolling", () => ScrollingContent(gui));
+                tabs.Tab("Focus", () => FocusContent(gui));
+                tabs.Tab("Styling", () => StylingContent(gui));
+            });
+        }
 
-            using (gui.Node().Height(40).Padding(15, 0).Enter())
-            {
-                gui.DrawText($"Frame: {gui.Time.Frames} | FPS: {gui.Time.SmoothFps:N1}", size: 12,
-                    color: Color.FromArgb(255, 153, 153, 153));
-            }
+        using (gui.Node().Height(40).Padding(15, 0).Enter())
+        {
+            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Color.White);
         }
     }
 
@@ -59,10 +57,11 @@ public abstract partial class Program
 
     private static void Section(Gui gui, string title, Action body)
     {
-        gui.DrawText(title, size: 18, color: Color.FromArgb(255, 51, 51, 51));
-        using (gui.Node(0, 4).Enter()) ;
-
-        body();
-        gui.Node(0, 12);
+        using (gui.Node().ExpandWidth().Margin(5).Padding(5).Enter())
+        {
+            gui.DrawText(title, size: 18, color: Color.FromArgb(255, 51, 51, 51)).MarginBottom(5);
+            gui.DrawBackgroundRect(_sectionColor, 5);
+            body();
+        }
     }
 }

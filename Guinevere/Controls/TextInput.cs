@@ -253,8 +253,10 @@ public static partial class ControlsExtensions
             state.MoveTo(word ? WordBoundaryLeft(state) : Collapse(state, extend, forward: false), extend);
         else if (gui.Input.IsKeyPressed(KeyboardKey.Right))
             state.MoveTo(word ? WordBoundaryRight(state) : Collapse(state, extend, forward: true), extend);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Home)) state.MoveTo(0, extend);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.End)) state.MoveTo(state.Text.Length, extend);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Up)) MoveToLine(state, gui, -1);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Down)) MoveToLine(state, gui, 1);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Home)) state.MoveTo(LineStart(state), extend);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.End)) state.MoveTo(LineEnd(state), extend);
         else if (gui.Input.IsKeyPressed(KeyboardKey.Escape)) state.IsFocused = false;
         else return state;
 
@@ -272,6 +274,54 @@ public static partial class ControlsExtensions
         if (!extend && state.HasSelection) return forward ? state.SelectionEnd : state.SelectionStart;
 
         return state.CursorPosition + (forward ? 1 : -1);
+    }
+
+    /// <summary>Returns the (row, column) of a position, splitting on line breaks.</summary>
+    private static (int Row, int Column) LineAndColumn(string[] lines, int position)
+    {
+        var offset = 0;
+        for (var row = 0; row < lines.Length; row++)
+        {
+            if (position <= offset + lines[row].Length) return (row, position - offset);
+            offset += lines[row].Length + 1;
+        }
+        return (lines.Length - 1, lines.Length > 0 ? lines[^1].Length : 0);
+    }
+
+    private static int PositionOfLine(string[] lines, int row) =>
+        lines.Take(row).Sum(line => line.Length + 1);
+
+    /// <summary>Moves the cursor a line up or down, keeping the column when the target line is long enough.</summary>
+    private static void MoveToLine(InputState state, Gui gui, int direction)
+    {
+        var extend = gui.Input.IsKeyDown(KeyboardKey.LeftShift) || gui.Input.IsKeyDown(KeyboardKey.RightShift);
+        var lines = state.Text.Split('\n');
+        var (row, column) = LineAndColumn(lines, state.CursorPosition);
+        var targetRow = Math.Clamp(row + direction, 0, lines.Length - 1);
+
+        if (targetRow == row)
+        {
+            state.MoveTo(direction < 0 ? 0 : state.Text.Length, extend);
+            return;
+        }
+
+        state.MoveTo(PositionOfLine(lines, targetRow) + Math.Min(column, lines[targetRow].Length), extend);
+    }
+
+    /// <summary>The start of the line the cursor is on.</summary>
+    private static int LineStart(InputState state)
+    {
+        var position = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
+        if (position <= 0) return 0;
+        return state.Text.LastIndexOf('\n', position - 1) + 1;
+    }
+
+    /// <summary>The end of the line the cursor is on.</summary>
+    private static int LineEnd(InputState state)
+    {
+        var position = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
+        var newline = state.Text.IndexOf('\n', position);
+        return newline < 0 ? state.Text.Length : newline;
     }
 
     private static void Backspace(InputState state, bool word)
@@ -414,6 +464,38 @@ public static partial class ControlsExtensions
 
         gui.DrawRect(new Rect(x1, inner.Y, Math.Max(1f, x2 - x1), inner.H),
             Color.FromArgb(110, gui.Controls.Accent));
+    }
+
+    /// <summary>Paints the selected run per line in a multi-line field, so text areas get the same highlight as inputs.</summary>
+    private static void DrawSelectionMultiline(Gui gui, InputState state, string text, float fontSize)
+    {
+        if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render) return;
+
+        var font = MeasuringFont(gui, fontSize);
+        var lineHeight = fontSize * 1.2f;
+        var inner = gui.CurrentNode.InnerRect;
+
+        var start = Math.Clamp(state.SelectionStart, 0, text.Length);
+        var end = Math.Clamp(state.SelectionEnd, 0, text.Length);
+        if (start == end) return;
+
+        var lines = text.Split('\n');
+        var (startRow, startCol) = LineAndColumn(lines, start);
+        var (endRow, endCol) = LineAndColumn(lines, end);
+
+        for (var row = startRow; row <= endRow && row < lines.Length; row++)
+        {
+            var colStart = row == startRow ? startCol : 0;
+            var colEnd = row == endRow ? endCol : lines[row].Length;
+            if (colEnd <= colStart) continue;
+
+            var x1 = inner.X + MeasureTextWidth(font, lines[row][..colStart]);
+            var x2 = inner.X + MeasureTextWidth(font, lines[row][..colEnd]);
+            var y = inner.Y + row * lineHeight;
+
+            gui.DrawRect(new Rect(x1, y, Math.Max(1f, x2 - x1), lineHeight),
+                Color.FromArgb(110, gui.Controls.Accent));
+        }
     }
 
     private static void DrawInputText(Gui gui, string displayText, string placeholder, float fontSize,
@@ -662,6 +744,7 @@ public static partial class ControlsExtensions
 
             // Rendering - let the parent handle clipping/scrolling to avoid nested contexts
             DrawInputBackground(gui, state, backgroundColor, borderColor);
+            DrawSelectionMultiline(gui, state, state.Text, fontSize);
             DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor);
 
             // Only draw cursor if enabled

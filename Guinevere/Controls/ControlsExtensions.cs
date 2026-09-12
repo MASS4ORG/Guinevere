@@ -65,7 +65,7 @@ public static partial class ControlsExtensions
     {
         var node = gui.Node();
         var fontSizeEffective = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
-        var (buttonWidth, buttonHeight) = CalculateButtonDimensions(text, width, height, fontSizeEffective);
+        var (buttonWidth, buttonHeight) = CalculateButtonDimensions(gui, text, width, height, fontSizeEffective);
 
         using (node.Width(buttonWidth).Height(buttonHeight).Enter())
         {
@@ -76,7 +76,7 @@ public static partial class ControlsExtensions
             var interactable = gui.GetInteractable();
             RenderButtonBackground(gui, interactable, backgroundColor, hoverColor, pressedColor, radius);
             RenderButtonBorder(gui, interactable, borderColor, pressedBorderColor);
-            RenderButtonText(gui, text, fontSizeEffective, color);
+            RenderCenteredText(gui, text, fontSizeEffective, color);
 
             // Draw strong focus indicator if focused
             if (gui.HasFocus())
@@ -108,7 +108,7 @@ public static partial class ControlsExtensions
         var node = gui.Node();
         var fontSizeEffective = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
         var iconText = icon ?? new Text("");
-        var (buttonWidth, buttonHeight) = CalculateButtonDimensions(iconText, size, size, fontSizeEffective);
+        var (buttonWidth, buttonHeight) = CalculateButtonDimensions(gui, iconText, size, size, fontSizeEffective);
 
         using (gui.Node(buttonWidth, buttonHeight).Enter())
         {
@@ -119,7 +119,7 @@ public static partial class ControlsExtensions
             var interactable = gui.GetInteractable();
             RenderIconButtonBackground(gui, interactable, backgroundColor, hoverColor, pressedColor, radius);
             RenderButtonBorder(gui, interactable, borderColor, pressedBorderColor);
-            RenderButtonIcon(gui, icon, fontSizeEffective, color);
+            RenderCenteredText(gui, icon, fontSizeEffective, color);
 
             // Draw strong focus indicator if focused
             if (gui.HasFocus())
@@ -141,21 +141,41 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static (float width, float height) CalculateButtonDimensions(Text text, float width, float height,
+    private static (float width, float height) CalculateButtonDimensions(Gui gui, Text text, float width, float height,
         float fontSize)
     {
         if (width > 0 && height > 0) return (width, height);
 
-        var font = new SKFont { Size = fontSize };
-        font.MeasureText(text.Label ?? "", out var textBounds);
+        // Measure through the same main/icon font fallback as Gui.DrawText so emoji and icon text
+        // size the button to the glyphs that will actually render.
+        var textWidth = 0f;
+        var textHeight = 0f;
+        foreach (var (runText, runFont) in TextRuns(gui, text.Label ?? "", fontSize))
+        {
+            runFont.SkFont.MeasureText(runText, out var bounds);
+            textWidth += bounds.Width;
+            textHeight = Math.Max(textHeight, bounds.Height);
+        }
 
         const float paddingH = 16f;
         const float paddingV = 8f;
 
         return (
-            width > 0 ? width : textBounds.Width + paddingH * 2,
-            height > 0 ? height : textBounds.Height + paddingV * 2
+            width > 0 ? width : textWidth + paddingH * 2,
+            height > 0 ? height : textHeight + paddingV * 2
         );
+    }
+
+    private static (string Text, Font Font)[] TextRuns(Gui gui, string text, float fontSize)
+    {
+        var mainFont = new Font(new SKFont(
+            gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.SkFont.Typeface, fontSize));
+        var iconFont = new Font(new SKFont(
+            gui.CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface, fontSize));
+
+        return gui.CreateTextRuns(text, mainFont, iconFont)
+            .Select(run => (run.Text, run.Font))
+            .ToArray();
     }
 
     // private static (bool hovered, bool pressed, bool clicked) GetButtonInteractionState(Gui gui)
@@ -191,42 +211,40 @@ public static partial class ControlsExtensions
         gui.DrawRectBorder(rect.Position, rect.Size, borderColorFinal, 1f, 4f);
     }
 
-    // private static void RenderIconButtonBorder(Gui gui, InteractableElement interactable,
-    //     Color? borderColor)
-    // {
-    //     if (!interactable.On(Interactions.Hover | Interactions.Click))
-    //         return;
-    //
-    //     var rect = gui.CurrentNode.Rect;
-    //     gui.DrawRectBorder(rect.Position, rect.Size, borderColor.Value, 1f, 4f);
-    // }
-
-    private static void RenderButtonText(Gui gui, Text? text, float fontSize, Color? color)
+    internal static void RenderCenteredText(this Gui gui, Text? text, float fontSize, Color? color)
     {
         var rect = gui.CurrentNode.Rect;
         var textColorFinal = color ?? Color.White;
-        var font = new SKFont { Size = fontSize };
+        var label = text?.Label ?? string.Empty;
+        if (string.IsNullOrEmpty(label)) return;
+
         var paint = new SKPaint { Color = textColorFinal, IsAntialias = true };
 
-        font.MeasureText(text?.Label ?? string.Empty, out var textBounds);
-        var textPos = CalculateTextCenterPosition(rect, textBounds);
+        // Draw through the same main/icon font fallback as Gui.DrawText so glyphs the text font
+        // lacks -- emoji, icons -- render from the icon font instead of as tofu.
+        var runs = TextRuns(gui, label, fontSize);
 
-        var textShape = new Text(text?.Label ?? string.Empty, textPos, font, paint);
-        gui.CurrentNode.DrawList.Add(textShape);
-    }
+        var totalWidth = 0f;
+        var ascent = 0f;
+        var descent = 0f;
+        foreach (var (runText, runFont) in runs)
+        {
+            runFont.SkFont.MeasureText(runText, out var bounds);
+            totalWidth += bounds.Width;
+            ascent = Math.Max(ascent, -bounds.Top);
+            descent = Math.Max(descent, bounds.Bottom);
+        }
 
-    private static void RenderButtonIcon(Gui gui, Text? icon, float fontSize, Color? iconColor)
-    {
-        var rect = gui.CurrentNode.Rect;
-        var iconColorFinal = iconColor ?? Color.White;
-        var font = new SKFont { Size = fontSize };
-        var paint = new SKPaint { Color = iconColorFinal, IsAntialias = true };
+        var cursorX = rect.X + (rect.W - totalWidth) * 0.5f;
+        var baselineY = rect.Y + (rect.H - (ascent + descent)) * 0.5f + ascent;
 
-        font.MeasureText(icon?.Label ?? string.Empty, out var iconBounds);
-        var iconPos = CalculateTextCenterPosition(rect, iconBounds);
-
-        var iconShape = new Text(icon?.Label ?? string.Empty, iconPos, font, paint);
-        gui.CurrentNode.DrawList.Add(iconShape);
+        foreach (var (runText, runFont) in runs)
+        {
+            gui.CurrentNode.DrawList.Add(
+                new Text(runText, new Vector2(cursorX, baselineY), runFont.SkFont, paint));
+            runFont.SkFont.MeasureText(runText, out var bounds);
+            cursorX += bounds.Width;
+        }
     }
 
     // Color calculation helpers
@@ -252,13 +270,5 @@ public static partial class ControlsExtensions
         Color? backgroundColor)
     {
         return backgroundColor.HasValue || interactable.On(Interactions.Hover | Interactions.Click);
-    }
-
-    private static Vector2 CalculateTextCenterPosition(Rect rect, SKRect textBounds)
-    {
-        return new Vector2(
-            rect.X + (rect.W - textBounds.Width) * 0.5f,
-            rect.Y + (rect.H + textBounds.Height) * 0.5f
-        );
     }
 }

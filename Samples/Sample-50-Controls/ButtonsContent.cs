@@ -52,32 +52,32 @@ public abstract partial class Program
         {
             using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
             {
-                if (gui.IconButton("🔍", size: 40))
+                if (gui.Button("🔍", 40))
                 {
                     _iconButtonClickCount++;
                     Clicked("Search Icon");
                 }
 
-                if (gui.IconButton("⚙️", size: 40, backgroundColor: Color.FromArgb(100, 128, 128, 128)))
+                if (gui.Button("⚙️", 40, backgroundColor: Color.FromArgb(100, 128, 128, 128)))
                 {
                     _iconButtonClickCount++;
                     Clicked("Settings Icon");
                 }
 
-                if (gui.IconButton("❤️", size: 40, hoverColor: Color.FromArgb(255, 255, 182, 193)))
+                if (gui.Button("❤️", 40, hoverColor: Color.FromArgb(255, 255, 182, 193)))
                 {
                     _iconButtonClickCount++;
                     Clicked("Heart Icon");
                 }
 
-                if (gui.IconButton("⭐", size: 40, backgroundColor: Color.FromArgb(255, 255, 215, 0),
+                if (gui.Button("⭐", 40, backgroundColor: Color.Black,
                         color: Color.Black))
                 {
                     _iconButtonClickCount++;
                     Clicked("Star Icon");
                 }
 
-                if (gui.IconButton("🚀", size: 60, fontSize: 24))
+                if (gui.Button("🚀", 60, fontSize: 24))
                 {
                     _iconButtonClickCount++;
                     Clicked("Rocket Icon");

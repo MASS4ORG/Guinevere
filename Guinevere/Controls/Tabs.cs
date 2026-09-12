@@ -18,15 +18,20 @@ public static partial class ControlsExtensions
         float fontSize = 14,
         float borderRadius = 4,
         bool showBorder = true,
+        string id = "",
+        Action<int, string>? onTabClosed = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateTabsState(gui, id, activeTabIndex, tabBarHeight);
+        var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
+        var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
         var builder = new TabBuilder();
         buildTabs(builder);
         state.Tabs = builder.GetTabs();
+
+        // Middle-click closure lives in the widget: tabs the user closed stay out of the rebuilt list.
+        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
 
         // Ensure active tab index is valid
         if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
@@ -46,6 +51,19 @@ public static partial class ControlsExtensions
             RenderActiveTabContent(gui, state, backgroundColor, borderColor, borderRadius, showBorder);
         }
 
+        if (state.TabToClose is { } closeRequest)
+        {
+            state.TabToClose = null;
+            state.Closed.Add(closeRequest.Title);
+
+            var openCount = state.Tabs.Count - 1;
+            if (closeRequest.Index < state.ActiveTabIndex) state.ActiveTabIndex--;
+            else if (closeRequest.Index == state.ActiveTabIndex)
+                state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
+
+            onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
+        }
+
         activeTabIndex = state.ActiveTabIndex;
     }
 
@@ -63,12 +81,15 @@ public static partial class ControlsExtensions
         float fontSize = 14,
         float borderRadius = 4,
         bool showBorder = true,
+        string id = "",
+        Action<int, string>? onTabClosed = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         var temp = activeTabIndex;
         gui.Tabs(ref temp, buildTabs, tabBarHeight, backgroundColor, activeTabColor, inactiveTabColor,
-            borderColor, textColor, activeTextColor, fontSize, borderRadius, showBorder, filePath, lineNumber);
+            borderColor, textColor, activeTextColor, fontSize, borderRadius, showBorder, id, onTabClosed,
+            filePath, lineNumber);
         return temp;
     }
 
@@ -93,7 +114,8 @@ public static partial class ControlsExtensions
             {
                 foreach (var title in tabTitles) builder.Tab(title);
             }, height, backgroundColor, activeTabColor, inactiveTabColor, borderColor,
-            textColor, activeTextColor, fontSize, borderRadius, showBorder, filePath, lineNumber);
+            textColor, activeTextColor, fontSize, borderRadius, showBorder,
+            filePath: filePath, lineNumber: lineNumber);
     }
 
     // Core implementation helpers
@@ -134,9 +156,9 @@ public static partial class ControlsExtensions
     {
         var tab = state.Tabs[tabIndex];
         var isActive = state.ActiveTabIndex == tabIndex;
-        var tabWidth = CalculateTabWidth(tab.Title, fontSize);
+        var tabWidth = CalculateTabWidth(tab.Title, fontSize, tab.Closable);
 
-        using (gui.Node(tabWidth, state.TabBarHeight).Padding(8).Enter())
+        using (gui.Node(tabWidth, state.TabBarHeight).Direction(Axis.Horizontal).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
             {
@@ -145,8 +167,12 @@ public static partial class ControlsExtensions
                 var interactable = gui.GetInteractable();
                 var isHovered = interactable.OnHover();
                 var isClicked = interactable.OnClick();
+                var closed = interactable.OnClick(MouseButton.Middle) && tab.Closable;
                 var rect = gui.CurrentNode.Rect;
                 var hasFocus = gui.HasFocus();
+
+                // Only the tab surface activates the tab; the "×" close button in the corner is separate.
+                var overClose = OverTabCloseButton(tab.Closable, rect, gui.Input.MousePosition);
 
                 // Draw focus indicator if focused
                 if (hasFocus)
@@ -174,7 +200,8 @@ public static partial class ControlsExtensions
                         activated = true;
                     }
                 }
-                if (activated && tab.Enabled) state.ActiveTabIndex = tabIndex;
+                if (activated && tab.Enabled && !overClose) state.ActiveTabIndex = tabIndex;
+                if (closed && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
 
                 var tabColor = GetTabBackgroundColor(isActive, isHovered, tab.BackgroundColor,
                     activeTabColor, inactiveTabColor);
@@ -188,7 +215,10 @@ public static partial class ControlsExtensions
             var finalTextColor = GetTabTextColor(isActive, tab.Enabled, tab.TextColor,
                 activeTextColor, textColor);
 
-            gui.DrawText(tab.Title, fontSize, finalTextColor, centerInRect: true);
+            using (gui.Node().Expand().Height(state.TabBarHeight).Enter())
+                gui.DrawText(tab.Title, fontSize, finalTextColor, centerInRect: true);
+
+            if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
         }
     }
 
@@ -216,11 +246,53 @@ public static partial class ControlsExtensions
     }
 
     // Helper functions
-    private static float CalculateTabWidth(string title, float fontSize)
+    private const float TabCloseButtonSize = 18f;
+
+    private static float CalculateTabWidth(string title, float fontSize, bool closable)
     {
         var font = new SKFont { Size = fontSize };
         font.MeasureText(title, out var textBounds);
-        return textBounds.Width + 24; // 24 for padding
+        return textBounds.Width + 24 + (closable ? TabCloseButtonSize + 6 : 0);
+    }
+
+    /// <summary>True when the pointer sits over the "×" that closes a closable tab.</summary>
+    private static bool OverTabCloseButton(bool closable, Rect rect, Vector2 mousePos)
+    {
+        if (!closable) return false;
+        var closeRect = new Rect(rect.X + rect.W - TabCloseButtonSize - 4,
+            rect.Y + (rect.H - TabCloseButtonSize) * 0.5f, TabCloseButtonSize + 8, TabCloseButtonSize + 8);
+        return closeRect.Contains(mousePos);
+    }
+
+    private static void RenderTabCloseButton(Gui gui, TabsState state, int tabIndex)
+    {
+        var tab = state.Tabs[tabIndex];
+
+        using (gui.Node(TabCloseButtonSize, TabCloseButtonSize).Enter())
+        {
+            if (gui.Pass != Pass.Pass2Render) return;
+
+            var interactable = gui.GetInteractable();
+            var rect = gui.CurrentNode.Rect;
+            var hovered = interactable.OnHover();
+            var clicked = interactable.OnClick();
+
+            if (hovered || clicked)
+                gui.DrawBackgroundRect(Color.FromArgb(255, 220, 220, 220), TabCloseButtonSize * 0.5f);
+
+            var markColor = hovered || clicked
+                ? Color.FromArgb(255, 60, 60, 60)
+                : Color.FromArgb(255, 130, 130, 130);
+
+            var font = new SKFont { Size = 12f };
+            font.MeasureText("×", out var bounds);
+            var pos = new Vector2(rect.X + (rect.W - bounds.Width) * 0.5f,
+                rect.Y + (rect.H + bounds.Height) * 0.5f);
+            gui.CurrentNode.DrawList.Add(new Text("×", pos, font,
+                new SKPaint { Color = markColor, IsAntialias = true }));
+
+            if (clicked && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
+        }
     }
 
     private static Color? GetTabBackgroundColor(bool isActive, bool isHovered, Color? tabColor,
@@ -253,6 +325,18 @@ public static partial class ControlsExtensions
     {
         gui.ClearControlStates<TabsState>();
     }
+
+    /// <summary>
+    /// Reopens every tab in a tab stack that was closed with a middle-click. The tab stack must have
+    /// been given that <paramref name="id"/> when <c>Tabs</c>/<c>VerticalTabs</c>/<c>PillTabs</c> was called.
+    /// </summary>
+    public static void RestoreTabs(this Gui gui, string id)
+    {
+        var state = gui.TryGetControlState<TabsState>(id);
+        if (state is null) return;
+        state.Closed.Clear();
+        state.ActiveTabIndex = 0;
+    }
 }
 
 /// <summary>
@@ -274,15 +358,18 @@ public static partial class ControlsExtensions
         float fontSize = 14,
         float borderRadius = 4,
         bool showBorder = true,
+        string id = "",
+        Action<int, string>? onTabClosed = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateTabsState(gui, id, activeTabIndex, 32);
+        var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
+        var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, 32);
 
         var builder = new TabBuilder();
         buildTabs(builder);
         state.Tabs = builder.GetTabs();
+        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
 
         if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
             activeTabIndex = state.Tabs.Count > 0 ? 0 : -1;
@@ -299,6 +386,19 @@ public static partial class ControlsExtensions
             RenderActiveTabContent(gui, state, backgroundColor, borderColor, borderRadius, showBorder);
         }
 
+        if (state.TabToClose is { } closeRequest)
+        {
+            state.TabToClose = null;
+            state.Closed.Add(closeRequest.Title);
+
+            var openCount = state.Tabs.Count - 1;
+            if (closeRequest.Index < state.ActiveTabIndex) state.ActiveTabIndex--;
+            else if (closeRequest.Index == state.ActiveTabIndex)
+                state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
+
+            onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
+        }
+
         activeTabIndex = state.ActiveTabIndex;
     }
 
@@ -313,15 +413,18 @@ public static partial class ControlsExtensions
         Color? activeTextColor = null,
         float fontSize = 14,
         float spacing = 8,
+        string id = "",
+        Action<int, string>? onTabClosed = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateTabsState(gui, id, activeTabIndex, tabBarHeight);
+        var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
+        var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
         var builder = new TabBuilder();
         buildTabs(builder);
         state.Tabs = builder.GetTabs();
+        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
 
         if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
             activeTabIndex = state.Tabs.Count > 0 ? 0 : -1;
@@ -336,6 +439,19 @@ public static partial class ControlsExtensions
                 inactiveTabColor ?? Color.Transparent, textColor, activeTextColor, fontSize, spacing);
 
             RenderActiveTabContent(gui, state, Color.White, Color.FromArgb(255, 200, 200, 200), 4, true);
+        }
+
+        if (state.TabToClose is { } closeRequest)
+        {
+            state.TabToClose = null;
+            state.Closed.Add(closeRequest.Title);
+
+            var openCount = state.Tabs.Count - 1;
+            if (closeRequest.Index < state.ActiveTabIndex) state.ActiveTabIndex--;
+            else if (closeRequest.Index == state.ActiveTabIndex)
+                state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
+
+            onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
         }
 
         activeTabIndex = state.ActiveTabIndex;
@@ -370,15 +486,19 @@ public static partial class ControlsExtensions
         var tab = state.Tabs[tabIndex];
         var isActive = state.ActiveTabIndex == tabIndex;
 
-        using (gui.Node(tabWidth, 36).Padding(8).Enter())
+        using (gui.Node(tabWidth, 36).Padding(8).Direction(Axis.Horizontal).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
             {
                 var interactable = gui.GetInteractable();
                 var isHovered = interactable.OnHover();
                 var isClicked = interactable.OnClick();
+                var rect = gui.CurrentNode.Rect;
 
-                if (isClicked && tab.Enabled) state.ActiveTabIndex = tabIndex;
+                if (isClicked && tab.Enabled && !OverTabCloseButton(tab.Closable, rect, gui.Input.MousePosition))
+                    state.ActiveTabIndex = tabIndex;
+                if (interactable.OnClick(MouseButton.Middle) && tab.Enabled && tab.Closable)
+                    state.TabToClose = (tabIndex, tab.Title);
 
                 var tabColor = GetTabBackgroundColor(isActive, isHovered, tab.BackgroundColor,
                     activeTabColor, inactiveTabColor);
@@ -388,7 +508,6 @@ public static partial class ControlsExtensions
                 if (isActive)
                 {
                     var indicatorColor = activeTabColor ?? Color.FromArgb(255, 100, 149, 237);
-                    var rect = gui.CurrentNode.Rect;
                     var indicatorRect = new Rect(rect.X, rect.Y, 3, rect.H);
                     gui.DrawRect(indicatorRect, indicatorColor);
                 }
@@ -397,7 +516,10 @@ public static partial class ControlsExtensions
             var finalTextColor = GetTabTextColor(isActive, tab.Enabled, tab.TextColor,
                 activeTextColor, textColor);
 
-            gui.DrawText(tab.Title, fontSize, finalTextColor, centerInRect: false);
+            using (gui.Node().Expand().Height(36).Enter())
+                gui.DrawText(tab.Title, fontSize, finalTextColor, centerInRect: false);
+
+            if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
         }
     }
 
@@ -418,17 +540,21 @@ public static partial class ControlsExtensions
     {
         var tab = state.Tabs[tabIndex];
         var isActive = state.ActiveTabIndex == tabIndex;
-        var tabWidth = CalculateTabWidth(tab.Title, fontSize);
+        var tabWidth = CalculateTabWidth(tab.Title, fontSize, tab.Closable);
 
-        using (gui.Node(tabWidth, state.TabBarHeight - 16).Enter())
+        using (gui.Node(tabWidth, state.TabBarHeight - 16).Direction(Axis.Horizontal).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
             {
                 var interactable = gui.GetInteractable();
                 var isHovered = interactable.OnHover();
                 var isClicked = interactable.OnClick();
+                var rect = gui.CurrentNode.Rect;
 
-                if (isClicked && tab.Enabled) state.ActiveTabIndex = tabIndex;
+                if (isClicked && tab.Enabled && !OverTabCloseButton(tab.Closable, rect, gui.Input.MousePosition))
+                    state.ActiveTabIndex = tabIndex;
+                if (interactable.OnClick(MouseButton.Middle) && tab.Enabled && tab.Closable)
+                    state.TabToClose = (tabIndex, tab.Title);
 
                 var tabColor = isActive ? activeTabColor :
                     isHovered ? Color.FromArgb(100, activeTabColor.R, activeTabColor.G, activeTabColor.B) :
@@ -440,7 +566,10 @@ public static partial class ControlsExtensions
             var finalTextColor = GetTabTextColor(isActive, tab.Enabled, tab.TextColor,
                 activeTextColor, textColor);
 
-            gui.DrawText(tab.Title, fontSize, finalTextColor, centerInRect: true);
+            using (gui.Node().Expand().Height(state.TabBarHeight - 16).Enter())
+                gui.DrawText(tab.Title, fontSize, finalTextColor, centerInRect: true);
+
+            if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
         }
     }
 }

@@ -214,18 +214,19 @@ public partial class Gui
     {
         var maxX = 0f;
         var maxY = 0f;
-        var minX = float.MaxValue;
-        var minY = float.MaxValue;
 
         if (node.Children.Count > 0)
         {
             foreach (var child in node.Children)
             {
-                // Calculate absolute bounds of all children
-                minX = Math.Min(minX, child.Rect.X);
-                minY = Math.Min(minY, child.Rect.Y);
-                maxX = Math.Max(maxX, child.Rect.X + child.Rect.W);
-                maxY = Math.Max(maxY, child.Rect.Y + child.Rect.H);
+                // The children's rects carry the current scroll offset (ApplyScrollOffset subtracts
+                // it), so measuring them directly makes ContentSize -- and with it the drag ratio and
+                // clamp target -- drift frame to frame. Holding the thumb near the bottom then
+                // oscillated instead of holding still. Undo the offset to measure the unscrolled extent.
+                var x = child.Rect.X + scrollState.ScrollOffset.X;
+                var y = child.Rect.Y + scrollState.ScrollOffset.Y;
+                maxX = Math.Max(maxX, x + child.Rect.W);
+                maxY = Math.Max(maxY, y + child.Rect.H);
             }
 
             // Calculate content size relative to the container

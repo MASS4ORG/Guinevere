@@ -246,6 +246,12 @@ public class GuiWindow : IInputHandler, IWindowHandler, IDisposable
     }
 
     /// <summary>
+    /// Ends the run loop, so <see cref="RunGui"/> returns and the caller can shut down in order.
+    /// Safe to call from inside the draw callback: the window closes at the end of the frame.
+    /// </summary>
+    public void Close() => _window.Close();
+
+    /// <summary>
     /// Releases all resources used by the GuiWindow.
     /// </summary>
     public void Dispose()

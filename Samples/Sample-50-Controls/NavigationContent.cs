@@ -23,43 +23,19 @@ public abstract partial class Program
 
     private static string _treeStatus = "Click a row — double-click a folder or use the arrow keys to open it";
 
-    private static string _breadcrumbStatus = "You are on Home. Click a crumb to walk back up the trail.";
+    private static string _treeCrumbStatus = "Select a row; the trail then shows its path. Click a crumb to jump there.";
+
+    private static readonly string[] NestedTabTitles = ["Overview", "Details", "History"];
+
+    private const string HorizontalTabsId = "navigation-horizontal-tabs";
 
     private static void NavigationContent(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(16).Padding(10).Enter())
         {
-            Section(gui, "Breadcrumb", () =>
-            {
-                gui.Breadcrumb(
-                [
-                    new BreadcrumbItem("Home",
-                        () => _breadcrumbStatus = "You are on Home. Click a crumb to walk back up the trail."),
-                    new BreadcrumbItem("Documentation",
-                        () => _breadcrumbStatus = "Navigated to Documentation — two levels below Home."),
-                    new BreadcrumbItem("Controls", IsCurrent: true)
-                ], height: 32);
+            gui.ScrollY();
 
-                using (gui.Node().Margin(2, 8, 0, 0).Padding(10, 6).Enter())
-                {
-                    gui.DrawBackgroundRect(Color.FromArgb(255, 247, 249, 252), 6);
-                    gui.DrawText(_breadcrumbStatus, size: 12, color: Color.FromArgb(255, 102, 102, 102),
-                        centerInRect: false);
-                }
-            });
-
-            Section(gui, "Horizontal Tabs", () =>
-            {
-                gui.Tabs(ref _nestedTab, tabs =>
-                {
-                    tabs.Tab("Overview", () => gui.DrawText("Overview content", size: 12,
-                        color: Color.FromArgb(255, 102, 102, 102)));
-                    tabs.Tab("Details", () => gui.DrawText("Details content", size: 12,
-                        color: Color.FromArgb(255, 102, 102, 102)));
-                    tabs.Tab("History", () => gui.DrawText("History content", size: 12,
-                        color: Color.FromArgb(255, 102, 102, 102)));
-                });
-            });
+            Section(gui, "Horizontal Tabs", () => HorizontalTabsContent(gui));
 
             Section(gui, "Pill Tabs", () =>
             {
@@ -90,34 +66,45 @@ public abstract partial class Program
                 }
             });
 
-            Section(gui, "Tree View", () =>
+            Section(gui, "Tree View & Breadcrumb", () => TreeViewBreadcrumb(gui));
+        }
+    }
+
+    private static void TreeViewBreadcrumb(Gui gui)
+    {
+        using (gui.Node().Height(250).Enter())
+        {
+            gui.Breadcrumb(FileTrail(), height: 32);
+
+            using (gui.Node().Margin(0, 10, 0, 0).Height(190).Direction(Axis.Horizontal).Gap(12).Enter())
             {
-                using (gui.Node().Height(190).Direction(Axis.Horizontal).Gap(12).Enter())
+                using (gui.Node(270).Enter())
                 {
-                    using (gui.Node(270).Enter())
-                    {
-                        gui.DrawBackgroundRect(Color.FromArgb(255, 248, 249, 250), radius: 8);
-                        gui.TreeView(FileTreeState, FileTree(), LightTreeTheme, OnTreeClick);
-                    }
+                    gui.DrawBackgroundRect(Color.FromArgb(255, 248, 249, 250), radius: 8);
+                    gui.TreeView(FileTreeState, FileTree(), LightTreeTheme, OnTreeClick);
+                }
 
-                    using (gui.Node().Expand().Padding(8).Direction(Axis.Vertical).Gap(10).Enter())
-                    {
-                        gui.DrawText("Project Explorer", size: 14, color: Color.FromArgb(255, 51, 51, 51));
-                        gui.DrawText(_treeStatus, size: 12, color: Color.FromArgb(255, 102, 102, 102),
-                            wrapWidth: 420);
+                using (gui.Node().Expand().Padding(8).Direction(Axis.Vertical).Gap(10).Enter())
+                {
+                    gui.DrawText("Project Explorer", size: 14, color: Color.FromArgb(255, 51, 51, 51));
+                    gui.DrawText(_treeStatus, size: 12, color: Color.FromArgb(255, 102, 102, 102),
+                        wrapWidth: 420);
+                    gui.DrawText(_treeCrumbStatus, size: 12, color: Color.FromArgb(255, 102, 102, 102),
+                        wrapWidth: 420);
 
-                        using (gui.Node().Margin(0, 10, 0, 0).Direction(Axis.Vertical).Gap(4).Enter())
-                        {
-                            gui.DrawText("Arrow keys navigate, Enter activates", size: 11,
-                                color: Color.FromArgb(255, 153, 153, 153));
-                            gui.DrawText("Click a folder's arrow, double-click the row", size: 11,
-                                color: Color.FromArgb(255, 153, 153, 153));
-                            gui.DrawText("Right / middle click are reported too", size: 11,
-                                color: Color.FromArgb(255, 153, 153, 153));
-                        }
+                    using (gui.Node().Margin(0, 10, 0, 0).Direction(Axis.Vertical).Gap(4).Enter())
+                    {
+                        gui.DrawText("Arrow keys navigate, Enter activates", size: 11,
+                            color: Color.FromArgb(255, 153, 153, 153));
+                        gui.DrawText("Click a folder's arrow, double-click the row", size: 11,
+                            color: Color.FromArgb(255, 153, 153, 153));
+                        gui.DrawText("The breadcrumb above follows the selection", size: 11,
+                            color: Color.FromArgb(255, 153, 153, 153));
+                        gui.DrawText("Right / middle click are reported too", size: 11,
+                            color: Color.FromArgb(255, 153, 153, 153));
                     }
                 }
-            });
+            }
         }
     }
 
@@ -146,6 +133,68 @@ public abstract partial class Program
         ];
     }
 
+    private static void HorizontalTabsContent(Gui gui)
+    {
+        gui.Tabs(ref _nestedTab, tabs =>
+        {
+            foreach (var title in NestedTabTitles)
+                tabs.Tab(title, () => gui.DrawText($"{title} content", size: 12,
+                    color: Color.FromArgb(255, 102, 102, 102)));
+        }, id: HorizontalTabsId);
+
+        using (gui.Node().Margin(0, 6, 0, 0).Direction(Axis.Horizontal).Gap(8).Enter())
+        {
+            gui.DrawText("Middle-click a tab to close it", size: 11,
+                color: Color.FromArgb(255, 153, 153, 153));
+
+            if (gui.Button("Restore", width: 72, height: 24, fontSize: 12))
+            {
+                gui.RestoreTabs(HorizontalTabsId);
+                _nestedTab = 0;
+            }
+        }
+    }
+
+    private static IReadOnlyList<BreadcrumbItem> FileTrail()
+    {
+        var selectedId = FileTreeState.SelectedId;
+        if (string.IsNullOrEmpty(selectedId))
+        {
+            return
+            [
+                new BreadcrumbItem("Guinevere", () => NavigateTo("proj")),
+                new BreadcrumbItem("Nothing selected", IsCurrent: true)
+            ];
+        }
+
+        var segments = selectedId.Split('/');
+        var crumbs = new List<BreadcrumbItem>();
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var path = string.Join('/', segments.Take(i + 1));
+            var label = i == 0 ? "Guinevere" : segments[i];
+
+            crumbs.Add(i == segments.Length - 1
+                ? new BreadcrumbItem(label, IsCurrent: true)
+                : new BreadcrumbItem(label, () => NavigateTo(path)));
+        }
+        return crumbs;
+    }
+
+    private static void NavigateTo(string path)
+    {
+        var segments = path.Split('/');
+        var prefix = "";
+        foreach (var segment in segments)
+        {
+            prefix = prefix.Length == 0 ? segment : $"{prefix}/{segment}";
+            FileTreeState.SetExpanded(prefix, true);
+        }
+
+        FileTreeState.SelectedId = path;
+        _treeCrumbStatus = $"Jumped to {segments[^1]} — the tree follows the trail.";
+    }
+
     private static void OnTreeClick(TreeViewEvent evt)
     {
         _treeStatus = evt.Button switch
@@ -154,6 +203,9 @@ public abstract partial class Program
             MouseButton.Middle => $"Middle-clicked {evt.Item.Label}",
             _ => evt.ClickCount >= 2 ? $"Double-clicked {evt.Item.Label}" : $"Selected {evt.Item.Label}"
         };
+
+        if (evt.Button == MouseButton.Left && !string.IsNullOrEmpty(evt.Item.Id))
+            _treeCrumbStatus = $"The trail now shows the path to {evt.Item.Label}.";
     }
 
     private static void FolderIcon(Gui gui)

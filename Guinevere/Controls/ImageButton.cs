@@ -80,19 +80,16 @@ public static partial class ControlsExtensions
             else
                 gui.DrawImage(image, bounds, null, null, enabled ? 1f : 0.6f, node);
 
-            if (text is { Label: { Length: > 0 } label })
+            if (text is { Label: { Length: > 0 } })
             {
                 var size = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
                 var color = textColor ?? node.Scope.Get<LayoutNodeScopeTextColor>().Value;
                 if (!enabled) color = Color.FromArgb(color.A / 2, color.R, color.G, color.B);
 
-                // Centre the caption by hand (like Button) — a child DrawText node would need both
-                // passes, and this control only runs on the render pass.
-                var font = new SKFont { Size = size };
-                font.MeasureText(label, out var textBounds);
-                var pos = CalculateTextCenterPosition(bounds, textBounds);
-                gui.CurrentNode.DrawList.Add(
-                    new Text(label, pos, font, new SKPaint { Color = color, IsAntialias = true }));
+                // Centres the caption by hand (like Button) with the same main/icon font fallback
+                // as Gui.DrawText, so emoji and icon glyphs render instead of tofu. A child DrawText
+                // node would need both passes, and this control only runs on the render pass.
+                gui.RenderCenteredText(text, size, color);
             }
 
             return clicked;

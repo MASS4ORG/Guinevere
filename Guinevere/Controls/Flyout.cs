@@ -147,43 +147,44 @@ public static partial class ControlsExtensions
     {
         using (gui.Node(width, height).Enter())
         {
-            if (gui.Pass == Pass.Pass2Render)
+            if (item.IsSeparator)
             {
-                if (item.IsSeparator)
+                if (gui.Pass != Pass.Pass2Render) return;
+
+                var rect = gui.CurrentNode.Rect;
+                var sepColor = separatorColor ?? Color.FromArgb(255, 220, 220, 220);
+                var sepY = rect.Y + rect.H * 0.5f;
+                gui.DrawLine(new Vector2(rect.X + padding, sepY),
+                    new Vector2(rect.X + rect.W - padding, sepY), sepColor);
+                return;
+            }
+
+            var isHovered = index == state.HoveredIndex;
+            var itemColor = item.Enabled ? textColor ?? Color.Black : disabledColor ?? Color.Gray;
+
+            if (isHovered && item.Enabled)
+            {
+                var hoverColorFinal = hoverColor ?? Color.FromArgb(255, 230, 230, 230);
+                gui.DrawBackgroundRect(hoverColorFinal);
+            }
+
+            // Built in both passes: a node created only during the render pass never took part in
+            // layout, so every label drew at the menu's origin instead of on its own row.
+            using (gui.Node().Padding(padding).Direction(Axis.Horizontal).Enter())
+            {
+                gui.DrawText(item.Text, fontSize, itemColor, centerInRect: false);
+
+                if (item.HasSubmenu)
                 {
-                    var rect = gui.CurrentNode.Rect;
-                    var sepColor = separatorColor ?? Color.FromArgb(255, 220, 220, 220);
-                    var sepY = rect.Y + rect.H * 0.5f;
-                    gui.DrawLine(new Vector2(rect.X + padding, sepY),
-                        new Vector2(rect.X + rect.W - padding, sepY), sepColor);
-                    return;
+                    gui.Node().Expand();
+
+                    gui.DrawText("▶", fontSize * 0.8f, itemColor, centerInRect: false);
                 }
-
-                var isHovered = index == state.HoveredIndex;
-                var itemColor = item.Enabled ? textColor ?? Color.Black : disabledColor ?? Color.Gray;
-
-                if (isHovered && item.Enabled)
+                else if (!string.IsNullOrEmpty(item.Shortcut))
                 {
-                    var hoverColorFinal = hoverColor ?? Color.FromArgb(255, 230, 230, 230);
-                    gui.DrawBackgroundRect(hoverColorFinal);
-                }
+                    gui.Node().Expand();
 
-                using (gui.Node().Padding(padding).Direction(Axis.Horizontal).Enter())
-                {
-                    gui.DrawText(item.Text, fontSize, itemColor, centerInRect: false);
-
-                    if (item.HasSubmenu)
-                    {
-                        gui.Node().Expand();
-
-                        gui.DrawText("▶", fontSize * 0.8f, itemColor, centerInRect: false);
-                    }
-                    else if (!string.IsNullOrEmpty(item.Shortcut))
-                    {
-                        gui.Node().Expand();
-
-                        gui.DrawText(item.Shortcut, fontSize * 0.9f, Color.Gray, centerInRect: false);
-                    }
+                    gui.DrawText(item.Shortcut, fontSize * 0.9f, Color.Gray, centerInRect: false);
                 }
             }
         }

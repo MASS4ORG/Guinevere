@@ -25,6 +25,13 @@ public partial class Gui
         return state;
     }
 
+    /// <summary>Returns the control state for an id, if one already exists. Never creates one.</summary>
+    internal TState? TryGetControlState<TState>(string id) where TState : class
+    {
+        if (!_controlStates.TryGetValue(typeof(TState), out var store)) return null;
+        return store.TryGetValue(id, out var existing) ? (TState)existing : null;
+    }
+
     /// <summary>Forgets every control's remembered state.</summary>
     public void ClearControlStates() => _controlStates.Clear();
 
