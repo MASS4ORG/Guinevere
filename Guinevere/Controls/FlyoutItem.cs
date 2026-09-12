@@ -36,6 +36,16 @@ public class FlyoutItem
     public bool IsSeparator { get; set; }
 
     /// <summary>
+    /// Reads whether a checkable item is currently checked. When set, the item renders a check column.
+    /// </summary>
+    public Func<bool>? IsChecked { get; set; }
+
+    /// <summary>
+    /// Receives the target value when a checkable item is activated.
+    /// </summary>
+    public Action<bool>? OnCheckChanged { get; set; }
+
+    /// <summary>
     /// Gets whether this item has a submenu
     /// </summary>
     public bool HasSubmenu => Submenu is { Count: > 0 };

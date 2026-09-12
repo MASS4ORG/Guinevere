@@ -85,6 +85,23 @@ public abstract partial class Program
             }
         });
 
+        Section(gui, "Disabled Buttons", () =>
+        {
+            using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
+            {
+                Button(gui, "Disabled", enabled: false);
+                Button(gui, "Fixed Size", width: 120, enabled: false);
+                ColoredButton(gui, "Disabled Primary", 0, 123, 255, enabled: false);
+                Button(gui, "Rounded", radius: 20, width: 100, enabled: false);
+
+                if (gui.Button("⚙️", 40, enabled: false))
+                {
+                    _iconButtonClickCount++;
+                    Clicked("Disabled Icon");
+                }
+            }
+        });
+
         Section(gui, "Edge Cases", () =>
         {
             using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
@@ -108,19 +125,21 @@ public abstract partial class Program
     }
 
     private static void Button(Gui gui, string text, float width = 0, float height = 0, float? fontSize = null,
-        float radius = 4, string? label = null)
+        float radius = 4, string? label = null, bool enabled = true)
     {
         var showLabel = label ?? text;
-        if (gui.Button(text, width: width, height: height, fontSize: fontSize, radius: radius))
+        if (gui.Button(text, width: width, height: height, fontSize: fontSize, radius: radius, enabled: enabled))
             Clicked(showLabel);
     }
 
-    private static void ColoredButton(Gui gui, string text, int r, int g, int b, Color? textColor = null)
+    private static void ColoredButton(Gui gui, string text, int r, int g, int b, Color? textColor = null,
+        bool enabled = true)
     {
         if (gui.Button(text,
                 backgroundColor: Color.FromArgb(255, r, g, b),
                 hoverColor: Color.FromArgb(255, Math.Max(0, r - 20), Math.Max(0, g - 20), Math.Max(0, b - 20)),
-                color: textColor ?? Color.White))
+                color: textColor ?? Color.White,
+                enabled: enabled))
             Clicked(text);
     }
 

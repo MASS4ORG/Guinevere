@@ -29,6 +29,7 @@ public abstract partial class Program
 
         Section(gui, "Single-line Inputs", () => TextInputRow(gui));
         Section(gui, "Text Area", () => TextAreaRow(gui));
+        Section(gui, "Disabled Inputs", () => DisabledInputRow(gui));
         //         }
         //     }
 
@@ -72,6 +73,33 @@ public abstract partial class Program
         using (gui.Node().Height(90).Enter())
         {
             _textArea = gui.TextArea(_textArea, width: 520, height: 90, placeholder: "Enter multiline text...");
+        }
+    }
+
+    private static readonly Color DisabledInputFill = Color.FromArgb(255, 245, 246, 247);
+    private static readonly Color DisabledInputInk = Color.FromArgb(255, 160, 162, 167);
+
+    private static void DisabledInputRow(Gui gui)
+    {
+        using (gui.Node().Width(300).Enter())
+        {
+            _testInput = gui.TextInput(_testInput, placeholder: "Read only", enabled: false,
+                backgroundColor: DisabledInputFill, textColor: DisabledInputInk,
+                placeholderColor: DisabledInputInk);
+        }
+
+        using (gui.Node().Width(300).Enter())
+        {
+            _passwordInput = gui.PasswordInput(_passwordInput, placeholder: "Read only", enabled: false,
+                backgroundColor: DisabledInputFill, textColor: DisabledInputInk,
+                placeholderColor: DisabledInputInk);
+        }
+
+        using (gui.Node().Height(90).Margin(0, 10, 0, 0).Enter())
+        {
+            _textArea = gui.TextArea(_textArea, width: 520, height: 90, placeholder: "Read only",
+                enabled: false, backgroundColor: DisabledInputFill, textColor: DisabledInputInk,
+                placeholderColor: DisabledInputInk);
         }
     }
 }

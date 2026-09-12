@@ -13,10 +13,11 @@ public static partial class ControlsExtensions
         Color? thumbColor = null,
         Color? labelColor = null,
         float fontSize = 14,
-        float spacing = 8)
+        float spacing = 8,
+        bool enabled = true)
     {
         ToggleCore(gui, ref isOn, label, width, height, onColor, offColor,
-            thumbColor, labelColor, fontSize, spacing);
+            thumbColor, labelColor, fontSize, spacing, enabled);
     }
 
     /// <summary>
@@ -30,17 +31,18 @@ public static partial class ControlsExtensions
         Color? thumbColor = null,
         Color? labelColor = null,
         float fontSize = 14,
-        float spacing = 8)
+        float spacing = 8,
+        bool enabled = true)
     {
         var temp = isOn;
         ToggleCore(gui, ref temp, label, width, height, onColor, offColor,
-            thumbColor, labelColor, fontSize, spacing);
+            thumbColor, labelColor, fontSize, spacing, enabled);
         return temp;
     }
 
     private static void ToggleCore(Gui gui, ref bool isOn, string label, float width, float height,
         Color? onColor, Color? offColor, Color? thumbColor, Color? labelColor,
-        float fontSize, float spacing)
+        float fontSize, float spacing, bool enabled)
     {
         var totalWidth = CalculateToggleWidth(label, width, fontSize, spacing);
         var totalHeight = Math.Max(height, fontSize + 4);
@@ -50,9 +52,9 @@ public static partial class ControlsExtensions
                    .Gap(spacing)
                    .Enter())
         {
-            HandleToggleInteraction(gui, ref isOn);
-            RenderToggleSwitch(gui, isOn, width, height, onColor, offColor, thumbColor);
-            RenderToggleLabel(gui, label, fontSize, labelColor);
+            HandleToggleInteraction(gui, ref isOn, enabled);
+            RenderToggleSwitch(gui, isOn, width, height, onColor, offColor, thumbColor, enabled);
+            RenderToggleLabel(gui, label, fontSize, labelColor, enabled);
         }
     }
 
@@ -63,44 +65,43 @@ public static partial class ControlsExtensions
             : width + spacing + MeasureTextWidth(new SKFont { Size = fontSize }, label);
     }
 
-    private static void HandleToggleInteraction(Gui gui, ref bool isOn)
+    private static void HandleToggleInteraction(Gui gui, ref bool isOn, bool enabled)
     {
-        if (gui.Pass == Pass.Pass2Render)
+        if (gui.Pass != Pass.Pass2Render || !enabled) return;
+
+        // Register this toggle as focusable
+        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+
+        var interactable = gui.GetInteractable();
+
+        // Handle mouse click for focus and toggle
+        if (interactable.OnClick())
         {
-            // Register this toggle as focusable
-            gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+            gui.RequestFocus(FocusReason.Mouse);
+            isOn = !isOn;
+        }
 
-            var interactable = gui.GetInteractable();
-
-            // Handle mouse click for focus and toggle
-            if (interactable.OnClick())
-            {
-                gui.RequestFocus(FocusReason.Mouse);
-                isOn = !isOn;
-            }
-
-            // Handle keyboard interaction for focused toggle
-            if (gui.HasFocus() && gui.Input.IsKeyPressed(KeyboardKey.Space))
-            {
-                isOn = !isOn;
-            }
+        // Handle keyboard interaction for focused toggle
+        if (gui.HasFocus() && gui.Input.IsKeyPressed(KeyboardKey.Space))
+        {
+            isOn = !isOn;
         }
     }
 
     private static void RenderToggleSwitch(Gui gui, bool isOn, float width, float height,
-        Color? onColor, Color? offColor, Color? thumbColor)
+        Color? onColor, Color? offColor, Color? thumbColor, bool enabled)
     {
         using (gui.Node(width, height).Enter())
         {
             if (gui.Pass != Pass.Pass2Render) return;
 
             var rect = gui.CurrentNode.Rect;
-            var trackColor = GetToggleTrackColor(gui, isOn, onColor, offColor);
+            var trackColor = enabled ? GetToggleTrackColor(gui, isOn, onColor, offColor) : DisabledBorder;
 
             gui.DrawBackgroundRect(trackColor, height * 0.5f);
 
             // Draw stronger focus indicator if this toggle has focus
-            if (gui.HasFocus())
+            if (enabled && gui.HasFocus())
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
                 gui.DrawRectBorder(focusRect, Color.FromArgb(128, gui.Controls.Accent), 4f, (height * 0.5f) + 4);
@@ -108,15 +109,16 @@ public static partial class ControlsExtensions
             }
 
             var thumbProps = CalculateThumbProperties(rect, width, height, isOn);
-            DrawToggleThumb(gui, thumbProps, thumbColor ?? gui.Controls.Knob);
+            DrawToggleThumb(gui, thumbProps, enabled ? thumbColor ?? gui.Controls.Knob : DisabledText);
         }
     }
 
-    private static void RenderToggleLabel(Gui gui, string label, float fontSize, Color? labelColor)
+    private static void RenderToggleLabel(Gui gui, string label, float fontSize, Color? labelColor,
+        bool enabled)
     {
         if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = labelColor ?? Color.Black;
+            var labelColorFinal = enabled ? labelColor ?? Color.Black : DisabledText;
             gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
         }
     }

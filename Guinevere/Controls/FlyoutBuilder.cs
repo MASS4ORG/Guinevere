@@ -36,4 +36,25 @@ public class FlyoutBuilder
         Items.Add(new FlyoutItem { IsSeparator = true });
         return this;
     }
+
+    /// <summary>
+    /// Adds a checkable menu item. The item shows a check when <paramref name="isChecked"/> returns
+    /// true; activating it calls <paramref name="onChange"/> with the target value.
+    /// </summary>
+    public FlyoutBuilder CheckItem(string text, Func<bool> isChecked, Action<bool> onChange,
+        string shortcut = "", bool enabled = true)
+    {
+        ArgumentNullException.ThrowIfNull(isChecked);
+        ArgumentNullException.ThrowIfNull(onChange);
+
+        Items.Add(new FlyoutItem
+        {
+            Text = text,
+            IsChecked = isChecked,
+            OnCheckChanged = onChange,
+            Shortcut = shortcut,
+            Enabled = enabled
+        });
+        return this;
+    }
 }

@@ -2,6 +2,10 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
+    private static readonly Color DisabledFill = Color.FromArgb(255, 245, 246, 247);
+    private static readonly Color DisabledBorder = Color.FromArgb(255, 208, 210, 214);
+    private static readonly Color DisabledText = Color.FromArgb(255, 160, 162, 167);
+
     /// <summary>
     /// Creates a button that returns the clicked state without modifying the input
     /// </summary>
@@ -14,10 +18,11 @@ public static partial class ControlsExtensions
         Color? pressedBorderColor = null,
         Color? color = null,
         float? fontSize = null,
-        float radius = 4)
+        float radius = 4,
+        bool enabled = true)
     {
         return ButtonCore(gui, text, width, height, backgroundColor, borderColor, hoverColor,
-            pressedColor, pressedBorderColor, color, fontSize, radius);
+            pressedColor, pressedBorderColor, color, fontSize, radius, enabled);
     }
 
     /// <summary>
@@ -32,10 +37,11 @@ public static partial class ControlsExtensions
         Color? pressedBorderColor = null,
         Color? color = null,
         float? fontSize = null,
-        float radius = 4)
+        float radius = 4,
+        bool enabled = true)
     {
         clicked = IconButtonCore(gui, icon, size, backgroundColor, borderColor, hoverColor,
-            pressedColor, pressedBorderColor, color, fontSize, radius);
+            pressedColor, pressedBorderColor, color, fontSize, radius, enabled);
     }
 
     /// <summary>
@@ -50,10 +56,11 @@ public static partial class ControlsExtensions
         Color? pressedBorderColor = null,
         Color? color = null,
         float fontSize = 16,
-        float radius = 4)
+        float radius = 4,
+        bool enabled = true)
     {
         return IconButtonCore(gui, icon, size, backgroundColor, borderColor, hoverColor,
-            pressedColor, pressedBorderColor, color, fontSize, radius);
+            pressedColor, pressedBorderColor, color, fontSize, radius, enabled);
     }
 
     private static bool ButtonCore(Gui gui, Text text, float width, float height,
@@ -61,7 +68,7 @@ public static partial class ControlsExtensions
         Color? hoverColor,
         Color? pressedColor, Color? pressedBorderColor,
         Color? color,
-        float? fontSize, float radius)
+        float? fontSize, float radius, bool enabled)
     {
         var node = gui.Node();
         var fontSizeEffective = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
@@ -70,6 +77,14 @@ public static partial class ControlsExtensions
         using (node.Width(buttonWidth).Height(buttonHeight).Enter())
         {
             if (gui.Pass != Pass.Pass2Render) return false;
+
+            if (!enabled)
+            {
+                gui.DrawBackgroundRect(DisabledFill, radius);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, DisabledBorder, 1f, radius);
+                RenderCenteredText(gui, text, fontSizeEffective, DisabledText);
+                return false;
+            }
 
             // Register as focusable for keyboard navigation
             gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
@@ -103,7 +118,7 @@ public static partial class ControlsExtensions
         Color? hoverColor,
         Color? pressedColor, Color? pressedBorderColor,
         Color? color,
-        float? fontSize, float radius)
+        float? fontSize, float radius, bool enabled)
     {
         var node = gui.Node();
         var fontSizeEffective = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
@@ -113,6 +128,14 @@ public static partial class ControlsExtensions
         using (gui.Node(buttonWidth, buttonHeight).Enter())
         {
             if (gui.Pass != Pass.Pass2Render) return false;
+
+            if (!enabled)
+            {
+                gui.DrawBackgroundRect(DisabledFill, radius);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, DisabledBorder, 1f, radius);
+                RenderCenteredText(gui, icon, fontSizeEffective, DisabledText);
+                return false;
+            }
 
             // Register as focusable for keyboard navigation
             gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);

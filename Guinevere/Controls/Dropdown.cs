@@ -40,6 +40,7 @@ public static partial class ControlsExtensions
     /// <param name="padding">Horizontal padding inside the button and the options.</param>
     /// <param name="borderRadius">Corner radius.</param>
     /// <param name="maxVisibleItems">How many options the list shows before it scrolls.</param>
+    /// <param name="enabled">Whether the dropdown may be opened. A disabled dropdown is dimmed and inert.</param>
     /// <param name="filePath">Call site, supplied by the compiler. Pass an id to separate two dropdowns sharing one.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void Dropdown(this Gui gui, string[] options, ref int selectedIndex,
@@ -57,6 +58,7 @@ public static partial class ControlsExtensions
         float padding = 8,
         float borderRadius = 4,
         int maxVisibleItems = 6,
+        bool enabled = true,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -70,11 +72,14 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass1Build) state.Anchor = state.ButtonRect;
 
         DrawButton(gui, id, options, selectedIndex, width, height, placeholder,
-            backgroundColor ?? palette.Surface, borderColor ?? palette.Border,
-            textColor ?? palette.Text, placeholderColor ?? palette.TextDim,
-            fontSize, padding, borderRadius, state);
+            enabled ? backgroundColor ?? palette.Surface : DisabledFill,
+            enabled ? borderColor ?? palette.Border : DisabledBorder,
+            enabled ? textColor ?? palette.Text : DisabledText,
+            enabled ? placeholderColor ?? palette.TextDim : DisabledText,
+            fontSize, padding, borderRadius, state, enabled);
 
-        if (!state.IsOpen || state.Anchor.W <= 0) return;
+        if (state.IsOpen && !enabled) state.IsOpen = false;
+        if (!enabled || state.IsOpen == false || state.Anchor.W <= 0) return;
 
         DrawList(gui, id, options, ref selectedIndex, state.Anchor, height,
             dropdownColor ?? palette.Popup, borderColor ?? palette.Border,
@@ -102,6 +107,7 @@ public static partial class ControlsExtensions
     /// <param name="padding">Horizontal padding.</param>
     /// <param name="borderRadius">Corner radius.</param>
     /// <param name="maxVisibleItems">How many options the list shows before it scrolls.</param>
+    /// <param name="enabled">Whether the dropdown may be opened. A disabled dropdown is dimmed and inert.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     /// <returns>The chosen index after this frame.</returns>
@@ -120,13 +126,14 @@ public static partial class ControlsExtensions
         float padding = 8,
         float borderRadius = 4,
         int maxVisibleItems = 6,
+        bool enabled = true,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         var index = selectedIndex;
         Dropdown(gui, options, ref index, width, height, placeholder, backgroundColor, borderColor,
             textColor, placeholderColor, dropdownColor, hoverColor, selectedColor, fontSize, padding,
-            borderRadius, maxVisibleItems, filePath, lineNumber);
+            borderRadius, maxVisibleItems, enabled, filePath, lineNumber);
         return index;
     }
 
@@ -143,7 +150,8 @@ public static partial class ControlsExtensions
 
     private static void DrawButton(Gui gui, string id, string[] options, int selectedIndex,
         float width, float height, string placeholder, Color background, Color border, Color text,
-        Color placeholderText, float fontSize, float padding, float borderRadius, DropdownState state)
+        Color placeholderText, float fontSize, float padding, float borderRadius, DropdownState state,
+        bool enabled)
     {
         using (gui.Node(width, height, $"{id}/button").Direction(Axis.Horizontal)
                    .Padding(padding, 0).ContentAlignY(0.5f).Enter())
@@ -157,10 +165,10 @@ public static partial class ControlsExtensions
                 var interactable = gui.GetInteractable();
 
                 gui.DrawBackgroundRect(background, borderRadius);
-                gui.DrawRectBorder(rect, state.IsOpen ? gui.Controls.Accent : border,
-                    state.IsOpen ? 2f : 1f, borderRadius);
+                gui.DrawRectBorder(rect, state.IsOpen && enabled ? gui.Controls.Accent : border,
+                    state.IsOpen && enabled ? 2f : 1f, borderRadius);
 
-                if (interactable.OnClick()) state.IsOpen = !state.IsOpen;
+                if (enabled && interactable.OnClick()) state.IsOpen = !state.IsOpen;
 
                 DrawArrow(gui, rect, padding, text);
             }

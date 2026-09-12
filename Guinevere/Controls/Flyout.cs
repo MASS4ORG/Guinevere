@@ -78,33 +78,6 @@ public static partial class ControlsExtensions
         }
     }
 
-    /// <summary>
-    /// Creates a menu bar with flyout menus
-    /// </summary>
-    public static void MenuBar(this Gui gui, Action<MenuBarBuilder> buildMenus,
-        float height = 30,
-        Color? backgroundColor = null,
-        Color? textColor = null,
-        Color? hoverColor = null,
-        float fontSize = 12,
-        float padding = 12,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
-    {
-        using (gui.Node().Height(height).Direction(Axis.Horizontal).Enter())
-        {
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                var bgColor = backgroundColor ?? Color.FromArgb(248, 249, 250);
-                gui.DrawBackgroundRect(bgColor);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, Color.FromArgb(200, 200, 200));
-            }
-
-            var builder = new MenuBarBuilder(gui, height, textColor, hoverColor, fontSize, padding);
-            buildMenus(builder);
-        }
-    }
-
     private static FlyoutState GetOrCreateFlyoutState(Gui gui, string id) =>
         gui.ControlState(id, () => new FlyoutState());
 
@@ -195,15 +168,17 @@ public static partial class ControlsExtensions
         state.HoveredIndex = -1;
     }
 
-    private static float CalculateFlyoutWidth(List<FlyoutItem> items, float fontSize, float padding, float minWidth)
+    private static float CalculateFlyoutWidth(List<FlyoutItem> items, float fontSize, float padding, float minWidth,
+        bool hasCheckColumn = false)
     {
         var font = new SKFont { Size = fontSize };
         var maxWidth = minWidth;
+        var checkColumnWidth = hasCheckColumn ? 18f : 0f;
 
         foreach (var item in items.Where(i => !i.IsSeparator))
         {
             font.MeasureText(item.Text, out var textBounds);
-            var itemWidth = textBounds.Width + padding * 2;
+            var itemWidth = textBounds.Width + padding * 2 + checkColumnWidth;
 
             if (!string.IsNullOrEmpty(item.Shortcut))
             {

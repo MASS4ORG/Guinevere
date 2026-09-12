@@ -6,9 +6,9 @@ internal class TabInfo
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// Whether the user may close this tab, with the middle-click or the "×" button. Defaults to true.
+    /// Whether the user may close this tab, with the middle-click or the "×" button. Defaults to false.
     /// </summary>
-    public bool Closable { get; set; } = true;
+    public bool Closable { get; set; } = false;
     public Action? Content { get; set; }
     public Color? BackgroundColor { get; set; }
     public Color? TextColor { get; set; }

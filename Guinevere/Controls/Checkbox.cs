@@ -12,10 +12,11 @@ public static partial class ControlsExtensions
         Color? borderColor = null,
         Color? labelColor = null,
         float fontSize = 14,
-        float spacing = 8)
+        float spacing = 8,
+        bool enabled = true)
     {
         CheckboxCore(gui, ref isChecked, label, size, backgroundColor, checkColor,
-            borderColor, labelColor, fontSize, spacing);
+            borderColor, labelColor, fontSize, spacing, enabled);
     }
 
     /// <summary>
@@ -28,17 +29,18 @@ public static partial class ControlsExtensions
         Color? borderColor = null,
         Color? labelColor = null,
         float fontSize = 14,
-        float spacing = 8)
+        float spacing = 8,
+        bool enabled = true)
     {
         var temp = isChecked;
         CheckboxCore(gui, ref temp, label, size, backgroundColor, checkColor,
-            borderColor, labelColor, fontSize, spacing);
+            borderColor, labelColor, fontSize, spacing, enabled);
         return temp;
     }
 
     private static void CheckboxCore(Gui gui, ref bool isChecked, string label, float size,
         Color? backgroundColor, Color? checkColor, Color? borderColor, Color? labelColor,
-        float fontSize, float spacing)
+        float fontSize, float spacing, bool enabled)
     {
         var totalWidth = CalculateCheckboxWidth(label, size, fontSize, spacing);
         var totalHeight = Math.Max(size, fontSize + 4);
@@ -48,9 +50,9 @@ public static partial class ControlsExtensions
                    .Gap(spacing)
                    .Enter())
         {
-            HandleCheckboxInteraction(gui, ref isChecked);
-            RenderCheckboxSquare(gui, isChecked, size, backgroundColor, checkColor, borderColor);
-            RenderCheckboxLabel(gui, label, fontSize, labelColor);
+            HandleCheckboxInteraction(gui, ref isChecked, enabled);
+            RenderCheckboxSquare(gui, isChecked, size, backgroundColor, checkColor, borderColor, enabled);
+            RenderCheckboxLabel(gui, label, fontSize, labelColor, enabled);
         }
     }
 
@@ -61,32 +63,31 @@ public static partial class ControlsExtensions
             : size + spacing + MeasureTextWidth(new SKFont { Size = fontSize }, label);
     }
 
-    private static void HandleCheckboxInteraction(Gui gui, ref bool isChecked)
+    private static void HandleCheckboxInteraction(Gui gui, ref bool isChecked, bool enabled)
     {
-        if (gui.Pass == Pass.Pass2Render)
+        if (gui.Pass != Pass.Pass2Render || !enabled) return;
+
+        // Register this checkbox as focusable
+        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+
+        var interactable = gui.GetInteractable();
+
+        // Handle mouse click for focus and toggle
+        if (interactable.OnClick())
         {
-            // Register this checkbox as focusable
-            gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+            gui.RequestFocus(FocusReason.Mouse);
+            isChecked = !isChecked;
+        }
 
-            var interactable = gui.GetInteractable();
-
-            // Handle mouse click for focus and toggle
-            if (interactable.OnClick())
-            {
-                gui.RequestFocus(FocusReason.Mouse);
-                isChecked = !isChecked;
-            }
-
-            // Handle keyboard interaction for focused checkbox
-            if (gui.HasFocus() && gui.Input.IsKeyPressed(KeyboardKey.Space))
-            {
-                isChecked = !isChecked;
-            }
+        // Handle keyboard interaction for focused checkbox
+        if (gui.HasFocus() && gui.Input.IsKeyPressed(KeyboardKey.Space))
+        {
+            isChecked = !isChecked;
         }
     }
 
     private static void RenderCheckboxSquare(Gui gui, bool isChecked, float size,
-        Color? backgroundColor, Color? checkColor, Color? borderColor)
+        Color? backgroundColor, Color? checkColor, Color? borderColor, bool enabled)
     {
         using (gui.Node(size, size).Enter())
         {
@@ -94,10 +95,9 @@ public static partial class ControlsExtensions
 
             var rect = gui.CurrentNode.Rect;
             var bgColor = GetCheckboxBackgroundColor(gui, isChecked, backgroundColor);
-            var borderColorFinal = borderColor ?? gui.Controls.Border;
+            var borderColorFinal = enabled ? borderColor ?? gui.Controls.Border : DisabledBorder;
 
-            // Use stronger border and subtle glow if focused
-            if (gui.HasFocus())
+            if (enabled && gui.HasFocus())
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
                 gui.DrawRectBorder(focusRect, Color.FromArgb(128, gui.Controls.Accent), 4f, 4);
@@ -106,20 +106,21 @@ public static partial class ControlsExtensions
             }
             else
             {
-                gui.DrawBackgroundRect(bgColor, 2);
+                gui.DrawBackgroundRect(enabled ? bgColor : DisabledFill, 2);
                 gui.DrawRectBorder(rect, borderColorFinal, 1f, 2);
             }
 
             if (isChecked)
-                DrawCheckmark(gui, rect, size, checkColor ?? gui.Controls.Knob);
+                DrawCheckmark(gui, rect, size, enabled ? checkColor ?? gui.Controls.Knob : DisabledText);
         }
     }
 
-    private static void RenderCheckboxLabel(Gui gui, string label, float fontSize, Color? labelColor)
+    private static void RenderCheckboxLabel(Gui gui, string label, float fontSize, Color? labelColor,
+        bool enabled)
     {
         if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = labelColor ?? gui.Controls.Text;
+            var labelColorFinal = enabled ? labelColor ?? gui.Controls.Text : DisabledText;
             gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
         }
     }

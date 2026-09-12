@@ -1,97 +1,27 @@
 namespace Guinevere;
 
 /// <summary>
-/// Builder for creating menu bars
+/// Builder for a top-level menu bar: one <see cref="Menu"/> call per menu whose title appears in the
+/// bar, with the menu's contents described by a <see cref="FlyoutBuilder"/>.
 /// </summary>
 public class MenuBarBuilder
 {
-    private readonly Gui _gui;
-    private readonly float _height;
-    private readonly Color? _textColor;
-    private readonly Color? _hoverColor;
-    private readonly float _fontSize;
-    private readonly float _padding;
-    private readonly Dictionary<string, bool> _menuStates = new();
+    internal readonly List<MenuBarMenu> Menus = new();
 
     /// <summary>
-    /// Creates a new menu bar builder with the specified appearance settings.
-    /// </summary>
-    /// <param name="gui">The GUI context used to draw the menu bar.</param>
-    /// <param name="height">The height of the menu bar.</param>
-    /// <param name="textColor">The color used for menu text. If null, defaults to black.</param>
-    /// <param name="hoverColor">The color used for the hover highlight. If null, a default grey is used.</param>
-    /// <param name="fontSize">The font size for menu labels.</param>
-    /// <param name="padding">The horizontal padding applied to each menu item.</param>
-    public MenuBarBuilder(Gui gui, float height, Color? textColor, Color? hoverColor, float fontSize, float padding)
-    {
-        _gui = gui;
-        _height = height;
-        _textColor = textColor;
-        _hoverColor = hoverColor;
-        _fontSize = fontSize;
-        _padding = padding;
-    }
-
-    /// <summary>
-    /// Adds a menu to the menu bar
+    /// Adds a menu whose <paramref name="text"/> is shown in the bar. Clicking the title drops the
+    /// menu below it.
     /// </summary>
     public MenuBarBuilder Menu(string text, Action<FlyoutBuilder> buildMenu)
     {
-        // Get or create menu state
-        var menuId = $"menubar_{text}";
-        var isOpen = _menuStates.TryGetValue(menuId, out var state) && state;
+        ArgumentNullException.ThrowIfNull(buildMenu);
 
-        using (_gui.Node().Height(_height).Padding(_padding, 0).Enter())
-        {
-            if (_gui.Pass == Pass.Pass2Render)
-            {
-                // Register as focusable for keyboard navigation
-                _gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-                var interactable = _gui.GetInteractable();
-                var isHovered = interactable.OnHover();
-                var isClicked = interactable.OnClick();
-                var hasFocus = _gui.HasFocus();
-
-                // Draw hover highlight
-                if (isHovered)
-                {
-                    _gui.DrawBackgroundRect(_hoverColor ?? Color.FromArgb(255, 230, 230, 230));
-                }
-
-                // Draw focus indicator if focused
-                if (hasFocus)
-                {
-                    var rect = _gui.CurrentNode.Rect;
-                    var focusRect = new Rect(rect.X - 2, rect.Y - 2, rect.W + 4, rect.H + 4);
-                    _gui.DrawRectBorder(focusRect, Color.FromArgb(255, 100, 149, 237), 2f, 6);
-                }
-
-                // Keyboard navigation: Enter/Space to open/close
-                var activated = isClicked;
-                if (hasFocus && (_gui.Input.IsKeyPressed(KeyboardKey.Space) || _gui.Input.IsKeyPressed(KeyboardKey.Enter)))
-                {
-                    activated = true;
-                }
-                if (activated)
-                {
-                    isOpen = !isOpen;
-                    _menuStates[menuId] = isOpen;
-                }
-            }
-
-            _gui.DrawText(text, _fontSize, _textColor ?? Color.Black, centerInRect: false);
-        }
-
-        // Render flyout if open
-        if (isOpen)
-        {
-            var rect = _gui.CurrentNode.Rect;
-            var menuPosition = new Vector2(rect.X, rect.Y + rect.H);
-
-            _gui.Flyout(ref isOpen, menuPosition, buildMenu);
-            _menuStates[menuId] = isOpen; // Update state after flyout handling
-        }
-
+        var builder = new FlyoutBuilder();
+        buildMenu(builder);
+        Menus.Add(new MenuBarMenu(text, builder.Items));
         return this;
     }
 }
+
+/// <summary>One top-level menu: its bar title and the items that drop down below it.</summary>
+internal sealed record MenuBarMenu(string Title, List<FlyoutItem> Items);

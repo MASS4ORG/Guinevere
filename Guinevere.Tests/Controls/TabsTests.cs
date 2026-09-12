@@ -3,9 +3,10 @@ using Guinevere.Tests.Mocks;
 namespace Guinevere.Tests.Controls;
 
 /// <summary>
-/// Covers the tab bar's middleware-click close as a default widget behavior: the closed title is
-/// added to the widget's own state, so the rebuilt tab list drops it on the following frames. Also
-/// covers the caller-facing close notification and the active-tab write-back after a closure.
+/// Covers the tab bar's middle-click close as an opt-in widget behaviour: closed titles are added to
+/// the widget's own state, so the rebuilt tab list drops them on the following frames. Tabs are not
+/// closable unless requested. Also covers the caller-facing close notification and the active-tab
+/// write-back after a closure.
 /// </summary>
 public class TabsTests
 {
@@ -96,7 +97,7 @@ public class TabsTests
     }
 
     [Fact]
-    public void MiddleClickingATabClosesItByDefault()
+    public void MiddleClickingAClosableTabClosesIt()
     {
         var gui = CreateGui();
         var closed = new List<(int, string)>();
@@ -113,6 +114,49 @@ public class TabsTests
 
         Frame(gui, ref activeTab, closed);
         Assert.Single(FindTabBar(gui.RootNode!, 1).Children);
+    }
+
+    [Fact]
+    public void TabsAreNotClosableByDefault_SoMiddleClickSurvives()
+    {
+        var gui = CreateGui();
+        var closed = new List<(int, string)>();
+        var activeTab = 0;
+
+        InlineFrame(gui, ref activeTab, closed);
+        var bar = FindTabBar(gui.RootNode!, 2);
+        InlineFrame(gui, ref activeTab, closed, MouseAt(bar.Children[0], MouseButton.Middle));
+
+        Assert.Empty(closed);
+        Assert.Equal(0, activeTab);
+
+        InlineFrame(gui, ref activeTab, closed);
+        Assert.Equal(2, FindTabBar(gui.RootNode!, 2).Children.Count);
+
+        void InlineFrame(Gui g, ref int active, List<(int, string)> closedList,
+            IInputHandler? input = null)
+        {
+            using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
+
+            g.Input = input ?? NoInput();
+            g.Time.Update(0.016);
+            g.SetStage(Pass.Pass1Build);
+            g.BeginFrame(surface.Canvas);
+            g.Tabs(ref active, tabs =>
+            {
+                tabs.Tab("A");
+                tabs.Tab("B");
+            }, onTabClosed: (i, t) => closedList.Add((i, t)));
+            g.CalculateLayout();
+            g.SetStage(Pass.Pass2Render);
+            g.Tabs(ref active, tabs =>
+            {
+                tabs.Tab("A");
+                tabs.Tab("B");
+            }, onTabClosed: (i, t) => closedList.Add((i, t)));
+            g.Render();
+            g.EndFrame();
+        }
     }
 
     [Fact]

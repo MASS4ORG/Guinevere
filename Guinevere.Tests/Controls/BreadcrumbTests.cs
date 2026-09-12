@@ -70,6 +70,19 @@ public class BreadcrumbTests
         }
     }
 
+    private static LayoutNode? Separator(Gui gui, int index)
+    {
+        LayoutNode? found = null;
+        Visit(gui.RootNode!);
+        return found;
+
+        void Visit(LayoutNode node)
+        {
+            if (Regex.IsMatch(node.Id, $@"^breadcrumb/sep/{index}$")) found = node;
+            foreach (var child in node.Children) Visit(child);
+        }
+    }
+
     private static void Click(Gui gui, IReadOnlyList<BreadcrumbItem> items, int index,
         MouseButton button = MouseButton.Left)
     {
@@ -151,5 +164,93 @@ public class BreadcrumbTests
         RunFrame(g => g.Breadcrumb(Items), input);
 
         Assert.Empty(NavigationLog);
+    }
+
+    [Fact]
+    public void AnIconWidensTheCrumbToFitIt()
+    {
+        var withIcon = new List<BreadcrumbItem>
+        {
+            new("Home", () => NavigationLog.Add("home"), Icon: "📁"),
+            new("Docs", IsCurrent: true)
+        };
+        var plain = new List<BreadcrumbItem>
+        {
+            new("Home", () => NavigationLog.Add("home")),
+            new("Docs", IsCurrent: true)
+        };
+
+        var iconGui = RunFrame(g => g.Breadcrumb(withIcon));
+        var plainGui = RunFrame(g => g.Breadcrumb(plain));
+
+        Assert.True(Crumb(iconGui, 0)!.Rect.W > Crumb(plainGui, 0)!.Rect.W);
+    }
+
+    [Fact]
+    public void ClickingAChildBearingChevronOpensAMenuWhoseItemNavigates()
+    {
+        NavigationLog.Clear();
+
+        var withChildren = new List<BreadcrumbItem>
+        {
+            new("Home", null, false, null,
+            [
+                new BreadcrumbItem("Child A", () => NavigationLog.Add("child-a")),
+                new BreadcrumbItem("Child B", () => NavigationLog.Add("child-b"))
+            ]),
+            new("Reports", IsCurrent: true)
+        };
+
+        var gui = CreateGui();
+        var draw = (Gui g) => g.Breadcrumb(withChildren);
+
+        FrameOn(gui, draw);
+        var separator = Separator(gui, 1);
+        Assert.NotNull(separator);
+
+        // Frame 1: click the chevron. The menu opens but is hidden this frame (deferred).
+        FrameOn(gui, draw, ClickAt(separator.Rect, MouseButton.Left));
+
+        // Frame 2: the menu is visible under the chevron.
+        FrameOn(gui, draw);
+
+        // Frame 3: click the first item, which sits one row below the anchor.
+        var item = new Rect(separator.Rect.X, separator.Rect.Y + separator.Rect.H, 120, 12);
+        FrameOn(gui, draw, ClickAt(item, MouseButton.Left));
+
+        Assert.Equal(["child-a"], NavigationLog);
+    }
+
+    private static Gui CreateGui()
+    {
+        var gui = new TestableGui { Input = NoInput() };
+        gui.SetScreenRect(Width, Height);
+        return gui;
+    }
+
+    private static void FrameOn(Gui gui, Action<Gui> draw, IInputHandler? input = null)
+    {
+        using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
+
+        gui.Input = input ?? NoInput();
+        gui.Time.Update(0.016);
+        gui.SetStage(Pass.Pass1Build);
+        gui.BeginFrame(surface.Canvas);
+        draw(gui);
+        gui.CalculateLayout();
+        gui.SetStage(Pass.Pass2Render);
+        draw(gui);
+        gui.Render();
+        gui.EndFrame();
+    }
+
+    private static IInputHandler ClickAt(Rect rect, MouseButton button)
+    {
+        var input = NoInput();
+        var centre = new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f);
+        input.MousePosition.Returns(centre);
+        input.PrevMousePosition.Returns(centre);
+        input.IsMouseButtonPressed(button).Returns(true);
+        return input;
     }
 }
