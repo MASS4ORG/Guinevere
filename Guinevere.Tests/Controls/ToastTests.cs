@@ -4,9 +4,10 @@ namespace Guinevere.Tests.Controls;
 
 /// <summary>
 /// Covers the toast notification widget: messages render pinned to a chosen corner, distinct messages
-/// stack away from the screen edge, identical messages deduplicate instead of piling up, expired
-/// toasts are pruned, and clearing annuls the whole queue. Toasts are queued with <c>Toast</c> and
-/// rendered by <c>Toasts</c> from the frame after they are queued, so both passes agree on the tree.
+/// stack away from the screen edge, identical messages stack like any other (each <c>Toast</c> call is
+/// its own entry), expired toasts are pruned, and clearing annuls the whole queue. Toasts are queued
+/// with <c>Toast</c> and rendered by <c>Toasts</c> from the frame after they are queued, so both passes
+/// agree on the tree.
 /// </summary>
 public class ToastTests
 {
@@ -83,7 +84,7 @@ public class ToastTests
     }
 
     [Fact]
-    public void IdenticalMessagesDeduplicateAcrossFrames()
+    public void IdenticalMessagesStackLikeAnyOther()
     {
         var gui = CreateGui();
         Frame(gui, g =>
@@ -92,7 +93,7 @@ public class ToastTests
             g.Toast("Hello");
         });
 
-        Assert.Single(ToastsOf(gui.RootNode!));
+        Assert.Equal(2, ToastsOf(gui.RootNode!).Count);
     }
 
     [Fact]
@@ -174,16 +175,38 @@ public class ToastTests
     }
 
     [Fact]
-    public void RecallingBeforeExpiryKeepsOneToastAlive()
+    public void RepeatingTheSameMessageStacksANewEntryEachTime()
     {
         var gui = CreateGui();
         Frame(gui, g => g.Toast("Hello"));
         Assert.Single(ToastsOf(gui.RootNode!));
 
-        // Keep re-triggering in every frame: the message stays, never stacking duplicates.
-        for (var i = 0; i < 60; i++)
+        // The harness runs the content once per pass, so every additional frame enqueues two more
+        // entries. None expire within the 3s lifetime, so the stack keeps growing.
+        for (var i = 0; i < 2; i++)
             Frame(gui, g => g.Toast("Hello"));
 
-        Assert.Single(ToastsOf(gui.RootNode!));
+        Assert.Equal(5, ToastsOf(gui.RootNode!).Count);
+
+        // The plain frame picks up the entry the previous frame's Pass2 enqueued: six so far, none
+        // deduplicated away.
+        Frame(gui);
+        Assert.Equal(6, ToastsOf(gui.RootNode!).Count);
+    }
+
+    [Fact]
+    public void TextNodeIsBuiltDuringPass1SoItLaysOutInsideTheToast()
+    {
+        var gui = CreateGui();
+        Frame(gui, g => g.Toast("Hello"));
+
+        // The text must be a measured layout node inside the toast, not a node created during Pass2
+        // after CalculateLayout already ran (which would give it a (0,0,0,0) rect and draw it at the
+        // canvas origin instead of inside the panel).
+        var toast = Assert.Single(ToastsOf(gui.RootNode!));
+        var text = Assert.Single(toast.Children);
+        Assert.True(text.Rect.W > 0 && text.Rect.H > 0, "Toast text node must be measured during Pass1.");
+        Assert.True(toast.Rect.X <= text.Rect.X && text.Rect.X + text.Rect.W <= toast.Rect.X + toast.Rect.W,
+            "Toast text must render inside the toast panel.");
     }
 }

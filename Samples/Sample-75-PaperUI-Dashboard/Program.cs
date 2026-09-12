@@ -779,7 +779,7 @@ public abstract class Program
 
             _gui.DrawText("© 2025 Dashboard Demo", 12, _lightTextColor);
             _gui.Node().Expand();
-            _gui.DrawText($"{_gui.Time.DeltaTime:F8} ms", 12, _lightTextColor);
+            _gui.DrawText($"{_gui.Time.DeltaTime * 1000:F4} ms", 12, _lightTextColor);
             _gui.DrawText($"{_gui.Time.SmoothFps:N0} FPS", 12, _lightTextColor);
         }
     }

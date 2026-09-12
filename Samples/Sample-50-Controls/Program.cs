@@ -41,7 +41,7 @@ public abstract partial class Program
                    .ContentAlignY(0.5f).Gap(8).Enter())
         {
             gui.Image(Badge, width: 26, height: 26);
-            gui.DrawText("Guinevere Excalibur");
+            gui.DrawText("Guinevere Excalibur", 16, Color.White);
             gui.Node().Expand();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Color.White);
         }

@@ -17,6 +17,10 @@ public abstract partial class Program
     private static string _textArea =
         "This is a\nmultiline\ntext area\nThis is a\nmultiline\ntext area\nThis is a\nmultiline\ntext area";
 
+    private static float _sliderValue = 0.5f;
+    private static float _sliderStepped = 3f;
+    private static float _numberField = 42.5f;
+
     private static void TextInputsContent(Gui gui)
     {
         // using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
@@ -28,6 +32,7 @@ public abstract partial class Program
         //             gui.ScrollY(Color.FromArgb(255, 230, 230, 230), Color.FromArgb(255, 200, 200, 200));
 
         Section(gui, "Single-line Inputs", () => TextInputRow(gui));
+        Section(gui, "Numbers", () => NumberControlsRow(gui));
         Section(gui, "Text Area", () => TextAreaRow(gui));
         Section(gui, "Disabled Inputs", () => DisabledInputRow(gui));
         //         }
@@ -73,6 +78,26 @@ public abstract partial class Program
         using (gui.Node().Height(90).Enter())
         {
             _textArea = gui.TextArea(_textArea, width: 520, height: 90, placeholder: "Enter multiline text...");
+        }
+    }
+
+    private static void NumberControlsRow(Gui gui)
+    {
+        using (gui.Node().Direction(Axis.Horizontal).Gap(24).Enter())
+        {
+            using (gui.Node().Width(260).Direction(Axis.Vertical).Gap(16).Enter())
+            {
+                gui.Slider(ref _sliderValue, 0f, 1f, showValue: true);
+                gui.Slider(ref _sliderStepped, 0f, 10f, step: 0.5f, showValue: true);
+            }
+
+            using (gui.Node().Width(220).Direction(Axis.Vertical).Gap(16).Enter())
+            {
+                gui.DrawText("Drag right/up to increase, left/down to decrease. Click to type.",
+                    size: 12, color: Color.FromArgb(255, 110, 112, 116));
+
+                gui.NumberField(ref _numberField, step: 0.25f, min: 0f, max: 100f);
+            }
         }
     }
 

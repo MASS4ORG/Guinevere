@@ -85,19 +85,16 @@ public static partial class ControlsExtensions
     private const int ToastZIndex = 9000;
 
     /// <summary>
-    /// Queues a toast notification to be shown by the next <see cref="Toasts"/> call. Calling with the
-    /// same text and corner refreshes the toast's lifetime instead of stacking a duplicate, so it stays
-    /// visible while it keeps being re-triggered. This method only records the message; enqueue and
-    /// render at different call sites so both passes of a frame agree on the visible set.
+    /// Queues a toast notification to be shown by the next <see cref="Toasts"/> call. Every call adds
+    /// an entry, so repeated calls stack the same message in its corner with its own lifetime. This
+    /// method only records the message; enqueue and render at different call sites so both passes of
+    /// a frame agree on the visible set.
     /// </summary>
     public static void Toast(this Gui gui, string text, ToastOptions? options = null)
     {
         var state = gui.ControlState(ToastStateId, () => new ToastState());
         var opts = options ?? new ToastOptions();
         var now = gui.Time.Elapsed;
-
-        var duplicate = state.Entries.FindIndex(e => e.Text == text && e.Options.Corner == opts.Corner);
-        if (duplicate >= 0) state.Entries.RemoveAt(duplicate);
 
         state.Entries.Add(new ToastEntry(text, now + opts.Duration, now, opts));
     }
@@ -149,30 +146,32 @@ public static partial class ControlsExtensions
             var position = ToastPosition(screen, opts, width, height, cornerOffset);
             usedHeight[opts.Corner] = cornerOffset + height + ToastSpacing;
 
+            var alpha = ToastAlpha(now, entry, opts);
+
             using (gui.Node(width, height).AbsoluteScreen(position.X, position.Y).Enter())
             {
                 gui.SetZIndex(ToastZIndex);
 
-                if (gui.Pass != Pass.Pass2Render) continue;
+                if (gui.Pass == Pass.Pass2Render && alpha > 0)
+                {
+                    var bg = WithAlpha(opts.BackgroundColor ?? Color.FromArgb(255, 255, 255, 255), alpha);
+                    var border = WithAlpha(opts.BorderColor ?? Color.FromArgb(255, 200, 200, 200), alpha);
 
-                var alpha = ToastAlpha(now, entry, opts);
-                if (alpha <= 0) continue;
+                    gui.DrawBackgroundRect(bg, opts.BorderRadius);
+                    gui.DrawRectBorder(gui.CurrentNode.Rect, border, 1f, opts.BorderRadius);
 
-                var bg = WithAlpha(opts.BackgroundColor ?? Color.FromArgb(255, 255, 255, 255), alpha);
-                var border = WithAlpha(opts.BorderColor ?? Color.FromArgb(255, 200, 200, 200), alpha);
+                    if (opts.AccentColor is { } accent)
+                        gui.DrawRect(new Rect(position.X, position.Y, 4, height), WithAlpha(accent, alpha));
 
-                gui.DrawBackgroundRect(bg, opts.BorderRadius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, border, 1f, opts.BorderRadius);
+                    if (opts.DismissOnClick && gui.Input.IsMouseButtonPressed(MouseButton.Left) &&
+                        IsMouseInRect(gui.Input.MousePosition, gui.CurrentNode.Rect))
+                        toRemove.Add(entry);
+                }
 
-                if (opts.AccentColor is { } accent)
-                    gui.DrawRect(new Rect(position.X, position.Y, 4, height), WithAlpha(accent, alpha));
-
+                // Built in both passes so the text node is measured during Pass1 layout; creating it
+                // only in Pass2 leaves its rect (0,0,0,0) and the glyphs draw at the canvas origin.
                 gui.DrawText(entry.Text, opts.FontSize, WithAlpha(opts.TextColor ?? Color.Black, alpha),
                     centerInRect: false);
-
-                if (opts.DismissOnClick && gui.Input.IsMouseButtonPressed(MouseButton.Left) &&
-                    IsMouseInRect(gui.Input.MousePosition, gui.CurrentNode.Rect))
-                    toRemove.Add(entry);
             }
         }
 
