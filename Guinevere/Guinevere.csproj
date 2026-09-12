@@ -45,4 +45,8 @@
     <ItemGroup>
         <Folder Include="Layout\Scope\" />
     </ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="Guinevere.Tests"/>
+    </ItemGroup>
+
 </Project>

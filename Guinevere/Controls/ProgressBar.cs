@@ -37,19 +37,22 @@ public static partial class ControlsExtensions
             gui.DrawRect(rect, track, radius);
             if (rect.W <= 0) return;
 
-            var filled = fraction is { } value
-                ? new Rect(rect.X, rect.Y, rect.W * Math.Clamp(value, 0, 1), rect.H)
-                : IndeterminateChunkRect(rect, gui.Time.Elapsed);
-
+            var filled = FillRect(rect, fraction, gui.Time.Elapsed);
             if (filled.W > 0) gui.DrawRect(filled, fill, radius);
         }
     }
 
-    /// <summary>The travelling chunk, clipped to the track at both ends of its sweep.</summary>
-    private static Rect IndeterminateChunkRect(Rect track, float elapsed)
+    /// <summary>
+    /// The filled part of a track: a left-anchored bar for a known fraction, or the travelling chunk
+    /// of an indeterminate bar, clipped to the track at both ends of its sweep.
+    /// </summary>
+    internal static Rect FillRect(Rect track, float? fraction, float elapsed)
     {
+        if (fraction is { } value)
+            return new Rect(track.X, track.Y, track.W * Math.Clamp(value, 0, 1), track.H);
+
         var span = 1f + IndeterminateChunk;
-        var head = (elapsed * IndeterminateSpeed % span) * span - IndeterminateChunk;
+        var head = elapsed * IndeterminateSpeed % span - IndeterminateChunk;
         var start = Math.Max(head, 0f);
         var end = Math.Min(head + IndeterminateChunk, 1f);
         return new Rect(track.X + track.W * start, track.Y, track.W * Math.Max(end - start, 0f), track.H);

@@ -23,7 +23,7 @@ public abstract partial class Program
     {
         gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 245, 245, 245));
 
-        using (gui.Node().Expand().Margin(20).Direction(Axis.Vertical).Gap(15).Enter())
+        // using (gui.Node().Expand().Margin(20).Direction(Axis.Vertical).Gap(15).Enter())
         {
             using (gui.Node().Expand().Margin(15, 0).Enter())
             {
@@ -33,6 +33,7 @@ public abstract partial class Program
                     tabs.Tab("Selection", () => SelectionContent(gui));
                     tabs.Tab("Text Inputs", () => TextInputsContent(gui));
                     tabs.Tab("Navigation", () => NavigationContent(gui));
+                    tabs.Tab("Feedback", () => FeedbackContent(gui));
                     tabs.Tab("Scrolling", () => ScrollingContent(gui));
                     tabs.Tab("Focus", () => FocusContent(gui));
                     tabs.Tab("Styling", () => StylingContent(gui));

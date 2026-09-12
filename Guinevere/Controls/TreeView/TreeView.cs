@@ -17,10 +17,15 @@ public static partial class ControlsExtensions
     /// <param name="items">Every row of the tree, parents before their children.</param>
     /// <param name="theme">Colours and metrics. Defaults to <see cref="TreeViewTheme.Default"/>.</param>
     /// <param name="onClick">Called for a click on a row, with the button and the click count.</param>
+    /// <param name="dragPayload">
+    /// Supplies what a row carries when dragged, or null for a tree whose rows are not drag sources.
+    /// Returning null for a given row leaves that row undraggable.
+    /// </param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void TreeView(this Gui gui, TreeViewState state, IReadOnlyList<TreeItem> items,
         TreeViewTheme? theme = null, Action<TreeViewEvent>? onClick = null,
+        Func<TreeItem, object?>? dragPayload = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
@@ -45,7 +50,7 @@ public static partial class ControlsExtensions
             Spacer(gui, "treeview/padTop", first * theme.RowHeight);
 
             for (var i = first; i < last; i++)
-                RenderRow(gui, state, theme, visible[i], i, onClick);
+                RenderRow(gui, state, theme, visible[i], i, onClick, dragPayload);
 
             Spacer(gui, "treeview/padBottom", (visible.Count - last) * theme.RowHeight);
 
@@ -191,7 +196,7 @@ public static partial class ControlsExtensions
     }
 
     private static void RenderRow(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row,
-        Action<TreeViewEvent>? onClick)
+        Action<TreeViewEvent>? onClick, Func<TreeItem, object?>? dragPayload)
     {
         var isSelected = item.Id == state.SelectedId;
 
@@ -202,6 +207,9 @@ public static partial class ControlsExtensions
                    .Gap(4f)
                    .Enter())
         {
+            if (dragPayload?.Invoke(item) is { } payload)
+                gui.DragSource($"treeview/row/{item.Id}", payload, ghost: g => DragGhost(g, theme, item));
+
             if (gui.Pass == Pass.Pass2Render)
             {
                 var interactable = gui.GetInteractable();
@@ -222,6 +230,16 @@ public static partial class ControlsExtensions
 
             gui.DrawText(item.Label, theme.FontSize,
                 item.Tint ?? (isSelected ? theme.Ink : theme.InkDim), centerInRect: false);
+        }
+    }
+
+    /// <summary>What follows the pointer while a row is dragged: the row's own label on a chip.</summary>
+    private static void DragGhost(Gui gui, TreeViewTheme theme, TreeItem item)
+    {
+        using (gui.Node(-1, theme.RowHeight).Padding(6, 0).ContentAlignY(0.5f).Enter())
+        {
+            gui.DrawBackgroundRect(theme.Selected, 3);
+            gui.DrawText(item.Label, theme.FontSize, theme.Ink, centerInRect: false);
         }
     }
 

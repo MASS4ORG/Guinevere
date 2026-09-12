@@ -67,7 +67,7 @@ public sealed class ControlPalette
         TextDim = Color.FromArgb(255, 139, 146, 156),
         Selected = Color.FromArgb(255, 84, 143, 224),
         Knob = Color.FromArgb(255, 226, 229, 234),
-        ProgressTrack = Color.FromArgb(255, 42, 46, 54),
+        ProgressTrack = Color.FromArgb(255, 60, 66, 78),
         ProgressFill = Color.FromArgb(255, 84, 143, 224),
         ScrollbarTrack = Color.FromArgb(255, 24, 27, 32),
         ScrollbarThumb = Color.FromArgb(255, 62, 68, 79),
