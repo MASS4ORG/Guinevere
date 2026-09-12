@@ -70,6 +70,12 @@ public static partial class ControlsExtensions
                 }
 
                 if (interactable.OnClick()) result = result with { Activated = item };
+
+                // Middle-click closes, as every tabbed editor does; the close button is the
+                // discoverable half of the same gesture.
+                if (item.Closable && interactable.OnClick(MouseButton.Middle))
+                    result = result with { Closed = item };
+
                 if (onDragSource?.Invoke(item, id) == true) result = result with { Dragged = item };
             }
 

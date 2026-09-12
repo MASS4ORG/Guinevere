@@ -55,9 +55,12 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render)
             {
-                var bgColor = backgroundColor ?? Color.FromArgb(248, 249, 250);
-                gui.DrawBackgroundRect(bgColor);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, Color.FromArgb(200, 200, 200));
+                gui.DrawBackgroundRect(backgroundColor ?? gui.Controls.Surface);
+
+                // A rule under the bar, not a box around it: the bar spans its host's width, so an
+                // outline on the other three edges reads as a stray rectangle rather than chrome.
+                var bar = gui.CurrentNode.Rect;
+                gui.DrawRect(new Rect(bar.X, bar.Y + bar.H - 1, bar.W, 1), gui.Controls.Border);
             }
 
             if (state.TitleRects.Count != builder.Menus.Count)
@@ -129,7 +132,7 @@ public static partial class ControlsExtensions
                 }
 
                 if (state.OpenIndex == index || isHovered)
-                    gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 230, 230, 230), 2);
+                    gui.DrawBackgroundRect(hoverColor ?? gui.Controls.SurfaceHover, 2);
             }
 
             // Built in both passes so the text node is measured during layout, not created after it.
@@ -195,8 +198,8 @@ public static partial class ControlsExtensions
 
             if (gui.Pass == Pass.Pass2Render)
             {
-                gui.DrawBackgroundRect(backgroundColor ?? Color.White, 4);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, Color.FromArgb(255, 200, 200, 200), 1f, 4);
+                gui.DrawBackgroundRect(backgroundColor ?? gui.Controls.Popup, 4);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.Controls.Border, 1f, 4);
             }
 
             for (var i = 0; i < items.Count; i++)
@@ -227,7 +230,7 @@ public static partial class ControlsExtensions
                 if (gui.Pass != Pass.Pass2Render) return;
 
                 var rect = gui.CurrentNode.Rect;
-                var sepColor = Color.FromArgb(255, 220, 220, 220);
+                var sepColor = gui.Controls.Border;
                 var sepY = rect.Y + rect.H * 0.5f;
                 gui.DrawLine(new Vector2(rect.X + padding, sepY),
                     new Vector2(rect.X + rect.W - padding, sepY), sepColor);
@@ -253,17 +256,17 @@ public static partial class ControlsExtensions
                                     (state.KeyboardActive && state.KeyboardIndex == index);
 
                 if (isSelectedRow && item.Enabled)
-                    gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 230, 230, 230), 2);
+                    gui.DrawBackgroundRect(hoverColor ?? gui.Controls.SurfaceHover, 2);
             }
 
-            var itemColor = item.Enabled ? textColor : Color.Gray;
+            var itemColor = item.Enabled ? textColor ?? gui.Controls.Text : gui.Controls.TextDim;
 
             // Rows and their glyphs are built in both passes so they measure during layout.
             if (hasCheckColumn)
             {
                 using (gui.Node(14f).Enter())
                     if (gui.Pass == Pass.Pass2Render && item.IsChecked?.Invoke() == true)
-                        DrawTick(gui, gui.CurrentNode.Rect, itemColor ?? Color.Black);
+                        DrawTick(gui, gui.CurrentNode.Rect, itemColor);
             }
 
             gui.DrawText(item.Text, fontSize, itemColor, centerInRect: false);
@@ -274,10 +277,10 @@ public static partial class ControlsExtensions
             {
                 using (gui.Node(fontSize).Enter())
                     if (gui.Pass == Pass.Pass2Render)
-                        DrawSubmenuArrow(gui, gui.CurrentNode.Rect, itemColor ?? Color.Black);
+                        DrawSubmenuArrow(gui, gui.CurrentNode.Rect, itemColor);
             }
             else if (!string.IsNullOrEmpty(item.Shortcut))
-                gui.DrawText(item.Shortcut, fontSize * 0.9f, Color.Gray, centerInRect: false);
+                gui.DrawText(item.Shortcut, fontSize * 0.9f, gui.Controls.TextDim, centerInRect: false);
         }
     }
 

@@ -6,13 +6,13 @@ public enum ObjectFieldAction
     /// <summary>Nothing happened.</summary>
     None,
 
-    /// <summary>The value box was clicked, which should open a picker.</summary>
+    /// <summary>The pick button was clicked, which should open a picker.</summary>
     Pick,
 
     /// <summary>The clear button was clicked.</summary>
     Clear,
 
-    /// <summary>The value box was double-clicked, which should reveal the referenced object.</summary>
+    /// <summary>The value box was clicked, which should select the referenced object where it lives.</summary>
     Reveal,
 
     /// <summary>A payload the caller accepted was dropped on the field.</summary>
@@ -28,8 +28,9 @@ public static partial class ControlsExtensions
 {
     /// <summary>
     /// A Unity-style reference slot: a box naming what is currently referenced, which accepts a
-    /// dropped payload and opens a picker when clicked. The control holds no opinion about what a
-    /// reference is — <paramref name="accept"/> decides what may land on it.
+    /// dropped payload, reveals its value when clicked and opens a picker from its own button. The
+    /// control holds no opinion about what a reference is — <paramref name="accept"/> decides what may
+    /// land on it.
     /// </summary>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="text">What the current value is called.</param>
@@ -37,6 +38,7 @@ public static partial class ControlsExtensions
     /// <param name="accept">Whether a dragged payload may be dropped here.</param>
     /// <param name="isEmpty">Whether the reference points at nothing, which dims the text.</param>
     /// <param name="showClear">Whether to offer a clear button.</param>
+    /// <param name="showPick">Whether to offer the button that opens a picker.</param>
     /// <param name="height">Row height.</param>
     /// <param name="fontSize">Text size.</param>
     /// <returns>What the user did this frame.</returns>
@@ -44,6 +46,7 @@ public static partial class ControlsExtensions
         Func<object, bool>? accept = null,
         bool isEmpty = false,
         bool showClear = true,
+        bool showPick = true,
         float height = 20,
         float fontSize = 12)
     {
@@ -75,23 +78,26 @@ public static partial class ControlsExtensions
             using (gui.Node(-1, height).Expand().Padding(6, 0).ContentAlignY(0.5f).Enter())
                 gui.DrawText(text, fontSize, isEmpty ? palette.TextDim : palette.Text);
 
-            if (showClear && !isEmpty && ClearButton(gui, height, palette)) action = ObjectFieldAction.Clear;
+            if (showPick && GlyphButton(gui, $"{id}/pick", "◎", height, palette)) action = ObjectFieldAction.Pick;
+            if (showClear && !isEmpty && GlyphButton(gui, $"{id}/clear", "×", height, palette))
+                action = ObjectFieldAction.Clear;
 
-            // The clear button sits inside the box, so a click on it must not also read as a pick.
-            if (action == ObjectFieldAction.None && interactable.OnClick())
-                action = ObjectFieldAction.Pick;
+            // Those buttons sit inside the box, so a click on one must not also read as a reveal.
+            if (action == ObjectFieldAction.None && !isEmpty && interactable.OnClick())
+                action = ObjectFieldAction.Reveal;
         }
 
         return new ObjectFieldResult(action, dropped);
     }
 
-    private static bool ClearButton(Gui gui, float height, ControlPalette palette)
+    /// <summary>One of the slot's inline buttons. Blocks input so it never also hits the box behind it.</summary>
+    private static bool GlyphButton(Gui gui, string id, string glyph, float height, ControlPalette palette)
     {
-        using (gui.Node(height, height, "clear").BlockInput().Enter())
+        using (gui.Node(height, height, id).BlockInput().Enter())
         {
             var interactable = gui.GetInteractable();
             if (gui.Pass == Pass.Pass2Render)
-                gui.DrawText("×", height * 0.7f, interactable.OnHover() ? palette.Text : palette.TextDim);
+                gui.DrawText(glyph, height * 0.7f, interactable.OnHover() ? palette.Text : palette.TextDim);
 
             return interactable.OnClick();
         }
