@@ -1,7 +1,7 @@
 namespace Guinevere;
 
 /// <summary>
-/// Fallback colours the built-in controls use when a call does not name its own. Set
+/// Fallback colors the built-in controls use when a call does not name its own. Set
 /// <see cref="Gui.Controls"/> once at startup and every checkbox, toggle, dropdown and text field
 /// follows, instead of each caller repeating a palette.
 /// </summary>
@@ -58,7 +58,7 @@ public sealed class ControlPalette
     /// <summary>The scrollbar thumb while dragged.</summary>
     public Color ScrollbarThumbActive { get; init; } = Color.FromArgb(255, 120, 120, 120);
 
-    /// <summary>The default light palette, matching the built-in controls' historical colours.</summary>
+    /// <summary>The default light palette, matching the built-in controls' historical colors.</summary>
     public static ControlPalette Light { get; } = new();
 
     /// <summary>A dark palette for editor-style hosts.</summary>

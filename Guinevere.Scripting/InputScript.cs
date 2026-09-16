@@ -5,7 +5,7 @@ namespace Guinevere;
 
 /// <summary>
 /// A recorded sequence of pointer and keyboard actions, played back against a real frame loop by
-/// <see cref="InputScriptPlayer"/>. Lets pointer-driven behaviour be tested without a display.
+/// <see cref="InputScriptPlayer"/>. Lets pointer-driven behavior be tested without a display.
 /// </summary>
 /// <example>
 /// <code>

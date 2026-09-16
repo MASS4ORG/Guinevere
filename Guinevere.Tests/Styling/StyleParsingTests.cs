@@ -21,10 +21,10 @@ public class StyleParsingTests
     }
 
     /// <summary>
-    /// Verifies that hex and rgba colour strings are parsed correctly.
+    /// Verifies that hex and rgba color strings are parsed correctly.
     /// </summary>
     [Fact]
-    public void Value_Colour_Hex_And_Rgb()
+    public void Value_Color_Hex_And_Rgb()
     {
         Assert.True(StyleValue.TryColor("#4a90e2", out var hex));
         Assert.Equal((74, 144, 226, 255), (hex.R, hex.G, hex.B, hex.A));

@@ -1,6 +1,6 @@
 namespace Guinevere;
 
-/// <summary>Colours and metrics a <c>TreeView</c> draws with.</summary>
+/// <summary>Colors and metrics a <c>TreeView</c> draws with.</summary>
 public sealed class TreeViewTheme
 {
     /// <summary>Height of one row.</summary>
@@ -21,10 +21,10 @@ public sealed class TreeViewTheme
     /// <summary>Space left of the first indent level, so rows do not touch the panel edge.</summary>
     public float ContentPadding { get; init; } = 6f;
 
-    /// <summary>Label colour for the selected row.</summary>
+    /// <summary>Label color for the selected row.</summary>
     public Color Ink { get; init; } = Color.FromArgb(255, 215, 218, 224);
 
-    /// <summary>Label colour for an unselected row.</summary>
+    /// <summary>Label color for an unselected row.</summary>
     public Color InkDim { get; init; } = Color.FromArgb(255, 139, 146, 156);
 
     /// <summary>Background of a hovered row.</summary>

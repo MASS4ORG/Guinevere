@@ -75,7 +75,7 @@ public class NineSliceTests
         Assert.Equal((byte)200, b);
     }
 
-    /// <summary>Corners are drawn at 1:1 — a corner pixel is the texture's corner colour, undistorted.</summary>
+    /// <summary>Corners are drawn at 1:1 — a corner pixel is the texture's corner color, undistorted.</summary>
     [Fact]
     public void NineSlice_CornersAreUnscaled()
     {

@@ -1,8 +1,8 @@
 namespace Guinevere;
 
 /// <summary>
-/// The behaviour half of a text field, with no appearance of its own. It owns the value, the caret,
-/// the selection, clipboard handling and hit-testing; a control built on it owns the box, the colours
+/// The behavior half of a text field, with no appearance of its own. It owns the value, the caret,
+/// the selection, clipboard handling and hit-testing; a control built on it owns the box, the colors
 /// and the glyphs. Keeping the two apart is what lets one application skin its fields like iOS and
 /// another like Windows without either re-implementing text editing.
 /// </summary>

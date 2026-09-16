@@ -21,7 +21,7 @@ public sealed class ResolvedStyle
     /// <param name="property">The property name.</param>
     public string? Get(string property) => _declarations.GetValueOrDefault(property);
 
-    /// <summary>The value of a property parsed as a colour, or <c>null</c>.</summary>
+    /// <summary>The value of a property parsed as a color, or <c>null</c>.</summary>
     /// <param name="property">The property name.</param>
     public Color? GetColor(string property) =>
         _declarations.TryGetValue(property, out var v) && StyleValue.TryColor(v, out var c) ? c : null;

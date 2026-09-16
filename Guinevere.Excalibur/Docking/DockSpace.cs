@@ -16,7 +16,7 @@ public static partial class ControlsExtensions
     /// <param name="layout">The layout to render. Mutated in place as the user rearranges it.</param>
     /// <param name="panelInfo">Resolves a panel id to its tab label. Return null for an id the host no longer knows.</param>
     /// <param name="renderPanel">Draws a panel's body. Called for the active tab of every visible group.</param>
-    /// <param name="theme">Colours and metrics. Defaults to <see cref="DockTheme.Dark"/>.</param>
+    /// <param name="theme">Colors and metrics. Defaults to <see cref="DockTheme.Dark"/>.</param>
     /// <param name="renderTabStripActions">
     /// Draws into the space a group's tab strip does not use. Children flow from the right edge, which
     /// is where an overflow or lock button belongs; <see cref="DockTabStrip.FreeArea"/> is there for

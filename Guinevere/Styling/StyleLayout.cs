@@ -3,7 +3,7 @@ namespace Guinevere;
 /// <summary>
 /// Applies the layout-affecting subset of a <see cref="ResolvedStyle"/> (flexbox, sizing,
 /// spacing, alignment) onto a <see cref="LayoutNode"/> during the build pass. Visual properties
-/// (colours, radius) are drawn by <see cref="Gui.StyledNode"/>, not here.
+/// (colors, radius) are drawn by <see cref="Gui.StyledNode"/>, not here.
 /// </summary>
 public static class StyleLayout
 {

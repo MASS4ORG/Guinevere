@@ -1,7 +1,7 @@
 namespace Guinevere;
 
 /// <summary>
-/// The colours and metrics a <see cref="DockLayout"/> is drawn with. A host that already has a
+/// The colors and metrics a <see cref="DockLayout"/> is drawn with. A host that already has a
 /// palette builds one of these from it rather than restyling every panel.
 /// </summary>
 public sealed class DockTheme

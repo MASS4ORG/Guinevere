@@ -23,8 +23,8 @@ public static partial class ControlsExtensions
     /// <param name="format">Format applied when echoing numbers back into the field (for example "0.##").</param>
     /// <param name="backgroundColor">The field fill; defaults to the palette surface.</param>
     /// <param name="borderColor">The field outline; defaults to the palette border, the accent when focused.</param>
-    /// <param name="textColor">The text colour; defaults to the palette text.</param>
-    /// <param name="cursorColor">The caret colour; defaults to the text colour.</param>
+    /// <param name="textColor">The text color; defaults to the palette text.</param>
+    /// <param name="cursorColor">The caret color; defaults to the text color.</param>
     /// <param name="fontSize">The font size.</param>
     /// <param name="padding">Inner padding.</param>
     /// <param name="dragSensitivity">Multiplier on the drag distance, letting one step span several pixels.</param>

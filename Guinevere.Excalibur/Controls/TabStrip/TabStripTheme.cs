@@ -1,6 +1,6 @@
 namespace Guinevere;
 
-/// <summary>Colours and metrics a <c>TabStrip</c> draws with.</summary>
+/// <summary>Colors and metrics a <c>TabStrip</c> draws with.</summary>
 public sealed class TabStripTheme
 {
     /// <summary>Height of the strip and its tabs.</summary>
@@ -21,10 +21,10 @@ public sealed class TabStripTheme
     /// <summary>Fill of a hovered tab or close button.</summary>
     public Color Hover { get; init; } = Color.FromArgb(255, 55, 60, 70);
 
-    /// <summary>Label colour of the active tab.</summary>
+    /// <summary>Label color of the active tab.</summary>
     public Color Ink { get; init; } = Color.FromArgb(255, 215, 218, 224);
 
-    /// <summary>Label colour of an inactive tab.</summary>
+    /// <summary>Label color of an inactive tab.</summary>
     public Color InkDim { get; init; } = Color.FromArgb(255, 139, 146, 156);
 
     /// <summary>The bar marking the active tab, and the unsaved dot.</summary>

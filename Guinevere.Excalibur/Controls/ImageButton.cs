@@ -18,7 +18,7 @@ public static partial class ControlsExtensions
     /// <param name="height">Button height, or <c>0</c> to use the normal image height.</param>
     /// <param name="nineSlice">Corner sizes for nine-slice scaling, or <c>null</c> to stretch the whole image.</param>
     /// <param name="enabled">When false the button shows <paramref name="disabled"/> and never reports a click.</param>
-    /// <param name="textColor">Caption colour; defaults to the scope text colour.</param>
+    /// <param name="textColor">Caption color; defaults to the scope text color.</param>
     /// <param name="fontSize">Caption size; defaults to the scope text size.</param>
     /// <returns><c>true</c> on the frame the button is clicked or activated by keyboard.</returns>
     public static bool ImageButton(

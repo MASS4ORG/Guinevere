@@ -23,7 +23,7 @@ public partial class Gui
     public Time Time { get; init; } = new();
 
     /// <summary>
-    /// Fallback colours for the built-in controls. Assign once to theme every control at a stroke.
+    /// Fallback colors for the built-in controls. Assign once to theme every control at a stroke.
     /// </summary>
     public ControlPalette Controls { get; set; } = ControlPalette.Light;
 

@@ -15,9 +15,9 @@ public static partial class ControlsExtensions
     /// <param name="position">Screen position of the menu's top-left corner. Keep it stable across
     /// frames — sample the pointer when the menu opens, not while it is open.</param>
     /// <param name="build">Fills the menu.</param>
-    /// <param name="backgroundColor">Menu fill. Defaults to the control palette's popup colour.</param>
-    /// <param name="textColor">Item text. Defaults to the palette's text colour.</param>
-    /// <param name="hoverColor">Row highlight. Defaults to the palette's hover colour.</param>
+    /// <param name="backgroundColor">Menu fill. Defaults to the control palette's popup color.</param>
+    /// <param name="textColor">Item text. Defaults to the palette's text color.</param>
+    /// <param name="hoverColor">Row highlight. Defaults to the palette's hover color.</param>
     /// <param name="fontSize">Item text size.</param>
     /// <param name="padding">Horizontal padding inside a row.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>

@@ -21,7 +21,7 @@ and `Sample-11-Styling` into one sample organised around eight tabs.
   breadcrumb trail above the tree that follows the selection; the whole tab scrolls vertically when
   it outgrows the window.
 - **Feedback**: determinate progress bars (animated sweeps, hue-shifted fills) and indeterminate
-  bars, plus custom track/fill colours and heights.
+  bars, plus custom track/fill colors and heights.
 - **Scrolling**: turning a node into a scroll container, programmatic scroll
   (`ScrollToTop` / `ScrollToBottom` / scroll-percentage sliders) and inner scroll regions.
 - **Focus**: Tab / Shift+Tab navigation and cascaded focus indicators.

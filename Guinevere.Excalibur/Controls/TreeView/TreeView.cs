@@ -15,7 +15,7 @@ public static partial class ControlsExtensions
     /// <param name="gui">The GUI instance.</param>
     /// <param name="state">Expansion and selection, kept by the caller between frames.</param>
     /// <param name="items">Every row of the tree, parents before their children.</param>
-    /// <param name="theme">Colours and metrics. Defaults to <see cref="TreeViewTheme.Default"/>.</param>
+    /// <param name="theme">Colors and metrics. Defaults to <see cref="TreeViewTheme.Default"/>.</param>
     /// <param name="onClick">Called for a click on a row, with the button and the click count.</param>
     /// <param name="dragPayload">
     /// Supplies what a row carries when dragged, or null for a tree whose rows are not drag sources.

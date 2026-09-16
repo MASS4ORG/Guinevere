@@ -55,9 +55,9 @@ public class DrawImageTests
         Assert.Equal((byte)0, PixelAt(surface, 4, 4).A);          // outside
     }
 
-    /// <summary>A tint multiplies the source colours.</summary>
+    /// <summary>A tint multiplies the source colors.</summary>
     [Fact]
-    public void DrawImage_Tint_MultipliesColour()
+    public void DrawImage_Tint_MultipliesColor()
     {
         using var surface = NewSurface();
         using var image = SolidImage(4, 4, new SKColor(255, 255, 255, 255));

@@ -3,7 +3,7 @@ using Guinevere.Tests.Mocks;
 namespace Guinevere.Tests.Controls;
 
 /// <summary>
-/// Covers the tab bar's middle-click close as an opt-in widget behaviour: closed titles are added to
+/// Covers the tab bar's middle-click close as an opt-in widget behavior: closed titles are added to
 /// the widget's own state, so the rebuilt tab list drops them on the following frames. Tabs are not
 /// closable unless requested. Also covers the caller-facing close notification and the active-tab
 /// write-back after a closure.

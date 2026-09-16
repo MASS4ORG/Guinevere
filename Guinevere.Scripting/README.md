@@ -1,6 +1,6 @@
 # Guinevere.Scripting
 
-Drives a Guinevere UI without a window, so pointer-driven behaviour — drags, docking, splitters,
+Drives a Guinevere UI without a window, so pointer-driven behavior — drags, docking, splitters,
 menus — can be exercised in tests, in CI, or while debugging.
 
 Not referenced by the core library; add it only where you need it.

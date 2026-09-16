@@ -13,7 +13,7 @@ public static partial class ControlsExtensions
     /// <param name="gui">The GUI instance.</param>
     /// <param name="items">The tabs, in order.</param>
     /// <param name="activeId">The id of the active tab, or null.</param>
-    /// <param name="theme">Colours and metrics. Defaults to <see cref="TabStripTheme.Default"/>.</param>
+    /// <param name="theme">Colors and metrics. Defaults to <see cref="TabStripTheme.Default"/>.</param>
     /// <param name="idPrefix">Id of the strip's node and prefix for its tabs; needed when a frame draws several strips.</param>
     /// <param name="trailing">Draws into the width the tabs leave over, flowing from the right edge.</param>
     /// <param name="onDragSource">Lets the caller start a drag from a tab; return true when it did.</param>

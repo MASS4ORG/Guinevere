@@ -6,7 +6,7 @@ namespace Guinevere.Tests.Controls;
 /// Covers opening, choosing and dismissing. The list used to close itself the frame after it opened —
 /// it shut whenever focus was elsewhere — so the options only ever blinked.
 /// </summary>
-public class DropdownBehaviourTests
+public class DropdownBehaviorTests
 {
     private static readonly string[] Options = ["Point", "Directional", "Spot"];
 
@@ -133,7 +133,7 @@ public class DropdownBehaviourTests
     }
 
     [Fact]
-    public void TheListTakesItsColoursFromTheControlPalette()
+    public void TheListTakesItsColorsFromTheControlPalette()
     {
         var harness = new Harness();
         harness.Gui.Controls = ControlPalette.Dark;

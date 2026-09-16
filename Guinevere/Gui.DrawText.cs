@@ -192,7 +192,7 @@ public partial class Gui
     /// <summary>
     /// Builds the ordered layers one line of text is drawn with, back to front: drop shadow,
     /// outline, fill, inner shadow. Each layer carries a position offset (used for the inner
-    /// shadow). With no <see cref="TextEffects"/> this is a single flat-colour fill.
+    /// shadow). With no <see cref="TextEffects"/> this is a single flat-color fill.
     /// </summary>
     private static List<(SKPaint Paint, Vector2 Offset)> BuildTextPaints(Color color, TextEffects? effects, Rect bounds)
     {
@@ -231,7 +231,7 @@ public partial class Gui
 
         if (effects.InnerShadow is { } inner)
         {
-            // The offset, blurred copy in shadow colour, kept only where the fill already painted:
+            // The offset, blurred copy in shadow color, kept only where the fill already painted:
             // a soft dark band along the offset edge, inside the glyphs.
             layers.Add((new SKPaint
             {

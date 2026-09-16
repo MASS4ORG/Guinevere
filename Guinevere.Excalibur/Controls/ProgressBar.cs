@@ -16,8 +16,8 @@ public static partial class ControlsExtensions
     /// <param name="fraction">Completion in 0..1, clamped; null for indeterminate.</param>
     /// <param name="width">Bar width, or -1 to fill the parent.</param>
     /// <param name="height">Bar height.</param>
-    /// <param name="trackColor">Groove colour; defaults to the palette's.</param>
-    /// <param name="fillColor">Filled colour; defaults to the palette's.</param>
+    /// <param name="trackColor">Groove color; defaults to the palette's.</param>
+    /// <param name="fillColor">Filled color; defaults to the palette's.</param>
     public static void ProgressBar(this Gui gui, float? fraction,
         float width = -1, float height = 6,
         Color? trackColor = null, Color? fillColor = null)

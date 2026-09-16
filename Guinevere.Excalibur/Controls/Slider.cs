@@ -22,9 +22,9 @@ public static partial class ControlsExtensions
     /// <param name="width">Node width. The value label, when shown, adds its own width after the track.</param>
     /// <param name="height">Node height.</param>
     /// <param name="step">Snap interval, or 0 to move continuously.</param>
-    /// <param name="trackColor">The groove colour; defaults to the palette border.</param>
-    /// <param name="fillColor">The filled portion colour; defaults to the palette accent.</param>
-    /// <param name="thumbColor">The thumb colour; defaults to the palette knob.</param>
+    /// <param name="trackColor">The groove color; defaults to the palette border.</param>
+    /// <param name="fillColor">The filled portion color; defaults to the palette accent.</param>
+    /// <param name="thumbColor">The thumb color; defaults to the palette knob.</param>
     /// <param name="showValue">Whether to draw the numeric value to the right of the track.</param>
     /// <param name="fontSize">Font size of the value label.</param>
     /// <param name="enabled">Whether the slider responds to input.</param>

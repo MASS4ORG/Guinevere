@@ -76,7 +76,7 @@ public class TextEffectsTests
         for (var i = 0; i < outlined.Length && !anyRed; i += 4)
             if (outlined[i] > 180 && outlined[i + 1] < 80 && outlined[i + 2] < 80 && outlined[i + 3] > 150)
                 anyRed = true;
-        Assert.True(anyRed, "the red outline colour should appear");
+        Assert.True(anyRed, "the red outline color should appear");
     }
 
     /// <summary>A drop shadow adds ink and puts it down-and-right of the glyphs.</summary>
@@ -102,9 +102,9 @@ public class TextEffectsTests
         Assert.True(newInk, "the shadow should paint pixels the plain text does not");
     }
 
-    /// <summary>A horizontal gradient makes the left and right of the text different colours.</summary>
+    /// <summary>A horizontal gradient makes the left and right of the text different colors.</summary>
     [Fact]
-    public void Gradient_VariesColourAcrossText()
+    public void Gradient_VariesColorAcrossText()
     {
         var px = RenderFrame(gui => gui.DrawText("MMMMMMMMMM", size: 40f, color: Color.White, centerInRect: false,
             effects: new TextEffects

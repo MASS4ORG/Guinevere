@@ -31,11 +31,11 @@ public static partial class ControlsExtensions
     /// <param name="items">The trail, root first. The last item is usually the current page.</param>
     /// <param name="height">Height of the bar.</param>
     /// <param name="fontSize">Crumb and chevron size.</param>
-    /// <param name="linkColor">Colour of an interactive crumb; defaults to the palette's accent.</param>
-    /// <param name="linkHoverColor">Colour of a hovered or keyboard-activated crumb; defaults to the
-    /// palette's selected colour.</param>
-    /// <param name="currentColor">Colour of the current page; defaults to the palette's text.</param>
-    /// <param name="separatorColor">Colour of the chevrons; defaults to the palette's dim text.</param>
+    /// <param name="linkColor">Color of an interactive crumb; defaults to the palette's accent.</param>
+    /// <param name="linkHoverColor">Color of a hovered or keyboard-activated crumb; defaults to the
+    /// palette's selected color.</param>
+    /// <param name="currentColor">Color of the current page; defaults to the palette's text.</param>
+    /// <param name="separatorColor">Color of the chevrons; defaults to the palette's dim text.</param>
     public static void Breadcrumb(this Gui gui,
         IReadOnlyList<BreadcrumbItem> items,
         float height = 28,

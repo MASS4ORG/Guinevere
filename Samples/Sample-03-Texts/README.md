@@ -4,9 +4,9 @@
 
 Organised into scrollable tabs:
 
-- **Basic Text**: single line, multi-line, coloured and sized text, special characters,
+- **Basic Text**: single line, multi-line, colored and sized text, special characters,
   Unicode, symbols and font fallback.
-- **Wrapping**: unwrapped vs. wrapped text at different `wrapWidth`s, mixed sizes and colours.
+- **Wrapping**: unwrapped vs. wrapped text at different `wrapWidth`s, mixed sizes and colors.
 - **Color Demo**: rainbow and per-channel intensity shades.
 - **Text Effects**: `TextEffects` applied to one string — flat, outline, drop shadow, inner
   shadow, linear/radial gradient and a combined effect.

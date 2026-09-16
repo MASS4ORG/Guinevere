@@ -53,11 +53,11 @@ public static class StyleValue
     }
 
     /// <summary>
-    /// Parses a colour: <c>#rgb</c>, <c>#rrggbb</c>, <c>#rrggbbaa</c>, <c>rgb(r,g,b)</c>,
-    /// <c>rgba(r,g,b,a)</c> (a in 0..1 or 0..255), or a named colour.
+    /// Parses a color: <c>#rgb</c>, <c>#rrggbb</c>, <c>#rrggbbaa</c>, <c>rgb(r,g,b)</c>,
+    /// <c>rgba(r,g,b,a)</c> (a in 0..1 or 0..255), or a named color.
     /// </summary>
-    /// <param name="text">The colour text.</param>
-    /// <param name="color">The parsed colour.</param>
+    /// <param name="text">The color text.</param>
+    /// <param name="color">The parsed color.</param>
     public static bool TryColor(string? text, out Color color)
     {
         color = Color.Black;

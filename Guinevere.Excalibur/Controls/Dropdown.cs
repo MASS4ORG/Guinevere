@@ -31,8 +31,8 @@ public static partial class ControlsExtensions
     /// <param name="placeholder">Shown when nothing is selected.</param>
     /// <param name="backgroundColor">Button fill. Defaults to the palette's surface.</param>
     /// <param name="borderColor">Button outline. Defaults to the palette's border.</param>
-    /// <param name="textColor">Label colour. Defaults to the palette's text.</param>
-    /// <param name="placeholderColor">Placeholder colour. Defaults to the palette's dim text.</param>
+    /// <param name="textColor">Label color. Defaults to the palette's text.</param>
+    /// <param name="placeholderColor">Placeholder color. Defaults to the palette's dim text.</param>
     /// <param name="dropdownColor">List fill. Defaults to the palette's popup.</param>
     /// <param name="hoverColor">Fill of the option under the pointer.</param>
     /// <param name="selectedColor">Fill of the chosen option.</param>
@@ -98,8 +98,8 @@ public static partial class ControlsExtensions
     /// <param name="placeholder">Shown when nothing is selected.</param>
     /// <param name="backgroundColor">Button fill.</param>
     /// <param name="borderColor">Button outline.</param>
-    /// <param name="textColor">Label colour.</param>
-    /// <param name="placeholderColor">Placeholder colour.</param>
+    /// <param name="textColor">Label color.</param>
+    /// <param name="placeholderColor">Placeholder color.</param>
     /// <param name="dropdownColor">List fill.</param>
     /// <param name="hoverColor">Fill of the option under the pointer.</param>
     /// <param name="selectedColor">Fill of the chosen option.</param>

@@ -105,7 +105,7 @@ public abstract class Program
 
             gui.Node(10, 20); // Spacer
 
-            gui.DrawText("Mixed sizes & colours:", 16);
+            gui.DrawText("Mixed sizes & colors:", 16);
             gui.DrawText(TextLong, 12, Color.DarkGreen);
             gui.DrawText(TextLong, 13, Color.FromArgb(255, 100, 100, 240), wrapWidth: 450);
 
