@@ -74,7 +74,35 @@ public readonly struct InteractableElement
     {
         if (_gui.IsHoverBlocked(_node)) return false;
 
-        return _shape.Contains(_gui.Input.MousePosition.X, _gui.Input.MousePosition.Y);
+        var position = _gui.Input.MousePosition;
+        if (!_shape.Contains(position.X, position.Y)) return false;
+        if (OutsideClippedAncestors(position)) return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// The hit shape is the node's full rect, which clipping does not reduce — a row straddling the
+    /// bottom edge of its scroll container keeps its whole height, so the pointer just below the
+    /// container still hovers it. Drawing clips to the <see cref="LayoutNodeScopeIsClipped"/> ancestor
+    /// rects; input must hold the pointer against the same rects, or content scrolled past a panel's
+    /// edge stays tappable on the other side of it.
+    /// </summary>
+    private bool OutsideClippedAncestors(Vector2 position)
+    {
+        if (_node is null) return false;
+        if (_node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value) return false;
+
+        for (var ancestor = _node.Parent; ancestor is not null; ancestor = ancestor.Parent)
+        {
+            if (!ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()) continue;
+            if (!ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value) continue;
+
+            var rect = ancestor.Rect;
+            if (rect is { W: > 0, H: > 0 } && !rect.Contains(position)) return true;
+        }
+
+        return false;
     }
 
     /// <summary>

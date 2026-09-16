@@ -314,10 +314,11 @@ public static partial class ControlsExtensions
     {
         var totalHeight = string.IsNullOrEmpty(title) ? height : height + titleBarHeight;
 
-        using (gui.Node(width, totalHeight)
-                   .AbsoluteScreen(state.Position.X, state.Position.Y)
-                   .BlockInput()
-                   .Enter())
+        var popupNode = gui.Node(width, totalHeight)
+            .AbsoluteScreen(state.Position.X, state.Position.Y);
+        if (state.IsOpen) popupNode.BlockInput();
+
+        using (popupNode.Enter())
         {
             gui.SetZIndex(PopupZIndex);
             gui.SetEscapesAncestorClips();
