@@ -107,6 +107,45 @@ public class MenuBarTests
         }
     }
 
+    private static IEnumerable<LayoutNode> MenuNodes(LayoutNode node)
+    {
+        if (node.Id.StartsWith("/menubar/", StringComparison.Ordinal)) yield return node;
+
+        foreach (var child in node.Children)
+            foreach (var descendant in MenuNodes(child))
+                yield return descendant;
+    }
+
+    /// <summary>
+    /// A dropdown must take part in the layout pass of the frame it appears in. Opening it from the
+    /// render pass alone created rows the layout never saw, and their labels flashed at the window's
+    /// origin for one frame before settling.
+    /// </summary>
+    [Fact]
+    public void AnOpeningMenuNeverDrawsBeforeItIsLaidOut()
+    {
+        var gui = CreateGui();
+        var log = new List<string>();
+
+        Frame(gui, log);
+        var title = FindBar(gui.RootNode!).Children[0].Rect;
+
+        // The frame the click lands on: whatever exists must already have a rect.
+        Frame(gui, log, input: At(new Vector2(title.X + 5, title.Y + 5)));
+        foreach (var node in MenuNodes(gui.RootNode!))
+            Assert.True(node.Rect is { W: > 0, H: > 0 },
+                $"{node.Id} was created after layout and would draw at the origin.");
+
+        // And by the next frame the menu is there, under its title.
+        Frame(gui, log);
+        var rows = MenuNodes(gui.RootNode!).Where(node => node.Id.Contains("/i", StringComparison.Ordinal)).ToList();
+
+        Assert.NotEmpty(rows);
+        foreach (var row in rows)
+            Assert.True(row.Rect.Y >= title.Y + BarHeight - 0.5f,
+                $"Menu row {row.Id} drew at {row.Rect}, above the bar it drops from.");
+    }
+
     [Fact]
     public void TitleTextIsMeasuredAndDrawsInsideEachTitle()
     {

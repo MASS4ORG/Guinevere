@@ -10,6 +10,12 @@ public static partial class ControlsExtensions
         public Vector2 Position { get; set; }
         public bool CloseOnClickOutside { get; set; } = true;
         public bool CloseOnEscape { get; set; } = true;
+
+        /// <summary>
+        /// Set on the frame the popup opens. The press that opens a popup is outside it by definition —
+        /// it is on the button — so without this the click-outside rule closes it again immediately.
+        /// </summary>
+        public bool JustOpened { get; set; }
     }
 
     private class TooltipState
@@ -50,7 +56,12 @@ public static partial class ControlsExtensions
         if (isOpen != state.IsOpen)
         {
             state.IsOpen = isOpen;
+            state.JustOpened = isOpen;
             if (isOpen && position.HasValue) state.Position = position.Value;
+        }
+        else if (isOpen && position.HasValue)
+        {
+            state.Position = position.Value;
         }
 
         // Always create popup structure for consistency
@@ -328,13 +339,18 @@ public static partial class ControlsExtensions
         }
 
         // Handle click outside to close - check after rendering the popup
-        if (gui.Pass == Pass.Pass2Render && state is { IsOpen: true, CloseOnClickOutside: true } &&
-            gui.Input.IsMouseButtonPressed(MouseButton.Left))
+        if (gui.Pass != Pass.Pass2Render || state is not { IsOpen: true, CloseOnClickOutside: true }) return;
+
+        if (state.JustOpened)
         {
-            var mousePos = gui.Input.MousePosition;
-            var popupRect = new Rect(state.Position.X, state.Position.Y, width, totalHeight);
-            if (!IsMouseInRect(mousePos, popupRect)) state.IsOpen = false;
+            state.JustOpened = false;
+            return;
         }
+
+        if (!gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
+
+        var popupRect = new Rect(state.Position.X, state.Position.Y, width, totalHeight);
+        if (!IsMouseInRect(gui.Input.MousePosition, popupRect)) state.IsOpen = false;
     }
 
     private static void RenderPopupTitleBar(Gui gui, string title, float width, float height,

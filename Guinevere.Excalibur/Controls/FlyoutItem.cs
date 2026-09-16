@@ -46,6 +46,13 @@ public class FlyoutItem
     public Action<bool>? OnCheckChanged { get; set; }
 
     /// <summary>
+    /// Called every frame the pointer rests on the row, for an item that previews what choosing it
+    /// would do. The row has no "stopped hovering" event: a caller that needs one treats a frame
+    /// without a call as the end of the hover.
+    /// </summary>
+    public Action? OnHover { get; set; }
+
+    /// <summary>
     /// Gets whether this item has a submenu
     /// </summary>
     public bool HasSubmenu => Submenu is { Count: > 0 };

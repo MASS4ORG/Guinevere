@@ -173,7 +173,8 @@ public static partial class ControlsExtensions
         float width = 200, float height = 32, string placeholder = "",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
         Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
-        float padding = 8, bool enabled = true, string id = "", float alignX = 0f)
+        float padding = 8, bool enabled = true, string id = "", float alignX = 0f,
+        bool grabFocus = false)
     {
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
 
@@ -185,6 +186,12 @@ public static partial class ControlsExtensions
 
             if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize);
             else state.IsFocused = false;
+
+            if (grabFocus && enabled && gui.Pass == Pass.Pass2Render && !state.IsFocused)
+            {
+                gui.RequestFocus();
+                state.SelectAll();
+            }
 
             // Rendering
             DrawInputBackground(gui, state, backgroundColor, borderColor);
@@ -214,15 +221,18 @@ public static partial class ControlsExtensions
     /// <param name="enabled">Indicates whether the text input field is enabled. Default is true.</param>
     /// <param name="id">The unique identifier for the text input control. Default is an empty string.</param>
     /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
+    /// <param name="grabFocus">Keeps the field focused without a click, for one that appears already
+    /// being edited — an inline rename. Its value is selected when focus first lands.</param>
     /// <returns>The updated value of the text in the input field.</returns>
     public static string TextInput(this Gui gui, string text,
         float width = 200, float height = 32, string placeholder = "",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
         Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
-        float padding = 8, bool enabled = true, string id = "", float alignX = 0f)
+        float padding = 8, bool enabled = true, string id = "", float alignX = 0f,
+        bool grabFocus = false)
     {
         gui.TextInput(ref text, width, height, placeholder, backgroundColor, borderColor,
-            textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id, alignX);
+            textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id, alignX, grabFocus);
         return text;
     }
 

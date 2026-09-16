@@ -21,11 +21,16 @@ public static partial class ControlsExtensions
     /// Supplies what a row carries when dragged, or null for a tree whose rows are not drag sources.
     /// Returning null for a given row leaves that row undraggable.
     /// </param>
+    /// <param name="onRename">
+    /// Receives the new name when an inline rename started with <see cref="TreeViewState.BeginRename"/>
+    /// is confirmed. Null leaves rows uneditable.
+    /// </param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void TreeView(this Gui gui, TreeViewState state, IReadOnlyList<TreeItem> items,
         TreeViewTheme? theme = null, Action<TreeViewEvent>? onClick = null,
         Func<TreeItem, object?>? dragPayload = null,
+        Action<TreeItem, string>? onRename = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
@@ -50,13 +55,19 @@ public static partial class ControlsExtensions
             Spacer(gui, "treeview/padTop", first * theme.RowHeight);
 
             for (var i = first; i < last; i++)
-                RenderRow(gui, state, theme, visible[i], i, onClick, dragPayload);
+                RenderRow(gui, state, theme, visible[i], i, onClick, dragPayload, onRename);
 
             Spacer(gui, "treeview/padBottom", (visible.Count - last) * theme.RowHeight);
 
             if (gui.Pass != Pass.Pass2Render) return;
 
             Measure(gui, state);
+
+            if (state.WantsReveal)
+            {
+                ScrollToSelection(gui, state, theme, visible);
+                state.WantsReveal = false;
+            }
 
             // Focus belongs to the tree, not the row that was clicked, so it is claimed here where the
             // container is the current node.
@@ -196,9 +207,10 @@ public static partial class ControlsExtensions
     }
 
     private static void RenderRow(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row,
-        Action<TreeViewEvent>? onClick, Func<TreeItem, object?>? dragPayload)
+        Action<TreeViewEvent>? onClick, Func<TreeItem, object?>? dragPayload, Action<TreeItem, string>? onRename)
     {
         var isSelected = item.Id == state.SelectedId;
+        var isEditing = onRename is not null && state.EditingId == item.Id;
 
         using (gui.Node(-1, theme.RowHeight, $"treeview/row{row}")
                    .ExpandWidth()
@@ -207,7 +219,7 @@ public static partial class ControlsExtensions
                    .Gap(4f)
                    .Enter())
         {
-            if (dragPayload?.Invoke(item) is { } payload)
+            if (!isEditing && dragPayload?.Invoke(item) is { } payload)
                 gui.DragSource($"treeview/row/{item.Id}", payload, ghost: g => DragGhost(g, theme, item));
 
             if (gui.Pass == Pass.Pass2Render)
@@ -217,9 +229,12 @@ public static partial class ControlsExtensions
                 if (isSelected) gui.DrawBackgroundRect(theme.Selected, 2);
                 else if (interactable.OnHover()) gui.DrawBackgroundRect(theme.Hover, 2);
 
-                Report(state, item, interactable, MouseButton.Left, onClick);
-                Report(state, item, interactable, MouseButton.Right, onClick);
-                Report(state, item, interactable, MouseButton.Middle, onClick);
+                if (!isEditing)
+                {
+                    Report(state, item, interactable, MouseButton.Left, onClick);
+                    Report(state, item, interactable, MouseButton.Right, onClick);
+                    Report(state, item, interactable, MouseButton.Middle, onClick);
+                }
             }
 
             Expander(gui, state, theme, item, row);
@@ -228,9 +243,41 @@ public static partial class ControlsExtensions
                 using (gui.Node(theme.IconSize, theme.RowHeight, $"treeview/row{row}/icon").Enter())
                     icon(gui);
 
-            gui.DrawText(item.Label, theme.FontSize,
-                item.Tint ?? (isSelected ? theme.Ink : theme.InkDim), centerInRect: false);
+            if (isEditing) RenameBox(gui, state, theme, item, onRename!);
+            else
+                gui.DrawText(item.Label, theme.FontSize,
+                    item.Tint ?? (isSelected ? theme.Ink : theme.InkDim), centerInRect: false);
         }
+    }
+
+    /// <summary>
+    /// The inline rename field. Enter commits, Escape abandons, and a click anywhere else commits too —
+    /// the same bargain a file manager makes, so the box can never be left open by accident.
+    /// </summary>
+    private static void RenameBox(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
+        Action<TreeItem, string> onRename)
+    {
+        var text = state.EditingText;
+        gui.TextInput(ref text, width: 0, height: theme.RowHeight - 2f, fontSize: theme.FontSize,
+            padding: 3f, id: $"treeview/rename/{item.Id}", grabFocus: true);
+        state.EditingText = text;
+
+        if (gui.Pass != Pass.Pass2Render) return;
+
+        var clickedAway = gui.Input.IsMouseButtonPressed(MouseButton.Left)
+                          && !gui.CurrentNode.Rect.Contains(gui.Input.MousePosition);
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Escape))
+        {
+            state.CancelRename();
+            return;
+        }
+
+        if (!gui.Input.IsKeyPressed(KeyboardKey.Enter) && !clickedAway) return;
+
+        var committed = state.EditingText;
+        state.CancelRename();
+        onRename(item, committed);
     }
 
     /// <summary>What follows the pointer while a row is dragged: the row's own label on a chip.</summary>

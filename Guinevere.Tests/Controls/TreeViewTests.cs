@@ -29,7 +29,8 @@ public class TreeViewTests
     }
 
     private static Gui RunFrames(IReadOnlyList<TreeItem> items, TreeViewState state, int frames = 1,
-        IInputHandler? input = null, Action<TreeViewEvent>? onClick = null, Gui? reuse = null)
+        IInputHandler? input = null, Action<TreeViewEvent>? onClick = null, Gui? reuse = null,
+        Action<TreeItem, string>? onRename = null)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
 
@@ -40,7 +41,7 @@ public class TreeViewTests
 
         for (var frame = 0; frame < frames; frame++)
         {
-            void Draw() => gui.TreeView(state, items, Theme, onClick);
+            void Draw() => gui.TreeView(state, items, Theme, onClick, onRename: onRename);
 
             gui.Time.Update(0.016);
             gui.SetStage(Pass.Pass1Build);
@@ -95,6 +96,68 @@ public class TreeViewTests
 
             foreach (var child in node.Children) Visit(child);
         }
+    }
+
+    /// <summary>
+    /// A selection made outside the tree — the inspector pinging what a reference points at — scrolls
+    /// into view, which virtualisation otherwise leaves off screen entirely.
+    /// </summary>
+    [Fact]
+    public void RevealScrollsAnOffScreenSelectionIntoView()
+    {
+        var items = Tree(roots: 200, childrenPerRoot: 0);
+        var state = new TreeViewState { SelectedId = "root150" };
+
+        var gui = RunFrames(items, state, frames: 2);
+        Assert.DoesNotContain(150, RowIndices(gui));
+
+        state.Reveal();
+        RunFrames(items, state, frames: 2, reuse: gui);
+
+        Assert.Contains(150, RowIndices(gui));
+    }
+
+    /// <summary>An inline rename replaces the row's label with a field, and Enter reports the new name.</summary>
+    [Fact]
+    public void ConfirmingAnInlineRenameReportsTheNewName()
+    {
+        var items = Tree(roots: 2, childrenPerRoot: 0);
+        var state = new TreeViewState();
+        var renamed = new List<string>();
+
+        state.BeginRename("root0", "Root 0");
+        RunFrames(items, state, frames: 2, onRename: (item, name) => renamed.Add($"{item.Id}={name}"));
+
+        state.EditingText = "Renamed";
+        RunFrames(items, state, frames: 1, input: WithKey(KeyboardKey.Enter),
+            onRename: (item, name) => renamed.Add($"{item.Id}={name}"));
+
+        Assert.Equal(["root0=Renamed"], renamed);
+        Assert.Null(state.EditingId);
+    }
+
+    /// <summary>Escape abandons an inline rename without reporting anything.</summary>
+    [Fact]
+    public void EscapeAbandonsAnInlineRename()
+    {
+        var items = Tree(roots: 2, childrenPerRoot: 0);
+        var state = new TreeViewState();
+        var renamed = new List<string>();
+
+        state.BeginRename("root0", "Root 0");
+        RunFrames(items, state, frames: 1, onRename: (item, name) => renamed.Add(name));
+        RunFrames(items, state, frames: 1, input: WithKey(KeyboardKey.Escape),
+            onRename: (item, name) => renamed.Add(name));
+
+        Assert.Empty(renamed);
+        Assert.Null(state.EditingId);
+    }
+
+    private static IInputHandler WithKey(KeyboardKey key)
+    {
+        var input = OffscreenInput();
+        input.IsKeyPressed(key).Returns(true);
+        return input;
     }
 
     [Fact]

@@ -10,9 +10,13 @@ public class FlyoutBuilder
     /// <summary>
     /// Adds a menu item with an action
     /// </summary>
-    public FlyoutBuilder Item(string text, Action? action = null, string shortcut = "", bool enabled = true)
+    public FlyoutBuilder Item(string text, Action? action = null, string shortcut = "", bool enabled = true,
+        Action? onHover = null)
     {
-        Items.Add(new FlyoutItem { Text = text, Action = action, Shortcut = shortcut, Enabled = enabled });
+        Items.Add(new FlyoutItem
+        {
+            Text = text, Action = action, Shortcut = shortcut, Enabled = enabled, OnHover = onHover
+        });
         return this;
     }
 
@@ -42,7 +46,7 @@ public class FlyoutBuilder
     /// true; activating it calls <paramref name="onChange"/> with the target value.
     /// </summary>
     public FlyoutBuilder CheckItem(string text, Func<bool> isChecked, Action<bool> onChange,
-        string shortcut = "", bool enabled = true)
+        string shortcut = "", bool enabled = true, Action? onHover = null)
     {
         ArgumentNullException.ThrowIfNull(isChecked);
         ArgumentNullException.ThrowIfNull(onChange);
@@ -53,7 +57,8 @@ public class FlyoutBuilder
             IsChecked = isChecked,
             OnCheckChanged = onChange,
             Shortcut = shortcut,
-            Enabled = enabled
+            Enabled = enabled,
+            OnHover = onHover
         });
         return this;
     }

@@ -34,6 +34,12 @@ public sealed class ControlPalette
     /// <summary>The knob of a toggle and the tick of a checkbox.</summary>
     public Color Knob { get; init; } = Color.White;
 
+    /// <summary>Outline of a control that would accept what is being dragged over it.</summary>
+    public Color Positive { get; init; } = Color.FromArgb(255, 60, 158, 94);
+
+    /// <summary>Outline of a control that would refuse what is being dragged over it.</summary>
+    public Color Negative { get; init; } = Color.FromArgb(255, 200, 84, 84);
+
     /// <summary>The groove a progress bar fills.</summary>
     public Color ProgressTrack { get; init; } = Color.FromArgb(255, 224, 224, 224);
 
@@ -66,6 +72,8 @@ public sealed class ControlPalette
         Text = Color.FromArgb(255, 215, 218, 224),
         TextDim = Color.FromArgb(255, 139, 146, 156),
         Selected = Color.FromArgb(255, 84, 143, 224),
+        Positive = Color.FromArgb(255, 88, 176, 116),
+        Negative = Color.FromArgb(255, 208, 102, 102),
         Knob = Color.FromArgb(255, 226, 229, 234),
         ProgressTrack = Color.FromArgb(255, 60, 66, 78),
         ProgressFill = Color.FromArgb(255, 84, 143, 224),
