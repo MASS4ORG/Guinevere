@@ -3,7 +3,7 @@
 /// <summary>
 /// Provides input handling functionalities including keyboard and mouse events.
 /// </summary>
-public interface IInputHandler
+public interface IInputHandler : IClipboard
 {
     /// <summary>
     /// Gets a value indicating whether any key on the keyboard is currently being pressed.
@@ -96,15 +96,4 @@ public interface IInputHandler
     /// <returns>A string containing the characters typed by the user. Returns an empty string if no characters were typed.</returns>
     string GetTypedCharacters();
 
-    /// <summary>
-    /// Retrieves the current text stored in the system clipboard.
-    /// </summary>
-    /// <returns>The text stored in the clipboard. If the clipboard is empty or an error occurs, returns an empty string.</returns>
-    string GetClipboardText();
-
-    /// <summary>
-    /// Sets the clipboard text to the specified value.
-    /// </summary>
-    /// <param name="text">The text to set in the clipboard.</param>
-    void SetClipboardText(string text);
 }

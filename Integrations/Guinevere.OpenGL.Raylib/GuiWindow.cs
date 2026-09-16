@@ -9,7 +9,7 @@ namespace Guinevere.OpenGL.Raylib;
 /// Represents a GUI window implementation using Raylib for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public class GuiWindow : IDisposable, IInputHandler, IWindowHandler
+public class GuiWindow : IDisposable, IInputHandler, IClipboard, IWindowHandler
 {
     private readonly ICanvasRenderer _canvasRenderer;
     private readonly Gui _gui;

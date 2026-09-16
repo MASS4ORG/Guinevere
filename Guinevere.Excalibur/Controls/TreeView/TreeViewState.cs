@@ -17,7 +17,7 @@ public sealed class TreeViewState
     /// deeper ones start closed; one means only the roots are open. Rows the user has folded or
     /// unfolded keep their own state regardless.
     /// </summary>
-    public int DefaultExpandedDepth { get; set; } = 1;
+    public int DefaultExpandedDepth { get; set; }
 
     /// <summary>Whether a row is collapsed, taking <see cref="DefaultExpandedDepth"/> into account.</summary>
     /// <param name="id">The row id.</param>

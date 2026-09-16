@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using Silk.NET.Input;
+using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
@@ -12,7 +13,7 @@ namespace Guinevere.Vulkan.SilkNET;
 /// Represents a GUI window implementation using SilkNET for Vulkan rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public class GuiWindow : IInputHandler, IWindowHandler, IDisposable
+public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
 {
     private readonly Gui _gui;
     private readonly IWindow _window;
@@ -33,6 +34,7 @@ public class GuiWindow : IInputHandler, IWindowHandler, IDisposable
     private readonly StringBuilder _typedCharacters = new();
     private readonly Font _fontText;
     private readonly Font _fontIcon;
+    private readonly Glfw _glfw = Glfw.GetApi();
 
     /// <summary>
     /// Initializes a new instance of the GuiWindow class with the specified parameters.
@@ -75,6 +77,9 @@ public class GuiWindow : IInputHandler, IWindowHandler, IDisposable
         _window.Closing += OnClosing;
         _window.Update += OnUpdate;
     }
+
+    /// <summary>Requests that the native window close.</summary>
+    public void Close() => _window.Close();
 
     /// <summary>
     /// Gets a string resource from the assembly's embedded resources.
@@ -378,9 +383,7 @@ public class GuiWindow : IInputHandler, IWindowHandler, IDisposable
     {
         try
         {
-            // SilkNET doesn't have built-in clipboard support
-            // This would require platform-specific implementation
-            return "";
+            return _glfw.GetClipboardString((WindowHandle*)_window.Handle) ?? "";
         }
         catch
         {
@@ -396,8 +399,7 @@ public class GuiWindow : IInputHandler, IWindowHandler, IDisposable
     {
         try
         {
-            // SilkNET doesn't have built-in clipboard support
-            // This would require platform-specific implementation
+            _glfw.SetClipboardString((WindowHandle*)_window.Handle, text);
         }
         catch
         {

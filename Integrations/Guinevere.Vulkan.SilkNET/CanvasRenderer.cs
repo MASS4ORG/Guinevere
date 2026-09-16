@@ -185,7 +185,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     private void InitializeSkia()
     {
         Console.WriteLine($"Initializing Skia surface: {_width}x{_height}");
-        _skiaSurface = SKSurface.Create(new SKImageInfo(_width, _height, SKColorType.Rgba8888));
+        _skiaSurface = SKSurface.Create(new SKImageInfo(_width, _height, SKColorType.Bgra8888));
         _canvas = _skiaSurface?.Canvas;
         if (_canvas == null)
         {

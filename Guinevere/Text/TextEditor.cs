@@ -99,12 +99,8 @@ public static class TextEditor
             {
                 state.SelectAll();
             }
-            else if (clicks == 2)
-            {
-                var (wordStart, wordEnd) = WordAt(display, at);
-                state.SelectionAnchor = wordStart;
-                state.CursorPosition = wordEnd;
-            }
+            else if (clicks >= 2)
+                state.SelectAll();
             else
             {
                 state.MoveTo(at, extend: gui.Input.IsKeyDown(KeyboardKey.LeftShift));
