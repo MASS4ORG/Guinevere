@@ -177,11 +177,13 @@ public static partial class ControlsExtensions
         bool grabFocus = false)
     {
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
+        gui.Focus.RegisterTextInput(nodeId);
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
                    .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
+            gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize);
@@ -246,10 +248,12 @@ public static partial class ControlsExtensions
         float padding = 8, bool enabled = true, string id = "")
     {
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("PasswordInput", 0) : id;
+        gui.Focus.RegisterTextInput(nodeId);
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
+            gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled)
@@ -328,9 +332,11 @@ public static partial class ControlsExtensions
         string id = "")
     {
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextArea", 0) : id;
+        gui.Focus.RegisterTextInput(nodeId);
 
         using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
         {
+            gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize, multiline: true);

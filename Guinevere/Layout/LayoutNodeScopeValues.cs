@@ -113,6 +113,16 @@ public class LayoutNodeScopeIsClipped : ILayoutNodeScopeValue<LayoutNodeScopeIsC
     public required bool Value { get; init; }
 }
 
+/// <summary>Whether an overlay ignores clipping imposed by its layout ancestors.</summary>
+public class LayoutNodeScopeEscapesAncestorClips : ILayoutNodeScopeValue<LayoutNodeScopeEscapesAncestorClips>
+{
+    /// <summary>Overlays remain clipped unless they explicitly opt out.</summary>
+    public static LayoutNodeScopeEscapesAncestorClips Default => new() { Value = false };
+
+    /// <summary>Whether the node is drawn without any ancestor clip rectangles.</summary>
+    public required bool Value { get; init; }
+}
+
 /// <summary>
 /// Represents the cumulative scroll offset value for layout node scopes.
 /// </summary>

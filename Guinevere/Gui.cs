@@ -150,6 +150,8 @@ public partial class Gui
     /// </summary>
     private static void ApplyAncestorClips(LayoutNode node, SKCanvas canvas)
     {
+        if (node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value) return;
+
         var ancestors = new Stack<LayoutNode>();
         for (var a = node.Parent; a is not null; a = a.Parent)
             ancestors.Push(a);

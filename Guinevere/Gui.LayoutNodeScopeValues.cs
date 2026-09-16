@@ -96,4 +96,11 @@ public partial class Gui
         scope ??= CurrentNodeScope;
         scope.Set(new LayoutNodeScopeIsClipped { Value = isClipped });
     }
+
+    /// <summary>Lets an overlay draw outside scrollable or clipped layout ancestors.</summary>
+    public void SetEscapesAncestorClips(bool escapes = true, LayoutNodeScope? scope = null)
+    {
+        scope ??= CurrentNodeScope;
+        scope.Set(new LayoutNodeScopeEscapesAncestorClips { Value = escapes });
+    }
 }

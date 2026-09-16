@@ -8,6 +8,7 @@ public class FocusManager
 {
     private readonly Dictionary<string, FocusableControl> _focusableControls = new();
     private readonly List<string> _frameControlOrder = new();
+    private readonly HashSet<string> _textInputIds = [];
     private string? _currentFocusedId;
     private string? _nextFrameFocusId;
     private bool _focusChangedThisFrame;
@@ -25,6 +26,12 @@ public class FocusManager
     /// Gets whether any control currently has focus.
     /// </summary>
     public bool HasAnyFocus => _currentFocusedId != null;
+
+    /// <summary>Whether the focused control is an editor that must receive typed keystrokes.</summary>
+    public bool IsTextInputFocused => _currentFocusedId is not null && _textInputIds.Contains(_currentFocusedId);
+
+    /// <summary>Marks a focusable control as a text editor.</summary>
+    public void RegisterTextInput(string controlId) => _textInputIds.Add(controlId);
 
     /// <summary>
     /// Gets whether the focus state changed during the current frame.

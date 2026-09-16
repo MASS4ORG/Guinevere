@@ -4,6 +4,8 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
+    private const float NavigationButtonWidth = 18f;
+
     /// <summary>
     /// A row of tabs with an active one, optional icons, unsaved markers and close affordances. The
     /// dock space draws its panel tabs with this, so a host's own tabs match without copying the look.
@@ -29,21 +31,42 @@ public static partial class ControlsExtensions
 
         theme ??= TabStripTheme.Default;
         var result = TabStripResult.None;
+        var state = gui.ControlState($"{idPrefix}/overflow", () => new TabStripState());
+        var widths = items.Select(item => MeasureTab(item, theme)).ToArray();
+        var overflowing = state.ViewportWidth > 0 && widths.Sum() > state.ViewportWidth;
+        var availableWidth = Math.Max(0, state.ViewportWidth - (overflowing ? NavigationButtonWidth * 2 : 0));
+        var activeIndex = items.ToList().FindIndex(item => item.Id == activeId);
+
+        if (overflowing) EnsureActiveIsVisible(state, activeIndex, widths, availableWidth);
+        else state.FirstVisible = 0;
+
+        var visible = VisibleRange(state.FirstVisible, widths, availableWidth, overflowing);
 
         using (gui.Node(-1, theme.Height, idPrefix, filePath, lineNumber)
                    .ExpandWidth().Direction(Axis.Horizontal).Enter())
         {
             if (gui.Pass == Pass.Pass2Render) gui.DrawBackgroundRect(theme.Strip);
 
-            foreach (var item in items)
+            if (overflowing && Navigation(gui, $"{idPrefix}/previous", "<", state.FirstVisible > 0, theme))
+                state.FirstVisible = PreviousRange(state.FirstVisible, widths, availableWidth);
+
+            for (var index = visible.Start; index < visible.End; index++)
+            {
+                var item = items[index];
                 result = RenderTab(gui, item, item.Id == activeId, theme, $"{idPrefix}/{item.Id}",
                     onDragSource, result);
+            }
 
             // Always built, callback or not, so the strip's structure does not change when a host
             // adds or drops one.
             using (gui.Node(-1, theme.Height, $"{idPrefix}/actions")
                        .ExpandWidth().Direction(Axis.Horizontal).ContentAlignX(1f).Enter())
                 trailing?.Invoke(gui);
+
+            if (overflowing && Navigation(gui, $"{idPrefix}/next", ">", visible.End < items.Count, theme))
+                state.FirstVisible = visible.End;
+
+            if (gui.Pass == Pass.Pass2Render) state.ViewportWidth = gui.CurrentNode.Rect.W;
         }
 
         return result;
@@ -126,5 +149,56 @@ public static partial class ControlsExtensions
         return bounds.Width + 18
                             + (item.Closable ? 18 : 0)
                             + (item.Icon is null ? 0 : theme.IconSize + 6);
+    }
+
+    private static (int Start, int End) VisibleRange(int first, IReadOnlyList<float> widths, float available,
+        bool overflowing)
+    {
+        if (!overflowing) return (0, widths.Count);
+
+        first = Math.Clamp(first, 0, Math.Max(0, widths.Count - 1));
+        var end = first;
+        var used = 0f;
+        while (end < widths.Count && (end == first || used + widths[end] <= available)) used += widths[end++];
+        return (first, end);
+    }
+
+    private static void EnsureActiveIsVisible(TabStripState state, int activeIndex, IReadOnlyList<float> widths,
+        float available)
+    {
+        if (activeIndex < 0) return;
+
+        var range = VisibleRange(state.FirstVisible, widths, available, overflowing: true);
+        if (activeIndex < range.Start || activeIndex >= range.End) state.FirstVisible = activeIndex;
+    }
+
+    private static int PreviousRange(int first, IReadOnlyList<float> widths, float available)
+    {
+        if (first == 0) return 0;
+
+        var previous = first - 1;
+        while (previous > 0 && VisibleRange(previous - 1, widths, available, overflowing: true).End >= first)
+            previous--;
+        return previous;
+    }
+
+    private static bool Navigation(Gui gui, string id, string label, bool enabled, TabStripTheme theme)
+    {
+        using (gui.Node(NavigationButtonWidth, theme.Height, id).BlockInput().Enter())
+        {
+            if (gui.Pass != Pass.Pass2Render) return false;
+
+            var interactable = gui.GetInteractable();
+            if (enabled && interactable.OnHover()) gui.DrawBackgroundRect(theme.Hover);
+            gui.DrawText(label, theme.FontSize, enabled ? theme.Ink : theme.InkDim, centerInRect: true);
+            return enabled && interactable.OnClick();
+        }
+    }
+
+    private sealed class TabStripState
+    {
+        public int FirstVisible { get; set; }
+
+        public float ViewportWidth { get; set; }
     }
 }

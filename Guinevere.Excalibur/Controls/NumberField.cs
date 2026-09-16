@@ -6,15 +6,10 @@ public static partial class ControlsExtensions
     {
         public TextEditState Buffer = new("0");
         public bool Captured;
-        public bool Scrubbing;
-        public Vector2 PressPosition;
-        public float PressValue;
     }
 
     /// <summary>
-    /// A numeric input with Unity-style scrub editing: press and drag right or up to increase the value,
-    /// left or down to decrease it. The drag starts from the value at the press, so it never "jumps".
-    /// A plain click places the caret and opens keyboard editing, which commits on Enter or on focus
+    /// A numeric text input. A click places the caret and opens keyboard editing, which commits on Enter or on focus
     /// loss. Invalid text reverts to the previous value, and everything stays clamped to
     /// [<paramref name="min"/>, <paramref name="max"/>].
     /// </summary>
@@ -52,7 +47,8 @@ public static partial class ControlsExtensions
 
         SyncNumberBuffer(field, value, format);
 
-        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding))
+                   .ContentAlignX(0f).ContentAlignY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
             HandleNumberFieldInteraction(gui, field, ref value, interactable, step, min, max, format,
@@ -70,7 +66,7 @@ public static partial class ControlsExtensions
     private static void SyncNumberBuffer(NumberFieldState field, float value, string format)
     {
         var formatted = FormatNumber(value, format);
-        var editing = field.Buffer.IsFocused || field.Scrubbing || field.Captured;
+        var editing = field.Buffer.IsFocused || field.Captured;
 
         if (!editing && !string.Equals(field.Buffer.External, formatted, StringComparison.Ordinal))
         {
@@ -90,7 +86,6 @@ public static partial class ControlsExtensions
         {
             field.Buffer.IsFocused = false;
             field.Captured = false;
-            field.Scrubbing = false;
             value = Clamp(value, min, max);
             return;
         }
@@ -102,38 +97,20 @@ public static partial class ControlsExtensions
         if (interactable.OnClick())
         {
             field.Captured = true;
-            field.Scrubbing = false;
-            field.PressPosition = mouse;
-            field.PressValue = value;
             field.Buffer.External = field.Buffer.Text;
         }
 
         if (field.Captured)
         {
             var buttonDown = gui.Input.IsMouseButtonDown(MouseButton.Left);
-            var dx = mouse.X - field.PressPosition.X;
-            var dy = field.PressPosition.Y - mouse.Y; // up is positive
-            var moved = MathF.Sqrt(dx * dx + dy * dy);
-
-            if (buttonDown && (field.Scrubbing || moved >= ScrubThreshold))
+            if (!buttonDown)
             {
-                field.Scrubbing = true;
-                value = Clamp(field.PressValue + (dx + dy) * step * dragSensitivity, min, max);
-                field.Buffer.Text = FormatNumber(value, format);
-                field.Buffer.MoveTo(field.Buffer.Text.Length, extend: false);
-            }
-            else if (!buttonDown)
-            {
-                if (!field.Scrubbing)
-                {
-                    gui.RequestFocus(FocusReason.Mouse);
-                    var at = TextEditor.PositionAt(gui, mouse, gui.CurrentNode.InnerRect,
-                        field.Buffer.Text, fontSize);
-                    field.Buffer.MoveTo(at, extend: false);
-                    field.Buffer.BlinkTimer = 0f;
-                }
+                gui.RequestFocus(FocusReason.Mouse);
+                var at = TextEditor.PositionAt(gui, mouse, gui.CurrentNode.InnerRect,
+                    field.Buffer.Text, fontSize);
+                field.Buffer.MoveTo(at, extend: false);
+                field.Buffer.BlinkTimer = 0f;
                 field.Captured = false;
-                field.Scrubbing = false;
             }
         }
 
@@ -178,5 +155,4 @@ public static partial class ControlsExtensions
     private static float Clamp(float value, float min, float max) =>
         Math.Clamp(value, min, max);
 
-    private const float ScrubThreshold = 4f;
 }

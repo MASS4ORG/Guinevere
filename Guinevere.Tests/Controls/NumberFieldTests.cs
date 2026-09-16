@@ -3,9 +3,8 @@ using Guinevere.Tests.Mocks;
 namespace Guinevere.Tests.Controls;
 
 /// <summary>
-/// Covers the numeric field's Unity-style scrub editing: dragging right/up increases, left/down
-/// decreases from the value at the press, a plain click focuses for typing, Enter commits, invalid
-/// text reverts, and everything stays clamped to the field's range.
+/// Covers numeric text editing, including the fact that dragging the text field does not change the
+/// value, Enter commits, invalid text reverts, and committed values stay clamped to the range.
 /// </summary>
 public class NumberFieldTests
 {
@@ -69,7 +68,7 @@ public class NumberFieldTests
     }
 
     [Fact]
-    public void DraggingRightIncreasesTheValue()
+    public void DraggingDoesNotChangeTheValue()
     {
         var h = new Harness();
 
@@ -77,36 +76,7 @@ public class NumberFieldTests
         h.Frame(mouse: new Vector2(180, 12), down: true);
         h.Frame(mouse: new Vector2(180, 12)); // release
 
-        // 40px right at 0.25 per pixel.
-        Assert.Equal(52.5f, h.Value, precision: 3);
-    }
-
-    [Fact]
-    public void DraggingUpIncreasesAndDownDecreases()
-    {
-        var h = new Harness();
-
-        h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
-        h.Frame(mouse: new Vector2(140, 2), down: true); // up 10px
-        Assert.Equal(45f, h.Value, precision: 3);
-
-        h.Frame(mouse: new Vector2(140, 22), down: true); // back down 10px from the press
-        Assert.Equal(40f, h.Value, precision: 3);
-
-        h.Frame(mouse: new Vector2(140, 22)); // release
-        Assert.Equal(40f, h.Value, precision: 3);
-    }
-
-    [Fact]
-    public void ScrubbingClampsToTheRange()
-    {
-        var h = new Harness(90f);
-
-        h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
-        h.Frame(mouse: new Vector2(1000, 12), down: true);
-        h.Frame(mouse: new Vector2(1000, 12));
-
-        Assert.Equal(100f, h.Value, precision: 3);
+        Assert.Equal(42.5f, h.Value, precision: 3);
     }
 
     [Fact]
