@@ -336,34 +336,18 @@ public static partial class ControlsExtensions
         // Blocks the row underneath, so clicking the arrow neither selects nor double-toggles.
         using (gui.Node(theme.ExpanderWidth, theme.RowHeight, $"treeview/row{row}/expander")
                    .BlockInput(item.HasChildren)
+                   .ContentAlignX(0.5f).ContentAlignY(0.5f)
                    .Enter())
         {
-            if (gui.Pass != Pass.Pass2Render || !item.HasChildren) return;
+            if (!item.HasChildren) return;
 
             var interactable = gui.GetInteractable();
-            var rect = gui.CurrentNode.Rect;
-            var centre = new Vector2(rect.X + (rect.W / 2f), rect.Y + (rect.H / 2f));
+            var hot = gui.Pass == Pass.Pass2Render && interactable.OnHover();
 
-            DrawExpanderArrow(gui, centre, state.IsCollapsed(item.Id, item.Depth),
-                interactable.OnHover() ? theme.Ink : theme.InkDim);
+            gui.DrawText(state.IsCollapsed(item.Id, item.Depth) ? "▶" : "▼", theme.FontSize * 0.7f,
+                hot ? theme.Ink : theme.InkDim);
 
-            if (interactable.OnClick()) state.Toggle(item.Id, item.Depth);
+            if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) state.Toggle(item.Id, item.Depth);
         }
-    }
-
-    private static void DrawExpanderArrow(Gui gui, Vector2 centre, bool collapsed, Color color)
-    {
-        const float size = 3.5f;
-
-        if (collapsed)
-            gui.DrawTriangleFilled(
-                new Vector2(centre.X - size, centre.Y - size),
-                new Vector2(centre.X - size, centre.Y + size),
-                new Vector2(centre.X + size, centre.Y), color);
-        else
-            gui.DrawTriangleFilled(
-                new Vector2(centre.X - size, centre.Y - size),
-                new Vector2(centre.X + size, centre.Y - size),
-                new Vector2(centre.X, centre.Y + size), color);
     }
 }
