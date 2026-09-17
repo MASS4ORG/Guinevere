@@ -6,6 +6,7 @@ using Silk.NET.Input;
 using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using Serilog;
 
 namespace Guinevere.Vulkan.SilkNET;
 
@@ -15,6 +16,7 @@ namespace Guinevere.Vulkan.SilkNET;
 /// </summary>
 public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
 {
+    private readonly ILogger _logger;
     private readonly Gui _gui;
     private readonly IWindow _window;
     private readonly CanvasRenderer _renderer;
@@ -43,8 +45,10 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
     /// <param name="width">The initial width of the window. Default is 800.</param>
     /// <param name="height">The initial height of the window. Default is 600.</param>
     /// <param name="title">The title of the window. Default is empty string.</param>
-    public GuiWindow(Gui gui, int width = 800, int height = 600, string title = "")
+    /// <param name="logger">The logger that receives window and renderer diagnostics.</param>
+    public GuiWindow(Gui gui, int width = 800, int height = 600, string title = "", ILogger? logger = null)
     {
+        _logger = logger ?? Log.Logger;
         _gui = gui;
         _gui.Input = this;
         _gui.WindowHandler = this;
@@ -52,7 +56,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Fonts.icons.ttf");
         _fontIcon = Font.FromStream(fontStream);
-        _renderer = new CanvasRenderer();
+        _renderer = new CanvasRenderer(logger);
 
         // Create window options with Vulkan API
         var options = WindowOptions.Default;
@@ -121,7 +125,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
     /// </summary>
     private void OnLoad()
     {
-        Console.WriteLine("OnLoad called");
+        _logger.Debug("OnLoad called");
         // Initialize the Vulkan renderer with our window context
         _renderer.Initialize(_window.Size.X, _window.Size.Y, _window);
 
@@ -142,7 +146,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
         _keyboard.KeyChar += OnKeyChar;
 
         _isInitialized = true;
-        Console.WriteLine("OnLoad completed");
+        _logger.Debug("OnLoad completed");
     }
 
     /// <summary>

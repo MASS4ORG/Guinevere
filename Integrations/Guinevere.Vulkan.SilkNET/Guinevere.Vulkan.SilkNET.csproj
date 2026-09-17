@@ -40,6 +40,7 @@
         <PackageReference Include="SkiaSharp" Version="4.152.0" />
         <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.152.0" />
         <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.152.0" />
+        <PackageReference Include="Serilog" Version="4.4.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -47,7 +48,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Fonts\*"/>
+        <EmbeddedResource Include="Fonts\font.ttf" />
+        <EmbeddedResource Include="Fonts\icons.ttf" />
         <EmbeddedResource Include="Shaders\*"/>
     </ItemGroup>
 </Project>

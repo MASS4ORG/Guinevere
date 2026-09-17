@@ -8,6 +8,7 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 using SkiaSharp;
+using Serilog;
 using Buffer = System.Buffer;
 using VkBuffer = Silk.NET.Vulkan.Buffer;
 using VkSemaphore = Silk.NET.Vulkan.Semaphore;
@@ -21,6 +22,7 @@ namespace Guinevere.Vulkan.SilkNET;
 /// </summary>
 public unsafe class CanvasRenderer : ICanvasRenderer
 {
+    private readonly ILogger _logger;
     private Vk _vk = null!;
     private Instance _instance;
     private PhysicalDevice _physicalDevice;
@@ -77,6 +79,15 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
     private readonly ushort[] _indices = [0, 1, 2, 2, 3, 0];
 
+    /// <summary>
+    /// Initializes a renderer using the supplied logger, or the Serilog global logger when omitted.
+    /// </summary>
+    /// <param name="logger">The logger that receives renderer diagnostics.</param>
+    public CanvasRenderer(ILogger? logger = null)
+    {
+        _logger = logger ?? Log.Logger;
+    }
+
     /// <inheritdoc/>
     public void Initialize(int width, int height)
     {
@@ -95,26 +106,25 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     /// </param>
     public void Initialize(int width, int height, IWindow window, bool firstTime = true)
     {
-        Console.WriteLine($"Initializing CanvasRenderer: {width}x{height}");
+        _logger.Debug($"Initializing CanvasRenderer: {width}x{height}");
         _width = width;
         _height = height;
         _window = window;
 
         try
         {
-            Console.WriteLine("Getting Vulkan API...");
+            _logger.Debug("Getting Vulkan API...");
             _vk = Vk.GetApi();
-            Console.WriteLine("✓ Vulkan API obtained");
+            _logger.Debug("✓ Vulkan API obtained");
 
             InitializeVulkan(firstTime);
             InitializeSkia();
 
-            Console.WriteLine("CanvasRenderer initialization complete!");
+            _logger.Debug("CanvasRenderer initialization complete!");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Initialization failed: {ex}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            _logger.Error(ex, "CanvasRenderer initialization failed");
             throw;
         }
     }
@@ -123,77 +133,77 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     {
         if (firstTime)
         {
-            Console.WriteLine("Starting Vulkan initialization...");
+            _logger.Debug("Starting Vulkan initialization...");
             CreateInstance();
-            Console.WriteLine("✓ Instance created");
+            _logger.Debug("✓ Instance created");
             CreateSurface();
-            Console.WriteLine("✓ Surface created");
+            _logger.Debug("✓ Surface created");
             PickPhysicalDevice();
-            Console.WriteLine("✓ Physical device picked");
+            _logger.Debug("✓ Physical device picked");
             CreateLogicalDevice();
         }
 
-        Console.WriteLine("✓ Logical device created");
+        _logger.Debug("✓ Logical device created");
         CreateSwapchain();
-        Console.WriteLine("✓ Swapchain created");
+        _logger.Debug("✓ Swapchain created");
         CreateImageViews();
 
         // if (firstTime)
         {
-            Console.WriteLine("✓ Image views created");
+            _logger.Debug("✓ Image views created");
             CreateRenderPass();
-            Console.WriteLine("✓ Render pass created");
+            _logger.Debug("✓ Render pass created");
             CreateDescriptorSetLayout();
         }
 
-        Console.WriteLine("✓ Descriptor set layout created");
+        _logger.Debug("✓ Descriptor set layout created");
         CreateGraphicsPipeline();
-        Console.WriteLine("✓ Graphics pipeline created");
+        _logger.Debug("✓ Graphics pipeline created");
         CreateFramebuffers();
         // if (firstTime)
         {
-            Console.WriteLine("✓ Framebuffers created");
+            _logger.Debug("✓ Framebuffers created");
             CreateCommandPool();
-            Console.WriteLine("✓ Command pool created");
+            _logger.Debug("✓ Command pool created");
             CreateCommandBuffers();
-            Console.WriteLine("✓ Command buffers created");
+            _logger.Debug("✓ Command buffers created");
             CreateSyncObjects();
         }
 
-        Console.WriteLine("✓ Sync objects created");
+        _logger.Debug("✓ Sync objects created");
         CreateTextureImage();
-        Console.WriteLine("✓ Texture image created");
+        _logger.Debug("✓ Texture image created");
         CreateTextureImageView();
         if (firstTime)
         {
-            Console.WriteLine("✓ Texture image view created");
+            _logger.Debug("✓ Texture image view created");
             CreateTextureSampler();
-            Console.WriteLine("✓ Texture sampler created");
+            _logger.Debug("✓ Texture sampler created");
             CreateVertexBuffer();
-            Console.WriteLine("✓ Vertex buffer created");
+            _logger.Debug("✓ Vertex buffer created");
             CreateIndexBuffer();
         }
 
-        Console.WriteLine("✓ Index buffer created");
+        _logger.Debug("✓ Index buffer created");
         CreateDescriptorPool();
-        Console.WriteLine("✓ Descriptor pool created");
+        _logger.Debug("✓ Descriptor pool created");
         CreateDescriptorSets();
-        Console.WriteLine("✓ Descriptor sets created");
-        Console.WriteLine("Vulkan initialization complete!");
+        _logger.Debug("✓ Descriptor sets created");
+        _logger.Debug("Vulkan initialization complete!");
     }
 
     private void InitializeSkia()
     {
-        Console.WriteLine($"Initializing Skia surface: {_width}x{_height}");
+        _logger.Debug($"Initializing Skia surface: {_width}x{_height}");
         _skiaSurface = SKSurface.Create(new SKImageInfo(_width, _height, SKColorType.Bgra8888));
         _canvas = _skiaSurface?.Canvas;
         if (_canvas == null)
         {
-            Console.WriteLine("ERROR: Failed to create Skia canvas!");
+            _logger.Error("Failed to create Skia canvas");
         }
         else
         {
-            Console.WriteLine("✓ Skia surface and canvas created");
+            _logger.Debug("✓ Skia surface and canvas created");
         }
     }
 
@@ -671,18 +681,18 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
     private void CreateGraphicsPipeline()
     {
-        Console.WriteLine("Creating graphics pipeline...");
+        _logger.Debug("Creating graphics pipeline...");
         // For simplicity, create minimal shader bytecode inline
         var vertShaderCode = GetShaderSpirv("vert");
-        Console.WriteLine($"✓ Vertex shader loaded: {vertShaderCode.Length} bytes");
+        _logger.Debug($"✓ Vertex shader loaded: {vertShaderCode.Length} bytes");
         var fragShaderCode = GetShaderSpirv("frag");
-        Console.WriteLine($"✓ Fragment shader loaded: {fragShaderCode.Length} bytes");
+        _logger.Debug($"✓ Fragment shader loaded: {fragShaderCode.Length} bytes");
 
-        Console.WriteLine("Creating shader modules...");
+        _logger.Debug("Creating shader modules...");
         var vertShaderModule = CreateShaderModule(vertShaderCode);
-        Console.WriteLine("✓ Vertex shader module created");
+        _logger.Debug("✓ Vertex shader module created");
         var fragShaderModule = CreateShaderModule(fragShaderCode);
-        Console.WriteLine("✓ Fragment shader module created");
+        _logger.Debug("✓ Fragment shader module created");
 
         var vertShaderStageInfo = new PipelineShaderStageCreateInfo
         {
@@ -811,25 +821,25 @@ public unsafe class CanvasRenderer : ICanvasRenderer
                 BasePipelineHandle = default
             };
 
-            Console.WriteLine("Creating graphics pipeline...");
-            Console.WriteLine($"Pipeline stages: {pipelineInfo.StageCount}");
-            Console.WriteLine($"Vertex input bindings: {vertexInputInfo.VertexBindingDescriptionCount}");
-            Console.WriteLine($"Vertex input attributes: {vertexInputInfo.VertexAttributeDescriptionCount}");
-            Console.WriteLine($"Render pass handle: {_renderPass.Handle}");
-            Console.WriteLine($"Pipeline layout handle: {_pipelineLayout.Handle}");
+            _logger.Debug("Creating graphics pipeline...");
+            _logger.Debug($"Pipeline stages: {pipelineInfo.StageCount}");
+            _logger.Debug($"Vertex input bindings: {vertexInputInfo.VertexBindingDescriptionCount}");
+            _logger.Debug($"Vertex input attributes: {vertexInputInfo.VertexAttributeDescriptionCount}");
+            _logger.Debug($"Render pass handle: {_renderPass.Handle}");
+            _logger.Debug($"Pipeline layout handle: {_pipelineLayout.Handle}");
 
             var result = _vk.CreateGraphicsPipelines(_device, default, 1, in pipelineInfo, null, out _graphicsPipeline);
-            Console.WriteLine($"CreateGraphicsPipelines result: {result}");
+            _logger.Debug($"CreateGraphicsPipelines result: {result}");
 
             if (result != Result.Success)
                 throw new Exception($"Failed to create graphics pipeline: {result}");
-            Console.WriteLine("✓ Graphics pipeline created successfully");
+            _logger.Debug("✓ Graphics pipeline created successfully");
         }
 
-        Console.WriteLine("Cleaning up shader modules...");
+        _logger.Debug("Cleaning up shader modules...");
         _vk.DestroyShaderModule(_device, fragShaderModule, null);
         _vk.DestroyShaderModule(_device, vertShaderModule, null);
-        Console.WriteLine("✓ Graphics pipeline creation complete");
+        _logger.Debug("✓ Graphics pipeline creation complete");
     }
 
     private byte[] GetShaderSpirv(string shaderName)
@@ -851,14 +861,14 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to load shader '{shaderName}': {ex.Message}");
+            _logger.Error($"Failed to load shader '{shaderName}': {ex.Message}");
             throw new Exception($"Failed to load {shaderName} shader SPIR-V resource!");
         }
     }
 
     private ShaderModule CreateShaderModule(byte[] code)
     {
-        Console.WriteLine($"Creating shader module with {code.Length} bytes");
+        _logger.Debug($"Creating shader module with {code.Length} bytes");
 
         // Validate SPIR-V header
         if (code.Length < 20)
@@ -870,11 +880,11 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         var magic = BitConverter.ToUInt32(code, 0);
         if (magic != 0x07230203)
         {
-            Console.WriteLine($"Invalid SPIR-V magic number: 0x{magic:X8}, expected 0x07230203");
+            _logger.Error($"Invalid SPIR-V magic number: 0x{magic:X8}, expected 0x07230203");
             throw new Exception("Invalid SPIR-V file - wrong magic number");
         }
 
-        Console.WriteLine("✓ SPIR-V header validation passed");
+        _logger.Debug("✓ SPIR-V header validation passed");
 
         var createInfo = new ShaderModuleCreateInfo
         {
@@ -885,14 +895,14 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         {
             createInfo.PCode = (uint*)codePtr;
 
-            Console.WriteLine("Calling vkCreateShaderModule...");
+            _logger.Debug("Calling vkCreateShaderModule...");
             var result = _vk.CreateShaderModule(_device, in createInfo, null, out var shaderModule);
-            Console.WriteLine($"vkCreateShaderModule result: {result}");
+            _logger.Debug($"vkCreateShaderModule result: {result}");
 
             if (result != Result.Success)
                 throw new Exception($"Failed to create shader module: {result}");
 
-            Console.WriteLine("✓ Shader module created successfully");
+            _logger.Debug("✓ Shader module created successfully");
             return shaderModule;
         }
     }
@@ -920,7 +930,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     {
         if (_canvas == null || _skiaSurface == null)
         {
-            Console.WriteLine("Canvas or Skia surface is null!");
+            _logger.Debug("Canvas or Skia surface is null!");
             return;
         }
 
@@ -938,8 +948,8 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERROR in rendering pipeline: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            _logger.Error($"ERROR in rendering pipeline: {ex.Message}");
+            _logger.Debug($"Stack trace: {ex.StackTrace}");
         }
     }
 
@@ -949,7 +959,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         {
             if (_skiaSurface == null || _textureImage.Handle == 0)
             {
-                Console.WriteLine("ERROR: Skia surface or texture image is null/invalid!");
+                _logger.Error("ERROR: Skia surface or texture image is null/invalid!");
                 return;
             }
 
@@ -957,7 +967,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             var pixmap = _skiaSurface.PeekPixels();
             if (pixmap == null)
             {
-                Console.WriteLine("ERROR: Failed to get pixmap from Skia surface!");
+                _logger.Error("ERROR: Failed to get pixmap from Skia surface!");
                 return;
             }
 
@@ -974,7 +984,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             var result = _vk.MapMemory(_device, stagingBufferMemory, 0, dataSize, 0, &data);
             if (result != Result.Success)
             {
-                Console.WriteLine($"ERROR: Failed to map staging buffer memory: {result}");
+                _logger.Error($"ERROR: Failed to map staging buffer memory: {result}");
                 return;
             }
 
@@ -1007,7 +1017,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERROR in UploadSkiaToVulkan: {ex.Message}");
+            _logger.Error($"ERROR in UploadSkiaToVulkan: {ex.Message}");
             throw;
         }
     }
@@ -1448,12 +1458,12 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
             if (result == Result.ErrorOutOfDateKhr)
             {
-                Console.WriteLine("Swapchain out of date, skipping frame");
+                _logger.Debug("Swapchain out of date, skipping frame");
                 return;
             }
             else if (result != Result.Success && result != Result.SuboptimalKhr)
             {
-                Console.WriteLine($"ERROR: Failed to acquire swapchain image: {result}");
+                _logger.Error($"ERROR: Failed to acquire swapchain image: {result}");
                 return;
             }
 
@@ -1462,14 +1472,14 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             var waitResult = _vk.WaitForFences(_device, 1, in fence, true, ulong.MaxValue);
             if (waitResult != Result.Success)
             {
-                Console.WriteLine($"ERROR: Failed to wait for fence: {waitResult}");
+                _logger.Error($"ERROR: Failed to wait for fence: {waitResult}");
                 return;
             }
 
             var resetResult = _vk.ResetFences(_device, 1, in fence);
             if (resetResult != Result.Success)
             {
-                Console.WriteLine($"ERROR: Failed to reset fence: {resetResult}");
+                _logger.Error($"ERROR: Failed to reset fence: {resetResult}");
                 return;
             }
 
@@ -1477,7 +1487,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             var resetCmdResult = _vk.ResetCommandBuffer(_commandBuffers[_currentFrame], 0);
             if (resetCmdResult != Result.Success)
             {
-                Console.WriteLine($"ERROR: Failed to reset command buffer: {resetCmdResult}");
+                _logger.Error($"ERROR: Failed to reset command buffer: {resetCmdResult}");
                 return;
             }
 
@@ -1503,7 +1513,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             var submitResult = _vk.QueueSubmit(_graphicsQueue, 1, in submitInfo, _inFlightFences[_currentFrame]);
             if (submitResult != Result.Success)
             {
-                Console.WriteLine($"ERROR: Failed to submit command buffer: {submitResult}");
+                _logger.Error($"ERROR: Failed to submit command buffer: {submitResult}");
                 return;
             }
 
@@ -1524,7 +1534,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             var presentResult = _khrSwapchain.QueuePresent(_presentQueue, in presentInfo);
             if (presentResult != Result.Success && presentResult != Result.SuboptimalKhr)
             {
-                Console.WriteLine($"ERROR: Failed to present: {presentResult}");
+                _logger.Error($"ERROR: Failed to present: {presentResult}");
                 return;
             }
 
@@ -1532,7 +1542,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERROR in RenderToVulkan: {ex.Message}");
+            _logger.Error($"ERROR in RenderToVulkan: {ex.Message}");
             throw;
         }
     }
@@ -1699,7 +1709,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             // }
             // catch (Exception createEx)
             // {
-            //     Console.WriteLine($"Error recreating Vulkan resources: {createEx.Message}");
+            //     _logger.Debug($"Error recreating Vulkan resources: {createEx.Message}");
             //     // Restore old dimensions and try again
             //     _width = oldWidth;
             //     _height = oldHeight;
@@ -1708,8 +1718,8 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Critical error during Vulkan resize: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            _logger.Error($"Critical error during Vulkan resize: {ex.Message}");
+            _logger.Debug($"Stack trace: {ex.StackTrace}");
         }
     }
 
@@ -1762,8 +1772,8 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error during swapchain cleanup: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            _logger.Error($"Error during swapchain cleanup: {ex.Message}");
+            _logger.Debug($"Stack trace: {ex.StackTrace}");
         }
     }
 

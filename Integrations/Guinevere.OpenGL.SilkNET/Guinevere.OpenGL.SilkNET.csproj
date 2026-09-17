@@ -44,7 +44,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Fonts\*"/>
+        <EmbeddedResource Include="Fonts\font.ttf" />
+        <EmbeddedResource Include="Fonts\icons.ttf" />
         <EmbeddedResource Include="Shaders\*"/>
     </ItemGroup>
 </Project>
