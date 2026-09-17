@@ -14,8 +14,9 @@ public sealed class TreeViewState
 
     /// <summary>
     /// How deep the tree opens before the user touches it. Rows at or below this depth start open,
-    /// deeper ones start closed; one means only the roots are open. Rows the user has folded or
-    /// unfolded keep their own state regardless.
+    /// deeper ones start closed; one means only the roots are open. The default, zero, starts every
+    /// row collapsed, so only the top-level items are visible until expanded. Rows the user has
+    /// folded or unfolded keep their own state regardless.
     /// </summary>
     public int DefaultExpandedDepth { get; set; }
 

@@ -13,10 +13,11 @@ public static partial class ControlsExtensions
     /// <param name="gui">The GUI instance.</param>
     /// <param name="fraction">The split position, 0..1, updated in place while dragging.</param>
     /// <param name="axis">The container's layout direction: horizontal splits side by side.</param>
-    /// <param name="thickness">The divider's size across the split, in pixels.</param>
+    /// <param name="thickness">The divider's width across the split, in pixels.</param>
     /// <param name="min">The closest either side may get to collapsing, as a fraction.</param>
-    /// <param name="color">The divider colour. Defaults to a mid grey.</param>
-    /// <param name="hoverColor">The colour while hovered or dragged. Defaults to a lighter grey.</param>
+    /// <param name="color">The divider color. Defaults to a mid grey.</param>
+    /// <param name="hoverColor">The highlight color painted over the whole handle while hovered or
+    /// dragged, so the grab zone reads as a handle. Defaults to a lighter grey.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     /// <returns>True if this frame moved the divider.</returns>
@@ -40,9 +41,9 @@ public static partial class ControlsExtensions
             // Not "grabbable" while something else owns the pointer - a tab being dragged past it.
             var active = dragging || (!gui.IsPointerCaptured && interactable.OnHover());
 
-            gui.DrawBackgroundRect(active
-                ? hoverColor ?? Color.FromArgb(255, 96, 104, 118)
-                : color ?? Color.FromArgb(255, 51, 56, 66));
+            gui.DrawRectFilled(gui.CurrentNode.Rect, color ?? Color.FromArgb(255, 51, 56, 66));
+            if (active)
+                gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 96, 104, 118));
 
             // The split position is anchored to where it was when the drag started and then offset by
             // the pointer's total travel, rather than accumulated frame by frame: summing deltas cannot

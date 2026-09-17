@@ -163,15 +163,27 @@ public class TreeViewTests
     [Fact]
     public void ASmallTreeDrawsEveryRow()
     {
-        var gui = RunFrames(Tree(roots: 3, childrenPerRoot: 2), new TreeViewState());
+        var state = new TreeViewState();
+        state.ExpandAll();
+
+        var gui = RunFrames(Tree(roots: 3, childrenPerRoot: 2), state);
 
         Assert.Equal(9, RowNodeCount(gui));
+    }
+
+    [Fact]
+    public void ATreeStartsWithEveryRowCollapsed()
+    {
+        var gui = RunFrames(Tree(roots: 3, childrenPerRoot: 2), new TreeViewState());
+
+        Assert.Equal(3, RowNodeCount(gui));
     }
 
     [Fact]
     public void CollapsingARootHidesItsChildren()
     {
         var state = new TreeViewState();
+        state.ExpandAll();
         state.SetExpanded("root0", expanded: false);
 
         var gui = RunFrames(Tree(roots: 3, childrenPerRoot: 2), state);
@@ -243,19 +255,22 @@ public class TreeViewTests
     public void ToggleFlipsAndSetExpandedIsExplicit()
     {
         var state = new TreeViewState();
-        Assert.False(state.IsCollapsed("a"));
+        Assert.True(state.IsCollapsed("a", depth: 0), "an untouched row starts collapsed");
 
         state.Toggle("a");
-        Assert.True(state.IsCollapsed("a"));
+        Assert.False(state.IsCollapsed("a", depth: 0));
 
         state.Toggle("a");
-        Assert.False(state.IsCollapsed("a"));
+        Assert.True(state.IsCollapsed("a", depth: 0));
+
+        state.SetExpanded("a", expanded: true);
+        Assert.False(state.IsCollapsed("a", depth: 0));
 
         state.SetExpanded("a", expanded: false);
-        Assert.True(state.IsCollapsed("a"));
+        Assert.True(state.IsCollapsed("a", depth: 0));
 
         state.ExpandAll();
-        Assert.False(state.IsCollapsed("a"));
+        Assert.False(state.IsCollapsed("a", depth: 0));
     }
 
     [Fact]
@@ -284,6 +299,7 @@ public class TreeViewTests
     public void ADoubleClickOnTheLabelFoldsTheRow()
     {
         var state = new TreeViewState();
+        state.SetExpanded("root0", expanded: true);
         var items = Tree(roots: 2, childrenPerRoot: 2);
 
         var input = Substitute.For<IInputHandler>();

@@ -11,7 +11,8 @@ public static partial class ControlsExtensions
     /// <summary>
     /// A numeric text input. A click places the caret and opens keyboard editing, which commits on Enter or on focus
     /// loss. Invalid text reverts to the previous value, and everything stays clamped to
-    /// [<paramref name="min"/>, <paramref name="max"/>].
+    /// [<paramref name="min"/>, <paramref name="max"/>]. Text is right-aligned when
+    /// <paramref name="alignX"/> is 1 and clipped to the box, so a wide number never spills out of the field.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="value">The number the field edits; clamped into [<paramref name="min"/>, <paramref name="max"/>].</param>
@@ -30,13 +31,14 @@ public static partial class ControlsExtensions
     /// <param name="dragSensitivity">Multiplier on the drag distance, letting one step span several pixels.</param>
     /// <param name="enabled">Whether the field responds to input.</param>
     /// <param name="id">A stable identifier; two numeric fields on the same frame must not share one.</param>
+    /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
     [PublicAPI]
-    public static void NumberField(this Gui gui, ref float value,
-        float step = 1f, float min = float.MinValue, float max = float.MaxValue,
+    public static void NumberField(this Gui gui, ref double value,
+        double step = 1.0, double min = double.MinValue, double max = double.MaxValue,
         float width = 200, float height = 32, string format = "0.##",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
         Color? cursorColor = null, float fontSize = 14, float padding = 8,
-        float dragSensitivity = 1f, bool enabled = true, string id = "")
+        double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f)
     {
         ArgumentNullException.ThrowIfNull(gui);
         if (max < min) (min, max) = (max, min);
@@ -48,7 +50,7 @@ public static partial class ControlsExtensions
         SyncNumberBuffer(field, value, format);
 
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
-                   .ContentAlignX(0f).ContentAlignY(0.5f).Enter())
+                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
             HandleNumberFieldInteraction(gui, field, ref value, interactable, step, min, max, format,
@@ -63,7 +65,22 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void SyncNumberBuffer(NumberFieldState field, float value, string format)
+    /// <summary>Float wrapper over the double field, for callers whose values are floats.</summary>
+    [PublicAPI]
+    public static void NumberField(this Gui gui, ref float value,
+        float step = 1f, float min = float.MinValue, float max = float.MaxValue,
+        float width = 200, float height = 32, string format = "0.##",
+        Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
+        Color? cursorColor = null, float fontSize = 14, float padding = 8,
+        float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f)
+    {
+        double d = value;
+        gui.NumberField(ref d, step, min, max, width, height, format, backgroundColor, borderColor,
+            textColor, cursorColor, fontSize, padding, dragSensitivity, enabled, id, alignX);
+        value = (float)d;
+    }
+
+    private static void SyncNumberBuffer(NumberFieldState field, double value, string format)
     {
         var formatted = FormatNumber(value, format);
         var editing = field.Buffer.IsFocused || field.Captured;
@@ -76,9 +93,9 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void HandleNumberFieldInteraction(Gui gui, NumberFieldState field, ref float value,
-        InteractableElement interactable, float step, float min, float max, string format,
-        float dragSensitivity, float fontSize, bool enabled)
+    private static void HandleNumberFieldInteraction(Gui gui, NumberFieldState field, ref double value,
+        InteractableElement interactable, double step, double min, double max, string format,
+        double dragSensitivity, float fontSize, bool enabled)
     {
         if (gui.Pass != Pass.Pass2Render) return;
 
@@ -136,10 +153,10 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static float CommitNumber(NumberFieldState field, float fallback, float min, float max,
+    private static double CommitNumber(NumberFieldState field, double fallback, double min, double max,
         string format)
     {
-        var parsed = float.TryParse(field.Buffer.Text.Trim(),
+        var parsed = double.TryParse(field.Buffer.Text.Trim(),
             System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture,
             out var number)
             ? Clamp(number, min, max)
@@ -149,10 +166,10 @@ public static partial class ControlsExtensions
         return parsed;
     }
 
-    private static string FormatNumber(float value, string format) =>
+    private static string FormatNumber(double value, string format) =>
         value.ToString(format, System.Globalization.CultureInfo.InvariantCulture);
 
-    private static float Clamp(float value, float min, float max) =>
+    private static double Clamp(double value, double min, double max) =>
         Math.Clamp(value, min, max);
 
 }

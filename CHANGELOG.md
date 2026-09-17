@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Added: Cascaded Menu
+- Fix: z-Index for context menus/flyouts/tooltips
+- Fix: Treeviewer starting collapsed
+
 ## v[2.0.1][] 2026-09-14
+
+- Changed: README
 
 ## v[2.0.0][] 2026-09-14
 
+- BREAKING: changing the package name to `MASS4.Guinevere`
+
 ## v[1.8.0][] 2026-09-13
+
+- Added: Excalibur controls library
+- Changed: Major reorganization of Sample projects
 
 ## v[1.7.0][] 2026-09-11
 
