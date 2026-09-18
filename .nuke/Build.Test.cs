@@ -15,8 +15,7 @@ partial class Build
 {
     AbsolutePath TestProjectDirectory => Solution.Guinevere_Tests.Directory;
     static AbsolutePath CoverageDirectory => RootDirectory / "coverage";
-    static AbsolutePath CoverageResultDirectory => CoverageDirectory / "coverage";
-    static AbsolutePath CoverageResultFile => CoverageResultDirectory / "coverage.xml";
+    static AbsolutePath CoverageResultFile => CoverageDirectory / "coverage.xml";
     static AbsolutePath CoverageReportDirectory => CoverageDirectory / "report";
     static AbsolutePath CoverageReportSummaryDirectory => CoverageReportDirectory / "Summary.txt";
     AbsolutePath CoverageSettingsFile => TestProjectDirectory / "CodeCoverage.runsettings";
@@ -28,7 +27,6 @@ partial class Build
         .Produces(CoverageResultFile)
         .Executes(() =>
         {
-            _ = CoverageResultDirectory.CreateDirectory();
             DotNetTasks.DotNetRun(settings => settings
                 .SetConfiguration(Configuration)
                 .SetProjectFile(Solution.Guinevere_Tests.Path)
