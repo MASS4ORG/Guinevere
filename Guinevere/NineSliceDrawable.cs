@@ -2,7 +2,7 @@ namespace Guinevere;
 
 /// <summary>
 /// Draws an image as a nine-patch: the four corners are blitted 1:1, the four edges stretch along
-/// one axis and the centre stretches both, so a small source scales to any destination without
+/// one axis and the center stretches both, so a small source scales to any destination without
 /// distorting its border. When the destination is smaller than the combined corners the corner
 /// sizes are scaled down proportionally so nothing overlaps.
 /// </summary>

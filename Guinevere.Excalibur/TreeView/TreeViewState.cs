@@ -104,7 +104,7 @@ public sealed class TreeViewState
     /// <summary>Set by <see cref="Reveal"/>, cleared once the tree has scrolled the selection into view.</summary>
     internal bool WantsReveal { get; set; }
 
-    /// <summary>The viewport height the virtualisation used this frame.</summary>
+    /// <summary>The viewport height the virtualization used this frame.</summary>
     internal float FrameViewportHeight { get; set; } = 600f;
 
 }

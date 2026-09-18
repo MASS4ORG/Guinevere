@@ -27,9 +27,7 @@ partial class Build
     /// <summary>
     /// Gets the list of projects that should be packaged as NuGet packages
     /// </summary>
-    private List<Project> PackageableProjects => Solution.AllProjects
-        .Where(ShouldCreateNuGetPackage)
-        .ToList();
+    private List<Project> PackageableProjects => [.. Solution.AllProjects.Where(ShouldCreateNuGetPackage)];
 
     /// <summary>
     /// Determines if a project should be packaged as a NuGet package

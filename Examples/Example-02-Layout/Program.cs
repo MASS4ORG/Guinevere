@@ -1,15 +1,15 @@
 using Guinevere;
-using Axis = Guinevere.Axis;
 using GuinevereDemos;
+using Axis = Guinevere.Axis;
 
 namespace Example_03_ChildrenLayout;
 
 public abstract class Program
 {
-    private static int _activeTabIndex;
+    static int _activeTabIndex;
 
-    private static readonly Color Panel = Color.FromArgb(255, 46, 50, 62);
-    private static readonly Color Bar = Color.FromArgb(255, 90, 170, 255);
+    static readonly Color Panel = Color.FromArgb(255, 46, 50, 62);
+    static readonly Color Bar = Color.FromArgb(255, 90, 170, 255);
 
     public static void Main()
     {
@@ -19,7 +19,7 @@ public abstract class Program
         win.RunGui(() => Draw(gui));
     }
 
-    private static void Draw(Gui gui)
+    static void Draw(Gui gui)
     {
         gui.DrawWindowTitlebar();
         DemoHeader.Header(gui, "Guinevere - Layout");
@@ -34,7 +34,7 @@ public abstract class Program
         }
     }
 
-    private static void ChildrenLayout(Gui gui)
+    static void ChildrenLayout(Gui gui)
     {
         // Test AlignContent with separate horizontal/vertical values
         using (gui.Node().Expand().Margin(10).Direction(Axis.Vertical).Gap(20).Enter())
@@ -73,7 +73,7 @@ public abstract class Program
         }
     }
 
-    private static void CreateLayout(Gui gui, float alignHorizontal, float alignVertical, Axis axis)
+    static void CreateLayout(Gui gui, float alignHorizontal, float alignVertical, Axis axis)
     {
         using (gui.Node().ExpandWidth().Height(150).Margin(5).Enter())
         {
@@ -107,7 +107,7 @@ public abstract class Program
     }
 
 
-    private static void Constrains(Gui gui)
+    static void Constrains(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(20).Enter())
         {

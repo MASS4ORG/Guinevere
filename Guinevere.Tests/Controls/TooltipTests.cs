@@ -10,23 +10,23 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class TooltipTests
 {
-    private const int Width = 400;
-    private const int Height = 400;
-    private const int SurfaceWidth = 400;
-    private const int SurfaceHeight = 400;
-    private const float Delay = 0.5f;
+    const int Width = 400;
+    const int Height = 400;
+    const int SurfaceWidth = 400;
+    const int SurfaceHeight = 400;
+    const float Delay = 0.5f;
 
-    private static readonly Vector2 PointerInsideAnchor = new(50, 50);
-    private static readonly Vector2 PointerOutside = new(350, 350);
+    static readonly Vector2 PointerInsideAnchor = new(50, 50);
+    static readonly Vector2 PointerOutside = new(350, 350);
 
-    private static Gui CreateGui()
+    static Gui CreateGui()
     {
         var gui = new TestableGui { Input = NoInput() };
         gui.SetScreenRect(Width, Height);
         return gui;
     }
 
-    private static IInputHandler At(Vector2 position)
+    static IInputHandler At(Vector2 position)
     {
         var input = NoInput();
         input.MousePosition.Returns(position);
@@ -39,7 +39,7 @@ public class TooltipTests
     /// source lines — so the node tree and the tooltip's control state are shared across passes, as
     /// in a real application frame.
     /// </summary>
-    private static void Content(Gui gui, string text)
+    static void Content(Gui gui, string text)
     {
         using (gui.Node(100, 100).Enter())
         {
@@ -51,7 +51,7 @@ public class TooltipTests
     /// Runs one full frame. The pointer is handled by the caller via <c>gui.Input</c>.
     /// Returns the anchor so tests can size the panel's expected position.
     /// </summary>
-    private static LayoutNode Frame(Gui gui, SKCanvas canvas, string text, bool animated = true)
+    static LayoutNode Frame(Gui gui, SKCanvas canvas, string text, bool animated = true)
     {
         canvas.Clear(SKColors.Transparent);
 
@@ -69,14 +69,14 @@ public class TooltipTests
         return gui.RootNode!.ChildNodes[0];
     }
 
-    private static SKColor PixelAt(SKSurface surface, int x, int y)
+    static SKColor PixelAt(SKSurface surface, int x, int y)
     {
         surface.Canvas.Flush();
         using var pixmap = surface.PeekPixels();
         return pixmap!.GetPixelColor(x, y);
     }
 
-    private static byte BackgroundAlpha(SKSurface surface, Rect tooltipRect)
+    static byte BackgroundAlpha(SKSurface surface, Rect tooltipRect)
     {
         // A pixel on the right edge of the panel, away from the left-anchored glyphs and border.
         var example = PixelAt(surface, (int)tooltipRect.X + (int)tooltipRect.W - 5,
@@ -84,7 +84,7 @@ public class TooltipTests
         return example.Alpha;
     }
 
-    private static IInputHandler NoInput()
+    static IInputHandler NoInput()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));
@@ -154,7 +154,7 @@ public class TooltipTests
     }
 
     /// <summary>Position of the mouse-follow tooltip given the anchor's height and the forced example pointer.</summary>
-    private static Rect TooltipRect(LayoutNode anchor)
+    static Rect TooltipRect(LayoutNode anchor)
     {
         var pos = PointerInsideAnchor + new Vector2(0, anchor.Rect.H);
         var font = new SKFont { Size = 12 };

@@ -13,14 +13,14 @@ namespace Guinevere;
 /// </summary>
 public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisposable
 {
-    private readonly Gui _gui;
-    private readonly ICanvasRenderer _canvasRenderer;
-    private Action _guiCallback = null!;
-    private int _width;
-    private int _height;
-    private readonly Font _fontText;
-    private readonly Font _fontIcon;
-    private readonly StringBuilder _typedCharacters = new();
+    readonly Gui _gui;
+    readonly ICanvasRenderer _canvasRenderer;
+    Action _guiCallback = null!;
+    int _width;
+    int _height;
+    readonly Font _fontText;
+    readonly Font _fontIcon;
+    readonly StringBuilder _typedCharacters = new();
 
     /// <summary>
     /// Initializes a new instance of the GuiWindow class with the specified parameters.

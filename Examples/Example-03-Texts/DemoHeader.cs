@@ -2,9 +2,9 @@ using Guinevere;
 
 namespace GuinevereDemos;
 
-internal static class DemoHeader
+static class DemoHeader
 {
-    private static readonly Bitmap Badge = LoadBadge();
+    static readonly Bitmap Badge = LoadBadge();
 
     public static void Header(Gui gui, string title)
     {
@@ -18,7 +18,7 @@ internal static class DemoHeader
         }
     }
 
-    private static Bitmap LoadBadge()
+    static Bitmap LoadBadge()
     {
         // The badge sits at the repository root; walk up from the output directory to find it.
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)

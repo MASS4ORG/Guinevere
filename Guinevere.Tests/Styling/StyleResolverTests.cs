@@ -3,7 +3,7 @@ namespace Guinevere.Tests.Styling;
 /// <summary>Tests for <see cref="StyleResolver"/> — the <c>.uss</c> cascade.</summary>
 public class StyleResolverTests
 {
-    private static ResolvedStyle Resolve(string css, StyleTarget target) =>
+    static ResolvedStyle Resolve(string css, StyleTarget target) =>
         StyleResolver.Resolve([StyleSheet.Parse(css)], target);
 
     /// <summary>A more specific selector overrides a less specific one regardless of order.</summary>

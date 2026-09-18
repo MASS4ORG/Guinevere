@@ -4,7 +4,7 @@ namespace Controls_01;
 
 public abstract partial class Program
 {
-    private static void FeedbackContent(Gui gui)
+    static void FeedbackContent(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(16).Padding(10).Enter())
         {
@@ -74,7 +74,7 @@ public abstract partial class Program
         }
     }
 
-    private static void ToastTooltipContent(Gui gui)
+    static void ToastTooltipContent(Gui gui)
     {
         using (gui.Node().Direction(Axis.Vertical).Gap(10).Enter())
         {

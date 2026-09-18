@@ -9,19 +9,18 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class MenuBarTests
 {
-    private const int Width = 600;
-    private const int Height = 400;
-    private const float BarHeight = 30f;
-    private const float RowHeight = 26f;
+    const int Width = 600;
+    const int Height = 400;
+    const float BarHeight = 30f;
 
-    private static Gui CreateGui()
+    static Gui CreateGui()
     {
         var gui = new TestableGui { Input = NoInput() };
         gui.SetScreenRect(Width, Height);
         return gui;
     }
 
-    private static void Frame(Gui gui, List<string> log, List<bool>? toggle = null, IInputHandler? input = null)
+    static void Frame(Gui gui, List<string> log, List<bool>? toggle = null, IInputHandler? input = null)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
 
@@ -37,7 +36,7 @@ public class MenuBarTests
         gui.EndFrame();
     }
 
-    private static void Menus(Gui gui, List<string> log, List<bool>? toggle = null)
+    static void Menus(Gui gui, List<string> log, List<bool>? toggle = null)
     {
         gui.MenuBar(bar =>
         {
@@ -60,7 +59,7 @@ public class MenuBarTests
         });
     }
 
-    private static IInputHandler NoInput()
+    static IInputHandler NoInput()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));
@@ -74,7 +73,7 @@ public class MenuBarTests
         return input;
     }
 
-    private static IInputHandler At(Vector2 position, bool pressed = true)
+    static IInputHandler At(Vector2 position, bool pressed = true)
     {
         var input = NoInput();
         input.MousePosition.Returns(position);
@@ -83,15 +82,8 @@ public class MenuBarTests
         return input;
     }
 
-    private static IInputHandler WithKey(KeyboardKey key)
-    {
-        var input = NoInput();
-        input.IsKeyPressed(key).Returns(true);
-        return input;
-    }
-
     /// <summary>The bar node is the only node whose children are all ~30px tall titles.</summary>
-    private static LayoutNode FindBar(LayoutNode root)
+    static LayoutNode FindBar(LayoutNode root)
     {
         LayoutNode? found = null;
         Visit(root);
@@ -107,7 +99,7 @@ public class MenuBarTests
         }
     }
 
-    private static IEnumerable<LayoutNode> MenuNodes(LayoutNode node)
+    static IEnumerable<LayoutNode> MenuNodes(LayoutNode node)
     {
         if (node.Id.StartsWith("/menubar/", StringComparison.Ordinal)) yield return node;
 
@@ -163,7 +155,7 @@ public class MenuBarTests
             var text = Assert.Single(title.Children);
             var r = title.Rect;
             var t = text.Rect;
-            Assert.True(t.W > 0 && t.H > 0, "Title text node must be measured during Pass1.");
+            Assert.True(t is { W: > 0, H: > 0 }, "Title text node must be measured during Pass1.");
             Assert.True(r.X <= t.X && r.Y <= t.Y && t.X + t.W <= r.X + r.W && t.Y + t.H <= r.Y + r.H,
                 $"Title text must render inside the title rect (title={r}, text={t}).");
         }

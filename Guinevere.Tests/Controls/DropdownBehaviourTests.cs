@@ -8,17 +8,17 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class DropdownBehaviorTests
 {
-    private static readonly string[] Options = ["Point", "Directional", "Spot"];
+    static readonly string[] Options = ["Point", "Directional", "Spot"];
 
-    private sealed class Harness
+    sealed class Harness
     {
-        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(300, 300));
-        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
-        private readonly TestableGui _gui;
+        readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(300, 300));
+        readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        readonly TestableGui _gui;
 
         // A fixed id on purpose: control state belongs to the Gui, so two harnesses sharing an id no
         // longer share an open/closed state.
-        private const string Id = "test/dropdown";
+        const string Id = "test/dropdown";
 
         public Harness()
         {
@@ -62,13 +62,13 @@ public class DropdownBehaviorTests
         /// </summary>
         public bool ListIsOpen => Exists(_gui.RootNode!, "/list");
 
-        private static bool Exists(LayoutNode node, string suffix) =>
+        static bool Exists(LayoutNode node, string suffix) =>
             node.Id.EndsWith(suffix, StringComparison.Ordinal)
             || node.Children.Any(child => Exists(child, suffix));
     }
 
-    private static readonly Vector2 OnButton = new(40, 10);
-    private static readonly Vector2 Away = new(280, 280);
+    static readonly Vector2 OnButton = new(40, 10);
+    static readonly Vector2 Away = new(280, 280);
 
     [Fact]
     public void ClickingTheButtonOpensTheList()
@@ -135,8 +135,13 @@ public class DropdownBehaviorTests
     [Fact]
     public void TheListTakesItsColorsFromTheControlPalette()
     {
-        var harness = new Harness();
-        harness.Gui.Controls = ControlPalette.Dark;
+        var harness = new Harness
+        {
+            Gui =
+            {
+                Controls = ControlPalette.Dark
+            }
+        };
         harness.Frame(OnButton, pressed: true);
 
         Assert.True(harness.ListIsOpen);

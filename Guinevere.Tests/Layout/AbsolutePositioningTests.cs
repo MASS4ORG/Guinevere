@@ -10,7 +10,7 @@ namespace Guinevere.Tests.Layout;
 /// </summary>
 public class AbsolutePositioningTests
 {
-    private static Gui RunLayout(Action<Gui> draw, int width = 400, int height = 300)
+    static Gui RunLayout(Action<Gui> draw, int width = 400, int height = 300)
     {
         using var surface = SKSurface.Create(new SKImageInfo(width, height));
         var input = Substitute.For<IInputHandler>();
@@ -26,7 +26,7 @@ public class AbsolutePositioningTests
         return gui;
     }
 
-    private static LayoutNode Find(Gui gui, string id) =>
+    static LayoutNode Find(Gui gui, string id) =>
         gui.RootNode!.FindChildById(id) ?? throw new InvalidOperationException($"node '{id}' not found");
 
     [Fact]

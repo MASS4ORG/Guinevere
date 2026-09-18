@@ -129,25 +129,6 @@ public static partial class ControlsExtensions
         }
     }
 
-    /// <summary>
-    /// Hands the host whatever width the tabs left over. The node exists in both passes even without a
-    /// callback, so the strip's structure does not change when a host adds or drops one.
-    /// </summary>
-    static void TabStripActions(DockContext context, DockLeaf leaf, string id)
-    {
-        var gui = context.Gui;
-
-        using (gui.Node(-1, context.Theme.TabHeight, id)
-                   .ExpandWidth()
-                   .Direction(Axis.Horizontal)
-                   .ContentAlignX(1f)
-                   .Enter())
-        {
-            context.RenderTabStripActions?.Invoke(
-                new DockTabStrip(leaf, leaf.ActivePanelId, gui.CurrentNode.Rect), gui);
-        }
-    }
-
     static TabStripItem ToTabItem(DockContext context, DockLeaf leaf, string panelId)
     {
         var info = context.PanelInfo(panelId) ?? new DockPanelInfo(panelId);
@@ -199,7 +180,7 @@ public static partial class ControlsExtensions
     /// </summary>
     /// <summary>
     /// While a tab is being dragged, offers the whole group as a drop target and previews where the
-    /// panel would land. The edge bands take priority and everything else is the centre, so no part of
+    /// panel would land. The edge bands take priority and everything else is the center, so no part of
     /// a group is dead space that silently tears the panel off instead.
     /// </summary>
     static void DropZones(DockContext context, DockLeaf leaf, Rect rect)
@@ -228,7 +209,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    /// <summary>Which zone a point falls in: an edge band if it is within one, otherwise the centre.</summary>
+    /// <summary>Which zone a point falls in: an edge band if it is within one, otherwise the center.</summary>
     static DockZone ZoneAt(Rect rect, Vector2 point, float fraction)
     {
         foreach (var zone in EdgeZones)

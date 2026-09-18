@@ -6,7 +6,7 @@ namespace Guinevere.Tests;
 /// </summary>
 public class LayoutConstraintsTests : LayoutNodeTestBase
 {
-    private LayoutNode Tree(Gui gui, Action<LayoutNode> configure,
+    LayoutNode Tree(Gui gui, Action<LayoutNode> configure,
         float rootW = 800f, float rootH = 600f)
     {
         var root = LayoutNode.CreateRoot(gui, rootW, rootH);

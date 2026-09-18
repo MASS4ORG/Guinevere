@@ -8,7 +8,6 @@ public static partial class ControlsExtensions
     {
         public bool IsOpen { get; set; }
         public int SelectedIndex { get; set; } = -1;
-        public int HoveredIndex { get; set; } = -1;
 
         /// <summary>The button's rect as last measured, which is where the list anchors.</summary>
         public Rect ButtonRect { get; set; } = new();

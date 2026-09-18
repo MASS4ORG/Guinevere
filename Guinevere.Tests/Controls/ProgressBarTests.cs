@@ -6,7 +6,7 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class ProgressBarTests
 {
-    private static readonly Rect Track = new(10, 4, 200, 6);
+    static readonly Rect Track = new(10, 4, 200, 6);
 
     /// <summary>A known fraction fills that share of the track from its left edge.</summary>
     [Theory]

@@ -70,10 +70,10 @@ public static partial class ControlsExtensions
 {
     sealed class ToastState
     {
-        public List<ToastEntry> Entries { get; } = new();
+        public List<ToastEntry> Entries { get; } = [];
 
         /// <summary>The visible set captured during Pass1, so both passes of the frame render the same toasts.</summary>
-        public List<ToastEntry> Visible { get; } = new();
+        public List<ToastEntry> Visible { get; } = [];
     }
 
     sealed record ToastEntry(string Text, float ExpiresAt, float SpawnedAt, ToastOptions Options);

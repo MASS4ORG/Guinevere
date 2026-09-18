@@ -8,7 +8,7 @@ namespace Guinevere.Tests.Animation;
 /// </summary>
 public class AnimationManagerTests
 {
-    private Time CreateTestTime() => new();
+    Time CreateTestTime() => new();
 
     /// <summary>
     /// Verifies that the constructor initializes active and running animation counts to zero.

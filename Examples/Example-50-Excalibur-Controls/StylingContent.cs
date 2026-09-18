@@ -4,7 +4,7 @@ namespace Controls_01;
 
 public abstract partial class Program
 {
-    private const string Style = """
+    const string Style = """
                                  /* variables */
                                  --bg:        #12151d;
                                  --card:      #202634;
@@ -44,7 +44,7 @@ public abstract partial class Program
 
                                  #primary { background-color: var(--btn-hover); border-width: 0; }
                                  """;
-    private static void StylingContent(Gui gui)
+    static void StylingContent(Gui gui)
     {
         using (gui.StyledNode("VisualElement", id: "root").Expand().Enter())
         {
@@ -66,7 +66,7 @@ public abstract partial class Program
         }
     }
 
-    private static void StyledBtn(Gui gui, string label, string? id)
+    static void StyledBtn(Gui gui, string label, string? id)
     {
         using (gui.StyledNode("Button", ["btn"], id).Enter())
         {

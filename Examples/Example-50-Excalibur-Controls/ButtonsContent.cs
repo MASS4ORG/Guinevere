@@ -4,11 +4,11 @@ namespace Controls_01;
 
 public abstract partial class Program
 {
-    private static int _buttonClickCount;
-    private static int _iconButtonClickCount;
-    private static string _lastClickedButton = "None";
+    static int _buttonClickCount;
+    static int _iconButtonClickCount;
+    static string _lastClickedButton = "None";
 
-    private static void ButtonsContent(Gui gui)
+    static void ButtonsContent(Gui gui)
     {
         Section(gui, "Basic Buttons", () =>
         {
@@ -124,7 +124,7 @@ public abstract partial class Program
         });
     }
 
-    private static void Button(Gui gui, string text, float width = 0, float height = 0, float? fontSize = null,
+    static void Button(Gui gui, string text, float width = 0, float height = 0, float? fontSize = null,
         float radius = 4, string? label = null, bool enabled = true)
     {
         var showLabel = label ?? text;
@@ -132,7 +132,7 @@ public abstract partial class Program
             Clicked(showLabel);
     }
 
-    private static void ColoredButton(Gui gui, string text, int r, int g, int b, Color? textColor = null,
+    static void ColoredButton(Gui gui, string text, int r, int g, int b, Color? textColor = null,
         bool enabled = true)
     {
         if (gui.Button(text,
@@ -143,7 +143,7 @@ public abstract partial class Program
             Clicked(text);
     }
 
-    private static void Clicked(string name)
+    static void Clicked(string name)
     {
         _buttonClickCount++;
         _lastClickedButton = name;

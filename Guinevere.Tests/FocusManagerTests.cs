@@ -5,7 +5,7 @@ namespace Guinevere.Tests;
 /// </summary>
 public class FocusManagerTests
 {
-    private static Gui CreateTestGui()
+    static Gui CreateTestGui()
     {
         var gui = new Gui();
         // Set up minimal test environment

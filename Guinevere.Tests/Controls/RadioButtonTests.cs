@@ -9,17 +9,17 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class RadioButtonTests
 {
-    private const int Width = 400;
-    private const int Height = 200;
+    const int Width = 400;
+    const int Height = 200;
 
-    private static Gui CreateGui()
+    static Gui CreateGui()
     {
         var gui = new TestableGui { Input = NoInput() };
         gui.SetScreenRect(Width, Height);
         return gui;
     }
 
-    private static void Frame(Gui gui, Action<Gui> draw, IInputHandler? input = null)
+    static void Frame(Gui gui, Action<Gui> draw, IInputHandler? input = null)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
 
@@ -35,7 +35,7 @@ public class RadioButtonTests
         gui.EndFrame();
     }
 
-    private static IInputHandler NoInput()
+    static IInputHandler NoInput()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));
@@ -49,7 +49,7 @@ public class RadioButtonTests
         return input;
     }
 
-    private static IInputHandler ClickAt(float x, float y)
+    static IInputHandler ClickAt(float x, float y)
     {
         var input = NoInput();
         input.MousePosition.Returns(new Vector2(x, y));
@@ -62,7 +62,7 @@ public class RadioButtonTests
     /// Two radios stacked in a 8px-gap group: row 0 spans y [0,24] and - with a 20px radio and a
     /// 14px label, each row is 24px tall - row 1 spans y [32,56].
     /// </summary>
-    private static readonly (int Value, string Label)[] TwoOptions = [(0, "Light"), (1, "Dark")];
+    static readonly (int Value, string Label)[] TwoOptions = [(0, "Light"), (1, "Dark")];
 
     [Fact]
     public void ClickingARadioSelectsItsValue()

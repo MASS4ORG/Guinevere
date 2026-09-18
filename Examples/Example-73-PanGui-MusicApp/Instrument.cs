@@ -2,7 +2,7 @@ using Guinevere;
 
 namespace Example_73_PanGui_MusicApp;
 
-internal struct Instrument
+struct Instrument
 {
     public string Name;
     public Color Color;

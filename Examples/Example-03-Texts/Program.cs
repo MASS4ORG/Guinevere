@@ -11,19 +11,19 @@ namespace Example;
 /// </summary>
 public abstract class Program
 {
-    private static int _activeTabIndex;
+    static int _activeTabIndex;
 
-    private const string TextShort = "Guinevere GUI çãóé⚙️☀️▶️❤️😀";
+    const string TextShort = "Guinevere GUI çãóé⚙️☀️▶️❤️😀";
 
-    private const string TextLong =
+    const string TextLong =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
-    private static readonly Color Ink = Color.FromArgb(255, 245, 247, 250);
-    private static readonly Color RowBg = Color.FromArgb(255, 40, 44, 56);
-    private static readonly Color OutlineInk = Color.FromArgb(255, 16, 20, 30);
-    private static readonly Color ShadowInk = Color.FromArgb(190, 0, 0, 0);
-    private static readonly Color GradA = Color.FromArgb(255, 70, 130, 245);
-    private static readonly Color GradB = Color.FromArgb(255, 235, 80, 130);
+    static readonly Color Ink = Color.FromArgb(255, 245, 247, 250);
+    static readonly Color RowBg = Color.FromArgb(255, 40, 44, 56);
+    static readonly Color OutlineInk = Color.FromArgb(255, 16, 20, 30);
+    static readonly Color ShadowInk = Color.FromArgb(190, 0, 0, 0);
+    static readonly Color GradA = Color.FromArgb(255, 70, 130, 245);
+    static readonly Color GradB = Color.FromArgb(255, 235, 80, 130);
 
     public static void Main()
     {
@@ -33,7 +33,7 @@ public abstract class Program
         win.RunGui(() => Draw(gui));
     }
 
-    private static void Draw(Gui gui)
+    static void Draw(Gui gui)
     {
         gui.DrawWindowTitlebar();
         DemoHeader.Header(gui, "Guinevere - Texts");
@@ -51,7 +51,7 @@ public abstract class Program
         }
     }
 
-    private static void BasicText(Gui gui)
+    static void BasicText(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Enter())
         {
@@ -80,7 +80,7 @@ public abstract class Program
         }
     }
 
-    private static void Wrapping(Gui gui)
+    static void Wrapping(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Enter())
         {
@@ -117,7 +117,7 @@ public abstract class Program
         }
     }
 
-    private static void ColorDemo(Gui gui)
+    static void ColorDemo(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Enter())
         {
@@ -136,7 +136,7 @@ public abstract class Program
         }
     }
 
-    private static void TextEffects(Gui gui)
+    static void TextEffects(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Gap(12).Enter())
         {
@@ -166,7 +166,7 @@ public abstract class Program
         }
     }
 
-    private static void EffectRow(Gui gui, string label, TextEffects? effects)
+    static void EffectRow(Gui gui, string label, TextEffects? effects)
     {
         using (gui.Node(height: 68).ExpandWidth().Direction(Axis.Horizontal).Gap(24).Padding(12, 14)
                    .AlignContent(0f, 0.5f).Enter())
@@ -180,7 +180,7 @@ public abstract class Program
         }
     }
 
-    private static void LongContent(Gui gui)
+    static void LongContent(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Enter())
         {

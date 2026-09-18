@@ -351,7 +351,7 @@ public static class TextEditor
 
     /// <summary>
     /// Where the text actually begins inside the field, which is not the left edge once the content is
-    /// aligned right or centred.
+    /// aligned right or centered.
     /// </summary>
     /// <param name="gui">The GUI whose current node carries the alignment.</param>
     /// <param name="font">Font the text is measured with.</param>

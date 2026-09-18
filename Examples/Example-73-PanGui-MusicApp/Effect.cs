@@ -1,6 +1,6 @@
 namespace Example_73_PanGui_MusicApp;
 
-internal struct Effect
+struct Effect
 {
     public bool IsOn;
     public string Name;

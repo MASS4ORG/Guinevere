@@ -205,7 +205,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>
-    /// Records the viewport and scroll offset for the next frame to virtualise against.
+    /// Records the viewport and scroll offset for the next frame to virtualize against.
     /// </summary>
     static void Measure(Gui gui, TreeViewState state)
     {

@@ -25,10 +25,9 @@ partial class Build
     /// <summary>
     /// Gets the list of example projects to build
     /// </summary>
-    private List<Project> ExampleProjects => Solution.AllProjects
+    private List<Project> ExampleProjects => [.. Solution.AllProjects
         .Where(p => p.Directory.ToString().Contains("/Examples/") &&
-                   p.GetProperty("ExcludeFromBuild")?.Equals("true", StringComparison.OrdinalIgnoreCase) != true)
-        .ToList();
+                   p.GetProperty("ExcludeFromBuild")?.Equals("true", StringComparison.OrdinalIgnoreCase) != true)];
 
     /// <summary>
     /// Builds all example applications

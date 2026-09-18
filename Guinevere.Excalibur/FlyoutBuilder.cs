@@ -5,7 +5,7 @@ namespace Guinevere;
 /// </summary>
 public class FlyoutBuilder
 {
-    internal readonly List<FlyoutItem> Items = new();
+    internal readonly List<FlyoutItem> Items = [];
 
     /// <summary>
     /// Adds a menu item with an action

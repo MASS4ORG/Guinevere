@@ -12,7 +12,7 @@ dotnet run --project Examples/Example-60-Docking/
 | Action | Result |
 |---|---|
 | Drag a tab onto another group's **edge** | splits that region and docks the panel beside it |
-| Drag a tab onto another group's **centre** | joins that group's tabs |
+| Drag a tab onto another group's **center** | joins that group's tabs |
 | Drag a tab along its own **tab strip** | reorders it within the group |
 | Drag a tab onto anything else | tears it off into a floating window |
 | Drag a floating window's title strip | moves the window |

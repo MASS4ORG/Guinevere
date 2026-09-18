@@ -9,7 +9,7 @@ namespace Guinevere.Tests;
 /// </summary>
 public class ScrollNestingTests
 {
-    private static Gui RunFrame(float scrollY, out LayoutNode child, out LayoutNode grandchild)
+    static Gui RunFrame(float scrollY, out LayoutNode child, out LayoutNode grandchild)
     {
         using var surface = SKSurface.Create(new SKImageInfo(200, 200));
 

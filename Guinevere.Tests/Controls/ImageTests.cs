@@ -3,14 +3,14 @@ namespace Guinevere.Tests.Controls;
 /// <summary>Tests for the <c>Image</c> control.</summary>
 public class ImageTests
 {
-    private static SKImage SolidImage(int w, int h)
+    static SKImage SolidImage(int w, int h)
     {
         var bitmap = new SKBitmap(w, h);
         bitmap.Erase(new SKColor(200, 50, 50, 255));
         return SKImage.FromBitmap(bitmap);
     }
 
-    private static Gui BuildStageGui()
+    static Gui BuildStageGui()
     {
         var surface = SKSurface.Create(new SKImageInfo(400, 300));
         var gui = new Gui { Input = Substitute.For<IInputHandler>() };
@@ -76,8 +76,8 @@ public class ImageTests
         using var snapshot = surface.Snapshot();
         using var pixmap = snapshot.PeekPixels();
         var span = pixmap.GetPixelSpan();
-        var centre = ((32 * 64) + 32) * 4;
-        Assert.True(span[centre] > 150 && span[centre + 3] == 255, "image centre should be opaque red");
+        var center = ((32 * 64) + 32) * 4;
+        Assert.True(span[center] > 150 && span[center + 3] == 255, "image center should be opaque red");
 
         var corner = ((2 * 64) + 2) * 4; // inside the 10px padding
         Assert.Equal((byte)0, span[corner + 3]);

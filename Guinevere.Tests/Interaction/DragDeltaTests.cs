@@ -9,20 +9,20 @@ namespace Guinevere.Tests.Interaction;
 /// </summary>
 public class DragDeltaTests
 {
-    private const int Size = 200;
+    const int Size = 200;
 
     /// <summary>
     /// Drives frames the way the SilkNET integration does: <see cref="IInputHandler.MousePosition"/>
     /// is current, but <see cref="IInputHandler.PrevMousePosition"/> is only updated when the pointer
     /// actually moves, so it goes stale the moment it stops.
     /// </summary>
-    private sealed class StaleGuiWindow
+    sealed class StaleGuiWindow
     {
-        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(Size, Size));
-        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
-        private readonly TestableGui _gui;
-        private Vector2 _position;
-        private Vector2 _previous;
+        readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(Size, Size));
+        readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        readonly TestableGui _gui;
+        Vector2 _position;
+        Vector2 _previous;
 
         public StaleGuiWindow(Vector2 start)
         {

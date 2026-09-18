@@ -7,7 +7,7 @@ namespace Guinevere.Tests.Interaction;
 /// </summary>
 public class InputArbitrationTests
 {
-    private static (Gui Gui, IInputHandler Input) NewFrame(Vector2 mouse, int width = 200, int height = 200)
+    static Gui NewFrame(Vector2 mouse, int width = 200, int height = 200)
     {
         var surface = SKSurface.Create(new SKImageInfo(width, height));
         var input = Substitute.For<IInputHandler>();
@@ -17,12 +17,12 @@ public class InputArbitrationTests
         var gui = new Gui { Input = input };
         gui.SetStage(Pass.Pass1Build);
         gui.BeginFrame(surface.Canvas);
-        return (gui, input);
+        return gui;
     }
 
-    private static (bool Under, bool Overlay, bool OverlayChild) RunOverlayFrame(Vector2 mouse, bool block)
+    static (bool Under, bool Overlay, bool OverlayChild) RunOverlayFrame(Vector2 mouse, bool block)
     {
-        var (gui, _) = NewFrame(mouse);
+        var gui = NewFrame(mouse);
         bool under = false, overlay = false, overlayChild = false;
 
         void Draw()
@@ -86,7 +86,7 @@ public class InputArbitrationTests
     {
         // Descendants are found by walking the parent chain, so a child given an id of its own -
         // which docking does, to keep panel state stable across re-layouts - is still exempt.
-        var (gui, _) = NewFrame(new Vector2(20, 20));
+        var gui = NewFrame(new Vector2(20, 20));
         bool under = false, named = false;
 
         void Draw()
@@ -166,9 +166,9 @@ public class InputArbitrationTests
     /// This is the tree-row-and-expander shape: the child must be able to take the pointer from the
     /// row it sits in.
     /// </summary>
-    private static (bool Parent, bool Child) RunNestedFrame(Vector2 mouse, bool childBlocks)
+    static (bool Parent, bool Child) RunNestedFrame(Vector2 mouse, bool childBlocks)
     {
-        var (gui, _) = NewFrame(mouse);
+        var gui = NewFrame(mouse);
         bool parent = false, child = false;
 
         void Draw()
@@ -205,7 +205,7 @@ public class InputArbitrationTests
     [Fact]
     public void WithoutBlockingBothTheChildAndItsParentReportTheHover()
     {
-        // The default, and why a tree row and its expander both used to act on one click.
+        // The default and why a tree row and its expander both used to act on one click.
         var (parent, child) = RunNestedFrame(new Vector2(10, 10), childBlocks: false);
 
         Assert.True(parent);

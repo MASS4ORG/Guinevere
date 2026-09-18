@@ -10,7 +10,7 @@ namespace Guinevere.Tests;
 /// </summary>
 public class InteractableClipTests
 {
-    private static Gui RunFrame(out LayoutNode viewport, out LayoutNode row, out IInputHandler input)
+    static Gui RunFrame(out LayoutNode viewport, out LayoutNode row, out IInputHandler input)
     {
         using var surface = SKSurface.Create(new SKImageInfo(200, 200));
 

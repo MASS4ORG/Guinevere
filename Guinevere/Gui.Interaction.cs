@@ -137,8 +137,6 @@ public partial class Gui
     /// <summary>Records the pointer for the next frame's delta. Called from <see cref="EndFrame"/>.</summary>
     void TrackPointerForNextFrame()
     {
-        if (Input is null) return;
-
         _pointerLastFrame = Input.MousePosition;
         _hasPointerLastFrame = true;
     }
@@ -155,13 +153,13 @@ public partial class Gui
 
     /// <summary>
     /// Finds the top-most node that has opted into blocking input and currently contains the cursor.
-    /// Run once per frame after layout, since it needs resolved rects; z-index decides overlap, and
+    /// Run once per frame after layout, since it needs "resolved" rects; z-index decides overlap, and
     /// equal z falls back to tree order so a later sibling wins.
     /// </summary>
-    internal void UpdateInputBlocker()
+    void UpdateInputBlocker()
     {
         _inputBlocker = null;
-        if (RootNode is null || Input is null) return;
+        if (RootNode is null) return;
 
         var pos = Input.MousePosition;
         var bestZ = int.MinValue;
@@ -216,14 +214,14 @@ public partial class Gui
     }
 
     /// <summary>
-    /// Ends a capture once its button is up, whether or not the element that took it is still being
+    /// Ends a capture once its button is up, whether the element that took it is still being
     /// drawn. A dock tab dropped into another group comes back under a different node id and would
     /// otherwise never run its own release, leaving the pointer captured for good.
     /// </summary>
     void ReleaseFinishedCapture()
     {
         if (_pointerCapture is not { } held) return;
-        if (Input is not null && Input.IsMouseButtonDown(held.Button)) return;
+        if (Input.IsMouseButtonDown(held.Button)) return;
 
         _dragStates.Remove(held.Id);
         _pressAnchors.Remove(held.Id);

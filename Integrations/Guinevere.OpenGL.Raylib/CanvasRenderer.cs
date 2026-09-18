@@ -6,9 +6,9 @@ namespace Guinevere;
 /// <inheritdoc />
 public class CanvasRenderer : ICanvasRenderer
 {
-    private SKSurface? _surface;
-    private SKCanvas? _canvas;
-    private int _width, _height;
+    SKSurface? _surface;
+    SKCanvas? _canvas;
+    int _width, _height;
 
     /// <inheritdoc />
     public void Initialize(int width, int height)
@@ -89,14 +89,14 @@ public class CanvasRenderer : ICanvasRenderer
                         Format = PixelFormat.UncompressedR8G8B8A8
                     };
 
-                    var tex = Raylib_cs.Raylib.LoadTextureFromImage(rlImg);
+                    var tex = Raylib.LoadTextureFromImage(rlImg);
 
-                    Raylib_cs.Raylib.BeginDrawing();
-                    Raylib_cs.Raylib.ClearBackground(Raylib_cs.Color.Black);
-                    Raylib_cs.Raylib.DrawTexture(tex, 0, 0, Raylib_cs.Color.White);
+                    Raylib.BeginDrawing();
+                    Raylib.ClearBackground(Raylib_cs.Color.Black);
+                    Raylib.DrawTexture(tex, 0, 0, Raylib_cs.Color.White);
 
-                    Raylib_cs.Raylib.EndDrawing();
-                    Raylib_cs.Raylib.UnloadTexture(tex);
+                    Raylib.EndDrawing();
+                    Raylib.UnloadTexture(tex);
                 }
             }
         }

@@ -8,9 +8,9 @@ namespace Guinevere.Tests;
 /// </summary>
 public class ImmediateModeSiblingTests
 {
-    private const int Size = 120;
+    const int Size = 120;
 
-    private static byte[] RenderFrame(Action<Gui> draw)
+    static byte[] RenderFrame(Action<Gui> draw)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Size, Size, SKColorType.Rgba8888, SKAlphaType.Unpremul));
         var canvas = surface.Canvas;
@@ -33,10 +33,10 @@ public class ImmediateModeSiblingTests
 
         using var snapshot = surface.Snapshot();
         using var pixmap = snapshot.PeekPixels();
-        return pixmap.GetPixelSpan().ToArray();
+        return [.. pixmap.GetPixelSpan()];
     }
 
-    private static (byte R, byte G, byte B) At(byte[] px, int x, int y)
+    static (byte R, byte G, byte B) At(byte[] px, int x, int y)
     {
         var i = ((y * Size) + x) * 4;
         return (px[i], px[i + 1], px[i + 2]);

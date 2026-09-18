@@ -4,11 +4,11 @@ namespace Controls_01;
 
 public abstract partial class Program
 {
-    private static int _scrollDemo;
-    private static string _scrollNodeId = "";
-    private static readonly string[] ScrollDemoNames = ["List", "Nested", "Programmatic"];
+    static int _scrollDemo;
+    static string _scrollNodeId = "";
+    static readonly string[] ScrollDemoNames = ["List", "Nested", "Programmatic"];
 
-    private static void ScrollingContent(Gui gui)
+    static void ScrollingContent(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(15).Enter())
         {
@@ -80,7 +80,7 @@ public abstract partial class Program
         }
     }
 
-    private static bool ProgrammaticButton(Gui gui, string label)
+    static bool ProgrammaticButton(Gui gui, string label)
     {
         var clicked = false;
         using (gui.Node(190, 26).Margin(0, 3, 0, 0).Enter())
@@ -100,7 +100,7 @@ public abstract partial class Program
         return clicked;
     }
 
-    private static void BasicScroll(Gui gui)
+    static void BasicScroll(Gui gui)
     {
         using (gui.Node().Expand().Padding(10).Enter())
         {
@@ -128,7 +128,7 @@ public abstract partial class Program
         }
     }
 
-    private static void NestedScroll(Gui gui)
+    static void NestedScroll(Gui gui)
     {
         using (gui.Node().Expand().Padding(10).Enter())
         {
@@ -180,7 +180,7 @@ public abstract partial class Program
         }
     }
 
-    private static void ProgrammaticScroll(Gui gui)
+    static void ProgrammaticScroll(Gui gui)
     {
         using (gui.Node().Expand().Padding(10).Enter())
         {

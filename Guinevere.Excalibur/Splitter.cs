@@ -25,7 +25,7 @@ public static partial class ControlsExtensions
         float min = 0.1f, Color? color = null, Color? hoverColor = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        var changed = false;
+        bool changed;
         var horizontal = axis == Axis.Horizontal;
 
         var node = horizontal

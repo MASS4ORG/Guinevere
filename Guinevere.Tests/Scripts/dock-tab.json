@@ -6,7 +6,7 @@
     { "action": "move", "x": 20, "y": 13, "comment": "the Tree tab" },
     { "action": "press", "button": "left" },
     { "action": "move", "x": 300, "y": 300 },
-    { "action": "move", "x": 1226, "y": 350, "comment": "the Inspector group's centre zone" },
+    { "action": "move", "x": 1226, "y": 350, "comment": "the Inspector group's center zone" },
     { "action": "dump", "path": "dock-01-mid-drag.png" },
     { "action": "expectCapture", "value": "tabs/tree" },
     { "action": "release", "button": "left" },

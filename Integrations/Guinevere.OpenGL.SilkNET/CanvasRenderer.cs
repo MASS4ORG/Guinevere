@@ -1,4 +1,4 @@
-﻿using Silk.NET.OpenGL;
+using Silk.NET.OpenGL;
 using SkiaSharp;
 
 namespace Guinevere;
@@ -6,14 +6,14 @@ namespace Guinevere;
 /// <inheritdoc />
 public class CanvasRenderer : ICanvasRenderer
 {
-    private SKSurface? _surface;
-    private SKCanvas? _canvas;
-    private GL _gl = null!;
-    private uint _texture;
-    private uint _shaderProgram;
-    private uint _vao, _vbo;
-    private int _width;
-    private int _height;
+    SKSurface? _surface;
+    SKCanvas? _canvas;
+    GL _gl = null!;
+    uint _texture;
+    uint _shaderProgram;
+    uint _vao, _vbo;
+    int _width;
+    int _height;
 
     /// <summary>
     /// Configures and initializes the renderer with a specified width, height, and OpenGL (GL) context.
@@ -32,7 +32,7 @@ public class CanvasRenderer : ICanvasRenderer
         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
     }
 
-    private unsafe void SetupTexture()
+    unsafe void SetupTexture()
     {
         // Create an empty texture of the right size
         _texture = _gl.GenTexture();
@@ -49,7 +49,7 @@ public class CanvasRenderer : ICanvasRenderer
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
     }
 
-    private void SetupShaders()
+    void SetupShaders()
     {
         // Load Shaders and compile the program
         var vertexShaderSource = GuiWindow.GetStringResource("Guinevere.shader.vert");
@@ -82,7 +82,7 @@ public class CanvasRenderer : ICanvasRenderer
         _gl.LinkProgram(_shaderProgram);
     }
 
-    private unsafe void SetupQuad()
+    unsafe void SetupQuad()
     {
         // Full screen quad vertices (position + texture coordinates)
         float[] vertices =

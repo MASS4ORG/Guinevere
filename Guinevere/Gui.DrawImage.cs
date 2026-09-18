@@ -89,7 +89,7 @@ public partial class Gui
 
     /// <summary>
     /// Draws an image as a nine-patch into <paramref name="destination"/>: corners 1:1, edges and
-    /// centre stretched. Only takes effect during the render pass.
+    /// center stretched. Only takes effect during the render pass.
     /// </summary>
     /// <param name="image">The image to draw.</param>
     /// <param name="destination">Destination rectangle in screen space.</param>

@@ -8,14 +8,14 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class NumberFieldTests
 {
-    private static readonly Font TestFont = Font.FromFamilyName("serif");
+    static readonly Font TestFont = Font.FromFamilyName("serif");
 
-    private sealed class Harness
+    sealed class Harness
     {
-        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(400, 60));
-        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
-        private readonly TestableGui _gui;
-        private readonly string _id = $"num/{Guid.NewGuid():N}";
+        readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(400, 60));
+        readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        readonly TestableGui _gui;
+        readonly string _id = $"num/{Guid.NewGuid():N}";
 
         public Harness(float initial = 42.5f)
         {

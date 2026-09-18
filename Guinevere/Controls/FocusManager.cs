@@ -7,7 +7,7 @@ namespace Guinevere;
 public class FocusManager
 {
     readonly Dictionary<string, FocusableControl> _focusableControls = new();
-    readonly List<string> _frameControlOrder = new();
+    readonly List<string> _frameControlOrder = [];
     readonly HashSet<string> _textInputIds = [];
     string? _currentFocusedId;
     string? _nextFrameFocusId;

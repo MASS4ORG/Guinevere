@@ -29,10 +29,10 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
     Vector2 _prevMousePosition;
     Vector2 _mouseDelta;
     float _mouseWheelDelta;
-    readonly HashSet<Silk.NET.Input.MouseButton> _pressedButtons = new();
-    readonly HashSet<Silk.NET.Input.MouseButton> _heldButtons = new();
-    readonly HashSet<Key> _pressedKeys = new();
-    readonly HashSet<Key> _heldKeys = new();
+    readonly HashSet<Silk.NET.Input.MouseButton> _pressedButtons = [];
+    readonly HashSet<Silk.NET.Input.MouseButton> _heldButtons = [];
+    readonly HashSet<Key> _pressedKeys = [];
+    readonly HashSet<Key> _heldKeys = [];
     readonly StringBuilder _typedCharacters = new();
     readonly Font _fontText;
     readonly Font _fontIcon;

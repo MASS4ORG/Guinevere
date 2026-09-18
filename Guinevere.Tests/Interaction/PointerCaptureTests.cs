@@ -9,14 +9,14 @@ namespace Guinevere.Tests.Interaction;
 /// </summary>
 public class PointerCaptureTests
 {
-    private const int Size = 200;
+    const int Size = 200;
 
     /// <summary>Two side-by-side targets, "left" and "right", each 100 wide.</summary>
-    private sealed class TwoTargets
+    sealed class TwoTargets
     {
-        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(Size, Size));
-        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
-        private readonly TestableGui _gui;
+        readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(Size, Size));
+        readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        readonly TestableGui _gui;
 
         public TwoTargets()
         {
@@ -66,8 +66,8 @@ public class PointerCaptureTests
         }
     }
 
-    private static readonly Vector2 OnLeft = new(50, 100);
-    private static readonly Vector2 OnRight = new(150, 100);
+    static readonly Vector2 OnLeft = new(50, 100);
+    static readonly Vector2 OnRight = new(150, 100);
 
     [Fact]
     public void DraggingAcrossAnotherElementDoesNotHandOverThePointer()

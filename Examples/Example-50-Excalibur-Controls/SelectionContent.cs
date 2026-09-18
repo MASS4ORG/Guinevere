@@ -4,12 +4,12 @@ namespace Controls_01;
 
 public abstract partial class Program
 {
-    private static int _dropdown1 = -1;
-    private static int _dropdown2 = 1;
-    private static int _radioChoice = 1;
-    private static readonly string[] DropdownOptions = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"];
+    static int _dropdown1 = -1;
+    static int _dropdown2 = 1;
+    static int _radioChoice = 1;
+    static readonly string[] DropdownOptions = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"];
 
-    private static void SelectionContent(Gui gui)
+    static void SelectionContent(Gui gui)
     {
         gui.SetTextColor(Color.Green);
         Section(gui, "Checkboxes", () => CheckboxRow(gui));
@@ -19,7 +19,7 @@ public abstract partial class Program
         Section(gui, "Disabled Controls", () => DisabledSelectionRow(gui));
     }
 
-    private static void CheckboxRow(Gui gui)
+    static void CheckboxRow(Gui gui)
     {
         using (gui.Node().Height(30).Direction(Axis.Horizontal).Gap(20).Enter())
         {
@@ -28,7 +28,7 @@ public abstract partial class Program
         }
     }
 
-    private static void ToggleRow(Gui gui)
+    static void ToggleRow(Gui gui)
     {
         using (gui.Node().Height(30).Direction(Axis.Horizontal).Gap(20).Enter())
         {
@@ -39,7 +39,7 @@ public abstract partial class Program
         }
     }
 
-    private static void RadioButtonRow(Gui gui)
+    static void RadioButtonRow(Gui gui)
     {
         using (gui.Node().Height(120).Direction(Axis.Horizontal).Gap(40).Enter())
         {
@@ -51,7 +51,7 @@ public abstract partial class Program
         }
     }
 
-    private static void DropdownRow(Gui gui)
+    static void DropdownRow(Gui gui)
     {
         using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
         {
@@ -67,7 +67,7 @@ public abstract partial class Program
         }
     }
 
-    private static void DisabledSelectionRow(Gui gui)
+    static void DisabledSelectionRow(Gui gui)
     {
         using (gui.Node().Height(30).Direction(Axis.Horizontal).Gap(20).Enter())
         {

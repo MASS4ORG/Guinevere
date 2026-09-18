@@ -5,7 +5,7 @@ public static partial class ControlsExtensions
     /// <summary>
     /// A button whose background is a bitmap that swaps on hover and press (and, when supplied, on
     /// disable). Optionally nine-sliced so one small texture scales to any size, and with an
-    /// optional centred caption. Registers as focusable and activates on Space/Enter like
+    /// optional centered caption. Registers as focusable and activates on Space/Enter like
     /// <c>Button</c>.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
@@ -13,7 +13,7 @@ public static partial class ControlsExtensions
     /// <param name="hover">Background while hovered.</param>
     /// <param name="pressed">Background while held down.</param>
     /// <param name="disabled">Background while <paramref name="enabled"/> is false; falls back to <paramref name="normal"/>.</param>
-    /// <param name="text">Optional caption drawn centred over the background.</param>
+    /// <param name="text">Optional caption drawn centered over the background.</param>
     /// <param name="width">Button width, or <c>0</c> to use the normal image width.</param>
     /// <param name="height">Button height, or <c>0</c> to use the normal image height.</param>
     /// <param name="nineSlice">Corner sizes for nine-slice scaling, or <c>null</c> to stretch the whole image.</param>

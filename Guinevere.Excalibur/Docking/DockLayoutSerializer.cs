@@ -5,7 +5,7 @@ namespace Guinevere;
 /// <summary>
 /// Reads and writes <see cref="DockLayout"/> as JSON. The tree is polymorphic, so each node carries
 /// a <c>kind</c> discriminator; the whole document carries a <c>version</c> and a reader that does
-/// not recognise it declines rather than guessing.
+/// not recognize it declines rather than guessing.
 /// </summary>
 static class DockLayoutSerializer
 {

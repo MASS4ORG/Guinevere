@@ -9,14 +9,14 @@ namespace Guinevere.Tests.Controls;
 public class TextInputSelectionTests
 {
     /// <summary>A non-default typeface on purpose: caret maths measured with the wrong one drifts.</summary>
-    private static readonly Font TestFont = Font.FromFamilyName("serif");
+    static readonly Font TestFont = Font.FromFamilyName("serif");
 
-    private sealed class Field
+    sealed class Field
     {
-        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(300, 60));
-        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
-        private readonly TestableGui _gui;
-        private readonly string _id = $"field/{Guid.NewGuid():N}";
+        readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(300, 60));
+        readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        readonly TestableGui _gui;
+        readonly string _id = $"field/{Guid.NewGuid():N}";
 
         public Field(string initial)
         {

@@ -2,7 +2,7 @@ using Guinevere;
 
 namespace Example_73_PanGui_MusicApp;
 
-internal struct Popup
+struct Popup
 {
     public AnimationFloat Visibility;
     public LayoutNodeScope HeaderContainer;

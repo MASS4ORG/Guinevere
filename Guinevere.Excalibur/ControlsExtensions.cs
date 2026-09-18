@@ -103,11 +103,8 @@ public static partial class ControlsExtensions
             }
 
             // Keyboard activation (Space/Enter)
-            var activated = false;
-            if (gui.HasFocus() && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter)))
-            {
-                activated = true;
-            }
+            var activated = gui.HasFocus()
+                            && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter));
 
             return interactable.OnClick() || activated;
         }
@@ -154,11 +151,8 @@ public static partial class ControlsExtensions
             }
 
             // Keyboard activation (Space/Enter)
-            var activated = false;
-            if (gui.HasFocus() && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter)))
-            {
-                activated = true;
-            }
+            var activated = gui.HasFocus()
+                            && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter));
 
             return interactable.OnClick() || activated;
         }
@@ -232,7 +226,7 @@ public static partial class ControlsExtensions
         gui.DrawRectBorder(rect.Position, rect.Size, borderColorFinal, 1f, 4f);
     }
 
-    internal static void RenderCenteredText(this Gui gui, Text? text, float fontSize, Color? color)
+    static void RenderCenteredText(this Gui gui, Text? text, float fontSize, Color? color)
     {
         var rect = gui.CurrentNode.Rect;
         var textColorFinal = color ?? Color.White;

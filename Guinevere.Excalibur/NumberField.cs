@@ -4,7 +4,7 @@ public static partial class ControlsExtensions
 {
     sealed class NumberFieldState
     {
-        public TextEditState Buffer = new("0");
+        public readonly TextEditState Buffer = new("0");
         public bool Captured;
     }
 
@@ -28,7 +28,7 @@ public static partial class ControlsExtensions
     /// <param name="cursorColor">The caret color; defaults to the text color.</param>
     /// <param name="fontSize">The font size.</param>
     /// <param name="padding">Inner padding.</param>
-    /// <param name="dragSensitivity">Multiplier on the drag distance, letting one step span several pixels.</param>
+    /// <param name="dragSensitivity">Multiplier on the drag distance, letting one-step span several pixels.</param>
     /// <param name="enabled">Whether the field responds to input.</param>
     /// <param name="id">A stable identifier; two numeric fields on the same frame must not share one.</param>
     /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
@@ -53,8 +53,7 @@ public static partial class ControlsExtensions
                    .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
-            HandleNumberFieldInteraction(gui, field, ref value, interactable, step, min, max, format,
-                dragSensitivity, fontSize, enabled);
+            HandleNumberFieldInteraction(gui, field, ref value, interactable, min, max, format, fontSize, enabled);
 
             var cursorColorFinal = cursorColor ?? textColor ??
                 gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
@@ -94,8 +93,8 @@ public static partial class ControlsExtensions
     }
 
     static void HandleNumberFieldInteraction(Gui gui, NumberFieldState field, ref double value,
-        InteractableElement interactable, double step, double min, double max, string format,
-        double dragSensitivity, float fontSize, bool enabled)
+        InteractableElement interactable, double min, double max, string format,
+        float fontSize, bool enabled)
     {
         if (gui.Pass != Pass.Pass2Render) return;
 
@@ -171,5 +170,4 @@ public static partial class ControlsExtensions
 
     static double Clamp(double value, double min, double max) =>
         Math.Clamp(value, min, max);
-
 }

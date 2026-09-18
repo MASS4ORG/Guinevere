@@ -1,4 +1,4 @@
-﻿using Guinevere;
+using Guinevere;
 using GuinevereDemos;
 
 namespace Example_42_ResponsiveLayoutDemo;
@@ -13,7 +13,7 @@ public abstract class Program
         win.RunGui(() => Draw(gui));
     }
 
-    private static void Draw(Gui gui)
+    static void Draw(Gui gui)
     {
         DemoHeader.Header(gui, "Guinevere - Responsive Layout");
 
@@ -41,7 +41,7 @@ public abstract class Program
         }
     }
 
-    private static void DrawMobileLayout(Gui gui)
+    static void DrawMobileLayout(Gui gui)
     {
         // Header
         using (gui.Node().Height(60).ExpandWidth().Enter())
@@ -68,7 +68,7 @@ public abstract class Program
         }
     }
 
-    private static void DrawTabletLayout(Gui gui)
+    static void DrawTabletLayout(Gui gui)
     {
         // Header
         using (gui.Node().Height(60).ExpandWidth().Enter())
@@ -94,7 +94,7 @@ public abstract class Program
         }
     }
 
-    private static void DrawDesktopLayout(Gui gui)
+    static void DrawDesktopLayout(Gui gui)
     {
         // Header with navigation
         using (gui.Node().Height(60).ExpandWidth().Direction(Axis.Horizontal).Enter())
@@ -138,7 +138,7 @@ public abstract class Program
         }
     }
 
-    private static void DrawContentCard(Gui gui, string title, Color color)
+    static void DrawContentCard(Gui gui, string title, Color color)
     {
         using (gui.Node().Expand().Enter())
         {
@@ -152,7 +152,7 @@ public abstract class Program
         }
     }
 
-    private static void DrawNavItem(Gui gui, string text, Color color)
+    static void DrawNavItem(Gui gui, string text, Color color)
     {
         using (gui.Node(75, 50).Direction(Axis.Horizontal).Margin(5).Enter())
         {

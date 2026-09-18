@@ -8,11 +8,11 @@ namespace Guinevere.Tests.Docking;
 /// </summary>
 public class DockSpaceRenderTests
 {
-    private const float SplitterThickness = 6f;
+    const float SplitterThickness = 6f;
 
-    private static readonly DockTheme Theme = new() { SplitterThickness = SplitterThickness, TabHeight = 20f };
+    static readonly DockTheme Theme = new() { SplitterThickness = SplitterThickness, TabHeight = 20f };
 
-    private static Gui RenderDock(DockLayout layout, out List<string> rendered, int width = 400, int height = 300,
+    static Gui RenderDock(DockLayout layout, out List<string> rendered, int width = 400, int height = 300,
         Func<string, DockPanelInfo?>? panelInfo = null, Action<DockTabStrip, Gui>? tabStripActions = null)
     {
         var painted = new List<string>();
@@ -47,7 +47,7 @@ public class DockSpaceRenderTests
         return gui;
     }
 
-    private static Rect RectOf(Gui gui, string id) =>
+    static Rect RectOf(Gui gui, string id) =>
         (gui.RootNode!.FindChildById(id) ?? throw new InvalidOperationException($"no node '{id}'")).Rect;
 
     [Fact]

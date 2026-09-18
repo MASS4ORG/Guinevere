@@ -5,7 +5,7 @@ namespace Example_72_PanGui_AirbnbSlider;
 
 public abstract class Program
 {
-    private static int _month = 1;
+    static int _month = 1;
 
     public static void Main()
     {
@@ -15,14 +15,14 @@ public abstract class Program
         win.RunGui(() => Draw(gui));
     }
 
-    private static void Draw(Gui gui)
+    static void Draw(Gui gui)
     {
         gui.DrawBackgroundRect(Color.White);
 
         DrawAirBnBMonthSlider(gui, ref _month);
     }
 
-    private static void DrawAirBnBMonthSlider(Gui gui, ref int month)
+    static void DrawAirBnBMonthSlider(Gui gui, ref int month)
     {
         float t = month / 12.0f;
 

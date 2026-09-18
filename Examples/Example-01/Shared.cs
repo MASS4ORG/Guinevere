@@ -1,4 +1,4 @@
-﻿using Guinevere;
+using Guinevere;
 using GuinevereDemos;
 
 namespace Example_01;

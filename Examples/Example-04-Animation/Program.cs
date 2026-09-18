@@ -3,9 +3,9 @@ using GuinevereDemos;
 
 namespace Example_06_Animation;
 
-internal abstract class Program
+abstract class Program
 {
-    private static Gui _gui = null!;
+    static Gui _gui = null!;
 
     public static void Main()
     {
@@ -15,7 +15,7 @@ internal abstract class Program
         win.RunGui(RenderGui);
     }
 
-    private static void RenderGui()
+    static void RenderGui()
     {
         DemoHeader.Header(_gui, "Guinevere - Animation");
         _gui.DrawRect(_gui.ScreenRect, Color.FromArgb(32, 32, 48));
@@ -27,7 +27,7 @@ internal abstract class Program
         }
     }
 
-    private static void DrawSliderAnimationDemo()
+    static void DrawSliderAnimationDemo()
     {
         using (_gui.Node().Expand().Enter())
         {
@@ -57,7 +57,7 @@ internal abstract class Program
         }
     }
 
-    private static Color HsvToColor(double hue, double saturation, double value)
+    static Color HsvToColor(double hue, double saturation, double value)
     {
         // Simple HSV to RGB conversion
         var c = value * saturation;
@@ -109,7 +109,7 @@ internal abstract class Program
             (int)((b + m) * 255));
     }
 
-    private static void DrawEasingFunctionsDemo()
+    static void DrawEasingFunctionsDemo()
     {
         using (_gui.Node().Expand().Enter())
         {

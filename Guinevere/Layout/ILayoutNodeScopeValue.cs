@@ -9,12 +9,12 @@ namespace Guinevere;
 /// <typeparam name="T">
 /// The type of the implementing value, which must itself implement <see cref="ILayoutNodeScopeValue{T}"/>.
 /// </typeparam>
-public interface ILayoutNodeScopeValue<T> where T : ILayoutNodeScopeValue<T>
+public interface ILayoutNodeScopeValue<out T> where T : ILayoutNodeScopeValue<T>
 {
     /// <summary>
     /// Gets the default instance of the implementing type. This property is used
     /// to provide a fallback value when a specific instance is not set or found
     /// in a layout node scope hierarchy.
     /// </summary>
-    static abstract T Default { get; }
+    abstract static T Default { get; }
 }

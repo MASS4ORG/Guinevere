@@ -6,29 +6,29 @@ namespace Guinevere.Tests;
 /// </summary>
 public class NineSliceTests
 {
-    private const int Surface = 120;
-    private const int Tex = 24;
-    private const int Border = 8;
+    const int Surface = 120;
+    const int Tex = 24;
+    const int Border = 8;
 
-    // A texture with a distinct 1px red frame, a green border band and a blue centre.
-    private static SKImage BorderedTexture()
+    // A texture with a distinct 1px red frame, a green border band and a blue center.
+    static SKImage BorderedTexture()
     {
         var bitmap = new SKBitmap(Tex, Tex);
         for (var y = 0; y < Tex; y++)
-        for (var x = 0; x < Tex; x++)
-        {
-            SKColor c;
-            if (x < Border || y < Border || x >= Tex - Border || y >= Tex - Border)
-                c = new SKColor(0, 200, 0, 255); // border
-            else
-                c = new SKColor(0, 0, 200, 255); // centre
-            bitmap.SetPixel(x, y, c);
-        }
+            for (var x = 0; x < Tex; x++)
+            {
+                SKColor c;
+                if (x < Border || y < Border || x >= Tex - Border || y >= Tex - Border)
+                    c = new SKColor(0, 200, 0, 255); // border
+                else
+                    c = new SKColor(0, 0, 200, 255); // center
+                bitmap.SetPixel(x, y, c);
+            }
 
         return SKImage.FromBitmap(bitmap);
     }
 
-    private static byte[] Render(Action<Gui> draw)
+    static byte[] Render(Action<Gui> draw)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Surface, Surface, SKColorType.Rgba8888, SKAlphaType.Unpremul));
         var canvas = surface.Canvas;
@@ -47,16 +47,16 @@ public class NineSliceTests
 
         using var snapshot = surface.Snapshot();
         using var pixmap = snapshot.PeekPixels();
-        return pixmap.GetPixelSpan().ToArray();
+        return [.. pixmap.GetPixelSpan()];
     }
 
-    private static (byte R, byte G, byte B, byte A) At(byte[] px, int x, int y)
+    static (byte R, byte G, byte B, byte A) At(byte[] px, int x, int y)
     {
         var i = ((y * Surface) + x) * 4;
         return (px[i], px[i + 1], px[i + 2], px[i + 3]);
     }
 
-    /// <summary>A stretched nine-patch keeps its border on the edges and its centre in the middle.</summary>
+    /// <summary>A stretched nine-patch keeps its border on the edges and its center in the middle.</summary>
     [Fact]
     public void NineSlice_KeepsBorderAndStretchesCentre()
     {
@@ -70,7 +70,7 @@ public class NineSliceTests
         Assert.Equal((byte)200, At(px, 13, 60).G); // left edge
         Assert.Equal((byte)200, At(px, 106, 60).G); // right edge
 
-        // Middle of a 100px-wide patch made from a 24px texture: the centre stretched → blue.
+        // Middle of a 100px-wide patch made from a 24px texture: the center stretched → blue.
         var (_, _, b, _) = At(px, 60, 60);
         Assert.Equal((byte)200, b);
     }

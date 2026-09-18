@@ -7,7 +7,7 @@ namespace Guinevere.Tests;
 /// </summary>
 public abstract class LayoutNodeTestBase
 {
-    private static uint _globalOrderTemp;
+    static uint _globalOrderTemp;
 
     /// <summary>
     /// Creates a testable GUI with the given screen dimensions and begins a frame.
@@ -22,7 +22,7 @@ public abstract class LayoutNodeTestBase
         return gui;
     }
 
-    private SKCanvas CreateTestCanvas()
+    SKCanvas CreateTestCanvas()
     {
         var surface = SKSurface.Create(new SKImageInfo(800, 600));
         return surface.Canvas;
@@ -119,7 +119,7 @@ public abstract class LayoutNodeTestBase
             throw new ArgumentException($"Field '{fieldName}' not found on type '{obj.GetType().Name}'");
 
         var value = field.GetValue(obj);
-        return value == null ? default(T)! : (T)value;
+        return value == null ? default! : (T)value;
     }
 
     /// <summary>
@@ -144,9 +144,9 @@ public abstract class LayoutNodeTestBase
         // Special handling for nullable float types - convert -1f to null
         if (typeof(T) == typeof(float?) && value is -1f)
         {
-            return default(T)!;
+            return default!;
         }
 
-        return value == null ? default(T)! : (T)value;
+        return value == null ? default! : (T)value;
     }
 }

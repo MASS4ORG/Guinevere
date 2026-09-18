@@ -5,7 +5,7 @@ namespace Guinevere;
 /// </summary>
 public class ContextMenuBuilder
 {
-    internal readonly List<ContextMenuItem> Items = new();
+    internal readonly List<ContextMenuItem> Items = [];
 
     /// <summary>
     /// Adds an item to the context menu with the specified text, action, and enabled state.

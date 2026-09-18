@@ -1,6 +1,3 @@
-using System.Numerics;
-using SkiaSharp;
-
 namespace Guinevere;
 
 /// <summary>One visual line of a wrapped message, with where it starts in the original text.</summary>

@@ -658,7 +658,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
 
     #region Helper Methods
 
-    private void SetPrivateRect(LayoutNode node, Rect rect)
+    void SetPrivateRect(LayoutNode node, Rect rect)
     {
         var field = node.GetType().GetField("_rect",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

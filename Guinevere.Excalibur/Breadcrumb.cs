@@ -70,7 +70,7 @@ public static partial class ControlsExtensions
     static void RenderBreadcrumbCrumb(Gui gui, BreadcrumbItem item, int index, SKFont font,
         float height, Color link, Color linkHovered, Color current)
     {
-        var interactive = !item.IsCurrent && item.OnClick is not null;
+        var interactive = item is { IsCurrent: false, OnClick: not null };
         var width = MeasureCrumbContent(gui, item, font.Size) + (CrumbPadding * 2);
 
         using (gui.Node(width, height, $"breadcrumb/{index}").AlignContent(0.5f, 0.5f).Enter())
@@ -127,7 +127,7 @@ public static partial class ControlsExtensions
         return width;
     }
 
-    /// <summary>Draws the icon (if any) and the label as one run-split, vertically centred block.</summary>
+    /// <summary>Draws the icon (if any) and the label as one run-split, vertically centered block.</summary>
     static void DrawBreadcrumbContent(Gui gui, BreadcrumbItem item, float fontSize, Color color)
     {
         var rect = gui.CurrentNode.Rect;

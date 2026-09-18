@@ -160,10 +160,7 @@ partial class Build
     /// </summary>
     private Target PublishAll => td => td
         .DependsOn(Test, Compile, PackNuGet, PackageExamples, CreateTag, GitHubCreateRelease, PublishNuGet)
-        .Executes(() =>
-        {
-            Log.Information("Completed full release process for version {Version}", VersionFull);
-        });
+        .Executes(() => Log.Information("Completed full release process for version {Version}", VersionFull));
 
     /// <summary>
     /// Creates a GitHub release using the GitHub API

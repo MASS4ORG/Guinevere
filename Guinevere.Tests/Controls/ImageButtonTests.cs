@@ -6,16 +6,16 @@ namespace Guinevere.Tests.Controls;
 /// <summary>Tests for the multi-state <c>ImageButton</c> control.</summary>
 public class ImageButtonTests
 {
-    private const int Surface = 80;
+    const int Surface = 80;
 
-    private static SKImage Solid(SKColor color)
+    static SKImage Solid(SKColor color)
     {
         var bitmap = new SKBitmap(16, 16);
         bitmap.Erase(color);
         return SKImage.FromBitmap(bitmap);
     }
 
-    private static IInputHandler OffscreenMouse()
+    static IInputHandler OffscreenMouse()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));
@@ -23,7 +23,7 @@ public class ImageButtonTests
         return input;
     }
 
-    private static bool RunFrame(byte[] outPixels, IInputHandler input, Func<Gui, bool> draw)
+    static bool RunFrame(byte[] outPixels, IInputHandler input, Func<Gui, bool> draw)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Surface, Surface, SKColorType.Rgba8888, SKAlphaType.Unpremul));
         var canvas = surface.Canvas;
@@ -46,7 +46,7 @@ public class ImageButtonTests
         return result;
     }
 
-    private static (byte R, byte G, byte B, byte A) At(byte[] px, int x, int y)
+    static (byte R, byte G, byte B, byte A) At(byte[] px, int x, int y)
     {
         var i = ((y * Surface) + x) * 4;
         return (px[i], px[i + 1], px[i + 2], px[i + 3]);

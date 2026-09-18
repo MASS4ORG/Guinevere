@@ -12,7 +12,7 @@ public abstract class Program
         win.RunGui(() => Draw(gui));
     }
 
-    private static void Draw(Gui gui)
+    static void Draw(Gui gui)
     {
         gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 29, 29, 29));
         gui.DrawText("Hello, world!", size: 32, color: Color.White);

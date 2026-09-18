@@ -14,7 +14,7 @@ public sealed class DockFixture
     /// <summary>Canvas height the scripts are written against.</summary>
     public const int Height = 900;
 
-    private static readonly DockTheme FixtureTheme = new();
+    static readonly DockTheme FixtureTheme = new();
 
     /// <summary>The layout being driven, rearranged as a script drags things around.</summary>
     public DockLayout Layout { get; } = Seed();
@@ -35,7 +35,7 @@ public sealed class DockFixture
         return (new DockFixture(), gui, input);
     }
 
-    private static DockLayout Seed()
+    static DockLayout Seed()
     {
         var layout = new DockLayout();
         layout.DockAtEdge("scene", DockZone.Center);
@@ -45,10 +45,10 @@ public sealed class DockFixture
         return layout;
     }
 
-    private static DockPanelInfo? PanelInfo(string panelId) =>
+    static DockPanelInfo? PanelInfo(string panelId) =>
         new(char.ToUpperInvariant(panelId[0]) + panelId[1..]);
 
-    private static void RenderPanel(string panelId, Gui gui)
+    static void RenderPanel(string panelId, Gui gui)
     {
         using (gui.Node().Expand().Padding(8).Enter())
             gui.DrawText(panelId, 12, Color.FromArgb(255, 200, 200, 200), centerInRect: false);

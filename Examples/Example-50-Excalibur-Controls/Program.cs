@@ -10,7 +10,7 @@ namespace Controls_01;
 /// </summary>
 public abstract partial class Program
 {
-    private static readonly Color SectionColor = Color.DarkGray;
+    static readonly Color SectionColor = Color.DarkGray;
 
     public static void Main()
     {
@@ -21,7 +21,7 @@ public abstract partial class Program
         win.RunGui(() => Draw(gui));
     }
 
-    private static void Draw(Gui gui)
+    static void Draw(Gui gui)
     {
         DemoHeader.Header(gui, "Guinevere Excalibur");
 
@@ -40,7 +40,7 @@ public abstract partial class Program
         }
     }
 
-    private static Color Hsb(float hueDegrees)
+    static Color Hsb(float hueDegrees)
     {
         var hue = hueDegrees * Math.PI / 180;
         return Color.FromArgb(255,
@@ -49,7 +49,7 @@ public abstract partial class Program
             (byte)(128 + 127 * Math.Sin(hue + 240 * Math.PI / 180)));
     }
 
-    private static void Section(Gui gui, string title, Action body)
+    static void Section(Gui gui, string title, Action body)
     {
         using (gui.Node().ExpandWidth().Margin(5).Padding(5).Enter())
         {

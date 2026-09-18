@@ -28,19 +28,6 @@ public static partial class ControlsExtensions
         gui.DrawRectBorder(gui.CurrentNode.Rect, outline, borderWidth);
     }
 
-    /// <summary>
-    /// Where the text actually begins inside the field, which is not the left edge once the content is
-    /// aligned right or centred.
-    /// </summary>
-    static float TextOriginX(Gui gui, SKFont font, string text, Rect innerRect)
-    {
-        var align = gui.CurrentNode.Style.AlignContentHorizontal;
-        if (align <= 0f) return innerRect.X;
-
-        var slack = Math.Max(0f, innerRect.W - TextEditor.MeasureWidth(font, text));
-        return innerRect.X + (slack * align);
-    }
-
     /// <summary>Paints the selected run behind the glyphs, so the text stays readable over it.</summary>
     static void DrawSelection(Gui gui, TextEditState state, string text, float fontSize)
     {

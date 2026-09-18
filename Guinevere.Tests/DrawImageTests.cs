@@ -3,19 +3,19 @@ namespace Guinevere.Tests;
 /// <summary>Tests for <see cref="Gui.DrawImage(SKImage, Rect, Rect?, Color?, float)"/> and <see cref="Bitmap"/>.</summary>
 public class DrawImageTests
 {
-    private const int Surface = 64;
+    const int Surface = 64;
 
-    private static SKImage SolidImage(int w, int h, SKColor color)
+    static SKImage SolidImage(int w, int h, SKColor color)
     {
         var bitmap = new SKBitmap(w, h);
         bitmap.Erase(color);
         return SKImage.FromBitmap(bitmap);
     }
 
-    private static SKSurface NewSurface() =>
+    static SKSurface NewSurface() =>
         SKSurface.Create(new SKImageInfo(Surface, Surface, SKColorType.Rgba8888, SKAlphaType.Unpremul));
 
-    private static void RunFrame(SKSurface surface, Action<Gui> draw)
+    static void RunFrame(SKSurface surface, Action<Gui> draw)
     {
         var canvas = surface.Canvas;
         canvas.Clear(SKColors.Transparent);
@@ -32,7 +32,7 @@ public class DrawImageTests
         canvas.Flush();
     }
 
-    private static (byte R, byte G, byte B, byte A) PixelAt(SKSurface surface, int x, int y)
+    static (byte R, byte G, byte B, byte A) PixelAt(SKSurface surface, int x, int y)
     {
         using var snapshot = surface.Snapshot();
         using var pixmap = snapshot.PeekPixels();

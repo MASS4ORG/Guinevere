@@ -4,30 +4,30 @@ namespace Example_75_PaperUI_Dashboard;
 
 public abstract class Program
 {
-    private static Gui _gui = null!;
-    private static GuiWindow _win = null!;
+    static Gui _gui = null!;
+    static GuiWindow _win = null!;
 
     // State variables
-    private static int _selectedTab;
-    private static double _sliderValue = 0.5;
-    private static readonly bool[] ToggleStates = [true, false, true, false, true];
+    static int _selectedTab;
+    static double _sliderValue = 0.5;
+    static readonly bool[] ToggleStates = [true, false, true, false, true];
 
-    private static bool _isDarkTheme = true;
-    private static double _time;
-    private const float CardBorder = 8;
+    static bool _isDarkTheme = true;
+    static double _time;
+    const float CardBorder = 8;
 
     // Theme colors
-    private static Color _backgroundColor;
-    private static Color _cardBackground;
-    private static Color _primaryColor;
-    private static Color _secondaryColor;
-    private static Color _textColor;
-    private static Color _lightTextColor;
-    private static Color[] _colorPalette = null!;
+    static Color _backgroundColor;
+    static Color _cardBackground;
+    static Color _primaryColor;
+    static Color _secondaryColor;
+    static Color _textColor;
+    static Color _lightTextColor;
+    static Color[] _colorPalette = null!;
 
     // Example data
-    private static readonly string[] TabNames = ["Dashboard", "Analytics", "Profile", "Settings"];
-    private static readonly double[] ChartData = [0.2, 0.5, 0.3, 0.8, 0.4, 0.7, 0.6];
+    static readonly string[] TabNames = ["Dashboard", "Analytics", "Profile", "Settings"];
+    static readonly double[] ChartData = [0.2, 0.5, 0.3, 0.8, 0.4, 0.7, 0.6];
 
     public static void Main()
     {
@@ -65,7 +65,7 @@ public abstract class Program
         });
     }
 
-    private static void InitializeTheme()
+    static void InitializeTheme()
     {
         if (_isDarkTheme)
         {
@@ -103,7 +103,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderTopNavBar()
+    static void RenderTopNavBar()
     {
         using (_gui.Node().Height(70).Direction(Axis.Horizontal).AlignContent(.5f).Enter())
         {
@@ -153,7 +153,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderSidebar()
+    static void RenderSidebar()
     {
         using (_gui.Node(240).Enter())
         {
@@ -226,7 +226,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderMainContent()
+    static void RenderMainContent()
     {
         using (_gui.Node().Expand().Enter())
         {
@@ -247,7 +247,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderTabNavigation()
+    static void RenderTabNavigation()
     {
         using (_gui.Node().Height(50).Direction(Axis.Horizontal).Enter())
         {
@@ -280,7 +280,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderDashboardTab()
+    static void RenderDashboardTab()
     {
         using (_gui.Node().Expand().Gap(20).Enter())
         {
@@ -441,7 +441,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderAnalyticsTab()
+    static void RenderAnalyticsTab()
     {
         using (_gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
         {
@@ -529,7 +529,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderProfileTab()
+    static void RenderProfileTab()
     {
         using (_gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
         {
@@ -675,7 +675,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderSettingsTab()
+    static void RenderSettingsTab()
     {
         using (_gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
         {
@@ -769,7 +769,7 @@ public abstract class Program
         }
     }
 
-    private static void RenderFooter()
+    static void RenderFooter()
     {
         using (_gui.Node().Height(50).Direction(Axis.Horizontal).Gap(10).AlignContent(.5f).Padding(10).Enter())
         {
@@ -782,7 +782,7 @@ public abstract class Program
         }
     }
 
-    private static void DrawSimpleChart()
+    static void DrawSimpleChart()
     {
         var rect = _gui.CurrentNode.Rect;
 
@@ -812,7 +812,7 @@ public abstract class Program
         }
     }
 
-    private static void DrawPieChart()
+    static void DrawPieChart()
     {
         var rect = _gui.CurrentNode.Rect;
         var center = rect.Center;
@@ -847,7 +847,7 @@ public abstract class Program
         _gui.DrawCircle(center, 60, _textColor);
     }
 
-    private static Color HsvToColor(double hue, double saturation, double value)
+    static Color HsvToColor(double hue, double saturation, double value)
     {
         var c = value * saturation;
         var x = c * (1 - Math.Abs((hue / 60) % 2 - 1));

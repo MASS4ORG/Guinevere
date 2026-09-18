@@ -5,7 +5,7 @@ namespace Guinevere.Tests.Animation;
 /// </summary>
 public class GuiAnimationTests
 {
-    private Gui CreateTestGui()
+    Gui CreateTestGui()
     {
         var gui = new Gui();
         return gui;
@@ -66,7 +66,7 @@ public class GuiAnimationTests
         Assert.Equal(1, gui.ActiveAnimationCount);
     }
 
-    private float CallAnimateBool01FromSameLocation(Gui gui) => gui.AnimateBool01(true, 0.5f, Easing.Linear);
+    float CallAnimateBool01FromSameLocation(Gui gui) => gui.AnimateBool01(true, 0.5f, Easing.Linear);
 
     /// <summary>
     /// Verifies that the initial state call returns the target value directly.
@@ -111,7 +111,7 @@ public class GuiAnimationTests
         Assert.Equal(1, gui.RunningAnimationCount);
     }
 
-    private float CallAnimateBool01StateChange1(Gui gui, bool state, float duration) =>
+    float CallAnimateBool01StateChange1(Gui gui, bool state, float duration) =>
         gui.AnimateBool01(state, duration, Easing.Linear);
 
     /// <summary>
@@ -160,10 +160,10 @@ public class GuiAnimationTests
         Assert.Equal(2, runningAfter);
     }
 
-    private void CallAnimateBool01Running1(Gui gui, bool state, float duration) =>
+    void CallAnimateBool01Running1(Gui gui, bool state, float duration) =>
         gui.AnimateBool01(state, duration, Easing.Linear);
 
-    private void CallAnimateBool01Running2(Gui gui, bool state, float duration) =>
+    void CallAnimateBool01Running2(Gui gui, bool state, float duration) =>
         gui.AnimateBool01(state, duration, Easing.Linear);
 
     /// <summary>
@@ -225,13 +225,13 @@ public class GuiAnimationTests
         Assert.Equal(3, gui.RunningAnimationCount);
     }
 
-    private float CallAnimateBool01Easing1(Gui gui, bool state, float duration, Func<float, float> easing) =>
+    float CallAnimateBool01Easing1(Gui gui, bool state, float duration, Func<float, float> easing) =>
         gui.AnimateBool01(state, duration, easing);
 
-    private float CallAnimateBool01Easing2(Gui gui, bool state, float duration, Func<float, float> easing) =>
+    float CallAnimateBool01Easing2(Gui gui, bool state, float duration, Func<float, float> easing) =>
         gui.AnimateBool01(state, duration, easing);
 
-    private float CallAnimateBool01Easing3(Gui gui, bool state, float duration, Func<float, float> easing) =>
+    float CallAnimateBool01Easing3(Gui gui, bool state, float duration, Func<float, float> easing) =>
         gui.AnimateBool01(state, duration, easing);
 
     /// <summary>
@@ -273,8 +273,8 @@ public class GuiAnimationTests
     }
 
     // Helper methods to test different caller locations
-    private void CallAnimateBool01Line1(Gui gui) => gui.AnimateBool01(true, 0.5f, Easing.Linear);
-    private void CallAnimateBool01Line2(Gui gui) => gui.AnimateBool01(false, 0.5f, Easing.Linear);
+    void CallAnimateBool01Line1(Gui gui) => gui.AnimateBool01(true, 0.5f, Easing.Linear);
+    void CallAnimateBool01Line2(Gui gui) => gui.AnimateBool01(false, 0.5f, Easing.Linear);
 
     /// <summary>
     /// Verifies that the animation system works correctly with multiple time updates.

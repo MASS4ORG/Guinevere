@@ -9,10 +9,8 @@ public sealed class ScriptedInputHandler : IInputHandler
 {
     readonly HashSet<MouseButton> _buttonsDown = [];
     readonly HashSet<MouseButton> _buttonsPressed = [];
-    readonly HashSet<MouseButton> _buttonsReleased = [];
     readonly HashSet<KeyboardKey> _keysDown = [];
     readonly HashSet<KeyboardKey> _keysPressed = [];
-    readonly HashSet<KeyboardKey> _keysReleased = [];
 
     string _typed = string.Empty;
     string _clipboard = string.Empty;
@@ -50,7 +48,6 @@ public sealed class ScriptedInputHandler : IInputHandler
     /// <summary>Releases a held mouse button.</summary>
     public void ReleaseButton(MouseButton button = MouseButton.Left)
     {
-        if (_buttonsDown.Remove(button)) _buttonsReleased.Add(button);
     }
 
     /// <summary>Presses a key and holds it until <see cref="ReleaseKey"/>.</summary>
@@ -62,7 +59,6 @@ public sealed class ScriptedInputHandler : IInputHandler
     /// <summary>Releases a held key.</summary>
     public void ReleaseKey(KeyboardKey key)
     {
-        if (_keysDown.Remove(key)) _keysReleased.Add(key);
     }
 
     /// <summary>Queues text for this frame's <see cref="GetTypedCharacters"/>.</summary>
@@ -88,9 +84,7 @@ public sealed class ScriptedInputHandler : IInputHandler
     {
         _previous = _position;
         _buttonsPressed.Clear();
-        _buttonsReleased.Clear();
         _keysPressed.Clear();
-        _keysReleased.Clear();
         _typed = string.Empty;
         _wheel = 0f;
     }

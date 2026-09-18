@@ -1,6 +1,6 @@
 namespace Example_73_PanGui_MusicApp;
 
-internal class PadPlayer
+class PadPlayer
 {
     public string[] Pads = ["A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab"];
     public int SelectedPad;

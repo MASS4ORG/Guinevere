@@ -34,9 +34,9 @@
         <PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
         <PackageReference Include="Silk.NET.Windowing.Common" Version="2.23.0" />
         <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.23.0" />
-        <PackageReference Include="SkiaSharp" Version="4.152.0" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.152.0" />
-        <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.152.0" />
+        <PackageReference Include="SkiaSharp" Version="4.152.1" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.152.1" />
+        <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.152.1" />
     </ItemGroup>
 
     <ItemGroup>

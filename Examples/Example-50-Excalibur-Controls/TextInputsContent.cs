@@ -4,29 +4,29 @@ namespace Controls_01;
 
 public abstract partial class Program
 {
-    private static bool _checkbox1;
-    private static bool _checkbox2 = true;
-    private static bool _toggle1;
-    private static bool _toggle2 = true;
-    private static string _textInput = "Hello World";
-    private static string _passwordInput = "monkey";
-    private static string _rightAlignmentInput = "Right";
+    static bool _checkbox1;
+    static bool _checkbox2 = true;
+    static bool _toggle1;
+    static bool _toggle2 = true;
+    static string _textInput = "Hello World";
+    static string _passwordInput = "monkey";
+    static string _rightAlignmentInput = "Right";
 
-    private static string _textArea =
+    static string _textArea =
         "This is a\nmultiline\ntext area\nThis is a\nmultiline\ntext area\nThis is a\nmultiline\ntext area";
 
-    private static float _sliderValue = 0.5f;
-    private static float _sliderStepped = 3f;
-    private static float _numberField = 42.5f;
+    static float _sliderValue = 0.5f;
+    static float _sliderStepped = 3f;
+    static float _numberField = 42.5f;
 
-    private static void TextInputsContent(Gui gui)
+    static void TextInputsContent(Gui gui)
     {
         Section(gui, "Single-line Inputs", () => TextInputRow(gui));
         Section(gui, "Numbers", () => NumberControlsRow(gui));
         Section(gui, "Text Area", () => TextAreaRow(gui));
     }
 
-    private static void TextInputRow(Gui gui)
+    static void TextInputRow(Gui gui)
     {
         using (gui.Node().Direction(Axis.Horizontal).Enter())
         {
@@ -57,12 +57,12 @@ public abstract partial class Program
         }
     }
 
-    private static void TextAreaRow(Gui gui)
+    static void TextAreaRow(Gui gui)
     {
         _textArea = gui.TextArea(_textArea, width: 520, height: 90, placeholder: "Enter multiline text...");
     }
 
-    private static void NumberControlsRow(Gui gui)
+    static void NumberControlsRow(Gui gui)
     {
         gui.Slider(ref _sliderValue, 0f, 1f, showValue: true);
         gui.Slider(ref _sliderStepped, 0f, 10f, step: 0.5f, showValue: true);
@@ -75,6 +75,6 @@ public abstract partial class Program
         }
     }
 
-    private static readonly Color DisabledInputFill = Color.FromArgb(255, 245, 246, 247);
-    private static readonly Color DisabledInputInk = Color.FromArgb(255, 160, 162, 167);
+    static readonly Color DisabledInputFill = Color.FromArgb(255, 245, 246, 247);
+    static readonly Color DisabledInputInk = Color.FromArgb(255, 160, 162, 167);
 }

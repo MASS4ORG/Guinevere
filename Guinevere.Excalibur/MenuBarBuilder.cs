@@ -6,7 +6,7 @@ namespace Guinevere;
 /// </summary>
 public class MenuBarBuilder
 {
-    internal readonly List<MenuBarMenu> Menus = new();
+    internal readonly List<MenuBarMenu> Menus = [];
 
     /// <summary>
     /// Adds a menu whose <paramref name="text"/> is shown in the bar. Clicking the title drops the

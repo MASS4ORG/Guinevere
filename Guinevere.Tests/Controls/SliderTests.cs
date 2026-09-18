@@ -8,13 +8,13 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class SliderTests
 {
-    private static readonly Font TestFont = Font.FromFamilyName("serif");
+    static readonly Font TestFont = Font.FromFamilyName("serif");
 
-    private sealed class Harness
+    sealed class Harness
     {
-        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(400, 60));
-        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
-        private readonly TestableGui _gui;
+        readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(400, 60));
+        readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        readonly TestableGui _gui;
 
         public Harness(float initial = 5f)
         {

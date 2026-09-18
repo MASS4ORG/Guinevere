@@ -7,8 +7,8 @@ namespace Guinevere.Tests.Mocks;
 /// </summary>
 public class MockCanvasRenderer : ICanvasRenderer
 {
-    private SKSurface? _surface;
-    private SKCanvas? _canvas;
+    SKSurface? _surface;
+    SKCanvas? _canvas;
 
     /// <summary>
     /// Gets the width of the canvas surface.
@@ -56,16 +56,16 @@ public class MockCanvasRenderer : ICanvasRenderer
     {
         if (_canvas == null)
             throw new InvalidOperationException("Canvas not initialized");
-        
+
         draw(_canvas);
     }
 
-    private void CreateSurface(int width, int height)
+    void CreateSurface(int width, int height)
     {
         var imageInfo = new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
         _surface = SKSurface.Create(imageInfo);
         _canvas = _surface.Canvas;
-        
+
         // Clear any existing clip and set exact bounds
         _canvas.RestoreToCount(0);
         _canvas.Save();

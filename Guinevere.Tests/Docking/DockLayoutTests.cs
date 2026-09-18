@@ -6,7 +6,7 @@ namespace Guinevere.Tests.Docking;
 /// </summary>
 public class DockLayoutTests
 {
-    private static DockLayout Seeded()
+    static DockLayout Seeded()
     {
         var layout = new DockLayout();
         layout.DockAtEdge("scene", DockZone.Center);
@@ -52,12 +52,12 @@ public class DockLayoutTests
     public void DockingOnTheCentreJoinsTheTargetsTabsAndActivates()
     {
         var layout = Seeded();
-        var centre = layout.FindLeaf("scene")!;
+        var center = layout.FindLeaf("scene")!;
 
-        layout.DockInto("inspector", centre, DockZone.Center);
+        layout.DockInto("inspector", center, DockZone.Center);
 
-        Assert.Equal(["scene", "inspector"], centre.PanelIds);
-        Assert.Equal("inspector", centre.ActivePanelId);
+        Assert.Equal(["scene", "inspector"], center.PanelIds);
+        Assert.Equal("inspector", center.ActivePanelId);
         Assert.Equal(2, layout.Leaves().Count());
     }
 
@@ -207,7 +207,7 @@ public class DockLayoutTests
     /// docking across groups, and it surfaced as a stack overflow inside <c>DockNode.Descend()</c>
     /// rather than as anything pointing at the edit that caused it.
     /// </summary>
-    private static void AssertAcyclic(DockLayout layout)
+    static void AssertAcyclic(DockLayout layout)
     {
         var seen = new HashSet<DockNode>(ReferenceEqualityComparer.Instance);
 

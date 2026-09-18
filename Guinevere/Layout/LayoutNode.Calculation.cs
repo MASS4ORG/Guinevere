@@ -486,7 +486,7 @@ public partial class LayoutNode
             if (line.Count > 0 && withGap > availableWidth)
             {
                 lines.Add(line);
-                line = new List<int>();
+                line = [];
                 lineWidth = 0f;
             }
 
@@ -683,7 +683,7 @@ public partial class LayoutNode
         public float AvailableHeight { get; set; }
         public float ContentWidth { get; set; }
         public float TotalGap { get; set; }
-        public List<LayoutNode> ExpandingChildren { get; set; } = new();
+        public List<LayoutNode> ExpandingChildren { get; set; } = [];
         public float TotalExpandPercentage { get; set; }
     }
 
@@ -691,7 +691,7 @@ public partial class LayoutNode
     {
         public float AvailableWidth { get; set; }
         public float TotalGap { get; set; }
-        public List<LayoutNode> ExpandingChildren { get; set; } = new();
+        public List<LayoutNode> ExpandingChildren { get; set; } = [];
         public float TotalExpandPercentage { get; set; }
     }
 

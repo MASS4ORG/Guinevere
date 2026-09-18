@@ -5,14 +5,14 @@ namespace Controls_01;
 
 public abstract partial class Program
 {
-    private static int _nestedTab;
-    private static int _pillTab;
-    private static int _verticalTab;
-    private static int _activeTab;
+    static int _nestedTab;
+    static int _pillTab;
+    static int _verticalTab;
+    static int _activeTab;
 
-    private static readonly TreeViewState FileTreeState = new() { DefaultExpandedDepth = 1 };
+    static readonly TreeViewState FileTreeState = new() { DefaultExpandedDepth = 1 };
 
-    private static readonly TreeViewTheme LightTreeTheme = new()
+    static readonly TreeViewTheme LightTreeTheme = new()
     {
         RowHeight = 22f,
         Ink = Color.FromArgb(255, 51, 51, 51),
@@ -21,23 +21,23 @@ public abstract partial class Program
         Selected = Color.FromArgb(255, 203, 219, 252)
     };
 
-    private static string _treeStatus = "Click a row — double-click a folder or use the arrow keys to open it";
+    static string _treeStatus = "Click a row — double-click a folder or use the arrow keys to open it";
 
-    private static string _treeCrumbStatus = "Select a row; the trail then shows its path. Click a crumb to jump there.";
+    static string _treeCrumbStatus = "Select a row; the trail then shows its path. Click a crumb to jump there.";
 
-    private static readonly string[] NestedTabTitles = ["Overview", "Details", "History"];
+    static readonly string[] NestedTabTitles = ["Overview", "Details", "History"];
 
-    private static string _menuStatus = "Choose a menu — hover a title to switch, submenus cascade on hover";
+    static string _menuStatus = "Choose a menu — hover a title to switch, submenus cascade on hover";
 
-    private static bool _showStatusBar = true;
-    private static bool _showToolbar = true;
+    static bool _showStatusBar = true;
+    static bool _showToolbar = true;
 
-    private const string HorizontalTabsId = "navigation-horizontal-tabs";
+    const string HorizontalTabsId = "navigation-horizontal-tabs";
 
-    private const string FolderGlyph = "📁";
-    private const string FileGlyph = "📄";
+    const string FolderGlyph = "📁";
+    const string FileGlyph = "📄";
 
-    private static void NavigationContent(Gui gui)
+    static void NavigationContent(Gui gui)
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(16).Padding(10).Enter())
         {
@@ -46,9 +46,7 @@ public abstract partial class Program
 
             Section(gui, "Horizontal Tabs", () => HorizontalTabsContent(gui));
 
-            Section(gui, "Pill Tabs", () =>
-            {
-                gui.PillTabs(ref _pillTab, tabs =>
+            Section(gui, "Pill Tabs", () => gui.PillTabs(ref _pillTab, tabs =>
                 {
                     tabs.Tab("Overview", () => gui.DrawText("Overview content", size: 12,
                         color: Color.FromArgb(255, 102, 102, 102)));
@@ -56,8 +54,7 @@ public abstract partial class Program
                         color: Color.FromArgb(255, 102, 102, 102)));
                     tabs.Tab("History", () => gui.DrawText("History content", size: 12,
                         color: Color.FromArgb(255, 102, 102, 102)));
-                }, activeTabColor: Color.FromArgb(255, 76, 175, 80));
-            });
+                }, activeTabColor: Color.FromArgb(255, 76, 175, 80)));
 
             Section(gui, "Vertical Tabs", () =>
             {
@@ -81,7 +78,7 @@ public abstract partial class Program
         }
     }
 
-    private static void MenuBarContent(Gui gui)
+    static void MenuBarContent(Gui gui)
     {
         gui.MenuBar(menu =>
         {
@@ -133,7 +130,7 @@ public abstract partial class Program
         gui.DrawText(_menuStatus, size: 12, color: Color.FromArgb(255, 102, 102, 102), wrapWidth: 560);
     }
 
-    private static void TreeViewBreadcrumb(Gui gui)
+    static void TreeViewBreadcrumb(Gui gui)
     {
         using (gui.Node().Height(250).Enter())
         {
@@ -172,7 +169,7 @@ public abstract partial class Program
         }
     }
 
-    private static IReadOnlyList<TreeItem> FileTree()
+    static IReadOnlyList<TreeItem> FileTree()
     {
         return
         [
@@ -197,7 +194,7 @@ public abstract partial class Program
         ];
     }
 
-    private static void HorizontalTabsContent(Gui gui)
+    static void HorizontalTabsContent(Gui gui)
     {
         gui.Tabs(ref _nestedTab, tabs =>
         {
@@ -219,7 +216,7 @@ public abstract partial class Program
         }
     }
 
-    private static IReadOnlyList<BreadcrumbItem> FileTrail()
+    static IReadOnlyList<BreadcrumbItem> FileTrail()
     {
         var selectedId = FileTreeState.SelectedId;
         if (string.IsNullOrEmpty(selectedId))
@@ -250,7 +247,7 @@ public abstract partial class Program
     }
 
     /// <summary>Direct children of <paramref name="path"/>, as crumbs that jump to the child's folder.</summary>
-    private static IReadOnlyList<BreadcrumbItem> ChildrenOf(string path)
+    static IReadOnlyList<BreadcrumbItem> ChildrenOf(string path)
     {
         var childDepth = path.Split('/').Length;
         var prefix = $"{path}/";
@@ -262,13 +259,13 @@ public abstract partial class Program
             .ToList();
     }
 
-    private static bool IsFolder(string path)
+    static bool IsFolder(string path)
     {
         var depth = path.Split('/').Length - 1;
         return FileTree().Any(row => row.Depth == depth && row.Id == path && row.HasChildren);
     }
 
-    private static void NavigateTo(string path)
+    static void NavigateTo(string path)
     {
         var segments = path.Split('/');
         var prefix = "";
@@ -282,7 +279,7 @@ public abstract partial class Program
         _treeCrumbStatus = $"Jumped to {segments[^1]} — the tree follows the trail.";
     }
 
-    private static void OnTreeClick(TreeViewEvent evt)
+    static void OnTreeClick(TreeViewEvent evt)
     {
         _treeStatus = evt.Button switch
         {
@@ -295,21 +292,21 @@ public abstract partial class Program
             _treeCrumbStatus = $"The trail now shows the path to {evt.Item.Label}.";
     }
 
-    private static void FolderIcon(Gui gui)
+    static void FolderIcon(Gui gui)
     {
         if (gui.Pass != Pass.Pass2Render) return;
 
         var rect = gui.CurrentNode.Rect;
-        var centre = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);
-        gui.DrawCircleFilled(centre, MathF.Min(rect.W, rect.H) * 0.32f, Color.FromArgb(255, 235, 179, 63));
+        var center = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);
+        gui.DrawCircleFilled(center, MathF.Min(rect.W, rect.H) * 0.32f, Color.FromArgb(255, 235, 179, 63));
     }
 
-    private static void FileIcon(Gui gui)
+    static void FileIcon(Gui gui)
     {
         if (gui.Pass != Pass.Pass2Render) return;
 
         var rect = gui.CurrentNode.Rect;
-        var centre = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);
-        gui.DrawCircleFilled(centre, MathF.Min(rect.W, rect.H) * 0.26f, Color.FromArgb(255, 150, 170, 190));
+        var center = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);
+        gui.DrawCircleFilled(center, MathF.Min(rect.W, rect.H) * 0.26f, Color.FromArgb(255, 150, 170, 190));
     }
 }

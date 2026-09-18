@@ -9,12 +9,12 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class TreeViewTests
 {
-    private const int Width = 400;
-    private const int Height = 400;
+    const int Width = 400;
+    const int Height = 400;
 
-    private static readonly TreeViewTheme Theme = new() { RowHeight = 20f };
+    static readonly TreeViewTheme Theme = new() { RowHeight = 20f };
 
-    private static IReadOnlyList<TreeItem> Tree(int roots, int childrenPerRoot)
+    static IReadOnlyList<TreeItem> Tree(int roots, int childrenPerRoot)
     {
         var items = new List<TreeItem>();
 
@@ -28,7 +28,7 @@ public class TreeViewTests
         return items;
     }
 
-    private static Gui RunFrames(IReadOnlyList<TreeItem> items, TreeViewState state, int frames = 1,
+    static Gui RunFrames(IReadOnlyList<TreeItem> items, TreeViewState state, int frames = 1,
         IInputHandler? input = null, Action<TreeViewEvent>? onClick = null, Gui? reuse = null,
         Action<TreeItem, string>? onRename = null)
     {
@@ -57,7 +57,7 @@ public class TreeViewTests
         return gui;
     }
 
-    private static IInputHandler OffscreenInput()
+    static IInputHandler OffscreenInput()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));
@@ -65,10 +65,10 @@ public class TreeViewTests
         return input;
     }
 
-    private static void ScrollTo(Gui gui, float y) =>
+    static void ScrollTo(Gui gui, float y) =>
         gui.ScrollBy(gui.RootNode!.Children[0].Id, new Vector2(0, y));
 
-    private static List<int> RowIndices(Gui gui)
+    static List<int> RowIndices(Gui gui)
     {
         var indices = new List<int>();
         Visit(gui.RootNode!);
@@ -83,7 +83,7 @@ public class TreeViewTests
         }
     }
 
-    private static int RowNodeCount(Gui gui)
+    static int RowNodeCount(Gui gui)
     {
         var count = 0;
         Visit(gui.RootNode!);
@@ -145,15 +145,15 @@ public class TreeViewTests
         var renamed = new List<string>();
 
         state.BeginRename("root0", "Root 0");
-        RunFrames(items, state, frames: 1, onRename: (item, name) => renamed.Add(name));
+        RunFrames(items, state, frames: 1, onRename: (_, name) => renamed.Add(name));
         RunFrames(items, state, frames: 1, input: WithKey(KeyboardKey.Escape),
-            onRename: (item, name) => renamed.Add(name));
+            onRename: (_, name) => renamed.Add(name));
 
         Assert.Empty(renamed);
         Assert.Null(state.EditingId);
     }
 
-    private static IInputHandler WithKey(KeyboardKey key)
+    static IInputHandler WithKey(KeyboardKey key)
     {
         var input = OffscreenInput();
         input.IsKeyPressed(key).Returns(true);
@@ -332,7 +332,7 @@ public class TreeViewTests
     /// Clicks the first row so the tree owns focus, then returns the gui to keep driving. Navigation
     /// only answers the focused tree, since a window can hold several.
     /// </summary>
-    private static Gui Focused(IReadOnlyList<TreeItem> items, TreeViewState state)
+    static Gui Focused(IReadOnlyList<TreeItem> items, TreeViewState state)
     {
         var click = Substitute.For<IInputHandler>();
         click.MousePosition.Returns(new Vector2(200, 10));
@@ -342,7 +342,7 @@ public class TreeViewTests
         return RunFrames(items, state, frames: 1, input: click);
     }
 
-    private static IInputHandler KeyInput(KeyboardKey key)
+    static IInputHandler KeyInput(KeyboardKey key)
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));

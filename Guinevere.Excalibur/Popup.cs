@@ -227,7 +227,7 @@ public static partial class ControlsExtensions
 
         var show = hovering && now - state.EnteredAt >= delay;
 
-        if (gui.Pass == Pass.Pass2Render && node is not null) state.AnchorRect = node.Rect;
+        if (gui.Pass == Pass.Pass2Render) state.AnchorRect = node.Rect;
 
         gui.Tooltip(text, show, offset ?? new Vector2(0, anchorRect.H),
             maxWidth, backgroundColor, textColor, borderColor, fontSize, padding, borderRadius,

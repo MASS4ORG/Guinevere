@@ -7,14 +7,14 @@ namespace Example_73_PanGui_MusicApp;
 public partial class Program
 {
     // Style constants
-    private readonly float _gap = 8;
-    private readonly float _padding = 10;
-    private readonly float _borderRadius = 5;
-    private readonly Font _arialNormal = Font.LoadFont("arial");
-    private readonly Font _arialBold = Font.LoadFont("arialbd");
-    private readonly Font _fonts = Font.LoadFont("fa-regular-400");
-    private Gui _gui = null!;
-    private GuiWindow _window = null!;
+    readonly float _gap = 8;
+    readonly float _padding = 10;
+    readonly float _borderRadius = 5;
+    readonly Font _arialNormal = Font.LoadFont("arial");
+    readonly Font _arialBold = Font.LoadFont("arialbd");
+    readonly Font _fonts = Font.LoadFont("fa-regular-400");
+    Gui _gui = null!;
+    GuiWindow _window = null!;
 
     public static void Main()
     {
@@ -22,7 +22,7 @@ public partial class Program
         program.Run();
     }
 
-    private void Run()
+    void Run()
     {
         _gui = new Gui();
         _window = new GuiWindow(_gui, 1600, 900, "PanGui Music Production App");
@@ -30,7 +30,7 @@ public partial class Program
         _window.RunGui(Draw);
     }
 
-    private void Draw()
+    void Draw()
     {
         // Set default font, text color, and size for the windowHandler
         _gui.SetTextFont(_arialNormal);
@@ -110,7 +110,7 @@ public partial class Program
     });
     }
 
-    private LayoutNode DrawSnapshotButton(Snapshot snapshot, ShapePos mask)
+    LayoutNode DrawSnapshotButton(Snapshot snapshot, ShapePos mask)
     {
         // Draws the horizontal list of buttons below the instruments and volume sliders
         using (_gui.Node(UnitValue.Expand(), 60).Gap(10).Enter())
@@ -132,7 +132,7 @@ public partial class Program
         }
     }
 
-    private void DrawInstruments()
+    void DrawInstruments()
     {
         // You may have noticed that in most places, we enter nodes to add content to them.
         // However, that is not the only way.
@@ -300,7 +300,7 @@ public partial class Program
         }
     }
 
-    private unsafe void DrawAdsrGraph(Rect graphRect, Adsr adsr, Color color)
+    unsafe void DrawAdsrGraph(Rect graphRect, Adsr adsr, Color color)
     {
         Color colGradientTop = new Color(color, color.A * 0.4f);
         Color colGradientBottom = new Color(color, 0);
@@ -360,7 +360,7 @@ public partial class Program
         }
     }
 
-    private unsafe void DrawAdsrSettings(Adsr adsr)
+    unsafe void DrawAdsrSettings(Adsr adsr)
     {
         // Draws the Attack, Decay, Sustain, Release settings for the selected instrument.
         Rect graphRect = _gui.Node(700, 300).MarginBottom(_gap).Rect;
@@ -458,7 +458,7 @@ public partial class Program
         }
     }
 
-    private void DrawEffectSettings(Popup popup, ref Effect effect)
+    void DrawEffectSettings(Popup popup, ref Effect effect)
     {
         _gui.CurrentNode
             .Margin(_gap)
@@ -519,7 +519,7 @@ public partial class Program
         }
     }
 
-    private void DrawPianoSection(LayoutNode pianoButtonsContainer, ShapePos pianoBgShape)
+    void DrawPianoSection(LayoutNode pianoButtonsContainer, ShapePos pianoBgShape)
     {
         float popupVisibility = GetPopupVisibility();
 
@@ -647,7 +647,7 @@ public partial class Program
         }
     }
 
-    private void DrawPadPlayer(PadPlayer padPlayer)
+    void DrawPadPlayer(PadPlayer padPlayer)
     {
         _gui.CurrentNode.Padding(_padding).Gap(_gap);
 
@@ -696,7 +696,7 @@ public partial class Program
         }
     }
 
-    private void DrawKnobSliderWithLabel(Color color, ref float value, string label, string valueLabel)
+    void DrawKnobSliderWithLabel(Color color, ref float value, string label, string valueLabel)
     {
         using (_gui.Node().Direction(Axis.Horizontal).AlignContent(0.5f).Gap(_gap).Enter())
         {
@@ -712,7 +712,7 @@ public partial class Program
         }
     }
 
-    private LayoutNode DrawKnobSlider(Color color, UnitValue unitValue, ref float value, bool isPan = false)
+    LayoutNode DrawKnobSlider(Color color, UnitValue unitValue, ref float value, bool isPan = false)
     {
         ref float t = ref _gui.Smoothdamp(value);
         LayoutNode node = _gui.Node(unitValue);
@@ -792,7 +792,7 @@ public partial class Program
         return node;
     }
 
-    private void DrawLibrary()
+    void DrawLibrary()
     {
         StyleBox();
 
@@ -828,7 +828,7 @@ public partial class Program
         }
     }
 
-    private void DrawTopToolbar()
+    void DrawTopToolbar()
     {
         using (_gui.Node()
                    .ExpandWidth()
@@ -883,7 +883,7 @@ public partial class Program
         }
     }
 
-    private void DrawEffectButton(ref Effect effect, in Color instrumentColor)
+    void DrawEffectButton(ref Effect effect, in Color instrumentColor)
     {
         LayoutNode container = _gui.Node().ExpandWidth().Direction(Axis.Horizontal);
         LayoutNode toggleEffectNode =
@@ -960,7 +960,7 @@ public partial class Program
         }
     }
 
-    private void StyleHeader()
+    void StyleHeader()
     {
         _gui.CurrentNode
             .Height(50)
@@ -977,7 +977,7 @@ public partial class Program
             .OuterShadow(0x000000ff, 2);
     }
 
-    private void StyleBox()
+    void StyleBox()
     {
         var bgShape =
             Shape.RectangleRounded(_gui.CurrentNode.Rect.Width, _gui.CurrentNode.Rect.Height, _borderRadius);
@@ -991,7 +991,7 @@ public partial class Program
             .InnerShadow(0xffffff22, 2);
     }
 
-    private void StyleButton(bool on, ShapePos bgShape)
+    void StyleButton(bool on, ShapePos bgShape)
     {
         Rect rect = _gui.CurrentNode
             .Padding(15)
@@ -1024,14 +1024,14 @@ public partial class Program
         _gui.SetTextColor(textColor);
     }
 
-    private void StyleButton(bool on)
+    void StyleButton(bool on)
     {
         var rect = _gui.CurrentNode.Rect;
         ShapePos bgShape = ShapePos.RectangleRounded(rect.Expand(-3), _borderRadius);
         StyleButton(on, bgShape);
     }
 
-    private void DrawVolumeBar(Rect r, float t)
+    void DrawVolumeBar(Rect r, float t)
     {
         Color green = 0x39BE69FF;
         Color yellow = 0xF0A948FF;
@@ -1062,7 +1062,7 @@ public partial class Program
         // things are impossible to do.
     }
 
-    private LayoutNode DrawVolumeSlider(Color color, ref float volume, float min = 0, float max = 1)
+    LayoutNode DrawVolumeSlider(Color color, ref float volume, float min = 0, float max = 1)
     {
         ref float animatedVolume = ref _gui.GetFloat(volume);
         animatedVolume = ImMath.Lerp(animatedVolume, volume, _gui.Time.DeltaTime * 10);
@@ -1129,7 +1129,7 @@ public partial class Program
         return node;
     }
 
-    private LayoutNode DrawToolbarButtonTemplate(out LayoutNodeScope titleText, out LayoutNodeScope subTitleText,
+    LayoutNode DrawToolbarButtonTemplate(out LayoutNodeScope titleText, out LayoutNodeScope subTitleText,
         out LayoutNodeScope buttonContents)
     {
         using (_gui.Node().Direction(Axis.Horizontal).Gap(_gap).AlignContent(0.5f).Enter())
@@ -1154,7 +1154,7 @@ public partial class Program
         }
     }
 
-    private void DrawKeyboard(Rect piano, float[] keyPressure)
+    void DrawKeyboard(Rect piano, float[] keyPressure)
     {
         int numOctaves = keyPressure.Length / 12;
         int numMajorKeys = numOctaves * 7;
@@ -1226,7 +1226,7 @@ public partial class Program
     //         gui.DrawText("Hello, world!");
     //     }
     // }
-    private Popup GetPopup()
+    Popup GetPopup()
     {
         var popup = new Popup() { Visibility = _gui.GetAnimationFloat() };
         float tVisibility01 = popup.Visibility.GetValue();
@@ -1314,7 +1314,7 @@ public partial class Program
         return popup;
     }
 
-    private float GetPopupVisibility()
+    float GetPopupVisibility()
     {
         // This API is particularly likely to become something different, or be completely removed.
         // It's meant to solve the problem of getting computed values that are not yet known during
@@ -1325,7 +1325,7 @@ public partial class Program
         return _gui.GetValue<float>("maxPopupVisibility", Pass.PreviousPass, 0f);
     }
 
-    private LayoutNode DrawTooltip(Vector2 pivot, string text)
+    LayoutNode DrawTooltip(Vector2 pivot, string text)
     {
         using (_gui.EnterDataScope("tooltip"))
         {
@@ -1358,7 +1358,7 @@ public partial class Program
         }
     }
 
-    private void DrawDefaultPopupTitleAndFooter(Popup popup, string title)
+    void DrawDefaultPopupTitleAndFooter(Popup popup, string title)
     {
         using (popup.HeaderContainer.Enter())
         {

@@ -6,11 +6,11 @@ namespace Guinevere;
 /// <inheritdoc />
 public class CanvasRenderer : ICanvasRenderer
 {
-    private SKSurface? _surface;
-    private SKCanvas? _canvas;
-    private uint _texture;
-    private int _vao, _vbo, _shaderProgram;
-    private int _width, _height;
+    SKSurface? _surface;
+    SKCanvas? _canvas;
+    uint _texture;
+    int _vao, _vbo, _shaderProgram;
+    int _width, _height;
 
     /// <inheritdoc />
     public void Initialize(int width, int height)
@@ -57,7 +57,7 @@ public class CanvasRenderer : ICanvasRenderer
         GL.Viewport(0, 0, width, height);
     }
 
-    private void SetupQuad()
+    void SetupQuad()
     {
         float[] vertices =
         [
@@ -100,7 +100,7 @@ public class CanvasRenderer : ICanvasRenderer
         GL.BindVertexArray(0);
     }
 
-    private void SetupTexture()
+    void SetupTexture()
     {
         // Create an empty texture of the right size
         _texture = (uint)GL.GenTexture();
@@ -116,7 +116,7 @@ public class CanvasRenderer : ICanvasRenderer
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
     }
 
-    private void SetupShaders()
+    void SetupShaders()
     {
         var vertexShaderSource = GuiWindow.GetStringResource("Guinevere.shader.vert");
         var fragmentShaderSource = GuiWindow.GetStringResource("Guinevere.shader.frag");
@@ -165,7 +165,7 @@ public class CanvasRenderer : ICanvasRenderer
         GL.DeleteProgram(_shaderProgram);
     }
 
-    private int CompileShader(string vsSrc, string fsSrc)
+    int CompileShader(string vsSrc, string fsSrc)
     {
         var vs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vs, vsSrc);
@@ -186,7 +186,7 @@ public class CanvasRenderer : ICanvasRenderer
         return prog;
     }
 
-    private void CheckShader(int shader)
+    void CheckShader(int shader)
     {
         GL.GetShader(shader, ShaderParameter.CompileStatus, out var ok);
         if (ok == 0)

@@ -27,7 +27,7 @@ public partial class LayoutNode : IDisposable
     /// build or modify the layout programmatically. The collection is mutable and allows for
     /// dynamic addition and removal of nodes.
     /// </remarks>
-    public readonly List<LayoutNode> ChildNodes = new();
+    public readonly List<LayoutNode> ChildNodes = [];
 
     int _absoluteChildCount;
     List<LayoutNode>? _flowChildrenCache;

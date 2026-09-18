@@ -132,11 +132,11 @@ public static partial class ControlsExtensions
             if (gui.Pass == Pass.Pass2Render)
             {
                 var rect = gui.CurrentNode.Rect;
-                var centre = new Vector2(rect.X + (rect.W / 2f), rect.Y + (rect.H / 2f));
+                var center = new Vector2(rect.X + (rect.W / 2f), rect.Y + (rect.H / 2f));
                 var color = interactable.OnHover() ? palette.Text : palette.TextDim;
 
-                gui.DrawCircleBorder(centre, height * 0.28f, color);
-                gui.DrawCircleFilled(centre, height * 0.1f, color);
+                gui.DrawCircleBorder(center, height * 0.28f, color);
+                gui.DrawCircleFilled(center, height * 0.1f, color);
             }
 
             return gui.Pass == Pass.Pass2Render && interactable.OnClick();

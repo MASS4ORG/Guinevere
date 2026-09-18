@@ -3,9 +3,9 @@ namespace Guinevere.Tests.Styling;
 /// <summary>Integration tests for <see cref="Gui.StyledNode"/> — a stylesheet drives a real frame.</summary>
 public class StyledNodeTests
 {
-    private const int Size = 80;
+    const int Size = 80;
 
-    private static byte[] RenderFrame(string css, IInputHandler input, Action<Gui> draw)
+    static byte[] RenderFrame(string css, IInputHandler input, Action<Gui> draw)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Size, Size, SKColorType.Rgba8888, SKAlphaType.Unpremul));
         var canvas = surface.Canvas;
@@ -29,13 +29,13 @@ public class StyledNodeTests
         return [.. pixmap.GetPixelSpan()];
     }
 
-    private static (byte R, byte G, byte B, byte A) At(byte[] px, int x, int y)
+    static (byte R, byte G, byte B, byte A) At(byte[] px, int x, int y)
     {
         var i = ((y * Size) + x) * 4;
         return (px[i], px[i + 1], px[i + 2], px[i + 3]);
     }
 
-    private static IInputHandler MouseAt(float x, float y)
+    static IInputHandler MouseAt(float x, float y)
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(x, y));

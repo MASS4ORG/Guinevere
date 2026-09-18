@@ -2,7 +2,7 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    /// <summary>Fraction of the track an indeterminate bar's travelling chunk covers.</summary>
+    /// <summary>Fraction of the track an indeterminate bar's traveling chunk covers.</summary>
     const float IndeterminateChunk = 0.3f;
 
     /// <summary>Track widths the indeterminate chunk crosses per second.</summary>
@@ -10,7 +10,7 @@ public static partial class ControlsExtensions
 
     /// <summary>
     /// Draws a horizontal progress bar filling left to right. Pass a null <paramref name="fraction"/>
-    /// for work of unknown length, which animates a travelling chunk instead.
+    /// for work of unknown length, which animates a traveling chunk instead.
     /// </summary>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="fraction">Completion in 0..1, clamped; null for indeterminate.</param>
@@ -43,7 +43,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>
-    /// The filled part of a track: a left-anchored bar for a known fraction, or the travelling chunk
+    /// The filled part of a track: a left-anchored bar for a known fraction, or the traveling chunk
     /// of an indeterminate bar, clipped to the track at both ends of its sweep.
     /// </summary>
     internal static Rect FillRect(Rect track, float? fraction, float elapsed)

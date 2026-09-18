@@ -1,18 +1,18 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Guinevere;
 
 namespace Example_74_PanGui_Heart;
 
 public abstract class Program
 {
-    private static Shape _shape = null!;
-    private static string _text = null!;
-    private static Shape _b = null!;
-    private static Shape _a = null!;
-    private static Shape _tri = null!;
-    private static Shape _heart = null!;
-    private static Gui _gui = null!;
-    private static readonly float Speed = .1f * .99f;
+    static Shape _shape = null!;
+    static string _text = null!;
+    static Shape _b = null!;
+    static Shape _a = null!;
+    static Shape _tri = null!;
+    static Shape _heart = null!;
+    static Gui _gui = null!;
+    static readonly float Speed = .1f * .99f;
 
     public static void Main()
     {
@@ -88,105 +88,105 @@ public abstract class Program
         });
     }
 
-    private static void Slide01()
+    static void Slide01()
     {
         _a = Shape.Circle(100);
         _shape = _a.Copy();
         _text = "a = Shape.Circle(100)";
     }
 
-    private static void Slide02()
+    static void Slide02()
     {
         _a = Shape.Circle(100).MoveX(-60);
         _shape = _a.Copy();
         _text = "a = Shape.Circle(100).MoveX(-60)";
     }
 
-    private static void Slide03()
+    static void Slide03()
     {
         _b = Shape.Circle(100).MoveX(+60);
         _shape = _b.Copy();
         _text = "b = Shape.Circle(100).MoveX(+60)";
     }
 
-    private static void Slide04()
+    static void Slide04()
     {
         var shape = _a + _b;
         _shape = shape.Copy();
         _text = "a + b";
     }
 
-    private static void Slide05()
+    static void Slide05()
     {
         var shape = _a * _b;
         _shape = shape.Copy();
         _text = "a * b";
     }
 
-    private static void Slide06()
+    static void Slide06()
     {
         var shape = (_a + _b).Onion(10);
         _shape = shape.Copy();
         _text = "(a + b).Onion(10)";
     }
 
-    private static void Slide07()
+    static void Slide07()
     {
         var shape = (_a + _b) - (_a * _b);
         _shape = shape.Copy();
         _text = "(a + b) - (a * b)";
     }
 
-    private static void Slide08()
+    static void Slide08()
     {
         var shape = _a.MoveX(-85).Union(_b.MoveX(85), 100);
         _shape = shape.Copy();
         _text = "a.MoveX(-85).Union(b.MoveX(85), 100)";
     }
 
-    private static void Slide09()
+    static void Slide09()
     {
         var shape = _a.Union(_b, 100);
         _shape = shape.Copy();
         _text = "a.Union(b, 100)";
     }
 
-    private static void Slide10()
+    static void Slide10()
     {
         var shape = _a.Union(_b, 100) - (_a - 20);
         _shape = shape.Copy();
         _text = "a.Union(b, 100) - (a - 20)";
     }
 
-    private static void Slide11()
+    static void Slide11()
     {
         var shape = _a.Union(_b, 100) - (_b - 20);
         _shape = shape.Copy();
         _text = "a.Union(b, 100) - (9 - 20)";
     }
 
-    private static void Slide12()
+    static void Slide12()
     {
         _tri = Shape.Triangle(-100, 0, 100, 0, 0, 200);
         _shape = _tri.Copy();
         _text = "tri = Shape.Triangle(-100, 0, 100, 0, 0, 200)";
     }
 
-    private static void Slide13()
+    static void Slide13()
     {
         var shape = _tri + _a + _b;
         _shape = shape.Copy();
         _text = "tri + a + b";
     }
 
-    private static void Slide14()
+    static void Slide14()
     {
         _heart = _tri.Union(_a + _b, 100);
         _shape = _heart.Copy();
         _text = "_tri.Union(_a + _b, 100)";
     }
 
-    private static void Slide15()
+    static void Slide15()
     {
         var t = _gui.Time.Elapsed;
         var pi = MathF.PI;
@@ -196,7 +196,7 @@ public abstract class Program
         _text = "heart.Scale(1 + Sin(t + PI) * 0.2f)";
     }
 
-    private static void Slide16()
+    static void Slide16()
     {
         var shape = _heart.Mix(_b.Rotate(_gui.Time.Elapsed * 4), 0.1f);
         _shape = shape.Copy();

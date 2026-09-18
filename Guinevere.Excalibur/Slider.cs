@@ -107,7 +107,7 @@ public static partial class ControlsExtensions
             }
         }
 
-        DrawSliderShape(gui, rect, trackY, trackHeight, thumbCenter, thumbRadius, value, min, max,
+        DrawSliderShape(gui, rect, trackY, trackHeight, thumbCenter, thumbRadius,
             trackColor, fillColor, thumbColor, enabled);
     }
 
@@ -120,7 +120,7 @@ public static partial class ControlsExtensions
     }
 
     static void DrawSliderShape(Gui gui, Rect rect, float trackY, float trackHeight,
-        Vector2 thumbCenter, float thumbRadius, float value, float min, float max,
+        Vector2 thumbCenter, float thumbRadius,
         Color? trackColor, Color? fillColor, Color? thumbColor, bool enabled)
     {
         var track = new Rect(rect.X, trackY, rect.W, trackHeight);

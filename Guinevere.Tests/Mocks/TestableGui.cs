@@ -5,8 +5,8 @@ namespace Guinevere.Tests.Mocks;
 /// </summary>
 public class TestableGui : Gui
 {
-    private Rect _testScreenRect = null!;
-    private bool _useTestScreenRect;
+    Rect _testScreenRect = null!;
+    bool _useTestScreenRect;
 
     /// <summary>
     /// Gets the screen rectangle, returning the test override if set.

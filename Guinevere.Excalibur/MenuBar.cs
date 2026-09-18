@@ -25,10 +25,10 @@ public static partial class ControlsExtensions
         public int FrameKeyboardIndex { get; set; } = -1;
         public bool FrameKeyboardSubmenu { get; set; }
 
-        public List<Rect> TitleRects { get; set; } = new();
-        public List<Rect> FrameTitleRects { get; set; } = new();
-        public List<Rect> SubmenuRects { get; set; } = new();
-        public List<Rect> PrevSubmenuRects { get; set; } = new();
+        public List<Rect> TitleRects { get; set; } = [];
+        public List<Rect> FrameTitleRects { get; set; } = [];
+        public List<Rect> SubmenuRects { get; set; } = [];
+        public List<Rect> PrevSubmenuRects { get; set; } = [];
 
         /// <summary>Examples the live state into the half this frame draws from.</summary>
         public void BeginFrame()
@@ -72,7 +72,7 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass1Build)
         {
             state.PrevSubmenuRects = state.SubmenuRects;
-            state.SubmenuRects = new List<Rect>();
+            state.SubmenuRects = [];
             state.BeginFrame();
         }
 

@@ -8,7 +8,7 @@ namespace Guinevere.Tests.Docking;
 /// </summary>
 public class DockInputScriptTests : IDisposable
 {
-    private readonly string _output = Path.Combine(Path.GetTempPath(), $"gv-dock-script-{Guid.NewGuid():N}");
+    readonly string _output = Path.Combine(Path.GetTempPath(), $"gv-dock-script-{Guid.NewGuid():N}");
 
     /// <summary>Removes the frames the scripts dumped.</summary>
     public void Dispose()
@@ -17,7 +17,7 @@ public class DockInputScriptTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private static string ScriptsDirectory => Path.Combine(AppContext.BaseDirectory, "Scripts");
+    static string ScriptsDirectory => Path.Combine(AppContext.BaseDirectory, "Scripts");
 
     /// <summary>The script files deployed next to the test binary.</summary>
     public static TheoryData<string> Scripts()

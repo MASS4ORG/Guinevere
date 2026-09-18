@@ -10,20 +10,20 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class TabsTests
 {
-    private const int Width = 400;
-    private const int Height = 200;
+    const int Width = 400;
+    const int Height = 200;
 
-    private static Gui CreateGui()
+    static Gui CreateGui()
     {
         var gui = new TestableGui { Input = NoInput() };
         gui.SetScreenRect(Width, Height);
         return gui;
     }
 
-    private static readonly (string Title, bool Closable)[] DefaultTabs =
+    static readonly (string Title, bool Closable)[] DefaultTabs =
         [("A", true), ("B", true)];
 
-    private static void Frame(Gui gui, ref int activeTab, List<(int, string)> closed,
+    static void Frame(Gui gui, ref int activeTab, List<(int, string)> closed,
         IInputHandler? input = null, (string Title, bool Closable)[]? specs = null)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
@@ -40,7 +40,7 @@ public class TabsTests
         gui.EndFrame();
     }
 
-    private static void Tabs(Gui gui, ref int activeTab, List<(int, string)> closed,
+    static void Tabs(Gui gui, ref int activeTab, List<(int, string)> closed,
         (string Title, bool Closable)[] specs)
     {
         gui.Tabs(ref activeTab, tabs =>
@@ -50,7 +50,7 @@ public class TabsTests
         }, onTabClosed: (index, title) => closed.Add((index, title)));
     }
 
-    private static IInputHandler NoInput()
+    static IInputHandler NoInput()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));
@@ -64,12 +64,12 @@ public class TabsTests
         return input;
     }
 
-    private static IInputHandler MouseAt(LayoutNode tab, MouseButton button)
+    static IInputHandler MouseAt(LayoutNode tab, MouseButton button)
     {
         var input = NoInput();
-        var centre = new Vector2(tab.Rect.X + tab.Rect.W * 0.5f, tab.Rect.Y + tab.Rect.H * 0.5f);
-        input.MousePosition.Returns(centre);
-        input.PrevMousePosition.Returns(centre);
+        var center = new Vector2(tab.Rect.X + tab.Rect.W * 0.5f, tab.Rect.Y + tab.Rect.H * 0.5f);
+        input.MousePosition.Returns(center);
+        input.PrevMousePosition.Returns(center);
         input.IsMouseButtonPressed(button).Returns(true);
         return input;
     }
@@ -79,7 +79,7 @@ public class TabsTests
     /// wide as its label. The container node's single child is the bar itself, which is full width,
     /// so the width check keeps the two apart once a closure leaves exactly one tab.
     /// </summary>
-    private static LayoutNode FindTabBar(LayoutNode root, int tabCount)
+    static LayoutNode FindTabBar(LayoutNode root, int tabCount)
     {
         LayoutNode? found = null;
         Visit(root);

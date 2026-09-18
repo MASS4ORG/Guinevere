@@ -5,7 +5,7 @@ namespace Guinevere.Tests.Scripting;
 /// </summary>
 public class InputScriptTests
 {
-    private const string ClickScript = """
+    const string ClickScript = """
         {
           "width": 100,
           "height": 100,
@@ -16,7 +16,7 @@ public class InputScriptTests
         }
         """;
 
-    private static (bool Passed, int Failures, List<string> Log) Run(string json, Action<Gui> draw)
+    static (bool Passed, int Failures, List<string> Log) Run(string json, Action<Gui> draw)
     {
         var script = InputScript.FromJson(json);
         Assert.NotNull(script);

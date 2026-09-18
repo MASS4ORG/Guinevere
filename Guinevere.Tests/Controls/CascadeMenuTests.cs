@@ -8,17 +8,17 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class CascadeMenuTests
 {
-    private const int Width = 500;
-    private const int Height = 400;
+    const int Width = 500;
+    const int Height = 400;
 
-    private static readonly Font TestFont = Font.FromFamilyName("serif");
-    private static readonly Vector2 At = new(100, 100);
+    static readonly Font TestFont = Font.FromFamilyName("serif");
+    static readonly Vector2 At = new(100, 100);
 
-    private sealed class Harness
+    sealed class Harness
     {
-        private readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(Width, Height));
-        private readonly IInputHandler _input = Substitute.For<IInputHandler>();
-        private readonly TestableGui _gui;
+        readonly SKSurface _surface = SKSurface.Create(new SKImageInfo(Width, Height));
+        readonly IInputHandler _input = Substitute.For<IInputHandler>();
+        readonly TestableGui _gui;
 
         public Harness()
         {
@@ -66,9 +66,9 @@ public class CascadeMenuTests
             _gui.EndFrame();
         }
 
-        public List<LayoutNode> Nodes() => Walk(_gui.RootNode!).ToList();
+        public List<LayoutNode> Nodes() => [.. Walk(_gui.RootNode!)];
 
-        private static IEnumerable<LayoutNode> Walk(LayoutNode node)
+        static IEnumerable<LayoutNode> Walk(LayoutNode node)
         {
             if (node.Id.StartsWith("/menubar/", StringComparison.Ordinal)) yield return node;
 

@@ -11,13 +11,13 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class ToastTests
 {
-    private const int Width = 400;
-    private const int Height = 300;
+    const int Width = 400;
+    const int Height = 300;
 
-    private static readonly ToastOptions BottomRight = new() { Duration = 10f };
-    private static readonly ToastOptions TopLeft = new() { Corner = ToastCorner.TopLeft, Duration = 10f };
+    static readonly ToastOptions BottomRight = new() { Duration = 10f };
+    static readonly ToastOptions TopLeft = new() { Corner = ToastCorner.TopLeft, Duration = 10f };
 
-    private static Gui CreateGui()
+    static Gui CreateGui()
     {
         var gui = new TestableGui { Input = NoInput() };
         gui.SetScreenRect(Width, Height);
@@ -28,7 +28,7 @@ public class ToastTests
     /// Runs <paramref name="content"/> inside a host node (so toast rects can be inspected under one
     /// parent) while calling <c>Toasts()</c> every frame exactly like the examples do.
     /// </summary>
-    private static void Frame(Gui gui, Action<Gui>? content = null, IInputHandler? input = null)
+    static void Frame(Gui gui, Action<Gui>? content = null, IInputHandler? input = null)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
 
@@ -44,7 +44,7 @@ public class ToastTests
         gui.EndFrame();
     }
 
-    private static void BuildContent(Gui gui, Action<Gui>? content)
+    static void BuildContent(Gui gui, Action<Gui>? content)
     {
         using (gui.Node().Enter())
         {
@@ -53,14 +53,10 @@ public class ToastTests
         }
     }
 
-    private static IReadOnlyList<LayoutNode> ToastsOf(LayoutNode root)
-    {
-        if (root is null || root.Children.Count == 0) return [];
+    static IReadOnlyList<LayoutNode> ToastsOf(LayoutNode root) =>
+        root.Children.Count == 0 ? [] : root.Children[0].ChildNodes;
 
-        return root.Children[0].ChildNodes;
-    }
-
-    private static IInputHandler NoInput()
+    static IInputHandler NoInput()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));
@@ -205,7 +201,7 @@ public class ToastTests
         // canvas origin instead of inside the panel).
         var toast = Assert.Single(ToastsOf(gui.RootNode!));
         var text = Assert.Single(toast.Children);
-        Assert.True(text.Rect.W > 0 && text.Rect.H > 0, "Toast text node must be measured during Pass1.");
+        Assert.True(text.Rect is { W: > 0, H: > 0 }, "Toast text node must be measured during Pass1.");
         Assert.True(toast.Rect.X <= text.Rect.X && text.Rect.X + text.Rect.W <= toast.Rect.X + toast.Rect.W,
             "Toast text must render inside the toast panel.");
     }

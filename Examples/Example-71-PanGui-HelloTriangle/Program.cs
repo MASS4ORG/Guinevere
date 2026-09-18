@@ -14,7 +14,7 @@ public abstract class Program
         win.RunGui(() => Draw(gui));
     }
 
-    private static void Draw(Gui gui)
+    static void Draw(Gui gui)
     {
         gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 41, 41, 41));
         gui.DrawWindowTitlebar();

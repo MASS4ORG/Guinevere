@@ -9,19 +9,19 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class BreadcrumbTests
 {
-    private const int Width = 400;
-    private const int Height = 200;
+    const int Width = 400;
+    const int Height = 200;
 
-    private static readonly List<string> NavigationLog = [];
+    static readonly List<string> NavigationLog = [];
 
-    private static readonly IReadOnlyList<BreadcrumbItem> Items =
+    static readonly IReadOnlyList<BreadcrumbItem> Items =
     [
         new BreadcrumbItem("Home", () => NavigationLog.Add("home")),
         new BreadcrumbItem("Docs", () => NavigationLog.Add("docs")),
         new BreadcrumbItem("Controls", IsCurrent: true)
     ];
 
-    private static Gui RunFrame(Action<Gui> draw, IInputHandler? input = null)
+    static Gui RunFrame(Action<Gui> draw, IInputHandler? input = null)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
 
@@ -43,7 +43,7 @@ public class BreadcrumbTests
         return gui;
     }
 
-    private static IInputHandler NoInput()
+    static IInputHandler NoInput()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(-100, -100));
@@ -57,7 +57,7 @@ public class BreadcrumbTests
         return input;
     }
 
-    private static LayoutNode? Crumb(Gui gui, int index)
+    static LayoutNode? Crumb(Gui gui, int index)
     {
         LayoutNode? found = null;
         Visit(gui.RootNode!);
@@ -70,7 +70,7 @@ public class BreadcrumbTests
         }
     }
 
-    private static LayoutNode? Separator(Gui gui, int index)
+    static LayoutNode? Separator(Gui gui, int index)
     {
         LayoutNode? found = null;
         Visit(gui.RootNode!);
@@ -83,14 +83,14 @@ public class BreadcrumbTests
         }
     }
 
-    private static void Click(Gui gui, IReadOnlyList<BreadcrumbItem> items, int index,
+    static void Click(Gui gui, IReadOnlyList<BreadcrumbItem> items, int index,
         MouseButton button = MouseButton.Left)
     {
         var crumb = Crumb(gui, index);
         Assert.NotNull(crumb);
 
-        var centre = new Vector2(crumb.Rect.X + crumb.Rect.W * 0.5f, crumb.Rect.Y + crumb.Rect.H * 0.5f);
-        gui.Input.MousePosition.Returns(centre);
+        var center = new Vector2(crumb.Rect.X + crumb.Rect.W * 0.5f, crumb.Rect.Y + crumb.Rect.H * 0.5f);
+        gui.Input.MousePosition.Returns(center);
         gui.Input.IsMouseButtonPressed(button).Returns(true);
 
         RunFrame(draw: g => g.Breadcrumb(items), input: gui.Input);
@@ -221,14 +221,14 @@ public class BreadcrumbTests
         Assert.Equal(["child-a"], NavigationLog);
     }
 
-    private static Gui CreateGui()
+    static Gui CreateGui()
     {
         var gui = new TestableGui { Input = NoInput() };
         gui.SetScreenRect(Width, Height);
         return gui;
     }
 
-    private static void FrameOn(Gui gui, Action<Gui> draw, IInputHandler? input = null)
+    static void FrameOn(Gui gui, Action<Gui> draw, IInputHandler? input = null)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
 
@@ -244,12 +244,12 @@ public class BreadcrumbTests
         gui.EndFrame();
     }
 
-    private static IInputHandler ClickAt(Rect rect, MouseButton button)
+    static IInputHandler ClickAt(Rect rect, MouseButton button)
     {
         var input = NoInput();
-        var centre = new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f);
-        input.MousePosition.Returns(centre);
-        input.PrevMousePosition.Returns(centre);
+        var center = new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f);
+        input.MousePosition.Returns(center);
+        input.PrevMousePosition.Returns(center);
         input.IsMouseButtonPressed(button).Returns(true);
         return input;
     }

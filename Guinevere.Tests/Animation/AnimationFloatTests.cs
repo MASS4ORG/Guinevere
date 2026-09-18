@@ -5,7 +5,7 @@ namespace Guinevere.Tests.Animation;
 /// </summary>
 public class AnimationFloatTests
 {
-    private Time CreateTestTime() => new();
+    Time CreateTestTime() => new();
 
     /// <summary>
     /// Verifies that the constructor sets the initial value correctly.

@@ -34,6 +34,6 @@ public sealed record TextEffects
     /// <param name="From">Color at the start.</param>
     /// <param name="To">Color at the end.</param>
     /// <param name="AngleDegrees">Direction, 0 = left→right, 90 = top→bottom. Ignored when <paramref name="Radial"/>.</param>
-    /// <param name="Radial">When <c>true</c>, a centre-out radial gradient instead of linear.</param>
+    /// <param name="Radial">When <c>true</c>, a center-out radial gradient instead of linear.</param>
     public readonly record struct TextGradient(Color From, Color To, float AngleDegrees = 0f, bool Radial = false);
 }
