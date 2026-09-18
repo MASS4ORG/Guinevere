@@ -21,7 +21,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageDownload Include="coverlet.console" Version="[10.0.1]" />
         <PackageDownload Include="GitVersion.Tool" Version="[6.8.2]" />
         <PackageDownload Include="ReportGenerator" Version="[5.5.11]" />
     </ItemGroup>

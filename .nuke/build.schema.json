@@ -25,26 +25,26 @@
       "type": "string",
       "enum": [
         "BuildAll",
-        "BuildSamples",
+        "BuildExamples",
         "CheckNewCommits",
         "Ci",
         "Clean",
-        "CleanSamples",
+        "CleanExamples",
         "Compile",
-        "CreateSamplesReadme",
+        "CreateExamplesReadme",
         "CreateTag",
         "ExtractChangelogUnreleased",
         "GitHubCreateCommit",
         "GitHubCreateRelease",
         "GitHubCreateTag",
-        "PackageSamples",
+        "PackageExamples",
         "PackNuGet",
         "Publish",
         "PublishAll",
+        "PublishExamples",
         "PublishIntegrations",
         "PublishLibrary",
         "PublishNuGet",
-        "PublishSamples",
         "Release",
         "Restore",
         "ShowCurrentVersion",
@@ -138,6 +138,17 @@
           "description": "Minimum coverage threshold (default: 80)",
           "format": "int32"
         },
+        "ExampleRuntimes": {
+          "type": "array",
+          "description": "Runtime identifiers for examples (default: win-x64,linux-x64)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ExamplesOutputDirectory": {
+          "type": "string",
+          "description": "Examples output directory (default: ./examples-output)"
+        },
         "GitHubApiBaseUrl": {
           "type": "string",
           "description": "GitHub API URL"
@@ -185,17 +196,6 @@
         "RuntimeIdentifier": {
           "type": "string",
           "description": "Runtime identifier for the build (e.g., win-x64, linux-x64, osx-x64) (default: linux-x64)"
-        },
-        "SampleRuntimes": {
-          "type": "array",
-          "description": "Runtime identifiers for samples (default: win-x64,linux-x64)",
-          "items": {
-            "type": "string"
-          }
-        },
-        "SamplesOutputDirectory": {
-          "type": "string",
-          "description": "Samples output directory (default: ./samples-output)"
         },
         "SkipGitHubRelease": {
           "type": "boolean",

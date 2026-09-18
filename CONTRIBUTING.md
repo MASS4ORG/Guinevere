@@ -77,7 +77,7 @@ Guinevere/
 │   ├── Guinevere.OpenGL.Raylib/
 │   ├── Guinevere.OpenGL.SilkNET/
 │   └── Guinevere.Vulkan.SilkNET/
-├── Samples/                   # Example applications
+├── Examples/                   # Example applications
 ├── Guinevere.Tests/           # Unit tests
 ├── .nuke/                     # Build automation
 └── .github/                   # GitHub workflows
@@ -92,7 +92,7 @@ We welcome several types of contributions:
 - **Bug fixes**: Fix issues in existing code
 - **New features**: Add new functionality to the core library or integrations
 - **Documentation**: Improve or add documentation
-- **Examples**: Create new sample applications
+- **Examples**: Create new example applications
 - **Tests**: Add or improve test coverage
 - **Performance improvements**: Optimize existing code
 
@@ -119,7 +119,7 @@ We welcome several types of contributions:
 3. **Test your changes**:
    ```bash
    ./build.sh Test
-   ./build.sh BuildSamples
+   ./build.sh BuildExamples
    ```
 
 4. **Commit your changes**:
@@ -284,7 +284,7 @@ dotnet test Guinevere.Tests/
 
 - **API documentation**: Add XML comments to all public APIs
 - **README updates**: Update README.md for new features
-- **Sample code**: Provide working examples for new features
+- **Example code**: Provide working examples for new features
 - **Architecture docs**: Document significant architectural changes
 
 ### Writing Guidelines
@@ -362,7 +362,7 @@ We use [Semantic Versioning](https://semver.org/):
 
 Each release includes:
 - NuGet packages for all libraries
-- Sample application packages (Windows/Linux)
+- Example application packages (Windows/Linux)
 - Release notes with changelog
 - Source code archives
 

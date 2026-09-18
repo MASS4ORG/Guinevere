@@ -16,43 +16,43 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guinevere.OpenGL.Raylib", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guinevere.OpenGL.SilkNET", "Integrations\Guinevere.OpenGL.SilkNET\Guinevere.OpenGL.SilkNET.csproj", "{1B280CB0-5F0D-4E0F-9FD3-FC04B5387B5C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{F337FCC2-DE28-4E95-8700-24A64E69EE3F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{F337FCC2-DE28-4E95-8700-24A64E69EE3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-01", "Samples\Sample-01\Sample-01.csproj", "{647C81BF-FFB7-4F4F-BBA0-11C9E4A48486}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-01", "Examples\Example-01\Example-01.csproj", "{647C81BF-FFB7-4F4F-BBA0-11C9E4A48486}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-01-OpenGL-OpenTK", "Samples\Sample-01-OpenGL-OpenTK\Sample-01-OpenGL-OpenTK.csproj", "{25398220-B75E-4DA0-8411-7DFCD119F291}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-01-OpenGL-OpenTK", "Examples\Example-01-OpenGL-OpenTK\Example-01-OpenGL-OpenTK.csproj", "{25398220-B75E-4DA0-8411-7DFCD119F291}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-01-OpenGL-Raylib", "Samples\Sample-01-OpenGL-Raylib\Sample-01-OpenGL-Raylib.csproj", "{EED87EC8-3D9C-4954-A16B-AD1C395F9126}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-01-OpenGL-Raylib", "Examples\Example-01-OpenGL-Raylib\Example-01-OpenGL-Raylib.csproj", "{EED87EC8-3D9C-4954-A16B-AD1C395F9126}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-01-OpenGL-SilkNet", "Samples\Sample-01-OpenGL-SilkNet\Sample-01-OpenGL-SilkNet.csproj", "{01EF4323-1FDE-44C3-9F2A-43CAEEC51B2F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-01-OpenGL-SilkNet", "Examples\Example-01-OpenGL-SilkNet\Example-01-OpenGL-SilkNet.csproj", "{01EF4323-1FDE-44C3-9F2A-43CAEEC51B2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-02-Layout", "Samples\Sample-02-Layout\Sample-02-Layout.csproj", "{07EEFED1-40E4-4333-86AE-8D23055C8FE9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-02-Layout", "Examples\Example-02-Layout\Example-02-Layout.csproj", "{07EEFED1-40E4-4333-86AE-8D23055C8FE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-10-ResponsiveLayout", "Samples\Sample-10-ResponsiveLayout\Sample-10-ResponsiveLayout.csproj", "{366D543A-749B-4F38-8C2A-2263CA21E071}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-10-ResponsiveLayout", "Examples\Example-10-ResponsiveLayout\Example-10-ResponsiveLayout.csproj", "{366D543A-749B-4F38-8C2A-2263CA21E071}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-75-PaperUI-Dashboard", "Samples\Sample-75-PaperUI-Dashboard\Sample-75-PaperUI-Dashboard.csproj", "{9E95AC6D-B8FE-43F2-98D2-24F2C6A9EE75}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-75-PaperUI-Dashboard", "Examples\Example-75-PaperUI-Dashboard\Example-75-PaperUI-Dashboard.csproj", "{9E95AC6D-B8FE-43F2-98D2-24F2C6A9EE75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-70-PanGui-HelloWorld", "Samples\Sample-70-PanGui-HelloWorld\Sample-70-PanGui-HelloWorld.csproj", "{D34BF4A8-727B-4E11-A8BB-85AA0A256C0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-70-PanGui-HelloWorld", "Examples\Example-70-PanGui-HelloWorld\Example-70-PanGui-HelloWorld.csproj", "{D34BF4A8-727B-4E11-A8BB-85AA0A256C0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-71-PanGui-HelloTriangle", "Samples\Sample-71-PanGui-HelloTriangle\Sample-71-PanGui-HelloTriangle.csproj", "{FA69B4BC-51A5-4761-A23D-668FFC85A1CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-71-PanGui-HelloTriangle", "Examples\Example-71-PanGui-HelloTriangle\Example-71-PanGui-HelloTriangle.csproj", "{FA69B4BC-51A5-4761-A23D-668FFC85A1CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-72-PanGui-AirbnbSlider", "Samples\Sample-72-PanGui-AirbnbSlider\Sample-72-PanGui-AirbnbSlider.csproj", "{17A6DF7D-2694-4EC9-8B8D-A1FA29DD7C4F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-72-PanGui-AirbnbSlider", "Examples\Example-72-PanGui-AirbnbSlider\Example-72-PanGui-AirbnbSlider.csproj", "{17A6DF7D-2694-4EC9-8B8D-A1FA29DD7C4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-73-PanGui-MusicApp", "Samples\Sample-73-PanGui-MusicApp\Sample-73-PanGui-MusicApp.csproj", "{7854BA50-54ED-4E54-B7CC-C0D79B1EEF67}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-73-PanGui-MusicApp", "Examples\Example-73-PanGui-MusicApp\Example-73-PanGui-MusicApp.csproj", "{7854BA50-54ED-4E54-B7CC-C0D79B1EEF67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-74-PanGui-Heart", "Samples\Sample-74-PanGui-Heart\Sample-74-PanGui-Heart.csproj", "{52A5E6F1-C7AE-412B-A2DD-724CB688B194}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-74-PanGui-Heart", "Examples\Example-74-PanGui-Heart\Example-74-PanGui-Heart.csproj", "{52A5E6F1-C7AE-412B-A2DD-724CB688B194}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guinevere.Vulkan.SilkNET", "Integrations\Guinevere.Vulkan.SilkNET\Guinevere.Vulkan.SilkNET.csproj", "{68627668-C5D8-4578-9117-652929655315}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-01-Vulkan-SilkNet", "Samples\Sample-01-Vulkan-SilkNet\Sample-01-Vulkan-SilkNet.csproj", "{421603C7-D474-4E8E-B9DA-13C39F1864D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-01-Vulkan-SilkNet", "Examples\Example-01-Vulkan-SilkNet\Example-01-Vulkan-SilkNet.csproj", "{421603C7-D474-4E8E-B9DA-13C39F1864D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-04-Animation", "Samples\Sample-04-Animation\Sample-04-Animation.csproj", "{570A4F50-16A0-4844-BB4B-866D91385E0C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-04-Animation", "Examples\Example-04-Animation\Example-04-Animation.csproj", "{570A4F50-16A0-4844-BB4B-866D91385E0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-51-Docking", "Samples\Sample-51-Docking\Sample-51-Docking.csproj", "{5A2C1B94-6D3E-4F71-9C88-2E4A7B31D560}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-51-Docking", "Examples\Example-51-Docking\Example-51-Docking.csproj", "{5A2C1B94-6D3E-4F71-9C88-2E4A7B31D560}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-03-Texts", "Samples\Sample-03-Texts\Sample-03-Texts.csproj", "{448E25EF-F81A-40B0-8566-DEC1CA1FC2F9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-03-Texts", "Examples\Example-03-Texts\Example-03-Texts.csproj", "{448E25EF-F81A-40B0-8566-DEC1CA1FC2F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-50-Excalibur-Controls", "Samples\Sample-50-Excalibur-Controls\Sample-50-Excalibur-Controls.csproj", "{6EC47077-5185-4BCA-BA1B-9610D5D10BFC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-50-Excalibur-Controls", "Examples\Example-50-Excalibur-Controls\Example-50-Excalibur-Controls.csproj", "{6EC47077-5185-4BCA-BA1B-9610D5D10BFC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guinevere.Excalibur", "Guinevere.Excalibur\Guinevere.Excalibur.csproj", "{5093E30F-7B4B-479C-A941-DAD2ECF97437}"
 EndProject

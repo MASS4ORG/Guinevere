@@ -52,7 +52,7 @@ internal sealed partial class Build : NukeBuild
         .DependsOn(
         // CI,
         PublishNuGet
-        // , PublishSamples, PackageSamples
+        // , PublishExamples, PackageExamples
         )
         .Executes(() =>
         {
@@ -63,7 +63,7 @@ internal sealed partial class Build : NukeBuild
     /// Build all deliverables without publishing
     /// </summary>
     private Target BuildAll => td => td
-        .DependsOn(Compile, BuildSamples, PackNuGet, PackageSamples)
+        .DependsOn(Compile, BuildExamples, PackNuGet, PackageExamples)
         .Executes(() =>
         {
             Log.Information("All deliverables built successfully");

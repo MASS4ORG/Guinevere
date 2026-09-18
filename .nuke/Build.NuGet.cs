@@ -54,7 +54,7 @@ partial class Build
             var isLibrary = content.Contains("<OutputType>Library</OutputType>", StringComparison.OrdinalIgnoreCase) ||
                             (!content.Contains("<OutputType>", StringComparison.OrdinalIgnoreCase) &&
                              !project.Name.Contains("Test", StringComparison.OrdinalIgnoreCase) &&
-                             !project.Name.Contains("Sample", StringComparison.OrdinalIgnoreCase) &&
+                             !project.Name.Contains("Example", StringComparison.OrdinalIgnoreCase) &&
                              !project.Name.Contains("Example", StringComparison.OrdinalIgnoreCase));
 
             return isLibrary;

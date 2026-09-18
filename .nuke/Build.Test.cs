@@ -4,7 +4,6 @@ using Nuke.Common.IO;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
 using Serilog;
-using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 
 namespace Guinevere.Nuke;
 
@@ -21,7 +20,6 @@ partial class Build
     static AbsolutePath CoverageReportDirectory => CoverageDirectory / "report";
     static AbsolutePath CoverageReportSummaryDirectory => CoverageReportDirectory / "Summary.txt";
     AbsolutePath CoverageSettingsFile => TestProjectDirectory / "CodeCoverage.runsettings";
-
 
     [Parameter("Minimum coverage threshold (default: 80)")] public readonly int CoverageThreshold = 80;
 
@@ -48,13 +46,11 @@ partial class Build
         .Produces(CoverageReportDirectory / "**")
         .Executes(() =>
         {
-
             _ = CoverageReportDirectory.CreateDirectory();
-            _ = ReportGenerator(
-                s => s
-                    .SetTargetDirectory(CoverageReportDirectory)
-                    .SetReportTypes([ReportTypes.Html, ReportTypes.TextSummary])
-                    .SetReports(CoverageResultFile)
+            _ = ReportGeneratorTasks.ReportGenerator(s => s
+                .SetTargetDirectory(CoverageReportDirectory)
+                .SetReportTypes([ReportTypes.Html, ReportTypes.TextSummary])
+                .SetReports(CoverageResultFile)
             );
             var summaryText = CoverageReportSummaryDirectory.ReadAllLines();
             Log.Information(string.Join(Environment.NewLine, summaryText));

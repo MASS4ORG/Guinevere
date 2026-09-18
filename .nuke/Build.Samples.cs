@@ -11,37 +11,37 @@ namespace Guinevere.Nuke;
 
 /// <summary>
 /// This is the main build file for the project.
-/// This partial is responsible for building sample applications.
+/// This partial is responsible for building example applications.
 /// </summary>
 partial class Build
 {
-    [Parameter("Runtime identifiers for samples (default: win-x64,linux-x64)")]
-    public readonly string[] SampleRuntimes = ["win-x64", "linux-x64"];
+    [Parameter("Runtime identifiers for examples (default: win-x64,linux-x64)")]
+    public readonly string[] ExampleRuntimes = ["win-x64", "linux-x64"];
 
-    [Parameter("Samples output directory (default: ./samples-output)")]
-    public readonly AbsolutePath SamplesOutputDirectory;
-    private AbsolutePath SamplesOutput => SamplesOutputDirectory ?? RootDirectory / "samples-output";
+    [Parameter("Examples output directory (default: ./examples-output)")]
+    public readonly AbsolutePath ExamplesOutputDirectory;
+    private AbsolutePath ExamplesOutput => ExamplesOutputDirectory ?? RootDirectory / "examples-output";
 
     /// <summary>
-    /// Gets the list of sample projects to build
+    /// Gets the list of example projects to build
     /// </summary>
-    private List<Project> SampleProjects => Solution.AllProjects
-        .Where(p => p.Directory.ToString().Contains("/Samples/") &&
+    private List<Project> ExampleProjects => Solution.AllProjects
+        .Where(p => p.Directory.ToString().Contains("/Examples/") &&
                    p.GetProperty("ExcludeFromBuild")?.Equals("true", StringComparison.OrdinalIgnoreCase) != true)
         .ToList();
 
     /// <summary>
-    /// Builds all sample applications
+    /// Builds all example applications
     /// </summary>
-    private Target BuildSamples => td => td
+    private Target BuildExamples => td => td
         .After(Compile)
         .Executes(() =>
         {
-            Log.Information("Building {Count} sample projects", SampleProjects.Count);
+            Log.Information("Building {Count} example projects", ExampleProjects.Count);
 
-            foreach (var project in SampleProjects)
+            foreach (var project in ExampleProjects)
             {
-                Log.Information("Building sample: {Project}", project.Name);
+                Log.Information("Building example: {Project}", project.Name);
 
                 _ = DotNetTasks.DotNetBuild(s => s
                     .SetProjectFile(project)
@@ -50,28 +50,28 @@ partial class Build
                 );
             }
 
-            Log.Information("Successfully built all sample projects");
+            Log.Information("Successfully built all example projects");
         });
 
     /// <summary>
-    /// Publishes all sample applications for multiple platforms
+    /// Publishes all example applications for multiple platforms
     /// </summary>
-    private Target PublishSamples => td => td
-        .After(BuildSamples)
-        .Produces(SamplesOutput / "**")
+    private Target PublishExamples => td => td
+        .After(BuildExamples)
+        .Produces(ExamplesOutput / "**")
         .Executes(() =>
         {
-            SamplesOutput.CreateDirectory();
+            ExamplesOutput.CreateDirectory();
 
-            Log.Information("Publishing {Count} sample projects for runtimes: {Runtimes}",
-                SampleProjects.Count, string.Join(", ", SampleRuntimes));
+            Log.Information("Publishing {Count} example projects for runtimes: {Runtimes}",
+                ExampleProjects.Count, string.Join(", ", ExampleRuntimes));
 
-            foreach (var runtime in SampleRuntimes)
+            foreach (var runtime in ExampleRuntimes)
             {
-                var runtimeOutput = SamplesOutput / runtime;
+                var runtimeOutput = ExamplesOutput / runtime;
                 runtimeOutput.CreateDirectory();
 
-                foreach (var project in SampleProjects)
+                foreach (var project in ExampleProjects)
                 {
                     // Skip publishing if project is a library
                     if (project.GetProperty("OutputType")?.Equals("Library", StringComparison.OrdinalIgnoreCase) == true)
@@ -98,80 +98,80 @@ partial class Build
                 }
             }
 
-            Log.Information("Successfully published all samples to {Directory}", SamplesOutput);
+            Log.Information("Successfully published all examples to {Directory}", ExamplesOutput);
         });
 
     /// <summary>
-    /// Packages sample applications into archives for distribution
+    /// Packages example applications into archives for distribution
     /// </summary>
-    private Target PackageSamples => td => td
-        .DependsOn(PublishSamples)
-        .Produces(SamplesOutput / "*.zip")
+    private Target PackageExamples => td => td
+        .DependsOn(PublishExamples)
+        .Produces(ExamplesOutput / "*.zip")
         .Executes(() =>
         {
-            foreach (var runtime in SampleRuntimes)
+            foreach (var runtime in ExampleRuntimes)
             {
-                var runtimeOutput = SamplesOutput / runtime;
-                var archiveName = $"Guinevere-Samples-{VersionFull}-{runtime}.zip";
-                var archivePath = SamplesOutput / archiveName;
+                var runtimeOutput = ExamplesOutput / runtime;
+                var archiveName = $"Guinevere-Examples-{VersionFull}-{runtime}.zip";
+                var archivePath = ExamplesOutput / archiveName;
 
-                Log.Information("Creating samples archive: {Archive}", archiveName);
+                Log.Information("Creating examples archive: {Archive}", archiveName);
 
                 runtimeOutput.ZipTo(archivePath, compressionLevel: System.IO.Compression.CompressionLevel.Optimal);
             }
 
-            Log.Information("Successfully packaged all samples");
+            Log.Information("Successfully packaged all examples");
         });
 
     /// <summary>
-    /// Cleans sample build outputs
+    /// Cleans example build outputs
     /// </summary>
-    private Target CleanSamples => td => td
+    private Target CleanExamples => td => td
         .Executes(() =>
         {
-            SampleProjects.ForEach(project =>
+            ExampleProjects.ForEach(project =>
             {
                 (project.Directory / "bin").DeleteDirectory();
                 (project.Directory / "obj").DeleteDirectory();
             });
 
-            SamplesOutput.DeleteDirectory();
-            Log.Information("Cleaned sample build outputs");
+            ExamplesOutput.DeleteDirectory();
+            Log.Information("Cleaned example build outputs");
         });
 
     /// <summary>
-    /// Creates a README file for the samples package
+    /// Creates a README file for the examples package
     /// </summary>
-    private Target CreateSamplesReadme => td => td
-        .Before(PackageSamples)
+    private Target CreateExamplesReadme => td => td
+        .Before(PackageExamples)
         .Executes(() =>
         {
-            foreach (var runtime in SampleRuntimes)
+            foreach (var runtime in ExampleRuntimes)
             {
-                var runtimeOutput = SamplesOutput / runtime;
+                var runtimeOutput = ExamplesOutput / runtime;
                 var readmePath = runtimeOutput / "README.md";
 
-                var readmeContent = $@"# Guinevere Samples v{VersionFull}
+                var readmeContent = $@"# Guinevere Examples v{VersionFull}
 
-This package contains sample applications demonstrating the Guinevere GUI system.
+This package contains example applications demonstrating the Guinevere GUI system.
 
 ## Runtime: {runtime}
 
-## Available Samples
+## Available Examples
 
-{GetSampleDescriptions()}
+{GetExampleDescriptions()}
 
-## Running the Samples
+## Running the Examples
 
-Each sample is provided as a self-contained executable:
+Each example is provided as a self-contained executable:
 
 ### Windows ({(runtime.Contains("win") ? "Current Platform" : "Not Current Platform")})
-- Double-click the `.exe` files to run the samples
-- Or run from command line: `SampleName.exe`
+- Double-click the `.exe` files to run the examples
+- Or run from command line: `ExampleName.exe`
 
 ### Linux ({(runtime.Contains("linux") ? "Current Platform" : "Not Current Platform")})
-- Make executable: `chmod +x SampleName`
-- Run from command line: `./SampleName`
+- Make executable: `chmod +x ExampleName`
+- Run from command line: `./ExampleName`
 
 ## About Guinevere
 
@@ -190,47 +190,47 @@ MIT License - see the project repository for full license details.
                 readmePath.WriteAllText(readmeContent);
             }
 
-            Log.Information("Created README files for sample packages");
+            Log.Information("Created README files for example packages");
         });
 
     /// <summary>
-    /// Generates descriptions for all sample projects
+    /// Generates descriptions for all example projects
     /// </summary>
-    private string GetSampleDescriptions()
+    private string GetExampleDescriptions()
     {
-        var descriptions = SampleProjects
+        var descriptions = ExampleProjects
             .OrderBy(p => p.Name)
-            .Select(project => $"- **{project.Name}**: {GetSampleDescription(project.Name)}")
+            .Select(project => $"- **{project.Name}**: {GetExampleDescription(project.Name)}")
             .ToArray();
 
         return string.Join(Environment.NewLine, descriptions);
     }
 
     /// <summary>
-    /// Gets a description for a sample project based on its name
+    /// Gets a description for a example project based on its name
     /// </summary>
-    private static string GetSampleDescription(string projectName) =>
+    private static string GetExampleDescription(string projectName) =>
         projectName switch
         {
-            "Sample-01" => "Basic Guinevere usage example",
-            "Sample-01-OpenGL-OpenTK" => "OpenGL rendering with OpenTK integration",
-            "Sample-01-OpenGL-Raylib" => "OpenGL rendering with Raylib integration",
-            "Sample-01-OpenGL-SilkNet" => "OpenGL rendering with Silk.NET integration",
-            "Sample-01-Vulkan-SilkNet" => "Vulkan rendering with Silk.NET integration",
-            "Sample-02-SimpleLayout" => "Demonstrates simple layout system",
-            "Sample-02-Layout" => "Shows nested layout with children",
-            "Sample-03-Texts" => "Text rendering and typography examples",
-            "Sample-05-SingleNodeExpandMargin" => "Layout margin and expansion demo",
-            "Sample-41-AdvancedLayoutDemo" => "Advanced layout system features",
-            "Sample-10-ResponsiveLayout" => "Responsive design examples",
-            "Sample-43-AnimatedLayoutDemo" => "Layout animations and transitions",
-            "Sample-50-Excalibur-Controls" => "Basic UI controls demonstration",
-            "Sample-75-PaperUI-Dashboard" => "Material Design style dashboard",
-            "Sample-70-PanGui-HelloWorld" => "Pan GUI integration - Hello World",
-            "Sample-71-PanGui-HelloTriangle" => "Pan GUI integration - Triangle rendering",
-            "Sample-72-PanGui-AirbnbSlider" => "Pan GUI integration - Airbnb style slider",
-            "Sample-73-PanGui-MusicApp" => "Pan GUI integration - Music player UI",
-            "Sample-74-PanGui-Heart" => "Pan GUI integration - Heart animation",
-            _ => "Sample application demonstrating Guinevere features"
+            "Example-01" => "Basic Guinevere usage example",
+            "Example-01-OpenGL-OpenTK" => "OpenGL rendering with OpenTK integration",
+            "Example-01-OpenGL-Raylib" => "OpenGL rendering with Raylib integration",
+            "Example-01-OpenGL-SilkNet" => "OpenGL rendering with Silk.NET integration",
+            "Example-01-Vulkan-SilkNet" => "Vulkan rendering with Silk.NET integration",
+            "Example-02-SimpleLayout" => "Demonstrates simple layout system",
+            "Example-02-Layout" => "Shows nested layout with children",
+            "Example-03-Texts" => "Text rendering and typography examples",
+            "Example-05-SingleNodeExpandMargin" => "Layout margin and expansion demo",
+            "Example-41-AdvancedLayoutDemo" => "Advanced layout system features",
+            "Example-10-ResponsiveLayout" => "Responsive design examples",
+            "Example-43-AnimatedLayoutDemo" => "Layout animations and transitions",
+            "Example-50-Excalibur-Controls" => "Basic UI controls demonstration",
+            "Example-75-PaperUI-Dashboard" => "Material Design style dashboard",
+            "Example-70-PanGui-HelloWorld" => "Pan GUI integration - Hello World",
+            "Example-71-PanGui-HelloTriangle" => "Pan GUI integration - Triangle rendering",
+            "Example-72-PanGui-AirbnbSlider" => "Pan GUI integration - Airbnb style slider",
+            "Example-73-PanGui-MusicApp" => "Pan GUI integration - Music player UI",
+            "Example-74-PanGui-Heart" => "Pan GUI integration - Heart animation",
+            _ => "Example application demonstrating Guinevere features"
         };
 }

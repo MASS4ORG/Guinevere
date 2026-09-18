@@ -43,7 +43,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   - [Scrolling & Clipping](#scrolling--clipping)
   - [Advanced Controls](#advanced-controls)
   - [Performance](#performance)
-- [Samples](#samples)
+- [Examples](#examples)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
@@ -269,9 +269,9 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   gui.DrawText($"Delta: {gui.Time.DeltaTime * 1000:F1}ms", 12, Color.White);
   ```
 
-## Samples
+## Examples
 
-The repository includes comprehensive [Samples](/Samples) demonstrating various features.
+The repository includes comprehensive [Examples](/Examples) demonstrating various features.
 
 ## License
 
