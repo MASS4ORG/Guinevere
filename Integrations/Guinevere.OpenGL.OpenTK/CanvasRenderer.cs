@@ -1,7 +1,7 @@
 using OpenTK.Graphics.OpenGL4;
 using SkiaSharp;
 
-namespace Guinevere.OpenGL.OpenTK;
+namespace Guinevere;
 
 /// <inheritdoc />
 public class CanvasRenderer : ICanvasRenderer
@@ -118,8 +118,8 @@ public class CanvasRenderer : ICanvasRenderer
 
     private void SetupShaders()
     {
-        var vertexShaderSource = GuiWindow.GetStringResource("Shaders.shader.vert");
-        var fragmentShaderSource = GuiWindow.GetStringResource("Shaders.shader.frag");
+        var vertexShaderSource = GuiWindow.GetStringResource("Guinevere.shader.vert");
+        var fragmentShaderSource = GuiWindow.GetStringResource("Guinevere.shader.frag");
         _shaderProgram = CompileShader(vertexShaderSource, fragmentShaderSource);
     }
 

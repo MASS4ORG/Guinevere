@@ -1,5 +1,4 @@
 ﻿using Guinevere;
-using Guinevere.OpenGL.SilkNET;
 using GuinevereDemos;
 
 namespace Example_42_ResponsiveLayoutDemo;

@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <RootNamespace>$(MSBuildProjectName.Replace("-", "_"))</RootNamespace>
+        <RootNamespace>Guinevere</RootNamespace>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
         <!-- NuGet Package Properties -->
@@ -26,7 +26,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="\"/>
+        <None Include="README.md" Pack="true" PackagePath="/"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -40,12 +40,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Guinevere\Guinevere.csproj"/>
+        <ProjectReference Include="../../Guinevere/Guinevere.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Fonts\font.ttf" />
-        <EmbeddedResource Include="Fonts\icons.ttf" />
-        <EmbeddedResource Include="Shaders\*"/>
+        <EmbeddedResource Include="../Resources/Fonts/font.ttf" />
+        <EmbeddedResource Include="../Resources/Fonts/icons.ttf" />
+        <EmbeddedResource Include="../Resources/Shaders/OpenGL/*"/>
     </ItemGroup>
 </Project>

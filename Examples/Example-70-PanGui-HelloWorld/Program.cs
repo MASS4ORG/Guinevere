@@ -1,5 +1,4 @@
 using Guinevere;
-using Guinevere.OpenGL.SilkNET;
 
 namespace Example_70_PanGui_HelloWorld;
 

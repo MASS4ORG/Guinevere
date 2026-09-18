@@ -1,6 +1,5 @@
 using System.Numerics;
 using Guinevere;
-using Guinevere.Vulkan.SilkNET;
 using static System.MathF;
 
 namespace Example_71_PanGui_HelloTriangle;

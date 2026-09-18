@@ -2,18 +2,18 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Serilog;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 using SkiaSharp;
-using Serilog;
 using Buffer = System.Buffer;
 using VkBuffer = Silk.NET.Vulkan.Buffer;
 using VkSemaphore = Silk.NET.Vulkan.Semaphore;
 
-namespace Guinevere.Vulkan.SilkNET;
+namespace Guinevere;
 
 /// <summary>
 /// Represents a Vulkan-based canvas renderer using Silk.NET and SkiaSharp.
@@ -22,54 +22,54 @@ namespace Guinevere.Vulkan.SilkNET;
 /// </summary>
 public unsafe class CanvasRenderer : ICanvasRenderer
 {
-    private readonly ILogger _logger;
-    private Vk _vk = null!;
-    private Instance _instance;
-    private PhysicalDevice _physicalDevice;
-    private Device _device;
-    private Queue _graphicsQueue;
-    private Queue _presentQueue;
-    private SurfaceKHR _surface;
-    private SwapchainKHR _swapchain;
-    private Image[]? _swapchainImages;
-    private ImageView[]? _swapchainImageViews;
-    private RenderPass _renderPass;
-    private Pipeline _graphicsPipeline;
-    private PipelineLayout _pipelineLayout;
-    private Framebuffer[]? _framebuffers;
-    private CommandPool _commandPool;
-    private CommandBuffer[] _commandBuffers = null!;
-    private VkSemaphore[] _imageAvailableSemaphores = null!;
-    private VkSemaphore[] _renderFinishedSemaphores = null!;
-    private Fence[] _inFlightFences = null!;
-    private VkBuffer _vertexBuffer;
-    private VkBuffer _indexBuffer;
-    private Image _textureImage;
-    private DeviceMemory _textureImageMemory;
-    private ImageView _textureImageView;
-    private Sampler _textureSampler;
-    private DescriptorSetLayout _descriptorSetLayout;
-    private DescriptorPool _descriptorPool;
-    private DescriptorSet[]? _descriptorSets;
+    readonly ILogger _logger;
+    Vk _vk = null!;
+    Instance _instance;
+    PhysicalDevice _physicalDevice;
+    Device _device;
+    Queue _graphicsQueue;
+    Queue _presentQueue;
+    SurfaceKHR _surface;
+    SwapchainKHR _swapchain;
+    Image[]? _swapchainImages;
+    ImageView[]? _swapchainImageViews;
+    RenderPass _renderPass;
+    Pipeline _graphicsPipeline;
+    PipelineLayout _pipelineLayout;
+    Framebuffer[]? _framebuffers;
+    CommandPool _commandPool;
+    CommandBuffer[] _commandBuffers = null!;
+    VkSemaphore[] _imageAvailableSemaphores = null!;
+    VkSemaphore[] _renderFinishedSemaphores = null!;
+    Fence[] _inFlightFences = null!;
+    VkBuffer _vertexBuffer;
+    VkBuffer _indexBuffer;
+    Image _textureImage;
+    DeviceMemory _textureImageMemory;
+    ImageView _textureImageView;
+    Sampler _textureSampler;
+    DescriptorSetLayout _descriptorSetLayout;
+    DescriptorPool _descriptorPool;
+    DescriptorSet[]? _descriptorSets;
 
-    private KhrSurface _khrSurface = null!;
-    private KhrSwapchain _khrSwapchain = null!;
+    KhrSurface _khrSurface = null!;
+    KhrSwapchain _khrSwapchain = null!;
 
-    private SKSurface? _skiaSurface;
-    private SKCanvas? _canvas;
-    private int _width, _height;
-    private uint _currentFrame;
-    private const int MaxFramesInFlight = 2;
+    SKSurface? _skiaSurface;
+    SKCanvas? _canvas;
+    int _width, _height;
+    uint _currentFrame;
+    const int MaxFramesInFlight = 2;
 
-    private uint _graphicsFamily;
-    private uint _presentFamily;
-    private Format _swapchainImageFormat;
-    private Extent2D _swapchainExtent;
+    uint _graphicsFamily;
+    uint _presentFamily;
+    Format _swapchainImageFormat;
+    Extent2D _swapchainExtent;
 
-    private IWindow _window = null!;
+    IWindow _window = null!;
 
     // Vertex data for full-screen quad with corrected texture coordinates
-    private readonly float[] _vertexData =
+    readonly float[] _vertexData =
     [
         -1f, -1f, 0f, 0f,
         1f, -1f, 1f, 0f,
@@ -77,7 +77,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         -1f, 1f, 0f, 1f
     ];
 
-    private readonly ushort[] _indices = [0, 1, 2, 2, 3, 0];
+    readonly ushort[] _indices = [0, 1, 2, 2, 3, 0];
 
     /// <summary>
     /// Initializes a renderer using the supplied logger, or the Serilog global logger when omitted.
@@ -129,7 +129,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void InitializeVulkan(bool firstTime = true)
+    void InitializeVulkan(bool firstTime = true)
     {
         if (firstTime)
         {
@@ -192,7 +192,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _logger.Debug("Vulkan initialization complete!");
     }
 
-    private void InitializeSkia()
+    void InitializeSkia()
     {
         _logger.Debug($"Initializing Skia surface: {_width}x{_height}");
         _skiaSurface = SKSurface.Create(new SKImageInfo(_width, _height, SKColorType.Bgra8888));
@@ -207,7 +207,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateInstance()
+    void CreateInstance()
     {
         var appInfo = new ApplicationInfo
         {
@@ -247,7 +247,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         SilkMarshal.Free(extensions);
     }
 
-    private void CreateSurface()
+    void CreateSurface()
     {
         // Use Silk.NET's CreateVkSurface if available
         if (_window.VkSurface != null)
@@ -270,7 +270,9 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
             var createInfo = new XlibSurfaceCreateInfoKHR
             {
-                SType = StructureType.XlibSurfaceCreateInfoKhr, Dpy = (nint*)x11Display, Window = (nint)x11Window
+                SType = StructureType.XlibSurfaceCreateInfoKhr,
+                Dpy = (nint*)x11Display,
+                Window = (nint)x11Window
             };
 
             if (xlibSurface.CreateXlibSurface(_instance, in createInfo, null, out _surface) != Result.Success)
@@ -307,7 +309,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void PickPhysicalDevice()
+    void PickPhysicalDevice()
     {
         uint deviceCount = 0;
         _vk.EnumeratePhysicalDevices(_instance, ref deviceCount, null);
@@ -332,7 +334,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             throw new Exception("Failed to find a suitable GPU");
     }
 
-    private bool IsDeviceSuitable(PhysicalDevice device)
+    bool IsDeviceSuitable(PhysicalDevice device)
     {
         var indices = FindQueueFamilies(device);
         var extensionsSupported = CheckDeviceExtensionSupport(device);
@@ -347,7 +349,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         return indices.IsComplete && extensionsSupported && swapchainAdequate;
     }
 
-    private QueueFamilyIndices FindQueueFamilies(PhysicalDevice device)
+    QueueFamilyIndices FindQueueFamilies(PhysicalDevice device)
     {
         var indices = new QueueFamilyIndices();
 
@@ -374,14 +376,14 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         return indices;
     }
 
-    private struct QueueFamilyIndices
+    struct QueueFamilyIndices
     {
         public uint? GraphicsFamily;
         public uint? PresentFamily;
         public bool IsComplete => GraphicsFamily.HasValue && PresentFamily.HasValue;
     }
 
-    private bool CheckDeviceExtensionSupport(PhysicalDevice device)
+    bool CheckDeviceExtensionSupport(PhysicalDevice device)
     {
         uint extensionCount = 0;
         _vk.EnumerateDeviceExtensionProperties(device, (byte*)null, ref extensionCount, null);
@@ -401,7 +403,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         return requiredExtensions.Count == 0;
     }
 
-    private SwapchainSupportDetails QuerySwapchainSupport(PhysicalDevice device)
+    SwapchainSupportDetails QuerySwapchainSupport(PhysicalDevice device)
     {
         var details = new SwapchainSupportDetails();
 
@@ -431,14 +433,14 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         return details;
     }
 
-    private struct SwapchainSupportDetails
+    struct SwapchainSupportDetails
     {
         public SurfaceCapabilitiesKHR Capabilities;
         public SurfaceFormatKHR[] Formats;
         public PresentModeKHR[] PresentModes;
     }
 
-    private void CreateLogicalDevice()
+    void CreateLogicalDevice()
     {
         var indices = FindQueueFamilies(_physicalDevice);
         _graphicsFamily = indices.GraphicsFamily!.Value;
@@ -485,7 +487,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             throw new Exception("Failed to get KHR Swapchain extension");
     }
 
-    private void CreateSwapchain()
+    void CreateSwapchain()
     {
         var swapchainSupport = QuerySwapchainSupport(_physicalDevice);
 
@@ -538,7 +540,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _swapchainExtent = extent;
     }
 
-    private SurfaceFormatKHR ChooseSwapSurfaceFormat(SurfaceFormatKHR[] availableFormats)
+    SurfaceFormatKHR ChooseSwapSurfaceFormat(SurfaceFormatKHR[] availableFormats)
     {
         foreach (var format in availableFormats)
         {
@@ -549,7 +551,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         return availableFormats[0];
     }
 
-    private PresentModeKHR ChooseSwapPresentMode(PresentModeKHR[] availablePresentModes)
+    PresentModeKHR ChooseSwapPresentMode(PresentModeKHR[] availablePresentModes)
     {
         foreach (var mode in availablePresentModes)
         {
@@ -560,7 +562,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         return PresentModeKHR.FifoKhr;
     }
 
-    private Extent2D ChooseSwapExtent(SurfaceCapabilitiesKHR capabilities)
+    Extent2D ChooseSwapExtent(SurfaceCapabilitiesKHR capabilities)
     {
         if (capabilities.CurrentExtent.Width != uint.MaxValue)
             return capabilities.CurrentExtent;
@@ -573,7 +575,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         };
     }
 
-    private void CreateImageViews()
+    void CreateImageViews()
     {
         if (_swapchainImages == null) return;
         _swapchainImageViews = new ImageView[_swapchainImages.Length];
@@ -608,7 +610,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateRenderPass()
+    void CreateRenderPass()
     {
         var colorAttachment = new AttachmentDescription
         {
@@ -624,7 +626,8 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         var colorAttachmentRef = new AttachmentReference
         {
-            Attachment = 0, Layout = ImageLayout.ColorAttachmentOptimal
+            Attachment = 0,
+            Layout = ImageLayout.ColorAttachmentOptimal
         };
 
         var subpass = new SubpassDescription
@@ -659,7 +662,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             throw new Exception("Failed to create render pass");
     }
 
-    private void CreateDescriptorSetLayout()
+    void CreateDescriptorSetLayout()
     {
         var samplerLayoutBinding = new DescriptorSetLayoutBinding
         {
@@ -672,14 +675,16 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         var layoutInfo = new DescriptorSetLayoutCreateInfo
         {
-            SType = StructureType.DescriptorSetLayoutCreateInfo, BindingCount = 1, PBindings = &samplerLayoutBinding
+            SType = StructureType.DescriptorSetLayoutCreateInfo,
+            BindingCount = 1,
+            PBindings = &samplerLayoutBinding
         };
 
         if (_vk.CreateDescriptorSetLayout(_device, in layoutInfo, null, out _descriptorSetLayout) != Result.Success)
             throw new Exception("Failed to create descriptor set layout");
     }
 
-    private void CreateGraphicsPipeline()
+    void CreateGraphicsPipeline()
     {
         _logger.Debug("Creating graphics pipeline...");
         // For simplicity, create minimal shader bytecode inline
@@ -842,12 +847,12 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _logger.Debug("✓ Graphics pipeline creation complete");
     }
 
-    private byte[] GetShaderSpirv(string shaderName)
+    byte[] GetShaderSpirv(string shaderName)
     {
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = $"Guinevere.Vulkan.SilkNET.Shaders.{shaderName}.spv";
+            var resourceName = $"Guinevere.{shaderName}.spv";
 
             using var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null)
@@ -866,7 +871,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private ShaderModule CreateShaderModule(byte[] code)
+    ShaderModule CreateShaderModule(byte[] code)
     {
         _logger.Debug($"Creating shader module with {code.Length} bytes");
 
@@ -888,7 +893,8 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         var createInfo = new ShaderModuleCreateInfo
         {
-            SType = StructureType.ShaderModuleCreateInfo, CodeSize = (nuint)code.Length
+            SType = StructureType.ShaderModuleCreateInfo,
+            CodeSize = (nuint)code.Length
         };
 
         fixed (byte* codePtr = code)
@@ -908,7 +914,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     }
 
     // TODO: not used
-    private VertexInputBindingDescription GetBindingDescription() => new()
+    VertexInputBindingDescription GetBindingDescription() => new()
     {
         Binding = 0,
         Stride = 4 * sizeof(float), // 2 pos + 2 uv
@@ -916,7 +922,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
     };
 
     // TODO: not used
-    private VertexInputAttributeDescription[] GetAttributeDescriptions()
+    VertexInputAttributeDescription[] GetAttributeDescriptions()
     {
         return
         [
@@ -953,7 +959,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void UploadSkiaToVulkan()
+    void UploadSkiaToVulkan()
     {
         try
         {
@@ -1022,12 +1028,15 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateBuffer(uint size, BufferUsageFlags usage, MemoryPropertyFlags properties, out VkBuffer buffer,
+    void CreateBuffer(uint size, BufferUsageFlags usage, MemoryPropertyFlags properties, out VkBuffer buffer,
         out DeviceMemory bufferMemory)
     {
         BufferCreateInfo bufferInfo = new()
         {
-            SType = StructureType.BufferCreateInfo, Size = size, Usage = usage, SharingMode = SharingMode.Exclusive,
+            SType = StructureType.BufferCreateInfo,
+            Size = size,
+            Usage = usage,
+            SharingMode = SharingMode.Exclusive,
         };
 
         if (_vk.CreateBuffer(_device, in bufferInfo, null, out buffer) != Result.Success)
@@ -1052,7 +1061,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _vk.BindBufferMemory(_device, buffer, bufferMemory, 0);
     }
 
-    private uint FindMemoryType(uint typeFilter, MemoryPropertyFlags properties)
+    uint FindMemoryType(uint typeFilter, MemoryPropertyFlags properties)
     {
         _vk.GetPhysicalDeviceMemoryProperties(_physicalDevice, out var memProperties);
 
@@ -1068,7 +1077,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         throw new Exception("Failed to find suitable memory type!");
     }
 
-    private void TransitionImageLayout(Image image, Format _, ImageLayout oldLayout, ImageLayout newLayout)
+    void TransitionImageLayout(Image image, Format _, ImageLayout oldLayout, ImageLayout newLayout)
     {
         var commandBuffer = BeginSingleTimeCommands();
 
@@ -1124,7 +1133,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         EndSingleTimeCommands(commandBuffer);
     }
 
-    private void CopyBufferToImage(VkBuffer buffer, Image image, uint width, uint height)
+    void CopyBufferToImage(VkBuffer buffer, Image image, uint width, uint height)
     {
         var commandBuffer = BeginSingleTimeCommands();
 
@@ -1135,7 +1144,10 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             BufferImageHeight = 0,
             ImageSubresource = new ImageSubresourceLayers
             {
-                AspectMask = ImageAspectFlags.ColorBit, MipLevel = 0, BaseArrayLayer = 0, LayerCount = 1,
+                AspectMask = ImageAspectFlags.ColorBit,
+                MipLevel = 0,
+                BaseArrayLayer = 0,
+                LayerCount = 1,
             },
             ImageOffset = new Offset3D { X = 0, Y = 0, Z = 0 },
             ImageExtent = new Extent3D { Width = width, Height = height, Depth = 1 },
@@ -1146,7 +1158,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         EndSingleTimeCommands(commandBuffer);
     }
 
-    private CommandBuffer BeginSingleTimeCommands()
+    CommandBuffer BeginSingleTimeCommands()
     {
         CommandBufferAllocateInfo allocInfo = new()
         {
@@ -1160,7 +1172,8 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         CommandBufferBeginInfo beginInfo = new()
         {
-            SType = StructureType.CommandBufferBeginInfo, Flags = CommandBufferUsageFlags.OneTimeSubmitBit,
+            SType = StructureType.CommandBufferBeginInfo,
+            Flags = CommandBufferUsageFlags.OneTimeSubmitBit,
         };
 
         _vk.BeginCommandBuffer(commandBuffer, in beginInfo);
@@ -1168,13 +1181,15 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         return commandBuffer;
     }
 
-    private void EndSingleTimeCommands(CommandBuffer commandBuffer)
+    void EndSingleTimeCommands(CommandBuffer commandBuffer)
     {
         _vk.EndCommandBuffer(commandBuffer);
 
         SubmitInfo submitInfo = new()
         {
-            SType = StructureType.SubmitInfo, CommandBufferCount = 1, PCommandBuffers = &commandBuffer,
+            SType = StructureType.SubmitInfo,
+            CommandBufferCount = 1,
+            PCommandBuffers = &commandBuffer,
         };
 
         _vk.QueueSubmit(_graphicsQueue, 1, in submitInfo, default);
@@ -1183,7 +1198,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _vk.FreeCommandBuffers(_device, _commandPool, 1, in commandBuffer);
     }
 
-    private void CreateTextureImage()
+    void CreateTextureImage()
     {
         ImageCreateInfo imageInfo = new()
         {
@@ -1225,7 +1240,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         InitializeTextureWithClearData();
     }
 
-    private void InitializeTextureWithClearData()
+    void InitializeTextureWithClearData()
     {
         var dataSize = (uint)(_width * _height * 4); // RGBA
         var clearData = new byte[dataSize];
@@ -1261,7 +1276,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _vk.FreeMemory(_device, stagingBufferMemory, null);
     }
 
-    private void CreateTextureImageView()
+    void CreateTextureImageView()
     {
         ImageViewCreateInfo viewInfo = new()
         {
@@ -1285,7 +1300,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateTextureSampler()
+    void CreateTextureSampler()
     {
         SamplerCreateInfo samplerInfo = new()
         {
@@ -1313,7 +1328,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateVertexBuffer()
+    void CreateVertexBuffer()
     {
         var bufferSize = (uint)(_vertexData.Length * sizeof(float));
 
@@ -1339,7 +1354,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _vk.FreeMemory(_device, stagingBufferMemory, null);
     }
 
-    private void CreateIndexBuffer()
+    void CreateIndexBuffer()
     {
         var bufferSize = (uint)(sizeof(ushort) * _indices.Length);
 
@@ -1365,7 +1380,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _vk.FreeMemory(_device, stagingBufferMemory, null);
     }
 
-    private void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, uint size)
+    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, uint size)
     {
         var commandBuffer = BeginSingleTimeCommands();
 
@@ -1376,11 +1391,12 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         EndSingleTimeCommands(commandBuffer);
     }
 
-    private void CreateDescriptorPool()
+    void CreateDescriptorPool()
     {
         DescriptorPoolSize poolSize = new()
         {
-            Type = DescriptorType.CombinedImageSampler, DescriptorCount = MaxFramesInFlight,
+            Type = DescriptorType.CombinedImageSampler,
+            DescriptorCount = MaxFramesInFlight,
         };
 
         DescriptorPoolCreateInfo poolInfo = new()
@@ -1397,7 +1413,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateDescriptorSets()
+    void CreateDescriptorSets()
     {
         _descriptorSets = new DescriptorSet[MaxFramesInFlight];
 
@@ -1447,7 +1463,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void RenderToVulkan()
+    void RenderToVulkan()
     {
         try
         {
@@ -1547,7 +1563,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void RecordCommandBuffer(CommandBuffer commandBuffer, uint imageIndex)
+    void RecordCommandBuffer(CommandBuffer commandBuffer, uint imageIndex)
     {
         CommandBufferBeginInfo beginInfo = new() { SType = StructureType.CommandBufferBeginInfo, };
 
@@ -1590,7 +1606,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         _vk.EndCommandBuffer(commandBuffer);
     }
 
-    private void CreateFramebuffers()
+    void CreateFramebuffers()
     {
         _framebuffers = new Framebuffer[_swapchainImageViews!.Length];
 
@@ -1616,7 +1632,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateCommandPool()
+    void CreateCommandPool()
     {
         CommandPoolCreateInfo poolInfo = new()
         {
@@ -1631,7 +1647,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateCommandBuffers()
+    void CreateCommandBuffers()
     {
         _commandBuffers = new CommandBuffer[MaxFramesInFlight];
 
@@ -1652,7 +1668,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CreateSyncObjects()
+    void CreateSyncObjects()
     {
         _imageAvailableSemaphores = new VkSemaphore[MaxFramesInFlight];
         _renderFinishedSemaphores = new VkSemaphore[MaxFramesInFlight];
@@ -1662,7 +1678,8 @@ public unsafe class CanvasRenderer : ICanvasRenderer
 
         FenceCreateInfo fenceInfo = new()
         {
-            SType = StructureType.FenceCreateInfo, Flags = FenceCreateFlags.SignaledBit,
+            SType = StructureType.FenceCreateInfo,
+            Flags = FenceCreateFlags.SignaledBit,
         };
 
         for (var i = 0; i < MaxFramesInFlight; i++)
@@ -1723,7 +1740,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
     }
 
-    private void CleanupSwapchain()
+    void CleanupSwapchain()
     {
         try
         {

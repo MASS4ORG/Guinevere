@@ -6,9 +6,8 @@ OpenGL API using [Silk.NET](https://github.com/dotnet/Silk.NET).
 
 ```csharp
 using Guinevere;
-using Guinevere.OpenGL.SilkNET;
 
-namespace Sample;
+namespace Example;
 
 public abstract class Program
 {

@@ -1,7 +1,6 @@
 using System.Numerics;
 using System.Text;
 using Guinevere;
-using Guinevere.OpenGL.SilkNET;
 using GuinevereDemos;
 
 namespace Example;

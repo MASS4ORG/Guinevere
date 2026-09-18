@@ -1,6 +1,5 @@
 using System.Numerics;
 using Guinevere;
-using Guinevere.OpenGL.SilkNET;
 
 namespace Example_72_PanGui_AirbnbSlider;
 

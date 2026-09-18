@@ -1,5 +1,4 @@
 ﻿using Guinevere;
-using Guinevere.Vulkan.SilkNET;
 using Example_01;
 
 namespace Example_01_Vulkan_SilkNet;

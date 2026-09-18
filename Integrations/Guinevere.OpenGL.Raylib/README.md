@@ -6,9 +6,8 @@ OpenGL API using [Raylib-cs](https://github.com/ChrisDill/Raylib-cs).
 
 ```csharp
 using Guinevere;
-using Guinevere.OpenGL.Raylib;
 
-namespace Sample;
+namespace Example;
 
 public abstract class Program
 {

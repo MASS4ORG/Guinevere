@@ -1,7 +1,7 @@
 using Raylib_cs;
 using SkiaSharp;
 
-namespace Guinevere.OpenGL.Raylib;
+namespace Guinevere;
 
 /// <inheritdoc />
 public class CanvasRenderer : ICanvasRenderer

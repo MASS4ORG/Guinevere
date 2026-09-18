@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text;
 using Raylib_cs;
 
-namespace Guinevere.OpenGL.Raylib;
+namespace Guinevere;
 
 /// <summary>
 /// Represents a GUI window implementation using Raylib for OpenGL rendering.
@@ -35,9 +35,9 @@ public class GuiWindow : IDisposable, IInputHandler, IClipboard, IWindowHandler
         _gui = gui;
         _gui.Input = this;
         _gui.WindowHandler = this;
-        var fontStream = GetStreamResource("Fonts.font.ttf");
+        var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
-        fontStream = GetStreamResource("Fonts.icons.ttf");
+        fontStream = GetStreamResource("Guinevere.icons.ttf");
         _fontIcon = Font.FromStream(fontStream);
         Raylib_cs.Raylib.SetTraceLogLevel(TraceLogLevel.Warning); // Reduce verbose logging
         Raylib_cs.Raylib.InitWindow(_width, _height, title);
@@ -64,7 +64,6 @@ public class GuiWindow : IDisposable, IInputHandler, IClipboard, IWindowHandler
     /// <returns>A stream containing the resource data.</returns>
     private static Stream GetStreamResource(string resource)
     {
-        resource = "Guinevere.OpenGL.Raylib." + resource;
         var assembly = Assembly.GetExecutingAssembly();
         var stream = assembly.GetManifestResourceStream(resource);
         if (stream == null) throw new Exception($"Could not load resource: `{resource}`");

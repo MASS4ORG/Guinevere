@@ -44,7 +44,7 @@ jobs:
               id: nuget-login
               with:
                   user: ${{ secrets.NUGET_USER }}
-            - name: "Run: Release (build, test, pack, publish, samples)"
+            - name: "Run: Release (build, test, pack, publish, examples)"
               run: ./build.cmd Release
               env:
                   NuGetApiKey: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
@@ -54,8 +54,8 @@ jobs:
               with:
                   name: packages
                   path: packages
-            - name: "Publish: samples-output"
+            - name: "Publish: examples-output"
               uses: actions/upload-artifact@v4
               with:
-                  name: samples-output
-                  path: samples-output
+                  name: examples-output
+                  path: examples-output

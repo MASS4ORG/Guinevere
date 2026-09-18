@@ -1,6 +1,5 @@
 using System.Numerics;
 using Guinevere;
-using Guinevere.OpenGL.OpenTK;
 using Math = System.Math;
 
 namespace Example_73_PanGui_MusicApp;

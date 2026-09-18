@@ -6,9 +6,8 @@ Modern Vulkan API using [Silk.NET](https://github.com/dotnet/Silk.NET).
 
 ```csharp
 using Guinevere;
-using Guinevere.Vulkan.SilkNET;
 
-namespace Sample;
+namespace Example;
 
 public abstract class Program
 {

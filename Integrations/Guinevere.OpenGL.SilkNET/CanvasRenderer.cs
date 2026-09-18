@@ -1,7 +1,7 @@
 ﻿using Silk.NET.OpenGL;
 using SkiaSharp;
 
-namespace Guinevere.OpenGL.SilkNET;
+namespace Guinevere;
 
 /// <inheritdoc />
 public class CanvasRenderer : ICanvasRenderer
@@ -52,8 +52,8 @@ public class CanvasRenderer : ICanvasRenderer
     private void SetupShaders()
     {
         // Load Shaders and compile the program
-        var vertexShaderSource = GuiWindow.GetStringResource("Shaders.shader.vert");
-        var fragmentShaderSource = GuiWindow.GetStringResource("Shaders.shader.frag");
+        var vertexShaderSource = GuiWindow.GetStringResource("Guinevere.shader.vert");
+        var fragmentShaderSource = GuiWindow.GetStringResource("Guinevere.shader.frag");
 
         // Create the vertex shader
         var vertexShader = _gl.CreateShader(ShaderType.VertexShader);

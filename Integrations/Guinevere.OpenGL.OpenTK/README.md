@@ -6,9 +6,8 @@ OpenGL API using [OpenTK](https://github.com/opentk/opentk).
 
 ```csharp
 using Guinevere;
-using Guinevere.OpenGL.OpenTK;
 
-namespace Sample;
+namespace Example;
 
 public abstract class Program
 {

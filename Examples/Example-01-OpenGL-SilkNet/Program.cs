@@ -1,5 +1,4 @@
 ﻿using Guinevere;
-using Guinevere.OpenGL.SilkNET;
 using Example_01;
 
 namespace Example_01_OpenGL_SilkNet;

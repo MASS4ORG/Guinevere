@@ -1,5 +1,4 @@
 using Guinevere;
-using Guinevere.OpenGL.SilkNET;
 
 namespace Example_75_PaperUI_Dashboard;
 

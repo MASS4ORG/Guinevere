@@ -1,6 +1,5 @@
 using System.Numerics;
 using Guinevere;
-using Guinevere.OpenGL.SilkNET;
 using GuinevereDemos;
 
 namespace Example_60_Docking;
