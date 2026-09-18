@@ -13,7 +13,7 @@ using Nuke.Common.Tools.Git;
 
 using Serilog;
 
-namespace Guinevere.Nuke;
+namespace Build;
 
 /// <summary>
 /// This is the main build file for the project.

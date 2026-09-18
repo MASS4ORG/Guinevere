@@ -3,7 +3,7 @@ using Nuke.Common.CI;
 using Nuke.Common.CI.GitHubActions;
 using Serilog;
 
-namespace Guinevere.Nuke;
+namespace Build;
 
 /// <summary>
 /// This is the main build file for the Guinevere project.

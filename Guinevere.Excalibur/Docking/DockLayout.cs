@@ -272,6 +272,9 @@ public sealed class DockLayout
             if (ReplaceChild(window.Root, target, replacement))
                 return;
         }
+
+        if (Root is not null)
+            ReplaceChild(Root, target, replacement);
     }
 
     static bool ReplaceChild(DockNode node, DockNode target, DockNode replacement)

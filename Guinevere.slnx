@@ -1,0 +1,41 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Examples/">
+    <Project Path="Examples/Example-01-OpenGL-OpenTK/Example-01-OpenGL-OpenTK.csproj" />
+    <Project Path="Examples/Example-01-OpenGL-Raylib/Example-01-OpenGL-Raylib.csproj" />
+    <Project Path="Examples/Example-01-OpenGL-SilkNet/Example-01-OpenGL-SilkNet.csproj" />
+    <Project Path="Examples/Example-01-Vulkan-SilkNet/Example-01-Vulkan-SilkNet.csproj" />
+    <Project Path="Examples/Example-01/Example-01.csproj" />
+    <Project Path="Examples/Example-02-Layout/Example-02-Layout.csproj" />
+    <Project Path="Examples/Example-03-Texts/Example-03-Texts.csproj" />
+    <Project Path="Examples/Example-04-Animation/Example-04-Animation.csproj" />
+    <Project Path="Examples/Example-10-ResponsiveLayout/Example-10-ResponsiveLayout.csproj" />
+    <Project Path="Examples/Example-50-Excalibur-Controls/Example-50-Excalibur-Controls.csproj" />
+    <Project Path="Examples/Example-51-Docking/Example-51-Docking.csproj" />
+    <Project Path="Examples/Example-70-PanGui-HelloWorld/Example-70-PanGui-HelloWorld.csproj" />
+    <Project Path="Examples/Example-71-PanGui-HelloTriangle/Example-71-PanGui-HelloTriangle.csproj" />
+    <Project Path="Examples/Example-72-PanGui-AirbnbSlider/Example-72-PanGui-AirbnbSlider.csproj" />
+    <Project Path="Examples/Example-73-PanGui-MusicApp/Example-73-PanGui-MusicApp.csproj">
+      <Build Solution="*|Any CPU" Project="false" />
+    </Project>
+    <Project Path="Examples/Example-74-PanGui-Heart/Example-74-PanGui-Heart.csproj" />
+    <Project Path="Examples/Example-75-PaperUI-Dashboard/Example-75-PaperUI-Dashboard.csproj" />
+  </Folder>
+  <Folder Name="/Integrations/">
+    <Project Path="Integrations/Guinevere.OpenGL.OpenTK/Guinevere.OpenGL.OpenTK.csproj" />
+    <Project Path="Integrations/Guinevere.OpenGL.Raylib/Guinevere.OpenGL.Raylib.csproj" />
+    <Project Path="Integrations/Guinevere.OpenGL.SilkNET/Guinevere.OpenGL.SilkNET.csproj" />
+    <Project Path="Integrations/Guinevere.Vulkan.SilkNET/Guinevere.Vulkan.SilkNET.csproj" />
+  </Folder>
+  <Project Path=".nuke/Build.csproj">
+    <Build Solution="*|Any CPU" Project="false" />
+  </Project>
+  <Project Path="Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+  <Project Path="Guinevere.Scripting/Guinevere.Scripting.csproj" />
+  <Project Path="Guinevere.Tests/Guinevere.Tests.csproj" />
+  <Project Path="Guinevere/Guinevere.csproj" />
+</Solution>

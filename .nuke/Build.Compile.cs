@@ -7,7 +7,7 @@ using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
 using Serilog;
 
-namespace Guinevere.Nuke;
+namespace Build;
 
 /// <summary>
 /// This is the main build file for the project.
@@ -18,7 +18,7 @@ partial class Build
     private Target Clean => s => s
         .Executes(() =>
         {
-            var nukeBuildDir = Solution.Guinevere_Nuke.Directory;
+            var nukeBuildDir = Solution.Build.Directory;
 
             Solution.Directory.GlobDirectories("**/bin", "**/obj", "**/output")
                 .Where(path => !path.ToString().StartsWith(nukeBuildDir))

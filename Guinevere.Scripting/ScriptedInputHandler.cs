@@ -48,6 +48,7 @@ public sealed class ScriptedInputHandler : IInputHandler
     /// <summary>Releases a held mouse button.</summary>
     public void ReleaseButton(MouseButton button = MouseButton.Left)
     {
+        _buttonsDown.Remove(button);
     }
 
     /// <summary>Presses a key and holds it until <see cref="ReleaseKey"/>.</summary>
@@ -59,6 +60,7 @@ public sealed class ScriptedInputHandler : IInputHandler
     /// <summary>Releases a held key.</summary>
     public void ReleaseKey(KeyboardKey key)
     {
+        _keysDown.Remove(key);
     }
 
     /// <summary>Queues text for this frame's <see cref="GetTypedCharacters"/>.</summary>

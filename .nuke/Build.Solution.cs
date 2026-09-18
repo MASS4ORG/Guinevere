@@ -1,7 +1,7 @@
 using Nuke.Common;
 using Nuke.Common.ProjectModel;
 
-namespace Guinevere.Nuke;
+namespace Build;
 
 /// <summary>
 /// This is the main build file for the project.

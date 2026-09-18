@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using Nuke.Common.Tooling;
 
-namespace Guinevere.Nuke;
+namespace Build;
 
 [TypeConverter(typeof(TypeConverter<Configuration>))]
 public class Configuration : Enumeration
