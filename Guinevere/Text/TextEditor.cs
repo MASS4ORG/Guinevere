@@ -14,7 +14,7 @@ namespace Guinevere;
 public static class TextEditor
 {
     /// <summary>Seconds the caret spends in each half of its blink.</summary>
-    private const float BlinkInterval = 0.5f;
+    const float BlinkInterval = 0.5f;
 
     /// <summary>
     /// The state for a field, created on first use. The caller stays the source of truth: when the
@@ -83,7 +83,7 @@ public static class TextEditor
 
     // ── pointer ─────────────────────────────────────────────────────────────
 
-    private static void HandleFocusAndClick(Gui gui, TextEditState state, InteractableElement interactable,
+    static void HandleFocusAndClick(Gui gui, TextEditState state, InteractableElement interactable,
         float fontSize, bool multiline, string display)
     {
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
@@ -130,7 +130,7 @@ public static class TextEditor
 
     // ── keyboard ────────────────────────────────────────────────────────────
 
-    private static void HandleKeyboard(Gui gui, TextEditState state, bool multiline)
+    static void HandleKeyboard(Gui gui, TextEditState state, bool multiline)
     {
         if (!state.IsFocused) return;
 
@@ -163,7 +163,7 @@ public static class TextEditor
         state.ShowCursor = !state.ShowCursor;
     }
 
-    private static void HandleSpecialKeys(Gui gui, TextEditState state)
+    static void HandleSpecialKeys(Gui gui, TextEditState state)
     {
         var input = gui.Input;
         var extend = input.IsKeyDown(KeyboardKey.LeftShift) || input.IsKeyDown(KeyboardKey.RightShift);
@@ -188,7 +188,7 @@ public static class TextEditor
         state.BlinkTimer = 0f;
     }
 
-    private static bool HandleClipboard(Gui gui, TextEditState state, bool control)
+    static bool HandleClipboard(Gui gui, TextEditState state, bool control)
     {
         if (!control) return false;
 
@@ -228,14 +228,14 @@ public static class TextEditor
     /// A plain arrow key with a selection collapses to that edge rather than moving one character,
     /// which is what every text field does.
     /// </summary>
-    private static int Collapse(TextEditState state, bool extend, bool forward)
+    static int Collapse(TextEditState state, bool extend, bool forward)
     {
         if (!extend && state.HasSelection) return forward ? state.SelectionEnd : state.SelectionStart;
 
         return state.CursorPosition + (forward ? 1 : -1);
     }
 
-    private static void Backspace(TextEditState state, bool word)
+    static void Backspace(TextEditState state, bool word)
     {
         if (state.DeleteSelection()) return;
         if (state.CursorPosition <= 0) return;
@@ -245,7 +245,7 @@ public static class TextEditor
         state.MoveTo(from, extend: false);
     }
 
-    private static void ForwardDelete(TextEditState state, bool word)
+    static void ForwardDelete(TextEditState state, bool word)
     {
         if (state.DeleteSelection()) return;
         if (state.CursorPosition >= state.Text.Length) return;
@@ -256,7 +256,7 @@ public static class TextEditor
     }
 
     /// <summary>Moves the caret a line up or down, keeping the column when the target line is long enough.</summary>
-    private static void MoveByLine(TextEditState state, int direction, bool extend)
+    static void MoveByLine(TextEditState state, int direction, bool extend)
     {
         var lines = state.Text.Split('\n');
         var (row, column) = LineAndColumn(lines, state.CursorPosition);
@@ -272,7 +272,7 @@ public static class TextEditor
     }
 
     /// <summary>The start of the line the caret is on.</summary>
-    private static int LineStart(TextEditState state)
+    static int LineStart(TextEditState state)
     {
         var position = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
         if (position <= 0) return 0;
@@ -280,7 +280,7 @@ public static class TextEditor
     }
 
     /// <summary>The end of the line the caret is on.</summary>
-    private static int LineEnd(TextEditState state)
+    static int LineEnd(TextEditState state)
     {
         var position = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
         var newline = state.Text.IndexOf('\n', position);
@@ -288,7 +288,7 @@ public static class TextEditor
     }
 
     /// <summary>The start of the word to the caret's left, skipping any run of spaces first.</summary>
-    private static int WordBoundaryLeft(TextEditState state)
+    static int WordBoundaryLeft(TextEditState state)
     {
         var i = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
         while (i > 0 && char.IsWhiteSpace(state.Text[i - 1])) i--;
@@ -297,7 +297,7 @@ public static class TextEditor
     }
 
     /// <summary>The end of the word to the caret's right, then any run of spaces after it.</summary>
-    private static int WordBoundaryRight(TextEditState state)
+    static int WordBoundaryRight(TextEditState state)
     {
         var i = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
         while (i < state.Text.Length && !char.IsWhiteSpace(state.Text[i])) i++;
@@ -393,7 +393,7 @@ public static class TextEditor
         return PositionOfLine(lines, targetLine) + PositionInLine(gui, point, lineRect, lineText, fontSize);
     }
 
-    private static int PositionInLine(Gui gui, Vector2 point, Rect inner, string text, float fontSize)
+    static int PositionInLine(Gui gui, Vector2 point, Rect inner, string text, float fontSize)
     {
         var font = MeasuringFont(gui, fontSize);
 

@@ -11,7 +11,7 @@ namespace Guinevere;
 public sealed class ImageDrawable(SKImage image, Rect destination, Rect? source = null, SKPaint? paint = null)
     : IDrawable
 {
-    private static readonly SKSamplingOptions Sampling = new(SKFilterMode.Linear, SKMipmapMode.None);
+    static readonly SKSamplingOptions Sampling = new(SKFilterMode.Linear, SKMipmapMode.None);
 
     /// <summary>The source image.</summary>
     public SKImage Image { get; } = image;

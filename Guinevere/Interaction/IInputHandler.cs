@@ -1,4 +1,4 @@
-﻿namespace Guinevere;
+namespace Guinevere;
 
 /// <summary>
 /// Provides input handling functionalities including keyboard and mouse events.

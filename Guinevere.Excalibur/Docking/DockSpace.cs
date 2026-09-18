@@ -52,7 +52,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderNode(DockContext context, DockNode node, string path)
+    static void RenderNode(DockContext context, DockNode node, string path)
     {
         switch (node)
         {
@@ -65,7 +65,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderSplit(DockContext context, DockSplit split, string path)
+    static void RenderSplit(DockContext context, DockSplit split, string path)
     {
         var gui = context.Gui;
         var horizontal = split.Axis == Axis.Horizontal;
@@ -94,7 +94,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderLeaf(DockContext context, DockLeaf leaf, string path)
+    static void RenderLeaf(DockContext context, DockLeaf leaf, string path)
     {
         var gui = context.Gui;
         var theme = context.Theme;
@@ -133,7 +133,7 @@ public static partial class ControlsExtensions
     /// Hands the host whatever width the tabs left over. The node exists in both passes even without a
     /// callback, so the strip's structure does not change when a host adds or drops one.
     /// </summary>
-    private static void TabStripActions(DockContext context, DockLeaf leaf, string id)
+    static void TabStripActions(DockContext context, DockLeaf leaf, string id)
     {
         var gui = context.Gui;
 
@@ -148,13 +148,13 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static TabStripItem ToTabItem(DockContext context, DockLeaf leaf, string panelId)
+    static TabStripItem ToTabItem(DockContext context, DockLeaf leaf, string panelId)
     {
         var info = context.PanelInfo(panelId) ?? new DockPanelInfo(panelId);
         return new TabStripItem(panelId, info.Title, info.Closable, Icon: info.Icon, Tag: leaf);
     }
 
-    private static void Activate(DockContext context, DockLeaf leaf, TabStripItem item)
+    static void Activate(DockContext context, DockLeaf leaf, TabStripItem item)
     {
         var index = leaf.PanelIds.IndexOf(item.Id);
         if (index < 0 || index == leaf.ActiveIndex) return;
@@ -164,7 +164,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Starts a tab drag, and accepts a drop from a sibling tab as a reorder.</summary>
-    private static bool DragTab(DockContext context, DockLeaf leaf, TabStripItem item, string id)
+    static bool DragTab(DockContext context, DockLeaf leaf, TabStripItem item, string id)
     {
         var gui = context.Gui;
 
@@ -202,7 +202,7 @@ public static partial class ControlsExtensions
     /// panel would land. The edge bands take priority and everything else is the centre, so no part of
     /// a group is dead space that silently tears the panel off instead.
     /// </summary>
-    private static void DropZones(DockContext context, DockLeaf leaf, Rect rect)
+    static void DropZones(DockContext context, DockLeaf leaf, Rect rect)
     {
         var gui = context.Gui;
         if (!gui.IsDragging) return;
@@ -229,7 +229,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Which zone a point falls in: an edge band if it is within one, otherwise the centre.</summary>
-    private static DockZone ZoneAt(Rect rect, Vector2 point, float fraction)
+    static DockZone ZoneAt(Rect rect, Vector2 point, float fraction)
     {
         foreach (var zone in EdgeZones)
             if (ZoneRect(rect, zone, fraction).Contains(point))
@@ -238,16 +238,16 @@ public static partial class ControlsExtensions
         return DockZone.Center;
     }
 
-    private static bool IsNoOpDrop(DockTabPayload payload, DockLeaf leaf, DockZone zone) =>
+    static bool IsNoOpDrop(DockTabPayload payload, DockLeaf leaf, DockZone zone) =>
         zone == DockZone.Center && ReferenceEquals(payload.Leaf, leaf) && leaf.PanelIds.Count == 1;
 
     /// <summary>Sentinel for "no drag anchor recorded"; a real window position never reaches it.</summary>
-    private static readonly Vector2 NoAnchor = new(float.NaN, float.NaN);
+    static readonly Vector2 NoAnchor = new(float.NaN, float.NaN);
 
-    private static readonly DockZone[] EdgeZones =
+    static readonly DockZone[] EdgeZones =
         [DockZone.Left, DockZone.Right, DockZone.Top, DockZone.Bottom];
 
-    private static Rect ZoneRect(Rect rect, DockZone zone, float fraction) => zone switch
+    static Rect ZoneRect(Rect rect, DockZone zone, float fraction) => zone switch
     {
         DockZone.Left => new Rect(rect.X, rect.Y, rect.W * fraction, rect.H),
         DockZone.Right => new Rect(rect.X + rect.W * (1f - fraction), rect.Y, rect.W * fraction, rect.H),
@@ -260,7 +260,7 @@ public static partial class ControlsExtensions
             rect.H * fraction)
     };
 
-    private static void TearOffTarget(DockContext context, Rect rect)
+    static void TearOffTarget(DockContext context, Rect rect)
     {
         var gui = context.Gui;
         if (gui.Pass != Pass.Pass2Render || !gui.IsDragging) return;
@@ -275,7 +275,7 @@ public static partial class ControlsExtensions
             });
     }
 
-    private static void RenderFloating(DockContext context)
+    static void RenderFloating(DockContext context)
     {
         var gui = context.Gui;
         var theme = context.Theme;
@@ -329,7 +329,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void EmptyDockSpace(DockContext context)
+    static void EmptyDockSpace(DockContext context)
     {
         var gui = context.Gui;
 
@@ -344,7 +344,7 @@ public static partial class ControlsExtensions
     /// The per-frame plumbing a dock render needs, plus the one deferred edit that cannot wait for a
     /// drop: a close click, applied after the frame so the tree does not change between passes.
     /// </summary>
-    private sealed class DockContext(
+    sealed class DockContext(
         Gui gui,
         DockLayout layout,
         Func<string, DockPanelInfo?> panelInfo,

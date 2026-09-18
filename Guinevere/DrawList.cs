@@ -5,7 +5,7 @@ namespace Guinevere;
 /// </summary>
 public sealed class DrawList
 {
-    private List<IDrawListEntry> _entries = [];
+    List<IDrawListEntry> _entries = [];
 
     /// <summary>
     /// Adds a drawable shape to the draw list.
@@ -22,7 +22,7 @@ public sealed class DrawList
     /// <param name="shape">The drawable object to prepend to the draw list.</param>
     public void Prepend(IDrawable shape)
     {
-        _entries = _entries.Prepend(new DrawableEntry(shape)).ToList();
+        _entries = [.. _entries.Prepend(new DrawableEntry(shape))];
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ public sealed class DrawList
     /// <param name="entry">The draw list entry to prepend to the draw list.</param>
     public void Prepend(IDrawListEntry entry)
     {
-        _entries = _entries.Prepend(entry).ToList();
+        _entries = [.. _entries.Prepend(entry)];
     }
 
     /// <summary>

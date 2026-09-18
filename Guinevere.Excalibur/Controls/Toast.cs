@@ -68,7 +68,7 @@ public sealed record ToastOptions
 
 public static partial class ControlsExtensions
 {
-    private sealed class ToastState
+    sealed class ToastState
     {
         public List<ToastEntry> Entries { get; } = new();
 
@@ -76,13 +76,13 @@ public static partial class ControlsExtensions
         public List<ToastEntry> Visible { get; } = new();
     }
 
-    private sealed record ToastEntry(string Text, float ExpiresAt, float SpawnedAt, ToastOptions Options);
+    sealed record ToastEntry(string Text, float ExpiresAt, float SpawnedAt, ToastOptions Options);
 
-    private const string ToastStateId = "Guinevere.Toast";
-    private const float ToastSpacing = 8f;
+    const string ToastStateId = "Guinevere.Toast";
+    const float ToastSpacing = 8f;
 
     /// <summary>Above menu bars and scroll bars, below the drag ghost.</summary>
-    private const int ToastZIndex = 9000;
+    const int ToastZIndex = 9000;
 
     /// <summary>
     /// Queues a toast notification to be shown by the next <see cref="Toasts"/> call. Every call adds
@@ -126,7 +126,7 @@ public static partial class ControlsExtensions
         gui.ControlState(ToastStateId, () => new ToastState()).Entries.Clear();
     }
 
-    private static void RenderToasts(Gui gui, ToastState state, float now)
+    static void RenderToasts(Gui gui, ToastState state, float now)
     {
         if (state.Visible.Count == 0) return;
 
@@ -180,7 +180,7 @@ public static partial class ControlsExtensions
                 state.Entries.Remove(entry);
     }
 
-    private static Vector2 ToastPosition(Rect screen, ToastOptions opts, float width, float height, float above)
+    static Vector2 ToastPosition(Rect screen, ToastOptions opts, float width, float height, float above)
     {
         var x = opts.Corner switch
         {
@@ -197,7 +197,7 @@ public static partial class ControlsExtensions
         return new Vector2(x, y);
     }
 
-    private static int ToastAlpha(float now, ToastEntry entry, ToastOptions opts)
+    static int ToastAlpha(float now, ToastEntry entry, ToastOptions opts)
     {
         var age = now - entry.SpawnedAt;
         var remaining = entry.ExpiresAt - now;
@@ -209,6 +209,6 @@ public static partial class ControlsExtensions
         return Math.Max(0, Math.Min(255, (int)(alpha * 255)));
     }
 
-    private static Color WithAlpha(Color color, int alpha) =>
+    static Color WithAlpha(Color color, int alpha) =>
         Color.FromArgb(alpha, color.R, color.G, color.B);
 }

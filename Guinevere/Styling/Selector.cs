@@ -38,9 +38,9 @@ public readonly record struct StyleTarget(
 /// </summary>
 public sealed class Selector
 {
-    private readonly string? _type;   // null or "*" means "any type"
-    private readonly string? _id;
-    private readonly string[] _classes;
+    readonly string? _type;   // null or "*" means "any type"
+    readonly string? _id;
+    readonly string[] _classes;
 
     /// <summary>The state modifier this selector requires, or <see cref="StyleState.None"/>.</summary>
     public StyleState Modifier { get; }
@@ -51,7 +51,7 @@ public sealed class Selector
     /// </summary>
     public int Specificity { get; }
 
-    private Selector(string? type, string? id, string[] classes, StyleState modifier)
+    Selector(string? type, string? id, string[] classes, StyleState modifier)
     {
         _type = type;
         _id = id;
@@ -112,7 +112,7 @@ public sealed class Selector
             }
         }
 
-        return new Selector(type, id, classes.ToArray(), modifier);
+        return new Selector(type, id, [.. classes], modifier);
     }
 
     /// <summary>Whether this selector matches <paramref name="target"/> in the current frame.</summary>

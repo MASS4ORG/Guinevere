@@ -15,7 +15,11 @@ public class FlyoutBuilder
     {
         Items.Add(new FlyoutItem
         {
-            Text = text, Action = action, Shortcut = shortcut, Enabled = enabled, OnHover = onHover
+            Text = text,
+            Action = action,
+            Shortcut = shortcut,
+            Enabled = enabled,
+            OnHover = onHover
         });
         return this;
     }

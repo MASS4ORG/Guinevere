@@ -6,9 +6,9 @@ namespace Guinevere;
 /// </summary>
 public class ClipOperation : IDrawListEntry
 {
-    private readonly Rect? _rect;
-    private readonly Shape? _shape;
-    private readonly Vector2? _position;
+    readonly Rect? _rect;
+    readonly Shape? _shape;
+    readonly Vector2? _position;
 
     /// <summary>
     /// Represents an operation that applies clipping to a specified shape

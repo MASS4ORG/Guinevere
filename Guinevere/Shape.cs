@@ -44,8 +44,8 @@ public partial class Shape : IDrawable
         // Render all layers in Z-order
         // Scroll offsets are now handled during layout calculation
         foreach (var (_, layerList) in Layers)
-        foreach (var (path, paint) in layerList)
-            canvas.DrawPath(path, paint);
+            foreach (var (path, paint) in layerList)
+                canvas.DrawPath(path, paint);
     }
 
     /// <summary>

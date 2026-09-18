@@ -33,7 +33,7 @@ public class DeferShape : Shape
         canvas.DrawPath(shape.Path, Paint);
     }
 
-    private DeferShape(SKPath path) : base(path)
+    DeferShape(SKPath path) : base(path)
     {
     }
 

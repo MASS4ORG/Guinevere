@@ -1,13 +1,13 @@
-﻿namespace Guinevere;
+namespace Guinevere;
 
 /// <summary>
 /// Provides time measurement and frame rate calculation utilities for game loops.
 /// </summary>
 public class Time
 {
-    private const float SmoothingInterval = .1f;
-    private float _smoothingTimer;
-    private int _framesSinceLastSmooth;
+    const float SmoothingInterval = .1f;
+    float _smoothingTimer;
+    int _framesSinceLastSmooth;
 
     /// <summary>
     /// Gets the time in seconds that elapsed since the last frame update.

@@ -5,7 +5,7 @@ namespace Guinevere;
 public static partial class ControlsExtensions
 {
     /// <summary>Rows kept built above and below the viewport, so a fast scroll has no gap.</summary>
-    private const int Overscan = 4;
+    const int Overscan = 4;
 
     /// <summary>
     /// Draws a scrollable tree from a flattened row list. Rows under a collapsed parent are skipped by
@@ -104,7 +104,7 @@ public static partial class ControlsExtensions
     /// Drops the rows hidden under a collapsed parent. A collapsed row hides everything after it that
     /// is deeper, which is what makes a flat list enough to describe a tree.
     /// </summary>
-    private static List<TreeItem> Flatten(IReadOnlyList<TreeItem> items, TreeViewState state)
+    static List<TreeItem> Flatten(IReadOnlyList<TreeItem> items, TreeViewState state)
     {
         var visible = new List<TreeItem>(items.Count);
         var hiddenBelow = int.MaxValue;
@@ -126,7 +126,7 @@ public static partial class ControlsExtensions
     /// Moves the selection with the arrow keys: up and down walk the visible rows, right opens a row
     /// or steps into it, left closes it or steps out to the parent, Enter reports an activation.
     /// </summary>
-    private static void Navigate(Gui gui, TreeViewState state, TreeViewTheme theme,
+    static void Navigate(Gui gui, TreeViewState state, TreeViewTheme theme,
         List<TreeItem> visible, Action<TreeViewEvent>? onClick)
     {
         if (visible.Count == 0) return;
@@ -148,14 +148,14 @@ public static partial class ControlsExtensions
         ScrollToSelection(gui, state, theme, visible);
     }
 
-    private static void Select(TreeViewState state, List<TreeItem> visible, int index)
+    static void Select(TreeViewState state, List<TreeItem> visible, int index)
     {
         if (index < 0 || index >= visible.Count) return;
 
         state.SelectedId = visible[index].Id;
     }
 
-    private static void Open(TreeViewState state, List<TreeItem> visible, int index)
+    static void Open(TreeViewState state, List<TreeItem> visible, int index)
     {
         if (index < 0) return;
 
@@ -164,7 +164,7 @@ public static partial class ControlsExtensions
         else Select(state, visible, index + 1);
     }
 
-    private static void Close(TreeViewState state, List<TreeItem> visible, int index)
+    static void Close(TreeViewState state, List<TreeItem> visible, int index)
     {
         if (index < 0) return;
 
@@ -185,7 +185,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Keeps the selected row inside the viewport after a keyboard move.</summary>
-    private static void ScrollToSelection(Gui gui, TreeViewState state, TreeViewTheme theme, List<TreeItem> visible)
+    static void ScrollToSelection(Gui gui, TreeViewState state, TreeViewTheme theme, List<TreeItem> visible)
     {
         var index = visible.FindIndex(item => item.Id == state.SelectedId);
         if (index < 0) return;
@@ -207,7 +207,7 @@ public static partial class ControlsExtensions
     /// <summary>
     /// Records the viewport and scroll offset for the next frame to virtualise against.
     /// </summary>
-    private static void Measure(Gui gui, TreeViewState state)
+    static void Measure(Gui gui, TreeViewState state)
     {
         var rect = gui.CurrentNode.Rect;
         if (rect.H > 0) state.FrameViewportHeight = rect.H;
@@ -215,7 +215,7 @@ public static partial class ControlsExtensions
         state.FrameScrollY = gui.GetScrollState(gui.CurrentNode.Id) is { } scroll ? scroll.ScrollOffset.Y : 0f;
     }
 
-    private static void Spacer(Gui gui, string id, float height)
+    static void Spacer(Gui gui, string id, float height)
     {
         if (height <= 0) return;
 
@@ -224,7 +224,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderRow(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row,
+    static void RenderRow(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row,
         Action<TreeViewEvent>? onClick, Func<TreeItem, object?>? dragPayload,
         Func<object, bool>? dropAccept, Action<TreeItem, object>? onDrop,
         Action<TreeItem, string>? onRename)
@@ -278,7 +278,7 @@ public static partial class ControlsExtensions
     /// The inline rename field. Enter commits, Escape abandons, and a click anywhere else commits too —
     /// the same bargain a file manager makes, so the box can never be left open by accident.
     /// </summary>
-    private static void RenameBox(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
+    static void RenameBox(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
         Action<TreeItem, string> onRename)
     {
         var text = state.EditingText;
@@ -305,7 +305,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>What follows the pointer while a row is dragged: the row's own label on a chip.</summary>
-    private static void DragGhost(Gui gui, TreeViewTheme theme, TreeItem item)
+    static void DragGhost(Gui gui, TreeViewTheme theme, TreeItem item)
     {
         using (gui.Node(-1, theme.RowHeight).Padding(6, 0).ContentAlignY(0.5f).Enter())
         {
@@ -314,7 +314,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void Report(TreeViewState state, TreeItem item, InteractableElement interactable,
+    static void Report(TreeViewState state, TreeItem item, InteractableElement interactable,
         MouseButton button, Action<TreeViewEvent>? onClick)
     {
         if (!interactable.OnClick(out var clicks, button)) return;
@@ -331,7 +331,7 @@ public static partial class ControlsExtensions
         onClick?.Invoke(new TreeViewEvent(item, button, clicks));
     }
 
-    private static void Expander(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row)
+    static void Expander(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row)
     {
         // Blocks the row underneath, so clicking the arrow neither selects nor double-toggles.
         using (gui.Node(theme.ExpanderWidth, theme.RowHeight, $"treeview/row{row}/expander")

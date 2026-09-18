@@ -7,7 +7,7 @@ namespace Guinevere;
 /// </summary>
 public class ScrollClipOperation : IDrawListEntry
 {
-    private readonly Rect _viewportRect;
+    readonly Rect _viewportRect;
 
     /// <summary>
     /// Initializes a new instance of the ScrollClipOperation class.

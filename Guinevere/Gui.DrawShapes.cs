@@ -37,7 +37,7 @@ public partial class Gui
         return shape;
     }
 
-    private Shape DrawRect(float left, float top, float right, float bottom,
+    Shape DrawRect(float left, float top, float right, float bottom,
         float radius = 0.0f, Corner corners = Corner.All)
     {
         return ImMath.ApproximatelyEquals(radius, 0.0f)
@@ -238,10 +238,10 @@ public partial class Gui
         var newShape = shape.Copy();
         newShape.Node = CurrentNode;
         foreach (var (_, layerList) in newShape.Layers)
-        foreach (var (layerPath, _) in layerList)
-            layerPath.Transform(SKMatrix.CreateTranslation(
-                position.X,
-                position.Y));
+            foreach (var (layerPath, _) in layerList)
+                layerPath.Transform(SKMatrix.CreateTranslation(
+                    position.X,
+                    position.Y));
 
         AddDraw(newShape);
         return newShape;
@@ -260,7 +260,7 @@ public partial class Gui
         node.DrawList.AddClip(clipShape, node.Rect.Center);
     }
 
-    private void AddDraw(IDrawable shape, bool prepend = false, LayoutNode? node = null)
+    void AddDraw(IDrawable shape, bool prepend = false, LayoutNode? node = null)
     {
         if (Pass != Pass.Pass2Render) return;
         node ??= CurrentNode;
@@ -270,7 +270,7 @@ public partial class Gui
             node.DrawList.Add(shape);
     }
 
-    private void AddDraw(IDrawListEntry entry, LayoutNode? node = null, bool prepend = false)
+    void AddDraw(IDrawListEntry entry, LayoutNode? node = null, bool prepend = false)
     {
         if (Pass != Pass.Pass2Render) return;
         node ??= CurrentNode;

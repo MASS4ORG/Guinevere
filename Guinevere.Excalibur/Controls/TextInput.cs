@@ -9,10 +9,10 @@ public static partial class ControlsExtensions
     /// Shrinks the padding so it never eats the whole field. A short input keeps a little breathing
     /// room instead of squeezing its text out of the box.
     /// </summary>
-    private static float FitPadding(float height, float padding) =>
+    static float FitPadding(float height, float padding) =>
         height <= 0 ? padding : Math.Min(padding, Math.Max(2f, (height - 4f) / 2f));
 
-    private static void DrawInputBackground(Gui gui, TextEditState state, Color? backgroundColor, Color? borderColor)
+    static void DrawInputBackground(Gui gui, TextEditState state, Color? backgroundColor, Color? borderColor)
     {
         var fill = backgroundColor ?? gui.Controls.Surface;
         var outline = borderColor ?? gui.Controls.Border;
@@ -32,7 +32,7 @@ public static partial class ControlsExtensions
     /// Where the text actually begins inside the field, which is not the left edge once the content is
     /// aligned right or centred.
     /// </summary>
-    private static float TextOriginX(Gui gui, SKFont font, string text, Rect innerRect)
+    static float TextOriginX(Gui gui, SKFont font, string text, Rect innerRect)
     {
         var align = gui.CurrentNode.Style.AlignContentHorizontal;
         if (align <= 0f) return innerRect.X;
@@ -42,7 +42,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Paints the selected run behind the glyphs, so the text stays readable over it.</summary>
-    private static void DrawSelection(Gui gui, TextEditState state, string text, float fontSize)
+    static void DrawSelection(Gui gui, TextEditState state, string text, float fontSize)
     {
         if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render) return;
 
@@ -61,7 +61,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Paints the selected run per line in a multi-line field, so text areas get the same highlight as inputs.</summary>
-    private static void DrawSelectionMultiline(Gui gui, TextEditState state, string text, float fontSize)
+    static void DrawSelectionMultiline(Gui gui, TextEditState state, string text, float fontSize)
     {
         if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render) return;
 
@@ -92,7 +92,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void DrawInputText(Gui gui, string displayText, string placeholder, float fontSize,
+    static void DrawInputText(Gui gui, string displayText, string placeholder, float fontSize,
         Color? textColor, Color? placeholderColor)
     {
         var finalDisplayText = string.IsNullOrEmpty(displayText) ? placeholder : displayText;
@@ -104,7 +104,7 @@ public static partial class ControlsExtensions
             gui.DrawText(finalDisplayText, fontSize, finalColor, centerInRect: false);
     }
 
-    private static void DrawCursor(Gui gui, TextEditState state, string text, float fontSize, Color cursorColor)
+    static void DrawCursor(Gui gui, TextEditState state, string text, float fontSize, Color cursorColor)
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 
@@ -120,7 +120,7 @@ public static partial class ControlsExtensions
         gui.DrawRect(new Rect(cursorX, cursorY1, 1.5f, cursorY2 - cursorY1), cursorColor);
     }
 
-    private static void DrawCursorMultiline(Gui gui, TextEditState state, string text, float fontSize, Color? cursorColor)
+    static void DrawCursorMultiline(Gui gui, TextEditState state, string text, float fontSize, Color? cursorColor)
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 

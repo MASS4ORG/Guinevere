@@ -37,7 +37,7 @@ public sealed record InputScript
     /// <summary>The actions, played in order. Every one advances at least one frame.</summary>
     public IReadOnlyList<InputScriptStep> Steps { get; init; } = [];
 
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
         ReadCommentHandling = JsonCommentHandling.Skip,

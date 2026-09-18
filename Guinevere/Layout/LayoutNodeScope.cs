@@ -54,7 +54,7 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
         return Set(new LayoutNodeScopeZIndex { Value = index });
     }
 
-    private readonly Dictionary<Type, object> _records = new();
+    readonly Dictionary<Type, object> _records = new();
 
     /// <summary>
     /// Stores a record of the specified generic type <typeparamref name="T"/> within the current layout node scope.

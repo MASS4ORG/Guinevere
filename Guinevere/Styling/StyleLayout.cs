@@ -69,14 +69,14 @@ public static class StyleLayout
         }
     }
 
-    private static void ApplyLength(string value, Func<float, LayoutNode> px, Func<float, LayoutNode> percent)
+    static void ApplyLength(string value, Func<float, LayoutNode> px, Func<float, LayoutNode> percent)
     {
         if (!StyleValue.TryLength(value, out var v, out var isPercent)) return;
         if (isPercent) percent(v);
         else px(v);
     }
 
-    private static void ApplyBox(
+    static void ApplyBox(
         string value,
         Func<float, LayoutNode> all,
         Func<float, float, LayoutNode> hv,
@@ -96,7 +96,7 @@ public static class StyleLayout
         }
     }
 
-    private static float AlignFraction(string value) => value switch
+    static float AlignFraction(string value) => value switch
     {
         "flex-start" or "start" or "left" or "top" => 0f,
         "center" or "middle" => 0.5f,

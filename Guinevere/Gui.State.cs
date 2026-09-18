@@ -6,7 +6,7 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    private readonly Dictionary<Type, IDictionary> _typedStores = new();
+    readonly Dictionary<Type, IDictionary> _typedStores = new();
 
     /// <summary>
     /// Retrieves a reference to a value of type <typeparamref name="T"/> associated with the specified identifier.
@@ -58,7 +58,7 @@ public partial class Gui
         SetValue(value, id);
     }
 
-    private Dictionary<string, T> GetStore<T>()
+    Dictionary<string, T> GetStore<T>()
     {
         var type = typeof(T);
         if (!_typedStores.TryGetValue(type, out var dict))

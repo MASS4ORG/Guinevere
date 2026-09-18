@@ -148,7 +148,7 @@ public partial class Gui
     /// drawn. Clips are recorded per node in a flat z-ordered render, so without this a scroll or
     /// <see cref="ClipContent"/> would leak its clip onto every node drawn after it.
     /// </summary>
-    private static void ApplyAncestorClips(LayoutNode node, SKCanvas canvas)
+    static void ApplyAncestorClips(LayoutNode node, SKCanvas canvas)
     {
         if (node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value) return;
 
@@ -169,7 +169,7 @@ public partial class Gui
         }
     }
 
-    private void NodeFlatList(LayoutNode node, List<(int, LayoutNode)> list)
+    void NodeFlatList(LayoutNode node, List<(int, LayoutNode)> list)
     {
         list.Add((node.Scope.Get<LayoutNodeScopeZIndex>().Value, node));
 

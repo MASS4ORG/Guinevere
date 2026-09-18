@@ -8,13 +8,13 @@ namespace Guinevere;
 /// </summary>
 public class AnimationManager
 {
-    private readonly Dictionary<string, BoolAnimationState> _boolAnimations = new();
-    private readonly Time _time;
+    readonly Dictionary<string, BoolAnimationState> _boolAnimations = new();
+    readonly Time _time;
 
     /// <summary>
     /// Represents the state of a boolean animation including its direction and timing.
     /// </summary>
-    private class BoolAnimationState
+    class BoolAnimationState
     {
         public AnimationFloat Animation { get; }
         public bool LastTargetState { get; set; }

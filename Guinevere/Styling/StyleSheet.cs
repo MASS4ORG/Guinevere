@@ -23,8 +23,8 @@ public sealed class StyleRule
 /// </summary>
 public sealed class StyleSheet
 {
-    private static readonly Regex CommentPattern = new(@"/\*.*?\*/", RegexOptions.Singleline | RegexOptions.Compiled);
-    private static readonly Regex VarPattern = new(@"var\(\s*(--[A-Za-z0-9_-]+)\s*\)", RegexOptions.Compiled);
+    static readonly Regex CommentPattern = new(@"/\*.*?\*/", RegexOptions.Singleline | RegexOptions.Compiled);
+    static readonly Regex VarPattern = new(@"var\(\s*(--[A-Za-z0-9_-]+)\s*\)", RegexOptions.Compiled);
 
     /// <summary>The stylesheet's rules, in source order.</summary>
     public IReadOnlyList<StyleRule> Rules { get; }
@@ -32,7 +32,7 @@ public sealed class StyleSheet
     /// <summary>Custom-property variables declared at the top level (<c>--name: value;</c>).</summary>
     public IReadOnlyDictionary<string, string> Variables { get; }
 
-    private StyleSheet(IReadOnlyList<StyleRule> rules, IReadOnlyDictionary<string, string> variables)
+    StyleSheet(IReadOnlyList<StyleRule> rules, IReadOnlyDictionary<string, string> variables)
     {
         Rules = rules;
         Variables = variables;

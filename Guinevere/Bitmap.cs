@@ -7,7 +7,7 @@ namespace Guinevere;
 /// </summary>
 public sealed class Bitmap : IDisposable
 {
-    private bool _disposed;
+    bool _disposed;
 
     /// <summary>The underlying Skia image.</summary>
     public SKImage Image { get; }
@@ -18,7 +18,7 @@ public sealed class Bitmap : IDisposable
     /// <summary>Image height in pixels.</summary>
     public int Height => Image.Height;
 
-    private Bitmap(SKImage image) => Image = image;
+    Bitmap(SKImage image) => Image = image;
 
     /// <summary>Wraps an existing <see cref="SKImage"/>. The texture takes ownership and disposes it.</summary>
     /// <param name="image">The image to wrap.</param>
@@ -68,7 +68,7 @@ public sealed class Bitmap : IDisposable
         return new Bitmap(image);
     }
 
-    private static Bitmap Decode(SKData? data, string source)
+    static Bitmap Decode(SKData? data, string source)
     {
         var image = data is null ? null : SKImage.FromEncodedData(data);
         return image is null

@@ -69,7 +69,7 @@ public partial class Gui
             ? ResolvedStyle.Empty
             : StyleResolver.Resolve(StyleSheets, new StyleTarget(type, id, classes ?? [], state));
 
-    private static void DrawStyledBox(LayoutNode node, ResolvedStyle style)
+    static void DrawStyledBox(LayoutNode node, ResolvedStyle style)
     {
         var background = style.GetColor("background-color");
         var borderColor = style.GetColor("border-color");

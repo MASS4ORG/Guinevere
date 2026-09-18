@@ -16,7 +16,7 @@ public partial class LayoutNode
             InitializeChildLayout();
     }
 
-    private void InitializeRootLayout()
+    void InitializeRootLayout()
     {
         _rect = _gui.ScreenRect;
         if (ChildNodes.Count > 0) LayoutChildren();
@@ -60,9 +60,9 @@ public partial class LayoutNode
 
     // Width is resolved before height; a wrapped horizontal container needs it to know how many
     // lines its children break into when computing its own content height.
-    private float _resolvedWidthForHeightPass;
+    float _resolvedWidthForHeightPass;
 
-    private void InitializeChildLayout()
+    void InitializeChildLayout()
     {
         var parentInner = _parent!.InnerRect;
         var myWidth = CalculateWidth(parentInner.W);
@@ -71,7 +71,7 @@ public partial class LayoutNode
         _rect = new Rect(0, 0, myWidth, myHeight);
     }
 
-    private float CalculateWidth(float availableWidth)
+    float CalculateWidth(float availableWidth)
     {
         var width = Style.ExpandWidth || Style.IsExpanded
             ? availableWidth * Style.ExpandWidthPercentage
@@ -87,7 +87,7 @@ public partial class LayoutNode
         return Style.ClampWidth(width);
     }
 
-    private float CalculateHeight(float availableHeight)
+    float CalculateHeight(float availableHeight)
     {
         var height = Style.ExpandHeight || Style.IsExpanded
             ? availableHeight * Style.ExpandHeightPercentage
@@ -99,7 +99,7 @@ public partial class LayoutNode
         return Style.ClampHeight(height);
     }
 
-    private float CalculateContentWidth(float availableWidth)
+    float CalculateContentWidth(float availableWidth)
     {
         var padding = Style.PaddingLeft + Style.PaddingRight;
 
@@ -113,7 +113,7 @@ public partial class LayoutNode
         return content + padding;
     }
 
-    private float CalculateHorizontalContentWidth(float availableWidth)
+    float CalculateHorizontalContentWidth(float availableWidth)
     {
         var totalGap = (FlowChildren.Count - 1) * Style.Gap;
         return FlowChildren
@@ -121,7 +121,7 @@ public partial class LayoutNode
             .Sum() + totalGap;
     }
 
-    private float CalculateVerticalContentWidth(float availableWidth)
+    float CalculateVerticalContentWidth(float availableWidth)
     {
         return FlowChildren
             .Select(child => GetChildTotalWidth(child, availableWidth))
@@ -129,7 +129,7 @@ public partial class LayoutNode
             .Max();
     }
 
-    private float GetChildTotalWidth(LayoutNode child, float availableWidth)
+    float GetChildTotalWidth(LayoutNode child, float availableWidth)
     {
         var marginWidth = child.Style.MarginLeft + child.Style.MarginRight;
         var contentWidth = child.Style.Width >= 0
@@ -139,7 +139,7 @@ public partial class LayoutNode
         return marginWidth + contentWidth;
     }
 
-    private float CalculateContentHeight(float availableHeight, float outerWidthForWrap = -1f)
+    float CalculateContentHeight(float availableHeight, float outerWidthForWrap = -1f)
     {
         var padding = Style.PaddingTop + Style.PaddingBottom;
 
@@ -166,7 +166,7 @@ public partial class LayoutNode
         return content + padding;
     }
 
-    private float CalculateVerticalContentHeight(float availableHeight)
+    float CalculateVerticalContentHeight(float availableHeight)
     {
         var totalGap = (FlowChildren.Count - 1) * Style.Gap;
         return FlowChildren
@@ -174,7 +174,7 @@ public partial class LayoutNode
             .Sum() + totalGap;
     }
 
-    private float CalculateHorizontalContentHeight(float availableHeight)
+    float CalculateHorizontalContentHeight(float availableHeight)
     {
         return FlowChildren
             .Select(child => GetChildTotalHeight(child, availableHeight))
@@ -182,7 +182,7 @@ public partial class LayoutNode
             .Max();
     }
 
-    private float GetChildTotalHeight(LayoutNode child, float availableHeight)
+    float GetChildTotalHeight(LayoutNode child, float availableHeight)
     {
         var marginHeight = child.Style.MarginTop + child.Style.MarginBottom;
         var contentHeight = child.Style.Height >= 0
@@ -194,7 +194,7 @@ public partial class LayoutNode
         return marginHeight + contentHeight;
     }
 
-    private void LayoutChildren()
+    void LayoutChildren()
     {
         if (ChildNodes.Count == 0) return;
 
@@ -223,7 +223,7 @@ public partial class LayoutNode
     /// positioned in — the parent's content box, or the screen for <see cref="AbsoluteOrigin.Screen"/>
     /// — so Expand() and the percentage sizes keep working on an overlay.
     /// </summary>
-    private void PositionAbsoluteChildren(Rect contentRect)
+    void PositionAbsoluteChildren(Rect contentRect)
     {
         if (_absoluteChildCount == 0) return;
 
@@ -251,7 +251,7 @@ public partial class LayoutNode
         }
     }
 
-    private void LayoutChildrenVertically(Rect contentRect)
+    void LayoutChildrenVertically(Rect contentRect)
     {
         if (FlowChildren.Count == 0) return;
 
@@ -260,7 +260,7 @@ public partial class LayoutNode
         PositionChildrenVertically(contentRect, childDimensions, layoutContext);
     }
 
-    private VerticalLayoutContext CreateVerticalLayoutContext(Rect contentRect)
+    VerticalLayoutContext CreateVerticalLayoutContext(Rect contentRect)
     {
         var totalGap = (FlowChildren.Count - 1) * Style.Gap;
         var availableHeight = contentRect.H - totalGap;
@@ -277,7 +277,7 @@ public partial class LayoutNode
         };
     }
 
-    private ChildDimensions[] CalculateVerticalChildDimensions(VerticalLayoutContext context)
+    ChildDimensions[] CalculateVerticalChildDimensions(VerticalLayoutContext context)
     {
         const float defaultChildHeight = 30f;
         var fixedHeight = CalculateFixedHeight(context);
@@ -302,14 +302,14 @@ public partial class LayoutNode
         return dimensions;
     }
 
-    private float CalculateFixedHeight(VerticalLayoutContext context)
+    float CalculateFixedHeight(VerticalLayoutContext context)
     {
         return FlowChildren
             .Select(child => GetChildFixedHeight(child, context))
             .Sum();
     }
 
-    private float GetChildFixedHeight(LayoutNode child, VerticalLayoutContext context)
+    float GetChildFixedHeight(LayoutNode child, VerticalLayoutContext context)
     {
         var marginHeight = child.Style.MarginTop + child.Style.MarginBottom;
 
@@ -326,7 +326,7 @@ public partial class LayoutNode
         return marginHeight + contentHeight;
     }
 
-    private float CalculateChildHeight(LayoutNode child, VerticalLayoutContext context, float remainingHeight,
+    float CalculateChildHeight(LayoutNode child, VerticalLayoutContext context, float remainingHeight,
         float defaultHeight)
     {
         if (child.Style.ExpandHeight || child.Style.IsExpanded)
@@ -342,7 +342,7 @@ public partial class LayoutNode
             context.ContentWidth - child.Style.MarginLeft - child.Style.MarginRight);
     }
 
-    private float CalculateExpandingChildHeight(LayoutNode child, VerticalLayoutContext context, float remainingHeight,
+    float CalculateExpandingChildHeight(LayoutNode child, VerticalLayoutContext context, float remainingHeight,
         float defaultHeight)
     {
         if (context.ExpandingChildren.Count == 1 && FlowChildren.Count == 1)
@@ -367,7 +367,7 @@ public partial class LayoutNode
         return defaultHeight;
     }
 
-    private void PositionChildrenVertically(Rect contentRect, ChildDimensions[] childDimensions,
+    void PositionChildrenVertically(Rect contentRect, ChildDimensions[] childDimensions,
         VerticalLayoutContext context)
     {
         var totalActualHeight = childDimensions.Sum(d => d.Height) +
@@ -395,7 +395,7 @@ public partial class LayoutNode
         }
     }
 
-    private Rect CalculateVerticalChildRect(LayoutNode child, Rect contentRect, float currentY, float childHeight)
+    Rect CalculateVerticalChildRect(LayoutNode child, Rect contentRect, float currentY, float childHeight)
     {
         var availableChildWidth = Math.Max(0, contentRect.W - child.Style.MarginLeft - child.Style.MarginRight);
 
@@ -417,7 +417,7 @@ public partial class LayoutNode
         );
     }
 
-    private void LayoutChildrenHorizontally(Rect contentRect)
+    void LayoutChildrenHorizontally(Rect contentRect)
     {
         if (FlowChildren.Count == 0) return;
 
@@ -437,7 +437,7 @@ public partial class LayoutNode
     /// overflow the content width. Line height is the tallest child on that line; lines stack with
     /// the same gap. Wrapped children keep their natural size — no expand on the cross axis.
     /// </summary>
-    private void LayoutChildrenHorizontallyWrapped(Rect contentRect)
+    void LayoutChildrenHorizontallyWrapped(Rect contentRect)
     {
         var lines = BuildWrapLines(contentRect.W);
         var currentY = contentRect.Y;
@@ -471,7 +471,7 @@ public partial class LayoutNode
         }
     }
 
-    private List<List<int>> BuildWrapLines(float availableWidth)
+    List<List<int>> BuildWrapLines(float availableWidth)
     {
         var lines = new List<List<int>>();
         var line = new List<int>();
@@ -498,20 +498,20 @@ public partial class LayoutNode
         return lines;
     }
 
-    private static float NaturalChildWidth(LayoutNode child, float availableWidth) =>
+    static float NaturalChildWidth(LayoutNode child, float availableWidth) =>
         child.Style.Width >= 0
             ? child.Style.Width
             : child.Style.WidthPercent >= 0f
                 ? availableWidth * child.Style.WidthPercent
                 : Math.Max(child.CalculateContentWidth(availableWidth), 10f);
 
-    private static float NaturalChildHeight(LayoutNode child, float availableWidth) =>
+    static float NaturalChildHeight(LayoutNode child, float availableWidth) =>
         child.Style.Height >= 0
             ? child.Style.Height
             : Math.Max(child.CalculateContentHeight(availableWidth, availableWidth), 10f);
 
     /// <summary>Cross-axis size of a wrapped horizontal container: stacked line heights plus gaps.</summary>
-    private float CalculateWrappedContentHeight(float availableWidth)
+    float CalculateWrappedContentHeight(float availableWidth)
     {
         var lines = BuildWrapLines(availableWidth);
         if (lines.Count == 0) return 0f;
@@ -528,7 +528,7 @@ public partial class LayoutNode
         return total;
     }
 
-    private HorizontalLayoutContext CreateHorizontalLayoutContext(Rect contentRect)
+    HorizontalLayoutContext CreateHorizontalLayoutContext(Rect contentRect)
     {
         var totalGap = (FlowChildren.Count - 1) * Style.Gap;
         var availableWidth = contentRect.W - totalGap;
@@ -544,7 +544,7 @@ public partial class LayoutNode
         };
     }
 
-    private ChildDimensions[] CalculateHorizontalChildDimensions(HorizontalLayoutContext context)
+    ChildDimensions[] CalculateHorizontalChildDimensions(HorizontalLayoutContext context)
     {
         const float defaultChildWidth = 80f;
         var fixedWidth = CalculateFixedWidth(context);
@@ -567,14 +567,14 @@ public partial class LayoutNode
         return dimensions;
     }
 
-    private float CalculateFixedWidth(HorizontalLayoutContext context)
+    float CalculateFixedWidth(HorizontalLayoutContext context)
     {
         return FlowChildren
             .Select(child => GetChildFixedWidth(child, context))
             .Sum();
     }
 
-    private float GetChildFixedWidth(LayoutNode child, HorizontalLayoutContext context)
+    float GetChildFixedWidth(LayoutNode child, HorizontalLayoutContext context)
     {
         var marginWidth = child.Style.MarginLeft + child.Style.MarginRight;
 
@@ -588,7 +588,7 @@ public partial class LayoutNode
         return marginWidth + contentWidth;
     }
 
-    private float CalculateChildWidth(LayoutNode child, HorizontalLayoutContext context, float remainingWidth,
+    float CalculateChildWidth(LayoutNode child, HorizontalLayoutContext context, float remainingWidth,
         float defaultWidth)
     {
         if (child.Style.ExpandWidth || child.Style.IsExpanded)
@@ -600,7 +600,7 @@ public partial class LayoutNode
         return child.CalculateContentWidth(context.AvailableWidth);
     }
 
-    private float CalculateExpandingChildWidth(LayoutNode child, HorizontalLayoutContext context, float remainingWidth,
+    float CalculateExpandingChildWidth(LayoutNode child, HorizontalLayoutContext context, float remainingWidth,
         float defaultWidth)
     {
         if (context.ExpandingChildren.Count == 1 && FlowChildren.Count == 1)
@@ -625,7 +625,7 @@ public partial class LayoutNode
         return defaultWidth;
     }
 
-    private void PositionChildrenHorizontally(Rect contentRect, ChildDimensions[] childDimensions,
+    void PositionChildrenHorizontally(Rect contentRect, ChildDimensions[] childDimensions,
         HorizontalLayoutContext context)
     {
         var totalActualWidth = childDimensions.Sum(d => d.Width) +
@@ -653,7 +653,7 @@ public partial class LayoutNode
         }
     }
 
-    private Rect CalculateHorizontalChildRect(LayoutNode child, Rect contentRect, float currentX, float childWidth)
+    Rect CalculateHorizontalChildRect(LayoutNode child, Rect contentRect, float currentX, float childWidth)
     {
         var availableChildHeight = contentRect.H - child.Style.MarginTop - child.Style.MarginBottom;
         var childHeight = child.Style.Height >= 0
@@ -672,13 +672,13 @@ public partial class LayoutNode
         );
     }
 
-    private float CalculateTotalExpandPercentage<T>(List<T> expandingChildren, Func<T, float> percentageSelector)
+    float CalculateTotalExpandPercentage<T>(List<T> expandingChildren, Func<T, float> percentageSelector)
     {
         var total = expandingChildren.Sum(percentageSelector);
         return total <= 0 && expandingChildren.Count > 0 ? expandingChildren.Count : total;
     }
 
-    private class VerticalLayoutContext
+    class VerticalLayoutContext
     {
         public float AvailableHeight { get; set; }
         public float ContentWidth { get; set; }
@@ -687,7 +687,7 @@ public partial class LayoutNode
         public float TotalExpandPercentage { get; set; }
     }
 
-    private class HorizontalLayoutContext
+    class HorizontalLayoutContext
     {
         public float AvailableWidth { get; set; }
         public float TotalGap { get; set; }
@@ -695,7 +695,7 @@ public partial class LayoutNode
         public float TotalExpandPercentage { get; set; }
     }
 
-    private struct ChildDimensions
+    struct ChildDimensions
     {
         public float Width { get; set; }
         public float Height { get; set; }

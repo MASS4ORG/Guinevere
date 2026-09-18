@@ -6,14 +6,14 @@ namespace Guinevere;
 /// </summary>
 public class AnimationFloat
 {
-    private float _currentValue;
-    private float _targetValue;
-    private float _startValue;
-    private float _duration;
-    private float _startTime;
-    private Func<float, float> _easingFunction;
-    private bool _isAnimating;
-    private readonly Time _time;
+    float _currentValue;
+    float _targetValue;
+    float _startValue;
+    float _duration;
+    float _startTime;
+    Func<float, float> _easingFunction;
+    bool _isAnimating;
+    readonly Time _time;
 
     /// <summary>
     /// Initializes a new instance of the AnimationFloat class with the specified initial value and time reference.

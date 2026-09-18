@@ -119,17 +119,17 @@ public static partial class ControlsExtensions
     }
 
     // Core implementation helpers
-    private static TabsState GetOrCreateTabsState(Gui gui, string id, int initialActiveIndex, float tabBarHeight) =>
+    static TabsState GetOrCreateTabsState(Gui gui, string id, int initialActiveIndex, float tabBarHeight) =>
         gui.ControlState(id,
             () => new TabsState { ActiveTabIndex = initialActiveIndex, TabBarHeight = tabBarHeight });
 
-    private static float CalculateTabsHeight(TabsState state, float tabBarHeight)
+    static float CalculateTabsHeight(TabsState state, float tabBarHeight)
     {
         return tabBarHeight + (state.Tabs.Any(t => t.Content != null) ? 200 : 0);
         // Default content height
     }
 
-    private static void RenderTabBar(Gui gui, TabsState state, Color? backgroundColor,
+    static void RenderTabBar(Gui gui, TabsState state, Color? backgroundColor,
         Color? activeTabColor, Color? inactiveTabColor, Color? borderColor,
         Color? textColor, Color? activeTextColor, float fontSize, float borderRadius, bool showBorder)
     {
@@ -150,7 +150,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderTabButton(Gui gui, TabsState state, int tabIndex,
+    static void RenderTabButton(Gui gui, TabsState state, int tabIndex,
         Color? activeTabColor, Color? inactiveTabColor, Color? textColor,
         Color? activeTextColor, float fontSize, float borderRadius)
     {
@@ -222,7 +222,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderActiveTabContent(Gui gui, TabsState state, Color? backgroundColor,
+    static void RenderActiveTabContent(Gui gui, TabsState state, Color? backgroundColor,
         Color? borderColor, float borderRadius, bool showBorder)
     {
         if (state.ActiveTabIndex < 0 || state.ActiveTabIndex >= state.Tabs.Count) return;
@@ -246,9 +246,9 @@ public static partial class ControlsExtensions
     }
 
     // Helper functions
-    private const float TabCloseButtonSize = 18f;
+    const float TabCloseButtonSize = 18f;
 
-    private static float CalculateTabWidth(string title, float fontSize, bool closable)
+    static float CalculateTabWidth(string title, float fontSize, bool closable)
     {
         var font = new SKFont { Size = fontSize };
         font.MeasureText(title, out var textBounds);
@@ -256,7 +256,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>True when the pointer sits over the "×" that closes a closable tab.</summary>
-    private static bool OverTabCloseButton(bool closable, Rect rect, Vector2 mousePos)
+    static bool OverTabCloseButton(bool closable, Rect rect, Vector2 mousePos)
     {
         if (!closable) return false;
         var closeRect = new Rect(rect.X + rect.W - TabCloseButtonSize - 4,
@@ -264,7 +264,7 @@ public static partial class ControlsExtensions
         return closeRect.Contains(mousePos);
     }
 
-    private static void RenderTabCloseButton(Gui gui, TabsState state, int tabIndex)
+    static void RenderTabCloseButton(Gui gui, TabsState state, int tabIndex)
     {
         var tab = state.Tabs[tabIndex];
 
@@ -295,7 +295,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static Color? GetTabBackgroundColor(bool isActive, bool isHovered, Color? tabColor,
+    static Color? GetTabBackgroundColor(bool isActive, bool isHovered, Color? tabColor,
         Color? activeTabColor, Color? inactiveTabColor)
     {
         return tabColor ?? (isActive ? activeTabColor ?? Color.White :
@@ -303,14 +303,14 @@ public static partial class ControlsExtensions
             inactiveTabColor);
     }
 
-    private static Color GetTabTextColor(bool isActive, bool enabled, Color? tabTextColor,
+    static Color GetTabTextColor(bool isActive, bool enabled, Color? tabTextColor,
         Color? activeTextColor, Color? textColor)
     {
         if (!enabled) return Color.Gray;
         return tabTextColor ?? (isActive ? activeTextColor ?? Color.Black : textColor ?? Color.Gray);
     }
 
-    private static void DrawActiveTabIndicator(Gui gui, Color? activeTabColor)
+    static void DrawActiveTabIndicator(Gui gui, Color? activeTabColor)
     {
         var rect = gui.CurrentNode.Rect;
         var indicatorColor = activeTabColor ?? Color.FromArgb(255, 100, 149, 237);
@@ -457,7 +457,7 @@ public static partial class ControlsExtensions
         activeTabIndex = state.ActiveTabIndex;
     }
 
-    private static void RenderVerticalTabBar(Gui gui, TabsState state, float tabWidth,
+    static void RenderVerticalTabBar(Gui gui, TabsState state, float tabWidth,
         Color? backgroundColor, Color? activeTabColor, Color? inactiveTabColor,
         Color? borderColor, Color? textColor, Color? activeTextColor, float fontSize,
         float borderRadius, bool showBorder)
@@ -479,7 +479,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderVerticalTabButton(Gui gui, TabsState state, int tabIndex, float tabWidth,
+    static void RenderVerticalTabButton(Gui gui, TabsState state, int tabIndex, float tabWidth,
         Color? activeTabColor, Color? inactiveTabColor, Color? textColor,
         Color? activeTextColor, float fontSize, float borderRadius)
     {
@@ -523,7 +523,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderPillTabBar(Gui gui, TabsState state, Color activeTabColor,
+    static void RenderPillTabBar(Gui gui, TabsState state, Color activeTabColor,
         Color inactiveTabColor, Color? textColor, Color? activeTextColor, float fontSize, float spacing)
     {
         using (gui.Node().Height(state.TabBarHeight).Direction(Axis.Horizontal).Gap(spacing).Padding(spacing).Enter())
@@ -534,7 +534,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderPillTabButton(Gui gui, TabsState state, int tabIndex,
+    static void RenderPillTabButton(Gui gui, TabsState state, int tabIndex,
         Color activeTabColor, Color inactiveTabColor, Color? textColor,
         Color? activeTextColor, float fontSize)
     {

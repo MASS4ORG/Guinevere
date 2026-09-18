@@ -2,7 +2,7 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    private readonly Dictionary<Type, Dictionary<string, object>> _controlStates = new();
+    readonly Dictionary<Type, Dictionary<string, object>> _controlStates = new();
 
     /// <summary>
     /// Per-control state that survives between frames, owned by this <see cref="Gui"/> rather than by

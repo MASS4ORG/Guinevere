@@ -4,7 +4,7 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private class FlyoutState
+    class FlyoutState
     {
         public int HoveredIndex { get; set; } = -1;
     }
@@ -78,10 +78,10 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static FlyoutState GetOrCreateFlyoutState(Gui gui, string id) =>
+    static FlyoutState GetOrCreateFlyoutState(Gui gui, string id) =>
         gui.ControlState(id, () => new FlyoutState());
 
-    private static void HandleFlyoutInteraction(Gui gui, FlyoutState state, List<FlyoutItem> items, Rect rect,
+    static void HandleFlyoutInteraction(Gui gui, FlyoutState state, List<FlyoutItem> items, Rect rect,
         float itemHeight, ref bool isOpen)
     {
         var mousePos = gui.Input.MousePosition;
@@ -114,7 +114,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderFlyoutItem(Gui gui, FlyoutState state, FlyoutItem item, int index,
+    static void RenderFlyoutItem(Gui gui, FlyoutState state, FlyoutItem item, int index,
         float width, float height, Color? textColor, Color? hoverColor, Color? separatorColor,
         Color? disabledColor, float fontSize, float padding)
     {
@@ -163,12 +163,12 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void CloseFlyoutRecursive(FlyoutState state)
+    static void CloseFlyoutRecursive(FlyoutState state)
     {
         state.HoveredIndex = -1;
     }
 
-    private static float CalculateFlyoutWidth(List<FlyoutItem> items, float fontSize, float padding, float minWidth,
+    static float CalculateFlyoutWidth(List<FlyoutItem> items, float fontSize, float padding, float minWidth,
         bool hasCheckColumn = false)
     {
         var font = new SKFont { Size = fontSize };

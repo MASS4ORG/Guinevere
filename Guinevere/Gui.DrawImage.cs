@@ -113,7 +113,7 @@ public partial class Gui
         AddDraw(new NineSliceDrawable(image, destination, border, BuildImagePaint(tint, opacity)), node: node);
     }
 
-    private static SKPaint? BuildImagePaint(Color? tint, float opacity)
+    static SKPaint? BuildImagePaint(Color? tint, float opacity)
     {
         var alpha = (byte)(Math.Clamp(opacity, 0f, 1f) * 255f + 0.5f);
         if (tint is null && alpha == 255) return null;

@@ -79,9 +79,9 @@ public class TooltipTests
     private static byte BackgroundAlpha(SKSurface surface, Rect tooltipRect)
     {
         // A pixel on the right edge of the panel, away from the left-anchored glyphs and border.
-        var sample = PixelAt(surface, (int)tooltipRect.X + (int)tooltipRect.W - 5,
+        var example = PixelAt(surface, (int)tooltipRect.X + (int)tooltipRect.W - 5,
             (int)tooltipRect.Y + (int)tooltipRect.H / 2);
-        return sample.Alpha;
+        return example.Alpha;
     }
 
     private static IInputHandler NoInput()
@@ -153,7 +153,7 @@ public class TooltipTests
             "Tooltip must never appear while the pointer is not over the anchor.");
     }
 
-    /// <summary>Position of the mouse-follow tooltip given the anchor's height and the forced sample pointer.</summary>
+    /// <summary>Position of the mouse-follow tooltip given the anchor's height and the forced example pointer.</summary>
     private static Rect TooltipRect(LayoutNode anchor)
     {
         var pos = PointerInsideAnchor + new Vector2(0, anchor.Rect.H);

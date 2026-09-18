@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <!-- xUnit v3 test projects are self-hosting test applications, so they must be executable. -->
         <OutputType>Exe</OutputType>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -12,24 +11,24 @@
         <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
-        
+
         <DisableMSBuildAssemblyCopyCheck>true</DisableMSBuildAssemblyCopyCheck>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.0" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.9.0" />
-        <PackageReference Include="Microsoft.Build" Version="18.9.6" />
-        <PackageReference Include="Microsoft.Build.Framework" Version="18.9.6" />
-        <PackageReference Include="NSubstitute" Version="6.2.0" />
-        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
-        <PackageReference Include="Serilog.Sinks.InMemory" Version="2.0.0" />
-        <PackageReference Include="xunit.v3" Version="4.0.0" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.9.0"/>
+        <PackageReference Include="Microsoft.Build" Version="18.9.6"/>
+        <PackageReference Include="Microsoft.Build.Framework" Version="18.9.6"/>
+        <PackageReference Include="NSubstitute" Version="6.2.0"/>
+        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Sinks.InMemory" Version="2.0.0"/>
+        <PackageReference Include="xunit.v3" Version="4.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Guinevere\Guinevere.csproj" />
-        <ProjectReference Include="..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="..\Guinevere\Guinevere.csproj"/>
+        <ProjectReference Include="..\Guinevere.Excalibur\Guinevere.Excalibur.csproj"/>
         <ProjectReference Include="..\Guinevere.Scripting\Guinevere.Scripting.csproj"/>
     </ItemGroup>
 

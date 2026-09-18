@@ -16,7 +16,7 @@ namespace Guinevere;
 [TypeForwardedFrom("System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
 public readonly struct Color : IEquatable<Color>
 {
-    private readonly System.Drawing.Color _internalColor;
+    readonly System.Drawing.Color _internalColor;
 
     public static implicit operator Color(uint rgba) => FromArgb(
         (byte)(rgba & 0xFF), // A
@@ -35,7 +35,7 @@ public readonly struct Color : IEquatable<Color>
 
     public static implicit operator SKColor(Color color) => new(color.R, color.G, color.B, color.A);
 
-    private Color(System.Drawing.Color color)
+    Color(System.Drawing.Color color)
     {
         _internalColor = color;
     }

@@ -4,7 +4,7 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private const float NavigationButtonWidth = 18f;
+    const float NavigationButtonWidth = 18f;
 
     /// <summary>
     /// A row of tabs with an active one, optional icons, unsaved markers and close affordances. The
@@ -72,7 +72,7 @@ public static partial class ControlsExtensions
         return result;
     }
 
-    private static TabStripResult RenderTab(Gui gui, TabStripItem item, bool isActive, TabStripTheme theme,
+    static TabStripResult RenderTab(Gui gui, TabStripItem item, bool isActive, TabStripTheme theme,
         string id, Func<TabStripItem, string, bool>? onDragSource, TabStripResult result)
     {
         var width = MeasureTab(item, theme);
@@ -114,7 +114,7 @@ public static partial class ControlsExtensions
         return result;
     }
 
-    private static TabStripResult RenderClose(Gui gui, TabStripItem item, bool isActive, TabStripTheme theme,
+    static TabStripResult RenderClose(Gui gui, TabStripItem item, bool isActive, TabStripTheme theme,
         string id, TabStripResult result)
     {
         // Blocks the tab underneath, so closing never also activates.
@@ -141,7 +141,7 @@ public static partial class ControlsExtensions
         return result;
     }
 
-    private static float MeasureTab(TabStripItem item, TabStripTheme theme)
+    static float MeasureTab(TabStripItem item, TabStripTheme theme)
     {
         var font = new SKFont { Size = theme.FontSize };
         font.MeasureText(item.Label, out var bounds);
@@ -151,7 +151,7 @@ public static partial class ControlsExtensions
                             + (item.Icon is null ? 0 : theme.IconSize + 6);
     }
 
-    private static (int Start, int End) VisibleRange(int first, IReadOnlyList<float> widths, float available,
+    static (int Start, int End) VisibleRange(int first, IReadOnlyList<float> widths, float available,
         bool overflowing)
     {
         if (!overflowing) return (0, widths.Count);
@@ -163,7 +163,7 @@ public static partial class ControlsExtensions
         return (first, end);
     }
 
-    private static void EnsureActiveIsVisible(TabStripState state, int activeIndex, IReadOnlyList<float> widths,
+    static void EnsureActiveIsVisible(TabStripState state, int activeIndex, IReadOnlyList<float> widths,
         float available)
     {
         if (activeIndex < 0) return;
@@ -172,7 +172,7 @@ public static partial class ControlsExtensions
         if (activeIndex < range.Start || activeIndex >= range.End) state.FirstVisible = activeIndex;
     }
 
-    private static int PreviousRange(int first, IReadOnlyList<float> widths, float available)
+    static int PreviousRange(int first, IReadOnlyList<float> widths, float available)
     {
         if (first == 0) return 0;
 
@@ -182,7 +182,7 @@ public static partial class ControlsExtensions
         return previous;
     }
 
-    private static bool Navigation(Gui gui, string id, string label, bool enabled, TabStripTheme theme)
+    static bool Navigation(Gui gui, string id, string label, bool enabled, TabStripTheme theme)
     {
         using (gui.Node(NavigationButtonWidth, theme.Height, id).BlockInput().Enter())
         {
@@ -195,7 +195,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private sealed class TabStripState
+    sealed class TabStripState
     {
         public int FirstVisible { get; set; }
 

@@ -3,10 +3,10 @@ namespace Guinevere;
 public static partial class ControlsExtensions
 {
     /// <summary>Fraction of the track an indeterminate bar's travelling chunk covers.</summary>
-    private const float IndeterminateChunk = 0.3f;
+    const float IndeterminateChunk = 0.3f;
 
     /// <summary>Track widths the indeterminate chunk crosses per second.</summary>
-    private const float IndeterminateSpeed = 0.7f;
+    const float IndeterminateSpeed = 0.7f;
 
     /// <summary>
     /// Draws a horizontal progress bar filling left to right. Pass a null <paramref name="fraction"/>

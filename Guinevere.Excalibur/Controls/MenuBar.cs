@@ -4,16 +4,16 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private const int MenuBarZIndex = 5000;
+    const int MenuBarZIndex = 5000;
     internal const int CascadeMenuZIndex = 9000;
 
     /// <summary>
     /// The bar's state, in two halves. Input arrives during the render pass and writes the live half;
-    /// what a frame actually draws is the <c>Frame</c> half, sampled once at the start of the build
+    /// what a frame actually draws is the <c>Frame</c> half, exampled once at the start of the build
     /// pass. Without that split, opening a menu in the render pass creates a dropdown the layout pass
     /// never saw, and every one of its labels draws at the window's origin for a frame.
     /// </summary>
-    private class MenuBarState
+    class MenuBarState
     {
         public int OpenIndex { get; set; } = -1;
         public bool KeyboardActive { get; set; }
@@ -30,7 +30,7 @@ public static partial class ControlsExtensions
         public List<Rect> SubmenuRects { get; set; } = new();
         public List<Rect> PrevSubmenuRects { get; set; } = new();
 
-        /// <summary>Samples the live state into the half this frame draws from.</summary>
+        /// <summary>Examples the live state into the half this frame draws from.</summary>
         public void BeginFrame()
         {
             FrameOpenIndex = OpenIndex;
@@ -89,7 +89,7 @@ public static partial class ControlsExtensions
             }
 
             if (state.TitleRects.Count != builder.Menus.Count)
-                state.TitleRects = builder.Menus.Select(_ => new Rect()).ToList();
+                state.TitleRects = [.. builder.Menus.Select(_ => new Rect())];
 
             for (var i = 0; i < builder.Menus.Count; i++)
                 RenderMenuBarTitle(gui, state, builder.Menus[i], i, height, textColor, hoverColor, fontSize,
@@ -115,7 +115,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderMenuBarTitle(Gui gui, MenuBarState state, MenuBarMenu menu, int index,
+    static void RenderMenuBarTitle(Gui gui, MenuBarState state, MenuBarMenu menu, int index,
         float height, Color? textColor, Color? hoverColor, float fontSize, float padding)
     {
         using (gui.Node().Height(height).Padding(padding, 0).Enter())
@@ -165,7 +165,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderMenuBarDropdown(Gui gui, MenuBarState state, MenuBarMenu menu, float height,
+    static void RenderMenuBarDropdown(Gui gui, MenuBarState state, MenuBarMenu menu, float height,
         Color? backgroundColor, Color? textColor, Color? hoverColor, float fontSize, float padding)
     {
         if (state.FrameOpenIndex >= state.FrameTitleRects.Count) return;
@@ -178,13 +178,13 @@ public static partial class ControlsExtensions
             backgroundColor, textColor, hoverColor, fontSize, padding);
     }
 
-    private static void RenderMenuGroup(Gui gui, MenuBarState state, string baseId, List<FlyoutItem> items,
+    static void RenderMenuGroup(Gui gui, MenuBarState state, string baseId, List<FlyoutItem> items,
         Vector2 position, int depth,
         Color? backgroundColor, Color? textColor, Color? hoverColor, float fontSize, float padding)
         => RenderMenuGroup(gui, state, baseId, items, position, depth, backgroundColor, textColor,
             hoverColor, fontSize, padding, MenuBarZIndex);
 
-    private static void RenderMenuGroup(Gui gui, MenuBarState state, string baseId, List<FlyoutItem> items,
+    static void RenderMenuGroup(Gui gui, MenuBarState state, string baseId, List<FlyoutItem> items,
         Vector2 position, int depth,
         Color? backgroundColor, Color? textColor, Color? hoverColor, float fontSize, float padding, int zIndex)
     {
@@ -252,7 +252,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static bool IsSubmenuForRow(Rect submenu, Rect parent, float rowY, float rowHeight)
+    static bool IsSubmenuForRow(Rect submenu, Rect parent, float rowY, float rowHeight)
     {
         var rowCenter = rowY + rowHeight * 0.5f;
         var attachedToParent = submenu.X >= parent.X + parent.W - 1
@@ -260,7 +260,7 @@ public static partial class ControlsExtensions
         return attachedToParent && submenu.Y <= rowCenter && submenu.Y + submenu.H >= rowCenter;
     }
 
-    private static void RenderMenuBarRow(Gui gui, MenuBarState state, List<FlyoutItem> items, int index,
+    static void RenderMenuBarRow(Gui gui, MenuBarState state, List<FlyoutItem> items, int index,
         string nodeId, float width, float itemHeight, float separatorHeight,
         bool hasCheckColumn, Color? textColor, Color? hoverColor,
         float fontSize, float padding)
@@ -328,7 +328,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void HandleMenuKeyboard(Gui gui, MenuBarState state, List<FlyoutItem> items)
+    static void HandleMenuKeyboard(Gui gui, MenuBarState state, List<FlyoutItem> items)
     {
         if (gui.Input.IsKeyPressed(KeyboardKey.Escape))
         {
@@ -371,7 +371,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void ActivateRow(MenuBarState state, FlyoutItem item)
+    static void ActivateRow(MenuBarState state, FlyoutItem item)
     {
         if (!item.Enabled) return;
 
@@ -389,7 +389,7 @@ public static partial class ControlsExtensions
         ResetMenuState(state);
     }
 
-    private static void ResetMenuState(MenuBarState state)
+    static void ResetMenuState(MenuBarState state)
     {
         state.OpenIndex = -1;
         state.KeyboardActive = false;
@@ -397,7 +397,7 @@ public static partial class ControlsExtensions
         state.KeyboardSubmenu = false;
     }
 
-    private static int HoveredRowIndex(List<FlyoutItem> items, Rect groupRect, Vector2 mousePos,
+    static int HoveredRowIndex(List<FlyoutItem> items, Rect groupRect, Vector2 mousePos,
         float itemHeight, float separatorHeight)
     {
         if (!IsMouseInRect(mousePos, groupRect)) return -1;
@@ -414,7 +414,7 @@ public static partial class ControlsExtensions
         return -1;
     }
 
-    private static int NextSelectableIndex(List<FlyoutItem> items, int from, int delta)
+    static int NextSelectableIndex(List<FlyoutItem> items, int from, int delta)
     {
         var count = items.Count;
         for (var step = 1; step <= count; step++)
@@ -427,7 +427,7 @@ public static partial class ControlsExtensions
         return -1;
     }
 
-    private static float RowOffset(List<FlyoutItem> items, int index, float itemHeight, float separatorHeight)
+    static float RowOffset(List<FlyoutItem> items, int index, float itemHeight, float separatorHeight)
     {
         var y = 0f;
         for (var i = 0; i < index; i++)

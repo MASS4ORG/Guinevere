@@ -2,7 +2,7 @@ namespace Guinevere.Tests;
 
 /// <summary>
 /// Pixel-level tests for <see cref="TextEffects"/> on <see cref="Gui.DrawText(string, float, Color?, Font?, float, bool, bool, TextEffects?)"/>.
-/// The <c>ui --sample text</c> CLI verb renders the same effects for eyeballing.
+/// The <c>ui --example text</c> CLI verb renders the same effects for eyeballing.
 /// </summary>
 public class TextEffectsTests
 {
@@ -113,7 +113,7 @@ public class TextEffectsTests
                     Color.FromArgb(255, 255, 0, 0), Color.FromArgb(255, 0, 0, 255)),
             }));
 
-        (long r, long b, int count) Sample(int x0, int x1)
+        (long r, long b, int count) Example(int x0, int x1)
         {
             long r = 0, b = 0;
             var c = 0;
@@ -130,11 +130,11 @@ public class TextEffectsTests
             return (r, b, c);
         }
 
-        var left = Sample(6, 46);
-        var right = Sample(200, 240);
+        var left = Example(6, 46);
+        var right = Example(200, 240);
 
         Assert.True(left.count > 20 && right.count > 20,
-            $"text should cover both sample windows (left {left.count}, right {right.count})");
+            $"text should cover both example windows (left {left.count}, right {right.count})");
         Assert.True((double)left.r / left.count > (double)left.b / left.count, "left of the text should be red-dominant");
         Assert.True((double)right.b / right.count > (double)right.r / right.count, "right of the text should be blue-dominant");
     }

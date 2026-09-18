@@ -31,7 +31,9 @@ public partial class Shape
         {
             var strokePaint = new SKPaint
             {
-                Style = SKPaintStyle.Stroke, StrokeWidth = Math.Abs(spread) * 2, StrokeJoin = SKStrokeJoin.Round
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = Math.Abs(spread) * 2,
+                StrokeJoin = SKStrokeJoin.Round
             };
             shadowPath = strokePaint.GetFillPath(shadowPath);
         }
@@ -91,7 +93,9 @@ public partial class Shape
         {
             var strokePaint = new SKPaint
             {
-                Style = SKPaintStyle.Stroke, StrokeWidth = Math.Abs(spread) * 2, StrokeJoin = SKStrokeJoin.Round
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = Math.Abs(spread) * 2,
+                StrokeJoin = SKStrokeJoin.Round
             };
             shadowPath = strokePaint.GetFillPath(shadowPath);
         }
@@ -261,7 +265,7 @@ public partial class Shape
     /// Each new outer shadow goes below the previous ones.
     /// </summary>
     /// <returns>A negative layer index for the new outer shadow.</returns>
-    private int GetNextOuterShadowLayer()
+    int GetNextOuterShadowLayer()
     {
         var lowestLayer = Layers.Keys.Where(k => k < 0).DefaultIfEmpty(0).Min();
         return lowestLayer - 1;
@@ -272,7 +276,7 @@ public partial class Shape
     /// Each new inner shadow goes above the previous ones.
     /// </summary>
     /// <returns>A positive layer index for the new inner shadow.</returns>
-    private int GetNextInnerShadowLayer()
+    int GetNextInnerShadowLayer()
     {
         var highestLayer = Layers.Keys.Where(k => k > 0).DefaultIfEmpty(0).Max();
         return highestLayer + 1;

@@ -57,7 +57,7 @@ public static class WrappedTextLayout
         return lines;
     }
 
-    private static void AppendParagraph(List<WrappedLine> lines, string paragraph, int paragraphStart,
+    static void AppendParagraph(List<WrappedLine> lines, string paragraph, int paragraphStart,
         SKFont font, float maxWidth)
     {
         if (paragraph.Length == 0)
@@ -121,7 +121,7 @@ public static class WrappedTextLayout
         return string.IsNullOrEmpty(line) ? 0 : NearestColumn(font, line, clickX);
     }
 
-    private static int NearestColumn(SKFont font, string line, float clickX)
+    static int NearestColumn(SKFont font, string line, float clickX)
     {
         var best = 0;
         var bestDistance = float.MaxValue;
@@ -240,7 +240,7 @@ public static partial class ControlsExtensions
     /// Pointer select: a press inside the pane anchors the selection, a drag extends it, a release
     /// ends it. No text-field focus is registered, so surrounding shortcuts keep their meaning.
     /// </summary>
-    private static void Select(Gui gui, TextEditState state, IReadOnlyList<WrappedLine> lines,
+    static void Select(Gui gui, TextEditState state, IReadOnlyList<WrappedLine> lines,
         SKFont font, Rect inner, float offsetY, float lineHeight)
     {
         var mouse = gui.Input.MousePosition;
@@ -263,7 +263,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>The message offset nearest a screen point, from the wrapped lines' geometry.</summary>
-    private static int OffsetAt(IReadOnlyList<WrappedLine> lines, SKFont font, Vector2 point,
+    static int OffsetAt(IReadOnlyList<WrappedLine> lines, SKFont font, Vector2 point,
         Rect inner, float offsetY, float lineHeight)
     {
         if (lines.Count == 0) return 0;
@@ -276,6 +276,6 @@ public static partial class ControlsExtensions
         return Math.Clamp(line.Start + column, line.Start, line.Start + line.Text.Length);
     }
 
-    private static bool IsControlDown(Gui gui) =>
+    static bool IsControlDown(Gui gui) =>
         gui.Input.IsKeyDown(KeyboardKey.LeftControl) || gui.Input.IsKeyDown(KeyboardKey.RightControl);
 }

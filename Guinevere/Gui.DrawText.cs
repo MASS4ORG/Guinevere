@@ -45,7 +45,7 @@ public partial class Gui
     /// Where a line's baseline sits inside its line box, centring the ascent and descent. Placing it
     /// at the bottom of the box left every glyph sitting low with no room for descenders.
     /// </summary>
-    private static float Baseline(Font font, float lineHeight)
+    static float Baseline(Font font, float lineHeight)
     {
         var metrics = font.SkFont.Metrics;
         var ascent = -metrics.Ascent;
@@ -54,7 +54,7 @@ public partial class Gui
         return ((lineHeight - (ascent + descent)) / 2f) + ascent;
     }
 
-    private record struct DrawConfig(
+    record struct DrawConfig(
         string Text,
         Font Font,
         float Size,
@@ -64,7 +64,7 @@ public partial class Gui
         float WrapWidth,
         TextEffects? Effects = null);
 
-    private record struct FontRun(
+    record struct FontRun(
         string Text,
         Font Font);
 
@@ -76,24 +76,24 @@ public partial class Gui
     /// <param name="font">The font to check for character support.</param>
     /// <param name="character">The character to test for support.</param>
     /// <returns>True if the font supports the character, false if fallback is needed.</returns>
-    private static bool IsCharacterSupported(Font font, char character)
+    static bool IsCharacterSupported(Font font, char character)
     {
         return font.SkFont.GetGlyph(character) != 0;
     }
 
-    private static readonly char[] UnsupportedVariationSelector =
-        Enumerable.Range('\uFE00', '\uFE0F' - '\uFE00' + 1).Select(i => (char)i).ToArray();
+    static readonly char[] UnsupportedVariationSelector =
+        [.. Enumerable.Range('\uFE00', '\uFE0F' - '\uFE00' + 1).Select(i => (char)i)];
 
     /// <summary>
     /// Splits text into runs where each run uses the same font (either main font or icon font fallback).
     /// </summary>
-    private List<FontRun> CreateFontRuns(string text, Font mainFont, Font iconFont)
+    List<FontRun> CreateFontRuns(string text, Font mainFont, Font iconFont)
     {
         // Variation selectors (U+FE00-U+FE0F) sit after emoji like "⚙️" or "❤️". Most icon fonts
         // have no glyph for them, so without this step every emoji picked up a trailing tofu box.
         // They are zero-width combining marks - dropping them changes nothing visible.
         if (text.IndexOfAny(UnsupportedVariationSelector) >= 0)
-            text = new string(text.Where(c => c is < '\uFE00' or > '\uFE0F').ToArray());
+            text = new string([.. text.Where(c => c is < '\uFE00' or > '\uFE0F')]);
 
         var runs = new List<FontRun>();
         if (string.IsNullOrEmpty(text))
@@ -137,7 +137,7 @@ public partial class Gui
             .ToArray();
     }
 
-    private LayoutNode DrawTextOrGlyph(DrawConfig cfg)
+    LayoutNode DrawTextOrGlyph(DrawConfig cfg)
     {
         var size = cfg.Size > 0 ? cfg.Size : CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value;
         var color = cfg.Color ?? CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
@@ -194,7 +194,7 @@ public partial class Gui
     /// outline, fill, inner shadow. Each layer carries a position offset (used for the inner
     /// shadow). With no <see cref="TextEffects"/> this is a single flat-color fill.
     /// </summary>
-    private static List<(SKPaint Paint, Vector2 Offset)> BuildTextPaints(Color color, TextEffects? effects, Rect bounds)
+    static List<(SKPaint Paint, Vector2 Offset)> BuildTextPaints(Color color, TextEffects? effects, Rect bounds)
     {
         if (effects is null)
             return [(new SKPaint { IsAntialias = true, Color = color }, Vector2.Zero)];
@@ -245,7 +245,7 @@ public partial class Gui
         return layers;
     }
 
-    private static SKShader BuildGradientShader(TextEffects.TextGradient gradient, Rect bounds)
+    static SKShader BuildGradientShader(TextEffects.TextGradient gradient, Rect bounds)
     {
         var rect = new SKRect(bounds.X, bounds.Y, bounds.X + bounds.W, bounds.Y + bounds.H);
         SKColor[] colors = [gradient.From, gradient.To];
@@ -272,7 +272,7 @@ public partial class Gui
     /// <summary>
     /// Measures the width of a line of text with font fallback support.
     /// </summary>
-    private float MeasureLineWidth(string line, Font mainFont, Font iconFont)
+    float MeasureLineWidth(string line, Font mainFont, Font iconFont)
     {
         var runs = CreateFontRuns(line, mainFont, iconFont);
         var totalWidth = 0f;
@@ -289,7 +289,7 @@ public partial class Gui
     /// <summary>
     /// Draws a line of text with font fallback support.
     /// </summary>
-    private void DrawLineWithFallback(string line, Vector2 startPos, Font mainFont, Font iconFont,
+    void DrawLineWithFallback(string line, Vector2 startPos, Font mainFont, Font iconFont,
         IReadOnlyList<(SKPaint Paint, Vector2 Offset)> layers, bool clip, LayoutNode node)
     {
         var runs = CreateFontRuns(line, mainFont, iconFont);
@@ -314,7 +314,7 @@ public partial class Gui
     /// <summary>
     /// Wraps text with font fallback support.
     /// </summary>
-    private string[] WrapTextWithFallback(string text, Font mainFont, Font iconFont, float maxWidth)
+    string[] WrapTextWithFallback(string text, Font mainFont, Font iconFont, float maxWidth)
     {
         var lines = new List<string>();
         var paragraphs = text.Split('\n');
@@ -357,6 +357,6 @@ public partial class Gui
             if (!string.IsNullOrEmpty(currentLine)) lines.Add(currentLine);
         }
 
-        return lines.ToArray();
+        return [.. lines];
     }
 }

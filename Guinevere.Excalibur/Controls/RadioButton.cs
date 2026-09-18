@@ -68,7 +68,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RadioButtonCore(Gui gui, ref int selectedIndex, int value, string label,
+    static void RadioButtonCore(Gui gui, ref int selectedIndex, int value, string label,
         float size, Color? backgroundColor, Color? selectedColor, Color? borderColor, Color? labelColor,
         float fontSize, float spacing, bool enabled)
     {
@@ -87,14 +87,14 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static float CalculateRadioWidth(string label, float size, float fontSize, float spacing)
+    static float CalculateRadioWidth(string label, float size, float fontSize, float spacing)
     {
         return string.IsNullOrEmpty(label)
             ? size
             : size + spacing + MeasureTextWidth(new SKFont { Size = fontSize }, label);
     }
 
-    private static void HandleRadioInteraction(Gui gui, ref int selectedIndex, int value, bool enabled)
+    static void HandleRadioInteraction(Gui gui, ref int selectedIndex, int value, bool enabled)
     {
         if (gui.Pass != Pass.Pass2Render || !enabled) return;
 
@@ -112,7 +112,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderRadioCircle(Gui gui, bool isSelected, float size,
+    static void RenderRadioCircle(Gui gui, bool isSelected, float size,
         Color? backgroundColor, Color? selectedColor, Color? borderColor, bool enabled)
     {
         using (gui.Node(size, size).Enter())
@@ -146,7 +146,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderRadioLabel(Gui gui, string label, float fontSize, Color? labelColor,
+    static void RenderRadioLabel(Gui gui, string label, float fontSize, Color? labelColor,
         bool enabled)
     {
         if (string.IsNullOrEmpty(label)) return;

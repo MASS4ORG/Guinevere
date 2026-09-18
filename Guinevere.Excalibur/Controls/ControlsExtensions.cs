@@ -2,9 +2,9 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private static readonly Color DisabledFill = Color.FromArgb(255, 245, 246, 247);
-    private static readonly Color DisabledBorder = Color.FromArgb(255, 208, 210, 214);
-    private static readonly Color DisabledText = Color.FromArgb(255, 160, 162, 167);
+    static readonly Color DisabledFill = Color.FromArgb(255, 245, 246, 247);
+    static readonly Color DisabledBorder = Color.FromArgb(255, 208, 210, 214);
+    static readonly Color DisabledText = Color.FromArgb(255, 160, 162, 167);
 
     /// <summary>
     /// Creates a button that returns the clicked state without modifying the input
@@ -63,7 +63,7 @@ public static partial class ControlsExtensions
             pressedColor, pressedBorderColor, color, fontSize, radius, enabled);
     }
 
-    private static bool ButtonCore(Gui gui, Text text, float width, float height,
+    static bool ButtonCore(Gui gui, Text text, float width, float height,
         Color? backgroundColor, Color? borderColor,
         Color? hoverColor,
         Color? pressedColor, Color? pressedBorderColor,
@@ -113,7 +113,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static bool IconButtonCore(Gui gui, Text? icon, float size,
+    static bool IconButtonCore(Gui gui, Text? icon, float size,
         Color? backgroundColor, Color? borderColor,
         Color? hoverColor,
         Color? pressedColor, Color? pressedBorderColor,
@@ -164,7 +164,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static (float width, float height) CalculateButtonDimensions(Gui gui, Text text, float width, float height,
+    static (float width, float height) CalculateButtonDimensions(Gui gui, Text text, float width, float height,
         float fontSize)
     {
         if (width > 0 && height > 0) return (width, height);
@@ -189,16 +189,14 @@ public static partial class ControlsExtensions
         );
     }
 
-    private static (string Text, Font Font)[] TextRuns(Gui gui, string text, float fontSize)
+    static (string Text, Font Font)[] TextRuns(Gui gui, string text, float fontSize)
     {
         var mainFont = new Font(new SKFont(
             gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.SkFont.Typeface, fontSize));
         var iconFont = new Font(new SKFont(
             gui.CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface, fontSize));
 
-        return gui.CreateTextRuns(text, mainFont, iconFont)
-            .Select(run => (run.Text, run.Font))
-            .ToArray();
+        return [.. gui.CreateTextRuns(text, mainFont, iconFont).Select(run => (run.Text, run.Font))];
     }
 
     // private static (bool hovered, bool pressed, bool clicked) GetButtonInteractionState(Gui gui)
@@ -207,14 +205,14 @@ public static partial class ControlsExtensions
     //     return (interactable.OnHover(), interactable.OnHold(), interactable.OnClick());
     // }
 
-    private static void RenderButtonBackground(Gui gui, InteractableElement interactable,
+    static void RenderButtonBackground(Gui gui, InteractableElement interactable,
         Color? backgroundColor, Color? hoverColor, Color? pressedColor, float radius)
     {
         var buttonColor = GetButtonBackgroundColor(interactable, backgroundColor, hoverColor, pressedColor);
         gui.DrawBackgroundRect(buttonColor, radius);
     }
 
-    private static void RenderIconButtonBackground(Gui gui, InteractableElement interactable,
+    static void RenderIconButtonBackground(Gui gui, InteractableElement interactable,
         Color? backgroundColor, Color? hoverColor, Color? pressedColor, float radius)
     {
         if (!ShouldDrawIconButtonBackground(interactable, backgroundColor)) return;
@@ -223,7 +221,7 @@ public static partial class ControlsExtensions
         gui.DrawBackgroundRect(buttonColor, radius);
     }
 
-    private static void RenderButtonBorder(Gui gui, InteractableElement interactable,
+    static void RenderButtonBorder(Gui gui, InteractableElement interactable,
         Color? borderColor, Color? pressedBorderColor)
     {
         if (!interactable.On(Interactions.Hover | Interactions.Click))
@@ -271,7 +269,7 @@ public static partial class ControlsExtensions
     }
 
     // Color calculation helpers
-    private static Color GetButtonBackgroundColor(InteractableElement interactable,
+    static Color GetButtonBackgroundColor(InteractableElement interactable,
         Color? backgroundColor, Color? hoverColor, Color? pressedColor)
     {
         if (interactable.OnClick() && pressedColor.HasValue)
@@ -281,7 +279,7 @@ public static partial class ControlsExtensions
         return backgroundColor ?? Color.FromArgb(255, 100, 149, 237);
     }
 
-    private static Color GetButtonBorderColor(InteractableElement interactable,
+    static Color GetButtonBorderColor(InteractableElement interactable,
         Color? borderColor, Color? pressedBorderColor)
     {
         if (interactable.OnClick())
@@ -289,7 +287,7 @@ public static partial class ControlsExtensions
         return borderColor ?? Color.FromArgb(255, 120, 169, 255);
     }
 
-    private static bool ShouldDrawIconButtonBackground(InteractableElement interactable,
+    static bool ShouldDrawIconButtonBackground(InteractableElement interactable,
         Color? backgroundColor)
     {
         return backgroundColor.HasValue || interactable.On(Interactions.Hover | Interactions.Click);

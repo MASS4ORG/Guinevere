@@ -24,4 +24,4 @@ public class MenuBarBuilder
 }
 
 /// <summary>One top-level menu: its bar title and the items that drop down below it.</summary>
-internal sealed record MenuBarMenu(string Title, List<FlyoutItem> Items);
+sealed record MenuBarMenu(string Title, List<FlyoutItem> Items);

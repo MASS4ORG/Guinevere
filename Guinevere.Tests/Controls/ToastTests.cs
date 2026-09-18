@@ -26,7 +26,7 @@ public class ToastTests
 
     /// <summary>
     /// Runs <paramref name="content"/> inside a host node (so toast rects can be inspected under one
-    /// parent) while calling <c>Toasts()</c> every frame exactly like the samples do.
+    /// parent) while calling <c>Toasts()</c> every frame exactly like the examples do.
     /// </summary>
     private static void Frame(Gui gui, Action<Gui>? content = null, IInputHandler? input = null)
     {

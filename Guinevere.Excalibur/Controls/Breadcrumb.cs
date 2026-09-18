@@ -3,15 +3,15 @@ namespace Guinevere;
 public static partial class ControlsExtensions
 {
     /// <summary>Horizontal padding inside a crumb, leaving room for the hover underline.</summary>
-    private const float CrumbPadding = 8f;
+    const float CrumbPadding = 8f;
 
     /// <summary>The gap between a crumb's icon and its label.</summary>
-    private const float CrumbIconGap = 4f;
+    const float CrumbIconGap = 4f;
 
     /// <summary>The chevron drawn between crumbs.</summary>
-    private const string Chevron = "›";
+    const string Chevron = "›";
 
-    private sealed class BreadcrumbMenuState
+    sealed class BreadcrumbMenuState
     {
         public bool IsOpen { get; set; }
 
@@ -67,7 +67,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderBreadcrumbCrumb(Gui gui, BreadcrumbItem item, int index, SKFont font,
+    static void RenderBreadcrumbCrumb(Gui gui, BreadcrumbItem item, int index, SKFont font,
         float height, Color link, Color linkHovered, Color current)
     {
         var interactive = !item.IsCurrent && item.OnClick is not null;
@@ -109,14 +109,14 @@ public static partial class ControlsExtensions
 
     /// <summary>The width the crumb content needs, measuring through the same main/icon font fallback
     /// that <see cref="Gui.DrawText"/> uses so an icon glyph sizes its share of the crumb correctly.</summary>
-    private static float MeasureCrumbContent(Gui gui, BreadcrumbItem item, float fontSize)
+    static float MeasureCrumbContent(Gui gui, BreadcrumbItem item, float fontSize)
     {
         return MeasureCrumbPiece(gui, item.Icon ?? "", fontSize)
                + (item.Icon is null ? 0 : CrumbIconGap)
                + MeasureCrumbPiece(gui, item.Label, fontSize);
     }
 
-    private static float MeasureCrumbPiece(Gui gui, string text, float fontSize)
+    static float MeasureCrumbPiece(Gui gui, string text, float fontSize)
     {
         var width = 0f;
         foreach (var (runText, runFont) in TextRuns(gui, text, fontSize))
@@ -128,7 +128,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Draws the icon (if any) and the label as one run-split, vertically centred block.</summary>
-    private static void DrawBreadcrumbContent(Gui gui, BreadcrumbItem item, float fontSize, Color color)
+    static void DrawBreadcrumbContent(Gui gui, BreadcrumbItem item, float fontSize, Color color)
     {
         var rect = gui.CurrentNode.Rect;
         var totalWidth = MeasureCrumbContent(gui, item, fontSize);
@@ -140,7 +140,7 @@ public static partial class ControlsExtensions
         DrawCrumbRuns(gui, item.Label, fontSize, color, cursorX, rect);
     }
 
-    private static float DrawCrumbRuns(Gui gui, string text, float fontSize, Color color, float x, Rect rect)
+    static float DrawCrumbRuns(Gui gui, string text, float fontSize, Color color, float x, Rect rect)
     {
         var paint = new SKPaint { Color = color, IsAntialias = true };
         var runs = TextRuns(gui, text, fontSize);
@@ -167,7 +167,7 @@ public static partial class ControlsExtensions
         return cursor + CrumbIconGap;
     }
 
-    private static void DrawBreadcrumbUnderline(Gui gui, Color color)
+    static void DrawBreadcrumbUnderline(Gui gui, Color color)
     {
         var rect = gui.CurrentNode.Rect;
         gui.DrawRect(new Rect(rect.X + (CrumbPadding * 0.5f), rect.Y + rect.H - 3.5f,
@@ -178,7 +178,7 @@ public static partial class ControlsExtensions
     /// The chevron between crumbs. When the crumb to its left carries children it is clickable: a
     /// hover highlights it and a click opens a context menu listing those children under the bar.
     /// </summary>
-    private static void RenderBreadcrumbSeparator(Gui gui, BreadcrumbItem leftItem, int index, SKFont font,
+    static void RenderBreadcrumbSeparator(Gui gui, BreadcrumbItem leftItem, int index, SKFont font,
         float height, Color color, Color linkColor)
     {
         var hasChildren = leftItem.Children is { Count: > 0 };

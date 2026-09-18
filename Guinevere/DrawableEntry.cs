@@ -3,7 +3,7 @@ namespace Guinevere;
 /// <inheritdoc />
 public class DrawableEntry : IDrawListEntry
 {
-    private readonly IDrawable _drawable;
+    readonly IDrawable _drawable;
 
     /// <summary>
     /// Represents an entry in a draw list that encapsulates a drawable object.

@@ -1,6 +1,6 @@
 namespace Guinevere;
 
-internal class TabInfo
+class TabInfo
 {
     public string Title { get; set; } = "";
     public bool Enabled { get; set; } = true;

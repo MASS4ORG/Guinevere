@@ -8,10 +8,10 @@ namespace Guinevere;
 /// </summary>
 public readonly struct InteractableElement
 {
-    private readonly SKPath _shape;
-    private readonly Gui _gui;
-    private readonly string _id;
-    private readonly LayoutNode? _node;
+    readonly SKPath _shape;
+    readonly Gui _gui;
+    readonly string _id;
+    readonly LayoutNode? _node;
 
     /// <summary>
     /// Represents an interactive UI element in the graphical user interface,
@@ -88,7 +88,7 @@ public readonly struct InteractableElement
     /// rects; input must hold the pointer against the same rects, or content scrolled past a panel's
     /// edge stays tappable on the other side of it.
     /// </summary>
-    private bool OutsideClippedAncestors(Vector2 position)
+    bool OutsideClippedAncestors(Vector2 position)
     {
         if (_node is null) return false;
         if (_node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value) return false;
@@ -130,7 +130,8 @@ public readonly struct InteractableElement
 
         args = new HoldArgs
         {
-            StartPosition = _gui.Input.PrevMousePosition, CurrentPosition = _gui.Input.MousePosition
+            StartPosition = _gui.Input.PrevMousePosition,
+            CurrentPosition = _gui.Input.MousePosition
         };
         return true;
     }
@@ -172,7 +173,7 @@ public readonly struct InteractableElement
         return true;
     }
 
-    private bool IsHeld(MouseButton button = MouseButton.Left)
+    bool IsHeld(MouseButton button = MouseButton.Left)
     {
         var mouseDown = _gui.Input.IsMouseButtonDown(button);
         var isDragging = _gui.GetDragState(_id);

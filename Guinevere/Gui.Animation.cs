@@ -4,9 +4,9 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    private AnimationManager? _animationManager;
+    AnimationManager? _animationManager;
 
-    private AnimationManager AnimationManager => _animationManager ??= new AnimationManager(Time);
+    AnimationManager AnimationManager => _animationManager ??= new AnimationManager(Time);
 
     /// <summary>
     /// Gets a new AnimationFloat instance with the specified initial value.

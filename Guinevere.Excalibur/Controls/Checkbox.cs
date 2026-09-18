@@ -38,7 +38,7 @@ public static partial class ControlsExtensions
         return temp;
     }
 
-    private static void CheckboxCore(Gui gui, ref bool isChecked, string label, float size,
+    static void CheckboxCore(Gui gui, ref bool isChecked, string label, float size,
         Color? backgroundColor, Color? checkColor, Color? borderColor, Color? labelColor,
         float fontSize, float spacing, bool enabled)
     {
@@ -56,14 +56,14 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static float CalculateCheckboxWidth(string label, float size, float fontSize, float spacing)
+    static float CalculateCheckboxWidth(string label, float size, float fontSize, float spacing)
     {
         return string.IsNullOrEmpty(label)
             ? size
             : size + spacing + MeasureTextWidth(new SKFont { Size = fontSize }, label);
     }
 
-    private static void HandleCheckboxInteraction(Gui gui, ref bool isChecked, bool enabled)
+    static void HandleCheckboxInteraction(Gui gui, ref bool isChecked, bool enabled)
     {
         if (gui.Pass != Pass.Pass2Render || !enabled) return;
 
@@ -86,7 +86,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderCheckboxSquare(Gui gui, bool isChecked, float size,
+    static void RenderCheckboxSquare(Gui gui, bool isChecked, float size,
         Color? backgroundColor, Color? checkColor, Color? borderColor, bool enabled)
     {
         using (gui.Node(size, size).Enter())
@@ -115,7 +115,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderCheckboxLabel(Gui gui, string label, float fontSize, Color? labelColor,
+    static void RenderCheckboxLabel(Gui gui, string label, float fontSize, Color? labelColor,
         bool enabled)
     {
         if (!string.IsNullOrEmpty(label))
@@ -125,12 +125,12 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static Color GetCheckboxBackgroundColor(Gui gui, bool isChecked, Color? backgroundColor)
+    static Color GetCheckboxBackgroundColor(Gui gui, bool isChecked, Color? backgroundColor)
     {
         return backgroundColor ?? (isChecked ? gui.Controls.Selected : gui.Controls.Surface);
     }
 
-    private static void DrawCheckmark(Gui gui, Rect rect, float size, Color checkColor)
+    static void DrawCheckmark(Gui gui, Rect rect, float size, Color checkColor)
     {
         var (centerX, centerY) = (rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f);
         var checkSize = size * 0.3f;
@@ -141,7 +141,7 @@ public static partial class ControlsExtensions
         gui.DrawLine(points.p2, points.p3, checkColor, 2f);
     }
 
-    private static (Vector2 p1, Vector2 p2, Vector2 p3) CalculateCheckmarkPoints(
+    static (Vector2 p1, Vector2 p2, Vector2 p3) CalculateCheckmarkPoints(
         float centerX, float centerY, float checkSize)
     {
         return (

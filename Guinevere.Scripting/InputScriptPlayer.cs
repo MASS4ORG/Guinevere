@@ -17,7 +17,7 @@ public sealed class InputScriptPlayer(
     Action<string>? onMessage = null,
     string? outputDirectory = null)
 {
-    private readonly Action<string> _log = onMessage ?? Console.Out.WriteLine;
+    readonly Action<string> _log = onMessage ?? Console.Out.WriteLine;
 
     /// <summary>How many <c>Expect*</c> steps failed during the last <see cref="Play"/>.</summary>
     public int Failures { get; private set; }
@@ -43,7 +43,7 @@ public sealed class InputScriptPlayer(
         return Failures == 0;
     }
 
-    private void Execute(InputScriptStep step, Gui gui, Action<Gui> draw, SKSurface surface, Font font)
+    void Execute(InputScriptStep step, Gui gui, Action<Gui> draw, SKSurface surface, Font font)
     {
         switch (step.Action)
         {
@@ -124,7 +124,7 @@ public sealed class InputScriptPlayer(
         Frame(gui, draw, surface, font);
     }
 
-    private static void Frame(Gui gui, Action<Gui> draw, SKSurface surface, Font font)
+    static void Frame(Gui gui, Action<Gui> draw, SKSurface surface, Font font)
     {
         var canvas = surface.Canvas;
         canvas.Clear(SKColors.Black);
@@ -143,7 +143,7 @@ public sealed class InputScriptPlayer(
         (gui.Input as ScriptedInputHandler)?.NewFrame();
     }
 
-    private void ExpectCapture(Gui gui, string? expected)
+    void ExpectCapture(Gui gui, string? expected)
     {
         var actual = gui.PointerCapture;
         var ok = string.IsNullOrEmpty(expected) || expected.Equals("none", StringComparison.OrdinalIgnoreCase)
@@ -154,7 +154,7 @@ public sealed class InputScriptPlayer(
         else Fail($"expectCapture '{expected}': pointer capture was {actual ?? "none"}");
     }
 
-    private void ExpectNode(Gui gui, string? idFragment, bool shouldExist)
+    void ExpectNode(Gui gui, string? idFragment, bool shouldExist)
     {
         if (string.IsNullOrEmpty(idFragment))
         {
@@ -167,11 +167,11 @@ public sealed class InputScriptPlayer(
         else Fail($"{(shouldExist ? "expectNode" : "expectNoNode")} '{idFragment}': node was {(found ? "" : "not ")}found");
     }
 
-    private static bool Exists(LayoutNode node, string idFragment) =>
+    static bool Exists(LayoutNode node, string idFragment) =>
         node.Id.Contains(idFragment, StringComparison.Ordinal)
         || node.Children.Any(child => Exists(child, idFragment));
 
-    private void Save(SKSurface surface, string? path)
+    void Save(SKSurface surface, string? path)
     {
         if (string.IsNullOrEmpty(path))
         {
@@ -193,7 +193,7 @@ public sealed class InputScriptPlayer(
         _log($"wrote frame to {target}");
     }
 
-    private void ReportTree(LayoutNode node, int depth)
+    void ReportTree(LayoutNode node, int depth)
     {
         var r = node.Rect;
         var id = node.Id.Length > 60 ? "…" + node.Id[^58..] : node.Id;
@@ -201,7 +201,7 @@ public sealed class InputScriptPlayer(
         foreach (var child in node.Children) ReportTree(child, depth + 1);
     }
 
-    private void Fail(string message)
+    void Fail(string message)
     {
         Failures++;
         _log(message);

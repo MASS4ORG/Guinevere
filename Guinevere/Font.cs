@@ -8,7 +8,7 @@ namespace Guinevere;
 /// </summary>
 public class Font
 {
-    private readonly SKFont _skFont;
+    readonly SKFont _skFont;
 
     /// <summary>
     ///
@@ -23,7 +23,7 @@ public class Font
     /// </summary>
     /// <param name="typeface">The typeface to use for the font.</param>
     /// <param name="size">The size of the font in points. Default is 12.</param>
-    private Font(Typeface typeface, float size = 12f)
+    Font(Typeface typeface, float size = 12f)
         : this(new SKFont(typeface.SkTypeface, size))
     {
     }
@@ -50,7 +50,7 @@ public class Font
     /// <summary>
     /// Gets the typeface of the font.
     /// </summary>
-    private Typeface Typeface => new(_skFont.Typeface);
+    Typeface Typeface => new(_skFont.Typeface);
 
     /// <summary>
     /// Gets the underlying SkiaSharp font object.

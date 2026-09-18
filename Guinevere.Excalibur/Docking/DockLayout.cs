@@ -50,8 +50,8 @@ public sealed class DockLayout
                 yield return leaf;
 
         foreach (var window in Floating)
-        foreach (var leaf in window.Root.Leaves())
-            yield return leaf;
+            foreach (var leaf in window.Root.Leaves())
+                yield return leaf;
     }
 
     /// <summary>
@@ -237,12 +237,12 @@ public sealed class DockLayout
             Remove(panelId);
     }
 
-    private DockLeaf? EdgeLeaf(DockZone zone)
+    DockLeaf? EdgeLeaf(DockZone zone)
     {
         return Root?.Leaves().FirstOrDefault(leaf => leaf.Zone == zone);
     }
 
-    private void EnsureRoot(DockNode node)
+    void EnsureRoot(DockNode node)
     {
         if (Root is null) Root = node;
         else Root = new DockSplit(Axis.Horizontal, Root, node);
@@ -253,7 +253,7 @@ public sealed class DockLayout
     /// lazy walk would find the replacement still holding <paramref name="target"/> and splice a split
     /// in as its own child — unbounded recursion on every later traversal.
     /// </summary>
-    private bool Replace(DockNode target, DockNode replacement)
+    bool Replace(DockNode target, DockNode replacement)
     {
         if (ReferenceEquals(Root, target))
         {
@@ -275,7 +275,7 @@ public sealed class DockLayout
         return Root is not null && ReplaceChild(Root, target, replacement);
     }
 
-    private static bool ReplaceChild(DockNode node, DockNode target, DockNode replacement)
+    static bool ReplaceChild(DockNode node, DockNode target, DockNode replacement)
     {
         if (node is not DockSplit split) return false;
 
@@ -295,7 +295,7 @@ public sealed class DockLayout
                || ReplaceChild(split.Second, target, replacement);
     }
 
-    private void Prune()
+    void Prune()
     {
         Root = Prune(Root);
 
@@ -307,7 +307,7 @@ public sealed class DockLayout
         }
     }
 
-    private static DockNode? Prune(DockNode? node)
+    static DockNode? Prune(DockNode? node)
     {
         switch (node)
         {
@@ -316,17 +316,17 @@ public sealed class DockLayout
             case DockLeaf leaf:
                 return leaf.PanelIds.Count == 0 ? null : leaf;
             case DockSplit split:
-            {
-                var first = Prune(split.First);
-                var second = Prune(split.Second);
+                {
+                    var first = Prune(split.First);
+                    var second = Prune(split.Second);
 
-                if (first is null) return second;
-                if (second is null) return first;
+                    if (first is null) return second;
+                    if (second is null) return first;
 
-                split.First = first;
-                split.Second = second;
-                return split;
-            }
+                    split.First = first;
+                    split.Second = second;
+                    return split;
+                }
             default:
                 return node;
         }

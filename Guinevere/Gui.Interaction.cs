@@ -18,13 +18,13 @@ public partial class Gui
     /// </remarks>
     public IInputHandler Input { get; set; } = null!;
 
-    private readonly Dictionary<string, bool> _dragStates = new();
-    private readonly Dictionary<string, Vector2> _pressAnchors = new();
-    private Vector2 _pointerLastFrame;
-    private bool _hasPointerLastFrame;
-    private (string Id, MouseButton Button)? _pointerCapture;
-    private readonly Dictionary<string, (float Time, int Count)> _clickRuns = new();
-    private LayoutNode? _inputBlocker;
+    readonly Dictionary<string, bool> _dragStates = new();
+    readonly Dictionary<string, Vector2> _pressAnchors = new();
+    Vector2 _pointerLastFrame;
+    bool _hasPointerLastFrame;
+    (string Id, MouseButton Button)? _pointerCapture;
+    readonly Dictionary<string, (float Time, int Count)> _clickRuns = new();
+    LayoutNode? _inputBlocker;
 
     /// <summary>
     /// Retrieves an interactable element for the current layout node.
@@ -57,7 +57,7 @@ public partial class Gui
         return new InteractableElement(newShape, this, ShapeId(position), CurrentNode);
     }
 
-    private string ShapeId(Vector2 position)
+    string ShapeId(Vector2 position)
     {
         return $"{CurrentNode.Id}_{position.X}_{position.Y}";
     }
@@ -135,7 +135,7 @@ public partial class Gui
         _hasPointerLastFrame ? Input.MousePosition - _pointerLastFrame : Vector2.Zero;
 
     /// <summary>Records the pointer for the next frame's delta. Called from <see cref="EndFrame"/>.</summary>
-    private void TrackPointerForNextFrame()
+    void TrackPointerForNextFrame()
     {
         if (Input is null) return;
 
@@ -201,7 +201,7 @@ public partial class Gui
         return true;
     }
 
-    private void ClearCompletedDrags()
+    void ClearCompletedDrags()
     {
         var keysToRemove = new List<string>();
         foreach (var kvp in _dragStates)
@@ -220,7 +220,7 @@ public partial class Gui
     /// drawn. A dock tab dropped into another group comes back under a different node id and would
     /// otherwise never run its own release, leaving the pointer captured for good.
     /// </summary>
-    private void ReleaseFinishedCapture()
+    void ReleaseFinishedCapture()
     {
         if (_pointerCapture is not { } held) return;
         if (Input is not null && Input.IsMouseButtonDown(held.Button)) return;

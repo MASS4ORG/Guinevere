@@ -13,7 +13,7 @@ public static partial class ControlsExtensions
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="isOpen">Whether the menu is showing. Set false when it dismisses or an item runs.</param>
     /// <param name="position">Screen position of the menu's top-left corner. Keep it stable across
-    /// frames — sample the pointer when the menu opens, not while it is open.</param>
+    /// frames — example the pointer when the menu opens, not while it is open.</param>
     /// <param name="build">Fills the menu.</param>
     /// <param name="backgroundColor">Menu fill. Defaults to the control palette's popup color.</param>
     /// <param name="textColor">Item text. Defaults to the palette's text color.</param>

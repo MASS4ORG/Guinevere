@@ -4,10 +4,10 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private const int PopupZIndex = 9_000;
-    private const int TooltipZIndex = 11_000;
+    const int PopupZIndex = 9_000;
+    const int TooltipZIndex = 11_000;
 
-    private class PopupState
+    class PopupState
     {
         public bool IsOpen { get; set; }
         public Vector2 Position { get; set; }
@@ -21,7 +21,7 @@ public static partial class ControlsExtensions
         public bool JustOpened { get; set; }
     }
 
-    private class TooltipState
+    class TooltipState
     {
         public bool WasHovering { get; set; }
         public float EnteredAt { get; set; }
@@ -291,7 +291,7 @@ public static partial class ControlsExtensions
     }
 
     // Core implementation helpers
-    private static PopupState GetOrCreatePopupState(Gui gui, string id, Vector2? position,
+    static PopupState GetOrCreatePopupState(Gui gui, string id, Vector2? position,
         bool closeOnClickOutside, bool closeOnEscape) =>
         gui.ControlState(id, () => new PopupState
         {
@@ -300,7 +300,7 @@ public static partial class ControlsExtensions
             CloseOnEscape = closeOnEscape
         });
 
-    private static void HandlePopupInteraction(Gui gui, PopupState state)
+    static void HandlePopupInteraction(Gui gui, PopupState state)
     {
         if (gui.Pass != Pass.Pass2Render) return;
 
@@ -308,7 +308,7 @@ public static partial class ControlsExtensions
         if (state.CloseOnEscape && gui.Input.IsKeyPressed(KeyboardKey.Escape)) state.IsOpen = false;
     }
 
-    private static void RenderPopup(Gui gui, PopupState state, Action content, float width, float height,
+    static void RenderPopup(Gui gui, PopupState state, Action content, float width, float height,
         string title, Color? backgroundColor, Color? borderColor, Color? titleBarColor,
         Color? titleTextColor, float titleBarHeight, float borderRadius, float borderWidth)
     {
@@ -370,7 +370,7 @@ public static partial class ControlsExtensions
         if (!IsMouseInRect(gui.Input.MousePosition, popupRect)) state.IsOpen = false;
     }
 
-    private static void RenderPopupTitleBar(Gui gui, string title, float width, float height,
+    static void RenderPopupTitleBar(Gui gui, string title, float width, float height,
         Color? titleBarColor, Color? titleTextColor, bool isOpen)
     {
         using (gui.Node(width, height).Enter())
@@ -387,7 +387,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderContextMenuItems(Gui gui, List<ContextMenuItem> items, ref bool isOpen,
+    static void RenderContextMenuItems(Gui gui, List<ContextMenuItem> items, ref bool isOpen,
         float itemHeight, Color? hoverColor, bool menuIsOpen)
     {
         foreach (var item in items)
@@ -425,7 +425,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static Vector2 ConstrainToScreen(Gui gui, Vector2 position, float width, float height)
+    static Vector2 ConstrainToScreen(Gui gui, Vector2 position, float width, float height)
     {
         var screen = gui.ScreenRect;
         const float windowBorder = 2f;

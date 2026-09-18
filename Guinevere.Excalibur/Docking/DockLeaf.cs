@@ -34,7 +34,7 @@ public sealed class DockLeaf : DockNode
         set => _activeIndex = value;
     }
 
-    private int _activeIndex;
+    int _activeIndex;
 
     /// <summary>
     /// The panel currently shown, or null when the group is empty.

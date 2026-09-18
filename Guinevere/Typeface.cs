@@ -5,7 +5,7 @@ namespace Guinevere;
 /// </summary>
 public class Typeface
 {
-    private readonly SKTypeface _skTypeface;
+    readonly SKTypeface _skTypeface;
 
     /// <summary>
     /// Initializes a new instance of the Typeface class.

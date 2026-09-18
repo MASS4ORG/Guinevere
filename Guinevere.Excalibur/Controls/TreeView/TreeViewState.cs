@@ -6,8 +6,8 @@ namespace Guinevere;
 /// </summary>
 public sealed class TreeViewState
 {
-    private readonly HashSet<string> _collapsed = [];
-    private readonly HashSet<string> _expanded = [];
+    readonly HashSet<string> _collapsed = [];
+    readonly HashSet<string> _expanded = [];
 
     /// <summary>The selected row's id, or null.</summary>
     public string? SelectedId { get; set; }
@@ -93,7 +93,7 @@ public sealed class TreeViewState
     }
 
     /// <summary>
-    /// Scroll offset and viewport height, sampled once per frame. Both passes of a frame must agree on
+    /// Scroll offset and viewport height, exampled once per frame. Both passes of a frame must agree on
     /// which rows are visible, and the live scroll state only settles during the render pass.
     /// </summary>
     internal float FrameScrollY { get; set; }

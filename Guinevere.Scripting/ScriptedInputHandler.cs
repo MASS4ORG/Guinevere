@@ -7,18 +7,18 @@ namespace Guinevere;
 /// </summary>
 public sealed class ScriptedInputHandler : IInputHandler
 {
-    private readonly HashSet<MouseButton> _buttonsDown = [];
-    private readonly HashSet<MouseButton> _buttonsPressed = [];
-    private readonly HashSet<MouseButton> _buttonsReleased = [];
-    private readonly HashSet<KeyboardKey> _keysDown = [];
-    private readonly HashSet<KeyboardKey> _keysPressed = [];
-    private readonly HashSet<KeyboardKey> _keysReleased = [];
+    readonly HashSet<MouseButton> _buttonsDown = [];
+    readonly HashSet<MouseButton> _buttonsPressed = [];
+    readonly HashSet<MouseButton> _buttonsReleased = [];
+    readonly HashSet<KeyboardKey> _keysDown = [];
+    readonly HashSet<KeyboardKey> _keysPressed = [];
+    readonly HashSet<KeyboardKey> _keysReleased = [];
 
-    private string _typed = string.Empty;
-    private string _clipboard = string.Empty;
-    private Vector2 _position;
-    private Vector2 _previous;
-    private float _wheel;
+    string _typed = string.Empty;
+    string _clipboard = string.Empty;
+    Vector2 _position;
+    Vector2 _previous;
+    float _wheel;
 
     /// <inheritdoc />
     public Vector2 MousePosition => _position;

@@ -4,7 +4,7 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private class DropdownState
+    class DropdownState
     {
         public bool IsOpen { get; set; }
         public int SelectedIndex { get; set; } = -1;
@@ -145,10 +145,10 @@ public static partial class ControlsExtensions
         gui.ClearControlStates<DropdownState>();
     }
 
-    private static DropdownState DropdownStateFor(Gui gui, string id) =>
+    static DropdownState DropdownStateFor(Gui gui, string id) =>
         gui.ControlState(id, () => new DropdownState());
 
-    private static void DrawButton(Gui gui, string id, string[] options, int selectedIndex,
+    static void DrawButton(Gui gui, string id, string[] options, int selectedIndex,
         float width, float height, string placeholder, Color background, Color border, Color text,
         Color placeholderText, float fontSize, float padding, float borderRadius, DropdownState state,
         bool enabled)
@@ -178,7 +178,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void DrawArrow(Gui gui, Rect rect, float padding, Color color)
+    static void DrawArrow(Gui gui, Rect rect, float padding, Color color)
     {
         const float size = 4f;
         var x = rect.X + rect.W - padding - size;
@@ -194,7 +194,7 @@ public static partial class ControlsExtensions
     /// The option list, positioned over the frame rather than inside the flow, so it is not clipped by
     /// whatever panel the dropdown sits in.
     /// </summary>
-    private static void DrawList(Gui gui, string id, string[] options, ref int selectedIndex,
+    static void DrawList(Gui gui, string id, string[] options, ref int selectedIndex,
         Rect buttonRect, float rowHeight, Color background, Color border, Color text, Color hover,
         Color selected, float fontSize, float padding, float borderRadius, int maxVisibleItems,
         DropdownState state)
@@ -262,9 +262,9 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Where an open option list draws, above ordinary content but below a drag ghost.</summary>
-    private const int ListZIndex = 5_000;
+    const int ListZIndex = 5_000;
 
-    private static bool IsMouseInRect(Vector2 mousePos, Rect rect) =>
+    static bool IsMouseInRect(Vector2 mousePos, Rect rect) =>
         mousePos.X >= rect.X && mousePos.X <= rect.X + rect.W &&
         mousePos.Y >= rect.Y && mousePos.Y <= rect.Y + rect.H;
 }

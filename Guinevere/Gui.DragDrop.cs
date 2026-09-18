@@ -2,9 +2,9 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    private DragSession? _drag;
-    private DragSession? _pendingDrag;
-    private PendingDrop? _pendingDrop;
+    DragSession? _drag;
+    DragSession? _pendingDrag;
+    PendingDrop? _pendingDrop;
 
     /// <summary>
     /// The payload of the drag currently in progress, or null when nothing is being dragged.
@@ -122,7 +122,7 @@ public partial class Gui
     /// Settles the drag once the pointer is released: the last target that reported a hover gets the
     /// payload, and a release over nothing simply cancels. Called from <see cref="EndFrame"/>.
     /// </summary>
-    private void ResolveDrag()
+    void ResolveDrag()
     {
         if (_drag is null)
         {
@@ -145,7 +145,7 @@ public partial class Gui
     /// </summary>
     public const int DragGhostZIndex = 10_000;
 
-    private sealed record DragSession(string SourceId, object Payload, Action<Gui>? Ghost);
+    sealed record DragSession(string SourceId, object Payload, Action<Gui>? Ghost);
 
-    private sealed record PendingDrop(string Id, Action<object> OnDrop);
+    sealed record PendingDrop(string Id, Action<object> OnDrop);
 }

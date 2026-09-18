@@ -5,7 +5,7 @@ namespace Guinevere;
 /// </summary>
 public class TabBuilder
 {
-    private readonly List<TabInfo> _tabs = [];
+    readonly List<TabInfo> _tabs = [];
 
     /// <summary>
     /// Adds a new tab with the specified configuration options to the current tab list.
@@ -45,6 +45,6 @@ public class TabBuilder
 
     internal List<TabInfo> GetTabs()
     {
-        return [.._tabs];
+        return [.. _tabs];
     }
 }

@@ -2,7 +2,7 @@ namespace Guinevere.Tests;
 
 /// <summary>
 /// Tests for <see cref="Gui.DrawImageNineSlice(SKImage, Rect, Insets, Color?, float)"/> and
-/// <see cref="NineSliceDrawable"/>. The <c>ui --sample nineslice</c> CLI verb renders it visually.
+/// <see cref="NineSliceDrawable"/>. The <c>ui --example nineslice</c> CLI verb renders it visually.
 /// </summary>
 public class NineSliceTests
 {

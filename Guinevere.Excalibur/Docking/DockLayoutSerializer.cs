@@ -7,7 +7,7 @@ namespace Guinevere;
 /// a <c>kind</c> discriminator; the whole document carries a <c>version</c> and a reader that does
 /// not recognise it declines rather than guessing.
 /// </summary>
-internal static class DockLayoutSerializer
+static class DockLayoutSerializer
 {
     public static string Serialize(DockLayout layout)
     {
@@ -76,7 +76,7 @@ internal static class DockLayoutSerializer
         }
     }
 
-    private static Rect ReadRect(JsonElement window)
+    static Rect ReadRect(JsonElement window)
     {
         if (!window.TryGetProperty("bounds", out var bounds)) return new Rect(0, 0, 320, 240);
 
@@ -87,7 +87,7 @@ internal static class DockLayoutSerializer
             bounds.GetProperty("h").GetSingle());
     }
 
-    private static void WriteNode(Utf8JsonWriter writer, DockNode? node)
+    static void WriteNode(Utf8JsonWriter writer, DockNode? node)
     {
         switch (node)
         {
@@ -125,7 +125,7 @@ internal static class DockLayoutSerializer
         }
     }
 
-    private static DockNode? ReadNode(JsonElement element)
+    static DockNode? ReadNode(JsonElement element)
     {
         if (element.ValueKind != JsonValueKind.Object) return null;
         if (!element.TryGetProperty("kind", out var kind)) return null;
@@ -133,36 +133,36 @@ internal static class DockLayoutSerializer
         switch (kind.GetString())
         {
             case "leaf":
-            {
-                var leaf = new DockLeaf();
-                if (element.TryGetProperty("panels", out var panels) && panels.ValueKind == JsonValueKind.Array)
-                    foreach (var panel in panels.EnumerateArray())
-                        if (panel.GetString() is { } panelId)
-                            leaf.PanelIds.Add(panelId);
+                {
+                    var leaf = new DockLeaf();
+                    if (element.TryGetProperty("panels", out var panels) && panels.ValueKind == JsonValueKind.Array)
+                        foreach (var panel in panels.EnumerateArray())
+                            if (panel.GetString() is { } panelId)
+                                leaf.PanelIds.Add(panelId);
 
-                if (element.TryGetProperty("active", out var active)) leaf.ActiveIndex = active.GetInt32();
-                if (element.TryGetProperty("zone", out var zone) && Enum.TryParse<DockZone>(zone.GetString(), out var parsed))
-                    leaf.Zone = parsed;
+                    if (element.TryGetProperty("active", out var active)) leaf.ActiveIndex = active.GetInt32();
+                    if (element.TryGetProperty("zone", out var zone) && Enum.TryParse<DockZone>(zone.GetString(), out var parsed))
+                        leaf.Zone = parsed;
 
-                return leaf.PanelIds.Count == 0 ? null : leaf;
-            }
+                    return leaf.PanelIds.Count == 0 ? null : leaf;
+                }
 
             case "split":
-            {
-                var first = element.TryGetProperty("first", out var f) ? ReadNode(f) : null;
-                var second = element.TryGetProperty("second", out var s) ? ReadNode(s) : null;
+                {
+                    var first = element.TryGetProperty("first", out var f) ? ReadNode(f) : null;
+                    var second = element.TryGetProperty("second", out var s) ? ReadNode(s) : null;
 
-                // A split that lost a side on the way in collapses, the same way removal collapses it.
-                if (first is null) return second;
-                if (second is null) return first;
+                    // A split that lost a side on the way in collapses, the same way removal collapses it.
+                    if (first is null) return second;
+                    if (second is null) return first;
 
-                var axis = element.TryGetProperty("axis", out var a) && a.GetString() == "horizontal"
-                    ? Axis.Horizontal
-                    : Axis.Vertical;
-                var fraction = element.TryGetProperty("fraction", out var fr) ? fr.GetSingle() : 0.5f;
+                    var axis = element.TryGetProperty("axis", out var a) && a.GetString() == "horizontal"
+                        ? Axis.Horizontal
+                        : Axis.Vertical;
+                    var fraction = element.TryGetProperty("fraction", out var fr) ? fr.GetSingle() : 0.5f;
 
-                return new DockSplit(axis, first, second, fraction);
-            }
+                    return new DockSplit(axis, first, second, fraction);
+                }
 
             default:
                 return null;

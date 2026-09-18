@@ -13,7 +13,7 @@ namespace Guinevere;
 public sealed class NineSliceDrawable(SKImage image, Rect destination, Insets border, SKPaint? paint = null)
     : IDrawable
 {
-    private static readonly SKSamplingOptions Sampling = new(SKFilterMode.Linear, SKMipmapMode.None);
+    static readonly SKSamplingOptions Sampling = new(SKFilterMode.Linear, SKMipmapMode.None);
 
     /// <summary>The source image.</summary>
     public SKImage Image { get; } = image;
@@ -58,14 +58,14 @@ public sealed class NineSliceDrawable(SKImage image, Rect destination, Insets bo
         float[] dy = [Destination.Y, Destination.Y + dt, Destination.Y + Destination.H - db, Destination.Y + Destination.H];
 
         for (var row = 0; row < 3; row++)
-        for (var col = 0; col < 3; col++)
-        {
-            var src = new SKRect(sx[col], sy[row], sx[col + 1], sy[row + 1]);
-            var dstRect = new SKRect(dx[col], dy[row], dx[col + 1], dy[row + 1]);
-            if (src.Width <= 0f || src.Height <= 0f || dstRect.Width <= 0f || dstRect.Height <= 0f)
-                continue;
+            for (var col = 0; col < 3; col++)
+            {
+                var src = new SKRect(sx[col], sy[row], sx[col + 1], sy[row + 1]);
+                var dstRect = new SKRect(dx[col], dy[row], dx[col + 1], dy[row + 1]);
+                if (src.Width <= 0f || src.Height <= 0f || dstRect.Width <= 0f || dstRect.Height <= 0f)
+                    continue;
 
-            canvas.DrawImage(Image, src, dstRect, Sampling, Paint);
-        }
+                canvas.DrawImage(Image, src, dstRect, Sampling, Paint);
+            }
     }
 }

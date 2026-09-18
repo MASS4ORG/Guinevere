@@ -2,7 +2,7 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    private readonly Dictionary<string, ScrollState> _scrollStates = new();
+    readonly Dictionary<string, ScrollState> _scrollStates = new();
 
     /// <summary>
     /// Enables horizontal scrolling for the current node.
@@ -135,7 +135,7 @@ public partial class Gui
         return node;
     }
 
-    private ScrollState GetOrCreateScrollState(string nodeId)
+    ScrollState GetOrCreateScrollState(string nodeId)
     {
         if (!_scrollStates.TryGetValue(nodeId, out var state))
         {
@@ -156,7 +156,7 @@ public partial class Gui
         return _scrollStates.TryGetValue(nodeId, out var state) ? state : null;
     }
 
-    private void HandleScrollInput(LayoutNode node, ScrollState scrollState)
+    void HandleScrollInput(LayoutNode node, ScrollState scrollState)
     {
         var mousePos = Input.MousePosition;
         var nodeRect = node.InnerRect;
@@ -210,7 +210,7 @@ public partial class Gui
         HandleScrollbarDragging(node, scrollState, mousePos);
     }
 
-    private void UpdateContentSize(LayoutNode node, ScrollState scrollState)
+    void UpdateContentSize(LayoutNode node, ScrollState scrollState)
     {
         var maxX = 0f;
         var maxY = 0f;
@@ -245,7 +245,7 @@ public partial class Gui
         }
     }
 
-    private void HandleScrollbarDragging(LayoutNode node, ScrollState scrollState, Vector2 mousePos)
+    void HandleScrollbarDragging(LayoutNode node, ScrollState scrollState, Vector2 mousePos)
     {
         // The node's own rect, matching where the bar is drawn. The content box is inset by the width
         // the bar reserved, so hit-testing against it would sit the hot area beside the bar.
@@ -312,7 +312,7 @@ public partial class Gui
     /// Draws the scrollbars into a raised, out-of-flow node. Drawing them into the container itself
     /// put them under its own content, which paints later in the flat z-ordered pass.
     /// </summary>
-    private void DrawScrollbars(LayoutNode node, ScrollState scrollState, bool scrollX, bool scrollY,
+    void DrawScrollbars(LayoutNode node, ScrollState scrollState, bool scrollX, bool scrollY,
         Color? foregroundColor, Color? backgroundColor)
     {
         if (!(scrollX && scrollState.ShowScrollbarX) && !(scrollY && scrollState.ShowScrollbarY)) return;
@@ -329,9 +329,9 @@ public partial class Gui
     }
 
     /// <summary>Where scrollbars draw: above their container's content, below popups and drag ghosts.</summary>
-    private const int ScrollbarZIndex = 2_000;
+    const int ScrollbarZIndex = 2_000;
 
-    private void DrawScrollbar(LayoutNode node, ScrollState scrollState, Axis axis, Color? foregroundColor,
+    void DrawScrollbar(LayoutNode node, ScrollState scrollState, Axis axis, Color? foregroundColor,
         Color? backgroundColor)
     {
         var shouldShow = axis == Axis.Vertical ? scrollState.ShowScrollbarY : scrollState.ShowScrollbarX;
@@ -369,7 +369,7 @@ public partial class Gui
     /// </summary>
     /// <param name="nodeId">The node ID to get scroll offset for</param>
     /// <returns>The scroll offset as Vector2</returns>
-    private Vector2 GetScrollOffset(string nodeId)
+    Vector2 GetScrollOffset(string nodeId)
     {
         var scrollState = GetScrollState(nodeId);
         return scrollState?.ScrollOffset ?? Vector2.Zero;
@@ -380,7 +380,7 @@ public partial class Gui
     /// </summary>
     /// <param name="nodeId">The node ID to set scroll offset for</param>
     /// <param name="offset">The scroll offset to set</param>
-    private void SetScrollOffset(string nodeId, Vector2 offset)
+    void SetScrollOffset(string nodeId, Vector2 offset)
     {
         var scrollState = GetOrCreateScrollState(nodeId);
         scrollState.ScrollOffset = offset;
@@ -523,7 +523,7 @@ public partial class Gui
     /// <param name="root">The root node to start searching from</param>
     /// <param name="nodeId">The ID to search for</param>
     /// <returns>The node if found, null otherwise</returns>
-    private LayoutNode? FindNodeById(LayoutNode root, string nodeId)
+    LayoutNode? FindNodeById(LayoutNode root, string nodeId)
     {
         if (root.Id == nodeId) return root;
 

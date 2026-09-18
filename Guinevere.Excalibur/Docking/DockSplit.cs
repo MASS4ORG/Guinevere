@@ -15,8 +15,8 @@ public sealed class DockSplit(Axis axis, DockNode first, DockNode second, float 
     public Axis Axis { get; set; } = axis;
 
     // The constructor arguments need no guard: a split being constructed cannot yet be passed to itself.
-    private DockNode _first = first;
-    private DockNode _second = second;
+    DockNode _first = first;
+    DockNode _second = second;
 
     /// <summary>
     /// The left or top child.
@@ -40,7 +40,7 @@ public sealed class DockSplit(Axis axis, DockNode first, DockNode second, float 
     /// A split that holds itself makes every traversal recurse forever, and the stack overflow that
     /// follows points at the walk rather than at whatever built the cycle. Refuse it at the assignment.
     /// </summary>
-    private DockNode Guard(DockNode child)
+    DockNode Guard(DockNode child)
     {
         if (ReferenceEquals(child, this))
             throw new ArgumentException("A DockSplit cannot be its own child.", nameof(child));

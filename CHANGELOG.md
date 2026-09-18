@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Fix: avoid embedding duplicate fonts (icons.ttf is a duplicate of NotoColorEmoji-Regular.ttf)
+- Change: removal of `DrawTick`, `DrawSubmenuArrow` and `DrawTriangleFilled` in favor of icons/emojis
+
 ## v[2.1.0][] 2026-09-17
 
 - Added: Cascaded Menu

@@ -76,7 +76,7 @@ public partial class LayoutNode
         return FindChildByIdRecursive(id, ChildNodes);
     }
 
-    private static LayoutNode? FindChildByIdRecursive(string id, IEnumerable<LayoutNode> nodes)
+    static LayoutNode? FindChildByIdRecursive(string id, IEnumerable<LayoutNode> nodes)
     {
         return nodes.Select(child => child.Id == id ? child : FindChildByIdRecursive(id, child.ChildNodes))
             .FirstOrDefault(result => result != null);
@@ -101,7 +101,7 @@ public partial class LayoutNode
     /// <summary>
     /// Gets all ancestor nodes from root to parent
     /// </summary>
-    private IEnumerable<LayoutNode> GetAncestors()
+    IEnumerable<LayoutNode> GetAncestors()
     {
         var current = Parent;
         while (current != null)

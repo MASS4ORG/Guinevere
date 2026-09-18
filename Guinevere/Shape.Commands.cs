@@ -144,22 +144,22 @@ public partial class Shape
 
         // Copy all layers
         foreach (var (zIndex, layerList) in Layers)
-        foreach (var (layerPath, layerPaint) in layerList)
-        {
-            if (zIndex == 0) continue; // Skip main layer as it's already added in constructor
-
-            var copiedPath = new SKPath(layerPath);
-            var copiedPaint = new SKPaint
+            foreach (var (layerPath, layerPaint) in layerList)
             {
-                Color = layerPaint.Color,
-                Style = layerPaint.Style,
-                IsAntialias = layerPaint.IsAntialias,
-                StrokeWidth = layerPaint.StrokeWidth,
-                Shader = layerPaint.Shader,
-                ImageFilter = layerPaint.ImageFilter
-            };
-            shape.AddToLayer(zIndex, copiedPath, copiedPaint);
-        }
+                if (zIndex == 0) continue; // Skip main layer as it's already added in constructor
+
+                var copiedPath = new SKPath(layerPath);
+                var copiedPaint = new SKPaint
+                {
+                    Color = layerPaint.Color,
+                    Style = layerPaint.Style,
+                    IsAntialias = layerPaint.IsAntialias,
+                    StrokeWidth = layerPaint.StrokeWidth,
+                    Shader = layerPaint.Shader,
+                    ImageFilter = layerPaint.ImageFilter
+                };
+                shape.AddToLayer(zIndex, copiedPath, copiedPaint);
+            }
 
         return shape;
     }
@@ -195,7 +195,7 @@ public partial class Shape
     /// <param name="unionPath">The path representing the union of two shapes.</param>
     /// <param name="smoothness">The amount of smoothing to apply.</param>
     /// <returns>A smoothed path with organic transitions.</returns>
-    private static SKPath SmoothUnion(SKPath unionPath, float smoothness)
+    static SKPath SmoothUnion(SKPath unionPath, float smoothness)
     {
         // Step 1: Dilate (expand) the union to fill gaps and smooth concave areas
         var dilatePaint = new SKPaint
@@ -344,7 +344,7 @@ public partial class Shape
     /// <param name="color2">The second color.</param>
     /// <param name="amount">The blending amount between 0.0 and 1.0.</param>
     /// <returns>The blended color.</returns>
-    private static SKColor BlendColors(SKColor color1, SKColor color2, float amount)
+    static SKColor BlendColors(SKColor color1, SKColor color2, float amount)
     {
         var r = (byte)(color1.Red * (1 - amount) + color2.Red * amount);
         var g = (byte)(color1.Green * (1 - amount) + color2.Green * amount);

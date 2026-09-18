@@ -24,7 +24,7 @@ public class LayoutNodeScopeTextSize : ILayoutNodeScopeValue<LayoutNodeScopeText
     /// <summary>
     /// Gets the default text size value (20 pixels).
     /// </summary>
-    public static LayoutNodeScopeTextSize Default => new() { Value = 12f};
+    public static LayoutNodeScopeTextSize Default => new() { Value = 12f };
 
     /// <summary>
     /// Gets the size value for text rendering.

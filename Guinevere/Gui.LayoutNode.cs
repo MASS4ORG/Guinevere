@@ -106,7 +106,7 @@ public partial class Gui : ILayoutNodeEnterExit
         UpdateInputBlocker();
     }
 
-    private LayoutNodeScope RegisterLayoutNodeScope(LayoutNode node)
+    LayoutNodeScope RegisterLayoutNodeScope(LayoutNode node)
     {
         LayoutNodeScopeStack.Push(node.Scope);
         return node.Scope;
@@ -140,7 +140,7 @@ public partial class Gui : ILayoutNodeEnterExit
         return node;
     }
 
-    private LayoutNode CreateRootNode(Rect rect)
+    LayoutNode CreateRootNode(Rect rect)
     {
         var node = LayoutNode.CreateRoot(this, rect.W, rect.H);
         return RegisterLayoutNodeScope(node).Node;

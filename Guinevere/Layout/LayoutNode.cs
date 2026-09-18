@@ -14,9 +14,9 @@ namespace Guinevere;
 /// </remarks>
 public partial class LayoutNode : IDisposable
 {
-    private readonly Gui _gui;
-    private readonly LayoutNode? _parent;
-    private Rect _rect = Rect.Zero;
+    readonly Gui _gui;
+    readonly LayoutNode? _parent;
+    Rect _rect = Rect.Zero;
 
     /// <summary>
     /// Represents the collection of child nodes directly associated with this <see cref="LayoutNode"/>.
@@ -29,8 +29,8 @@ public partial class LayoutNode : IDisposable
     /// </remarks>
     public readonly List<LayoutNode> ChildNodes = new();
 
-    private int _absoluteChildCount;
-    private List<LayoutNode>? _flowChildrenCache;
+    int _absoluteChildCount;
+    List<LayoutNode>? _flowChildrenCache;
 
     /// <summary>
     /// The children that take part in this node's flow layout — every child except the absolutely
@@ -39,7 +39,7 @@ public partial class LayoutNode : IDisposable
     internal List<LayoutNode> FlowChildren =>
         _absoluteChildCount == 0
             ? ChildNodes
-            : _flowChildrenCache ??= ChildNodes.Where(c => !c.Style.IsAbsolute).ToList();
+            : _flowChildrenCache ??= [.. ChildNodes.Where(c => !c.Style.IsAbsolute)];
 
     /// <summary>
     /// Marks this node as absolutely positioned and tells the parent to drop it from the flow.

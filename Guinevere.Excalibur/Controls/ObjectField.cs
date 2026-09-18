@@ -27,7 +27,7 @@ public readonly record struct ObjectFieldResult(ObjectFieldAction Action, object
 public static partial class ControlsExtensions
 {
     /// <summary>What an <see cref="ControlsExtensions.ObjectField"/> remembers between frames.</summary>
-    private sealed class ObjectFieldState
+    sealed class ObjectFieldState
     {
         /// <summary>A payload dropped here, waiting to be reported.</summary>
         public object? Dropped { get; set; }
@@ -112,7 +112,7 @@ public static partial class ControlsExtensions
     /// Whether the drag in progress would be accepted here: true for yes, false for no, null when
     /// nothing is being dragged and the slot should look ordinary.
     /// </summary>
-    private static bool? DropEligibility(Gui gui, Func<object, bool>? accept)
+    static bool? DropEligibility(Gui gui, Func<object, bool>? accept)
     {
         if (gui.CurrentDragPayload is not { } payload) return null;
 
@@ -123,7 +123,7 @@ public static partial class ControlsExtensions
     /// The button that opens the picker, drawn as a target rather than typed: the system fonts in play
     /// carry no "◎". Blocks input so it never also hits the box behind it.
     /// </summary>
-    private static bool PickButton(Gui gui, string id, float height, ControlPalette palette)
+    static bool PickButton(Gui gui, string id, float height, ControlPalette palette)
     {
         using (gui.Node(height, height, id).BlockInput().Enter())
         {
@@ -144,7 +144,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>One of the slot's inline buttons. Blocks input so it never also hits the box behind it.</summary>
-    private static bool GlyphButton(Gui gui, string id, string glyph, float height, ControlPalette palette)
+    static bool GlyphButton(Gui gui, string id, string glyph, float height, ControlPalette palette)
     {
         using (gui.Node(height, height, id).BlockInput().Enter())
         {

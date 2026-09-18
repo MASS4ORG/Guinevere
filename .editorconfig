@@ -1,6 +1,6 @@
 root = true
-# Editor configuration, see https://editorconfig.org
 
+# Global formatting settings
 [*]
 charset = utf-8
 end_of_line = lf
@@ -10,64 +10,87 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 max_line_length = 120
 
-# Microsoft .NET properties
-csharp_new_line_before_members_in_object_initializers = false
-csharp_preferred_modifier_order = public, private, protected, internal, file, new, static, abstract, virtual, sealed, readonly, override, extern, unsafe, volatile, async, required:suggestion
-csharp_style_expression_bodied_accessors = true:error
-csharp_style_expression_bodied_properties = true:error
-csharp_style_namespace_declarations = file_scoped:warning
-csharp_style_prefer_utf8_string_literals = true:suggestion
-csharp_style_var_elsewhere = true:warning
-csharp_style_var_for_built_in_types = true:warning
-csharp_style_var_when_type_is_apparent = true:warning
-dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:none
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
-dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:none
+[*.cs]
+
+# Language & Standard Typing Rules
 dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 dotnet_style_predefined_type_for_member_access = true:suggestion
-dotnet_style_qualification_for_event = false:suggestion
-dotnet_style_qualification_for_field = false:suggestion
-dotnet_style_qualification_for_method = false:suggestion
-dotnet_style_qualification_for_property = false:suggestion
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
+resharper_built_in_type_reference_style_highlighting = hint
+resharper_built_in_type_reference_style_for_member_access_highlighting = hint
 
-[*.cs]
-csharp_indent_block_contents = true
-csharp_indent_case_contents = true
-csharp_indent_switch_labels = true
-csharp_indent_switch_sections = true
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_prefer_utf8_string_literals = true:warning
+csharp_prefer_simple_default_expression = true:error
 
-dotnet_naming_symbols.instance_fields.applicable_kinds = field
-dotnet_naming_symbols.instance_fields.applicable_accessibilities = private
+## Implicit Typing (var)
+csharp_style_var_for_built_in_types = true:warning
+csharp_style_var_when_type_is_apparent = true:warning
+csharp_style_var_elsewhere = true:warning
 
-dotnet_naming_style.camel_case_style.capitalization = camel_case
+## Modern C# (C# 10+) Features & Imports
+csharp_style_prefer_primary_constructors = true:suggestion
+dotnet_style_prefer_collection_expression = true:warning
+csharp_style_implicit_object_creation_when_type_is_apparent = true:warning
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
 
-# Code style
-csharp_prefer_simple_default_expression = true:warning
+# Code Structure & Modifiers
+csharp_preferred_modifier_order = public,protected,internal,private,file,final,abstract,virtual,sealed,override,body,new,static,readonly,post,required,volatile,async,unsafe,extern:warning
+dotnet_style_require_accessibility_modifiers = omit_if_default:warning
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+resharper_arrange_type_modifiers_highlighting = hint
+resharper_arrange_type_member_modifiers_highlighting = hint
+resharper_arrange_this_qualifier_highlighting = hint
+resharper_redundant_base_qualifier_highlighting = warning
+
+## Null Safety & Pattern Matching
+csharp_style_prefer_switch_expression = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+
+## Expression-Bodied Members
+csharp_style_expression_bodied_methods = true:silent
+csharp_style_expression_bodied_constructors = false:silent
 csharp_style_expression_bodied_operators = true:warning
 csharp_style_expression_bodied_properties = true:warning
 csharp_style_expression_bodied_indexers = true:warning
 csharp_style_expression_bodied_accessors = true:warning
+csharp_style_expression_bodied_lambdas = true:warning
+
+# Layout
+csharp_indent_block_contents = true
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
 
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
-csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_object_initializers = true:error
 csharp_new_line_before_members_in_anonymous_types = true
-csharp_new_line_within_query_expression_clauses = true:error
 csharp_space_after_keywords_in_control_flow_statements = true
 
-[**/obj/**/*.cs]
-dotnet_diagnostic.cs8019.severity = none # disable on debug generated files
-exclude = true
+resharper_enforce_line_ending_style = true
+resharper_use_indent_from_vs = false
+resharper_wrap_lines = true
+
+## Parentheses
+dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
+dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:none
+resharper_arrange_redundant_parentheses_highlighting = hint
+
+## Attributes
+resharper_place_attribute_on_same_line = false
+resharper_place_field_attribute_on_same_line = false
+resharper_place_type_attribute_on_same_line = false
+resharper_place_method_attribute_on_same_line = false
+resharper_place_property_attribute_on_same_line = false
+
+# Generated Code Overrides
+[**/{obj,bin}/**/*.cs]
 generated_code = true
 
-[*.{appxmanifest,asax,ascx,aspx,axaml,build,c,c++,c++m,cc,ccm,cginc,compute,cp,cpp,cppm,cs,cshtml,cu,cuh,cxx,cxxm,dtd,fs,fsi,fsscript,fsx,fx,fxh,h,hh,hlsl,hlsli,hlslinc,hpp,hxx,inc,inl,ino,ipp,ixx,master,ml,mli,mpp,mq4,mq5,mqh,mxx,nuspec,paml,razor,resw,resx,shader,skin,tpp,usf,ush,uxml,vb,xaml,xamlx,xoml,xsd}]
-indent_style = space
-indent_size = 4
-tab_width = 4
-
-# The Styling folder intentionally lives under the root 'Guinevere' namespace; suppress
-# the folder/namespace mismatch inspection for those files.
-[Guinevere/Styling/*.cs]
-resharper_check_namespace_highlighting = none
+[**/*.g.cs]
+generated_code = true

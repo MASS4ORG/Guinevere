@@ -87,7 +87,7 @@ public class DrawImageTests
 
     /// <summary>A source sub-rectangle selects part of the image.</summary>
     [Fact]
-    public void DrawImage_SourceRect_SamplesSubRegion()
+    public void DrawImage_SourceRect_ExamplesSubRegion()
     {
         var bitmap = new SKBitmap(2, 1);
         bitmap.SetPixel(0, 0, new SKColor(255, 0, 0, 255));

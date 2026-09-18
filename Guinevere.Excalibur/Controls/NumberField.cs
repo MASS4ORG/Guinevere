@@ -2,7 +2,7 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private sealed class NumberFieldState
+    sealed class NumberFieldState
     {
         public TextEditState Buffer = new("0");
         public bool Captured;
@@ -80,7 +80,7 @@ public static partial class ControlsExtensions
         value = (float)d;
     }
 
-    private static void SyncNumberBuffer(NumberFieldState field, double value, string format)
+    static void SyncNumberBuffer(NumberFieldState field, double value, string format)
     {
         var formatted = FormatNumber(value, format);
         var editing = field.Buffer.IsFocused || field.Captured;
@@ -93,7 +93,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void HandleNumberFieldInteraction(Gui gui, NumberFieldState field, ref double value,
+    static void HandleNumberFieldInteraction(Gui gui, NumberFieldState field, ref double value,
         InteractableElement interactable, double step, double min, double max, string format,
         double dragSensitivity, float fontSize, bool enabled)
     {
@@ -153,7 +153,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static double CommitNumber(NumberFieldState field, double fallback, double min, double max,
+    static double CommitNumber(NumberFieldState field, double fallback, double min, double max,
         string format)
     {
         var parsed = double.TryParse(field.Buffer.Text.Trim(),
@@ -166,10 +166,10 @@ public static partial class ControlsExtensions
         return parsed;
     }
 
-    private static string FormatNumber(double value, string format) =>
+    static string FormatNumber(double value, string format) =>
         value.ToString(format, System.Globalization.CultureInfo.InvariantCulture);
 
-    private static double Clamp(double value, double min, double max) =>
+    static double Clamp(double value, double min, double max) =>
         Math.Clamp(value, min, max);
 
 }

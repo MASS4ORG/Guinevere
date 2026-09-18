@@ -6,7 +6,7 @@ public sealed class ResolvedStyle
     /// <summary>An empty resolved style — no declarations.</summary>
     public static readonly ResolvedStyle Empty = new(new Dictionary<string, string>(StringComparer.Ordinal));
 
-    private readonly IReadOnlyDictionary<string, string> _declarations;
+    readonly IReadOnlyDictionary<string, string> _declarations;
 
     internal ResolvedStyle(IReadOnlyDictionary<string, string> declarations) => _declarations = declarations;
 
@@ -73,8 +73,8 @@ public static class StyleResolver
 
         var merged = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (_, _, _, rule, owner) in matches)
-        foreach (var (prop, value) in rule.Declarations)
-            merged[prop] = owner.ExpandVariables(value);
+            foreach (var (prop, value) in rule.Declarations)
+                merged[prop] = owner.ExpandVariables(value);
 
         return new ResolvedStyle(merged);
     }

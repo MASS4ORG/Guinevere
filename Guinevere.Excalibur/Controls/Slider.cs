@@ -4,7 +4,7 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    private sealed class SliderState
+    sealed class SliderState
     {
         public bool Dragging;
     }
@@ -57,7 +57,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderSlider(Gui gui, SliderState state, ref float value, float min, float max,
+    static void RenderSlider(Gui gui, SliderState state, ref float value, float min, float max,
         float step, Color? trackColor, Color? fillColor, Color? thumbColor, bool enabled)
     {
         if (gui.Pass != Pass.Pass2Render) return;
@@ -111,7 +111,7 @@ public static partial class ControlsExtensions
             trackColor, fillColor, thumbColor, enabled);
     }
 
-    private static float ValueFromPointerX(float x, Rect rect, float min, float max, float step)
+    static float ValueFromPointerX(float x, Rect rect, float min, float max, float step)
     {
         var fraction = (x - rect.X) / rect.W;
         var value = min + Math.Clamp(fraction, 0f, 1f) * (max - min);
@@ -119,7 +119,7 @@ public static partial class ControlsExtensions
         return Math.Clamp(value, min, max);
     }
 
-    private static void DrawSliderShape(Gui gui, Rect rect, float trackY, float trackHeight,
+    static void DrawSliderShape(Gui gui, Rect rect, float trackY, float trackHeight,
         Vector2 thumbCenter, float thumbRadius, float value, float min, float max,
         Color? trackColor, Color? fillColor, Color? thumbColor, bool enabled)
     {
@@ -138,8 +138,8 @@ public static partial class ControlsExtensions
         gui.DrawCircleBorder(thumbCenter, thumbRadius, Color.FromArgb(100, 0, 0, 0));
     }
 
-    private static string FormatSliderValue(float value, float step) =>
+    static string FormatSliderValue(float value, float step) =>
         value.ToString(step >= 1f ? "N0" : "0.##", System.Globalization.CultureInfo.InvariantCulture);
 
-    private const float SliderThumbRadius = 7f;
+    const float SliderThumbRadius = 7f;
 }

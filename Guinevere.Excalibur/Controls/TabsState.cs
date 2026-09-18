@@ -1,6 +1,6 @@
 namespace Guinevere;
 
-internal class TabsState
+class TabsState
 {
     public int ActiveTabIndex { get; set; }
     public List<TabInfo> Tabs { get; set; } = [];

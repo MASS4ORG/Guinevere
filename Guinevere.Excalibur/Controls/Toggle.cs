@@ -40,7 +40,7 @@ public static partial class ControlsExtensions
         return temp;
     }
 
-    private static void ToggleCore(Gui gui, ref bool isOn, string label, float width, float height,
+    static void ToggleCore(Gui gui, ref bool isOn, string label, float width, float height,
         Color? onColor, Color? offColor, Color? thumbColor, Color? labelColor,
         float fontSize, float spacing, bool enabled)
     {
@@ -58,14 +58,14 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static float CalculateToggleWidth(string label, float width, float fontSize, float spacing)
+    static float CalculateToggleWidth(string label, float width, float fontSize, float spacing)
     {
         return string.IsNullOrEmpty(label)
             ? width
             : width + spacing + MeasureTextWidth(new SKFont { Size = fontSize }, label);
     }
 
-    private static void HandleToggleInteraction(Gui gui, ref bool isOn, bool enabled)
+    static void HandleToggleInteraction(Gui gui, ref bool isOn, bool enabled)
     {
         if (gui.Pass != Pass.Pass2Render || !enabled) return;
 
@@ -88,7 +88,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderToggleSwitch(Gui gui, bool isOn, float width, float height,
+    static void RenderToggleSwitch(Gui gui, bool isOn, float width, float height,
         Color? onColor, Color? offColor, Color? thumbColor, bool enabled)
     {
         using (gui.Node(width, height).Enter())
@@ -113,7 +113,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static void RenderToggleLabel(Gui gui, string label, float fontSize, Color? labelColor,
+    static void RenderToggleLabel(Gui gui, string label, float fontSize, Color? labelColor,
         bool enabled)
     {
         if (!string.IsNullOrEmpty(label))
@@ -123,7 +123,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    private static Color GetToggleTrackColor(Gui gui, bool isOn, Color? onColor, Color? offColor)
+    static Color GetToggleTrackColor(Gui gui, bool isOn, Color? onColor, Color? offColor)
     {
         var interactable = gui.GetInteractable();
         var isHovered = interactable.OnHover();
@@ -140,7 +140,7 @@ public static partial class ControlsExtensions
         };
     }
 
-    private static (Vector2 position, float radius) CalculateThumbProperties(
+    static (Vector2 position, float radius) CalculateThumbProperties(
         Rect rect, float width, float height, bool isOn)
     {
         var thumbRadius = height * 0.4f;
@@ -152,13 +152,13 @@ public static partial class ControlsExtensions
         return (new Vector2(thumbX, thumbY), thumbRadius);
     }
 
-    private static Color Lighten(Color color) => Color.FromArgb(
+    static Color Lighten(Color color) => Color.FromArgb(
         color.A,
         Math.Min(255, color.R + 24),
         Math.Min(255, color.G + 24),
         Math.Min(255, color.B + 24));
 
-    private static void DrawToggleThumb(Gui gui, (Vector2 position, float radius) thumbProps, Color thumbColor)
+    static void DrawToggleThumb(Gui gui, (Vector2 position, float radius) thumbProps, Color thumbColor)
     {
         gui.DrawCircleFilled(thumbProps.position, thumbProps.radius, thumbColor);
         gui.DrawCircleBorder(thumbProps.position, thumbProps.radius, Color.FromArgb(100, 0, 0, 0));

@@ -6,13 +6,13 @@ namespace Guinevere;
 /// </summary>
 public class FocusManager
 {
-    private readonly Dictionary<string, FocusableControl> _focusableControls = new();
-    private readonly List<string> _frameControlOrder = new();
-    private readonly HashSet<string> _textInputIds = [];
-    private string? _currentFocusedId;
-    private string? _nextFrameFocusId;
-    private bool _focusChangedThisFrame;
-    private FocusReason _nextFrameFocusReason = FocusReason.Programmatic;
+    readonly Dictionary<string, FocusableControl> _focusableControls = new();
+    readonly List<string> _frameControlOrder = new();
+    readonly HashSet<string> _textInputIds = [];
+    string? _currentFocusedId;
+    string? _nextFrameFocusId;
+    bool _focusChangedThisFrame;
+    FocusReason _nextFrameFocusReason = FocusReason.Programmatic;
 
     /// <summary>Why the focused control got focus, so a control can react to Tab differently to a click.</summary>
     public FocusReason CurrentFocusReason { get; private set; } = FocusReason.Programmatic;
