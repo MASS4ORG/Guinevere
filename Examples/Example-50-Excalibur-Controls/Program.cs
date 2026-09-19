@@ -33,6 +33,7 @@ public abstract partial class Program
                 tabs.Tab("Selection", () => SelectionContent(gui));
                 tabs.Tab("Text Inputs", () => TextInputsContent(gui));
                 tabs.Tab("Navigation", () => NavigationContent(gui));
+                tabs.Tab("Focus", () => FocusNavigationContent(gui));
                 tabs.Tab("Feedback", () => FeedbackContent(gui));
                 tabs.Tab("Scrolling", () => ScrollingContent(gui));
                 tabs.Tab("Styling", () => StylingContent(gui));

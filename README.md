@@ -9,6 +9,8 @@
 
 A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for high-performance applications with modern graphics APIs support. You can use it to create rich and beautiful apps.
 
+![Guinevere overview](docs/guinevere-core-overview.png)
+
 > **Important**
 >
 > Guinevere is a very new library. While an earlier iteration is actively used within the Turian Game Engine, this specific library hasn't yet established a track record of reliability in production environments.
@@ -36,12 +38,13 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 - [Quick Start](#quick-start)
 - [Features](#features)
   - [Layout](#layout)
-  - [Interactive Elements](#interactive-elements)
+  - [Interaction & Focus](#interaction--focus)
   - [Text & Styling](#text--styling)
   - [Animation](#animation)
   - [Shapes & Effects](#shapes--effects)
   - [Scrolling & Clipping](#scrolling--clipping)
-  - [Advanced Controls](#advanced-controls)
+  - [Excalibur Controls](#excalibur-controls)
+  - [Layering & Transforms](#layering--transforms)
   - [Performance](#performance)
 - [Examples](#examples)
 - [License](#license)
@@ -115,25 +118,13 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   gui.Node().ExpandWidth().Height(100).Margin(10, 20).Padding(5, 10, 15, 20);
   ```
 
-### Interactive Elements
+### Interaction & Focus
 
-- Built-in controls: buttons, checkboxes, toggles, dropdowns
-- Text input variants: single-line, password, multiline
-- Focus management and keyboard navigation
-- Custom interactables for arbitrary shapes/regions
+- Custom interactables for arbitrary shapes and regions
+- Pointer capture, drag-and-drop, and input blocking
+- Focus registration, nested navigation scopes, Tab cycling, and directional navigation
 
   ```csharp
-  // Common controls
-  if (gui.Button("Click me!")) { /* ... */ }
-  gui.Checkbox(ref checkbox, "Enable feature");
-  gui.Toggle(ref toggle, "Dark mode");
-  gui.Dropdown(options, ref dropdown);
-
-  // Text inputs
-  textInput = gui.TextInput(textInput);
-  passwordInput = gui.PasswordInput(passwordInput);
-  textArea = gui.TextArea(textArea);
-
   // Custom interactive area with shape
   var interactable = gui.GetInteractable();
   if (interactable.OnHover()) gui.DrawBackgroundRect(Color.LightBlue);
@@ -223,24 +214,21 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   gui.SetClipArea(gui.CurrentNode, Shape.Circle(100));
   ```
 
-### Advanced Controls
+### Excalibur Controls
 
-- Tabs: horizontal, pill, and vertical variants
-- Menus, dropdowns, and window chrome utilities
+The ready-to-use control collection lives in the separate
+[`MASS4.Guinevere.Excalibur`](Guinevere.Excalibur/README.md) package. It provides buttons, text and
+numeric inputs, menus, popups, dialogs, trees, tabs, docking, notifications, and more.
+
+```powershell
+dotnet add package MASS4.Guinevere.Excalibur
+```
+
+### Layering & Transforms
+
 - Z-index layering and transforms
 
   ```csharp
-  private static int activeTab = 0;
-
-  gui.Tabs(ref activeTab, tabs =>
-  {
-      tabs.Tab("Home", () => gui.DrawText("Home content", 12, Color.Gray));
-      tabs.Tab("Settings", () => gui.DrawText("Settings content", 12, Color.Gray));
-      tabs.Tab("About", () => gui.DrawText("About content", 12, Color.Gray));
-  });
-
-  // Window UI & transforms
-  gui.DrawWindowTitlebar();
   gui.SetZIndex(10);
   // gui.SetTransform(Matrix3x2.CreateScale(1.2f, 1.2f, center));
   ```

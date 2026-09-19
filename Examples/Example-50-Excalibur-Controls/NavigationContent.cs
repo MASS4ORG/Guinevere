@@ -31,6 +31,7 @@ public abstract partial class Program
 
     static bool _showStatusBar = true;
     static bool _showToolbar = true;
+    static bool _focusScopeOpen;
 
     const string HorizontalTabsId = "navigation-horizontal-tabs";
 
@@ -76,6 +77,31 @@ public abstract partial class Program
 
             Section(gui, "Tree View & Breadcrumb", () => TreeViewBreadcrumb(gui));
         }
+    }
+
+    static void FocusNavigationContent(Gui gui)
+    {
+        Section(gui, "Focus navigation", () =>
+        {
+            gui.DrawText("Tab focuses controls in build order. Arrow keys choose the nearest control in that direction.",
+                size: 12, color: Color.FromArgb(255, 102, 102, 102));
+
+            if (gui.Button("Open focus scope", width: 150)) _focusScopeOpen = true;
+
+            if (!_focusScopeOpen) return;
+
+            using var scope = gui.EnterFocusNavigationScope("example-focus-scope");
+            scope.SetActive();
+
+            gui.DrawText("This temporary scope traps Tab until it closes, then restores focus to its opener.",
+                size: 12, color: Color.FromArgb(255, 51, 51, 51));
+            using (gui.Node().Direction(Axis.Horizontal).Gap(8).Enter())
+            {
+                gui.Button("First", width: 90);
+                gui.Button("Second", width: 90);
+                if (gui.Button("Close scope", width: 110)) _focusScopeOpen = false;
+            }
+        });
     }
 
     static void MenuBarContent(Gui gui)

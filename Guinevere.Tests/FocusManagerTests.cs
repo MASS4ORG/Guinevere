@@ -335,4 +335,60 @@ public class FocusManagerTests
         Assert.False(focusManager.HasFocus("unrelated"));
         Assert.False(focusManager.HasFocusWithin("unrelated"));
     }
+
+    [Fact]
+    public void ActiveScope_RestrictsNavigationAndRestoresItsOpenerWhenItCloses()
+    {
+        var focusManager = new FocusManager();
+        focusManager.BeginFrame();
+        focusManager.RegisterFocusableControl("opener");
+        focusManager.RequestFocus("opener");
+        focusManager.EndFrame();
+
+        focusManager.BeginFrame();
+        focusManager.RegisterFocusableControl("opener");
+        using (var scope = focusManager.EnterScope("popup"))
+        {
+            scope.SetActive();
+            focusManager.RegisterFocusableControl("first");
+            focusManager.RegisterFocusableControl("last");
+            focusManager.Navigate(FocusDirection.Next);
+        }
+        focusManager.EndFrame();
+        focusManager.BeginFrame();
+
+        Assert.Equal("first", focusManager.CurrentFocusedId);
+        Assert.Equal("popup", focusManager.ActiveScopeId);
+
+        focusManager.RegisterFocusableControl("opener");
+        focusManager.EndFrame();
+        focusManager.BeginFrame();
+
+        Assert.Equal("opener", focusManager.CurrentFocusedId);
+        Assert.Null(focusManager.ActiveScopeId);
+    }
+
+    [Fact]
+    public void Navigate_UsesExplicitLinksBeforeSpatialTargets()
+    {
+        var focusManager = new FocusManager();
+        focusManager.BeginFrame();
+        focusManager.RegisterFocusableControl("left", navigationPosition: new Vector2(0, 0));
+        focusManager.RegisterFocusableControl("middle", navigationPosition: new Vector2(10, 0));
+        focusManager.RegisterFocusableControl("right", navigationPosition: new Vector2(20, 0));
+        focusManager.SetNavigationLinks("middle", nextId: "left");
+        focusManager.RequestFocus("middle");
+        focusManager.EndFrame();
+
+        focusManager.BeginFrame();
+        focusManager.RegisterFocusableControl("left", navigationPosition: new Vector2(0, 0));
+        focusManager.RegisterFocusableControl("middle", navigationPosition: new Vector2(10, 0));
+        focusManager.RegisterFocusableControl("right", navigationPosition: new Vector2(20, 0));
+        focusManager.SetNavigationLinks("middle", nextId: "left");
+        focusManager.Navigate(FocusDirection.Next);
+        focusManager.EndFrame();
+        focusManager.BeginFrame();
+
+        Assert.Equal("left", focusManager.CurrentFocusedId);
+    }
 }

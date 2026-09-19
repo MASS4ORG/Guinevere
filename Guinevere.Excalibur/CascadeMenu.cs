@@ -64,8 +64,12 @@ public static partial class ControlsExtensions
 
         if (gui.Pass == Pass.Pass2Render) HandleMenuKeyboard(gui, state, builder.Items);
 
-        RenderMenuGroup(gui, state, id, builder.Items, position, depth: 0,
-            backgroundColor, textColor, hoverColor, fontSize, padding, CascadeMenuZIndex);
+        using (var focusScope = gui.EnterFocusNavigationScope($"{id}/focus"))
+        {
+            focusScope.SetActive();
+            RenderMenuGroup(gui, state, id, builder.Items, position, depth: 0,
+                backgroundColor, textColor, hoverColor, fontSize, padding, CascadeMenuZIndex);
+        }
 
         if (gui.Pass == Pass.Pass2Render
             && (gui.Input.IsMouseButtonPressed(MouseButton.Left)

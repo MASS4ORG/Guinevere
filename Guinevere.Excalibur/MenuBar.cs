@@ -100,8 +100,12 @@ public static partial class ControlsExtensions
             HandleMenuKeyboard(gui, state, builder.Menus[state.FrameOpenIndex].Items);
 
         if (state.FrameOpenIndex >= 0)
+        {
+            using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
+            focusScope.SetActive();
             RenderMenuBarDropdown(gui, state, builder.Menus[state.FrameOpenIndex], height,
                 backgroundColor, textColor, hoverColor, fontSize, padding);
+        }
 
         // Clicking anywhere that is neither a title nor the open menu cascade dismisses the menu.
         if (gui.Pass == Pass.Pass2Render && state.FrameOpenIndex >= 0 &&
@@ -129,6 +133,7 @@ public static partial class ControlsExtensions
                 var interactable = gui.GetInteractable();
                 var isHovered = interactable.OnHover();
                 var isClicked = interactable.OnClick();
+                if (isClicked) gui.RequestFocus(FocusReason.Mouse);
 
                 var isOpen = state.FrameOpenIndex == index;
 

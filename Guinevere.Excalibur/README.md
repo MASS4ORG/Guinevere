@@ -4,6 +4,8 @@ A ready-to-use set of default controls for the [Guinevere](https://github.com/MA
 immediate-mode GUI library. Everything here is an extension method on `Gui` living in the `Guinevere`
 namespace, so it drops into an existing Guinevere app with a single package reference and no setup.
 
+![Guinevere Excalibur controls](../docs/excalibur-controls-overview.png)
+
 ## Install
 
 ```
@@ -40,24 +42,52 @@ public partial class App
 
 ## Controls
 
-| Control | Description |
-|---------|-------------|
-| `Button`, `IconButton` | Filled or icon buttons with hover/press states, focus and keyboard activation |
-| `Checkbox`, `Toggle` | on/off selection |
-| `RadioButton`, `RadioGroup` | exclusive selection |
-| `Dropdown` | options list that opens over the rest of the frame |
-| `TextInput`, `PasswordInput`, `TextArea` | single-line, masked, and multi-line text editing |
-| `NumberField` | numeric input with Unity-style scrub editing |
-| `ObjectField` | a labelled field for compact object rows |
-| `Slider`, `Splitter` | numeric scrub under drag, and draggable split of two panes |
-| `ProgressBar` | determinate and indeterminate progress |
-| `Tabs`, `TabBar`, `TabStrip`, `PillTabs`, `VerticalTabs` | tab variants; tabs close only when marked `closable: true` |
-| `Breadcrumb` | navigable trail with icons and child menus |
-| `TreeView` | virtualised tree — thousands of rows cost the same as a screenful |
-| `MenuBar`, `Flyout`, `ContextMenu` | menu bars and flyouts with submenus, separators, shortcuts, disabled and checkable items |
-| `Popup`, `ModalPopup`, `Tooltip` | anchored and modal overlays, delayed tooltips |
-| `Toast`, `Toasts` | animated toast/snackbar panels stacked in a corner |
-| `DockSpace`, `DockLayout` | docking — split, tab, float, tear-off and close with layout persistence |
+| Group | APIs | Purpose |
+|-------|------|---------|
+| Actions | `Button`, `IconButton`, `ImageButton` | Pointer and keyboard-activated buttons with focus feedback. |
+| Selection | `Checkbox`, `Toggle`, `RadioButton`, `RadioGroup`, `Dropdown` | Boolean, exclusive, and list selection. |
+| Text and values | `TextInput`, `PasswordInput`, `TextArea`, `NumberField`, `Slider`, `ObjectField` | Text editing, scrub editing, numeric ranges, and compact object fields. |
+| Display | `Image`, `ProgressBar`, `WrappedText`, `Toast`, `Toasts`, `ClearToasts` | Images, progress, wrapping, and transient notifications. |
+| Navigation | `Tabs`, `TabBar`, `TabStrip`, `PillTabs`, `VerticalTabs`, `Breadcrumb`, `TreeView` | Tabs, trails, and a virtualised tree. Tabs are closable only with `closable: true`. |
+| Menus and overlays | `MenuBar`, `Flyout`, `CascadeMenu`, `ContextMenu`, `Popup`, `ModalPopup`, `Dialog`, `Tooltip` | Command menus, popovers, modal windows, and delayed help. |
+| Layout tools | `Splitter`, `DockSpace`, `DockLayout` | Resizable panes and persistent split/tab/float docking. |
+
+## Buttons and selection
+
+```csharp
+if (gui.Button("Build")) Build();
+gui.Checkbox(ref _enabled, "Enable feature");
+gui.Toggle(ref _darkMode, "Dark mode");
+gui.RadioGroup(ref _quality, [(0, "Low"), (1, "Medium"), (2, "High")]);
+gui.Dropdown(["Draft", "Review", "Published"], ref _status);
+```
+
+Buttons and dropdowns receive mouse focus; use Tab to move through controls and Enter or Space to
+activate buttons. Open popovers and dialogs constrain Tab to their visible controls.
+
+## Text and numeric input
+
+```csharp
+_name = gui.TextInput(_name, placeholder: "Project name");
+_notes = gui.TextArea(_notes, width: 420, height: 120);
+gui.NumberField(ref _opacity, min: 0, max: 1, step: 0.05f);
+gui.Slider(ref _opacity, min: 0, max: 1, step: 0.05f, showValue: true);
+```
+
+`NumberField` supports click-to-edit and drag scrubbing. `Slider` supports clicking, dragging beyond
+its track, and arrow-key adjustments while focused.
+
+## Overlays and dialogs
+
+```csharp
+gui.Popup(ref _showInspector, () => DrawInspector(gui), title: "Inspector");
+gui.Dialog(ref _showDelete, "Delete project", () => gui.DrawText("This cannot be undone."),
+    footer: () => { if (gui.Button("Delete")) DeleteProject(); });
+gui.Tooltip(gui.CurrentNode, "More information");
+```
+
+`Popup` and `Dialog` preserve focus context while open and restore the opener after they close.
+`Dialog` blocks the content behind it; `Popup` can opt into modal behavior through `ModalPopup`.
 
 ## Menu Bar
 

@@ -161,13 +161,18 @@ public static partial class ControlsExtensions
                 state.ButtonRect = rect;
                 if (state.Anchor.W <= 0) state.Anchor = rect;
 
+                gui.RegisterFocusable();
                 var interactable = gui.GetInteractable();
 
                 gui.DrawBackgroundRect(background, borderRadius);
                 gui.DrawRectBorder(rect, state.IsOpen && enabled ? gui.Controls.Accent : border,
                     state.IsOpen && enabled ? 2f : 1f, borderRadius);
 
-                if (enabled && interactable.OnClick()) state.IsOpen = !state.IsOpen;
+                if (enabled && interactable.OnClick())
+                {
+                    gui.RequestFocus(FocusReason.Mouse);
+                    state.IsOpen = !state.IsOpen;
+                }
 
                 DrawArrow(gui, rect, padding, text);
             }
@@ -212,6 +217,8 @@ public static partial class ControlsExtensions
                    .Direction(Axis.Vertical)
                    .Enter())
         {
+            using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
+            focusScope.SetActive();
             gui.SetZIndex(ListZIndex);
 
             if (gui.Pass == Pass.Pass2Render)
@@ -227,12 +234,17 @@ public static partial class ControlsExtensions
                 {
                     if (gui.Pass == Pass.Pass2Render)
                     {
+                        gui.RegisterFocusable(parentId: $"{id}/button");
                         var interactable = gui.GetInteractable();
 
                         if (i == selectedIndex) gui.DrawBackgroundRect(selected, borderRadius);
                         else if (interactable.OnHover()) gui.DrawBackgroundRect(hover, borderRadius);
 
-                        if (interactable.OnClick()) chosen = i;
+                        if (interactable.OnClick())
+                        {
+                            gui.RequestFocus(FocusReason.Mouse);
+                            chosen = i;
+                        }
                     }
 
                     gui.DrawText(options[i], fontSize, text, centerInRect: false);

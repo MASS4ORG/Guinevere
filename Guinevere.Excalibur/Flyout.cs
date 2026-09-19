@@ -48,6 +48,8 @@ public static partial class ControlsExtensions
                    .AbsoluteScreen(adjustedPosition.X, adjustedPosition.Y)
                    .Enter())
         {
+            using var focusScope = gui.EnterFocusNavigationScope($"{gui.CurrentNode.Id}/focus");
+            focusScope.SetActive();
             if (gui.Pass == Pass.Pass2Render)
             {
                 var bgColor = backgroundColor ?? Color.White;
@@ -134,6 +136,8 @@ public static partial class ControlsExtensions
 
             var isHovered = index == state.HoveredIndex;
             var itemColor = item.Enabled ? textColor ?? Color.Black : disabledColor ?? Color.Gray;
+
+            if (gui.Pass == Pass.Pass2Render) gui.RegisterFocusable(canReceiveFocus: item.Enabled);
 
             if (isHovered && item.Enabled)
             {

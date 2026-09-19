@@ -106,7 +106,9 @@ public static partial class ControlsExtensions
             var activated = gui.HasFocus()
                             && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter));
 
-            return interactable.OnClick() || activated;
+            var clicked = interactable.OnClick();
+            if (clicked) gui.RequestFocus(FocusReason.Mouse);
+            return clicked || activated;
         }
     }
 
@@ -154,7 +156,9 @@ public static partial class ControlsExtensions
             var activated = gui.HasFocus()
                             && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter));
 
-            return interactable.OnClick() || activated;
+            var clicked = interactable.OnClick();
+            if (clicked) gui.RequestFocus(FocusReason.Mouse);
+            return clicked || activated;
         }
     }
 

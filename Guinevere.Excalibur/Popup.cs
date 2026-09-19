@@ -264,6 +264,10 @@ public static partial class ControlsExtensions
                    .BlockInput()
                    .Enter())
         {
+            using var focusScope = isOpen
+                ? gui.EnterFocusNavigationScope($"{gui.CurrentNode.Id}/focus")
+                : null;
+            focusScope?.SetActive();
             gui.SetZIndex(PopupZIndex);
             gui.SetEscapesAncestorClips();
 
@@ -351,7 +355,12 @@ public static partial class ControlsExtensions
                        .Enter())
             {
                 // Only invoke content when popup is open
-                if (state.IsOpen) content.Invoke();
+                if (state.IsOpen)
+                {
+                    using var focusScope = gui.EnterFocusNavigationScope($"{gui.CurrentNode.Id}/focus");
+                    focusScope.SetActive();
+                    content.Invoke();
+                }
             }
         }
 
@@ -398,6 +407,7 @@ public static partial class ControlsExtensions
                     // Only handle interaction when menu is open
                     if (menuIsOpen)
                     {
+                        gui.RegisterFocusable(canReceiveFocus: item.Enabled);
                         var interactable = gui.GetInteractable();
                         var isHovered = interactable.OnHover();
                         var isClicked = interactable.OnClick();
@@ -410,6 +420,7 @@ public static partial class ControlsExtensions
 
                         if (isClicked && item.Action != null)
                         {
+                            gui.RequestFocus(FocusReason.Mouse);
                             item.Action();
                             isOpen = false;
                             return;

@@ -129,7 +129,12 @@ public static partial class ControlsExtensions
                 isOpen = false;
 
             using (gui.Node(width, height).Top(titleBarHeight).Padding(16).Enter())
-                if (isOpen) content.Invoke();
+                if (isOpen)
+                {
+                    using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
+                    focusScope.SetActive();
+                    content.Invoke();
+                }
 
             if (hasFooter)
                 using (gui.Node(width, footerHeight).Top(titleBarHeight + height)
@@ -140,7 +145,12 @@ public static partial class ControlsExtensions
                         gui.DrawRect(new Rect(gui.CurrentNode.Rect.X, gui.CurrentNode.Rect.Y,
                             gui.CurrentNode.Rect.W, borderWidth), borderColorFinal);
 
-                    if (isOpen) footer!.Invoke();
+                    if (isOpen)
+                    {
+                        using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
+                        focusScope.SetActive();
+                        footer!.Invoke();
+                    }
                 }
         }
 

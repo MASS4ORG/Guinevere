@@ -24,8 +24,25 @@ public partial class Gui
             actualParentId = CurrentNode.Parent.Id;
         }
 
-        Focus.RegisterFocusableControl(controlId, actualParentId, canReceiveFocus, isInteractable);
+        var rect = CurrentNode.Rect;
+        Focus.RegisterFocusableControl(controlId, actualParentId, canReceiveFocus, isInteractable,
+            new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f));
     }
+
+    /// <summary>
+    /// Enters a nestable focus-navigation scope. Call <see cref="FocusNavigationScope.SetActive"/>
+    /// while a popup or modal is open to keep Tab and directional navigation inside it.
+    /// </summary>
+    public FocusNavigationScope EnterFocusNavigationScope(string? id = null, string? restoreFocusId = null,
+        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+    {
+        return Focus.EnterScope(id ?? NodeId(filePath, lineNumber), restoreFocusId);
+    }
+
+    /// <summary>Sets explicit Tab order links for the current focusable control.</summary>
+    public void SetFocusNavigationLinks(string? nextId = null, string? previousId = null) =>
+        Focus.SetNavigationLinks(CurrentNode.Id, nextId, previousId);
 
     /// <summary>
     /// Checks if the current layout node has focus.
