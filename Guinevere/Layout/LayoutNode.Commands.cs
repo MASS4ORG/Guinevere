@@ -2,6 +2,24 @@ namespace Guinevere;
 
 public partial class LayoutNode
 {
+    internal void ApplyWidth(UnitValue value)
+    {
+        Style.WidthExpression = value;
+        Style.Width = value.PixelsContribution;
+        Style.WidthPercent = value.PercentageContribution != 0f ? value.PercentageContribution : -1f;
+        Style.ExpandWidth = value.ExpandContribution != 0f;
+        Style.ExpandWidthPercentage = value.ExpandContribution;
+    }
+
+    internal void ApplyHeight(UnitValue value)
+    {
+        Style.HeightExpression = value;
+        Style.Height = value.PixelsContribution;
+        Style.HeightPercent = value.PercentageContribution != 0f ? value.PercentageContribution : -1f;
+        Style.ExpandHeight = value.ExpandContribution != 0f;
+        Style.ExpandHeightPercentage = value.ExpandContribution;
+    }
+
     /// <summary>
     /// Configures the layout node to expand its dimensions proportionally based on the specified width and height percentages.
     /// </summary>
@@ -390,6 +408,15 @@ public partial class LayoutNode
         if (_gui.Pass != Pass.Pass1Build) return this;
 
         Style.Width = width;
+        Style.WidthExpression = null;
+        return this;
+    }
+
+    /// <summary>Sets a composable width expression.</summary>
+    public LayoutNode Width(UnitValue width)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+        ApplyWidth(width);
         return this;
     }
 
@@ -403,6 +430,15 @@ public partial class LayoutNode
         if (_gui.Pass != Pass.Pass1Build) return this;
 
         Style.Height = height;
+        Style.HeightExpression = null;
+        return this;
+    }
+
+    /// <summary>Sets a composable height expression.</summary>
+    public LayoutNode Height(UnitValue height)
+    {
+        if (_gui.Pass != Pass.Pass1Build) return this;
+        ApplyHeight(height);
         return this;
     }
 
@@ -414,6 +450,7 @@ public partial class LayoutNode
         if (_gui.Pass != Pass.Pass1Build) return this;
 
         Style.WidthPercent = Math.Clamp(fraction, 0f, 1f);
+        Style.WidthExpression = null;
         return this;
     }
 
@@ -425,6 +462,7 @@ public partial class LayoutNode
         if (_gui.Pass != Pass.Pass1Build) return this;
 
         Style.HeightPercent = Math.Clamp(fraction, 0f, 1f);
+        Style.HeightExpression = null;
         return this;
     }
 

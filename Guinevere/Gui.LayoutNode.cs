@@ -140,6 +140,37 @@ public partial class Gui : ILayoutNodeEnterExit
         return node;
     }
 
+    /// <summary>Creates a node from integer pixel dimensions.</summary>
+    public LayoutNode Node(int width, int height, string? id = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0) =>
+        Node((float)width, (float)height, id, filePath, lineNumber);
+
+    /// <summary>Creates a node using composable size expressions.</summary>
+    public LayoutNode Node(UnitValue width, UnitValue height,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        id ??= NodeId(filePath, lineNumber, CurrentNode.Pass2NodeCount++);
+        var nodeExist = CurrentNode.Children.FirstOrDefault(child => child.Id == id);
+        LayoutNode node;
+        if (Pass == Pass.Pass1Build || nodeExist is null)
+        {
+            node = new LayoutNode(id, this, CurrentNode);
+            node.ApplyWidth(width);
+            node.ApplyHeight(height);
+            CurrentNode.AddChild(node);
+        }
+        else
+        {
+            node = nodeExist;
+        }
+
+        node.DrawList = new DrawList();
+        node.Pass2NodeCount = 0;
+        return node;
+    }
+
     LayoutNode CreateRootNode(Rect rect)
     {
         var node = LayoutNode.CreateRoot(this, rect.W, rect.H);

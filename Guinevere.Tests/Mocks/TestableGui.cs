@@ -5,7 +5,7 @@ namespace Guinevere.Tests.Mocks;
 /// </summary>
 public class TestableGui : Gui
 {
-    Rect _testScreenRect = null!;
+    Rect _testScreenRect;
     bool _useTestScreenRect;
 
     /// <summary>

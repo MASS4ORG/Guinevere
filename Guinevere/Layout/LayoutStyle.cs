@@ -6,6 +6,12 @@ namespace Guinevere;
 /// </summary>
 public struct LayoutStyle
 {
+    /// <summary>Composable width expression configured through a <see cref="UnitValue"/> API.</summary>
+    public UnitValue? WidthExpression { get; set; }
+
+    /// <summary>Composable height expression configured through a <see cref="UnitValue"/> API.</summary>
+    public UnitValue? HeightExpression { get; set; }
+
     // Size properties
     /// <summary>
     /// Represents the width of the layout element. This property determines the horizontal size

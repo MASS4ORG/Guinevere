@@ -40,10 +40,8 @@ public class ClipOperation : IDrawListEntry
     {
         canvas.Save();
 
-        if (_rect != null)
+        if (_rect is { } clipRect)
         {
-            var clipRect = _rect;
-
             // Validate that we have proper dimensions before clipping
             if (clipRect.W <= 0 || clipRect.H <= 0)
                 // If dimensions are invalid, don't apply clipping

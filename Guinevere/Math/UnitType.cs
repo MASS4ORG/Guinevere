@@ -13,5 +13,6 @@ public enum UnitType
     Expand,
     Ratio,
     Percentage,
-    Pixels
+    Pixels,
+    FitLargest
 }

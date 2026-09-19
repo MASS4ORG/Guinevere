@@ -24,6 +24,7 @@
     </Project>
     <Project Path="Examples/Example-74-PanGui-Heart/Example-74-PanGui-Heart.csproj" />
     <Project Path="Examples/Example-75-PaperUI-Dashboard/Example-75-PaperUI-Dashboard.csproj" />
+    <Project Path="Examples/Example-90-LayoutBenchmarks/Example-90-LayoutBenchmarks.csproj" />
   </Folder>
   <Folder Name="/Integrations/">
     <Project Path="Integrations/Guinevere.OpenGL.OpenTK/Guinevere.OpenGL.OpenTK.csproj" />

@@ -194,14 +194,11 @@ public partial class LayoutNode : IDisposable
         _gui = gui;
         _parent = parent;
         Style = LayoutStyle.Default;
-        if (width.HasValue)
-            Style.Width = width.Value;
-        if (height.HasValue)
-            Style.Height = height.Value;
+        if (width.HasValue) Style.Width = width.Value;
+        if (height.HasValue) Style.Height = height.Value;
         Id = id ?? _gui.NodeId(string.Empty, 0);
         Scope = new LayoutNodeScope(gui, this);
         if (width == 0) ExpandWidth();
-
         if (height == 0) ExpandHeight();
     }
 
@@ -277,7 +274,9 @@ public partial class LayoutNode : IDisposable
         [CallerLineNumber] int lineNumber = 0)
     {
         // var id = gui.NodeId(filePath, lineNumber);
-        var node = new LayoutNode(null, _gui, this, sizeX, sizeY);
+        var node = new LayoutNode(null, _gui, this);
+        if (sizeX.HasValue) node.ApplyWidth(sizeX.Value);
+        if (sizeY.HasValue) node.ApplyHeight(sizeY.Value);
         return node;
     }
 

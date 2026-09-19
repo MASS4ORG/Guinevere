@@ -1,182 +1,122 @@
 namespace Guinevere;
 
-/// <summary>
-/// Represents a unit value with an associated unit type.
-/// Provides functionality to work with different types of units such as pixels, percentages, ratios, etc.,
-/// and allows easy conversion and arithmetic operations between units.
-/// </summary>
-public readonly struct UnitValue(UnitType mode, float value)
+/// <summary>A composable layout size whose weighted terms can be blended across size modes.</summary>
+public readonly struct UnitValue : IEquatable<UnitValue>
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UnitValue"/> struct with a pixel value.
-    /// This constructor creates a unit value with <see cref="UnitType.Pixels"/> mode.
-    /// </summary>
-    /// <param name="value">The pixel value to assign to this unit.</param>
-    public UnitValue(float value) : this(UnitType.Pixels, value)
+    /// <summary>Creates a pixel size.</summary>
+    public UnitValue(float pixels) : this(pixels, 0f, 0f, 0f, 0f, 0f) { }
+
+    UnitValue(float pixels, float percentage, float ratio, float expand, float fitContent, float fitLargest)
     {
+        PixelsContribution = pixels;
+        PercentageContribution = percentage;
+        RatioContribution = ratio;
+        ExpandContribution = expand;
+        FitContentContribution = fitContent;
+        FitLargestContribution = fitLargest;
     }
 
-    /// <summary>
-    /// Gets the unit type associated with this instance of <see cref="UnitValue"/>.
-    /// Represents the mode of measurement or interpretation for the value,
-    /// such as pixels, percentages, ratios, or other defined <see cref="UnitType"/> values.
-    /// </summary>
-    public UnitType Mode { get; } = mode;
+    /// <summary>Weighted absolute-pixel contribution.</summary>
+    public float PixelsContribution { get; }
+    /// <summary>Weighted fraction of the available parent size.</summary>
+    public float PercentageContribution { get; }
+    /// <summary>Weighted fraction of the resolved perpendicular size.</summary>
+    public float RatioContribution { get; }
+    /// <summary>Weight used to share remaining space with sibling expanders.</summary>
+    public float ExpandContribution { get; }
+    /// <summary>Weighted natural content-size contribution.</summary>
+    public float FitContentContribution { get; }
+    /// <summary>Weighted largest-child contribution.</summary>
+    public float FitLargestContribution { get; }
 
-    /// <summary>
-    /// Gets the numeric value associated with this unit.
-    /// The interpretation of this value depends on the <see cref="Mode"/> property.
-    /// For example, if Mode is Pixels, this represents pixel units; if Mode is Percentage, this represents a percentage value.
-    /// </summary>
-    public float Value { get; } = value;
+    /// <summary>The legacy mode for a single-term expression.</summary>
+    public UnitType Mode => PercentageContribution != 0f ? UnitType.Percentage
+        : RatioContribution != 0f ? UnitType.Ratio
+        : ExpandContribution != 0f ? UnitType.Expand
+        : FitLargestContribution != 0f ? UnitType.FitLargest
+        : FitContentContribution != 0f ? UnitType.Auto
+        : UnitType.Pixels;
 
-    /// <summary>
-    /// Creates a unit value that automatically fits content with an optional scaling percentage.
-    /// This unit type adjusts its size based on the content it contains.
-    /// </summary>
-    /// <param name="percentage">The scaling percentage to apply. Default is 1 (100%).</param>
-    /// <returns>A new <see cref="UnitValue"/> with <see cref="UnitType.Auto"/> mode.</returns>
-    public static UnitValue FitContent(float percentage = 1)
+    /// <summary>The coefficient selected by <see cref="Mode"/> for legacy single-term callers.</summary>
+    public float Value => Mode switch
     {
-        return new UnitValue(UnitType.Auto, percentage);
-    }
+        UnitType.Percentage => PercentageContribution,
+        UnitType.Ratio => RatioContribution,
+        UnitType.Expand => ExpandContribution,
+        UnitType.FitLargest => FitLargestContribution,
+        UnitType.Auto => FitContentContribution,
+        _ => PixelsContribution
+    };
 
-    /// <summary>
-    /// Creates a unit value that expands to fill available space with an optional scaling percentage.
-    /// This unit type takes up remaining space in its container.
-    /// </summary>
-    /// <param name="percentage">The scaling percentage to apply. Default is 1 (100%).</param>
-    /// <returns>A new <see cref="UnitValue"/> with <see cref="UnitType.Expand"/> mode.</returns>
-    public static UnitValue Expand(float percentage = 1)
-    {
-        return new UnitValue(UnitType.Expand, percentage);
-    }
+    /// <summary>Creates an absolute pixel contribution.</summary>
+    public static UnitValue Pixels(float pixels) => new(pixels);
+    /// <summary>Creates a parent-relative contribution.</summary>
+    public static UnitValue Percentage(float percentage) => new(0f, percentage, 0f, 0f, 0f, 0f);
+    /// <summary>Creates a perpendicular-axis ratio contribution.</summary>
+    public static UnitValue Ratio(float ratio) => new(0f, 0f, ratio, 0f, 0f, 0f);
+    /// <summary>Creates a remaining-space contribution.</summary>
+    public static UnitValue Expand(float weight = 1f) => new(0f, 0f, 0f, weight, 0f, 0f);
+    /// <summary>Creates a natural content-size contribution.</summary>
+    public static UnitValue FitContent(float weight = 1f) => new(0f, 0f, 0f, 0f, weight, 0f);
+    /// <summary>Alias for <see cref="FitContent"/>.</summary>
+    public static UnitValue Fit => FitContent();
+    /// <summary>Creates a contribution based on the largest child on the resolved axis.</summary>
+    public static UnitValue FitLargest(float weight = 1f) => new(0f, 0f, 0f, 0f, 0f, weight);
 
-    /// <summary>
-    /// Creates a unit value based on a ratio relative to other elements.
-    /// This unit type is proportional to other ratio-based units in the same context.
-    /// </summary>
-    /// <param name="ratio">The ratio value. Higher values take proportionally more space.</param>
-    /// <returns>A new <see cref="UnitValue"/> with <see cref="UnitType.Ratio"/> mode.</returns>
-    public static UnitValue Ratio(float ratio)
-    {
-        return new UnitValue(UnitType.Ratio, ratio);
-    }
+    /// <summary>Linearly interpolates every contribution, including between unrelated modes.</summary>
+    public static UnitValue Lerp(UnitValue from, UnitValue to, float amount) => from * (1f - amount) + to * amount;
 
-    /// <summary>
-    /// Creates a unit value based on a percentage of the parent container's size.
-    /// </summary>
-    /// <param name="percentage">The percentage value (e.g., 0.5 for 50%, 1.0 for 100%).</param>
-    /// <returns>A new <see cref="UnitValue"/> with <see cref="UnitType.Percentage"/> mode.</returns>
-    public static UnitValue Percentage(float percentage)
-    {
-        return new UnitValue(UnitType.Percentage, percentage);
-    }
+    /// <summary>Adds all weighted contributions.</summary>
+    public static UnitValue operator +(UnitValue left, UnitValue right) => new(
+        left.PixelsContribution + right.PixelsContribution,
+        left.PercentageContribution + right.PercentageContribution,
+        left.RatioContribution + right.RatioContribution,
+        left.ExpandContribution + right.ExpandContribution,
+        left.FitContentContribution + right.FitContentContribution,
+        left.FitLargestContribution + right.FitLargestContribution);
 
-    /// <summary>
-    /// Creates a unit value with an absolute pixel measurement.
-    /// </summary>
-    /// <param name="pixels">The number of pixels.</param>
-    /// <returns>A new <see cref="UnitValue"/> with <see cref="UnitType.Pixels"/> mode.</returns>
-    public static UnitValue Pixels(float pixels)
-    {
-        return new UnitValue(UnitType.Pixels, pixels);
-    }
+    /// <summary>Scales all contributions.</summary>
+    public static UnitValue operator *(UnitValue value, float weight) => new(
+        value.PixelsContribution * weight,
+        value.PercentageContribution * weight,
+        value.RatioContribution * weight,
+        value.ExpandContribution * weight,
+        value.FitContentContribution * weight,
+        value.FitLargestContribution * weight);
 
-    /// <summary>
-    /// Adds an integer value to the unit value, preserving the original unit type.
-    /// </summary>
-    /// <param name="unitValue">The unit value to add to.</param>
-    /// <param name="value">The integer value to add.</param>
-    /// <returns>A new <see cref="UnitValue"/> with the same mode and the sum of the values.</returns>
-    public static UnitValue operator +(UnitValue unitValue, int value) => new(unitValue.Mode, unitValue.Value + value);
+    /// <summary>Scales all contributions.</summary>
+    public static UnitValue operator *(float weight, UnitValue value) => value * weight;
+    /// <summary>Adds pixels to an expression.</summary>
+    public static UnitValue operator +(UnitValue value, float pixels) => value + Pixels(pixels);
+    /// <summary>Adds pixels to an expression.</summary>
+    public static UnitValue operator +(float pixels, UnitValue value) => value + pixels;
+    /// <summary>Adds pixels to an expression.</summary>
+    public static UnitValue operator +(UnitValue value, int pixels) => value + (float)pixels;
+    /// <summary>Adds pixels to an expression.</summary>
+    public static UnitValue operator +(int pixels, UnitValue value) => value + pixels;
+    /// <summary>Adds pixels to an expression.</summary>
+    public static UnitValue operator +(UnitValue value, double pixels) => value + (float)pixels;
+    /// <summary>Adds pixels to an expression.</summary>
+    public static UnitValue operator +(double pixels, UnitValue value) => value + (float)pixels;
 
-    /// <summary>
-    /// Implicitly converts an integer to a pixel-based unit value.
-    /// </summary>
-    /// <param name="pixels">The pixel value to convert.</param>
-    /// <returns>A new <see cref="UnitValue"/> with <see cref="UnitType.Pixels"/> mode.</returns>
-    public static implicit operator UnitValue(int pixels) => Pixels(pixels);
-
-    /// <summary>
-    /// Implicitly converts a float to a pixel-based unit value.
-    /// </summary>
-    /// <param name="pixels">The pixel value to convert.</param>
-    /// <returns>A new <see cref="UnitValue"/> with <see cref="UnitType.Pixels"/> mode.</returns>
+    /// <summary>Converts a pixel count into a size expression.</summary>
     public static implicit operator UnitValue(float pixels) => Pixels(pixels);
-
-    /// <summary>
-    /// Implicitly converts a double to a pixel-based unit value.
-    /// </summary>
-    /// <param name="pixels">The pixel value to convert.</param>
-    /// <returns>A new <see cref="UnitValue"/> with <see cref="UnitType.Pixels"/> mode.</returns>
+    /// <summary>Converts a pixel count into a size expression.</summary>
+    public static implicit operator UnitValue(int pixels) => Pixels(pixels);
+    /// <summary>Converts a pixel count into a size expression.</summary>
     public static implicit operator UnitValue(double pixels) => Pixels((float)pixels);
 
-    /// <summary>
-    /// Implicitly converts a unit value to an integer by extracting its numeric value.
-    /// Note: This conversion loses unit type information and may involve precision loss.
-    /// </summary>
-    /// <param name="unitValue">The unit value to convert.</param>
-    /// <returns>The numeric value as an integer.</returns>
-    public static implicit operator int(UnitValue unitValue) => (int)unitValue.Value;
+    /// <inheritdoc />
+    public bool Equals(UnitValue other) => PixelsContribution.Equals(other.PixelsContribution)
+        && PercentageContribution.Equals(other.PercentageContribution)
+        && RatioContribution.Equals(other.RatioContribution)
+        && ExpandContribution.Equals(other.ExpandContribution)
+        && FitContentContribution.Equals(other.FitContentContribution)
+        && FitLargestContribution.Equals(other.FitLargestContribution);
 
-    /// <summary>
-    /// Implicitly converts a unit value to a float by extracting its numeric value.
-    /// Note: This conversion loses unit type information.
-    /// </summary>
-    /// <param name="unitValue">The unit value to convert.</param>
-    /// <returns>The numeric value as a float.</returns>
-    public static implicit operator float(UnitValue unitValue) => unitValue.Value;
-
-    /// <summary>
-    /// Implicitly converts a unit value to a double by extracting its numeric value.
-    /// Note: This conversion loses unit type information.
-    /// </summary>
-    /// <param name="unitValue">The unit value to convert.</param>
-    /// <returns>The numeric value as a double.</returns>
-    public static implicit operator double(UnitValue unitValue) => unitValue.Value;
-
-    /// <summary>
-    /// Adds a float value to the unit value, preserving the original unit type.
-    /// </summary>
-    /// <param name="unitValue">The unit value to add to.</param>
-    /// <param name="value">The float value to add.</param>
-    /// <returns>A new <see cref="UnitValue"/> with the same mode and the sum of the values.</returns>
-    public static UnitValue operator +(UnitValue unitValue, float value) =>
-        new(unitValue.Mode, unitValue.Value + value);
-
-    /// <summary>
-    /// Adds a double value to the unit value, preserving the original unit type.
-    /// </summary>
-    /// <param name="unitValue">The unit value to add to.</param>
-    /// <param name="value">The double value to add.</param>
-    /// <returns>A new <see cref="UnitValue"/> with the same mode and the sum of the values.</returns>
-    public static UnitValue operator +(UnitValue unitValue, double value) =>
-        new(unitValue.Mode, unitValue.Value + (float)value);
-
-    /// <summary>
-    /// Adds an integer value to the unit value, preserving the original unit type.
-    /// </summary>
-    /// <param name="value">The integer value to add.</param>
-    /// <param name="unitValue">The unit value to add to.</param>
-    /// <returns>A new <see cref="UnitValue"/> with the same mode and the sum of the values.</returns>
-    public static UnitValue operator +(int value, UnitValue unitValue) => new(unitValue.Mode, unitValue.Value + value);
-
-    /// <summary>
-    /// Adds a float value to the unit value, preserving the original unit type.
-    /// </summary>
-    /// <param name="value">The float value to add.</param>
-    /// <param name="unitValue">The unit value to add to.</param>
-    /// <returns>A new <see cref="UnitValue"/> with the same mode and the sum of the values.</returns>
-    public static UnitValue operator +(float value, UnitValue unitValue) =>
-        new(unitValue.Mode, unitValue.Value + value);
-
-    /// <summary>
-    /// Adds a double value to the unit value, preserving the original unit type.
-    /// </summary>
-    /// <param name="value">The double value to add.</param>
-    /// <param name="unitValue">The unit value to add to.</param>
-    /// <returns>A new <see cref="UnitValue"/> with the same mode and the sum of the values.</returns>
-    public static UnitValue operator +(double value, UnitValue unitValue) =>
-        new(unitValue.Mode, unitValue.Value + (float)value);
+    /// <inheritdoc />
+    public override bool Equals(object? obj) => obj is UnitValue other && Equals(other);
+    /// <inheritdoc />
+    public override int GetHashCode() => HashCode.Combine(PixelsContribution, PercentageContribution,
+        RatioContribution, ExpandContribution, FitContentContribution, FitLargestContribution);
 }

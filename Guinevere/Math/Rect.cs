@@ -5,7 +5,7 @@ namespace Guinevere;
 /// Provides properties and methods for working with rectangles, such as
 /// calculating various points, centers, and containment checks.
 /// </summary>
-public record Rect
+public record struct Rect
 {
     /// <summary>
     /// Represents a rectangle defined by its position (X, Y) and size (W, H).
