@@ -12,10 +12,89 @@ public partial class LayoutNode
     /// </summary>
     public void CalculateLayout()
     {
+        if (_parent is null)
+        {
+            var screenRect = _gui.ScreenRect;
+            if (_hasLayout && !_layoutDirty && _lastLayoutScreenRect == screenRect) return;
+
+            PrepareIntrinsicMeasurements(Vector2.Zero);
+            _lastLayoutScreenRect = screenRect;
+        }
+
         if (_parent == null)
             InitializeRootLayout();
         else
             InitializeChildLayout();
+
+        if (_parent is null)
+        {
+            _layoutDirty = false;
+            _hasLayout = true;
+            LayoutVersion++;
+        }
+    }
+
+    void PrepareIntrinsicMeasurements(Vector2 inheritedScrollOffset)
+    {
+        _ancestorScrollOffset = Style.IsAbsolute ? Vector2.Zero : inheritedScrollOffset;
+        var childScrollOffset = Style.IsAbsolute ? Vector2.Zero : inheritedScrollOffset;
+        if (!Style.IsAbsolute && Scope.HasLocal<LayoutNodeScopeLocalScrollOffset>())
+            childScrollOffset += Scope.Get<LayoutNodeScopeLocalScrollOffset>().Value;
+
+        foreach (var child in FlowChildren) child.PrepareIntrinsicMeasurements(childScrollOffset);
+
+        var horizontalPadding = Style.PaddingLeft + Style.PaddingRight;
+        var verticalPadding = Style.PaddingTop + Style.PaddingBottom;
+        _intrinsicWidthValid = !Style.Wrap || Style.Direction != Axis.Horizontal;
+        _intrinsicHeightValid = !Style.Wrap;
+
+        if (FlowChildren.Count == 0)
+        {
+            _intrinsicContentWidth = 10f + horizontalPadding;
+            _intrinsicContentHeight = 10f + verticalPadding;
+            return;
+        }
+
+        var width = Style.Direction == Axis.Horizontal ? (FlowChildren.Count - 1) * Style.Gap : 0f;
+        var height = Style.Direction == Axis.Vertical ? (FlowChildren.Count - 1) * Style.Gap : 0f;
+        foreach (var child in FlowChildren)
+        {
+            var widthDependsOnParent = child.Style.ExpandWidth || child.Style.IsExpanded
+                || child.Style.WidthPercent >= 0f
+                || child.Style.WidthExpression is { } widthExpression
+                && (widthExpression.PercentageContribution != 0f
+                    || widthExpression.ExpandContribution != 0f
+                    || widthExpression.RatioContribution != 0f
+                    || widthExpression.FitContentContribution != 0f
+                    || widthExpression.FitLargestContribution != 0f);
+            var heightDependsOnParent = child.Style.ExpandHeight || child.Style.IsExpanded
+                || child.Style.HeightPercent >= 0f
+                || child.Style.HeightExpression is { } heightExpression
+                && (heightExpression.PercentageContribution != 0f
+                    || heightExpression.ExpandContribution != 0f
+                    || heightExpression.RatioContribution != 0f
+                    || heightExpression.FitContentContribution != 0f
+                    || heightExpression.FitLargestContribution != 0f);
+
+            _intrinsicWidthValid &= !widthDependsOnParent
+                                    && (child.Style.Width >= 0f || child._intrinsicWidthValid);
+            _intrinsicHeightValid &= !heightDependsOnParent
+                                     && (child.Style.Height >= 0f || child._intrinsicHeightValid);
+
+            var childWidth = child.Style.Width >= 0f ? child.Style.Width : child._intrinsicContentWidth;
+            var childHeight = child.Style.Height >= 0f ? child.Style.Height : child._intrinsicContentHeight;
+            childWidth += child.Style.MarginLeft + child.Style.MarginRight;
+            childHeight += child.Style.MarginTop + child.Style.MarginBottom;
+
+            if (Style.Direction == Axis.Horizontal) width += childWidth;
+            else width = Math.Max(width, childWidth);
+
+            if (Style.Direction == Axis.Vertical) height += childHeight;
+            else height = Math.Max(height, childHeight);
+        }
+
+        _intrinsicContentWidth = width + horizontalPadding;
+        _intrinsicContentHeight = height + verticalPadding;
     }
 
     void InitializeRootLayout()
@@ -31,30 +110,13 @@ public partial class LayoutNode
     {
         // Don't apply scroll offset to the scrollable container itself
         // Only apply to child nodes within scrollable containers
-        var scrollOffset = Vector2.Zero;
-
-        // Look for scroll offset from parent containers. An absolute node is anchored to a box
-        // rather than carried by the flow, so the walk stops at the first absolute ancestor.
         if (Style.IsAbsolute) return;
 
-        var currentScope = _parent?.Scope;
-        while (currentScope != null)
-        {
-            if (currentScope.Node.Style.IsAbsolute) break;
-
-            // Only scopes that hold an offset themselves: Get() inherits from ancestors, so counting
-            // it at every level shifted deep content once per level instead of once.
-            if (currentScope.HasLocal<LayoutNodeScopeLocalScrollOffset>())
-                scrollOffset += currentScope.Get<LayoutNodeScopeLocalScrollOffset>().Value;
-
-            currentScope = currentScope.Node.Parent?.Scope;
-        }
-
-        if (scrollOffset != Vector2.Zero)
+        if (_ancestorScrollOffset != Vector2.Zero)
             // Apply the scroll offset to the node's position
             _rect = new Rect(
-                _rect.X - scrollOffset.X,
-                _rect.Y - scrollOffset.Y,
+                _rect.X - _ancestorScrollOffset.X,
+                _rect.Y - _ancestorScrollOffset.Y,
                 _rect.W,
                 _rect.H
             );
@@ -139,6 +201,8 @@ public partial class LayoutNode
 
     float CalculateContentWidth(float availableWidth)
     {
+        if (_intrinsicWidthValid) return _intrinsicContentWidth;
+
         var padding = Style.PaddingLeft + Style.PaddingRight;
 
         if (FlowChildren.Count == 0)
@@ -180,6 +244,8 @@ public partial class LayoutNode
 
     float CalculateContentHeight(float availableHeight, float outerWidthForWrap = -1f)
     {
+        if (_intrinsicHeightValid) return _intrinsicContentHeight;
+
         var padding = Style.PaddingTop + Style.PaddingBottom;
 
         if (FlowChildren.Count == 0)
@@ -285,6 +351,12 @@ public partial class LayoutNode
         if (FlowChildren.Count == 0) return;
 
         var layoutContext = CreateVerticalLayoutContext(contentRect);
+        if (FlowChildren.Count == 1)
+        {
+            LayoutSingleChildVertically(contentRect, layoutContext);
+            return;
+        }
+
         var childDimensions = CalculateVerticalChildDimensions(layoutContext);
         try
         {
@@ -294,6 +366,25 @@ public partial class LayoutNode
         {
             ArrayPool<ChildDimensions>.Shared.Return(childDimensions);
         }
+    }
+
+    void LayoutSingleChildVertically(Rect contentRect, VerticalLayoutContext context)
+    {
+        var child = FlowChildren[0];
+        var marginHeight = child.Style.MarginTop + child.Style.MarginBottom;
+        var fixedHeight = GetChildFixedHeight(child, context);
+        var remainingHeight = Math.Max(0f, context.AvailableHeight - fixedHeight);
+        var childHeight = CalculateChildHeight(child, context, remainingHeight, 30f);
+        if (child.Style.Height < 0f)
+            childHeight = Math.Max(childHeight, context.AvailableHeight - marginHeight > 0f ? 10f : 0f);
+        childHeight = child.Style.ClampHeight(childHeight);
+
+        var totalHeight = childHeight + marginHeight;
+        var extraSpaceY = Math.Max(0f, context.AvailableHeight - totalHeight);
+        var currentY = contentRect.Y + extraSpaceY * Style.AlignContentVertical + child.Style.MarginTop;
+        child._rect = CalculateVerticalChildRect(child, contentRect, currentY, childHeight);
+        if (child.ChildNodes.Count > 0) child.LayoutChildren();
+        child.ApplyScrollOffset();
     }
 
     VerticalLayoutContext CreateVerticalLayoutContext(Rect contentRect)

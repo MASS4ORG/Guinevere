@@ -17,6 +17,14 @@ public partial class LayoutNode : IDisposable
     readonly Gui _gui;
     readonly LayoutNode? _parent;
     Rect _rect = Rect.Zero;
+    bool _layoutDirty = true;
+    bool _hasLayout;
+    Rect _lastLayoutScreenRect;
+    bool _intrinsicWidthValid;
+    bool _intrinsicHeightValid;
+    float _intrinsicContentWidth;
+    float _intrinsicContentHeight;
+    Vector2 _ancestorScrollOffset;
 
     /// <summary>
     /// Represents the collection of child nodes directly associated with this <see cref="LayoutNode"/>.
@@ -139,6 +147,20 @@ public partial class LayoutNode : IDisposable
     /// A <see cref="Rect"/> representing the position and size of this node after layout calculation.
     /// </value>
     public Rect Rect => _rect;
+
+    /// <summary>Number of completed layout computations for this root tree.</summary>
+    public int LayoutVersion { get; private set; }
+
+    /// <summary>
+    /// Marks this node's layout and every ancestor layout as dirty. Call this after changing
+    /// <see cref="Style"/> directly on a retained tree; fluent construction and child mutations
+    /// invalidate layout automatically.
+    /// </summary>
+    public void InvalidateLayout()
+    {
+        for (var node = this; node is not null; node = node._parent)
+            node._layoutDirty = true;
+    }
 
     /// <summary>
     /// Gets the center point of this layout node.

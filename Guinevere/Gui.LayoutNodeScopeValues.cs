@@ -86,6 +86,7 @@ public partial class Gui
     {
         scope ??= CurrentNodeScope;
         scope.Set(new LayoutNodeScopeLocalScrollOffset { Value = offset });
+        scope.Node.InvalidateLayout();
     }
 
     /// <summary>

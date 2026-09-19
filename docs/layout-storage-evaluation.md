@@ -34,11 +34,48 @@ Building the 10,001-node wide fixture allocates 5,454,664 bytes, or 545 bytes/no
 growth, scopes, dictionaries, and draw lists. This retained-tree cost is now distinct from layout calculation, which
 allocates zero bytes in the measured common cases.
 
-The deep fit-content fixture remains quadratic: 257 nodes take 0.8642 ms (3,362.77 ns/node). Ancestors recursively
-remeasure descendants with different available sizes. Fixing that requires a bottom-up measurement pass or a
-dependency-aware cache, and should be handled separately from storage representation. The engine also has no dirty
-tracking; a caller that knows a tree is unchanged can reuse its prior rectangles, while `CalculateLayout()` always
-recomputes the tree.
+Deep fit-content measurement now uses a bottom-up intrinsic-size cache for subtrees that do not depend on parent
+constraints. Cumulative scroll offsets are propagated during the same traversal instead of walking every ancestor for
+every positioned node. Retained trees skip layout entirely when clean; structural and fluent layout changes invalidate
+ancestors automatically, while direct writes through the public `Style` field require `InvalidateLayout()`.
+Depth scaling is linear after these changes: 65, 129, 257, 513, and 1,025-node chains measure approximately 57, 48,
+48, 48, and 49 ns/node respectively, with zero allocations.
+
+The suite includes every workload described in the PanGui article. Cases with directly corresponding Guinevere
+semantics execute normally; `pixels_with_min_expand_constraint` remains in the output as explicitly unsupported until
+min/max constraints accept composable expressions.
+
+The full compatibility-guidance run on the development container produced:
+
+| PanGui article fixture | Nodes | Guinevere ns/node | Allocation |
+|---|---:|---:|---:|
+| expand with max | 3,001 | 43.13 | 0 B |
+| expand with min | 3,001 | 43.32 | 0 B |
+| fit nesting | 101,111 | 88.19 | 0 B |
+| equal expand weights | 15,001 | 34.21 | 0 B |
+| unequal expand weights | 15,001 | 43.93 | 0 B |
+| nested vertical stack | 10,001 | 30.69 | 0 B |
+| padding and margin | 101 | 24.71 | 0 B |
+| percentage and ratio | 10,001 | 65.34 | 0 B |
+| perpendicular expand with wrap | 12,001 | 20.58 | 0 B |
+| wide fixed | 100,001 | 79.75 | 0 B |
+| wide wrapping | 10,001 | 22.13 | 0 B |
+| pixels constrained by expand | — | unsupported | — |
+
+These numbers are regression guidance, not a cross-machine leaderboard. PanGui's published results used different
+hardware, runtime, and implementation details.
+
+## Reusable acceptance criteria for layout issues
+
+Add this paragraph to layout-related issues:
+
+> **Performance acceptance:** Run
+> `dotnet run --project Examples/Example-90-LayoutBenchmarks/Example-90-LayoutBenchmarks.csproj -c Release -- --quick`
+> before and after the change on the same machine. The relevant fixture must remain correct, scale approximately
+> linearly across its supplied sizes, introduce no unexpected steady-state allocations, and avoid a material timing
+> regression. Include the before/after result in the issue or pull request. Add a focused fixture when the changed
+> layout behavior is not represented; unsupported semantics must be reported explicitly rather than approximated
+> silently.
 
 ## Property representation
 
@@ -58,7 +95,8 @@ zero steady-state allocations in representative fixtures without that migration 
 
 Differential fixtures retain the existing pixel, percentage, wrapping, constraints, and expansion behavior. New tests
 cover coefficient composition, interpolation at five points, weighted expansion, fit-largest, and actual blended
-layout resolution. All 531 tests pass.
+layout resolution. Dirty reuse, fluent invalidation, and explicit invalidation have dedicated coverage. All 534 tests
+pass.
 
 `Rect` changing from a record class to a record struct is source-compatible for normal construction, property access,
 operators, equality, and `with` expressions, but code relying on reference identity or null rectangles must migrate to

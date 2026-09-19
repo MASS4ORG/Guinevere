@@ -22,8 +22,26 @@ abstract class Program
 
         using (_gui.Node().Expand().Gap(20).Enter())
         {
+            DrawLayoutBlendingDemo();
             DrawSliderAnimationDemo();
             DrawEasingFunctionsDemo();
+        }
+    }
+
+    static void DrawLayoutBlendingDemo()
+    {
+        using (_gui.Node().Expand().Padding(20).Gap(10).Enter())
+        {
+            _gui.DrawRect(_gui.CurrentNode.Rect, Color.FromArgb(52, 58, 64), 8);
+            _gui.DrawText("Composable layout: 120px ↔ 70%", 16, Color.White);
+
+            var progress = (MathF.Sin(_gui.Time.Elapsed * 1.5f) + 1f) * 0.5f;
+            var width = UnitValue.Lerp(UnitValue.Pixels(120f), UnitValue.Percentage(0.7f), progress);
+            using (_gui.Node().Width(width).Height(44).Enter())
+            {
+                _gui.DrawRect(_gui.CurrentNode.Rect, Color.FromArgb(114, 92, 214), 6);
+                _gui.DrawText($"blend {progress:P0}", 12, Color.White);
+            }
         }
     }
 

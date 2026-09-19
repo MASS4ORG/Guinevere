@@ -99,6 +99,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 - Flexible box model: margins, padding, gaps, alignment
 - Horizontal/vertical flow with `Direction(Axis.Horizontal|Vertical)`
 - Responsive sizing: `Expand()`, `ExpandWidth()`, `ExpandHeight()`
+- Composable sizing: blend pixels, percentages, aspect ratios, remaining space, content size, and largest-child size
 - Content alignment with `AlignContent(x, y)`
 
   ```csharp
@@ -116,6 +117,13 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 
   // Responsive sizing
   gui.Node().ExpandWidth().Height(100).Margin(10, 20).Padding(5, 10, 15, 20);
+
+  // A continuous animation from 120 pixels to half the parent width.
+  var width = UnitValue.Lerp(UnitValue.Pixels(120), UnitValue.Percentage(0.5f), progress);
+  gui.Node().Width(width).Height(80);
+
+  // Contributions can also be composed directly.
+  gui.Node().Width(UnitValue.FitContent() + UnitValue.Pixels(24));
   ```
 
 ### Interaction & Focus
@@ -152,6 +160,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 
 - Smooth value/state transitions
 - `AnimationFloat` and `AnimateBool01()` helpers
+- Layout sizes can interpolate between arbitrary `UnitValue` modes without switching modes mid-animation
 - Easing functions: `Linear`, `EaseIn/Out`, `SmoothStep`, `BackOut`, `ElasticOut`, `BounceOut`
 - Live metrics: `ActiveAnimationCount`
 
@@ -160,6 +169,12 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   var animFloat = gui.GetAnimationFloat(value);
   animFloat.AnimateTo(target, 0.3f, Easing.ElasticOut);
   var v = animFloat.GetValue();
+
+  var animatedWidth = UnitValue.Lerp(
+      UnitValue.Pixels(100),
+      UnitValue.Percentage(0.6f) + UnitValue.FitContent(0.15f),
+      fade);
+  gui.Node().Width(animatedWidth);
 
   // Status
   gui.DrawText($"Active animations: {gui.ActiveAnimationCount}", 12, Color.White);

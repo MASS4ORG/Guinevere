@@ -17,6 +17,7 @@ public partial class LayoutNode
         ChildNodes.Add(child);
         if (child.Style.IsAbsolute) _absoluteChildCount++;
         _flowChildrenCache = null;
+        InvalidateLayout();
 
         return child;
     }
@@ -30,6 +31,7 @@ public partial class LayoutNode
 
         if (child.Style.IsAbsolute) _absoluteChildCount--;
         _flowChildrenCache = null;
+        InvalidateLayout();
         return true;
     }
 
@@ -51,6 +53,7 @@ public partial class LayoutNode
         ChildNodes.Clear();
         _absoluteChildCount = 0;
         _flowChildrenCache = null;
+        InvalidateLayout();
     }
 
     /// <summary>
@@ -62,6 +65,7 @@ public partial class LayoutNode
         _absoluteChildCount = 0;
         _flowChildrenCache = null;
         DrawList = new DrawList();
+        InvalidateLayout();
     }
 
     #endregion
