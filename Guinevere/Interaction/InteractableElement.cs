@@ -88,18 +88,32 @@ public readonly struct InteractableElement
     /// rects; input must hold the pointer against the same rects, or content scrolled past a panel's
     /// edge stays tappable on the other side of it.
     /// </summary>
+    /// <remarks>
+    /// Mirrors <c>Gui.ApplyAncestorClips</c>: a node that escapes ancestor clips stops the climb at
+    /// whichever ancestor declared that, rather than at <see cref="_node"/> itself, so a scroll area
+    /// nested inside a dialog or popup still keeps its own rows — clipped out of view — from being
+    /// hoverable or clickable past its own bounds.
+    /// </remarks>
     bool OutsideClippedAncestors(Vector2 position)
     {
         if (_node is null) return false;
-        if (_node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value) return false;
+
+        if (_node.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
+            && _node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
+            return false;
 
         for (var ancestor = _node.Parent; ancestor is not null; ancestor = ancestor.Parent)
         {
-            if (!ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()) continue;
-            if (!ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value) continue;
+            if (ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()
+                && ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value)
+            {
+                var rect = ancestor.Rect;
+                if (rect is { W: > 0, H: > 0 } && !rect.Contains(position)) return true;
+            }
 
-            var rect = ancestor.Rect;
-            if (rect is { W: > 0, H: > 0 } && !rect.Contains(position)) return true;
+            if (ancestor.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
+                && ancestor.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
+                break;
         }
 
         return false;

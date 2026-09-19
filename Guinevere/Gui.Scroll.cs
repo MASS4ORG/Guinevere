@@ -172,9 +172,10 @@ public partial class Gui
         scrollState.ShowScrollbarY = scrollState.NeedsVerticalScroll;
 
 
-        // Handle mouse wheel scrolling only when mouse is over the node
+        // Handle mouse wheel scrolling only when the mouse is over the node and nothing with a
+        // higher z-index -- a modal dialog's dimmed overlay, say -- is blocking it from here.
         var screenRect = new Rect(nodeRect.X, nodeRect.Y, nodeRect.W, nodeRect.H);
-        if (screenRect.Contains(mousePos))
+        if (screenRect.Contains(mousePos) && !IsHoverBlocked(node))
         {
             var wheelDelta = Input.MouseWheelDelta;
             if (Math.Abs(wheelDelta) > 0.01f)
@@ -260,7 +261,7 @@ public partial class Gui
         // Handle vertical scrollbar interaction
         if (scrollState.ShowScrollbarY)
         {
-            if (Input.IsMouseButtonPressed(MouseButton.Left) &&
+            if (Input.IsMouseButtonPressed(MouseButton.Left) && !IsHoverBlocked(node) &&
                 scrollState.IsPointOverVerticalThumb(mousePos, nodeRect))
             {
                 scrollState.IsDraggingScrollbarY = true;
@@ -285,7 +286,7 @@ public partial class Gui
         // Handle horizontal scrollbar interaction
         if (scrollState.ShowScrollbarX)
         {
-            if (Input.IsMouseButtonPressed(MouseButton.Left) &&
+            if (Input.IsMouseButtonPressed(MouseButton.Left) && !IsHoverBlocked(node) &&
                 scrollState.IsPointOverHorizontalThumb(mousePos, nodeRect))
             {
                 scrollState.IsDraggingScrollbarX = true;

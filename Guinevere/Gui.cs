@@ -148,14 +148,31 @@ public partial class Gui
     /// drawn. Clips are recorded per node in a flat z-ordered render, so without this a scroll or
     /// <see cref="ClipContent"/> would leak its clip onto every node drawn after it.
     /// </summary>
+    /// <remarks>
+    /// A node that declares it escapes ancestor clips (a dialog or popup floating over a dock panel)
+    /// skips every clip above it. That declaration has to stop the climb at the node that made it,
+    /// not follow <see cref="LayoutNodeScope.Get{TValue}"/>'s usual cascade to every descendant —
+    /// otherwise a scroll area nested inside the dialog would inherit the same "escapes everything"
+    /// flag and its own <see cref="ClipContent"/> would never be applied to its rows either, and
+    /// they would paint past its bounds instead of being clipped to it.
+    /// </remarks>
     static void ApplyAncestorClips(LayoutNode node, SKCanvas canvas)
     {
-        if (node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value) return;
+        if (node.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
+            && node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
+            return;
 
-        var ancestors = new Stack<LayoutNode>();
+        var ancestors = new List<LayoutNode>();
         for (var a = node.Parent; a is not null; a = a.Parent)
-            ancestors.Push(a);
+        {
+            ancestors.Add(a);
 
+            if (a.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
+                && a.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
+                break;
+        }
+
+        ancestors.Reverse();
         foreach (var ancestor in ancestors)
         {
             if (!ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()) continue;
