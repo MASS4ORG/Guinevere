@@ -52,8 +52,8 @@ public static partial class ControlsExtensions
             focusScope.SetActive();
             if (gui.Pass == Pass.Pass2Render)
             {
-                var bgColor = backgroundColor ?? Color.White;
-                var borderColorFinal = borderColor ?? Color.FromArgb(255, 200, 200, 200);
+                var bgColor = backgroundColor ?? gui.Controls.Popup;
+                var borderColorFinal = borderColor ?? gui.Controls.Border;
 
                 gui.DrawBackgroundRect(bgColor, borderRadius);
                 gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -127,7 +127,7 @@ public static partial class ControlsExtensions
                 if (gui.Pass != Pass.Pass2Render) return;
 
                 var rect = gui.CurrentNode.Rect;
-                var sepColor = separatorColor ?? Color.FromArgb(255, 220, 220, 220);
+                var sepColor = separatorColor ?? gui.Controls.Border;
                 var sepY = rect.Y + rect.H * 0.5f;
                 gui.DrawLine(new Vector2(rect.X + padding, sepY),
                     new Vector2(rect.X + rect.W - padding, sepY), sepColor);
@@ -135,13 +135,13 @@ public static partial class ControlsExtensions
             }
 
             var isHovered = index == state.HoveredIndex;
-            var itemColor = item.Enabled ? textColor ?? Color.Black : disabledColor ?? Color.Gray;
+            var itemColor = item.Enabled ? textColor ?? gui.Controls.Text : disabledColor ?? gui.Controls.TextDim;
 
             if (gui.Pass == Pass.Pass2Render) gui.RegisterFocusable(canReceiveFocus: item.Enabled);
 
             if (isHovered && item.Enabled)
             {
-                var hoverColorFinal = hoverColor ?? Color.FromArgb(255, 230, 230, 230);
+                var hoverColorFinal = hoverColor ?? gui.Controls.SurfaceHover;
                 gui.DrawBackgroundRect(hoverColorFinal);
             }
 
@@ -161,7 +161,7 @@ public static partial class ControlsExtensions
                 {
                     gui.Node().Expand();
 
-                    gui.DrawText(item.Shortcut, fontSize * 0.9f, Color.Gray, centerInRect: false);
+                    gui.DrawText(item.Shortcut, fontSize * 0.9f, gui.Controls.TextDim, centerInRect: false);
                 }
             }
         }

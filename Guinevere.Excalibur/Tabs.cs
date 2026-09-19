@@ -137,8 +137,8 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && showBorder)
             {
-                var bgColor = backgroundColor ?? Color.FromArgb(255, 250, 250, 250);
-                var borderColorFinal = borderColor ?? Color.FromArgb(255, 200, 200, 200);
+                var bgColor = backgroundColor ?? gui.Controls.SurfaceHover;
+                var borderColorFinal = borderColor ?? gui.Controls.Border;
 
                 gui.DrawBackgroundRect(bgColor, borderRadius);
                 gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -178,7 +178,7 @@ public static partial class ControlsExtensions
                 if (hasFocus)
                 {
                     var focusRect = new Rect(rect.X - 2, rect.Y - 2, rect.W + 4, rect.H + 4);
-                    gui.DrawRectBorder(focusRect, Color.FromArgb(255, 100, 149, 237), 2f, borderRadius + 2);
+                    gui.DrawRectBorder(focusRect, gui.Controls.Accent, 2f, borderRadius + 2);
                 }
 
                 // Keyboard navigation: Left/Right to move, Enter/Space to activate
@@ -203,7 +203,7 @@ public static partial class ControlsExtensions
                 if (activated && tab.Enabled && !overClose) state.ActiveTabIndex = tabIndex;
                 if (closed && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
 
-                var tabColor = GetTabBackgroundColor(isActive, isHovered, tab.BackgroundColor,
+                var tabColor = GetTabBackgroundColor(gui, isActive, isHovered, tab.BackgroundColor,
                     activeTabColor, inactiveTabColor);
 
                 if (tabColor.HasValue) gui.DrawBackgroundRect(tabColor.Value, borderRadius);
@@ -212,7 +212,7 @@ public static partial class ControlsExtensions
                 if (isActive) DrawActiveTabIndicator(gui, activeTabColor);
             }
 
-            var finalTextColor = GetTabTextColor(isActive, tab.Enabled, tab.TextColor,
+            var finalTextColor = GetTabTextColor(gui, isActive, tab.Enabled, tab.TextColor,
                 activeTextColor, textColor);
 
             using (gui.Node().Expand().Height(state.TabBarHeight).Enter())
@@ -234,8 +234,8 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && showBorder)
             {
-                var bgColor = backgroundColor ?? Color.White;
-                var borderColorFinal = borderColor ?? Color.FromArgb(255, 200, 200, 200);
+                var bgColor = backgroundColor ?? gui.Controls.Popup;
+                var borderColorFinal = borderColor ?? gui.Controls.Border;
 
                 gui.DrawBackgroundRect(bgColor, borderRadius);
                 gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -278,11 +278,9 @@ public static partial class ControlsExtensions
             var clicked = interactable.OnClick();
 
             if (hovered || clicked)
-                gui.DrawBackgroundRect(Color.FromArgb(255, 220, 220, 220), TabCloseButtonSize * 0.5f);
+                gui.DrawBackgroundRect(gui.Controls.SurfaceHover, TabCloseButtonSize * 0.5f);
 
-            var markColor = hovered || clicked
-                ? Color.FromArgb(255, 60, 60, 60)
-                : Color.FromArgb(255, 130, 130, 130);
+            var markColor = hovered || clicked ? gui.Controls.Text : gui.Controls.TextDim;
 
             var font = new SKFont { Size = 12f };
             font.MeasureText("×", out var bounds);
@@ -295,25 +293,25 @@ public static partial class ControlsExtensions
         }
     }
 
-    static Color? GetTabBackgroundColor(bool isActive, bool isHovered, Color? tabColor,
+    static Color? GetTabBackgroundColor(Gui gui, bool isActive, bool isHovered, Color? tabColor,
         Color? activeTabColor, Color? inactiveTabColor)
     {
-        return tabColor ?? (isActive ? activeTabColor ?? Color.White :
-            isHovered ? Color.FromArgb(255, 245, 245, 245) :
+        return tabColor ?? (isActive ? activeTabColor ?? gui.Controls.Surface :
+            isHovered ? gui.Controls.SurfaceHover :
             inactiveTabColor);
     }
 
-    static Color GetTabTextColor(bool isActive, bool enabled, Color? tabTextColor,
+    static Color GetTabTextColor(Gui gui, bool isActive, bool enabled, Color? tabTextColor,
         Color? activeTextColor, Color? textColor)
     {
-        if (!enabled) return Color.Gray;
-        return tabTextColor ?? (isActive ? activeTextColor ?? Color.Black : textColor ?? Color.Gray);
+        if (!enabled) return gui.Controls.TextDim;
+        return tabTextColor ?? (isActive ? activeTextColor ?? gui.Controls.Text : textColor ?? gui.Controls.TextDim);
     }
 
     static void DrawActiveTabIndicator(Gui gui, Color? activeTabColor)
     {
         var rect = gui.CurrentNode.Rect;
-        var indicatorColor = activeTabColor ?? Color.FromArgb(255, 100, 149, 237);
+        var indicatorColor = activeTabColor ?? gui.Controls.Accent;
         var indicatorRect = new Rect(rect.X, rect.Y + rect.H - 3, rect.W, 3);
         gui.DrawRect(indicatorRect, indicatorColor);
     }
@@ -435,10 +433,10 @@ public static partial class ControlsExtensions
 
         using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
         {
-            RenderPillTabBar(gui, state, activeTabColor ?? Color.FromArgb(255, 100, 149, 237),
+            RenderPillTabBar(gui, state, activeTabColor ?? gui.Controls.Selected,
                 inactiveTabColor ?? Color.Transparent, textColor, activeTextColor, fontSize, spacing);
 
-            RenderActiveTabContent(gui, state, Color.White, Color.FromArgb(255, 200, 200, 200), 4, true);
+            RenderActiveTabContent(gui, state, gui.Controls.Popup, gui.Controls.Border, 4, true);
         }
 
         if (state.TabToClose is { } closeRequest)
@@ -466,8 +464,8 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && showBorder)
             {
-                var bgColor = backgroundColor ?? Color.FromArgb(255, 250, 250, 250);
-                var borderColorFinal = borderColor ?? Color.FromArgb(255, 200, 200, 200);
+                var bgColor = backgroundColor ?? gui.Controls.SurfaceHover;
+                var borderColorFinal = borderColor ?? gui.Controls.Border;
 
                 gui.DrawBackgroundRect(bgColor, borderRadius);
                 gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -500,20 +498,20 @@ public static partial class ControlsExtensions
                 if (interactable.OnClick(MouseButton.Middle) && tab.Enabled && tab.Closable)
                     state.TabToClose = (tabIndex, tab.Title);
 
-                var tabColor = GetTabBackgroundColor(isActive, isHovered, tab.BackgroundColor,
+                var tabColor = GetTabBackgroundColor(gui, isActive, isHovered, tab.BackgroundColor,
                     activeTabColor, inactiveTabColor);
 
                 if (tabColor.HasValue) gui.DrawBackgroundRect(tabColor.Value, borderRadius);
 
                 if (isActive)
                 {
-                    var indicatorColor = activeTabColor ?? Color.FromArgb(255, 100, 149, 237);
+                    var indicatorColor = activeTabColor ?? gui.Controls.Accent;
                     var indicatorRect = new Rect(rect.X, rect.Y, 3, rect.H);
                     gui.DrawRect(indicatorRect, indicatorColor);
                 }
             }
 
-            var finalTextColor = GetTabTextColor(isActive, tab.Enabled, tab.TextColor,
+            var finalTextColor = GetTabTextColor(gui, isActive, tab.Enabled, tab.TextColor,
                 activeTextColor, textColor);
 
             using (gui.Node().Expand().Height(36).Enter())
@@ -563,7 +561,7 @@ public static partial class ControlsExtensions
                 gui.DrawBackgroundRect(tabColor, (state.TabBarHeight - 16) * 0.5f); // Fully rounded
             }
 
-            var finalTextColor = GetTabTextColor(isActive, tab.Enabled, tab.TextColor,
+            var finalTextColor = GetTabTextColor(gui, isActive, tab.Enabled, tab.TextColor,
                 activeTextColor, textColor);
 
             using (gui.Node().Expand().Height(state.TabBarHeight - 16).Enter())

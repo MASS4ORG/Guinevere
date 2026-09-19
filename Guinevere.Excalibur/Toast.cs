@@ -154,8 +154,8 @@ public static partial class ControlsExtensions
 
                 if (gui.Pass == Pass.Pass2Render && alpha > 0)
                 {
-                    var bg = WithAlpha(opts.BackgroundColor ?? Color.FromArgb(255, 255, 255, 255), alpha);
-                    var border = WithAlpha(opts.BorderColor ?? Color.FromArgb(255, 200, 200, 200), alpha);
+                    var bg = WithAlpha(opts.BackgroundColor ?? gui.Controls.Popup, alpha);
+                    var border = WithAlpha(opts.BorderColor ?? gui.Controls.Border, alpha);
 
                     gui.DrawBackgroundRect(bg, opts.BorderRadius);
                     gui.DrawRectBorder(gui.CurrentNode.Rect, border, 1f, opts.BorderRadius);
@@ -170,7 +170,7 @@ public static partial class ControlsExtensions
 
                 // Built in both passes so the text node is measured during Pass1 layout; creating it
                 // only in Pass2 leaves its rect (0,0,0,0) and the glyphs draw at the canvas origin.
-                gui.DrawText(entry.Text, opts.FontSize, WithAlpha(opts.TextColor ?? Color.Black, alpha),
+                gui.DrawText(entry.Text, opts.FontSize, WithAlpha(opts.TextColor ?? gui.Controls.Text, alpha),
                     centerInRect: false);
             }
         }

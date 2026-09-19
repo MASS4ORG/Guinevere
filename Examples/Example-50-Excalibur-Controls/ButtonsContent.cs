@@ -70,7 +70,7 @@ public abstract partial class Program
                     Clicked("Heart Icon");
                 }
 
-                if (gui.Button("⭐", 40, backgroundColor: Color.Black,
+                if (gui.Button("⭐", 40,
                         color: Color.Black))
                 {
                     _iconButtonClickCount++;
@@ -115,12 +115,12 @@ public abstract partial class Program
 
         Section(gui, "Click Statistics", () =>
         {
-            gui.DrawText($"Button clicks: {_buttonClickCount}", size: 14, color: Color.FromArgb(255, 102, 102, 102));
-            gui.DrawText($"Icon button clicks: {_iconButtonClickCount}", size: 14,
-                color: Color.FromArgb(255, 102, 102, 102));
-            gui.DrawText($"Total clicks: {_buttonClickCount + _iconButtonClickCount}", size: 14,
-                color: Color.FromArgb(255, 102, 102, 102));
-            gui.DrawText($"Last clicked: {_lastClickedButton}", size: 14, color: Color.FromArgb(255, 102, 102, 102));
+            gui.SetTextColor(gui.Controls.Text);
+            gui.SetTextSize(14);
+            gui.DrawText($"Button clicks: {_buttonClickCount}");
+            gui.DrawText($"Icon button clicks: {_iconButtonClickCount}");
+            gui.DrawText($"Total clicks: {_buttonClickCount + _iconButtonClickCount}");
+            gui.DrawText($"Last clicked: {_lastClickedButton}");
         });
     }
 

@@ -10,15 +10,16 @@ public abstract partial class Program
 
     static void ScrollingContent(Gui gui)
     {
+        gui.SetTextColor(gui.Controls.Text);
         using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(15).Enter())
         {
             using (gui.Node(220).Enter())
             {
-                gui.DrawBackgroundRect(Color.FromArgb(255, 248, 249, 250), radius: 8);
+                gui.DrawBackgroundRect(gui.Controls.Surface, radius: 8);
 
                 using (gui.Node().Padding(10).Direction(Axis.Vertical).Gap(6).Enter())
                 {
-                    gui.DrawText("Scroll Demos", size: 16, color: Color.FromArgb(255, 51, 51, 51));
+                    gui.DrawText("Scroll Demos", size: 16);
 
                     for (var i = 0; i < ScrollDemoNames.Length; i++)
                     {
@@ -42,17 +43,17 @@ public abstract partial class Program
                     {
                         gui.Node(0, 10);
                         gui.DrawText("Jump to position:", size: 12, color: Color.Gray);
-                        if (ProgrammaticButton(gui, "Top"))
+                        if (ProgrammaticButton(gui, "Top", Color.Green))
                         {
                             gui.ScrollToTop(_scrollNodeId);
                         }
 
-                        if (ProgrammaticButton(gui, "Mid"))
+                        if (ProgrammaticButton(gui, "Mid", Color.DeepPink))
                         {
                             gui.SetScrollPercentage(_scrollNodeId, Axis.Vertical, 0.5f);
                         }
 
-                        if (ProgrammaticButton(gui, "Bottom"))
+                        if (ProgrammaticButton(gui, "Bottom", Color.Blue))
                         {
                             gui.ScrollToBottom(_scrollNodeId);
                         }
@@ -62,7 +63,7 @@ public abstract partial class Program
 
             using (gui.Node().Expand().Padding(10).Enter())
             {
-                gui.DrawBackgroundRect(Color.FromArgb(255, 240, 242, 245), radius: 5);
+                gui.DrawBackgroundRect(gui.Controls.Surface, radius: 5);
 
                 switch (_scrollDemo)
                 {
@@ -80,7 +81,7 @@ public abstract partial class Program
         }
     }
 
-    static bool ProgrammaticButton(Gui gui, string label)
+    static bool ProgrammaticButton(Gui gui, string label, Color backgroundColor)
     {
         var clicked = false;
         using (gui.Node(190, 26).Margin(0, 3, 0, 0).Enter())
@@ -89,12 +90,13 @@ public abstract partial class Program
             {
                 var interactable = gui.GetInteractable();
                 gui.DrawBackgroundRect(interactable.OnHover()
-                    ? Color.FromArgb(255, 90, 150, 210)
-                    : Color.FromArgb(255, 225, 228, 233), 3);
+                        ? Color.FromArgb(255, 90, 150, 210)
+                        : backgroundColor,
+                    3);
                 clicked = interactable.OnClick();
             }
 
-            gui.DrawText(label, size: 12, color: clicked ? Color.White : Color.FromArgb(255, 70, 70, 70));
+            gui.DrawText(label, size: 12, color: Color.White);
         }
 
         return clicked;
@@ -105,7 +107,7 @@ public abstract partial class Program
         using (gui.Node().Expand().Padding(10).Enter())
         {
             gui.DrawText("Basic Vertical Scrolling", size: 18);
-            gui.DrawText("Mouse wheel to scroll, Shift+wheel for horizontal", size: 13, Color.Gray);
+            gui.DrawText("Mouse wheel to scroll, Shift+wheel for horizontal", size: 13);
 
             using (gui.Node().Expand().Padding(10).Direction(Axis.Vertical).Gap(5).Margin(0, 15, 0, 0).Enter())
             {
@@ -133,7 +135,7 @@ public abstract partial class Program
         using (gui.Node().Expand().Padding(10).Enter())
         {
             gui.DrawText("Independent Scrolling Areas", size: 18);
-            gui.DrawText("Each panel scrolls separately; the right one scrolls in both axes", size: 13, Color.Gray);
+            gui.DrawText("Each panel scrolls separately; the right one scrolls in both axes", size: 13);
 
             using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(10).Margin(0, 15, 0, 0).Enter())
             {
@@ -185,7 +187,7 @@ public abstract partial class Program
         using (gui.Node().Expand().Padding(10).Enter())
         {
             gui.DrawText("Programmatic Scroll Control", size: 18);
-            gui.DrawText("Use the jump buttons on the left; clicking an item scrolls to it", size: 13, Color.Gray);
+            gui.DrawText("Use the jump buttons on the left; clicking an item scrolls to it", size: 13);
 
             using (gui.Node().Expand().Padding(10).Margin(0, 15, 0, 0).Enter())
             {

@@ -275,8 +275,8 @@ public static partial class ControlsExtensions
                 // Only render background when open
                 if (isOpen)
                 {
-                    var bgColor = backgroundColor ?? Color.White;
-                    var borderColorFinal = borderColor ?? Color.FromArgb(255, 180, 180, 180);
+                    var bgColor = backgroundColor ?? gui.Controls.Popup;
+                    var borderColorFinal = borderColor ?? gui.Controls.Border;
 
                     gui.DrawBackgroundRect(bgColor, borderRadius);
                     gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -332,8 +332,8 @@ public static partial class ControlsExtensions
                 // Only render visually when popup is open
                 if (state.IsOpen)
                 {
-                    var bgColor = backgroundColor ?? Color.White;
-                    var borderColorFinal = borderColor ?? Color.FromArgb(255, 180, 180, 180);
+                    var bgColor = backgroundColor ?? gui.Controls.Popup;
+                    var borderColorFinal = borderColor ?? gui.Controls.Border;
 
                     gui.DrawBackgroundRect(bgColor, borderRadius);
                     gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, borderWidth, borderRadius);
@@ -386,12 +386,12 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && isOpen)
             {
-                var titleBgColor = titleBarColor ?? Color.FromArgb(255, 240, 240, 240);
+                var titleBgColor = titleBarColor ?? gui.Controls.SurfaceHover;
                 gui.DrawBackgroundRect(titleBgColor);
             }
 
             // Always draw text for consistency, but make transparent when closed
-            var titleColorFinal = isOpen ? titleTextColor ?? Color.Black : Color.Transparent;
+            var titleColorFinal = isOpen ? titleTextColor ?? gui.Controls.Text : Color.Transparent;
             gui.DrawText(title, color: titleColorFinal, centerInRect: false);
         }
     }
@@ -414,7 +414,7 @@ public static partial class ControlsExtensions
 
                         if (isHovered)
                         {
-                            var hoverColorFinal = hoverColor ?? Color.FromArgb(255, 240, 240, 240);
+                            var hoverColorFinal = hoverColor ?? gui.Controls.SurfaceHover;
                             gui.DrawBackgroundRect(hoverColorFinal);
                         }
 
@@ -428,7 +428,7 @@ public static partial class ControlsExtensions
                     }
 
                 // Always render text for consistency, but make transparent when closed
-                var textColor = item.Enabled ? Color.Black : Color.Gray;
+                var textColor = item.Enabled ? gui.Controls.Text : gui.Controls.TextDim;
                 if (!menuIsOpen) textColor = Color.Transparent;
 
                 gui.DrawText(item.Text, color: textColor, centerInRect: false);

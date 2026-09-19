@@ -28,6 +28,7 @@ public abstract partial class Program
 
     static void TextInputRow(Gui gui)
     {
+        gui.SetTextColor(gui.Controls.Text);
         using (gui.Node().Direction(Axis.Horizontal).Enter())
         {
             gui.DrawText("Regular Text").Width(150);

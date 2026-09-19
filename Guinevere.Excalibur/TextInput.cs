@@ -149,7 +149,7 @@ public static partial class ControlsExtensions
             // Use a nested node for cursor positioning to avoid coordinate transformation issues
             using (gui.Node(2, cursorHeight).Margin(textWidth, cursorY, 0, 0).Enter())
             {
-                gui.DrawRect(gui.CurrentNode.Rect, cursorColor ?? Color.White);
+                gui.DrawRect(gui.CurrentNode.Rect, cursorColor ?? gui.Controls.Text);
             }
     }
 

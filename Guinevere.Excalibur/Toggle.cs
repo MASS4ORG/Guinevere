@@ -118,7 +118,7 @@ public static partial class ControlsExtensions
     {
         if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = enabled ? labelColor ?? Color.Black : DisabledText;
+            var labelColorFinal = enabled ? labelColor ?? gui.Controls.Text : DisabledText;
             gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
         }
     }

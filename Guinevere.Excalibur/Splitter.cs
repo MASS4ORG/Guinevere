@@ -41,9 +41,9 @@ public static partial class ControlsExtensions
             // Not "grabbable" while something else owns the pointer - a tab being dragged past it.
             var active = dragging || (!gui.IsPointerCaptured && interactable.OnHover());
 
-            gui.DrawRectFilled(gui.CurrentNode.Rect, color ?? Color.FromArgb(255, 51, 56, 66));
+            gui.DrawRectFilled(gui.CurrentNode.Rect, color ?? gui.Controls.Border);
             if (active)
-                gui.DrawBackgroundRect(hoverColor ?? Color.FromArgb(255, 96, 104, 118));
+                gui.DrawBackgroundRect(hoverColor ?? gui.Controls.SurfaceHover);
 
             // The split position is anchored to where it was when the drag started and then offset by
             // the pointer's total travel, rather than accumulated frame by frame: summing deltas cannot
