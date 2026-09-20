@@ -68,7 +68,7 @@ public partial class Gui
             if (clipRect is { W: > 0, H: > 0 })
             {
                 SetClipped(true, CurrentNode.Scope);
-                AddDraw(new ClipOperation(clipRect));
+                CurrentNode.DrawList.AddClip(clipRect);
             }
         }
         else
@@ -78,7 +78,7 @@ public partial class Gui
             if (clipRect is { W: > 0, H: > 0 })
             {
                 SetClipped(true, CurrentNode.Scope);
-                AddDraw(new ClipOperation(clipRect));
+                CurrentNode.DrawList.AddClip(clipRect);
             }
         }
     }

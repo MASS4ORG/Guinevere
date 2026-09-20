@@ -28,7 +28,7 @@ public static partial class ControlsExtensions
 
         /// <summary>The anchor's rect from the previous frame. Rects handed to the widget mid-pass1
         /// are not laid out yet, so hover tests and the tooltip position use last frame's rect.</summary>
-        public Rect AnchorRect { get; set; } = new();
+        public Rect AnchorRect { get; set; }
     }
 
     /// <summary>

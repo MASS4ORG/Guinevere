@@ -5,7 +5,7 @@ namespace Guinevere;
 /// an outline, a drop shadow, an inner shadow and a gradient fill. Any combination may be set;
 /// they are drawn shadow → outline → fill → inner-shadow.
 /// </summary>
-public sealed record TextEffects
+public readonly record struct TextEffects
 {
     /// <summary>Stroked outline drawn behind the fill.</summary>
     public TextOutline? Outline { get; init; }

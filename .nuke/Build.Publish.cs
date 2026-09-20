@@ -19,7 +19,7 @@ partial class Build
     private AbsolutePath PublishDir => PublishDirectory ?? RootDirectory / "publish" / RuntimeIdentifier;
 
     [Parameter("publish-self-contained (default: true)")]
-    public readonly bool PublishSelfContained = false;
+    public readonly bool PublishSelfContained;
 
     [Parameter("publish-single-file (default: false - only for executables)")]
     public readonly bool PublishSingleFile;

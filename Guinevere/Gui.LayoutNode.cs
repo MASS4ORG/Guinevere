@@ -133,8 +133,8 @@ public partial class Gui : ILayoutNodeEnterExit
             node = nodeExist;
         }
 
-        // Only reset DrawList during Pass1Build phase to prevent clearing render commands
-        node.DrawList = new DrawList();
+        // Reuse the command buffer whenever this immediate-mode node is rebuilt.
+        node.DrawList.Clear();
         node.Pass2NodeCount = 0;
 
         return node;
@@ -143,7 +143,7 @@ public partial class Gui : ILayoutNodeEnterExit
     /// <summary>Creates a node from integer pixel dimensions.</summary>
     public LayoutNode Node(int width, int height, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0) =>
-        Node((float)width, (float)height, id, filePath, lineNumber);
+        Node(width, (float)height, id, filePath, lineNumber);
 
     /// <summary>Creates a node using composable size expressions.</summary>
     public LayoutNode Node(UnitValue width, UnitValue height,
@@ -166,7 +166,7 @@ public partial class Gui : ILayoutNodeEnterExit
             node = nodeExist;
         }
 
-        node.DrawList = new DrawList();
+        node.DrawList.Clear();
         node.Pass2NodeCount = 0;
         return node;
     }

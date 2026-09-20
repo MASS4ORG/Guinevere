@@ -1,22 +1,17 @@
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace Guinevere;
 
-/// <inheritdoc />
-[Editor(
-    "System.Drawing.Design.ColorEditor, System.Drawing.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-    "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
-[Serializable]
-[TypeConverter(
-    "System.Drawing.ColorConverter, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
-[TypeForwardedFrom("System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+/// <summary>A packed <c>0xRRGGBBAA</c> sRGB color with linear, unpremultiplied alpha.</summary>
+[StructLayout(LayoutKind.Sequential)]
 public readonly struct Color : IEquatable<Color>
 {
-    readonly System.Drawing.Color _internalColor;
+    readonly uint _rgba;
 
     public static implicit operator Color(uint rgba) => FromArgb(
         (byte)(rgba & 0xFF), // A
@@ -30,19 +25,20 @@ public readonly struct Color : IEquatable<Color>
         (byte)(rgba >> 16), // G (Green)
         (byte)(rgba >> 8));
 
-    public static implicit operator System.Drawing.Color(Color value) => value._internalColor;
+    public static implicit operator System.Drawing.Color(Color value) =>
+        System.Drawing.Color.FromArgb(value.A, value.R, value.G, value.B);
     public static implicit operator Color(System.Drawing.Color value) => new(value);
 
     public static implicit operator SKColor(Color color) => new(color.R, color.G, color.B, color.A);
 
     Color(System.Drawing.Color color)
     {
-        _internalColor = color;
+        _rgba = Pack(color.R, color.G, color.B, color.A);
     }
 
     public Color(Color color, float alpha)
     {
-        FromArgb((int)(alpha * 255), color.B, color.G, color.R);
+        _rgba = Pack(color.R, color.G, color.B, (byte)(Math.Clamp(alpha, 0f, 1f) * 255f));
     }
 
     /// <summary>
@@ -221,29 +217,74 @@ public readonly struct Color : IEquatable<Color>
     //  end "web" colors
     // -------------------------------------------------------------------
 
-    public byte R => _internalColor.R;
-    public byte G => _internalColor.G;
-    public byte B => _internalColor.B;
-    public byte A => _internalColor.A;
-    public bool IsKnownColor => _internalColor.IsKnownColor;
-    public bool IsEmpty => _internalColor.IsEmpty;
-    public bool IsNamedColor => _internalColor.IsNamedColor;
-    public bool IsSystemColor => _internalColor.IsSystemColor;
-    public string Name => _internalColor.Name;
+    public byte R => (byte)(_rgba >> 24);
+    public byte G => (byte)(_rgba >> 16);
+    public byte B => (byte)(_rgba >> 8);
+    public byte A => (byte)_rgba;
+    public bool IsKnownColor => ((System.Drawing.Color)this).IsKnownColor;
+    public bool IsEmpty => _rgba == 0;
+    public bool IsNamedColor => ((System.Drawing.Color)this).IsNamedColor;
+    public bool IsSystemColor => ((System.Drawing.Color)this).IsSystemColor;
+    public string Name => ((System.Drawing.Color)this).Name;
+
+    /// <summary>Gets the packed <c>0xRRGGBBAA</c> sRGB value.</summary>
+    public uint Rgba => _rgba;
+
+    /// <summary>Parses CSS hexadecimal colors in RGB, RGBA, RRGGBB or RRGGBBAA form, with an optional '#'.</summary>
+    public static Color ParseHex(string value) => TryParseHex(value, out var color)
+        ? color
+        : throw new FormatException("Expected RGB, RGBA, RRGGBB or RRGGBBAA hexadecimal color data.");
+
+    /// <summary>Attempts to parse a CSS hexadecimal color, with an optional leading '#'.</summary>
+    public static bool TryParseHex(string? value, out Color color)
+    {
+        color = default;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        var hex = value.AsSpan().Trim();
+        if (hex[0] == '#') hex = hex[1..];
+
+        Span<char> normalized = stackalloc char[8];
+        var normalizedLength = hex.Length;
+        if (hex.Length is 3 or 4)
+        {
+            for (var i = 0; i < hex.Length; i++)
+            {
+                normalized[i * 2] = hex[i];
+                normalized[i * 2 + 1] = hex[i];
+            }
+            normalizedLength *= 2;
+        }
+        else if (hex.Length is 6 or 8)
+            hex.CopyTo(normalized);
+        else
+            return false;
+
+        if (!uint.TryParse(normalized[..normalizedLength], NumberStyles.HexNumber,
+                CultureInfo.InvariantCulture, out var packed))
+            return false;
+
+        if (normalizedLength == 6) packed = packed << 8 | byte.MaxValue;
+        color = new Color(packed, true);
+        return true;
+    }
 
     public static Color FromArgb(int argb)
     {
-        return System.Drawing.Color.FromArgb(argb);
+        return FromArgb((argb >> 24) & 255, (argb >> 16) & 255, (argb >> 8) & 255, argb & 255);
     }
 
     public static Color FromArgb(int alpha, int red, int green, int blue)
     {
-        return System.Drawing.Color.FromArgb(alpha, red, green, blue);
+        if ((uint)alpha > byte.MaxValue) throw InvalidChannel(nameof(alpha));
+        if ((uint)red > byte.MaxValue) throw InvalidChannel(nameof(red));
+        if ((uint)green > byte.MaxValue) throw InvalidChannel(nameof(green));
+        if ((uint)blue > byte.MaxValue) throw InvalidChannel(nameof(blue));
+        return new Color(Pack((byte)red, (byte)green, (byte)blue, (byte)alpha), true);
     }
 
     public static Color FromArgb(int alpha, Color baseColor)
     {
-        return System.Drawing.Color.FromArgb(alpha, baseColor._internalColor);
+        return FromArgb(alpha, baseColor.R, baseColor.G, baseColor.B);
     }
 
     public static Color FromArgb(int red, int green, int blue)
@@ -263,43 +304,43 @@ public readonly struct Color : IEquatable<Color>
 
     public float GetBrightness()
     {
-        return _internalColor.GetBrightness();
+        return ((System.Drawing.Color)this).GetBrightness();
     }
 
     public float GetHue()
     {
-        return _internalColor.GetHue();
+        return ((System.Drawing.Color)this).GetHue();
     }
 
     public float GetSaturation()
     {
-        return _internalColor.GetSaturation();
+        return ((System.Drawing.Color)this).GetSaturation();
     }
 
     public int ToArgb()
     {
-        return _internalColor.ToArgb();
+        return unchecked((int)((uint)A << 24 | (uint)R << 16 | (uint)G << 8 | B));
     }
 
     public KnownColor ToKnownColor()
     {
-        return _internalColor.ToKnownColor();
+        return ((System.Drawing.Color)this).ToKnownColor();
     }
 
     public override string ToString()
     {
-        return _internalColor.ToString();
+        return $"Color [A={A}, R={R}, G={G}, B={B}]";
     }
 
     public static bool operator ==(Color left, Color right) =>
-        left._internalColor == right._internalColor;
+        left._rgba == right._rgba;
 
     public static bool operator !=(Color left, Color right) =>
         !(left == right);
 
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
-        return obj is System.Drawing.Color other && Equals(other);
+        return obj is Color other && Equals(other);
     }
 
     public bool Equals(Color other)
@@ -309,8 +350,17 @@ public readonly struct Color : IEquatable<Color>
 
     public override int GetHashCode()
     {
-        return _internalColor.GetHashCode();
+        return _rgba.GetHashCode();
     }
 
     #endregion
+
+    Color(uint rgba, bool _) => _rgba = rgba;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static uint Pack(byte red, byte green, byte blue, byte alpha) =>
+        (uint)(red << 24 | green << 16 | blue << 8 | alpha);
+
+    static ArgumentException InvalidChannel(string name) =>
+        new("Channel must be between 0 and 255.", name);
 }

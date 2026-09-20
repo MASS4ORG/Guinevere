@@ -64,7 +64,7 @@ public partial class LayoutNode
         ChildNodes.Clear();
         _absoluteChildCount = 0;
         _flowChildrenCache = null;
-        DrawList = new DrawList();
+        DrawList.Clear();
         InvalidateLayout();
     }
 

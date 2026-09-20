@@ -222,7 +222,7 @@ public partial class Program
                     for (int n = 0; n < 2; n++)
                     {
                         var rect = _gui.Node(UnitValue.Expand(), 40).Rect;
-                        var count = (int)((rect.Width - 20) / 2);
+                        var count = (rect.Width - 20) / 2;
 
                         // Draw some random audio wave
                         if (count > 2)

@@ -8,6 +8,8 @@ public class CanvasRenderer : ICanvasRenderer
 {
     SKSurface? _surface;
     SKCanvas? _canvas;
+    Texture2D _texture;
+    bool _textureLoaded;
     int _width, _height;
 
     /// <inheritdoc />
@@ -34,6 +36,7 @@ public class CanvasRenderer : ICanvasRenderer
         // Dispose old surface and canvas
         _canvas = null;
         _surface?.Dispose();
+        ReleaseTexture();
 
         // Create new surface with new dimensions
         var imageInfo = new SKImageInfo(_width, _height, SKColorType.Rgba8888, SKAlphaType.Premul);
@@ -58,46 +61,34 @@ public class CanvasRenderer : ICanvasRenderer
         {
             unsafe
             {
-                // Get pixel data and copy it to a managed array for format conversion
+                // Rgba8888 exposes bytes in R, G, B, A order, exactly matching Raylib's
+                // UncompressedR8G8B8A8 input. Upload directly while the pixmap is alive.
                 var pixelData = (byte*)pixels.GetPixels().ToPointer();
                 var width = pixels.Width;
                 var height = pixels.Height;
-                var bytesPerPixel = 4; // RGBA
-                var totalBytes = width * height * bytesPerPixel;
+                if (pixels.RowBytes != width * 4)
+                    throw new InvalidOperationException("Raylib requires tightly packed RGBA pixels.");
 
-                // Create a byte array to hold the converted pixel data
-                var convertedData = new byte[totalBytes];
-
-                // Convert RGBA to RGBA (handle potential endianness issues)
-                for (var i = 0; i < totalBytes; i += 4)
+                var rlImg = new Image
                 {
-                    // Skia uses BGRA on little-endian systems, Raylib expects RGBA
-                    convertedData[i] = pixelData[i + 2]; // R = B from Skia
-                    convertedData[i + 1] = pixelData[i + 1]; // G = G from Skia
-                    convertedData[i + 2] = pixelData[i]; // B = R from Skia
-                    convertedData[i + 3] = pixelData[i + 3]; // A = A from Skia
-                }
+                    Data = pixelData,
+                    Width = width,
+                    Height = height,
+                    Mipmaps = 1,
+                    Format = PixelFormat.UncompressedR8G8B8A8
+                };
 
-                fixed (byte* dataPtr = convertedData)
+                if (_textureLoaded)
+                    Raylib.UpdateTexture(_texture, pixelData);
+                else
                 {
-                    var rlImg = new Image
-                    {
-                        Data = dataPtr,
-                        Width = width,
-                        Height = height,
-                        Mipmaps = 1,
-                        Format = PixelFormat.UncompressedR8G8B8A8
-                    };
-
-                    var tex = Raylib.LoadTextureFromImage(rlImg);
-
-                    Raylib.BeginDrawing();
-                    Raylib.ClearBackground(Raylib_cs.Color.Black);
-                    Raylib.DrawTexture(tex, 0, 0, Raylib_cs.Color.White);
-
-                    Raylib.EndDrawing();
-                    Raylib.UnloadTexture(tex);
+                    _texture = Raylib.LoadTextureFromImage(rlImg);
+                    _textureLoaded = true;
                 }
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Raylib_cs.Color.Black);
+                Raylib.DrawTexture(_texture, 0, 0, Raylib_cs.Color.White);
+                Raylib.EndDrawing();
             }
         }
     }
@@ -107,5 +98,14 @@ public class CanvasRenderer : ICanvasRenderer
     {
         _canvas = null;
         _surface?.Dispose();
+        ReleaseTexture();
+    }
+
+    void ReleaseTexture()
+    {
+        if (!_textureLoaded) return;
+        Raylib.UnloadTexture(_texture);
+        _textureLoaded = false;
+        _texture = default;
     }
 }

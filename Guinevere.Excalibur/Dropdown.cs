@@ -10,13 +10,13 @@ public static partial class ControlsExtensions
         public int SelectedIndex { get; set; } = -1;
 
         /// <summary>The button's rect as last measured, which is where the list anchors.</summary>
-        public Rect ButtonRect { get; set; } = new();
+        public Rect ButtonRect { get; set; }
 
         /// <summary>
         /// The anchor both passes of the current frame use. A node's rect only resolves in the render
         /// pass, so reading it directly would place the list differently in each pass.
         /// </summary>
-        public Rect Anchor { get; set; } = new();
+        public Rect Anchor { get; set; }
     }
 
     /// <summary>

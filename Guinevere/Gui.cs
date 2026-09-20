@@ -2,6 +2,8 @@ namespace Guinevere;
 
 public partial class Gui
 {
+    readonly List<(int Z, int Sequence, LayoutNode Node)> _renderNodes = [];
+    readonly List<LayoutNode> _clipAncestors = [];
     /// <summary>
     /// A property that represents the core rendering surface for graphical operations.
     /// </summary>
@@ -128,12 +130,15 @@ public partial class Gui
     /// </exception>
     public void Render()
     {
-        var flatList = new List<(int z, LayoutNode node)>();
-        NodeFlatList(RootNode!, flatList);
+        _renderNodes.Clear();
+        NodeFlatList(RootNode!, _renderNodes);
+        _renderNodes.Sort(static (left, right) =>
+        {
+            var zOrder = left.Z.CompareTo(right.Z);
+            return zOrder != 0 ? zOrder : left.Sequence.CompareTo(right.Sequence);
+        });
 
-        foreach (var (_, node) in flatList
-                     .OrderBy(value => value.z)
-                )
+        foreach (var (_, _, node) in _renderNodes)
         {
             var restore = Canvas!.Save();
             ApplyAncestorClips(node, Canvas!);
@@ -156,25 +161,25 @@ public partial class Gui
     /// flag and its own <see cref="ClipContent"/> would never be applied to its rows either, and
     /// they would paint past its bounds instead of being clipped to it.
     /// </remarks>
-    static void ApplyAncestorClips(LayoutNode node, SKCanvas canvas)
+    void ApplyAncestorClips(LayoutNode node, SKCanvas canvas)
     {
         if (node.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
             && node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
             return;
 
-        var ancestors = new List<LayoutNode>();
+        _clipAncestors.Clear();
         for (var a = node.Parent; a is not null; a = a.Parent)
         {
-            ancestors.Add(a);
+            _clipAncestors.Add(a);
 
             if (a.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
                 && a.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
                 break;
         }
 
-        ancestors.Reverse();
-        foreach (var ancestor in ancestors)
+        for (var i = _clipAncestors.Count - 1; i >= 0; i--)
         {
+            var ancestor = _clipAncestors[i];
             if (!ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()) continue;
             if (!ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value) continue;
 
@@ -186,9 +191,9 @@ public partial class Gui
         }
     }
 
-    void NodeFlatList(LayoutNode node, List<(int, LayoutNode)> list)
+    void NodeFlatList(LayoutNode node, List<(int Z, int Sequence, LayoutNode Node)> list)
     {
-        list.Add((node.Scope.Get<LayoutNodeScopeZIndex>().Value, node));
+        list.Add((node.Scope.Get<LayoutNodeScopeZIndex>().Value, list.Count, node));
 
         foreach (var child in node.Children)
             NodeFlatList(child, list);

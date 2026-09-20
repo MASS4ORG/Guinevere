@@ -199,9 +199,10 @@ public partial class Gui
         if (effects is null)
             return [(new SKPaint { IsAntialias = true, Color = color }, Vector2.Zero)];
 
+        var effect = effects.Value;
         var layers = new List<(SKPaint, Vector2)>(4);
 
-        if (effects.DropShadow is { } drop)
+        if (effect.DropShadow is { } drop)
         {
             layers.Add((new SKPaint
             {
@@ -212,7 +213,7 @@ public partial class Gui
             }, Vector2.Zero));
         }
 
-        if (effects.Outline is { } outline && outline.Width > 0f)
+        if (effect.Outline is { } outline && outline.Width > 0f)
         {
             layers.Add((new SKPaint
             {
@@ -225,11 +226,11 @@ public partial class Gui
         }
 
         var fill = new SKPaint { IsAntialias = true, Color = color };
-        if (effects.Gradient is { } gradient)
+        if (effect.Gradient is { } gradient)
             fill.Shader = BuildGradientShader(gradient, bounds);
         layers.Add((fill, Vector2.Zero));
 
-        if (effects.InnerShadow is { } inner)
+        if (effect.InnerShadow is { } inner)
         {
             // The offset, blurred copy in shadow color, kept only where the fill already painted:
             // a soft dark band along the offset edge, inside the glyphs.

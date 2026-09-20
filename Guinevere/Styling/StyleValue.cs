@@ -66,23 +66,7 @@ public static class StyleValue
 
         if (t.StartsWith('#'))
         {
-            var hex = t[1..];
-            if (hex.Length == 3)
-                hex = string.Concat(hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]);
-
-            if ((hex.Length == 6 || hex.Length == 8)
-                && int.TryParse(hex.AsSpan(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var r)
-                && int.TryParse(hex.AsSpan(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var g)
-                && int.TryParse(hex.AsSpan(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var b))
-            {
-                var a = 255;
-                if (hex.Length == 8)
-                    _ = int.TryParse(hex.AsSpan(6, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out a);
-                color = Color.FromArgb(a, r, g, b);
-                return true;
-            }
-
-            return false;
+            return Color.TryParseHex(t, out color);
         }
 
         if (t.StartsWith("rgb", StringComparison.OrdinalIgnoreCase))
