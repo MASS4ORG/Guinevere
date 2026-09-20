@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+### Added
+
+- **Composable layouts:** Mix and interpolate pixels, percentages, ratios, expand, fit-content, and the new `FitLargest` sizing via `UnitValue`.
+- **Layout caching:** Added explicit dirty tracking and invalidation for retained layout trees.
+- **Docs & Benchmarks:** Added layout performance/migration docs and `Example-90-LayoutBenchmarks`.
+
+### Changed
+
+- **Performance overhaul:** Intrinsic layout measurement is now a bottom-up, linear pass. It allocates zero memory in steady state.
+- **Optimizations:** Replaced LINQ with direct loops/reusable buffers, added single-child fast paths, and streamlined scroll offset propagation.
+
+### Breaking Changes
+
+- **Value types:** `Rect` is now a `record struct`. `UnitValue` and `LayoutStyle` have new binary layouts.
+- **API removals:** Dropped the `UnitValue(UnitType, float)` constructor and its implicit numeric conversions.
+- **Manual invalidation:** Directly writing to a retained `LayoutNode.Style` now requires an explicit `InvalidateLayout()` call (fluent APIs handle this automatically).
+
+#### Upgrade Guide
+
+- Replace null `Rect` references with `Rect?`.
+- Build `UnitValue`s using factory methods (e.g., `UnitValue.Pixels`, `UnitValue.FitLargest`) and read final numeric results directly from the calculated node rectangle.
+- Call `node.InvalidateLayout()` after mutating style fields directly.
+- Recompile any projects referencing `Rect`, `UnitValue`, or `LayoutStyle` to account for structural changes.
+
 ## v[3.1.0][] 2026-09-19
 
 - Added: Dialogs
@@ -111,4 +135,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.0]: https://github.com/MASS4ORG/Guinevere/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/MASS4ORG/Guinevere/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/MASS4ORG/Guinevere/compare/main...1.0.0
-[Unreleased]: https://github.com/MASS4ORG/Guinevere/compare/v1.2.0...main
+[Unreleased]: https://github.com/MASS4ORG/Guinevere/compare/v3.1.0...main
