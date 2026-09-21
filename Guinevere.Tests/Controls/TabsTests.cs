@@ -169,6 +169,7 @@ public class TabsTests
         Frame(gui, ref activeTab, closed);
         var bar = FindTabBar(gui.RootNode!, 2);
         Frame(gui, ref activeTab, closed, MouseAt(bar.Children[1], MouseButton.Left));
+        Frame(gui, ref activeTab, closed);
         Assert.Equal(1, activeTab);
 
         Frame(gui, ref activeTab, closed, MouseAt(bar.Children[1], MouseButton.Middle));
@@ -193,9 +194,50 @@ public class TabsTests
         Frame(gui, ref activeTab, closed);
         var bar = FindTabBar(gui.RootNode!, 2);
         Frame(gui, ref activeTab, closed, MouseAt(bar.Children[1], MouseButton.Left));
+        Frame(gui, ref activeTab, closed);
 
         Assert.Empty(closed);
         Assert.Equal(1, activeTab);
+    }
+
+    [Fact]
+    public void ActivatingATabBuildsTheSameContentInBothPasses()
+    {
+        var gui = CreateGui();
+        var activeTab = 0;
+        var content = new List<(Pass Pass, string Tab)>();
+
+        ContentFrame();
+        var bar = FindTabBar(gui.RootNode!, 2);
+
+        content.Clear();
+        ContentFrame(MouseAt(bar.Children[1], MouseButton.Left));
+        Assert.Equal([(Pass.Pass1Build, "A"), (Pass.Pass2Render, "A")], content);
+
+        content.Clear();
+        ContentFrame();
+        Assert.Equal([(Pass.Pass1Build, "B"), (Pass.Pass2Render, "B")], content);
+
+        void ContentFrame(IInputHandler? input = null)
+        {
+            using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
+            gui.Input = input ?? NoInput();
+            gui.Time.Update(0.016);
+            gui.SetStage(Pass.Pass1Build);
+            gui.BeginFrame(surface.Canvas);
+            Draw();
+            gui.CalculateLayout();
+            gui.SetStage(Pass.Pass2Render);
+            Draw();
+            gui.Render();
+            gui.EndFrame();
+        }
+
+        void Draw() => gui.Tabs(ref activeTab, tabs =>
+        {
+            tabs.Tab("A", () => content.Add((gui.Pass, "A")));
+            tabs.Tab("B", () => content.Add((gui.Pass, "B")));
+        });
     }
 
     [Fact]

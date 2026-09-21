@@ -43,6 +43,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   - [Animation](#animation)
   - [Shapes & Effects](#shapes--effects)
   - [Scrolling & Clipping](#scrolling--clipping)
+  - [Headless Controls](#headless-controls)
   - [Excalibur Controls](#excalibur-controls)
   - [Layering & Transforms](#layering--transforms)
   - [Performance](#performance)
@@ -251,6 +252,16 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   // Custom clip area
   gui.SetClipArea(gui.CurrentNode, Shape.Circle(100));
   ```
+
+### Headless Controls
+
+Core provides visual-free `Pressable`, `Toggleable`, `Selectable`, `Draggable`, and `Repeatable`
+behaviors. Apply one inside any layout node and render from its stable `ControlVisualState`; activation
+is delivered in the next layout pass so application state cannot produce different trees in a frame's
+layout and render passes. See [Example 08](Examples/Example-08-HeadlessControls/Program.cs) for custom
+button and switch skins with no Excalibur reference. Platforms can optionally provide
+`IControlActivationSource` for controller or command activation and `IControlSemanticsSink` for
+accessibility metadata.
 
 ### Excalibur Controls
 

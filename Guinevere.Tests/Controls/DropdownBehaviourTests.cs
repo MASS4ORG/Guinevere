@@ -31,6 +31,8 @@ public class DropdownBehaviorTests
 
         public Gui Gui => _gui;
 
+        public List<(Pass Pass, bool ListIsOpen)> LastFramePasses { get; } = [];
+
         public void Frame(Vector2 mouse, bool pressed = false, KeyboardKey? key = null)
         {
             _input.MousePosition.Returns(mouse);
@@ -40,8 +42,13 @@ public class DropdownBehaviorTests
 
             var index = Selected;
 
-            void Draw() => _gui.Dropdown(Options, ref index, width: 120, height: 24,
-                filePath: Id, lineNumber: 0);
+            LastFramePasses.Clear();
+            void Draw()
+            {
+                _gui.Dropdown(Options, ref index, width: 120, height: 24,
+                    filePath: Id, lineNumber: 0);
+                LastFramePasses.Add((_gui.Pass, Exists(_gui.RootNode!, "/list")));
+            }
 
             _gui.Time.Update(0.016);
             _gui.SetStage(Pass.Pass1Build);
@@ -57,8 +64,8 @@ public class DropdownBehaviorTests
         }
 
         /// <summary>
-        /// Whether the list is in the tree. It lags state by a frame: closing happens in the render
-        /// pass, after that frame's nodes were built, so settle a frame before asserting it is gone.
+        /// Whether the list is in the tree. Render-pass input is committed before the next layout pass,
+        /// so opening and closing always produce the same result in both passes of that next frame.
         /// </summary>
         public bool ListIsOpen => Exists(_gui.RootNode!, "/list");
 
@@ -75,6 +82,7 @@ public class DropdownBehaviorTests
     {
         var harness = new Harness();
         harness.Frame(OnButton, pressed: true);
+        harness.Frame(OnButton);
 
         Assert.True(harness.ListIsOpen);
     }
@@ -96,11 +104,17 @@ public class DropdownBehaviorTests
     {
         var harness = new Harness();
         harness.Frame(OnButton, pressed: true);
+        Assert.Equal([(Pass.Pass1Build, false), (Pass.Pass2Render, false)], harness.LastFramePasses);
+
         harness.Frame(OnButton);
+        Assert.Equal([(Pass.Pass1Build, true), (Pass.Pass2Render, true)], harness.LastFramePasses);
 
         // Second row of the list, which starts just under the 24px button.
         harness.Frame(new Vector2(40, 24 + 2 + 24 + 12), pressed: true);
+        Assert.Equal([(Pass.Pass1Build, true), (Pass.Pass2Render, true)], harness.LastFramePasses);
+
         harness.Frame(OnButton);
+        Assert.Equal([(Pass.Pass1Build, false), (Pass.Pass2Render, false)], harness.LastFramePasses);
 
         Assert.Equal(1, harness.Selected);
         Assert.False(harness.ListIsOpen);
@@ -143,6 +157,7 @@ public class DropdownBehaviorTests
             }
         };
         harness.Frame(OnButton, pressed: true);
+        harness.Frame(OnButton);
 
         Assert.True(harness.ListIsOpen);
     }
@@ -154,6 +169,7 @@ public class DropdownBehaviorTests
         var second = new Harness();
 
         first.Frame(OnButton, pressed: true);
+        first.Frame(OnButton);
         second.Frame(Away);
 
         Assert.True(first.ListIsOpen);

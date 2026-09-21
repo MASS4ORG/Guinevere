@@ -16,6 +16,7 @@
     <Project Path="Examples/Example-05-DragAndDrop/Example-05-DragAndDrop.csproj" />
     <Project Path="Examples/Example-06-ResponsiveLayout/Example-06-ResponsiveLayout.csproj" />
     <Project Path="Examples/Example-07-Styling/Example-07-Styling.csproj" />
+    <Project Path="Examples/Example-08-HeadlessControls/Example-08-HeadlessControls.csproj" />
     <Project Path="Examples/Example-50-Excalibur-Controls/Example-50-Excalibur-Controls.csproj" />
     <Project Path="Examples/Example-51-Docking/Example-51-Docking.csproj" />
     <Project Path="Examples/Example-70-PanGui-HelloWorld/Example-70-PanGui-HelloWorld.csproj" />

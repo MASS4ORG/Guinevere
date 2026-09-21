@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Added: Headless press, toggle, selection, drag, and repeat behaviors with optional control semantics
+- Fixed: Tab and dropdown state changes now happen between frames, preventing new trees from blinking before layout
 - Added: File browser widget
 - Changed: Major rework on some internal type representations, specially Color
 - Changed: Enhanced the Drag-and-drop API

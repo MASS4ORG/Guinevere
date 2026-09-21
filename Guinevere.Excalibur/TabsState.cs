@@ -14,4 +14,7 @@ class TabsState
     /// call that rendered it, which moves the tab into <see cref="Closed"/>.
     /// </summary>
     public (int Index, string Title)? TabToClose { get; set; }
+
+    /// <summary>Keyboard selection detected during render and applied before the next layout pass.</summary>
+    public int? RequestedActiveTabIndex { get; set; }
 }

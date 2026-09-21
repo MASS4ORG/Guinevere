@@ -26,6 +26,12 @@ public static partial class ControlsExtensions
         var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
+        if (gui.Pass == Pass.Pass1Build && state.RequestedActiveTabIndex is { } requested)
+        {
+            activeTabIndex = requested;
+            state.RequestedActiveTabIndex = null;
+        }
+
         var builder = new TabBuilder();
         buildTabs(builder);
         state.Tabs = builder.GetTabs();
@@ -160,19 +166,20 @@ public static partial class ControlsExtensions
 
         using (gui.Node(tabWidth, state.TabBarHeight).Direction(Axis.Horizontal).Enter())
         {
+            var behavior = gui.Selectable(isActive, new ControlBehaviorOptions(
+                Enabled: tab.Enabled, Role: ControlRole.Tab, Label: tab.Title));
+            if (behavior.Activated)
+            {
+                state.ActiveTabIndex = tabIndex;
+                isActive = true;
+            }
+
             if (gui.Pass == Pass.Pass2Render)
             {
-                // Register as focusable for keyboard navigation
-                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: tab.Enabled);
                 var interactable = gui.GetInteractable();
-                var isHovered = interactable.OnHover();
-                var isClicked = interactable.OnClick();
                 var closed = interactable.OnClick(MouseButton.Middle) && tab.Closable;
                 var rect = gui.CurrentNode.Rect;
-                var hasFocus = gui.HasFocus();
-
-                // Only the tab surface activates the tab; the "×" close button in the corner is separate.
-                var overClose = OverTabCloseButton(tab.Closable, rect, gui.Input.MousePosition);
+                var hasFocus = behavior.Is(ControlVisualState.Focused);
 
                 // Draw focus indicator if focused
                 if (hasFocus)
@@ -182,28 +189,25 @@ public static partial class ControlsExtensions
                 }
 
                 // Keyboard navigation: Left/Right to move, Enter/Space to activate
-                var activated = isClicked;
                 if (hasFocus)
                 {
                     if (gui.Input.IsKeyPressed(KeyboardKey.Left))
                     {
                         var prev = tabIndex - 1;
-                        for (var i = prev; i >= 0; i--) if (state.Tabs[i].Enabled) { state.ActiveTabIndex = i; break; }
+                        for (var i = prev; i >= 0; i--)
+                            if (state.Tabs[i].Enabled) { state.RequestedActiveTabIndex = i; break; }
                     }
                     else if (gui.Input.IsKeyPressed(KeyboardKey.Right))
                     {
                         var next = tabIndex + 1;
-                        for (var i = next; i < state.Tabs.Count; i++) if (state.Tabs[i].Enabled) { state.ActiveTabIndex = i; break; }
-                    }
-                    else if (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter))
-                    {
-                        activated = true;
+                        for (var i = next; i < state.Tabs.Count; i++)
+                            if (state.Tabs[i].Enabled) { state.RequestedActiveTabIndex = i; break; }
                     }
                 }
-                if (activated && tab.Enabled && !overClose) state.ActiveTabIndex = tabIndex;
                 if (closed && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
 
-                var tabColor = GetTabBackgroundColor(gui, isActive, isHovered, tab.BackgroundColor,
+                var tabColor = GetTabBackgroundColor(gui, isActive,
+                    behavior.Is(ControlVisualState.Hovered), tab.BackgroundColor,
                     activeTabColor, inactiveTabColor);
 
                 if (tabColor.HasValue) gui.DrawBackgroundRect(tabColor.Value, borderRadius);
