@@ -187,7 +187,7 @@ public sealed class FileBrowser
         get => search;
         set
         {
-            var next = value ?? "";
+            var next = value;
             if (search == next) return;
             search = next;
             Rebuild();

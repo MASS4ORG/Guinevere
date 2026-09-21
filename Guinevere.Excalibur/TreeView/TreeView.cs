@@ -247,7 +247,7 @@ public static partial class ControlsExtensions
             {
                 if (dropAccept is not null)
                 {
-                    var drop = gui.DropTarget<object>($"treeview/drop/{item.Id}",
+                    var drop = gui.DropTarget($"treeview/drop/{item.Id}",
                         canAccept: dropAccept, onDrop: payload => onDrop?.Invoke(item, payload));
                     gui.DrawDropIndicator(drop.State);
                 }

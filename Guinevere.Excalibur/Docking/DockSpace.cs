@@ -149,7 +149,7 @@ public static partial class ControlsExtensions
     {
         var gui = context.Gui;
 
-        var dragging = gui.DragSource<DockTabPayload>(id, new DockTabPayload(item.Id, leaf), ghost: g =>
+        var dragging = gui.DragSource(id, new DockTabPayload(item.Id, leaf), ghost: g =>
         {
             using (g.Node(120, context.Theme.TabHeight).Enter())
             {

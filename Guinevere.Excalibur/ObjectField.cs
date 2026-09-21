@@ -68,7 +68,7 @@ public static partial class ControlsExtensions
 
         using (gui.Node(-1, height, id).ExpandWidth().Direction(Axis.Horizontal).Enter())
         {
-            var drop = gui.DropTarget<object>(id, canAccept: accept, onDrop: payload => state.Dropped = payload);
+            var drop = gui.DropTarget(id, canAccept: accept, onDrop: payload => state.Dropped = payload);
 
             var interactable = gui.GetInteractable();
             var fill = interactable.OnHover() ? palette.SurfaceHover : palette.Surface;
