@@ -17,7 +17,6 @@ public abstract partial class Program
 
     static void SelectionContent(Gui gui)
     {
-        gui.SetTextColor(Color.Green);
         Section(gui, "Checkboxes", () => CheckboxRow(gui));
         Section(gui, "Toggles", () => ToggleRow(gui));
         Section(gui, "Radio Buttons", () => RadioButtonRow(gui));
@@ -51,12 +50,12 @@ public abstract partial class Program
     {
         using (gui.Node().Height(120).Direction(Axis.Horizontal).Gap(40).Enter())
         {
-            gui.DrawText("Pick a theme:", 14, Color.FromArgb(255, 51, 51, 51));
+            gui.DrawText("Control palette:", 14, gui.Controls.Text);
 
             gui.RadioGroup(ref _radioChoice,
-                [(0, "Light"), (1, "Dark"), (2, "System")],
-                selectedColor: Color.FromArgb(255, 76, 175, 80));
-            gui.RadioButton(ref _radioChoice, 3, "Disabled radio", enabled: false);
+                [(0, "Light"), (1, "Dark"), (2, "Mono Light"), (3, "Mono Dark")]);
+            gui.Controls = SelectedPalette();
+            gui.RadioButton(ref _radioChoice, 4, "Disabled radio", enabled: false);
         }
     }
 

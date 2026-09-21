@@ -12,13 +12,19 @@ public static partial class ControlsExtensions
     static float FitPadding(float height, float padding) =>
         height <= 0 ? padding : Math.Min(padding, Math.Max(2f, (height - 4f) / 2f));
 
-    static void DrawInputBackground(Gui gui, TextEditState state, Color? backgroundColor, Color? borderColor)
+    static void DrawInputBackground(Gui gui, TextEditState state, Color? backgroundColor, Color? borderColor,
+        bool enabled)
     {
         var fill = backgroundColor ?? gui.Controls.Surface;
         var outline = borderColor ?? gui.Controls.Border;
         var borderWidth = 1f;
 
-        if (state.IsFocused)
+        if (!enabled)
+        {
+            fill = Color.Lerp(fill, gui.Controls.BaseBackground, 0.45f);
+            outline = gui.Controls.Divider;
+        }
+        else if (state.IsFocused)
         {
             outline = gui.Controls.Accent;
             borderWidth = 2f;
@@ -44,7 +50,7 @@ public static partial class ControlsExtensions
         var x2 = origin + TextEditor.MeasureWidth(font, text[..end]);
 
         gui.DrawRect(new Rect(x1, inner.Y, Math.Max(1f, x2 - x1), inner.H),
-            Color.FromArgb(110, gui.Controls.Accent));
+            gui.Controls.TextSelection);
     }
 
     /// <summary>Paints the selected run per line in a multi-line field, so text areas get the same highlight as inputs.</summary>
@@ -75,15 +81,17 @@ public static partial class ControlsExtensions
             var y = inner.Y + row * lineHeight;
 
             gui.DrawRect(new Rect(x1, y, Math.Max(1f, x2 - x1), lineHeight),
-                Color.FromArgb(110, gui.Controls.Accent));
+                gui.Controls.TextSelection);
         }
     }
 
     static void DrawInputText(Gui gui, string displayText, string placeholder, float fontSize,
-        Color? textColor, Color? placeholderColor)
+        Color? textColor, Color? placeholderColor, bool enabled)
     {
         var finalDisplayText = string.IsNullOrEmpty(displayText) ? placeholder : displayText;
-        var finalColor = string.IsNullOrEmpty(displayText)
+        var finalColor = !enabled
+            ? gui.Controls.TextDisabled
+            : string.IsNullOrEmpty(displayText)
             ? placeholderColor ?? gui.Controls.TextDim
             : textColor ?? gui.Controls.Text;
 
@@ -157,10 +165,10 @@ public static partial class ControlsExtensions
     /// Creates a text input field with ref parameter
     /// </summary>
     public static void TextInput(this Gui gui, ref string text,
-        float width = 200, float height = 32, string placeholder = "",
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string placeholder = "",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
-        float padding = 8, bool enabled = true, string id = "", float alignX = 0f,
+        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
+        float padding = ControlMetrics.Spacing, bool enabled = true, string id = "", float alignX = 0f,
         bool grabFocus = false)
     {
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
@@ -183,9 +191,9 @@ public static partial class ControlsExtensions
             }
 
             // Rendering
-            DrawInputBackground(gui, state, backgroundColor, borderColor);
+            DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
             DrawSelection(gui, state, state.Text, fontSize);
-            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor);
+            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor, enabled);
             DrawCursor(gui, state, state.Text, fontSize, cursorColorFinal);
 
             text = state.Text;
@@ -214,10 +222,10 @@ public static partial class ControlsExtensions
     /// being edited — an inline rename. Its value is selected when focus first lands.</param>
     /// <returns>The updated value of the text in the input field.</returns>
     public static string TextInput(this Gui gui, string text,
-        float width = 200, float height = 32, string placeholder = "",
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string placeholder = "",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
-        float padding = 8, bool enabled = true, string id = "", float alignX = 0f,
+        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
+        float padding = ControlMetrics.Spacing, bool enabled = true, string id = "", float alignX = 0f,
         bool grabFocus = false)
     {
         gui.TextInput(ref text, width, height, placeholder, backgroundColor, borderColor,
@@ -229,10 +237,10 @@ public static partial class ControlsExtensions
     /// Password input field with masked text (ref parameter)
     /// </summary>
     public static void PasswordInput(this Gui gui, ref string text,
-        float width = 200, float height = 32, char maskChar = '*', string placeholder = "",
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, char maskChar = '*', string placeholder = "",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
-        float padding = 8, bool enabled = true, string id = "")
+        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
+        float padding = ControlMetrics.Spacing, bool enabled = true, string id = "")
     {
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("PasswordInput", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
@@ -250,8 +258,8 @@ public static partial class ControlsExtensions
 
             // Rendering with masked text
             var maskedText = new string(maskChar, state.Text.Length);
-            DrawInputBackground(gui, state, backgroundColor, borderColor);
-            DrawInputText(gui, maskedText, placeholder, fontSize, textColor, placeholderColor);
+            DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
+            DrawInputText(gui, maskedText, placeholder, fontSize, textColor, placeholderColor, enabled);
             DrawCursor(gui, state, maskedText, fontSize, cursorColorFinal);
 
             text = state.Text;
@@ -278,10 +286,10 @@ public static partial class ControlsExtensions
     /// <param name="id">The unique identifier for the input field. Default is an empty string.</param>
     /// <returns>Returns the updated text entered in the password input field.</returns>
     public static string PasswordInput(this Gui gui, string text,
-        float width = 200, float height = 32, char maskChar = '*', string placeholder = "",
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, char maskChar = '*', string placeholder = "",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = 14,
-        float padding = 8, bool enabled = true, string id = "")
+        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
+        float padding = ControlMetrics.Spacing, bool enabled = true, string id = "")
     {
         gui.PasswordInput(ref text, width, height, maskChar, placeholder, backgroundColor, borderColor,
             textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id);
@@ -313,8 +321,8 @@ public static partial class ControlsExtensions
         Color? textColor = null,
         Color? placeholderColor = null,
         Color? cursorColor = null,
-        float fontSize = 14,
-        float padding = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float padding = ControlMetrics.Spacing,
         bool enabled = true,
         string id = "")
     {
@@ -327,11 +335,12 @@ public static partial class ControlsExtensions
             var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize, multiline: true);
+            else state.IsFocused = false;
 
             // Rendering - let the parent handle clipping/scrolling to avoid nested contexts
-            DrawInputBackground(gui, state, backgroundColor, borderColor);
+            DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
             DrawSelectionMultiline(gui, state, state.Text, fontSize);
-            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor);
+            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor, enabled);
 
             // Only draw cursor if enabled
             if (enabled) DrawCursorMultiline(gui, state, state.Text, fontSize, cursorColor);
@@ -367,8 +376,8 @@ public static partial class ControlsExtensions
         Color? textColor = null,
         Color? placeholderColor = null,
         Color? cursorColor = null,
-        float fontSize = 14,
-        float padding = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float padding = ControlMetrics.Spacing,
         bool enabled = true,
         string id = "")
     {

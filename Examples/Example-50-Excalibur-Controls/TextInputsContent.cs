@@ -52,9 +52,7 @@ public abstract partial class Program
         using (gui.Node().Direction(Axis.Horizontal).Enter())
         {
             gui.DrawText("Disabled").Width(150);
-            gui.TextInput(_textInput, placeholder: "Read only", enabled: false,
-                backgroundColor: DisabledInputFill, textColor: DisabledInputInk,
-                placeholderColor: DisabledInputInk);
+            gui.TextInput(_textInput, placeholder: "Read only", enabled: false);
         }
     }
 

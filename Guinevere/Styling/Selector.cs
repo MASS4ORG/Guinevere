@@ -118,8 +118,11 @@ public sealed class Selector
                 case ':':
                     var builtIn = value.ToLowerInvariant() switch
                     {
-                        "hover" => StyleState.Hover, "active" or "hold" or "pressed" => StyleState.Active,
-                        "focus" => StyleState.Focus, "disabled" => StyleState.Disabled, _ => StyleState.None,
+                        "hover" => StyleState.Hover,
+                        "active" or "hold" or "pressed" => StyleState.Active,
+                        "focus" => StyleState.Focus,
+                        "disabled" => StyleState.Disabled,
+                        _ => StyleState.None,
                     };
                     if (builtIn == StyleState.None) modifiers.Add(value); else state |= builtIn;
                     break;

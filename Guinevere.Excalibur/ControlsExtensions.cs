@@ -2,10 +2,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    // static readonly Color DisabledFill = Color.FromArgb(255, 245, 246, 247);
-    // static readonly Color DisabledBorder = Color.FromArgb(255, 208, 210, 214);
-    // static readonly Color DisabledText = Color.FromArgb(255, 160, 162, 167);
-
     /// <summary>
     /// Creates a button that returns the clicked state without modifying the input
     /// </summary>
@@ -18,7 +14,7 @@ public static partial class ControlsExtensions
         Color? pressedBorderColor = null,
         Color? color = null,
         float? fontSize = null,
-        float radius = 4,
+        float radius = ControlMetrics.CornerRadius,
         bool enabled = true)
     {
         return ButtonCore(gui, text, width, height, backgroundColor, borderColor, hoverColor,
@@ -29,7 +25,7 @@ public static partial class ControlsExtensions
     /// Creates an icon button that can be clicked with internal state management
     /// </summary>
     public static void IconButton(this Gui gui, char? icon, ref bool clicked,
-        float size = 32,
+        float size = ControlMetrics.FieldHeight,
         Color? backgroundColor = null,
         Color? borderColor = null,
         Color? hoverColor = null,
@@ -37,7 +33,7 @@ public static partial class ControlsExtensions
         Color? pressedBorderColor = null,
         Color? color = null,
         float? fontSize = null,
-        float radius = 4,
+        float radius = ControlMetrics.CornerRadius,
         bool enabled = true)
     {
         clicked = IconButtonCore(gui, icon, size, backgroundColor, borderColor, hoverColor,
@@ -48,7 +44,7 @@ public static partial class ControlsExtensions
     /// Creates an icon button that returns the clicked state without modifying the input
     /// </summary>
     public static bool IconButton(this Gui gui, string icon,
-        float size = 32,
+        float size = ControlMetrics.FieldHeight,
         Color? backgroundColor = null,
         Color? borderColor = null,
         Color? hoverColor = null,
@@ -56,7 +52,7 @@ public static partial class ControlsExtensions
         Color? pressedBorderColor = null,
         Color? color = null,
         float fontSize = 16,
-        float radius = 4,
+        float radius = ControlMetrics.CornerRadius,
         bool enabled = true)
     {
         return IconButtonCore(gui, icon, size, backgroundColor, borderColor, hoverColor,
@@ -233,7 +229,7 @@ public static partial class ControlsExtensions
     static void RenderCenteredText(this Gui gui, Text? text, float fontSize, Color? color)
     {
         var rect = gui.CurrentNode.Rect;
-        var textColorFinal = color ?? Color.White;
+        var textColorFinal = color ?? gui.Controls.Text;
         var label = text?.Label ?? string.Empty;
         if (string.IsNullOrEmpty(label)) return;
 

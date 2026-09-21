@@ -29,7 +29,7 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(items);
 
-        theme ??= TabStripTheme.Default;
+        theme ??= TabStripTheme.FromPalette(gui.Controls);
         var result = TabStripResult.None;
         var state = gui.ControlState($"{idPrefix}/overflow", () => new TabStripState());
         var widths = items.Select(item => MeasureTab(item, theme)).ToArray();

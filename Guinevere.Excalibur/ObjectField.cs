@@ -57,8 +57,8 @@ public static partial class ControlsExtensions
         bool isEmpty = false,
         bool showClear = true,
         bool showPick = true,
-        float height = 20,
-        float fontSize = 12)
+        float height = ControlMetrics.IndicatorSize,
+        float fontSize = ControlMetrics.CompactFontSize)
     {
         ArgumentNullException.ThrowIfNull(gui);
 

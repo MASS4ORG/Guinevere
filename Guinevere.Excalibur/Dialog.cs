@@ -65,7 +65,7 @@ public static partial class ControlsExtensions
         Color? overlayColor = null,
         float titleBarHeight = 36,
         float footerHeight = 48,
-        float borderRadius = 8,
+        float borderRadius = ControlMetrics.PanelRadius,
         float borderWidth = 1,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
@@ -94,7 +94,7 @@ public static partial class ControlsExtensions
             gui.SetEscapesAncestorClips();
 
             if (gui.Pass == Pass.Pass2Render && isOpen)
-                gui.DrawRect(gui.CurrentNode.Rect, overlayColor ?? Color.FromArgb(140, 0, 0, 0));
+                gui.DrawRect(gui.CurrentNode.Rect, overlayColor ?? gui.Controls.Overlay);
         }
 
         var hasFooter = footer is not null;

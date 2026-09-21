@@ -21,6 +21,7 @@ public abstract partial class Program
 
     static void Draw(Gui gui)
     {
+        gui.Controls = SelectedPalette();
         DemoHeader.Header(gui, "Guinevere Excalibur");
 
         using (gui.Node().Expand().Enter())
@@ -38,6 +39,15 @@ public abstract partial class Program
             });
         }
     }
+
+    static ControlPalette SelectedPalette() => _radioChoice switch
+    {
+        0 => ControlPalette.Light,
+        1 => ControlPalette.Dark,
+        2 => ControlPalette.MonoLight,
+        3 => ControlPalette.MonoDark,
+        _ => ControlPalette.Dark
+    };
 
     static Color Hsb(float hueDegrees)
     {

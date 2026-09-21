@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed: Major rework on some internal type representations, specially Color
 - Changed: Enhanced the Drag-and-drop API
 - Added: Better styling foundations and showcase
+- Changed: Standardized Excalibur control palettes and sizes
 
 ## v[4.0.0][] 2026-09-20
 

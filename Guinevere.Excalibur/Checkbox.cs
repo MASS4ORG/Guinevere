@@ -6,13 +6,13 @@ public static partial class ControlsExtensions
     /// Creates a checkbox that can be toggled on/off with internal state management
     /// </summary>
     public static void Checkbox(this Gui gui, ref bool isChecked, string label = "",
-        float size = 20,
+        float size = ControlMetrics.IndicatorSize,
         Color? backgroundColor = null,
         Color? checkColor = null,
         Color? borderColor = null,
         Color? labelColor = null,
-        float fontSize = 14,
-        float spacing = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
         CheckboxCore(gui, ref isChecked, label, size, backgroundColor, checkColor,
@@ -23,13 +23,13 @@ public static partial class ControlsExtensions
     /// Creates a checkbox that returns the toggled state without modifying the input
     /// </summary>
     public static bool Checkbox(this Gui gui, bool isChecked, string label = "",
-        float size = 20,
+        float size = ControlMetrics.IndicatorSize,
         Color? backgroundColor = null,
         Color? checkColor = null,
         Color? borderColor = null,
         Color? labelColor = null,
-        float fontSize = 14,
-        float spacing = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
         var temp = isChecked;
@@ -100,7 +100,7 @@ public static partial class ControlsExtensions
             if (enabled && gui.HasFocus())
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, Color.FromArgb(128, gui.Controls.Accent), 4f, 4);
+                gui.DrawRectBorder(focusRect, gui.Controls.FocusRing, 4f, 4);
                 gui.DrawBackgroundRect(bgColor, 2);
                 gui.DrawRectBorder(rect, gui.Controls.Accent, 2f, 2);
             }

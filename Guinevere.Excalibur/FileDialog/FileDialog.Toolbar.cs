@@ -21,7 +21,7 @@ public static partial class ControlsExtensions
                 Move(() => browser.GoForwardAsync());
 
             if (gui.IconButton("⬆", size: height, fontSize: fontSize, enabled: browser.CanGoUp))
-                Move(async () => { await browser.GoUpAsync(); });
+                Move(async () => await browser.GoUpAsync());
 
             if (gui.IconButton("🔄", size: height, fontSize: fontSize)) _ = browser.RefreshAsync();
 
