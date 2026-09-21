@@ -3,6 +3,41 @@ namespace Guinevere.Tests.Styling;
 /// <summary>Tests for <see cref="StyleResolver"/> — the <c>.uss</c> cascade.</summary>
 public class StyleResolverTests
 {
+    /// <summary>Immediate-mode values override stylesheet variables using invariant formatting.</summary>
+    [Fact]
+    public void ScopedVariables_OverrideStyleVariables()
+    {
+        var sheet = StyleSheet.Parse("$progress = 0; progress { width = $progress; }");
+        var style = StyleResolver.Resolve([sheet], new StyleTarget("progress", null, []),
+            [new StyleVariable("progress", 0.65f)]);
+
+        Assert.Equal("0.65", style.Get("width"));
+    }
+
+    /// <summary>Inherited tags copy parent declarations and match parent hierarchy selectors.</summary>
+    [Fact]
+    public void Inheritance_CopiesPropertiesAndSelectorIdentity()
+    {
+        var sheet = StyleSheet.Parse("""
+            box { padding = 20; color = white; }
+            warning-box #inherit(box) { color = orange; }
+            box > button { width = 80; }
+            """);
+
+        var warning = StyleResolver.Resolve([sheet], new StyleTarget("warning-box", null, []));
+        Assert.Equal("20", warning.Get("padding"));
+        Assert.Equal("orange", warning.Get("color"));
+
+        var button = new StyleTarget("button", null, [], Ancestors: [new StyleTarget("warning-box", null, [])]);
+        Assert.Equal("80", StyleResolver.Resolve([sheet], button).Get("width"));
+    }
+
+    /// <summary>Inheritance cycles fail during parsing.</summary>
+    [Fact]
+    public void Inheritance_RejectsCycles() => Assert.Throws<FormatException>(() => StyleSheet.Parse("""
+        a #inherit(b) { width = 1; }
+        b #inherit(a) { width = 2; }
+        """));
     static ResolvedStyle Resolve(string css, StyleTarget target) =>
         StyleResolver.Resolve([StyleSheet.Parse(css)], target);
 

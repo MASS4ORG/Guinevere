@@ -92,6 +92,8 @@ public sealed class Selector
 
     static Part ParsePart(string text, Combinator relation, string whole)
     {
+        var annotation = text.IndexOf('(');
+        if (annotation >= 0) text = text[..annotation];
         string? type = null;
         string? id = null;
         var classes = new List<string>();
@@ -145,12 +147,21 @@ public sealed class Selector
     {
         var tokens = new List<string>();
         var start = -1;
+        var parentheses = 0;
         for (var i = 0; i < text.Length; i++)
         {
-            if (!char.IsWhiteSpace(text[i]) && text[i] != '>') { if (start < 0) start = i; continue; }
+            if (text[i] == '(') parentheses++;
+            else if (text[i] == ')') parentheses--;
+            if (parentheses < 0) throw new FormatException($"Unbalanced transition annotation in '{text}'");
+            if ((parentheses > 0 || !char.IsWhiteSpace(text[i])) && (parentheses > 0 || text[i] != '>'))
+            {
+                if (start < 0) start = i;
+                continue;
+            }
             if (start >= 0) { tokens.Add(text[start..i]); start = -1; }
             if (text[i] == '>') tokens.Add(">");
         }
+        if (parentheses != 0) throw new FormatException($"Unbalanced transition annotation in '{text}'");
         if (start >= 0) tokens.Add(text[start..]);
         return tokens;
     }

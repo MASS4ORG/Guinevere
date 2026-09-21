@@ -21,7 +21,9 @@ public static class StyleLayout
             switch (prop)
             {
                 case "flex-direction":
-                    node.Direction(value is "row" or "row-reverse" ? Axis.Horizontal : Axis.Vertical);
+                case "flow-dir":
+                    node.Direction(value is "row" or "row-reverse" or "x" or "x-reverse"
+                        ? Axis.Horizontal : Axis.Vertical);
                     break;
                 case "flex-wrap":
                     if (value is "wrap" or "wrap-reverse") node.Wrap(0);
@@ -42,10 +44,10 @@ public static class StyleLayout
                     node.ContentAlignY(AlignFraction(value));
                     break;
                 case "width":
-                    ApplyLength(value, node.Width, node.WidthPercent);
+                    ApplyLength(value, node.Width, node.WidthPercent, node.Width);
                     break;
                 case "height":
-                    ApplyLength(value, node.Height, node.HeightPercent);
+                    ApplyLength(value, node.Height, node.HeightPercent, node.Height);
                     break;
                 case "min-width":
                     if (StyleValue.TryLength(value, out var mnw, out _)) node.MinWidth(mnw);
@@ -69,8 +71,17 @@ public static class StyleLayout
         }
     }
 
-    static void ApplyLength(string value, Func<float, LayoutNode> px, Func<float, LayoutNode> percent)
+    static void ApplyLength(string value, Func<float, LayoutNode> px, Func<float, LayoutNode> percent,
+        Func<UnitValue, LayoutNode> expression)
     {
+        if (value == "expand") { expression(UnitValue.Expand()); return; }
+        if (value is "fit" or "auto") { expression(UnitValue.Fit); return; }
+        if (value.StartsWith("ratio(", StringComparison.Ordinal) && value.EndsWith(')')
+            && StyleValue.TryFloat(value[6..^1], out var ratio))
+        {
+            expression(UnitValue.Ratio(ratio));
+            return;
+        }
         if (!StyleValue.TryLength(value, out var v, out var isPercent)) return;
         if (isPercent) percent(v);
         else px(v);

@@ -147,6 +147,8 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 - Rich text rendering with Unicode and emoji
 - Wrapping, sizes, and color control
 - Theming via transient color changes
+- Runtime stylesheets with nested selectors, `>` child selectors, custom modifiers, variables,
+  `@const`, `#inherit(...)`, and non-destructive provider/file reloads
 
   ```csharp
   gui.DrawText("Title", 24, Color.White);
@@ -155,6 +157,27 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   gui.DrawText("Red text");
   gui.SetTextColor(Color.White);
   ```
+
+  Styles accept both the existing CSS-like form and PanGui's scalar syntax:
+
+  ```csharp
+  var styles = StyleSheetSource.FromFile("theme.pss");
+  gui.AddStyleSheet(styles);
+
+  using (gui.StyledNode("checkbox", isChecked ? ["checked"] : []).Enter()) { }
+  ```
+
+  ```css
+  @const spacing = 12;
+  checkbox {
+      padding = @spacing;
+      :checked(0.2 ease-out) { background-color = #4a90e2; }
+  }
+  ```
+
+  Transition annotations are parsed for source compatibility; animated interpolation, expressions,
+  shape/effect declarations, advanced macro families, and `#inherit-properties`/`#inherit-selector`
+  remain planned styling features.
 
 ### Animation
 

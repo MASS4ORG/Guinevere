@@ -8,6 +8,20 @@ public partial class Gui
     /// </summary>
     public List<StyleSheet> StyleSheets { get; } = [];
 
+    /// <summary>Adds a reloadable source and keeps its entry in <see cref="StyleSheets"/> current.</summary>
+    public void AddStyleSheet(StyleSheetSource source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        var current = source.Current;
+        StyleSheets.Add(current);
+        source.Reloaded += replacement =>
+        {
+            var index = StyleSheets.IndexOf(current);
+            if (index >= 0) StyleSheets[index] = replacement;
+            current = replacement;
+        };
+    }
+
     /// <summary>
     /// Creates a layout node and styles it from <see cref="StyleSheets"/> by its type, classes and
     /// id. Layout declarations are applied to the node in the build pass; <c>background-color</c>,
@@ -18,6 +32,7 @@ public partial class Gui
     /// <param name="classes">Class names matched by <c>.class</c> selectors.</param>
     /// <param name="id">Element id matched by an <c>#id</c> selector, or <c>null</c>.</param>
     /// <param name="modifiers">Active semantic modifiers matched by custom pseudo-classes.</param>
+    /// <param name="variables">Typed variables exposed to declarations as <c>$name</c>.</param>
     /// <param name="filePath">Compiler-supplied; do not pass.</param>
     /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
     /// <returns>The layout node, ready to <c>.Enter()</c>.</returns>
@@ -26,6 +41,7 @@ public partial class Gui
         IReadOnlyList<string>? classes = null,
         string? id = null,
         IReadOnlyList<string>? modifiers = null,
+        IReadOnlyList<StyleVariable>? variables = null,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
     {
@@ -36,12 +52,12 @@ public partial class Gui
         var ancestors = new List<StyleTarget>();
         for (var current = parent; current is not null; current = current.Parent)
             if (current.StyleTarget is { } ancestor) ancestors.Add(ancestor with { Ancestors = null });
-        var target = new StyleTarget(type, id, classes ?? [], Modifiers: modifiers, Ancestors: ancestors);
+        var target = new StyleTarget(type, id, classes ?? [], Modifiers: modifiers ?? classes, Ancestors: ancestors);
         node.StyleTarget = target;
 
         if (Pass == Pass.Pass1Build)
         {
-            StyleLayout.Apply(node, StyleResolver.Resolve(StyleSheets, target));
+            StyleLayout.Apply(node, StyleResolver.Resolve(StyleSheets, target, variables));
             return node;
         }
 
@@ -51,8 +67,8 @@ public partial class Gui
         if (interactable.OnHold()) state |= StyleState.Active;
 
         var resolved = state == StyleState.None
-            ? StyleResolver.Resolve(StyleSheets, target)
-            : StyleResolver.Resolve(StyleSheets, target with { State = state });
+            ? StyleResolver.Resolve(StyleSheets, target, variables)
+            : StyleResolver.Resolve(StyleSheets, target with { State = state }, variables);
 
         DrawStyledBox(node, resolved);
         return node;
@@ -69,20 +85,22 @@ public partial class Gui
     /// <param name="state">Interaction state to resolve for.</param>
     /// <param name="modifiers">Active semantic modifiers.</param>
     /// <param name="ancestors">Nearest-first styled ancestors for combinator matching.</param>
+    /// <param name="variables">Typed variables exposed to declarations as <c>$name</c>.</param>
     public ResolvedStyle ResolveStyle(
         string? type = null,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         StyleState state = StyleState.None,
         IReadOnlyList<string>? modifiers = null,
-        IReadOnlyList<StyleTarget>? ancestors = null) =>
+        IReadOnlyList<StyleTarget>? ancestors = null,
+        IReadOnlyList<StyleVariable>? variables = null) =>
         StyleSheets.Count == 0
             ? ResolvedStyle.Empty
-            : StyleResolver.Resolve(StyleSheets, new StyleTarget(type, id, classes ?? [], state, modifiers, ancestors));
+            : StyleResolver.Resolve(StyleSheets, new StyleTarget(type, id, classes ?? [], state, modifiers, ancestors), variables);
 
     static void DrawStyledBox(LayoutNode node, ResolvedStyle style)
     {
-        var background = style.GetColor("background-color");
+        var background = style.GetColor("background-color") ?? style.GetColor("bg-color");
         var borderColor = style.GetColor("border-color");
         var borderWidth = style.GetLength("border-width") ?? 0f;
         if (background is null && (borderColor is null || borderWidth <= 0f)) return;
