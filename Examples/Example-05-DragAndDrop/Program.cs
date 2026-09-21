@@ -58,7 +58,7 @@ static void Target(Gui gui, string id, string label, DragDropTag tag,
     {
         gui.DrawBackgroundRect(gui.Controls.Surface, 6);
         gui.DrawText(label, 14, gui.Controls.Text);
-        var result = gui.DropTarget<Card>(id, tag, accept, drop);
+        var result = gui.DropTarget(id, tag, accept, drop);
         gui.DrawDropIndicator(result.State);
         if (result.Payload is { } card && result.State != DropTargetState.None)
             gui.DrawText($"Preview: {card.Label} ({result.State})", 12, gui.Controls.TextDim);

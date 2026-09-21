@@ -13,6 +13,9 @@
     <Project Path="Examples/Example-02-Layout/Example-02-Layout.csproj" />
     <Project Path="Examples/Example-03-Texts/Example-03-Texts.csproj" />
     <Project Path="Examples/Example-04-Animation/Example-04-Animation.csproj" />
+    <Project Path="Examples/Example-05-DragAndDrop/Example-05-DragAndDrop.csproj" />
+    <Project Path="Examples/Example-06-ResponsiveLayout/Example-06-ResponsiveLayout.csproj" />
+    <Project Path="Examples/Example-07-Styling/Example-07-Styling.csproj" />
     <Project Path="Examples/Example-50-Excalibur-Controls/Example-50-Excalibur-Controls.csproj" />
     <Project Path="Examples/Example-51-Docking/Example-51-Docking.csproj" />
     <Project Path="Examples/Example-70-PanGui-HelloWorld/Example-70-PanGui-HelloWorld.csproj" />
@@ -25,8 +28,6 @@
     <Project Path="Examples/Example-75-PaperUI-Dashboard/Example-75-PaperUI-Dashboard.csproj" />
     <Project Path="Examples/Example-90-LayoutBenchmarks/Example-90-LayoutBenchmarks.csproj" />
     <Project Path="Examples/Example-91-TypeBenchmarks/Example-91-TypeBenchmarks.csproj" />
-    <Project Path="Examples\Example-05-DragAndDrop\Example-05-DragAndDrop.csproj" />
-    <Project Path="Examples\Example-06-ResponsiveLayout\Example-06-ResponsiveLayout.csproj" />
   </Folder>
   <Folder Name="/Integrations/">
     <Project Path="Integrations/Guinevere.OpenGL.OpenTK/Guinevere.OpenGL.OpenTK.csproj" />

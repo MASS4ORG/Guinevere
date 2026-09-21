@@ -67,13 +67,13 @@ public sealed class ControlPalette
     public Color Info { get; init; } = Color.FromArgb(255, 13, 202, 240);
 
     // ------------------------------------------------------------------------
-    // 1. Light (Original Defaults Maintained)
+    // 1. Light
     // ------------------------------------------------------------------------
     /// <summary>The default light palette, matching the built-in controls' historical colors.</summary>
     public static ControlPalette Light { get; } = new();
 
     // ------------------------------------------------------------------------
-    // 2. Dark (Original Colors Restored)
+    // 2. Dark
     // ------------------------------------------------------------------------
     /// <summary>A dark palette for editor-style hosts.</summary>
     public static ControlPalette Dark { get; } = new()
@@ -100,6 +100,7 @@ public sealed class ControlPalette
     // ------------------------------------------------------------------------
     // 3. Mono Light (VS Code / GitHub Light style)
     // ------------------------------------------------------------------------
+    /// <summary>A light palette for editor-style hosts.</summary>
     public static ControlPalette MonoLight { get; } = new()
     {
         BaseBackground = Color.FromArgb(255, 244, 244, 246),
@@ -123,8 +124,9 @@ public sealed class ControlPalette
     };
 
     // ------------------------------------------------------------------------
-    // 4. Mono Dark (Zed / Atom style)
+    // 4. Mono Dark
     // ------------------------------------------------------------------------
+    /// <summary>A dark palette for editor-style hosts.</summary>
     public static ControlPalette MonoDark { get; } = new()
     {
         BaseBackground = Color.FromArgb(255, 24, 26, 31),
