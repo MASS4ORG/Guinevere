@@ -48,7 +48,7 @@ public partial class App
 | Selection | `Checkbox`, `Toggle`, `RadioButton`, `RadioGroup`, `Dropdown` | Boolean, exclusive, and list selection. |
 | Text and values | `TextInput`, `PasswordInput`, `TextArea`, `NumberField`, `Slider`, `ObjectField` | Text editing, scrub editing, numeric ranges, and compact object fields. |
 | Display | `Image`, `ProgressBar`, `WrappedText`, `Toast`, `Toasts`, `ClearToasts` | Images, progress, wrapping, and transient notifications. |
-| Navigation | `Tabs`, `TabBar`, `TabStrip`, `PillTabs`, `VerticalTabs`, `Breadcrumb`, `TreeView` | Tabs, trails, and a virtualised tree. Tabs are closable only with `closable: true`. |
+| Navigation | `Tabs`, `TabBar`, `TabStrip`, `PillTabs`, `VerticalTabs`, `Breadcrumb`, `TreeView`, `FileBrowser` | Tabs, trails, virtualised trees, and an embeddable filesystem picker. Tabs are closable only with `closable: true`. |
 | Menus and overlays | `MenuBar`, `Flyout`, `CascadeMenu`, `ContextMenu`, `Popup`, `ModalPopup`, `Dialog`, `Tooltip` | Command menus, popovers, modal windows, and delayed help. |
 | Layout tools | `Splitter`, `DockSpace`, `DockLayout` | Resizable panes and persistent split/tab/float docking. |
 
@@ -88,6 +88,31 @@ gui.Tooltip(gui.CurrentNode, "More information");
 
 `Popup` and `Dialog` preserve focus context while open and restore the opener after they close.
 `Dialog` blocks the content behind it; `Popup` can opt into modal behavior through `ModalPopup`.
+
+## File dialog
+
+Keep a `FileDialogState`, open it with a request, and draw it every frame. Enumeration runs
+asynchronously and listing rows are virtualised, so large or remote directories do not stall the
+frame loop.
+
+```csharp
+var files = new FileDialogState();
+
+files.Open(new FileDialogRequest
+{
+    Mode = FileDialogMode.OpenFile,
+    Title = "Open scene",
+    Filters = [FileDialogFilter.Of("Scenes", ".scene")],
+    OnComplete = path => SelectedScene = path,
+});
+
+gui.FileDialog(files);
+```
+
+Use `gui.FileBrowser(files)` for the same picker embedded in a panel. Pass an
+`IFileDialogFileSystem` to `FileDialogState` to browse engine assets, archives, remote storage, or a
+test fixture. The built-in `PhysicalFileDialogFileSystem` supplies local quick-access folders and
+drives.
 
 ## Menu Bar
 

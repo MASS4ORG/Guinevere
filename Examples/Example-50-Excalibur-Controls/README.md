@@ -19,7 +19,8 @@ and `Example-11-Styling` into one example organised around eight tabs.
   open to switch; Escape or an outside click dismisses), and a **tree view** — a virtualised
   file-explorer tree with folder/file icons, mouse and arrow-key navigation, click reporting, and a
   breadcrumb trail above the tree that follows the selection; the whole tab scrolls vertically when
-  it outgrows the window.
+  it outgrows the window. It also embeds two asynchronous filesystem browsers demonstrating file
+  opening with extension filters and folder selection.
 - **Feedback**: determinate progress bars (animated sweeps, hue-shifted fills) and indeterminate
   bars, plus custom track/fill colors and heights.
 - **Scrolling**: turning a node into a scroll container, programmatic scroll
@@ -43,6 +44,9 @@ Use the tab bar at the top to switch between the demonstrations.
   to switch menus, **hover** a parent row to cascade its submenu; click an item to run it, a checkable
   item to toggle it; **Escape** or clicking anywhere outside dismisses the menu. **Arrow keys** +
   **Enter** navigate the open menu.
+- **File browsers**: navigate with the toolbar, filter or search the listing, then choose a file in
+  the left browser or a folder in the right browser. Cancelled and selected outcomes are shown above
+  each embedded browser.
 - **Tabs**: **middle-click** a tab — or click its **"×"** — to close it (the "Restore" button
   brings the set back; tabs are not closable unless marked `closable: true`).
 - **Click** the scroll arrows (or scroll the wheel) over the list boxes.
