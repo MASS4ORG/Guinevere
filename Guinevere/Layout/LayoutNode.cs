@@ -14,6 +14,8 @@ namespace Guinevere;
 /// </remarks>
 public partial class LayoutNode : IDisposable
 {
+    internal StyleTarget? StyleTarget { get; set; }
+
     readonly Gui _gui;
     readonly LayoutNode? _parent;
     Rect _rect = Rect.Zero;

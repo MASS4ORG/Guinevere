@@ -3,6 +3,34 @@ namespace Guinevere.Tests.Styling;
 /// <summary>Tests for <see cref="StyleValue"/>, <see cref="Selector"/> and <see cref="StyleSheet.Parse"/>.</summary>
 public class StyleParsingTests
 {
+    /// <summary>Descendant and direct-child combinators use nearest-first ancestry.</summary>
+    [Fact]
+    public void HierarchyCombinators_MatchAncestors()
+    {
+        var ancestors = new[]
+        {
+            new StyleTarget("Row", null, ["item"]),
+            new StyleTarget("Panel", "settings", ["dialog"]),
+        };
+        var target = new StyleTarget("Button", null, ["primary"], Ancestors: ancestors);
+
+        Assert.True(Selector.Parse("Panel Button.primary").Matches(target));
+        Assert.True(Selector.Parse("Panel > Row > Button.primary").Matches(target));
+        Assert.True(Selector.Parse("#settings .primary").Matches(target));
+        Assert.False(Selector.Parse("Panel > Button.primary").Matches(target));
+    }
+
+    /// <summary>Unknown pseudo-classes are application-defined semantic modifiers.</summary>
+    [Fact]
+    public void CustomModifiers_CanBeCombinedWithBuiltInState()
+    {
+        var selector = Selector.Parse("Toggle:checked:hover");
+        var target = new StyleTarget("Toggle", null, [], StyleState.Hover, ["checked"]);
+
+        Assert.True(selector.Matches(target));
+        Assert.False(selector.Matches(target with { Modifiers = [] }));
+        Assert.False(selector.Matches(target with { State = StyleState.None }));
+    }
     /// <summary>
     /// Verifies that length values are parsed correctly from plain numbers, pixel, and percentage strings.
     /// </summary>
@@ -63,13 +91,14 @@ public class StyleParsingTests
     }
 
     /// <summary>
-    /// Verifies that selectors containing combinators are rejected.
+    /// Verifies malformed combinators are rejected.
     /// </summary>
     [Fact]
-    public void Selector_RejectsCombinators()
+    public void Selector_RejectsMalformedCombinators()
     {
-        Assert.Throws<FormatException>(() => Selector.Parse("Panel > Button"));
-        Assert.Throws<FormatException>(() => Selector.Parse("Panel Button"));
+        Assert.Throws<FormatException>(() => Selector.Parse("> Button"));
+        Assert.Throws<FormatException>(() => Selector.Parse("Panel >"));
+        Assert.Throws<FormatException>(() => Selector.Parse("Panel >> Button"));
     }
 
     /// <summary>
@@ -93,6 +122,25 @@ public class StyleParsingTests
         Assert.Equal("var(--accent)", sheet.Rules[0].Declarations["background-color"]);
         Assert.Equal("#4a90e2", sheet.ExpandVariables("var(--accent)"));
         Assert.Equal(2, sheet.Rules[0].Selectors.Count);
+    }
+
+    /// <summary>Nested selectors expand against each parent selector, including ampersand modifiers.</summary>
+    [Fact]
+    public void Sheet_Parse_NestedRules()
+    {
+        var sheet = StyleSheet.Parse("""
+            .panel, Dialog {
+                padding: 8;
+                > Button { width: 40; }
+                &:disabled { opacity: 0.5; }
+            }
+            """);
+
+        Assert.Equal(3, sheet.Rules.Count);
+        var child = new StyleTarget("Button", null, [], Ancestors: [new StyleTarget("Panel", null, ["panel"])]);
+        Assert.Equal("40", StyleResolver.Resolve([sheet], child).Get("width"));
+        Assert.Equal("0.5", StyleResolver.Resolve([sheet],
+            new StyleTarget("Panel", null, ["panel"], StyleState.Disabled)).Get("opacity"));
     }
 
     /// <summary>

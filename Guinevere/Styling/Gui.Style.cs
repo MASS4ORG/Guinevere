@@ -17,6 +17,7 @@ public partial class Gui
     /// <param name="type">Element type name matched by a bare-type selector, or <c>null</c>.</param>
     /// <param name="classes">Class names matched by <c>.class</c> selectors.</param>
     /// <param name="id">Element id matched by an <c>#id</c> selector, or <c>null</c>.</param>
+    /// <param name="modifiers">Active semantic modifiers matched by custom pseudo-classes.</param>
     /// <param name="filePath">Compiler-supplied; do not pass.</param>
     /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
     /// <returns>The layout node, ready to <c>.Enter()</c>.</returns>
@@ -24,13 +25,19 @@ public partial class Gui
         string? type = null,
         IReadOnlyList<string>? classes = null,
         string? id = null,
+        IReadOnlyList<string>? modifiers = null,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
     {
+        var parent = CurrentNode;
         var node = Node(-1, -1, id, filePath, lineNumber);
         if (StyleSheets.Count == 0) return node;
 
-        var target = new StyleTarget(type, id, classes ?? []);
+        var ancestors = new List<StyleTarget>();
+        for (var current = parent; current is not null; current = current.Parent)
+            if (current.StyleTarget is { } ancestor) ancestors.Add(ancestor with { Ancestors = null });
+        var target = new StyleTarget(type, id, classes ?? [], Modifiers: modifiers, Ancestors: ancestors);
+        node.StyleTarget = target;
 
         if (Pass == Pass.Pass1Build)
         {
@@ -60,14 +67,18 @@ public partial class Gui
     /// <param name="classes">Class names.</param>
     /// <param name="id">Element id, or <c>null</c>.</param>
     /// <param name="state">Interaction state to resolve for.</param>
+    /// <param name="modifiers">Active semantic modifiers.</param>
+    /// <param name="ancestors">Nearest-first styled ancestors for combinator matching.</param>
     public ResolvedStyle ResolveStyle(
         string? type = null,
         IReadOnlyList<string>? classes = null,
         string? id = null,
-        StyleState state = StyleState.None) =>
+        StyleState state = StyleState.None,
+        IReadOnlyList<string>? modifiers = null,
+        IReadOnlyList<StyleTarget>? ancestors = null) =>
         StyleSheets.Count == 0
             ? ResolvedStyle.Empty
-            : StyleResolver.Resolve(StyleSheets, new StyleTarget(type, id, classes ?? [], state));
+            : StyleResolver.Resolve(StyleSheets, new StyleTarget(type, id, classes ?? [], state, modifiers, ancestors));
 
     static void DrawStyledBox(LayoutNode node, ResolvedStyle style)
     {

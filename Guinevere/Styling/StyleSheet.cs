@@ -19,7 +19,7 @@ public sealed class StyleRule
 /// A parsed <c>.uss</c> stylesheet: a flat list of rules plus custom-property variables. Supports
 /// type / <c>.class</c> / <c>#id</c> / compound selectors, the <c>:hover</c> / <c>:active</c> /
 /// <c>:focus</c> / <c>:disabled</c> modifiers, <c>--name: value;</c> variables and <c>var(--name)</c>,
-/// and <c>/* … */</c> comments. Combinators, nesting, mixins and transitions are not supported yet.
+/// hierarchy combinators, nested rules, and <c>/* … */</c> comments.
 /// </summary>
 public sealed class StyleSheet
 {
@@ -45,18 +45,14 @@ public sealed class StyleSheet
     {
         ArgumentNullException.ThrowIfNull(css);
         var text = CommentPattern.Replace(css, string.Empty);
-
         var rules = new List<StyleRule>();
         var variables = new Dictionary<string, string>(StringComparer.Ordinal);
         var order = 0;
         var i = 0;
-
         while (i < text.Length)
         {
             while (i < text.Length && (char.IsWhiteSpace(text[i]) || text[i] == ';')) i++;
             if (i >= text.Length) break;
-
-            // A top-level "--name: value;" is a variable, not a rule.
             if (text[i] == '-' && i + 1 < text.Length && text[i + 1] == '-')
             {
                 var semi = text.IndexOf(';', i);
@@ -68,34 +64,75 @@ public sealed class StyleSheet
                 i = end + 1;
                 continue;
             }
-
             var brace = text.IndexOf('{', i);
-            if (brace < 0) break;
-            var closeBrace = text.IndexOf('}', brace);
-            if (closeBrace < 0)
-                throw new FormatException("Unterminated rule block: missing '}'");
-
+            if (brace < 0) throw Error(text, i, "Expected a rule block");
             var selectorText = text[i..brace].Trim();
-            var body = text[(brace + 1)..closeBrace];
+            if (selectorText.Length == 0) throw Error(text, i, "Missing selector");
+            var selectors = SplitSelectors(selectorText);
+            i = brace + 1;
+            ParseBlock(text, ref i, selectors, rules, ref order);
+        }
+        return new StyleSheet(rules, variables);
+    }
 
-            var selectors = selectorText
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(Selector.Parse)
-                .ToArray();
+    static void ParseBlock(string text, ref int i, string[] selectorTexts, List<StyleRule> rules, ref int order)
+    {
+        var ownOrder = order++;
+        var declarations = new Dictionary<string, string>(StringComparer.Ordinal);
+        while (true)
+        {
+            while (i < text.Length && (char.IsWhiteSpace(text[i]) || text[i] == ';')) i++;
+            if (i >= text.Length) throw Error(text, i, "Unterminated rule block: missing '}'");
+            if (text[i] == '}') { i++; break; }
 
-            var declarations = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var part in body.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            var semi = text.IndexOf(';', i);
+            var brace = text.IndexOf('{', i);
+            var close = text.IndexOf('}', i);
+            if (brace >= 0 && (semi < 0 || brace < semi) && (close < 0 || brace < close))
             {
-                var colon = part.IndexOf(':');
-                if (colon <= 0) continue;
-                declarations[part[..colon].Trim()] = part[(colon + 1)..].Trim();
+                var nestedText = text[i..brace].Trim();
+                var nested = SplitSelectors(nestedText)
+                    .SelectMany(child => selectorTexts.Select(parent => Combine(parent, child)))
+                    .ToArray();
+                i = brace + 1;
+                ParseBlock(text, ref i, nested, rules, ref order);
+                continue;
             }
 
-            rules.Add(new StyleRule { Selectors = selectors, Declarations = declarations, Order = order++ });
-            i = closeBrace + 1;
+            var end = semi >= 0 && (close < 0 || semi < close) ? semi : close;
+            if (end < 0) throw Error(text, i, "Unterminated declaration");
+            var declaration = text[i..end].Trim();
+            var colon = declaration.IndexOf(':');
+            if (colon <= 0) throw Error(text, i, $"Malformed declaration '{declaration}'");
+            declarations[declaration[..colon].Trim()] = declaration[(colon + 1)..].Trim();
+            i = end + (end == close ? 0 : 1);
         }
 
-        return new StyleSheet(rules, variables);
+        if (declarations.Count > 0)
+            rules.Add(new StyleRule
+            {
+                Selectors = selectorTexts.Select(Selector.Parse).ToArray(),
+                Declarations = declarations,
+                Order = ownOrder,
+            });
+    }
+
+    static string[] SplitSelectors(string text) =>
+        text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    static string Combine(string parent, string child)
+    {
+        if (child.Contains('&', StringComparison.Ordinal)) return child.Replace("&", parent, StringComparison.Ordinal);
+        return child.StartsWith('>') ? $"{parent} {child}" : $"{parent} {child}";
+    }
+
+    static FormatException Error(string text, int offset, string message)
+    {
+        var line = 1;
+        var column = 1;
+        for (var j = 0; j < Math.Min(offset, text.Length); j++)
+            if (text[j] == '\n') { line++; column = 1; } else column++;
+        return new FormatException($"{message} at line {line}, column {column}");
     }
 
     /// <summary>Substitutes <c>var(--name)</c> references in <paramref name="value"/> using this sheet's variables.</summary>
