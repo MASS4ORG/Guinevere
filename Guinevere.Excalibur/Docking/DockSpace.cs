@@ -149,7 +149,7 @@ public static partial class ControlsExtensions
     {
         var gui = context.Gui;
 
-        var dragging = gui.DragSource(id, new DockTabPayload(item.Id, leaf), g =>
+        var dragging = gui.DragSource<DockTabPayload>(id, new DockTabPayload(item.Id, leaf), ghost: g =>
         {
             using (g.Node(120, context.Theme.TabHeight).Enter())
             {
@@ -159,11 +159,11 @@ public static partial class ControlsExtensions
         });
 
         var index = leaf.PanelIds.IndexOf(item.Id);
-        gui.DropTarget(gui.CurrentNode.Rect, id,
-            payload => payload is DockTabPayload p && ReferenceEquals(p.Leaf, leaf) && p.PanelId != item.Id,
-            payload =>
+        gui.DropTarget<DockTabPayload>(gui.CurrentNode.Rect, id,
+            canAccept: payload => ReferenceEquals(payload.Leaf, leaf) && payload.PanelId != item.Id,
+            onDrop: payload =>
             {
-                DockLayout.Reorder(leaf, leaf.PanelIds.IndexOf(((DockTabPayload)payload).PanelId), index);
+                DockLayout.Reorder(leaf, leaf.PanelIds.IndexOf(payload.PanelId), index);
                 context.Layout.MarkChanged();
             });
 
@@ -197,11 +197,11 @@ public static partial class ControlsExtensions
 
             var zone = ZoneAt(rect, gui.Input.MousePosition, context.Theme.DropZoneFraction);
 
-            var hovered = gui.DropTarget(rect, $"__zone_{leaf.GetHashCode()}",
-                payload => payload is DockTabPayload p && !IsNoOpDrop(p, leaf, zone),
-                payload => context.Layout.DockInto(((DockTabPayload)payload).PanelId, leaf, zone));
+            var drop = gui.DropTarget<DockTabPayload>(rect, $"__zone_{leaf.GetHashCode()}",
+                canAccept: payload => !IsNoOpDrop(payload, leaf, zone),
+                onDrop: payload => context.Layout.DockInto(payload.PanelId, leaf, zone));
 
-            if (!hovered) return;
+            if (!drop.IsAccepted) return;
 
             var preview = ZoneRect(rect, zone, zone == DockZone.Center ? 1f : 0.5f);
             gui.DrawRect(preview, Color.FromArgb(70, context.Theme.Accent), 2);
@@ -246,11 +246,10 @@ public static partial class ControlsExtensions
         var gui = context.Gui;
         if (gui.Pass != Pass.Pass2Render || !gui.IsDragging) return;
 
-        gui.DropTarget(rect, "__dockTearOff",
-            payload => payload is DockTabPayload,
-            payload =>
+        gui.DropTarget<DockTabPayload>(rect, "__dockTearOff",
+            onDrop: payload =>
             {
-                var panelId = ((DockTabPayload)payload).PanelId;
+                var panelId = payload.PanelId;
                 var at = gui.Input.MousePosition;
                 context.Layout.Float(panelId, new Rect(at.X - 60, at.Y - 12, 320, 240));
             });

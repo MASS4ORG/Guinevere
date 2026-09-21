@@ -68,7 +68,7 @@ public static partial class ControlsExtensions
 
         using (gui.Node(-1, height, id).ExpandWidth().Direction(Axis.Horizontal).Enter())
         {
-            var hovering = gui.DropTarget(id, accept, payload => state.Dropped = payload);
+            var drop = gui.DropTarget<object>(id, canAccept: accept, onDrop: payload => state.Dropped = payload);
 
             var interactable = gui.GetInteractable();
             var fill = interactable.OnHover() ? palette.SurfaceHover : palette.Surface;
@@ -85,7 +85,7 @@ public static partial class ControlsExtensions
             {
                 var rect = gui.CurrentNode.Rect;
                 gui.DrawRect(rect, fill, 3);
-                gui.DrawRectBorder(rect, border, hovering ? 2.5f : eligibility is not null ? 2f : 1f, 3);
+                gui.DrawRectBorder(rect, border, drop.IsAccepted ? 2.5f : eligibility is not null ? 2f : 1f, 3);
             }
 
             using (gui.Node(-1, height).Expand().Padding(6, 0).ContentAlignY(0.5f).Enter())

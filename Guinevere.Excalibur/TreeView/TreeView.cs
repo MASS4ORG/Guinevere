@@ -240,13 +240,17 @@ public static partial class ControlsExtensions
                    .Enter())
         {
             if (!isEditing && dragPayload?.Invoke(item) is { } payload)
-                gui.DragSource($"treeview/row/{item.Id}", payload, ghost: g => DragGhost(g, theme, item));
+                gui.DragSource<object>($"treeview/row/{item.Id}", payload,
+                    ghost: g => DragGhost(g, theme, item));
 
             if (gui.Pass == Pass.Pass2Render)
             {
                 if (dropAccept is not null)
-                    gui.DropTarget($"treeview/drop/{item.Id}", dropAccept,
-                        payload => onDrop?.Invoke(item, payload));
+                {
+                    var drop = gui.DropTarget<object>($"treeview/drop/{item.Id}",
+                        canAccept: dropAccept, onDrop: payload => onDrop?.Invoke(item, payload));
+                    gui.DrawDropIndicator(drop.State);
+                }
 
                 var interactable = gui.GetInteractable();
 

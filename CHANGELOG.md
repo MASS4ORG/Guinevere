@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Added: File browser widget
+- Changed: Major rework on some internal type representations, specially Color
+- Changed: enhanced the Drag-and-drop API
+
 ## v[4.0.0][] 2026-09-20
 
 ### Added
