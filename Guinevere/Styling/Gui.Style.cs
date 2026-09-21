@@ -22,6 +22,12 @@ public partial class Gui
         };
     }
 
+    /// <summary>Applies a semantic stylesheet rule to <see cref="Controls"/>.</summary>
+    /// <param name="type">Selector type containing palette declarations.</param>
+    /// <param name="fallback">Palette used for declarations the rule omits. Defaults to the current palette.</param>
+    public void ApplyControlPalette(string type = "control-palette", ControlPalette? fallback = null) =>
+        Controls = ControlPalette.FromStyle(ResolveStyle(type), fallback ?? Controls);
+
     /// <summary>
     /// Creates a layout node and styles it from <see cref="StyleSheets"/> by its type, classes and
     /// id. Layout declarations are applied to the node in the build pass; <c>background-color</c>,

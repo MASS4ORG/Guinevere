@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Guinevere;
 
 const int warmups = 100;
-var sizes = args.Contains("--quick") ? new[] { 100, 1_000 } : new[] { 100, 1_000, 10_000 };
+var sizes = args.Contains("--quick") ? new[] { 100, 1_000 } : [100, 1_000, 10_000];
 var articleScale = args.Contains("--quick") ? 100 : 1_000;
 
 Console.WriteLine("| Scenario | Nodes | Mean ms | ns/node | Alloc B/op |");

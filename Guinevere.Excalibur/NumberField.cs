@@ -35,9 +35,9 @@ public static partial class ControlsExtensions
     [PublicAPI]
     public static void NumberField(this Gui gui, ref double value,
         double step = 1.0, double min = double.MinValue, double max = double.MaxValue,
-        float width = 200, float height = 32, string format = "0.##",
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? cursorColor = null, float fontSize = 14, float padding = 8,
+        Color? cursorColor = null, float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
         double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f)
     {
         ArgumentNullException.ThrowIfNull(gui);
@@ -57,9 +57,9 @@ public static partial class ControlsExtensions
 
             var cursorColorFinal = cursorColor ?? textColor ??
                 gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-            DrawInputBackground(gui, field.Buffer, backgroundColor, borderColor);
+            DrawInputBackground(gui, field.Buffer, backgroundColor, borderColor, enabled);
             DrawSelection(gui, field.Buffer, field.Buffer.Text, fontSize);
-            DrawInputText(gui, field.Buffer.Text, "", fontSize, textColor, null);
+            DrawInputText(gui, field.Buffer.Text, "", fontSize, textColor, null, enabled);
             DrawCursor(gui, field.Buffer, field.Buffer.Text, fontSize, cursorColorFinal);
         }
     }
@@ -68,9 +68,9 @@ public static partial class ControlsExtensions
     [PublicAPI]
     public static void NumberField(this Gui gui, ref float value,
         float step = 1f, float min = float.MinValue, float max = float.MaxValue,
-        float width = 200, float height = 32, string format = "0.##",
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? cursorColor = null, float fontSize = 14, float padding = 8,
+        Color? cursorColor = null, float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
         float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f)
     {
         double d = value;

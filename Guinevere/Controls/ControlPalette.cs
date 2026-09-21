@@ -6,6 +6,45 @@ namespace Guinevere;
 /// </summary>
 public sealed class ControlPalette
 {
+    /// <summary>
+    /// Creates a palette by applying semantic color declarations from a resolved style over a fallback.
+    /// Supported names mirror the property names in kebab case, such as <c>surface-hover</c>,
+    /// <c>text-disabled</c>, <c>focus-ring</c>, and <c>text-selection</c>.
+    /// </summary>
+    public static ControlPalette FromStyle(ResolvedStyle style, ControlPalette? fallback = null)
+    {
+        ArgumentNullException.ThrowIfNull(style);
+        var source = fallback ?? Light;
+        Color Get(string name, Color value) => style.GetColor(name) ?? value;
+        return new ControlPalette
+        {
+            BaseBackground = Get("base-background", source.BaseBackground),
+            Surface = Get("surface", source.Surface),
+            SurfaceHover = Get("surface-hover", source.SurfaceHover),
+            SurfaceActive = Get("surface-active", source.SurfaceActive),
+            Popup = Get("popup", source.Popup),
+            Border = Get("border", source.Border),
+            BorderActive = Get("border-active", source.BorderActive),
+            Divider = Get("divider", source.Divider),
+            Accent = Get("accent", source.Accent),
+            AccentHover = Get("accent-hover", source.AccentHover),
+            AccentSubtle = Get("accent-subtle", source.AccentSubtle),
+            Text = Get("text", source.Text),
+            TextDim = Get("text-dim", source.TextDim),
+            TextDisabled = Get("text-disabled", source.TextDisabled),
+            TextOnAccent = Get("text-on-accent", source.TextOnAccent),
+            Selected = Get("selected", source.Selected),
+            Positive = Get("positive", source.Positive),
+            Negative = Get("negative", source.Negative),
+            Warning = Get("warning", source.Warning),
+            Info = Get("info", source.Info),
+            FocusRing = Get("focus-ring", source.FocusRing),
+            Shadow = Get("shadow", source.Shadow),
+            Overlay = Get("overlay", source.Overlay),
+            TextSelection = Get("text-selection", source.TextSelection)
+        };
+    }
+
     /// <summary>The lowest level background (app window, main canvas).</summary>
     public Color BaseBackground { get; init; } = Color.FromArgb(255, 248, 248, 248);
 
@@ -66,6 +105,18 @@ public sealed class ControlPalette
     /// <summary>Neutral informational highlights and badges.</summary>
     public Color Info { get; init; } = Color.FromArgb(255, 13, 202, 240);
 
+    /// <summary>Translucent focus halo drawn outside keyboard-focused controls.</summary>
+    public Color FocusRing { get; init; } = Color.FromArgb(128, 100, 149, 237);
+
+    /// <summary>Soft shadow used under raised handles and controls.</summary>
+    public Color Shadow { get; init; } = Color.FromArgb(100, 0, 0, 0);
+
+    /// <summary>Dimming layer behind modal surfaces.</summary>
+    public Color Overlay { get; init; } = Color.FromArgb(140, 0, 0, 0);
+
+    /// <summary>Translucent text-selection highlight.</summary>
+    public Color TextSelection { get; init; } = Color.FromArgb(110, 100, 149, 237);
+
     // ------------------------------------------------------------------------
     // 1. Light
     // ------------------------------------------------------------------------
@@ -94,7 +145,9 @@ public sealed class ControlPalette
         TextDisabled = Color.FromArgb(255, 96, 104, 118),
         Selected = Color.FromArgb(255, 84, 143, 224),
         Positive = Color.FromArgb(255, 88, 176, 116),
-        Negative = Color.FromArgb(255, 208, 102, 102)
+        Negative = Color.FromArgb(255, 208, 102, 102),
+        FocusRing = Color.FromArgb(150, 84, 143, 224),
+        TextSelection = Color.FromArgb(120, 84, 143, 224)
     };
 
     // ------------------------------------------------------------------------
@@ -120,7 +173,9 @@ public sealed class ControlPalette
         TextOnAccent = Color.FromArgb(255, 255, 255, 255),
         Selected = Color.FromArgb(255, 225, 228, 232),
         Positive = Color.FromArgb(255, 26, 127, 55),
-        Negative = Color.FromArgb(255, 207, 34, 46)
+        Negative = Color.FromArgb(255, 207, 34, 46),
+        FocusRing = Color.FromArgb(145, 36, 41, 47),
+        TextSelection = Color.FromArgb(100, 36, 41, 47)
     };
 
     // ------------------------------------------------------------------------
@@ -146,6 +201,8 @@ public sealed class ControlPalette
         TextOnAccent = Color.FromArgb(255, 215, 218, 224),
         Selected = Color.FromArgb(255, 40, 46, 57),
         Positive = Color.FromArgb(255, 80, 161, 79),
-        Negative = Color.FromArgb(255, 224, 108, 117)
+        Negative = Color.FromArgb(255, 224, 108, 117),
+        FocusRing = Color.FromArgb(150, 157, 165, 180),
+        TextSelection = Color.FromArgb(110, 157, 165, 180)
     };
 }

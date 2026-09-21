@@ -32,9 +32,9 @@ public static partial class ControlsExtensions
     /// <param name="lineNumber">Captured by the compiler; makes this call site's slider a unique control.</param>
     [PublicAPI]
     public static void Slider(this Gui gui, ref float value, float min, float max,
-        float width = 200, float height = 24, float step = 0f,
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.CompactHeight, float step = 0f,
         Color? trackColor = null, Color? fillColor = null, Color? thumbColor = null,
-        bool showValue = false, float fontSize = 12, bool enabled = true,
+        bool showValue = false, float fontSize = ControlMetrics.CompactFontSize, bool enabled = true,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
@@ -135,7 +135,7 @@ public static partial class ControlsExtensions
             gui.DrawCircleBorder(thumbCenter, thumbRadius + 3f, gui.Controls.Accent, 2f);
 
         gui.DrawCircleFilled(thumbCenter, thumbRadius, thumb);
-        gui.DrawCircleBorder(thumbCenter, thumbRadius, Color.FromArgb(100, 0, 0, 0));
+        gui.DrawCircleBorder(thumbCenter, thumbRadius, gui.Controls.Shadow);
     }
 
     static string FormatSliderValue(float value, float step) =>

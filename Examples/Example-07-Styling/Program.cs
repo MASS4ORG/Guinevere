@@ -13,6 +13,8 @@ public static class Program
         var gui = new Gui();
         var source = StyleSheetSource.FromProvider(Theme);
         gui.AddStyleSheet(source);
+        gui.ApplyControlPalette();
+        source.Reloaded += _ => gui.ApplyControlPalette();
         using var window = new GuiWindow(gui, 900, 620, "Guinevere styling showcase");
         window.RunGui(() => Draw(gui, source));
     }
@@ -69,6 +71,16 @@ public static class Program
     static string Theme() => $$"""
         @const radius = 10;
         $accent = {{(_lightTheme ? "#7157d9" : "#3d8bfd")}};
+
+        control-palette {
+            surface = {{(_lightTheme ? "#ffffff" : "#202a3a")}};
+            surface-hover = {{(_lightTheme ? "#e1e6ef" : "#354158")}};
+            border = {{(_lightTheme ? "#ccd2dd" : "#53627a")}};
+            text = {{(_lightTheme ? "#1e2634" : "#ffffff")}};
+            text-dim = {{(_lightTheme ? "#525c6e" : "#b4becd")}};
+            accent = $accent;
+            selected = $accent;
+        }
 
         screen {
             width = expand;

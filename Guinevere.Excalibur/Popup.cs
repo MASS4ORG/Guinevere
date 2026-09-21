@@ -129,7 +129,7 @@ public static partial class ControlsExtensions
                 // Only render overlay when modal is open
                 if (isOpen)
                 {
-                    var overlay = overlayColor ?? Color.FromArgb(128, 0, 0, 0);
+                    var overlay = overlayColor ?? gui.Controls.Overlay;
                     gui.DrawRect(gui.CurrentNode.Rect, overlay);
                 }
         }
@@ -150,9 +150,9 @@ public static partial class ControlsExtensions
         Color? backgroundColor = null,
         Color? textColor = null,
         Color? borderColor = null,
-        float fontSize = 12,
-        float padding = 8,
-        float borderRadius = 4,
+        float fontSize = ControlMetrics.CompactFontSize,
+        float padding = ControlMetrics.Spacing,
+        float borderRadius = ControlMetrics.CornerRadius,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -209,9 +209,9 @@ public static partial class ControlsExtensions
         Color? backgroundColor = null,
         Color? textColor = null,
         Color? borderColor = null,
-        float fontSize = 12,
-        float padding = 8,
-        float borderRadius = 4,
+        float fontSize = ControlMetrics.CompactFontSize,
+        float padding = ControlMetrics.Spacing,
+        float borderRadius = ControlMetrics.CornerRadius,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -244,7 +244,7 @@ public static partial class ControlsExtensions
         Color? hoverColor = null,
         float itemHeight = 24,
         float minWidth = 120,
-        float borderRadius = 4,
+        float borderRadius = ControlMetrics.CornerRadius,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {

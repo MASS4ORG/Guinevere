@@ -8,13 +8,13 @@ public static partial class ControlsExtensions
     /// selection shows a filled dot.
     /// </summary>
     public static void RadioButton(this Gui gui, ref int selectedIndex, int value, string label = "",
-        float size = 20,
+        float size = ControlMetrics.IndicatorSize,
         Color? backgroundColor = null,
         Color? selectedColor = null,
         Color? borderColor = null,
         Color? labelColor = null,
-        float fontSize = 14,
-        float spacing = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
         RadioButtonCore(gui, ref selectedIndex, value, label, size, backgroundColor, selectedColor,
@@ -26,13 +26,13 @@ public static partial class ControlsExtensions
     /// mutate the group index in place.
     /// </summary>
     public static bool RadioButton(this Gui gui, int selectedIndex, int value, string label = "",
-        float size = 20,
+        float size = ControlMetrics.IndicatorSize,
         Color? backgroundColor = null,
         Color? selectedColor = null,
         Color? borderColor = null,
         Color? labelColor = null,
-        float fontSize = 14,
-        float spacing = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
         var index = selectedIndex;
@@ -47,14 +47,14 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void RadioGroup(this Gui gui, ref int selectedIndex,
         IReadOnlyList<(int Value, string Label)> options,
-        float size = 20,
+        float size = ControlMetrics.IndicatorSize,
         Color? backgroundColor = null,
         Color? selectedColor = null,
         Color? borderColor = null,
         Color? labelColor = null,
-        float fontSize = 14,
-        float spacing = 8,
-        float gap = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float spacing = ControlMetrics.Spacing,
+        float gap = ControlMetrics.Spacing,
         bool enabled = true)
     {
         ArgumentNullException.ThrowIfNull(gui);
@@ -129,7 +129,7 @@ public static partial class ControlsExtensions
                 : gui.Controls.Surface;
 
             if (enabled && gui.HasFocus())
-                gui.DrawCircleBorder(center, radius + 3.5f, Color.FromArgb(128, gui.Controls.Accent), 3f);
+                gui.DrawCircleBorder(center, radius + 3.5f, gui.Controls.FocusRing, 3f);
 
             gui.DrawCircleFilled(center, radius, fill);
 

@@ -7,13 +7,13 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void Toggle(this Gui gui, ref bool isOn, string label = "",
         float width = 50,
-        float height = 24,
+        float height = ControlMetrics.CompactHeight,
         Color? onColor = null,
         Color? offColor = null,
         Color? thumbColor = null,
         Color? labelColor = null,
-        float fontSize = 14,
-        float spacing = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
         ToggleCore(gui, ref isOn, label, width, height, onColor, offColor,
@@ -25,13 +25,13 @@ public static partial class ControlsExtensions
     /// </summary>
     public static bool Toggle(this Gui gui, bool isOn, string label = "",
         float width = 50,
-        float height = 24,
+        float height = ControlMetrics.CompactHeight,
         Color? onColor = null,
         Color? offColor = null,
         Color? thumbColor = null,
         Color? labelColor = null,
-        float fontSize = 14,
-        float spacing = 8,
+        float fontSize = ControlMetrics.FontSize,
+        float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
         var temp = isOn;
@@ -104,7 +104,7 @@ public static partial class ControlsExtensions
             if (enabled && gui.HasFocus())
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, Color.FromArgb(128, gui.Controls.Accent), 4f, (height * 0.5f) + 4);
+                gui.DrawRectBorder(focusRect, gui.Controls.FocusRing, 4f, (height * 0.5f) + 4);
                 gui.DrawRectBorder(rect, gui.Controls.Accent, 2f, (height * 0.5f) + 2);
             }
 
@@ -161,6 +161,6 @@ public static partial class ControlsExtensions
     static void DrawToggleThumb(Gui gui, (Vector2 position, float radius) thumbProps, Color thumbColor)
     {
         gui.DrawCircleFilled(thumbProps.position, thumbProps.radius, thumbColor);
-        gui.DrawCircleBorder(thumbProps.position, thumbProps.radius, Color.FromArgb(100, 0, 0, 0));
+        gui.DrawCircleBorder(thumbProps.position, thumbProps.radius, gui.Controls.Shadow);
     }
 }

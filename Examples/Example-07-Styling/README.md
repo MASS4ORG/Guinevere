@@ -2,7 +2,8 @@
 
 A compact, interactive tour of Guinevere's stylesheet integration. It demonstrates PanGui-compatible
 assignment syntax, constants and variables, nested and direct-child selectors, `#inherit`, built-in
-`:hover` and custom `:selected` modifiers, immediate-mode variables, and atomic provider reloads.
+`:hover` and custom `:selected` modifiers, immediate-mode variables, stylesheet-backed control palettes,
+and atomic provider reloads.
 
 Run it with:
 

@@ -21,9 +21,9 @@ public static partial class ControlsExtensions
         Color? hoverColor = null,
         Color? separatorColor = null,
         Color? disabledColor = null,
-        float fontSize = 12,
-        float padding = 8,
-        float borderRadius = 4,
+        float fontSize = ControlMetrics.CompactFontSize,
+        float padding = ControlMetrics.Spacing,
+        float borderRadius = ControlMetrics.CornerRadius,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {

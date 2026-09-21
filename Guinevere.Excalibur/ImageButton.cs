@@ -66,7 +66,7 @@ public static partial class ControlsExtensions
                     var rect = gui.CurrentNode.Rect;
                     gui.DrawRectBorder(
                         new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6),
-                        Color.FromArgb(128, 100, 149, 237), 4f, 6f);
+                        gui.Controls.FocusRing, 4f, 6f);
                 }
 
                 var activated = gui.HasFocus()
@@ -83,8 +83,9 @@ public static partial class ControlsExtensions
             if (text is { Label: { Length: > 0 } })
             {
                 var size = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
-                var color = textColor ?? node.Scope.Get<LayoutNodeScopeTextColor>().Value;
-                if (!enabled) color = Color.FromArgb(color.A / 2, color.R, color.G, color.B);
+                var color = enabled
+                    ? textColor ?? gui.Controls.Text
+                    : gui.Controls.TextDisabled;
 
                 // Centres the caption by hand (like Button) with the same main/icon font fallback
                 // as Gui.DrawText, so emoji and icon glyphs render instead of tofu. A child DrawText
