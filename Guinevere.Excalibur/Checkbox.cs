@@ -95,7 +95,7 @@ public static partial class ControlsExtensions
 
             var rect = gui.CurrentNode.Rect;
             var bgColor = GetCheckboxBackgroundColor(gui, isChecked, backgroundColor);
-            var borderColorFinal = enabled ? borderColor ?? gui.Controls.Border : DisabledBorder;
+            var borderColorFinal = enabled ? borderColor ?? gui.Controls.Border : gui.Controls.Border;
 
             if (enabled && gui.HasFocus())
             {
@@ -106,12 +106,12 @@ public static partial class ControlsExtensions
             }
             else
             {
-                gui.DrawBackgroundRect(enabled ? bgColor : DisabledFill, 2);
+                gui.DrawBackgroundRect(enabled ? bgColor : gui.Controls.Surface, 2);
                 gui.DrawRectBorder(rect, borderColorFinal, 1f, 2);
             }
 
             if (isChecked)
-                DrawCheckmark(gui, rect, size, enabled ? checkColor ?? gui.Controls.Knob : DisabledText);
+                DrawCheckmark(gui, rect, size, enabled ? checkColor ?? gui.Controls.TextOnAccent : gui.Controls.TextDisabled);
         }
     }
 
@@ -120,7 +120,7 @@ public static partial class ControlsExtensions
     {
         if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = enabled ? labelColor ?? gui.Controls.Text : DisabledText;
+            var labelColorFinal = enabled ? labelColor ?? gui.Controls.Text : gui.Controls.TextDisabled;
             gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
         }
     }

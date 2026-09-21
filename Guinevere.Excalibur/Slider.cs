@@ -53,7 +53,7 @@ public static partial class ControlsExtensions
 
             if (showValue)
                 gui.DrawText(FormatSliderValue(value, step), fontSize,
-                    enabled ? gui.Controls.Text : DisabledText, centerInRect: false);
+                    enabled ? gui.Controls.Text : gui.Controls.TextDisabled, centerInRect: false);
         }
     }
 
@@ -126,11 +126,11 @@ public static partial class ControlsExtensions
         var track = new Rect(rect.X, trackY, rect.W, trackHeight);
         var fillWidth = rect.X <= thumbCenter.X ? thumbCenter.X - rect.X : 0f;
 
-        gui.DrawRect(track, enabled ? trackColor ?? gui.Controls.Border : DisabledBorder);
+        gui.DrawRect(track, enabled ? trackColor ?? gui.Controls.Border : gui.Controls.Border);
         gui.DrawRect(new Rect(rect.X, trackY, fillWidth, trackHeight),
-            enabled ? fillColor ?? gui.Controls.Accent : DisabledText);
+            enabled ? fillColor ?? gui.Controls.Accent : gui.Controls.TextDisabled);
 
-        var thumb = enabled ? thumbColor ?? gui.Controls.Knob : DisabledText;
+        var thumb = enabled ? thumbColor ?? gui.Controls.TextOnAccent : gui.Controls.TextDisabled;
         if (gui.HasFocus())
             gui.DrawCircleBorder(thumbCenter, thumbRadius + 3f, gui.Controls.Accent, 2f);
 

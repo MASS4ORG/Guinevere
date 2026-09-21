@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
@@ -13,17 +13,11 @@ public readonly struct Color : IEquatable<Color>
 {
     readonly uint _rgba;
 
-    public static implicit operator Color(uint rgba) => FromArgb(
-        (byte)(rgba & 0xFF), // A
-        (byte)((rgba >> 24) & 0xFF), // R
-        (byte)((rgba >> 16) & 0xFF), // G
-        (byte)(rgba >> 8) & 0xFF);
+    /// <summary>Creates a color from packed <c>0xRRGGBBAA</c> data.</summary>
+    public Color(uint rgba) => _rgba = rgba;
 
-    public static implicit operator Color(int rgba) => FromArgb(
-        (byte)rgba, // A (Alpha) - lowest byte
-        (byte)(rgba >> 24), // R (Red) - highest byte
-        (byte)(rgba >> 16), // G (Green)
-        (byte)(rgba >> 8));
+    /// <summary>Creates a color from packed <c>0xRRGGBBAA</c> data.</summary>
+    public static Color FromRgba(uint rgba) => new(rgba);
 
     public static implicit operator System.Drawing.Color(Color value) =>
         System.Drawing.Color.FromArgb(value.A, value.R, value.G, value.B);
@@ -54,17 +48,17 @@ public readonly struct Color : IEquatable<Color>
         t = Math.Clamp(t, 0f, 1f);
 
         // Interpolate each component (A, R, G, B)
-        var a = (byte)(start.A + (end.A - start.A) * t);
-        var r = (byte)(start.R + (end.R - start.R) * t);
-        var g = (byte)(start.G + (end.G - start.G) * t);
-        var b = (byte)(start.B + (end.B - start.B) * t);
+        var a = LerpByte(start.A, end.A, t);
+        var r = LerpByte(start.R, end.R, t);
+        var g = LerpByte(start.G, end.G, t);
+        var b = LerpByte(start.B, end.B, t);
 
         return FromArgb(a, r, g, b);
     }
 
     #region System.Drawing.Color
 
-    public static readonly Color Empty = new(default);
+    public static readonly Color Empty = default;
 
     // -------------------------------------------------------------------
     //  static list of "web" colors...
@@ -264,7 +258,7 @@ public readonly struct Color : IEquatable<Color>
             return false;
 
         if (normalizedLength == 6) packed = packed << 8 | byte.MaxValue;
-        color = new Color(packed, true);
+        color = new Color(packed);
         return true;
     }
 
@@ -279,7 +273,7 @@ public readonly struct Color : IEquatable<Color>
         if ((uint)red > byte.MaxValue) throw InvalidChannel(nameof(red));
         if ((uint)green > byte.MaxValue) throw InvalidChannel(nameof(green));
         if ((uint)blue > byte.MaxValue) throw InvalidChannel(nameof(blue));
-        return new Color(Pack((byte)red, (byte)green, (byte)blue, (byte)alpha), true);
+        return new Color(Pack((byte)red, (byte)green, (byte)blue, (byte)alpha));
     }
 
     public static Color FromArgb(int alpha, Color baseColor)
@@ -355,12 +349,13 @@ public readonly struct Color : IEquatable<Color>
 
     #endregion
 
-    Color(uint rgba, bool _) => _rgba = rgba;
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static uint Pack(byte red, byte green, byte blue, byte alpha) =>
         (uint)(red << 24 | green << 16 | blue << 8 | alpha);
 
     static ArgumentException InvalidChannel(string name) =>
         new("Channel must be between 0 and 255.", name);
+
+    static byte LerpByte(byte start, byte end, float amount) =>
+        (byte)MathF.Round(float.Lerp(start, end, amount));
 }

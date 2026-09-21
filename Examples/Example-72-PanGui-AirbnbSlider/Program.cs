@@ -54,32 +54,32 @@ public abstract class Program
             }
 
             gui.DrawShape(center, arcLaneShape)
-                .LinearGradientColor(0x00000022, 0x00000005, scale: 0.8f)
-                .InnerShadow(0x00000066, new Vector2(0, 20), 50, -30)
-                .OuterShadow(0x00000066, new Vector2(0, -5), 10, 5);
+                .LinearGradientColor(new Color(0x00000022), new Color(0x00000005), scale: 0.8f)
+                .InnerShadow(new Color(0x00000066), new Vector2(0, 20), 50, -30)
+                .OuterShadow(new Color(0x00000066), new Vector2(0, -5), 10, 5);
 
             for (int i = 0; i < 12; i++)
                 gui.DrawCircle(center + Angle.Turns(i / 12.0f).GetDirectionVector() * (innerRadius + halfThickness), 2,
-                    0x00000099);
+                    new Color(0x00000099));
 
             // gui.SetClipArea(gui.CurrentNode, arcLaneShape); // Clips the shadow to the lane.
 
             gui.DrawShape(center, arcShape)
-                .RadialGradientColor(0xBA0057FF, 0xF91E50FF, innerRadius, outerRadius)
-                .RadialGradientColor(0xDC4682FF, 0xCF2D6C00, innerRadius - halfThickness,
+                .RadialGradientColor(new Color(0xBA0057FF), new Color(0xF91E50FF), innerRadius, outerRadius)
+                .RadialGradientColor(new Color(0xDC4682FF), new Color(0xCF2D6C00), innerRadius - halfThickness,
                     innerRadius + halfThickness, offsetY: halfThickness)
-                .InnerShadow(0xFA144BFF, new Vector2(0, 5), 25, -8)
-                .OuterShadow(0xEA1C5Acc, 90)
-                .OuterShadow(0x000000822, new Vector2(0, 3), 10, 3)
-                .OuterShadow(0x000000811, 5)
-                .OuterShadow(0x22222244, 2);
+                .InnerShadow(new Color(0xFA144BFF), new Vector2(0, 5), 25, -8)
+                .OuterShadow(new Color(0xEA1C5ACC), 90)
+                .OuterShadow(new Color(0x00000822), new Vector2(0, 3), 10, 3)
+                .OuterShadow(new Color(0x00000811), 5)
+                .OuterShadow(new Color(0x22222244), 2);
 
             gui.DrawShape(handlePos,
                     handleShape.Expand(handleElement.On(Interactions.Hover | Interactions.Hold) ? 4 : 0))
-                .SolidColor(0x00000088)
-                .LinearGradientColor(0xD4D1D5FF, 0xFFFCFFFF)
-                .InnerShadow(0xffffffff, 1, 2)
-                .OuterShadow(0x00000066, 4);
+                .SolidColor(new Color(0x00000088))
+                .LinearGradientColor(new Color(0xD4D1D5FF), new Color(0xFFFCFFFF))
+                .InnerShadow(new Color(0xFFFFFFFF), 1, 2)
+                .OuterShadow(new Color(0x00000066), 4);
         }
     }
 }

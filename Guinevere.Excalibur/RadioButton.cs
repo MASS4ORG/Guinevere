@@ -123,10 +123,10 @@ public static partial class ControlsExtensions
             var center = new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f);
             var radius = size * 0.32f;
 
-            var border = enabled ? borderColor ?? gui.Controls.Border : DisabledBorder;
+            var border = enabled ? borderColor ?? gui.Controls.Border : gui.Controls.Border;
             var fill = enabled
                 ? backgroundColor ?? gui.Controls.Surface
-                : DisabledFill;
+                : gui.Controls.Surface;
 
             if (enabled && gui.HasFocus())
                 gui.DrawCircleBorder(center, radius + 3.5f, Color.FromArgb(128, gui.Controls.Accent), 3f);
@@ -135,12 +135,12 @@ public static partial class ControlsExtensions
 
             var accent = enabled
                 ? selectedColor ?? gui.Controls.Accent
-                : DisabledBorder;
+                : gui.Controls.Border;
             gui.DrawCircleBorder(center, radius, isSelected ? accent : border, isSelected ? 2f : 1f);
 
             if (isSelected)
             {
-                var dotColor = enabled ? gui.Controls.Knob : DisabledText;
+                var dotColor = enabled ? gui.Controls.TextOnAccent : gui.Controls.TextDisabled;
                 gui.DrawCircleFilled(center, radius * 0.42f, dotColor);
             }
         }
@@ -153,7 +153,7 @@ public static partial class ControlsExtensions
 
         var color = enabled
             ? labelColor ?? gui.Controls.Text
-            : DisabledText;
+            : gui.Controls.TextDisabled;
         gui.DrawText(label, fontSize, color, centerInRect: false);
     }
 }

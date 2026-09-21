@@ -96,4 +96,20 @@ public class ImmediateModeSiblingTests
         // content past the 40px viewport must be clipped away (still black)
         Assert.Equal((byte)0, At(px, Size / 2, 60).R);
     }
+
+    /// <summary>Equal-z nodes retain immediate-mode submission order after the render list is sorted.</summary>
+    [Fact]
+    public void EqualZIndexSiblings_RenderInSubmissionOrder()
+    {
+        var px = RenderFrame(g =>
+        {
+            for (var i = 0; i < 32; i++)
+            {
+                using (g.Node(80, 80).Absolute(10, 10).Enter())
+                    g.DrawRect(g.CurrentNode.Rect, i == 31 ? Color.Lime : Color.Red);
+            }
+        });
+
+        Assert.Equal(((byte)0, (byte)255, (byte)0), At(px, 30, 30));
+    }
 }

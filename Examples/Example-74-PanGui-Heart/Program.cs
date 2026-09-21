@@ -51,9 +51,9 @@ public abstract class Program
                 slides[slideIndex]();
 
                 var aPos = new Vector2(-60, 0) + _gui.CurrentNode.Rect.Center;
-                _gui.DrawCircleBorder(aPos, 100, 0x333333ff);
+                _gui.DrawCircleBorder(aPos, 100, new Color(0x333333FF));
                 var bPos = new Vector2(+60, 0) + _gui.CurrentNode.Rect.Center;
-                _gui.DrawCircleBorder(bPos, 100, 0x333333ff);
+                _gui.DrawCircleBorder(bPos, 100, new Color(0x333333FF));
 
                 var interactable = _gui.Node(250, 250).GetInteractable();
                 if (interactable.OnHover())

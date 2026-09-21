@@ -38,7 +38,7 @@ public partial class Program
         _gui.SetTextSize(18);
 
         // Draw the windowHandler background
-        _gui.DrawBackgroundRect().RadialGradientColor(0x292423FF, 0x322D29FF, 0, _gui.ScreenRect.MaxDimension);
+        _gui.DrawBackgroundRect().RadialGradientColor(new Color(0x292423FFu), new Color(0x322D29FFu), 0, _gui.ScreenRect.MaxDimension);
 
         DrawTopToolbar();
 
@@ -191,7 +191,7 @@ public partial class Program
                     float graphHover = _gui.AnimateBool01(graphInteractable.OnHover() || adsrPopup.IsVisible(), 0.2f,
                         Easing.SmoothStep);
                     _gui.DrawText(instrument.Name);
-                    _gui.DrawRect(graphRect.Expand(1), 4, 0x00000088);
+                    _gui.DrawRect(graphRect.Expand(1), 4, new Color(0x00000088u));
 
                     DrawAdsrGraph(graphRect, instrument.Adsr,
                         new Color(instrument.Color, 0.4f + graphHover * 0.4f));
@@ -215,7 +215,7 @@ public partial class Program
                 // Fancy audio wave:
                 using (_gui.Node().ExpandWidth().MarginBottom(_padding).Enter())
                 {
-                    _gui.DrawBackgroundRect(0x00000044);
+                    _gui.DrawBackgroundRect(new Color(0x00000044u));
 
                     Color color = new Color(instrument.Color, 0.7f);
 
@@ -264,7 +264,7 @@ public partial class Program
                 // Draw Pan
                 using (_gui.Node().ExpandWidth().AlignContent(0.5f).MarginBottom(20).Gap(10).Enter())
                 {
-                    DrawKnobSlider(0x74B8DBFF, 60, ref instrument.Pan, true);
+                    DrawKnobSlider(new Color(0x74B8DBFFu), 60, ref instrument.Pan, true);
                     _gui.DrawText("Pan");
                 }
 
@@ -284,17 +284,17 @@ public partial class Program
                     using (rulerNumbersNode.Enter())
                     {
                         _gui.SetTextSize(13);
-                        _gui.SetTextColor(0xffffff55);
+                        _gui.SetTextColor(new Color(0xffffff55u));
                         for (int i = 0; i < rulerLineCount; i++)
                             _gui.DrawText((i + 1) + "");
                     }
 
-                    _gui.DrawRect(volumnBarNode, 6).SolidColor(0x00000088).InnerShadow(0x00000099, 4);
+                    _gui.DrawRect(volumnBarNode, 6).SolidColor(new Color(0x00000088u)).InnerShadow(new Color(0x00000099u), 4);
                     (float left, float right) volume = GetSimulatedOutputVolume();
                     DrawVolumeBar(volumnBarNode.Rect.Padding(6).AlignLeft(5), volume.left * instrument.Volume);
                     DrawVolumeBar(volumnBarNode.Rect.Padding(6).AlignRight(5), volume.right * instrument.Volume);
-                    _gui.DrawLinesY(leftRulerNode, rulerLineCount, 0xffffff20, 2);
-                    _gui.DrawLinesY(rightRulerNode, rulerLineCount, 0xffffff20, 2);
+                    _gui.DrawLinesY(leftRulerNode, rulerLineCount, new Color(0xffffff20u), 2);
+                    _gui.DrawLinesY(rightRulerNode, rulerLineCount, new Color(0xffffff20u), 2);
                 }
             }
         }
@@ -365,12 +365,12 @@ public partial class Program
         // Draws the Attack, Decay, Sustain, Release settings for the selected instrument.
         Rect graphRect = _gui.Node(700, 300).MarginBottom(_gap).Rect;
 
-        _gui.DrawLinesX(graphRect.HPadding(20), graphRect.Width / 20, 0xffffff11);
-        _gui.DrawLinesY(graphRect.VPadding(20), graphRect.Height / 20, 0xffffff11);
+        _gui.DrawLinesX(graphRect.HPadding(20), graphRect.Width / 20, new Color(0xffffff11u));
+        _gui.DrawLinesY(graphRect.VPadding(20), graphRect.Height / 20, new Color(0xffffff11u));
         _gui.DrawRect(graphRect, _borderRadius)
-            .OuterShadow(0xffffff44, new Vector2(0, 1), 1)
-            .InnerShadow(0x000000ff, new Vector2(0, 10), 40, -10)
-            .SolidColor(0x00000099);
+            .OuterShadow(new Color(0xffffff44u), new Vector2(0, 1), 1)
+            .InnerShadow(new Color(0x000000ffu), new Vector2(0, 10), 40, -10)
+            .SolidColor(new Color(0x00000099u));
 
         float totalWidth = graphRect.Width - 90;
         float totalHeight = graphRect.Height - 90;
@@ -382,7 +382,7 @@ public partial class Program
         Vector2 pRelease = new Vector2(pSustain.X + adsr.Release * totalWidth, pStart.Y);
 
         Span<Vector2> points = [pStart, pAttack, pDecay, pSustain, pRelease];
-        Span<Color> colors = [0xF04848FF, 0xF0A948FF, 0x3BBE69FF, 0x5074ecff];
+        Span<Color> colors = [new Color(0xF04848FFu), new Color(0xF0A948FFu), new Color(0x3BBE69FFu), new Color(0x5074ecffu)];
         Span<float> curvePowers = [0.7f, 0.5f, 1, 0.5f];
         Span<int> curveResolutions = [30, 30, 2, 30];
         Shape circle = Shape.Circle(6);
@@ -430,10 +430,10 @@ public partial class Program
         var decayHandle = _gui.GetInteractable(points[2], Shape.Circle(20));
         var releaseHandle = _gui.GetInteractable(points[4], Shape.Circle(20));
 
-        if (attackHandle.OnHover() || attackHandle.OnHold()) _gui.DrawCircle(points[1], 15, 0xffffff22);
-        if (decayHandle.OnHover() || decayHandle.OnHold()) _gui.DrawCircle(points[2], 15, 0xffffff22);
-        if (sustainHandle.OnHover() || sustainHandle.OnHold()) _gui.DrawRect(sustainDragRect, 15, 0xffffff22);
-        if (releaseHandle.OnHover() || releaseHandle.OnHold()) _gui.DrawCircle(points[4], 15, 0xffffff22);
+        if (attackHandle.OnHover() || attackHandle.OnHold()) _gui.DrawCircle(points[1], 15, new Color(0xffffff22u));
+        if (decayHandle.OnHover() || decayHandle.OnHold()) _gui.DrawCircle(points[2], 15, new Color(0xffffff22u));
+        if (sustainHandle.OnHover() || sustainHandle.OnHold()) _gui.DrawRect(sustainDragRect, 15, new Color(0xffffff22u));
+        if (releaseHandle.OnHover() || releaseHandle.OnHold()) _gui.DrawCircle(points[4], 15, new Color(0xffffff22u));
 
         var mouseDelta = _gui.Input.MouseDelta / graphRect.Size;
 
@@ -476,7 +476,7 @@ public partial class Program
                     using (_gui.Node().Padding(_gap * 2).Gap(_gap * 2).AlignContent(0.5f).Enter())
                     {
                         _gui.DrawText("Low cut");
-                        DrawKnobSlider(0xE6B455FF, 70, ref knob);
+                        DrawKnobSlider(new Color(0xE6B455FFu), 70, ref knob);
                         _gui.DrawText(knob.ToString("0.0"));
                     }
                 }
@@ -492,14 +492,14 @@ public partial class Program
                 using (_gui.Node().Padding(_padding).ExpandHeight().Gap(_gap).AlignContent(0.5f).Enter())
                 {
                     _gui.DrawText("Dry");
-                    DrawVolumeSlider(0xE6B556FF, ref effect.Dry).Width(30);
+                    DrawVolumeSlider(new Color(0xE6B556FFu), ref effect.Dry).Width(30);
                     _gui.DrawText(effect.Dry.ToString("0.0"));
                 }
 
                 using (_gui.Node().Padding(_padding).ExpandHeight().Gap(_gap).AlignContent(0.5f).Enter())
                 {
                     _gui.DrawText("Wet");
-                    DrawVolumeSlider(0xE6B556FF, ref effect.Wet).Width(30);
+                    DrawVolumeSlider(new Color(0xE6B556FFu), ref effect.Wet).Width(30);
                     _gui.DrawText(effect.Wet.ToString("0.0"));
                 }
             }
@@ -507,7 +507,7 @@ public partial class Program
 
         void StyleInnerPopupBox(string title)
         {
-            _gui.DrawBackgroundRect(_borderRadius).SolidColor(0xffffff11);
+            _gui.DrawBackgroundRect(_borderRadius).SolidColor(new Color(0xffffff11u));
 
             using (_gui.Node().ExpandWidth().AlignContent(0.5f).Margin(_gap).MarginBottom(_gap).Enter())
             {
@@ -515,7 +515,7 @@ public partial class Program
             }
 
             var line = _gui.Node(UnitValue.Expand(), 2).MarginBottom(_gap);
-            _gui.DrawRect(line.Rect.Expand(_gap, 0), 0x00000044);
+            _gui.DrawRect(line.Rect.Expand(_gap, 0), new Color(0x00000044u));
         }
     }
 
@@ -528,24 +528,24 @@ public partial class Program
         _gui.SetTransform(Matrix3x2.CreateScale(1, 1 + popupVisibility * 0.05f, _gui.CurrentNode.Rect.BottomCenter));
 
         _gui.DrawShape(pianoBgShape.Pos, pianoBgShape.Shape)
-            .SolidColor(Color.Lerp(0x151313FF, 0x292423FF, popupVisibility))
-            .InnerShadow(Color.FromArgb((int)((1 - popupVisibility) * 255), 0x00000088), new Vector2(0, 40),
+            .SolidColor(Color.Lerp(new Color(0x151313FFu), new Color(0x292423FFu), popupVisibility))
+            .InnerShadow(Color.FromArgb((int)((1 - popupVisibility) * 255), new Color(0x00000088u)), new Vector2(0, 40),
                 80, -40)
-            .InnerShadow(Color.FromArgb((int)((1 - popupVisibility) * 255), 0x00000088), new Vector2(0, 10),
+            .InnerShadow(Color.FromArgb((int)((1 - popupVisibility) * 255), new Color(0x00000088u)), new Vector2(0, 10),
                 20, -10)
-            .SolidColor(Color.FromArgb((int)(popupVisibility * 255), 0x00000044))
-            .InnerShadow(Color.FromArgb((int)(popupVisibility * 255), 0xffffff11), new Vector2(0, 40), 80,
+            .SolidColor(Color.FromArgb((int)(popupVisibility * 255), new Color(0x00000044u)))
+            .InnerShadow(Color.FromArgb((int)(popupVisibility * 255), new Color(0xffffff11u)), new Vector2(0, 40), 80,
                 -40)
-            .OuterShadow(Color.FromArgb((int)(popupVisibility * 255), 0x000000ff), 20)
-            .Stroke(0x000000ff, 1, 0);
+            .OuterShadow(Color.FromArgb((int)(popupVisibility * 255), new Color(0x000000ffu)), 20)
+            .Stroke(new Color(0x000000ffu), 1, 0);
 
         // Here we jump into the layout node we were passed, which was created separately.
         using (pianoButtonsContainer.Direction(Axis.Horizontal).Enter())
         {
             float t = 0.5f;
-            DrawKnobSlider(0x74B8DBFF, 60, ref t).Margin(15);
-            DrawKnobSlider(0xE5B657FF, 60, ref t).Margin(15);
-            DrawKnobSlider(0x3DBF6BFF, 60, ref t).Margin(15);
+            DrawKnobSlider(new Color(0x74B8DBFFu), 60, ref t).Margin(15);
+            DrawKnobSlider(new Color(0xE5B657FFu), 60, ref t).Margin(15);
+            DrawKnobSlider(new Color(0x3DBF6BFFu), 60, ref t).Margin(15);
         }
 
         using (_gui.Node().ExpandWidth().Direction(Axis.Horizontal).Height(260).MarginTop(20).Padding(_padding)
@@ -562,28 +562,28 @@ public partial class Program
 
                 // shadow
                 _gui.DrawShape(wheel.Center, shadowShape)
-                    .DiamondGradientColor(0x000000cc, 0x00000000, 50);
+                    .DiamondGradientColor(new Color(0x000000ccu), new Color(0x00000000u), 50);
 
                 // wheel
                 _gui.DrawRect(wheel, 5)
-                    .OuterShadow(0xffffff22, new Vector2(0, 3), 3)
-                    .SolidColor(0xffffff11)
-                    .Stroke(0x000000ff, 3);
+                    .OuterShadow(new Color(0xffffff22u), new Vector2(0, 3), 3)
+                    .SolidColor(new Color(0xffffff11u))
+                    .Stroke(new Color(0x000000ffu), 3);
 
                 // handle
                 _gui.DrawRect(handle)
-                    .LinearGradientColor(0x00000088, 0xffffff11, Angle.Turns(-0.25f), 0.54f)
-                    .InnerShadow(0x000000ff, new Vector2(0, 1), 1, 1)
-                    .InnerShadow(0xffffff22, new Vector2(0, -1), 1, 1);
+                    .LinearGradientColor(new Color(0x00000088u), new Color(0xffffff11u), Angle.Turns(-0.25f), 0.54f)
+                    .InnerShadow(new Color(0x000000ffu), new Vector2(0, 1), 1, 1)
+                    .InnerShadow(new Color(0xffffff22u), new Vector2(0, -1), 1, 1);
 
                 // lighting
                 _gui.DrawRect(wheel, 5)
-                    .InnerShadow(0xffffff11, new Vector2(8, 0), 5f, -5) // left light
-                    .InnerShadow(0x000000cc, new Vector2(-8, 0), 5f, -5) // right shadow
-                    .InnerShadow(0x000000cc, new Vector2(0, 10), 10f, -10) // top shadow
-                    .LinearGradientColor(0x000000ee, 0x00000000, MathF.PI * 0.5f, 0.6f,
+                    .InnerShadow(new Color(0xffffff11u), new Vector2(8, 0), 5f, -5) // left light
+                    .InnerShadow(new Color(0x000000ccu), new Vector2(-8, 0), 5f, -5) // right shadow
+                    .InnerShadow(new Color(0x000000ccu), new Vector2(0, 10), 10f, -10) // top shadow
+                    .LinearGradientColor(new Color(0x000000eeu), new Color(0x00000000u), MathF.PI * 0.5f, 0.6f,
                         offsetY: -0.5f) // 3d effect
-                    .LinearGradientColor(0x00000000, 0x00000044, MathF.PI * 0.5f, 0.8f,
+                    .LinearGradientColor(new Color(0x00000000u), new Color(0x00000044u), MathF.PI * 0.5f, 0.8f,
                         offsetY: 0.8f); // 3d effect
 
                 // Draw left and right rulers:
@@ -595,7 +595,7 @@ public partial class Program
                         var left = leftRuler.AppendNode(UnitValue.Expand(), 2);
                         var right = rightRuler.AppendNode(UnitValue.Expand(), 2);
                         float brightness = _gui.Smoothdamp(f >= modWheel ? 1 : 0f, 10);
-                        Color color = Color.Lerp(0x000000ff, 0xE6B455FF, brightness);
+                        Color color = Color.Lerp(new Color(0x000000ffu), new Color(0xE6B455FFu), brightness);
                         float outerShadow = brightness * 8;
                         _gui.DrawRect(left.Rect, 1).SolidColor(color)
                             .OuterShadow(new Color(color, 0.2f), outerShadow, 2);
@@ -631,13 +631,13 @@ public partial class Program
 
                     // bg
                     _gui.DrawRect(rangeRect, 7)
-                        .SolidColor(0x00000088)
-                        .OuterShadow(0xffffff22, new Vector2(0, 1), 2);
+                        .SolidColor(new Color(0x00000088u))
+                        .OuterShadow(new Color(0xffffff22u), new Vector2(0, 1), 2);
 
                     // glow
                     _gui.DrawRect(rangeRect.Padding(2), 5)
                         .SolidColor(color)
-                        .InnerShadow(0x000000aa, new Vector2(0, 0), 8.2f, -2);
+                        .InnerShadow(new Color(0x000000aau), new Vector2(0, 0), 8.2f, -2);
                 }
 
                 // Draw Piano
@@ -679,7 +679,7 @@ public partial class Program
 
             using (_gui.Node().ExpandHeight().Width(80).MarginBottom(20).AlignContent(0.5f).Gap(20).Enter())
             {
-                DrawVolumeSlider(0xC2984BFF, ref padPlayer.Volume).Width(25);
+                DrawVolumeSlider(new Color(0xC2984BFFu), ref padPlayer.Volume).Width(25);
                 _gui.SetTextSize(22);
                 _gui.SetTextFont(_arialBold);
                 _gui.DrawText("-5 dB");
@@ -688,10 +688,10 @@ public partial class Program
 
         using (_gui.Node().Direction(Axis.Horizontal).Gap(_gap).AlignContent(0.5f).Enter())
         {
-            DrawKnobSliderWithLabel(0xE5B458FF, ref padPlayer.Brightness, "Brightness",
+            DrawKnobSliderWithLabel(new Color(0xE5B458FFu), ref padPlayer.Brightness, "Brightness",
                 $"{padPlayer.Brightness * 100:0}%");
             _gui.Node(30);
-            DrawKnobSliderWithLabel(0xE5B458FF, ref padPlayer.Shimmer, "Shimmer",
+            DrawKnobSliderWithLabel(new Color(0xE5B458FFu), ref padPlayer.Shimmer, "Shimmer",
                 $"{padPlayer.Shimmer * 100:0}%");
         }
     }
@@ -705,10 +705,10 @@ public partial class Program
             using (_gui.Node().Gap(10).Enter())
             {
                 _gui.DrawText(label, color: Color.White);
-                _gui.DrawText(valueLabel, color: 0xffffff88);
+                _gui.DrawText(valueLabel, color: new Color(0xffffff88u));
             }
 
-            Color col = 0xF18B46FF;
+            Color col = new Color(0xF18B46FFu);
         }
     }
 
@@ -764,19 +764,19 @@ public partial class Program
 
             // Bg
             _gui.DrawShape(center, knobShape + 10)
-                .InnerShadow(0x00000022, new Vector2(0, 10), 20, -10)
-                .InnerShadow(0x000000ff, new Vector2(0, -10), 20, -10)
-                .SolidColor(0x00000088);
+                .InnerShadow(new Color(0x00000022u), new Vector2(0, 10), 20, -10)
+                .InnerShadow(new Color(0x000000ffu), new Vector2(0, -10), 20, -10)
+                .SolidColor(new Color(0x00000088u));
 
             _gui.DrawShape(center, arcSliceShape)
                 .SolidColor(color);
 
             //Handle
             _gui.DrawShape(center, knobShape)
-                .LinearGradientColor(0xB9B1AFFF, 0x484443FF, Angle.Turns(-0.25f))
-                .OuterShadow(0x000000cc, new Vector2(0, knobRadius * 0.5f), knobRadius * 1.5f,
+                .LinearGradientColor(new Color(0xB9B1AFFFu), new Color(0x484443FFu), Angle.Turns(-0.25f))
+                .OuterShadow(new Color(0x000000ccu), new Vector2(0, knobRadius * 0.5f), knobRadius * 1.5f,
                     knobRadius * 0.2f)
-                .InnerShadow(0xffffff22, new Vector2(0, 1), 1, 1);
+                .InnerShadow(new Color(0xffffff22u), new Vector2(0, 1), 1, 1);
         }
 
         InteractableElement e = _gui.GetInteractable(node.Rect);
@@ -804,7 +804,7 @@ public partial class Program
 
         using (_gui.Node().Expand().Margin(1).Enter())
         {
-            _gui.ScrollY(0x00000055, 0xffffff22);
+            _gui.ScrollY(new Color(0x00000055u), new Color(0xffffff22u));
 
             foreach (string title in trackLibrary)
             {
@@ -813,8 +813,8 @@ public partial class Program
                 {
                     if (isSelected)
                     {
-                        _gui.DrawBackgroundRect(0x00000077);
-                        _gui.SetTextColor(0xffffff99);
+                        _gui.DrawBackgroundRect(new Color(0x00000077u));
+                        _gui.SetTextColor(new Color(0xffffff99u));
                     }
 
                     _gui.DrawText(title);
@@ -841,11 +841,11 @@ public partial class Program
             _gui.SetZIndex(1000);
 
             _gui.DrawBackgroundRect()
-                .SolidColor(Color.Lerp(0x252323FF, 0x393433FF, 1))
-                .SolidColor(0x00000044)
-                .InnerShadow(0xffffff11, new Vector2(0, 40), 80, -40)
-                .OuterShadow(0x000000ff, 10)
-                .Stroke(0x000000ff, 1, 0);
+                .SolidColor(Color.Lerp(new Color(0x252323FFu), new Color(0x393433FFu), 1))
+                .SolidColor(new Color(0x00000044u))
+                .InnerShadow(new Color(0xffffff11u), new Vector2(0, 40), 80, -40)
+                .OuterShadow(new Color(0x000000ffu), 10)
+                .Stroke(new Color(0x000000ffu), 1, 0);
 
             _gui.DrawText("Some Logo", color: Color.White).MarginLeft(10);
 
@@ -909,24 +909,24 @@ public partial class Program
 
         float onBrightness = _gui.AnimateBool01(effect.IsOn, 0.2f, Easing.EaseInOutSine);
 
-        Color col1 = Color.Lerp(0x00000077, instrumentColor, onBrightness);
-        Color col2 = Color.Lerp(0x00000044, instrumentColor, onBrightness);
+        Color col1 = Color.Lerp(new Color(0x00000077u), instrumentColor, onBrightness);
+        Color col2 = Color.Lerp(new Color(0x00000044u), instrumentColor, onBrightness);
 
         // bg
         _gui.DrawRect(container.Rect, radius: 10)
-            .LinearGradientColor(0xffffff44, 0xffffff11, Angle.Turns(-0.15f))
+            .LinearGradientColor(new Color(0xffffff44u), new Color(0xffffff11u), Angle.Turns(-0.15f))
             .SolidColor(new Color(instrumentColor, textNodeHover * 0.1f))
-            .OuterShadow(0x00000055, new Vector2(0, 1), 5);
+            .OuterShadow(new Color(0x00000055u), new Vector2(0, 1), 5);
 
         // icon bg
         _gui.DrawRect(toggleEffectNode.Rect, 10, 0, 0, 10)
             .LinearGradientColor(col1, col2)
-            .InnerShadow(0xffffff22, new Vector2(0, 0), 1, 0);
+            .InnerShadow(new Color(0xffffff22u), new Vector2(0, 0), 1, 0);
 
         // icon
         using (toggleEffectNode.Enter())
         {
-            Color iconColor = effect.IsOn ? 0xffffffff : Color.Lerp(0xffffff33, 0xffffffff, onOffNodeHover);
+            Color iconColor = effect.IsOn ? new Color(0xffffffffu) : Color.Lerp(new Color(0xffffff33u), new Color(0xffffffffu), onOffNodeHover);
             _gui.SetTextColor(iconColor);
             _gui.DrawIcon(Icons.PowerOff, 35);
         }
@@ -935,8 +935,8 @@ public partial class Program
         {
             // This will clip the contents of the node to the node's size, so overflow content is cut off.
             _gui.ClipContent();
-            _gui.DrawText(effect.Type, 0xffffff55, 16);
-            _gui.DrawText(effect.Name, 0xffffff88, 20);
+            _gui.DrawText(effect.Type, new Color(0xffffff55u), 16);
+            _gui.DrawText(effect.Name, new Color(0xffffff88u), 20);
         }
 
         if (popup.IsVisible())
@@ -970,11 +970,11 @@ public partial class Program
             .Direction(Axis.Horizontal)
             .Padding(20, 0);
 
-        _gui.SetTextColor(0xDCF2F2FF);
+        _gui.SetTextColor(new Color(0xDCF2F2FFu));
 
         _gui.DrawBackgroundRect()
-            .SolidColor(0xffffff11)
-            .OuterShadow(0x000000ff, 2);
+            .SolidColor(new Color(0xffffff11u))
+            .OuterShadow(new Color(0x000000ffu), 2);
     }
 
     void StyleBox()
@@ -983,12 +983,12 @@ public partial class Program
             Shape.RectangleRounded(_gui.CurrentNode.Rect.Width, _gui.CurrentNode.Rect.Height, _borderRadius);
 
         _gui.DrawShape(_gui.CurrentNode.Rect.Center, bgShape)
-            .OuterShadow(0x00000088, new Vector2(0, 0), 80, 20);
+            .OuterShadow(new Color(0x00000088u), new Vector2(0, 0), 80, 20);
 
         _gui.DrawShape(_gui.CurrentNode.Rect.Center, bgShape)
-            .RadialGradientColor(0xffffff08, 0xffffff05, 0, _gui.CurrentNode.Rect.MaxDimension,
+            .RadialGradientColor(new Color(0xffffff08u), new Color(0xffffff05u), 0, _gui.CurrentNode.Rect.MaxDimension,
                 offsetY: _gui.CurrentNode.Rect.Height * 0.5f)
-            .InnerShadow(0xffffff22, 2);
+            .InnerShadow(new Color(0xffffff22u), 2);
     }
 
     void StyleButton(bool on, ShapePos bgShape)
@@ -1006,21 +1006,21 @@ public partial class Program
         float tUp = 1 - tDown;
 
         _gui.DrawShape(bgShape)
-            .OuterShadow((0xffffff22, tUp), new Vector2(0, -4), 6, 3)
-            .OuterShadow((0x000000ff, tUp), new Vector2(0, 2), 6)
+            .OuterShadow((new Color(0xffffff22u), tUp), new Vector2(0, -4), 6, 3)
+            .OuterShadow((new Color(0x000000ffu), tUp), new Vector2(0, 2), 6)
             .InnerShadow((0, 0, 0, tDown * 0.423f), new Vector2(0, 0), 30, -5)
             .InnerShadow((0, 0, 0, tDown * 0.375f), 20)
-            .LinearGradientColor((0x00000088, tUp), 0x00000000, Angle.Turns(0.25f))
-            .RadialGradientColor((0xF4A73AFF, tOn * tUp), (0xEF753DFF, tOn), 0, rect.Width * 0.5f)
-            .InnerShadow((0xA73317FF, tOn * tUp), 4, 0)
+            .LinearGradientColor((new Color(0x00000088u), tUp), new Color(0x00000000u), Angle.Turns(0.25f))
+            .RadialGradientColor((new Color(0xF4A73AFFu), tOn * tUp), (new Color(0xEF753DFFu), tOn), 0, rect.Width * 0.5f)
+            .InnerShadow((new Color(0xA73317FFu), tOn * tUp), 4, 0)
             .InnerShadow((1, 1, 1, 0.2f * tUp), new Vector2(0, +3), 2, -2)
             .InnerShadow((1, 1, 1, 0.2f * tDown), new Vector2(0, -3), 2, -2)
             .SolidColor((1, 1, 1, tHover * tUp * 0.05f))
-            .RadialGradientColor((0, 0, 0, tDown * 0.6f), 0x00000000, 0, rect.Width * 0.7f);
+            .RadialGradientColor((0, 0, 0, tDown * 0.6f), new Color(0x00000000u), 0, rect.Width * 0.7f);
 
-        Color textColor = 0xFDF5F2FF;
-        textColor = Color.Lerp(textColor, 0x130302FF, tOn);
-        textColor = Color.Lerp(textColor, 0xffffff44, tDown * (1 - tOn));
+        Color textColor = new Color(0xFDF5F2FFu);
+        textColor = Color.Lerp(textColor, new Color(0x130302FFu), tOn);
+        textColor = Color.Lerp(textColor, new Color(0xffffff44u), tDown * (1 - tOn));
         _gui.SetTextColor(textColor);
     }
 
@@ -1033,9 +1033,9 @@ public partial class Program
 
     void DrawVolumeBar(Rect r, float t)
     {
-        Color green = 0x39BE69FF;
-        Color yellow = 0xF0A948FF;
-        Color red = 0xF03E3EFF;
+        Color green = new Color(0x39BE69FFu);
+        Color yellow = new Color(0xF0A948FFu);
+        Color red = new Color(0xF03E3EFFu);
 
         // Adjust the method of drawing gradients to support vertical gradients
         VertexPlane q = _gui.DrawList.AddTriangulatedPlane(2, 4);
@@ -1082,28 +1082,28 @@ public partial class Program
 
         // Bg
         _gui.DrawShape(node, bgShape)
-            .LinearGradientColor(0x00000044, 0x00000044);
+            .LinearGradientColor(new Color(0x00000044u), new Color(0x00000044u));
 
         // Lane
         _gui.DrawRect(laneRect.Expand(1), 4)
-            .SolidColor(0x00000088)
-            .OuterShadow(0xffffff22, new Vector2(0, 1), 2);
+            .SolidColor(new Color(0x00000088u))
+            .OuterShadow(new Color(0xffffff22u), new Vector2(0, 1), 2);
 
         // Lane glow
         _gui.DrawRect(laneRect.AlignBottom(laneRect.Height * tHeight), 4)
             .SolidColor(color)
-            .InnerShadow(0x000000aa, new Vector2(0, 0), 8.2f, -2);
+            .InnerShadow(new Color(0x000000aau), new Vector2(0, 0), 8.2f, -2);
 
         // Handle
         _gui.DrawRect(handleRect, 3)
-            .LinearGradientColor(0xB9B1AFFF, 0x484443FF, Angle.Turns(-0.25f))
-            .OuterShadow(0x000000ff, new Vector2(0, 10), 30, 10)
-            .InnerShadow(0xffffff22, new Vector2(0, 1), 1, 1);
+            .LinearGradientColor(new Color(0xB9B1AFFFu), new Color(0x484443FFu), Angle.Turns(-0.25f))
+            .OuterShadow(new Color(0x000000ffu), new Vector2(0, 10), 30, 10)
+            .InnerShadow(new Color(0xffffff22u), new Vector2(0, 1), 1, 1);
 
         // Handle whole
         _gui.DrawRect(handleRect.AlignCenterY(8))
-            .OuterShadow(0xffffff22, new Vector2(0, 2), 1)
-            .LinearGradientColor(0xB9B1AFFF, 0x484443FF, Angle.Turns(+0.25f));
+            .OuterShadow(new Color(0xffffff22u), new Vector2(0, 2), 1)
+            .LinearGradientColor(new Color(0xB9B1AFFFu), new Color(0x484443FFu), Angle.Turns(+0.25f));
 
         // Input
         if (handleInteractable.OnHold() || sliderInteractable.OnHold())
@@ -1141,7 +1141,7 @@ public partial class Program
                 using (subTitleText = _gui.Node().Enter())
                 {
                     _gui.SetTextSize(15);
-                    _gui.SetTextColor(0xffffff44);
+                    _gui.SetTextColor(new Color(0xffffff44u));
                 }
             }
 
@@ -1173,12 +1173,12 @@ public partial class Program
         {
             ref float pressure = ref keyPressure[i];
 
-            var darkColor = Color.Lerp(0x00000044, 0x00000088, pressure);
+            var darkColor = Color.Lerp(new Color(0x00000044u), new Color(0x00000088u), pressure);
 
             _gui.DrawRect(majorKeyRect, 5)
-                .SolidColor(0xffffffff)
-                .InnerShadow(0x000000ff, 0.1f, 1)
-                .LinearGradientColor(0x00000000, darkColor, Angle.Turns(-0.25f), 0.5f);
+                .SolidColor(new Color(0xffffffffu))
+                .InnerShadow(new Color(0x000000ffu), 0.1f, 1)
+                .LinearGradientColor(new Color(0x00000000u), darkColor, Angle.Turns(-0.25f), 0.5f);
 
             // Simulate key release
             pressure = ImMath.Lerp(pressure, 0, _gui.Time.DeltaTime * 5);
@@ -1194,9 +1194,9 @@ public partial class Program
             ref float pressure = ref keyPressure[i + numMajorKeys];
 
             _gui.DrawRect(minorKeyRect, 0, 0, 3, 3)
-                .SolidColor(Color.Lerp(0x2A2A31FF, 0x757984FF, pressure))
-                .InnerShadow(0x00000088, 1f, 2)
-                .InnerShadow(0xffffff44, new Vector2(2, 0), 1f);
+                .SolidColor(Color.Lerp(new Color(0x2A2A31FFu), new Color(0x757984FFu), pressure))
+                .InnerShadow(new Color(0x00000088u), 1f, 2)
+                .InnerShadow(new Color(0xffffff44u), new Vector2(2, 0), 1f);
 
             // Simulate key release
             pressure = ImMath.Lerp(pressure, 0, _gui.Time.DeltaTime * 5);
@@ -1262,10 +1262,10 @@ public partial class Program
                     _gui.SetOpacity(tVisibility01);
                     _gui.SetTransform(Matrix3x2.CreateScale(scalePopupIn, _gui.ScreenRect.Center));
                     _gui.DrawBackgroundRect(radius: borderRadius)
-                        .RadialGradientColor(0x292423FF, 0x322D29FF, 0, _gui.CurrentNode.Rect.MaxDimension)
-                        .InnerShadow(0xffffff11, new Vector2(0, 40), 80, -40)
-                        .OuterShadow(0x000000ff, 20)
-                        .Stroke(0x000000ff, 1, 0);
+                        .RadialGradientColor(new Color(0x292423FFu), new Color(0x322D29FFu), 0, _gui.CurrentNode.Rect.MaxDimension)
+                        .InnerShadow(new Color(0xffffff11u), new Vector2(0, 40), 80, -40)
+                        .OuterShadow(new Color(0x000000ffu), 20)
+                        .Stroke(new Color(0x000000ffu), 1, 0);
                     using (_gui.Node()
                                .Margin(_gap)
                                .Direction(Axis.Horizontal)
@@ -1277,14 +1277,14 @@ public partial class Program
                     {
                         _gui.SetTextSize(20);
                         _gui.SetTextFont(_arialBold);
-                        _gui.SetTextColor(0xFFFFFFcc);
+                        _gui.SetTextColor(new Color(0xFFFFFFccu));
                         // Assigns the header container
                         popup.HeaderContainer = _gui.CurrentNode.ToScope();
                     }
 
                     // Draw separator line
                     _gui.DrawRect(_gui.Node(UnitValue.Expand(), 1), new Color(1, 1, 1, 0.1f));
-                    _gui.SetTextColor(0xffffff88);
+                    _gui.SetTextColor(new Color(0xffffff88u));
                     // Assigns the body container
                     popup.BodyContainer = _gui.Node()
                         .Margin(_gap)
@@ -1345,12 +1345,12 @@ public partial class Program
                                      + Shape.EquilateralTriangle(20, Angle.Turns(0.25f))
                                          .Move(rect.Width * 0.5f, 0);
                 _gui.SetTextSize(16);
-                _gui.SetTextColor(0xffffffcc);
+                _gui.SetTextColor(new Color(0xffffffccu));
                 _gui.SetZIndex(10);
                 _gui.DrawShape(_gui.CurrentNode, tooltipBgShape)
-                    .SolidColor(0x00000099)
-                    .OuterShadow(0x00000055, new Vector2(5, 8), 5)
-                    .InnerShadow(0xffffff22, new Vector2(0, 1), 1.2f);
+                    .SolidColor(new Color(0x00000099u))
+                    .OuterShadow(new Color(0x00000055u), new Vector2(5, 8), 5)
+                    .InnerShadow(new Color(0xffffff22u), new Vector2(0, 1), 1.2f);
                 _gui.DrawText(text);
             }
 

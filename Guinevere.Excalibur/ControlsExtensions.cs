@@ -2,9 +2,9 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    static readonly Color DisabledFill = Color.FromArgb(255, 245, 246, 247);
-    static readonly Color DisabledBorder = Color.FromArgb(255, 208, 210, 214);
-    static readonly Color DisabledText = Color.FromArgb(255, 160, 162, 167);
+    // static readonly Color DisabledFill = Color.FromArgb(255, 245, 246, 247);
+    // static readonly Color DisabledBorder = Color.FromArgb(255, 208, 210, 214);
+    // static readonly Color DisabledText = Color.FromArgb(255, 160, 162, 167);
 
     /// <summary>
     /// Creates a button that returns the clicked state without modifying the input
@@ -80,9 +80,9 @@ public static partial class ControlsExtensions
 
             if (!enabled)
             {
-                gui.DrawBackgroundRect(DisabledFill, radius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, DisabledBorder, 1f, radius);
-                RenderCenteredText(gui, text, fontSizeEffective, DisabledText);
+                gui.DrawBackgroundRect(gui.Controls.Surface, radius);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.Controls.Border, 1f, radius);
+                RenderCenteredText(gui, text, fontSizeEffective, gui.Controls.TextDisabled);
                 return false;
             }
 
@@ -98,8 +98,8 @@ public static partial class ControlsExtensions
             {
                 var rect = gui.CurrentNode.Rect;
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, Color.FromArgb(128, 100, 149, 237), 4f, radius + 4); // subtle glow
-                gui.DrawRectBorder(rect, Color.FromArgb(255, 100, 149, 237), 2f, radius + 2); // strong blue border
+                gui.DrawRectBorder(focusRect, gui.Controls.AccentSubtle, 4f, radius + 4); // subtle glow
+                gui.DrawRectBorder(rect, gui.Controls.AccentHover, 2f, radius + 2); // strong blue border
             }
 
             // Keyboard activation (Space/Enter)
@@ -130,9 +130,9 @@ public static partial class ControlsExtensions
 
             if (!enabled)
             {
-                gui.DrawBackgroundRect(DisabledFill, radius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, DisabledBorder, 1f, radius);
-                RenderCenteredText(gui, icon, fontSizeEffective, DisabledText);
+                gui.DrawBackgroundRect(gui.Controls.Surface, radius);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.Controls.Border, 1f, radius);
+                RenderCenteredText(gui, icon, fontSizeEffective, gui.Controls.TextDisabled);
                 return false;
             }
 
@@ -148,8 +148,8 @@ public static partial class ControlsExtensions
             {
                 var rect = gui.CurrentNode.Rect;
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, Color.FromArgb(128, 100, 149, 237), 4f, radius + 4); // subtle glow
-                gui.DrawRectBorder(rect, Color.FromArgb(255, 100, 149, 237), 2f, radius + 2); // strong blue border
+                gui.DrawRectBorder(focusRect, gui.Controls.AccentSubtle, 4f, radius + 4); // subtle glow
+                gui.DrawRectBorder(rect, gui.Controls.AccentHover, 2f, radius + 2); // strong blue border
             }
 
             // Keyboard activation (Space/Enter)
@@ -206,7 +206,7 @@ public static partial class ControlsExtensions
     static void RenderButtonBackground(Gui gui, InteractableElement interactable,
         Color? backgroundColor, Color? hoverColor, Color? pressedColor, float radius)
     {
-        var buttonColor = GetButtonBackgroundColor(interactable, backgroundColor, hoverColor, pressedColor);
+        var buttonColor = GetButtonBackgroundColor(gui, interactable, backgroundColor, hoverColor, pressedColor);
         gui.DrawBackgroundRect(buttonColor, radius);
     }
 
@@ -215,7 +215,7 @@ public static partial class ControlsExtensions
     {
         if (!ShouldDrawIconButtonBackground(interactable, backgroundColor)) return;
 
-        var buttonColor = GetButtonBackgroundColor(interactable, backgroundColor, hoverColor, pressedColor);
+        var buttonColor = GetButtonBackgroundColor(gui, interactable, backgroundColor, hoverColor, pressedColor);
         gui.DrawBackgroundRect(buttonColor, radius);
     }
 
@@ -226,7 +226,7 @@ public static partial class ControlsExtensions
             return;
 
         var rect = gui.CurrentNode.Rect;
-        var borderColorFinal = GetButtonBorderColor(interactable, borderColor, pressedBorderColor);
+        var borderColorFinal = GetButtonBorderColor(gui, interactable, borderColor, pressedBorderColor);
         gui.DrawRectBorder(rect.Position, rect.Size, borderColorFinal, 1f, 4f);
     }
 
@@ -267,22 +267,22 @@ public static partial class ControlsExtensions
     }
 
     // Color calculation helpers
-    static Color GetButtonBackgroundColor(InteractableElement interactable,
+    static Color GetButtonBackgroundColor(Gui gui, InteractableElement interactable,
         Color? backgroundColor, Color? hoverColor, Color? pressedColor)
     {
         if (interactable.OnClick() && pressedColor.HasValue)
             return pressedColor.Value;
         if (interactable.OnHover() && hoverColor.HasValue)
             return hoverColor.Value;
-        return backgroundColor ?? Color.FromArgb(255, 100, 149, 237);
+        return backgroundColor ?? gui.Controls.Surface;
     }
 
-    static Color GetButtonBorderColor(InteractableElement interactable,
+    static Color GetButtonBorderColor(Gui gui, InteractableElement interactable,
         Color? borderColor, Color? pressedBorderColor)
     {
         if (interactable.OnClick())
-            return pressedBorderColor ?? Color.FromArgb(255, 60, 109, 197);
-        return borderColor ?? Color.FromArgb(255, 120, 169, 255);
+            return pressedBorderColor ?? gui.Controls.BorderActive;
+        return borderColor ?? gui.Controls.Border;
     }
 
     static bool ShouldDrawIconButtonBackground(InteractableElement interactable,

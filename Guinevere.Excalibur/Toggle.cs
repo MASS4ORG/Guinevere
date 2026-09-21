@@ -96,7 +96,7 @@ public static partial class ControlsExtensions
             if (gui.Pass != Pass.Pass2Render) return;
 
             var rect = gui.CurrentNode.Rect;
-            var trackColor = enabled ? GetToggleTrackColor(gui, isOn, onColor, offColor) : DisabledBorder;
+            var trackColor = enabled ? GetToggleTrackColor(gui, isOn, onColor, offColor) : gui.Controls.Border;
 
             gui.DrawBackgroundRect(trackColor, height * 0.5f);
 
@@ -109,7 +109,7 @@ public static partial class ControlsExtensions
             }
 
             var thumbProps = CalculateThumbProperties(rect, width, height, isOn);
-            DrawToggleThumb(gui, thumbProps, enabled ? thumbColor ?? gui.Controls.Knob : DisabledText);
+            DrawToggleThumb(gui, thumbProps, enabled ? thumbColor ?? gui.Controls.TextOnAccent : gui.Controls.TextDisabled);
         }
     }
 
@@ -118,7 +118,7 @@ public static partial class ControlsExtensions
     {
         if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = enabled ? labelColor ?? gui.Controls.Text : DisabledText;
+            var labelColorFinal = enabled ? labelColor ?? gui.Controls.Text : gui.Controls.TextDisabled;
             gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
         }
     }

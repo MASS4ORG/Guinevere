@@ -1,26 +1,43 @@
 namespace Guinevere;
 
 /// <summary>
-/// Fallback colors the built-in controls use when a call does not name its own. Set
-/// <see cref="Gui.Controls"/> once at startup and every checkbox, toggle, dropdown and text field
-/// follows, instead of each caller repeating a palette.
+/// Unified fallback colors for built-in controls combining semantic design tokens
+/// and component-specific overrides.
 /// </summary>
 public sealed class ControlPalette
 {
+    /// <summary>The lowest level background (app window, main canvas).</summary>
+    public Color BaseBackground { get; init; } = Color.FromArgb(255, 248, 248, 248);
+
     /// <summary>Fill of an input, a dropdown button or an unchecked box.</summary>
     public Color Surface { get; init; } = Color.White;
 
     /// <summary>Fill of a surface under the pointer.</summary>
     public Color SurfaceHover { get; init; } = Color.FromArgb(255, 248, 248, 248);
 
-    /// <summary>Fill of a list or popup opened by a control.</summary>
+    /// <summary>Fill of an active or pressed surface.</summary>
+    public Color SurfaceActive { get; init; } = Color.FromArgb(255, 240, 240, 240);
+
+    /// <summary>Fill of a list or popup opened by a control. Often elevated.</summary>
     public Color Popup { get; init; } = Color.White;
 
     /// <summary>Outline of a control at rest.</summary>
     public Color Border { get; init; } = Color.Gray;
 
-    /// <summary>Outline and ring of a focused control.</summary>
+    /// <summary>Outline of a focused or hovered control.</summary>
+    public Color BorderActive { get; init; } = Color.DarkGray;
+
+    /// <summary>Subtle lines separating list items or sections.</summary>
+    public Color Divider { get; init; } = Color.FromArgb(255, 224, 224, 224);
+
+    /// <summary>Outline and ring of a focused control, and main brand color.</summary>
     public Color Accent { get; init; } = Color.FromArgb(255, 100, 149, 237);
+
+    /// <summary>Hover state for primary interactive elements.</summary>
+    public Color AccentHover { get; init; } = Color.FromArgb(255, 80, 129, 217);
+
+    /// <summary>Light background tint for active states or selections.</summary>
+    public Color AccentSubtle { get; init; } = Color.FromArgb(255, 231, 241, 255);
 
     /// <summary>Main text.</summary>
     public Color Text { get; init; } = Color.Black;
@@ -28,11 +45,14 @@ public sealed class ControlPalette
     /// <summary>Placeholder and secondary text.</summary>
     public Color TextDim { get; init; } = Color.Gray;
 
+    /// <summary>Text for inactive form fields and disabled buttons.</summary>
+    public Color TextDisabled { get; init; } = Color.FromArgb(255, 173, 181, 189);
+
+    /// <summary>Text that sits on top of the primary accent color.</summary>
+    public Color TextOnAccent { get; init; } = Color.White;
+
     /// <summary>Fill of a checked box, an on toggle or a selected row.</summary>
     public Color Selected { get; init; } = Color.FromArgb(255, 100, 149, 237);
-
-    /// <summary>The knob of a toggle and the tick of a checkbox.</summary>
-    public Color Knob { get; init; } = Color.White;
 
     /// <summary>Outline of a control that would accept what is being dragged over it.</summary>
     public Color Positive { get; init; } = Color.FromArgb(255, 60, 158, 94);
@@ -40,46 +60,90 @@ public sealed class ControlPalette
     /// <summary>Outline of a control that would refuse what is being dragged over it.</summary>
     public Color Negative { get; init; } = Color.FromArgb(255, 200, 84, 84);
 
-    /// <summary>The groove a progress bar fills.</summary>
-    public Color ProgressTrack { get; init; } = Color.FromArgb(255, 224, 224, 224);
+    /// <summary>Alerts, non-blocking errors, pending states.</summary>
+    public Color Warning { get; init; } = Color.FromArgb(255, 245, 158, 11);
 
-    /// <summary>The filled part of a progress bar.</summary>
-    public Color ProgressFill { get; init; } = Color.FromArgb(255, 100, 149, 237);
+    /// <summary>Neutral informational highlights and badges.</summary>
+    public Color Info { get; init; } = Color.FromArgb(255, 13, 202, 240);
 
-    /// <summary>The groove a scrollbar thumb runs in. Opaque, so content does not read through it.</summary>
-    public Color ScrollbarTrack { get; init; } = Color.FromArgb(255, 232, 232, 232);
-
-    /// <summary>The scrollbar thumb at rest.</summary>
-    public Color ScrollbarThumb { get; init; } = Color.FromArgb(255, 176, 176, 176);
-
-    /// <summary>The scrollbar thumb under the pointer.</summary>
-    public Color ScrollbarThumbHover { get; init; } = Color.FromArgb(255, 150, 150, 150);
-
-    /// <summary>The scrollbar thumb while dragged.</summary>
-    public Color ScrollbarThumbActive { get; init; } = Color.FromArgb(255, 120, 120, 120);
-
+    // ------------------------------------------------------------------------
+    // 1. Light (Original Defaults Maintained)
+    // ------------------------------------------------------------------------
     /// <summary>The default light palette, matching the built-in controls' historical colors.</summary>
     public static ControlPalette Light { get; } = new();
 
+    // ------------------------------------------------------------------------
+    // 2. Dark (Original Colors Restored)
+    // ------------------------------------------------------------------------
     /// <summary>A dark palette for editor-style hosts.</summary>
     public static ControlPalette Dark { get; } = new()
     {
+        BaseBackground = Color.FromArgb(255, 24, 27, 32),
         Surface = Color.FromArgb(255, 28, 31, 37),
         SurfaceHover = Color.FromArgb(255, 38, 42, 50),
+        SurfaceActive = Color.FromArgb(255, 51, 56, 66),
         Popup = Color.FromArgb(255, 32, 36, 43),
         Border = Color.FromArgb(255, 51, 56, 66),
+        BorderActive = Color.FromArgb(255, 78, 85, 98),
+        Divider = Color.FromArgb(255, 60, 66, 78),
         Accent = Color.FromArgb(255, 84, 143, 224),
+        AccentHover = Color.FromArgb(255, 104, 163, 244),
+        AccentSubtle = Color.FromArgb(255, 38, 42, 50),
         Text = Color.FromArgb(255, 215, 218, 224),
         TextDim = Color.FromArgb(255, 139, 146, 156),
+        TextDisabled = Color.FromArgb(255, 96, 104, 118),
         Selected = Color.FromArgb(255, 84, 143, 224),
         Positive = Color.FromArgb(255, 88, 176, 116),
-        Negative = Color.FromArgb(255, 208, 102, 102),
-        Knob = Color.FromArgb(255, 226, 229, 234),
-        ProgressTrack = Color.FromArgb(255, 60, 66, 78),
-        ProgressFill = Color.FromArgb(255, 84, 143, 224),
-        ScrollbarTrack = Color.FromArgb(255, 24, 27, 32),
-        ScrollbarThumb = Color.FromArgb(255, 62, 68, 79),
-        ScrollbarThumbHover = Color.FromArgb(255, 78, 85, 98),
-        ScrollbarThumbActive = Color.FromArgb(255, 96, 104, 118)
+        Negative = Color.FromArgb(255, 208, 102, 102)
+    };
+
+    // ------------------------------------------------------------------------
+    // 3. Mono Light (VS Code / GitHub Light style)
+    // ------------------------------------------------------------------------
+    public static ControlPalette MonoLight { get; } = new()
+    {
+        BaseBackground = Color.FromArgb(255, 244, 244, 246),
+        Surface = Color.FromArgb(255, 255, 255, 255),
+        SurfaceHover = Color.FromArgb(255, 234, 236, 239),
+        SurfaceActive = Color.FromArgb(255, 225, 228, 232),
+        Popup = Color.FromArgb(255, 255, 255, 255),
+        Border = Color.FromArgb(255, 208, 215, 222),
+        BorderActive = Color.FromArgb(255, 140, 149, 159),
+        Divider = Color.FromArgb(255, 235, 239, 239),
+        Accent = Color.FromArgb(255, 36, 41, 47),
+        AccentHover = Color.FromArgb(255, 50, 56, 62),
+        AccentSubtle = Color.FromArgb(255, 234, 236, 239),
+        Text = Color.FromArgb(255, 31, 35, 40),
+        TextDim = Color.FromArgb(255, 101, 109, 118),
+        TextDisabled = Color.FromArgb(255, 140, 149, 159),
+        TextOnAccent = Color.FromArgb(255, 255, 255, 255),
+        Selected = Color.FromArgb(255, 225, 228, 232),
+        Positive = Color.FromArgb(255, 26, 127, 55),
+        Negative = Color.FromArgb(255, 207, 34, 46)
+    };
+
+    // ------------------------------------------------------------------------
+    // 4. Mono Dark (Zed / Atom style)
+    // ------------------------------------------------------------------------
+    public static ControlPalette MonoDark { get; } = new()
+    {
+        BaseBackground = Color.FromArgb(255, 24, 26, 31),
+        Surface = Color.FromArgb(255, 30, 34, 42),
+        SurfaceHover = Color.FromArgb(255, 37, 43, 53),
+        SurfaceActive = Color.FromArgb(255, 44, 50, 61),
+        Popup = Color.FromArgb(255, 37, 43, 53),
+        Border = Color.FromArgb(255, 45, 51, 63),
+        BorderActive = Color.FromArgb(255, 76, 86, 106),
+        Divider = Color.FromArgb(255, 35, 39, 49),
+        Accent = Color.FromArgb(255, 157, 165, 180),
+        AccentHover = Color.FromArgb(255, 187, 195, 210),
+        AccentSubtle = Color.FromArgb(255, 40, 46, 57),
+        Text = Color.FromArgb(255, 215, 218, 224),
+        TextDim = Color.FromArgb(255, 111, 120, 138),
+        TextDisabled = Color.FromArgb(255, 75, 82, 99),
+        TextOnAccent = Color.FromArgb(255, 215, 218, 224),
+        Selected = Color.FromArgb(255, 40, 46, 57),
+        Positive = Color.FromArgb(255, 80, 161, 79),
+        Negative = Color.FromArgb(255, 224, 108, 117)
     };
 }

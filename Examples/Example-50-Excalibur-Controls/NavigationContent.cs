@@ -12,15 +12,6 @@ public abstract partial class Program
 
     static readonly TreeViewState FileTreeState = new() { DefaultExpandedDepth = 1 };
 
-    static readonly TreeViewTheme LightTreeTheme = new()
-    {
-        RowHeight = 22f,
-        Ink = Color.FromArgb(255, 51, 51, 51),
-        InkDim = Color.FromArgb(255, 102, 102, 102),
-        Hover = Color.FromArgb(255, 238, 242, 250),
-        Selected = Color.FromArgb(255, 203, 219, 252)
-    };
-
     static string _treeStatus = "Click a row — double-click a folder or use the arrow keys to open it";
 
     static string _treeCrumbStatus = "Select a row; the trail then shows its path. Click a crumb to jump there.";
@@ -167,8 +158,7 @@ public abstract partial class Program
             {
                 using (gui.Node(270).Enter())
                 {
-                    gui.DrawBackgroundRect(Color.FromArgb(255, 248, 249, 250), radius: 8);
-                    gui.TreeView(FileTreeState, FileTree(), LightTreeTheme, OnTreeClick);
+                    gui.TreeView(FileTreeState, FileTree(), onClick: OnTreeClick);
                 }
 
                 using (gui.Node().Expand().Padding(8).Direction(Axis.Vertical).Gap(10).Enter())

@@ -50,7 +50,7 @@ public partial class Program
             new()
             {
                 Name = "Piano",
-                Color = 0xF0A948FF,
+                Color = new Color(0xF0A948FFu),
                 Volume = (float)rnd.NextDouble(),
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
@@ -61,7 +61,7 @@ public partial class Program
             new()
             {
                 Name = "Bass",
-                Color = 0x3BBE69FF,
+                Color = new Color(0x3BBE69FFu),
                 Volume = (float)rnd.NextDouble(),
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
@@ -72,7 +72,7 @@ public partial class Program
             new()
             {
                 Name = "Drums",
-                Color = 0x3961E6FF,
+                Color = new Color(0x3961E6FFu),
                 Volume = (float)rnd.NextDouble(),
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
@@ -83,7 +83,7 @@ public partial class Program
             new()
             {
                 Name = "Guitar",
-                Color = 0x8F59E2FF,
+                Color = new Color(0x8F59E2FFu),
                 Volume = (float)rnd.NextDouble(),
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),
@@ -94,7 +94,7 @@ public partial class Program
             new()
             {
                 Name = "Synth",
-                Color = 0xE673C4FF,
+                Color = new Color(0xE673C4FFu),
                 Volume = (float)rnd.NextDouble(),
                 Effects = GenerateEffects(),
                 KeyStart = rnd.Next(0, 20),

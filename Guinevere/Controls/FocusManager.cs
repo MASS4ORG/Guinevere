@@ -381,10 +381,9 @@ public class FocusManager
         return parents;
     }
 
-    List<string> GetNavigableIds() => _frameControlOrder
+    List<string> GetNavigableIds() => [.. _frameControlOrder
         .Where(id => _focusableControls.TryGetValue(id, out var control) && control.CanReceiveFocus
-            && (ActiveScopeId is null || control.ScopeId == ActiveScopeId))
-        .ToList();
+            && (ActiveScopeId is null || control.ScopeId == ActiveScopeId))];
 
     static bool IsInDirection(Vector2 delta, FocusDirection direction) => direction switch
     {

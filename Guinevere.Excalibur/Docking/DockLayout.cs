@@ -50,8 +50,8 @@ public sealed class DockLayout
                 yield return leaf;
 
         foreach (var window in Floating)
-        foreach (var leaf in window.Root.Leaves())
-            yield return leaf;
+            foreach (var leaf in window.Root.Leaves())
+                yield return leaf;
     }
 
     /// <summary>
@@ -318,17 +318,17 @@ public sealed class DockLayout
             case DockLeaf leaf:
                 return leaf.PanelIds.Count == 0 ? null : leaf;
             case DockSplit split:
-            {
-                var first = Prune(split.First);
-                var second = Prune(split.Second);
+                {
+                    var first = Prune(split.First);
+                    var second = Prune(split.Second);
 
-                if (first is null) return second;
-                if (second is null) return first;
+                    if (first is null) return second;
+                    if (second is null) return first;
 
-                split.First = first;
-                split.Second = second;
-                return split;
-            }
+                    split.First = first;
+                    split.Second = second;
+                    return split;
+                }
             default:
                 return node;
         }

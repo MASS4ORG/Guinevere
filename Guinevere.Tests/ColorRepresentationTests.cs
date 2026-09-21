@@ -74,4 +74,25 @@ public class ColorRepresentationTests
         object boxed = Color.Red;
         Assert.True(boxed.Equals(Color.Red));
     }
+
+    [Fact]
+    public void PackedIntegerRequiresExplicitConstruction()
+    {
+        var color = new Color(0x12345678u);
+        Assert.Equal(((byte)0x12, (byte)0x34, (byte)0x56, (byte)0x78), (color.R, color.G, color.B, color.A));
+
+        var integerConversions = typeof(Color).GetMethods()
+            .Where(method => method.Name == "op_Implicit")
+            .Where(method => method.GetParameters()[0].ParameterType is { } type
+                             && (type == typeof(int) || type == typeof(uint)));
+        Assert.Empty(integerConversions);
+    }
+
+    [Fact]
+    public void LerpRoundsChannelMidpoints()
+    {
+        var midpoint = Color.Lerp(Color.FromArgb(0, 0, 0, 0), Color.FromArgb(255, 255, 255, 255), 0.5f);
+        Assert.Equal(((byte)128, (byte)128, (byte)128, (byte)128),
+            (midpoint.R, midpoint.G, midpoint.B, midpoint.A));
+    }
 }

@@ -250,8 +250,8 @@ public static partial class ControlsExtensions
 
                 var interactable = gui.GetInteractable();
 
-                if (isSelected) gui.DrawBackgroundRect(theme.Selected, 2);
-                else if (interactable.OnHover()) gui.DrawBackgroundRect(theme.Hover, 2);
+                if (isSelected) gui.DrawBackgroundRect(gui.Controls.Selected, 2);
+                else if (interactable.OnHover()) gui.DrawBackgroundRect(gui.Controls.AccentSubtle, 2);
 
                 if (!isEditing)
                 {
@@ -270,7 +270,7 @@ public static partial class ControlsExtensions
             if (isEditing) RenameBox(gui, state, theme, item, onRename!);
             else
                 gui.DrawText(item.Label, theme.FontSize,
-                    item.Tint ?? (isSelected ? theme.Ink : theme.InkDim), centerInRect: false);
+                    item.Tint ?? (isSelected ? gui.Controls.Text : gui.Controls.TextDisabled), centerInRect: false);
         }
     }
 
@@ -309,8 +309,8 @@ public static partial class ControlsExtensions
     {
         using (gui.Node(-1, theme.RowHeight).Padding(6, 0).ContentAlignY(0.5f).Enter())
         {
-            gui.DrawBackgroundRect(theme.Selected, 3);
-            gui.DrawText(item.Label, theme.FontSize, theme.Ink, centerInRect: false);
+            gui.DrawBackgroundRect(gui.Controls.Selected, 3);
+            gui.DrawText(item.Label, theme.FontSize, gui.Controls.Text, centerInRect: false);
         }
     }
 
@@ -345,7 +345,7 @@ public static partial class ControlsExtensions
             var hot = gui.Pass == Pass.Pass2Render && interactable.OnHover();
 
             gui.DrawText(state.IsCollapsed(item.Id, item.Depth) ? "▶" : "▼", theme.FontSize * 0.7f,
-                hot ? theme.Ink : theme.InkDim);
+                hot ? gui.Controls.Text : gui.Controls.TextDisabled);
 
             if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) state.Toggle(item.Id, item.Depth);
         }
