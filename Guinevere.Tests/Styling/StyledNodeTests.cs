@@ -92,6 +92,24 @@ public class StyledNodeTests
         Assert.True(At(hot, Size / 2, Size / 2).B > 180, "hover should be blue");
     }
 
+    /// <summary>Styled-node scopes automatically provide ancestry and semantic modifiers.</summary>
+    [Fact]
+    public void NestedRuleAndCustomModifier_ApplyThroughStyledHierarchy()
+    {
+        var px = RenderFrame("""
+            Panel {
+                flex-grow: 1;
+                > Button:checked { flex-grow: 1; background-color: #00ff00; }
+            }
+            """, MouseAt(-100, -100), gui =>
+            {
+                using (gui.StyledNode("Panel").Enter())
+                using (gui.StyledNode("Button", modifiers: ["checked"]).Enter()) { }
+            });
+
+        Assert.True(At(px, Size / 2, Size / 2).G > 200);
+    }
+
     /// <summary>With no stylesheet a styled node behaves like a plain node.</summary>
     [Fact]
     public void NoStyleSheet_IsHarmless()
