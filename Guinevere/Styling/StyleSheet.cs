@@ -24,18 +24,28 @@ public sealed class StyleRule
 public sealed class StyleSheet
 {
     static readonly Regex CommentPattern = new(@"/\*.*?\*/", RegexOptions.Singleline | RegexOptions.Compiled);
+    static readonly Regex LineCommentPattern = new(@"//.*$", RegexOptions.Multiline | RegexOptions.Compiled);
     static readonly Regex VarPattern = new(@"var\(\s*(--[A-Za-z0-9_-]+)\s*\)", RegexOptions.Compiled);
+    static readonly Regex DollarVarPattern = new(@"\$([A-Za-z_][A-Za-z0-9_-]*)", RegexOptions.Compiled);
+    static readonly Regex ConstPattern = new(@"@const\s+([A-Za-z_][A-Za-z0-9_-]*)\s*=\s*([^;]+);",
+        RegexOptions.Compiled);
+    static readonly Regex InheritPattern = new(
+        @"^(?<child>[A-Za-z_][A-Za-z0-9_-]*)\s+#inherit\((?<parents>[^)]*)\)$", RegexOptions.Compiled);
 
     /// <summary>The stylesheet's rules, in source order.</summary>
     public IReadOnlyList<StyleRule> Rules { get; }
 
     /// <summary>Custom-property variables declared at the top level (<c>--name: value;</c>).</summary>
     public IReadOnlyDictionary<string, string> Variables { get; }
+    /// <summary>Selector aliases declared with PanGui-compatible <c>#inherit(...)</c>.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> Inheritance { get; }
 
-    StyleSheet(IReadOnlyList<StyleRule> rules, IReadOnlyDictionary<string, string> variables)
+    StyleSheet(IReadOnlyList<StyleRule> rules, IReadOnlyDictionary<string, string> variables,
+        IReadOnlyDictionary<string, IReadOnlyList<string>> inheritance)
     {
         Rules = rules;
         Variables = variables;
+        Inheritance = inheritance;
     }
 
     /// <summary>Parses <c>.uss</c> text into a stylesheet.</summary>
@@ -44,23 +54,36 @@ public sealed class StyleSheet
     public static StyleSheet Parse(string css)
     {
         ArgumentNullException.ThrowIfNull(css);
-        var text = CommentPattern.Replace(css, string.Empty);
+        var text = LineCommentPattern.Replace(CommentPattern.Replace(css, string.Empty), string.Empty);
+        var constants = new Dictionary<string, string>(StringComparer.Ordinal);
+        text = ConstPattern.Replace(text, match =>
+        {
+            constants[match.Groups[1].Value] = match.Groups[2].Value.Trim();
+            return string.Empty;
+        });
+        foreach (var (name, value) in constants)
+            text = Regex.Replace(text, $@"@{Regex.Escape(name)}\b", value);
         var rules = new List<StyleRule>();
         var variables = new Dictionary<string, string>(StringComparer.Ordinal);
+        var inheritance = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
         var order = 0;
         var i = 0;
         while (i < text.Length)
         {
             while (i < text.Length && (char.IsWhiteSpace(text[i]) || text[i] == ';')) i++;
             if (i >= text.Length) break;
-            if (text[i] == '-' && i + 1 < text.Length && text[i + 1] == '-')
+            if (text[i] == '$' || text[i] == '-' && i + 1 < text.Length && text[i + 1] == '-')
             {
                 var semi = text.IndexOf(';', i);
                 var end = semi < 0 ? text.Length : semi;
                 var decl = text[i..end];
-                var colon = decl.IndexOf(':');
-                if (colon > 0)
-                    variables[decl[..colon].Trim()] = decl[(colon + 1)..].Trim();
+                var separator = DeclarationSeparator(decl);
+                if (separator > 0)
+                {
+                    var name = decl[..separator].Trim();
+                    if (name[0] == '$') name = $"--{name[1..]}";
+                    variables[name] = decl[(separator + 1)..].Trim();
+                }
                 i = end + 1;
                 continue;
             }
@@ -68,11 +91,19 @@ public sealed class StyleSheet
             if (brace < 0) throw Error(text, i, "Expected a rule block");
             var selectorText = text[i..brace].Trim();
             if (selectorText.Length == 0) throw Error(text, i, "Missing selector");
+            var inherit = InheritPattern.Match(selectorText);
+            if (inherit.Success)
+            {
+                selectorText = inherit.Groups["child"].Value;
+                inheritance[selectorText] = inherit.Groups["parents"].Value
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            }
             var selectors = SplitSelectors(selectorText);
             i = brace + 1;
             ParseBlock(text, ref i, selectors, rules, ref order);
         }
-        return new StyleSheet(rules, variables);
+        ValidateInheritance(inheritance);
+        return new StyleSheet(rules, variables, inheritance);
     }
 
     static void ParseBlock(string text, ref int i, string[] selectorTexts, List<StyleRule> rules, ref int order)
@@ -102,9 +133,11 @@ public sealed class StyleSheet
             var end = semi >= 0 && (close < 0 || semi < close) ? semi : close;
             if (end < 0) throw Error(text, i, "Unterminated declaration");
             var declaration = text[i..end].Trim();
-            var colon = declaration.IndexOf(':');
-            if (colon <= 0) throw Error(text, i, $"Malformed declaration '{declaration}'");
-            declarations[declaration[..colon].Trim()] = declaration[(colon + 1)..].Trim();
+            var separator = DeclarationSeparator(declaration);
+            if (separator <= 0) throw Error(text, i, $"Malformed declaration '{declaration}'");
+            var property = declaration[..separator].Trim();
+            if (property[0] == '$') property = $"--{property[1..]}";
+            declarations[property] = declaration[(separator + 1)..].Trim();
             i = end + (end == close ? 0 : 1);
         }
 
@@ -123,7 +156,16 @@ public sealed class StyleSheet
     static string Combine(string parent, string child)
     {
         if (child.Contains('&', StringComparison.Ordinal)) return child.Replace("&", parent, StringComparison.Ordinal);
+        if (child.StartsWith(':')) return $"{parent}{child}";
         return child.StartsWith('>') ? $"{parent} {child}" : $"{parent} {child}";
+    }
+
+    static int DeclarationSeparator(string text)
+    {
+        var equals = text.IndexOf('=');
+        var colon = text.IndexOf(':');
+        if (equals < 0) return colon;
+        return colon < 0 ? equals : Math.Min(equals, colon);
     }
 
     static FormatException Error(string text, int offset, string message)
@@ -135,10 +177,33 @@ public sealed class StyleSheet
         return new FormatException($"{message} at line {line}, column {column}");
     }
 
+    static void ValidateInheritance(IReadOnlyDictionary<string, IReadOnlyList<string>> inheritance)
+    {
+        var visiting = new HashSet<string>(StringComparer.Ordinal);
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var child in inheritance.Keys) Visit(child);
+        return;
+
+        void Visit(string child)
+        {
+            if (visited.Contains(child)) return;
+            if (!visiting.Add(child)) throw new FormatException($"Cyclic style inheritance involving '{child}'");
+            if (inheritance.TryGetValue(child, out var parents))
+                foreach (var parent in parents) Visit(parent);
+            visiting.Remove(child);
+            visited.Add(child);
+        }
+    }
+
     /// <summary>Substitutes <c>var(--name)</c> references in <paramref name="value"/> using this sheet's variables.</summary>
     /// <param name="value">A declaration value that may contain <c>var(…)</c>.</param>
-    public string ExpandVariables(string value) =>
-        !value.Contains("var(", StringComparison.Ordinal)
-            ? value
-            : VarPattern.Replace(value, m => Variables.TryGetValue(m.Groups[1].Value, out var v) ? v : m.Value);
+    /// <param name="scoped">Optional rule or call-site variables that override globals.</param>
+    public string ExpandVariables(string value, IReadOnlyDictionary<string, string>? scoped = null)
+    {
+        var expanded = VarPattern.Replace(value, m => Lookup(m.Groups[1].Value, scoped) ?? m.Value);
+        return DollarVarPattern.Replace(expanded, m => Lookup($"--{m.Groups[1].Value}", scoped) ?? m.Value);
+    }
+
+    string? Lookup(string name, IReadOnlyDictionary<string, string>? scoped) =>
+        scoped?.GetValueOrDefault(name) ?? Variables.GetValueOrDefault(name);
 }

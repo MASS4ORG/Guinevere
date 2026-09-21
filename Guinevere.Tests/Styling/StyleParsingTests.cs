@@ -143,6 +143,29 @@ public class StyleParsingTests
             new StyleTarget("Panel", null, ["panel"], StyleState.Disabled)).Get("opacity"));
     }
 
+    /// <summary>PanGui assignment, variable, transition annotation and constant forms remain source-compatible.</summary>
+    [Fact]
+    public void Sheet_Parse_PanGuiCompatibleScalarSyntax()
+    {
+        var sheet = StyleSheet.Parse("""
+            @const spacing = 12;
+            $accent = #4a90e2;
+            toggle {
+                // PanGui line comments are accepted.
+                padding = @spacing;
+                $opacity = 0.5;
+                color = $accent;
+                :enabled(0.15 ease-in-out-sine) { opacity = $opacity; }
+            }
+            """);
+        var target = new StyleTarget("toggle", null, [], Modifiers: ["enabled"]);
+        var style = StyleResolver.Resolve([sheet], target);
+
+        Assert.Equal("12", style.Get("padding"));
+        Assert.Equal("#4a90e2", style.Get("color"));
+        Assert.Equal("0.5", style.Get("opacity"));
+    }
+
     /// <summary>
     /// Verifies that an unterminated rule throws a format exception.
     /// </summary>

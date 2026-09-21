@@ -221,7 +221,7 @@ MIT License - see the project repository for full license details.
             "Example-03-Texts" => "Text rendering and typography examples",
             "Example-05-SingleNodeExpandMargin" => "Layout margin and expansion demo",
             "Example-41-AdvancedLayoutDemo" => "Advanced layout system features",
-            "Example-10-ResponsiveLayout" => "Responsive design examples",
+            "Example-06-ResponsiveLayout" => "Responsive design examples",
             "Example-43-AnimatedLayoutDemo" => "Layout animations and transitions",
             "Example-50-Excalibur-Controls" => "Basic UI controls demonstration",
             "Example-75-PaperUI-Dashboard" => "Material Design style dashboard",

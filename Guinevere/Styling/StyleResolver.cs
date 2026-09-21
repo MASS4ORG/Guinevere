@@ -1,5 +1,8 @@
 namespace Guinevere;
 
+/// <summary>A typed value supplied to a styled node by immediate-mode code.</summary>
+public readonly record struct StyleVariable(string Name, object Value);
+
 /// <summary>The declarations that apply to one element after the cascade, with typed accessors.</summary>
 public sealed class ResolvedStyle
 {
@@ -42,7 +45,9 @@ public static class StyleResolver
     /// </summary>
     /// <param name="sheets">Stylesheets to apply, lowest priority first.</param>
     /// <param name="target">The element being styled.</param>
-    public static ResolvedStyle Resolve(IReadOnlyList<StyleSheet> sheets, in StyleTarget target)
+    /// <param name="scopedVariables">Call-site variables, which override stylesheet variables.</param>
+    public static ResolvedStyle Resolve(IReadOnlyList<StyleSheet> sheets, in StyleTarget target,
+        IReadOnlyList<StyleVariable>? scopedVariables = null)
     {
         if (sheets.Count == 0) return ResolvedStyle.Empty;
 
@@ -53,7 +58,7 @@ public static class StyleResolver
             {
                 var best = -1;
                 foreach (var selector in rule.Selectors)
-                    if (selector.Matches(target) && selector.Specificity > best)
+                    if (Matches(selector, target, sheets[s]) && selector.Specificity > best)
                         best = selector.Specificity;
 
                 if (best >= 0)
@@ -72,10 +77,58 @@ public static class StyleResolver
         });
 
         var merged = new Dictionary<string, string>(StringComparer.Ordinal);
+        var variables = new Dictionary<string, string>(StringComparer.Ordinal);
+        var callerVariables = scopedVariables?.ToDictionary(
+            variable => variable.Name.StartsWith("--", StringComparison.Ordinal) ? variable.Name : $"--{variable.Name}",
+            variable => Convert.ToString(variable.Value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+            StringComparer.Ordinal);
         foreach (var (_, _, _, rule, owner) in matches)
+        {
+            foreach (var (name, value) in owner.Variables) variables[name] = value;
             foreach (var (prop, value) in rule.Declarations)
-                merged[prop] = owner.ExpandVariables(value);
+            {
+                if (prop.StartsWith("--", StringComparison.Ordinal)) variables[prop] = owner.ExpandVariables(value, variables);
+                else
+                {
+                    if (callerVariables is not null)
+                        foreach (var (name, callerValue) in callerVariables) variables[name] = callerValue;
+                    merged[prop] = owner.ExpandVariables(value, variables);
+                }
+            }
+        }
 
         return new ResolvedStyle(merged);
+    }
+
+    static bool Matches(Selector selector, in StyleTarget target, StyleSheet sheet)
+    {
+        if (selector.Matches(target)) return true;
+        foreach (var alias in InheritedNames(target.Type, sheet))
+            if (selector.Matches(target with { Type = alias })) return true;
+
+        if (target.Ancestors is null) return false;
+        for (var i = 0; i < target.Ancestors.Count; i++)
+            foreach (var alias in InheritedNames(target.Ancestors[i].Type, sheet))
+            {
+                var ancestors = target.Ancestors.ToArray();
+                ancestors[i] = ancestors[i] with { Type = alias };
+                if (selector.Matches(target with { Ancestors = ancestors })) return true;
+            }
+        return false;
+    }
+
+    static IEnumerable<string> InheritedNames(string? type, StyleSheet sheet)
+    {
+        if (type is null) yield break;
+        var pending = new Stack<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        pending.Push(type);
+        while (pending.Count > 0)
+        {
+            var current = pending.Pop();
+            if (!sheet.Inheritance.TryGetValue(current, out var parents)) continue;
+            foreach (var parent in parents)
+                if (seen.Add(parent)) { yield return parent; pending.Push(parent); }
+        }
     }
 }

@@ -104,10 +104,20 @@ public class StyledNodeTests
             """, MouseAt(-100, -100), gui =>
             {
                 using (gui.StyledNode("Panel").Enter())
-                using (gui.StyledNode("Button", modifiers: ["checked"]).Enter()) { }
+                using (gui.StyledNode("Button", ["checked"]).Enter()) { }
             });
 
         Assert.True(At(px, Size / 2, Size / 2).G > 200);
+    }
+
+    /// <summary>The PanGui <c>bg-color</c> spelling drives the standard background shape.</summary>
+    [Fact]
+    public void PanGuiBackgroundAlias_Applies()
+    {
+        var px = RenderFrame("box { width = expand; height = expand; bg-color = #ff0000; }",
+            MouseAt(-100, -100), gui => { using (gui.StyledNode("box").Enter()) { } });
+
+        Assert.True(At(px, Size / 2, Size / 2).R > 200);
     }
 
     /// <summary>With no stylesheet a styled node behaves like a plain node.</summary>
