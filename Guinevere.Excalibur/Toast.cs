@@ -94,7 +94,7 @@ public static partial class ControlsExtensions
     {
         var state = gui.ControlState(ToastStateId, () => new ToastState());
         var opts = options ?? new ToastOptions();
-        var now = gui.Time.Elapsed;
+        var now = gui.Clock.Elapsed;
 
         state.Entries.Add(new ToastEntry(text, now + opts.Duration, now, opts));
     }
@@ -106,7 +106,7 @@ public static partial class ControlsExtensions
     public static void Toasts(this Gui gui)
     {
         var state = gui.ControlState(ToastStateId, () => new ToastState());
-        var now = gui.Time.Elapsed;
+        var now = gui.Clock.Elapsed;
 
         if (gui.Pass == Pass.Pass1Build)
         {

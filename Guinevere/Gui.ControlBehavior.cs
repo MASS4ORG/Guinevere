@@ -2,17 +2,39 @@ namespace Guinevere;
 
 public partial class Gui
 {
+    IControlSemanticsSink? _controlSemantics;
+
     /// <summary>
     /// Optional accessibility/automation capability. Backends that support semantics can publish the
     /// headless controls encountered during the render pass; unsupported backends leave it null.
     /// </summary>
-    public IControlSemanticsSink? ControlSemantics { get; set; }
+    public IControlSemanticsSink? ControlSemantics
+    {
+        get => _controlSemantics ?? (Platform.TryGet<IControlSemanticsSink>(out var sink) ? sink : null);
+        set
+        {
+            _controlSemantics = value;
+            if (value is not null) Platform.Register<IControlSemanticsSink>(value);
+            else Platform.Remove<IControlSemanticsSink>();
+        }
+    }
+
+    IControlActivationSource? _controlActivation;
 
     /// <summary>
     /// Optional controller or command-routing capability. A source can activate the focused control
     /// without being added to the platform-neutral <see cref="IInputHandler"/> contract.
     /// </summary>
-    public IControlActivationSource? ControlActivation { get; set; }
+    public IControlActivationSource? ControlActivation
+    {
+        get => _controlActivation ?? (Platform.TryGet<IControlActivationSource>(out var source) ? source : null);
+        set
+        {
+            _controlActivation = value;
+            if (value is not null) Platform.Register<IControlActivationSource>(value);
+            else Platform.Remove<IControlActivationSource>();
+        }
+    }
 
     /// <summary>
     /// Applies button behavior to the current node. Input detected in the render pass is delivered as
@@ -102,8 +124,10 @@ public partial class Gui
         if (kind == BehaviorKind.Repeat)
             UpdateRepeat(behavior, pressed, repeatDelay, repeatInterval);
 
-        ControlSemantics?.Publish(new ControlSemantics(id, options.Role, options.Label, options.Value,
-            CurrentNode.Rect, ComposeState(options, hovered, pressed, behavior.Focused, behavior.Dragging)));
+        var semantics = new ControlSemantics(id, options.Role, options.Label, options.Value,
+            CurrentNode.Rect, ComposeState(options, hovered, pressed, behavior.Focused, behavior.Dragging));
+        if (ControlSemantics is { } sink) sink.Publish(semantics);
+        else if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.Publish(semantics);
 
         return result;
     }
@@ -117,11 +141,11 @@ public partial class Gui
             return;
         }
 
-        behavior.HoldStarted ??= Time.Elapsed;
-        var heldFor = Time.Elapsed - behavior.HoldStarted.Value;
-        if (heldFor < delay || Time.Elapsed - behavior.LastRepeat < interval) return;
+        behavior.HoldStarted ??= Clock.Elapsed;
+        var heldFor = Clock.Elapsed - behavior.HoldStarted.Value;
+        if (heldFor < delay || Clock.Elapsed - behavior.LastRepeat < interval) return;
 
-        behavior.LastRepeat = Time.Elapsed;
+        behavior.LastRepeat = Clock.Elapsed;
         behavior.PendingRepeated = true;
     }
 

@@ -206,7 +206,7 @@ public static partial class ControlsExtensions
             {
                 if (gui.Input.IsKeyPressed(KeyboardKey.A)) state.SelectAll();
                 else if (gui.Input.IsKeyPressed(KeyboardKey.C))
-                    gui.Input.SetClipboardText(state.HasSelection ? state.SelectedText : text);
+                    gui.Platform.Require<IClipboard>().SetClipboardText(state.HasSelection ? state.SelectedText : text);
             }
         }
 

@@ -225,7 +225,7 @@ public static partial class ControlsExtensions
 
         var id = gui.NodeId(filePath, lineNumber);
         var state = gui.ControlState(id, () => new TooltipState());
-        var now = gui.Time.Elapsed;
+        var now = gui.Clock.Elapsed;
 
         var anchorRect = state.AnchorRect;
         var hovering = anchorRect.W > 0 && IsMouseInRect(gui.Input.MousePosition, anchorRect);

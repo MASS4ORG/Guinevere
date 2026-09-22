@@ -3,7 +3,7 @@ namespace Guinevere;
 /// <summary>
 /// Provides time measurement and frame rate calculation utilities for game loops.
 /// </summary>
-public class Time
+public class Time : ITimeCapability
 {
     const float SmoothingInterval = .1f;
     float _smoothingTimer;

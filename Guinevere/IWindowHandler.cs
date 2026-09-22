@@ -4,7 +4,7 @@ namespace Guinevere;
 /// Defines an interface for handling window-specific operations and management.
 /// Provides methods for controlling window appearance and behavior across different rendering backends.
 /// </summary>
-public interface IWindowHandler
+public interface IWindowHandler : IPlatformCapability
 {
     /// <summary>
     /// Shows or hides the window title bar.

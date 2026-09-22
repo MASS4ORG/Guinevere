@@ -22,7 +22,19 @@ public partial class Gui
     /// essential for tracking and updating time-dependent behaviors within the GUI. It is commonly used
     /// for tasks such as updating animations, calculating frame-related data like FPS, and handling input timing.
     /// </remarks>
-    public Time Time { get; init; } = new();
+    public Time Time { get; } = new();
+
+    /// <summary>Capabilities published by the active platform integration.</summary>
+    public PlatformCapabilities Platform { get; } = new();
+
+    /// <summary>The active monotonic clock capability used by core and controls.</summary>
+    public ITimeCapability Clock => Platform.Require<ITimeCapability>();
+
+    /// <summary>Creates a GUI with its platform-independent clock capability.</summary>
+    public Gui()
+    {
+        Platform.Register<ITimeCapability>(Time);
+    }
 
     ControlPalette _controls = ControlPalette.Light;
 
@@ -49,7 +61,18 @@ public partial class Gui
     /// with the GUI, enabling functionalities such as rendering, window management, and configuration.
     /// It must be set to a valid implementation before performing operations that require window handling.
     /// </remarks>
-    public IWindowHandler WindowHandler { get; set; } = null!;
+    IWindowHandler? _windowHandler;
+
+    /// <summary>Legacy window shortcut. Prefer <c>Platform.Require&lt;IWindowHandler&gt;()</c>.</summary>
+    public IWindowHandler WindowHandler
+    {
+        get => _windowHandler ?? Platform.Require<IWindowHandler>();
+        set
+        {
+            _windowHandler = value;
+            Platform.Register<IWindowHandler>(value);
+        }
+    }
 
     /// <summary>
     /// A property that provides the dimensions of the screen available for rendering.
@@ -73,6 +96,7 @@ public partial class Gui
     public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null)
     {
         Canvas = canvas;
+        if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.BeginFrame();
 
         // Initialize focus management for the new frame
         BeginFrameFocus();
@@ -116,6 +140,7 @@ public partial class Gui
         ClearCompletedDrags();
         ResolveDrag();
         TrackPointerForNextFrame();
+        if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.EndFrame();
         Canvas = null;
     }
 

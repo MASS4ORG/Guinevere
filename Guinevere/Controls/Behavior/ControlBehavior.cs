@@ -51,7 +51,7 @@ public readonly record struct ControlSemantics(
     ControlVisualState State);
 
 /// <summary>Optional platform capability that receives the controls present in a rendered frame.</summary>
-public interface IControlSemanticsSink
+public interface IControlSemanticsSink : IPlatformCapability
 {
     /// <summary>Publishes one control's current metadata.</summary>
     void Publish(ControlSemantics semantics);
@@ -61,7 +61,7 @@ public interface IControlSemanticsSink
 /// Optional command source for controller, assistive-technology, or application-defined activation.
 /// The focused control passes its stable id to the source during the render pass.
 /// </summary>
-public interface IControlActivationSource
+public interface IControlActivationSource : IPlatformCapability
 {
     /// <summary>Returns true when a routed activation command targets this control.</summary>
     bool IsActivated(string controlId);
