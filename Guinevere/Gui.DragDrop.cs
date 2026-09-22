@@ -168,20 +168,6 @@ public partial class Gui
         return new(DropTargetState.HoverAccepted, payload);
     }
 
-    /// <summary>Marks the current node as a legacy object drop target.</summary>
-    public bool DropTarget(string id, Func<object, bool>? accept = null, Action<object>? onDrop = null) =>
-        DropTarget(CurrentNode.Rect, id, accept, onDrop);
-
-    /// <summary>Marks an explicit rectangle as a legacy object drop target.</summary>
-    public bool DropTarget(Rect rect, string id, Func<object, bool>? accept = null, Action<object>? onDrop = null)
-    {
-        if (Pass != Pass.Pass2Render || _drag is null || !rect.Contains(Input.MousePosition)) return false;
-        if (accept is not null && !accept(_drag.Payload)) return false;
-        if (onDrop is not null && !Input.IsMouseButtonDown(MouseButton.Left))
-            _pendingDrop = new(id, _drag.Payload, _drag.Tag, onDrop);
-        return true;
-    }
-
     /// <summary>Draws standard accepted or rejected feedback over a drop target.</summary>
     public void DrawDropIndicator(DropTargetState state, Rect? rect = null, DropIndicatorStyle style = default)
     {

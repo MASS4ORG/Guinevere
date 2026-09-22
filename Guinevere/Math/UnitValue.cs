@@ -29,25 +29,6 @@ public readonly struct UnitValue : IEquatable<UnitValue>
     /// <summary>Weighted largest-child contribution.</summary>
     public float FitLargestContribution { get; }
 
-    /// <summary>The legacy mode for a single-term expression.</summary>
-    public UnitType Mode => PercentageContribution != 0f ? UnitType.Percentage
-        : RatioContribution != 0f ? UnitType.Ratio
-        : ExpandContribution != 0f ? UnitType.Expand
-        : FitLargestContribution != 0f ? UnitType.FitLargest
-        : FitContentContribution != 0f ? UnitType.Auto
-        : UnitType.Pixels;
-
-    /// <summary>The coefficient selected by <see cref="Mode"/> for legacy single-term callers.</summary>
-    public float Value => Mode switch
-    {
-        UnitType.Percentage => PercentageContribution,
-        UnitType.Ratio => RatioContribution,
-        UnitType.Expand => ExpandContribution,
-        UnitType.FitLargest => FitLargestContribution,
-        UnitType.Auto => FitContentContribution,
-        _ => PixelsContribution
-    };
-
     /// <summary>Creates an absolute pixel contribution.</summary>
     public static UnitValue Pixels(float pixels) => new(pixels);
     /// <summary>Creates a parent-relative contribution.</summary>

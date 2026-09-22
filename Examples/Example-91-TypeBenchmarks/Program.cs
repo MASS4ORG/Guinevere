@@ -12,7 +12,7 @@ var packed = Enumerable.Range(0, count)
     .Select(i => Color.FromArgb(128 + i % 128, (byte)i, (byte)(i >> 2), (byte)(255 - i)))
     .ToArray();
 var colors = new Color[count];
-var legacyColors = new LegacyColor[count];
+var referenceColors = new ReferenceColor[count];
 var skColors = new SKColor[count];
 var checksum = 0f;
 var effect = new TextEffects
@@ -22,18 +22,18 @@ var effect = new TextEffects
     InnerShadow = new TextEffects.TextShadow(Color.White, new Vector2(-1f), 2f),
     Gradient = new TextEffects.TextGradient(Color.Red, Color.Blue)
 };
-var legacyEffect = new LegacyTextEffects(effect);
-var effectReferences = new LegacyTextEffects[count];
+var referenceEffect = new ReferenceTextEffects(effect);
+var effectReferences = new ReferenceTextEffects[count];
 var valueEffects = new TextEffects[count];
 
 Console.WriteLine($"Runtime: {Environment.Version}; Vector width: {Vector<byte>.Count * 8} bits");
 Console.WriteLine($"Sizes: Color={Unsafe.SizeOf<Color>()} B, TextEffects={Unsafe.SizeOf<TextEffects>()} B, " +
-                  $"legacy Color={Unsafe.SizeOf<LegacyColor>()} B, " +
+                  $"reference Color={Unsafe.SizeOf<ReferenceColor>()} B, " +
                   $"LayoutStyle={Unsafe.SizeOf<LayoutStyle>()} B");
 Console.WriteLine("| Scenario | Items/op | Mean us | ns/item | Alloc B/op |");
 Console.WriteLine("|---|---:|---:|---:|---:|");
 
-Measure("legacy-polymorphic-draw-build", count, iterations, () =>
+Measure("polymorphic-draw-build", count, iterations, () =>
 {
     var commands = new List<IDrawListEntry>(count);
     for (var i = 0; i < count; i++) commands.Add(new DrawableEntry(drawable));
@@ -51,7 +51,7 @@ Measure("typed-reused-draw-build", count, iterations, () =>
 
 Measure("text-effects-reference-copy", count, iterations, () =>
 {
-    for (var i = 0; i < count; i++) effectReferences[i] = legacyEffect;
+    for (var i = 0; i < count; i++) effectReferences[i] = referenceEffect;
     GC.KeepAlive(effectReferences[count - 1]);
 });
 
@@ -63,7 +63,7 @@ Measure("text-effects-value-copy", count, iterations, () =>
 
 Measure("text-effects-reference-create", count, iterations, () =>
 {
-    for (var i = 0; i < count; i++) effectReferences[i] = new LegacyTextEffects(effect);
+    for (var i = 0; i < count; i++) effectReferences[i] = new ReferenceTextEffects(effect);
     GC.KeepAlive(effectReferences[count - 1]);
 });
 
@@ -73,11 +73,11 @@ Measure("packed-color-create", count, iterations, () =>
     checksum += colors[count - 1].R;
 });
 
-Measure("legacy-color-create", count, iterations, () =>
+Measure("reference-color-create", count, iterations, () =>
 {
     for (var i = 0; i < count; i++)
-        legacyColors[i] = new LegacyColor(System.Drawing.Color.FromArgb(255, i & 255, i >> 2 & 255, 255 - i & 255));
-    checksum += legacyColors[count - 1].Value.R;
+        referenceColors[i] = new ReferenceColor(System.Drawing.Color.FromArgb(255, i & 255, i >> 2 & 255, 255 - i & 255));
+    checksum += referenceColors[count - 1].Value.R;
 });
 
 Measure("color-to-skcolor", count, iterations, () =>
@@ -238,14 +238,14 @@ sealed class NoopDrawable : IDrawable
     }
 }
 
-sealed class LegacyTextEffects
+sealed class ReferenceTextEffects
 {
     public TextEffects.TextOutline? Outline { get; }
     public TextEffects.TextShadow? DropShadow { get; }
     public TextEffects.TextShadow? InnerShadow { get; }
     public TextEffects.TextGradient? Gradient { get; }
 
-    public LegacyTextEffects(TextEffects source)
+    public ReferenceTextEffects(TextEffects source)
     {
         Outline = source.Outline;
         DropShadow = source.DropShadow;
@@ -254,7 +254,7 @@ sealed class LegacyTextEffects
     }
 }
 
-readonly record struct LegacyColor(System.Drawing.Color Value);
+readonly record struct ReferenceColor(System.Drawing.Color Value);
 
 sealed record BoxedToken(int Value)
 {
