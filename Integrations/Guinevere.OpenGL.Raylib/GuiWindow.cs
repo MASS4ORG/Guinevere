@@ -9,7 +9,7 @@ namespace Guinevere;
 /// Represents a GUI window implementation using Raylib for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public class GuiWindow : IDisposable, IInputHandler, IWindowHandler
+public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCapability
 {
     readonly ICanvasRenderer _canvasRenderer;
     readonly Gui _gui;
@@ -35,6 +35,7 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler
         _gui = gui;
         _gui.Input = this;
         _gui.WindowHandler = this;
+        _gui.Platform.Register<IDisplayCapability>(this);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
@@ -42,8 +43,18 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler
         Raylib.SetTraceLogLevel(TraceLogLevel.Warning); // Reduce verbose logging
         Raylib.InitWindow(_width, _height, title);
         _canvasRenderer = new CanvasRenderer();
+        _gui.Platform.Register<ICanvasRenderer>(_canvasRenderer);
         _canvasRenderer.Initialize(_width, _height);
     }
+
+    /// <inheritdoc />
+    public float ScaleFactor => Raylib.GetWindowScaleDPI().X;
+
+    /// <inheritdoc />
+    public Vector2 LogicalSize => new(Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
+
+    /// <inheritdoc />
+    public Vector2 FramebufferSize => LogicalSize * ScaleFactor;
 
     /// <summary>
     /// Gets a string resource from the assembly's embedded resources.

@@ -134,7 +134,7 @@ public static class TextEditor
     {
         if (!state.IsFocused) return;
 
-        Blink(state, gui.Time.DeltaTime);
+        Blink(state, gui.Clock.DeltaTime);
 
         foreach (var c in gui.Input.GetTypedCharacters())
         {
@@ -193,6 +193,7 @@ public static class TextEditor
         if (!control) return false;
 
         var input = gui.Input;
+        var clipboard = gui.Platform.Require<IClipboard>();
 
         if (input.IsKeyPressed(KeyboardKey.A))
         {
@@ -202,13 +203,13 @@ public static class TextEditor
 
         if (input.IsKeyPressed(KeyboardKey.C))
         {
-            input.SetClipboardText(state.HasSelection ? state.SelectedText : state.Text);
+            clipboard.SetClipboardText(state.HasSelection ? state.SelectedText : state.Text);
             return true;
         }
 
         if (input.IsKeyPressed(KeyboardKey.X))
         {
-            input.SetClipboardText(state.HasSelection ? state.SelectedText : state.Text);
+            clipboard.SetClipboardText(state.HasSelection ? state.SelectedText : state.Text);
             if (!state.DeleteSelection()) state.Text = string.Empty;
             state.MoveTo(state.CursorPosition, extend: false);
             return true;
@@ -216,8 +217,8 @@ public static class TextEditor
 
         if (input.IsKeyPressed(KeyboardKey.V))
         {
-            var clipboard = input.GetClipboardText();
-            if (!string.IsNullOrEmpty(clipboard)) state.Insert(clipboard);
+            var text = clipboard.GetClipboardText();
+            if (!string.IsNullOrEmpty(text)) state.Insert(text);
             return true;
         }
 

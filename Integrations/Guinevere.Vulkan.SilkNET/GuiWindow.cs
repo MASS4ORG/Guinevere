@@ -14,7 +14,7 @@ namespace Guinevere;
 /// Represents a GUI window implementation using SilkNET for Vulkan rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
+public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapability, IDisposable
 {
     readonly ILogger _logger;
     readonly Gui _gui;
@@ -52,11 +52,13 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
         _gui = gui;
         _gui.Input = this;
         _gui.WindowHandler = this;
+        _gui.Platform.Register<IDisplayCapability>(this);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
         _fontIcon = Font.FromStream(fontStream);
         _renderer = new CanvasRenderer(logger);
+        _gui.Platform.Register<ICanvasRenderer>(_renderer);
 
         // Create window options with Vulkan API
         var options = WindowOptions.Default;
@@ -81,6 +83,15 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisposable
         _window.Closing += OnClosing;
         _window.Update += OnUpdate;
     }
+
+    /// <inheritdoc />
+    public float ScaleFactor => _window.Size.X > 0 ? (float)_window.FramebufferSize.X / _window.Size.X : 1f;
+
+    /// <inheritdoc />
+    public Vector2 LogicalSize => new(_window.Size.X, _window.Size.Y);
+
+    /// <inheritdoc />
+    public Vector2 FramebufferSize => new(_window.FramebufferSize.X, _window.FramebufferSize.Y);
 
     /// <summary>Requests that the native window close.</summary>
     public void Close() => _window.Close();

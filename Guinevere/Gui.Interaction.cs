@@ -16,7 +16,19 @@ public partial class Gui
     /// - Retrieving or setting clipboard text.
     /// Useful for managing user inputs and enabling interactive elements within the GUI.
     /// </remarks>
-    public IInputHandler Input { get; set; } = null!;
+    IInputHandler? _input;
+
+    /// <summary>Required input capability. Assigning it also publishes input and clipboard services.</summary>
+    public IInputHandler Input
+    {
+        get => _input ?? Platform.Require<IInputHandler>();
+        set
+        {
+            _input = value;
+            Platform.Register<IInputHandler>(value);
+            Platform.Register<IClipboard>(value);
+        }
+    }
 
     readonly Dictionary<string, bool> _dragStates = new();
     readonly Dictionary<string, Vector2> _pressAnchors = new();
@@ -107,7 +119,7 @@ public partial class Gui
     /// </summary>
     internal int RegisterClick(string id)
     {
-        var now = Time.Elapsed;
+        var now = Clock.Elapsed;
         var run = _clickRuns.TryGetValue(id, out var previous) && now - previous.Time <= DoubleClickInterval
             ? previous.Count + 1
             : 1;

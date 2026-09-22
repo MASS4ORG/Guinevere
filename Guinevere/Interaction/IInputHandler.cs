@@ -3,7 +3,7 @@ namespace Guinevere;
 /// <summary>
 /// Provides input handling functionalities including keyboard and mouse events.
 /// </summary>
-public interface IInputHandler : IClipboard
+public interface IInputHandler : IClipboard, IPlatformCapability
 {
     /// <summary>
     /// Gets a value indicating whether any key on the keyboard is currently being pressed.

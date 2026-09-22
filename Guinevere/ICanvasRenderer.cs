@@ -4,7 +4,7 @@ namespace Guinevere;
 /// Defines the interface for rendering graphics to a canvas. Provides methods for initializing,
 /// resizing, and rendering content onto the canvas surface.
 /// </summary>
-public interface ICanvasRenderer : IDisposable
+public interface ICanvasRenderer : IDisposable, IPlatformCapability
 {
     /// <summary>
     /// Initializes the canvas with the specified width and height.

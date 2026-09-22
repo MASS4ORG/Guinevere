@@ -37,7 +37,7 @@ public static partial class ControlsExtensions
             gui.DrawRect(rect, track, radius);
             if (rect.W <= 0) return;
 
-            var filled = FillRect(rect, fraction, gui.Time.Elapsed);
+            var filled = FillRect(rect, fraction, gui.Clock.Elapsed);
             if (filled.W > 0) gui.DrawRect(filled, fill, radius);
         }
     }

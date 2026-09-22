@@ -11,7 +11,7 @@ namespace Guinevere;
 /// Represents a GUI window implementation using OpenTK for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisposable
+public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapability, IDisposable
 {
     readonly Gui _gui;
     readonly ICanvasRenderer _canvasRenderer;
@@ -37,16 +37,24 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisposable
         _gui = gui;
         _gui.Input = this;
         _gui.WindowHandler = this;
+        _gui.Platform.Register<IDisplayCapability>(this);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
         _fontIcon = Font.FromStream(fontStream);
         _canvasRenderer = new CanvasRenderer();
+        _gui.Platform.Register<ICanvasRenderer>(_canvasRenderer);
         _canvasRenderer.Initialize(_width, _height);
 
         // Subscribe to text input events
         TextInput += OnTextInput;
     }
+
+    float IDisplayCapability.ScaleFactor => Size.X > 0 ? (float)base.FramebufferSize.X / Size.X : 1f;
+
+    Vector2 IDisplayCapability.LogicalSize => new(Size.X, Size.Y);
+
+    Vector2 IDisplayCapability.FramebufferSize => new(base.FramebufferSize.X, base.FramebufferSize.Y);
 
     /// <summary>
     /// Handles window resize events by updating internal dimensions and resizing the canvas renderer.

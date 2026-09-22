@@ -288,6 +288,11 @@ numeric inputs, menus, popups, dialogs, trees, tabs, docking, notifications, and
 dotnet add package MASS4.Guinevere.Excalibur
 ```
 
+Platform integrations publish input, clipboard, window, timing, renderer and DPI services through
+`gui.Platform`. Optional cursor, native-dialog, texture, GPU-effect and accessibility features use
+typed discovery with explicit fallback behavior. See the
+[platform integration guide](docs/platform-capabilities.md) for contracts and conformance checks.
+
 ### Layering & Transforms
 
 - Z-index layering and transforms
