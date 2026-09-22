@@ -55,7 +55,7 @@ public static partial class ControlsExtensions
         SyncNumberBuffer(field, value, format);
 
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
-                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
+                   .ContentAlignX(alignX).ContentAlignY(0.5f).Cursor(FieldCursor(enabled)).Enter())
         {
             var interactable = gui.GetInteractable();
             HandleNumberFieldInteraction(gui, field, ref value, interactable, min, max, format, fontSize, enabled);

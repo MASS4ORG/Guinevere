@@ -140,7 +140,7 @@ public sealed class InputScriptPlayer(
         canvas.Flush();
 
         // After the frame, so actions queued before the next one survive to be seen by both passes.
-        (gui.Input as ScriptedInputHandler)?.NewFrame();
+        (gui.PlatformInput as ScriptedInputHandler)?.NewFrame();
     }
 
     void ExpectCapture(Gui gui, string? expected)

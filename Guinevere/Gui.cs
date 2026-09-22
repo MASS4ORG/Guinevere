@@ -98,6 +98,11 @@ public partial class Gui
         Canvas = canvas;
         if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.BeginFrame();
 
+        // Events run against the previous frame's tree, before it is cleared, so listeners see what the user saw.
+        DispatchInputEvents();
+        _listenerCount = 0;
+        _cursorNodeCount = 0;
+
         // Initialize focus management for the new frame
         BeginFrameFocus();
 
@@ -139,6 +144,7 @@ public partial class Gui
         ReleaseFinishedCapture();
         ClearCompletedDrags();
         ResolveDrag();
+        ApplyCursorAndPointerMode();
         TrackPointerForNextFrame();
         if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.EndFrame();
         Canvas = null;

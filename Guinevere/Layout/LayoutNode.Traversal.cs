@@ -65,6 +65,7 @@ public partial class LayoutNode
         _absoluteChildCount = 0;
         _flowChildrenCache = null;
         DrawList.Clear();
+        ResetInteraction();
         InvalidateLayout();
     }
 

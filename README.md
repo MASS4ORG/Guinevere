@@ -132,6 +132,9 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 - Custom interactables for arbitrary shapes and regions
 - Pointer capture, drag-and-drop, and input blocking
 - Focus registration, nested navigation scopes, Tab cycling, and directional navigation
+- DOM-style events (click, drag, scroll, key, text, focus) with capture/target/bubble propagation,
+  `StopPropagation` and `PreventDefault`
+- Cursor shapes per node and pointer modes (hidden, relative, wrapped) across integrations
 
   ```csharp
   // Custom interactive area with shape
@@ -142,6 +145,21 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   var shape = Shape.Circle(50);
   var shaped = gui.GetInteractable(position, shape);
   ```
+
+  ```csharp
+  // One listener on a list serves every row; the click bubbles up with the row as its target.
+  using (gui.Node().Cursor(PointerCursor.Hand).Enter())
+  {
+      gui.On<ClickEvent>(e => Select(e.TargetId));
+      foreach (var row in rows)
+          using (gui.Node(-1, 32, $"row/{row}").Enter()) { /* ... */ }
+  }
+  ```
+
+  Events for a frame's input run at the start of that frame, against the tree the previous frame laid out, so
+  listeners change state before the new tree is built. `PreventDefault` hides the handled edge from
+  `gui.Input`, so polling controls do not react a second time. See
+  [Example 09](Examples/Example-09-EventsAndCursors/Program.cs).
 
 ### Text & Styling
 

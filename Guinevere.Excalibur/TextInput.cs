@@ -181,7 +181,7 @@ public static partial class ControlsExtensions
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
-                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
+                   .ContentAlignX(alignX).ContentAlignY(0.5f).Cursor(FieldCursor(enabled)).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -261,7 +261,8 @@ public static partial class ControlsExtensions
         gui.Focus.RegisterTextInput(nodeId);
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f)
+                   .Cursor(FieldCursor(enabled)).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -352,7 +353,8 @@ public static partial class ControlsExtensions
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextArea", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
 
-        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f)
+                   .Cursor(FieldCursor(enabled)).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -419,4 +421,7 @@ public static partial class ControlsExtensions
     {
         gui.ClearControlStates<TextEditState>();
     }
+
+    /// <summary>An I-beam over an editable field; a disabled one keeps the default arrow.</summary>
+    internal static PointerCursor FieldCursor(bool enabled) => enabled ? PointerCursor.Text : PointerCursor.Default;
 }

@@ -31,6 +31,7 @@ public static partial class ControlsExtensions
         var node = horizontal
             ? gui.Node(thickness, filePath: filePath, lineNumber: lineNumber).ExpandHeight()
             : gui.Node(-1, thickness, filePath: filePath, lineNumber: lineNumber).ExpandWidth();
+        node.Cursor(horizontal ? PointerCursor.ResizeHorizontal : PointerCursor.ResizeVertical);
 
         using (node.Enter())
         {

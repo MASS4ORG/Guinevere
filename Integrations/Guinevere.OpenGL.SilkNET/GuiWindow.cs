@@ -13,7 +13,8 @@ namespace Guinevere;
 /// Represents a GUI window implementation using SilkNET for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapability, IDisposable
+public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapability, ICursorCapability,
+    IPointerCapability, IDisposable
 {
     readonly Gui _gui;
     readonly IWindow _window;
@@ -50,6 +51,8 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IDisplayCapability>(this);
+        _gui.Platform.Register<ICursorCapability>(this);
+        _gui.Platform.Register<IPointerCapability>(this);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
@@ -135,6 +138,8 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
         // Initialize input
         _inputContext = _window.CreateInput();
         _mouse = _inputContext.Mice[0];
+        Cursor = _cursor;
+        ApplyCursorMode();
         _keyboard = _inputContext.Keyboards[0];
 
         // Hook up mouse events
@@ -285,6 +290,79 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
         // Silk.NET doesn't easily support changing windowHandler border after creation
         // This would require recreating the windowHandler, so we'll leave it as no-op for now
     }
+
+    #region Cursor and pointer
+
+    PointerCursor _cursor;
+    bool _pointerVisible = true;
+    bool _pointerLocked;
+
+    /// <inheritdoc />
+    public PointerCursor Cursor
+    {
+        get => _cursor;
+        set
+        {
+            _cursor = value;
+            if (_mouse is not null) _mouse.Cursor.StandardCursor = ToStandardCursor(value);
+        }
+    }
+
+    /// <inheritdoc />
+    public bool Visible
+    {
+        get => _pointerVisible;
+        set
+        {
+            _pointerVisible = value;
+            ApplyCursorMode();
+        }
+    }
+
+    /// <inheritdoc />
+    public bool Locked
+    {
+        get => _pointerLocked;
+        set
+        {
+            _pointerLocked = value;
+            ApplyCursorMode();
+        }
+    }
+
+    /// <inheritdoc />
+    public void Warp(Vector2 position)
+    {
+        if (_mouse is null) return;
+        _mouse.Position = position;
+        _mousePosition = _prevMousePosition = position;
+        _mouseDelta = Vector2.Zero;
+    }
+
+    /// <summary>GLFW's disabled mode hides the pointer and reports unbounded virtual positions.</summary>
+    void ApplyCursorMode()
+    {
+        if (_mouse is null) return;
+        _mouse.Cursor.CursorMode = _pointerLocked ? CursorMode.Disabled
+            : _pointerVisible ? CursorMode.Normal
+            : CursorMode.Hidden;
+    }
+
+    static StandardCursor ToStandardCursor(PointerCursor cursor) => cursor switch
+    {
+        PointerCursor.Arrow => StandardCursor.Arrow,
+        PointerCursor.Text => StandardCursor.IBeam,
+        PointerCursor.Hand => StandardCursor.Hand,
+        PointerCursor.Crosshair => StandardCursor.Crosshair,
+        PointerCursor.ResizeHorizontal => StandardCursor.HResize,
+        PointerCursor.ResizeVertical => StandardCursor.VResize,
+        PointerCursor.ResizeDiagonalNorthWestSouthEast => StandardCursor.NwseResize,
+        PointerCursor.ResizeDiagonalNorthEastSouthWest => StandardCursor.NeswResize,
+        PointerCursor.NotAllowed => StandardCursor.NotAllowed,
+        _ => StandardCursor.Default
+    };
+
+    #endregion Cursor and pointer
 
     #region IInputHandler
 

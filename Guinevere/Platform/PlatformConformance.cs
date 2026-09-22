@@ -51,6 +51,10 @@ public static class PlatformConformance
             !Enum.IsDefined(cursor.Cursor))
             failures.Add("ICursorCapability returned an unknown cursor.");
 
+        if (platform.TryGet<IPointerCapability>(out var pointer) && pointer is not null &&
+            pointer is { Locked: true, Visible: true })
+            failures.Add("IPointerCapability must hide a locked pointer.");
+
         return failures;
     }
 

@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
@@ -11,7 +12,8 @@ namespace Guinevere;
 /// Represents a GUI window implementation using OpenTK for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapability, IDisposable
+public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapability, ICursorCapability,
+    IPointerCapability, IDisposable
 {
     readonly Gui _gui;
     readonly ICanvasRenderer _canvasRenderer;
@@ -38,6 +40,8 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IDisplayCapability>(this);
+        _gui.Platform.Register<ICursorCapability>(this);
+        _gui.Platform.Register<IPointerCapability>(this);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
@@ -171,6 +175,70 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
         return stream;
     }
 
+    #region Cursor and pointer
+
+    PointerCursor _cursor;
+    bool _pointerVisible = true;
+    bool _pointerLocked;
+    (Vector2 From, Vector2 To)? _warp;
+
+    PointerCursor ICursorCapability.Cursor
+    {
+        get => _cursor;
+        set
+        {
+            _cursor = value;
+            Cursor = value switch
+            {
+                PointerCursor.Arrow or PointerCursor.Default => MouseCursor.Default,
+                PointerCursor.Text => MouseCursor.IBeam,
+                PointerCursor.Hand => MouseCursor.PointingHand,
+                PointerCursor.Crosshair => MouseCursor.Crosshair,
+                PointerCursor.ResizeHorizontal => MouseCursor.ResizeEW,
+                PointerCursor.ResizeVertical => MouseCursor.ResizeNS,
+                PointerCursor.ResizeDiagonalNorthWestSouthEast => MouseCursor.ResizeNWSE,
+                PointerCursor.ResizeDiagonalNorthEastSouthWest => MouseCursor.ResizeNESW,
+                PointerCursor.NotAllowed => MouseCursor.NotAllowed,
+                _ => MouseCursor.Default
+            };
+        }
+    }
+
+    bool IPointerCapability.Visible
+    {
+        get => _pointerVisible;
+        set
+        {
+            _pointerVisible = value;
+            ApplyCursorState();
+        }
+    }
+
+    bool IPointerCapability.Locked
+    {
+        get => _pointerLocked;
+        set
+        {
+            _pointerLocked = value;
+            ApplyCursorState();
+        }
+    }
+
+    void IPointerCapability.Warp(Vector2 position)
+    {
+        var from = new Vector2(MouseState.Position.X, MouseState.Position.Y);
+        base.MousePosition = new OpenTK.Mathematics.Vector2(position.X, position.Y);
+        _warp = (from, position);
+    }
+
+    /// <summary>GLFW's grabbed state hides the pointer and reports unbounded virtual positions.</summary>
+    void ApplyCursorState() =>
+        CursorState = _pointerLocked ? CursorState.Grabbed
+            : _pointerVisible ? CursorState.Normal
+            : CursorState.Hidden;
+
+    #endregion Cursor and pointer
+
     #region IInputHandler
 
     /// <summary>
@@ -179,9 +247,21 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
     public Vector2 MouseDelta => new(MouseState.Delta.X, MouseState.Delta.Y);
 
     /// <summary>
-    /// Gets the current mouse position.
+    /// Gets the current mouse position. After a <see cref="IPointerCapability.Warp"/> it reports the warped position
+    /// until GLFW's state moves off the stale one, so the warp never shows up as movement.
     /// </summary>
-    public new Vector2 MousePosition => new(MouseState.Position.X, MouseState.Position.Y);
+    public new Vector2 MousePosition
+    {
+        get
+        {
+            var position = new Vector2(MouseState.Position.X, MouseState.Position.Y);
+            if (_warp is not { } warp) return position;
+            if (position == warp.From) return warp.To;
+
+            _warp = null;
+            return position;
+        }
+    }
 
     /// <summary>
     /// Gets the mouse wheel scroll delta.
