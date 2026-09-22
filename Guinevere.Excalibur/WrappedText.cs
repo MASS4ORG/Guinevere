@@ -222,7 +222,7 @@ public static partial class ControlsExtensions
                     if (WrappedTextLayout.SelectionOn(measureFont, line, state.SelectionStart, state.SelectionEnd)
                         is { } run)
                         gui.DrawRectFilled(new Rect(inner.X + run.X, top, run.Width, lineHeight),
-                            selectionColor ?? gui.Controls.TextSelection);
+                            selectionColor ?? gui.ControlStyle.TextSelection);
                 }
 
                 if (line.Text.Length > 0)

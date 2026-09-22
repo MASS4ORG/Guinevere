@@ -54,7 +54,9 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
         return Set(new LayoutNodeScopeZIndex { Value = index });
     }
 
-    readonly Dictionary<Type, object> _records = new();
+    object?[] _records = node.Parent?.Scope._records ?? [];
+    bool[]? _localRecords;
+    bool _ownsRecords = node.Parent is null;
 
     /// <summary>
     /// Stores a record of the specified generic type <typeparamref name="T"/> within the current layout node scope.
@@ -63,30 +65,51 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     /// <param name="record">The instance of the record to store. It replaces any existing record of the same type in this scope.</param>
     public LayoutNodeScope Set<T>(T record) where T : class
     {
-        _records[typeof(T)] = record;
+        if (record is IEnumerable<ILayoutNodeScopeValue> records)
+            return Set(records);
+
+        Set(LayoutNodeScopeValueSlot<T>.Index, record);
         return this;
     }
 
+    /// <summary>Applies several independently typed values to this scope.</summary>
+    public LayoutNodeScope Set(IEnumerable<ILayoutNodeScopeValue> records)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        foreach (var record in records) Set(record.Slot, record);
+        return this;
+    }
+
+    void Set(int slot, object record)
+    {
+        if (!_ownsRecords)
+        {
+            _records = (object?[])_records.Clone();
+            _ownsRecords = true;
+        }
+
+        if (slot >= _records.Length)
+            Array.Resize(ref _records, Math.Max(slot + 1, Math.Max(8, _records.Length * 2)));
+        if (_localRecords is null || slot >= _localRecords.Length)
+            Array.Resize(ref _localRecords, _records.Length);
+
+        _records[slot] = record;
+        _localRecords[slot] = true;
+    }
+
     /// <summary>
-    /// Retrieves a cascaded value of a specified type from the current scope or any of its parent scopes.
+    /// Retrieves a value from this scope's flattened inherited values.
     /// </summary>
     /// <typeparam name="TValue">The type of the value to retrieve. Must implement <see cref="ILayoutNodeScopeValue{T}"/>.</typeparam>
     /// <returns>
-    /// The instance of the requested value if found, starting from the current scope and moving up the parent hierarchy.
+    /// The inherited instance of the requested value if found.
     /// Returns the default value of <typeparamref name="TValue"/> if no value is found.
     /// </returns>
     public TValue Get<TValue>() where TValue : class, ILayoutNodeScopeValue<TValue>
     {
-        var type = typeof(TValue);
-        var current = this;
-
-        while (current != null)
-        {
-            if (current._records.TryGetValue(type, out var val))
-                return (TValue)val;
-
-            current = current.Node.Parent?.Scope;
-        }
+        var slot = LayoutNodeScopeValueSlot<TValue>.Index;
+        if (slot < _records.Length && _records[slot] is { } val)
+            return (TValue)val;
 
         return TValue.Default;
     }
@@ -95,5 +118,9 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     /// Returns <c>true</c> when a value of type <typeparamref name="T"/> was set directly on this
     /// scope, as opposed to inherited from a parent scope by <see cref="Get{TValue}"/>.
     /// </summary>
-    public bool HasLocal<T>() where T : class => _records.ContainsKey(typeof(T));
+    public bool HasLocal<T>() where T : class
+    {
+        var slot = LayoutNodeScopeValueSlot<T>.Index;
+        return _localRecords is not null && slot < _localRecords.Length && _localRecords[slot];
+    }
 }

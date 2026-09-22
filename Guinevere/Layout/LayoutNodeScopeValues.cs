@@ -8,7 +8,7 @@ public class LayoutNodeScopeTextColor : ILayoutNodeScopeValue<LayoutNodeScopeTex
     /// <summary>
     /// Gets the default text color value (black).
     /// </summary>
-    public static LayoutNodeScopeTextColor Default => new() { Value = Color.Black };
+    public static LayoutNodeScopeTextColor Default { get; } = new() { Value = Color.Black };
 
     /// <summary>
     /// Gets the color value for text rendering.
@@ -24,7 +24,7 @@ public class LayoutNodeScopeTextSize : ILayoutNodeScopeValue<LayoutNodeScopeText
     /// <summary>
     /// Gets the default text size value (20 pixels).
     /// </summary>
-    public static LayoutNodeScopeTextSize Default => new() { Value = 12f };
+    public static LayoutNodeScopeTextSize Default { get; } = new() { Value = 12f };
 
     /// <summary>
     /// Gets the size value for text rendering.
@@ -40,7 +40,7 @@ public class LayoutNodeScopeTextFont : ILayoutNodeScopeValue<LayoutNodeScopeText
     /// <summary>
     /// Gets the default text font value.
     /// </summary>
-    public static LayoutNodeScopeTextFont Default => new() { Value = new Font() };
+    public static LayoutNodeScopeTextFont Default { get; } = new() { Value = new Font() };
 
     /// <summary>
     /// Gets the font value for text rendering.
@@ -56,7 +56,7 @@ public class LayoutNodeScopeIconFont : ILayoutNodeScopeValue<LayoutNodeScopeIcon
     /// <summary>
     /// Gets the default icon font value.
     /// </summary>
-    public static LayoutNodeScopeIconFont Default => new() { Value = new Font() };
+    public static LayoutNodeScopeIconFont Default { get; } = new() { Value = new Font() };
 
     /// <summary>
     /// Gets the font value for icon rendering.
@@ -72,7 +72,7 @@ public class LayoutNodeScopeZIndex : ILayoutNodeScopeValue<LayoutNodeScopeZIndex
     /// <summary>
     /// Gets the default Z-index value (0).
     /// </summary>
-    public static LayoutNodeScopeZIndex Default => new() { Value = 0 };
+    public static LayoutNodeScopeZIndex Default { get; } = new() { Value = 0 };
 
     /// <summary>
     /// Gets the Z-index value for rendering order.
@@ -88,7 +88,7 @@ public class LayoutNodeScopeScrollContainerId : ILayoutNodeScopeValue<LayoutNode
     /// <summary>
     /// Gets the default scroll container ID value (null).
     /// </summary>
-    public static LayoutNodeScopeScrollContainerId Default => new() { Value = null };
+    public static LayoutNodeScopeScrollContainerId Default { get; } = new() { Value = null };
 
     /// <summary>
     /// Gets the scroll container ID value.
@@ -105,7 +105,7 @@ public class LayoutNodeScopeIsClipped : ILayoutNodeScopeValue<LayoutNodeScopeIsC
     /// <summary>
     /// Gets the default clipping state value (false).
     /// </summary>
-    public static LayoutNodeScopeIsClipped Default => new() { Value = false };
+    public static LayoutNodeScopeIsClipped Default { get; } = new() { Value = false };
 
     /// <summary>
     /// Gets the clipping state value.
@@ -117,7 +117,7 @@ public class LayoutNodeScopeIsClipped : ILayoutNodeScopeValue<LayoutNodeScopeIsC
 public class LayoutNodeScopeEscapesAncestorClips : ILayoutNodeScopeValue<LayoutNodeScopeEscapesAncestorClips>
 {
     /// <summary>Overlays remain clipped unless they explicitly opt out.</summary>
-    public static LayoutNodeScopeEscapesAncestorClips Default => new() { Value = false };
+    public static LayoutNodeScopeEscapesAncestorClips Default { get; } = new() { Value = false };
 
     /// <summary>Whether the node is drawn without any ancestor clip rectangles.</summary>
     public required bool Value { get; init; }
@@ -131,7 +131,7 @@ public class LayoutNodeScopeCumulativeScrollOffset : ILayoutNodeScopeValue<Layou
     /// <summary>
     /// Gets the default cumulative scroll offset value (Vector2.Zero).
     /// </summary>
-    public static LayoutNodeScopeCumulativeScrollOffset Default => new() { Value = Vector2.Zero };
+    public static LayoutNodeScopeCumulativeScrollOffset Default { get; } = new() { Value = Vector2.Zero };
 
     /// <summary>
     /// Gets the cumulative scroll offset value.
@@ -148,7 +148,7 @@ public class LayoutNodeScopeIsScrollContainer : ILayoutNodeScopeValue<LayoutNode
     /// <summary>
     /// Gets the default scroll container state value (false).
     /// </summary>
-    public static LayoutNodeScopeIsScrollContainer Default => new() { Value = false };
+    public static LayoutNodeScopeIsScrollContainer Default { get; } = new() { Value = false };
 
     /// <summary>
     /// Gets the scroll container state value.
@@ -165,7 +165,7 @@ public class LayoutNodeScopeLocalScrollOffset : ILayoutNodeScopeValue<LayoutNode
     /// <summary>
     /// Gets the default local scroll offset value (Vector2.Zero).
     /// </summary>
-    public static LayoutNodeScopeLocalScrollOffset Default => new() { Value = Vector2.Zero };
+    public static LayoutNodeScopeLocalScrollOffset Default { get; } = new() { Value = Vector2.Zero };
 
     /// <summary>
     /// Gets the local scroll offset value.

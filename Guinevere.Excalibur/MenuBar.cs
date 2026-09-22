@@ -56,6 +56,9 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
+        padding = gui.ControlStyle.ComfortableSpacingOr(padding);
+
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(buildMenus);
 
@@ -80,12 +83,12 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render)
             {
-                gui.DrawBackgroundRect(backgroundColor ?? gui.Controls.Surface);
+                gui.DrawBackgroundRect(backgroundColor ?? gui.ControlStyle.Surface);
 
                 // A rule under the bar, not a box around it: the bar spans its host's width, so an
                 // outline on the other three edges reads as a stray rectangle rather than chrome.
                 var bar = gui.CurrentNode.Rect;
-                gui.DrawRect(new Rect(bar.X, bar.Y + bar.H - 1, bar.W, 1), gui.Controls.Border);
+                gui.DrawRect(new Rect(bar.X, bar.Y + bar.H - 1, bar.W, 1), gui.ControlStyle.Border);
             }
 
             if (state.TitleRects.Count != builder.Menus.Count)
@@ -162,7 +165,7 @@ public static partial class ControlsExtensions
                 }
 
                 if (isOpen || isHovered)
-                    gui.DrawBackgroundRect(hoverColor ?? gui.Controls.SurfaceHover, 2);
+                    gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover, 2);
             }
 
             // Built in both passes so the text node is measured during layout, not created after it.
@@ -239,8 +242,8 @@ public static partial class ControlsExtensions
 
             if (gui.Pass == Pass.Pass2Render)
             {
-                gui.DrawBackgroundRect(backgroundColor ?? gui.Controls.Popup, 4);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.Controls.Border, 1f, 4);
+                gui.DrawBackgroundRect(backgroundColor ?? gui.ControlStyle.Popup, 4);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.ControlStyle.Border, 1f, 4);
             }
 
             for (var i = 0; i < items.Count; i++)
@@ -279,7 +282,7 @@ public static partial class ControlsExtensions
                 if (gui.Pass != Pass.Pass2Render) return;
 
                 var rect = gui.CurrentNode.Rect;
-                var sepColor = gui.Controls.Border;
+                var sepColor = gui.ControlStyle.Border;
                 var sepY = rect.Y + rect.H * 0.5f;
                 gui.DrawLine(new Vector2(rect.X + padding, sepY),
                     new Vector2(rect.X + rect.W - padding, sepY), sepColor);
@@ -306,10 +309,10 @@ public static partial class ControlsExtensions
                                     (state.FrameKeyboardActive && state.FrameKeyboardIndex == index);
 
                 if (isSelectedRow && item.Enabled)
-                    gui.DrawBackgroundRect(hoverColor ?? gui.Controls.SurfaceHover, 2);
+                    gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover, 2);
             }
 
-            var itemColor = item.Enabled ? textColor ?? gui.Controls.Text : gui.Controls.TextDim;
+            var itemColor = item.Enabled ? textColor ?? gui.ControlStyle.Text : gui.ControlStyle.TextDim;
 
             // Rows and their glyphs are built in both passes so they measure during layout.
             if (hasCheckColumn)
@@ -329,7 +332,7 @@ public static partial class ControlsExtensions
                     gui.DrawText("▶️", fontSize * 0.7f, itemColor);
             }
             else if (!string.IsNullOrEmpty(item.Shortcut))
-                gui.DrawText(item.Shortcut, fontSize * 0.9f, gui.Controls.TextDim, centerInRect: false);
+                gui.DrawText(item.Shortcut, fontSize * 0.9f, gui.ControlStyle.TextDim, centerInRect: false);
         }
     }
 

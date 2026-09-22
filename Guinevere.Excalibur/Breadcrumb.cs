@@ -49,7 +49,7 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(items);
         if (items.Count == 0) return;
 
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
         var link = linkColor ?? palette.Accent;
         var linkHovered = linkHoverColor ?? palette.Selected;
         var current = currentColor ?? palette.Text;

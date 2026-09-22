@@ -66,7 +66,7 @@ public static partial class ControlsExtensions
                     var rect = gui.CurrentNode.Rect;
                     gui.DrawRectBorder(
                         new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6),
-                        gui.Controls.FocusRing, 4f, 6f);
+                        gui.ControlStyle.FocusRing, 4f, 6f);
                 }
 
                 var activated = gui.HasFocus()
@@ -84,8 +84,8 @@ public static partial class ControlsExtensions
             {
                 var size = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
                 var color = enabled
-                    ? textColor ?? gui.Controls.Text
-                    : gui.Controls.TextDisabled;
+                    ? textColor ?? gui.ControlStyle.Text
+                    : gui.ControlStyle.TextDisabled;
 
                 // Centres the caption by hand (like Button) with the same main/icon font fallback
                 // as Gui.DrawText, so emoji and icon glyphs render instead of tofu. A child DrawText

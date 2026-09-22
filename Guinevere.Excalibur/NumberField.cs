@@ -40,6 +40,11 @@ public static partial class ControlsExtensions
         Color? cursorColor = null, float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
         double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f)
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+
         ArgumentNullException.ThrowIfNull(gui);
         if (max < min) (min, max) = (max, min);
         value = Clamp(value, min, max);
@@ -73,6 +78,11 @@ public static partial class ControlsExtensions
         Color? cursorColor = null, float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
         float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f)
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+
         double d = value;
         gui.NumberField(ref d, step, min, max, width, height, format, backgroundColor, borderColor,
             textColor, cursorColor, fontSize, padding, dragSensitivity, enabled, id, alignX);

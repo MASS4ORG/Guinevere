@@ -64,6 +64,19 @@ public sealed class DockTheme
         Accent = palette.Accent
     };
 
+    /// <summary>Creates a dock theme from the values inherited by the current control scope.</summary>
+    public static DockTheme FromStyle(ControlStyleValues style) => new()
+    {
+        TabStrip = style.BaseBackground,
+        Panel = style.SurfaceActive,
+        Tab = style.Surface,
+        Hover = style.SurfaceHover,
+        Border = style.Border,
+        Ink = style.Text,
+        InkDim = style.TextDim,
+        Accent = style.Accent
+    };
+
     /// <summary>Projects this theme onto the shared tab strip, so dock tabs and a host's own match.</summary>
     public TabStripTheme ToTabStripTheme() => new()
     {

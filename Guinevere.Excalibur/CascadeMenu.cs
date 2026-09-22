@@ -32,6 +32,9 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
+        padding = gui.ControlStyle.ComfortableSpacingOr(padding);
+
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(build);
 

@@ -24,10 +24,22 @@ public partial class Gui
     /// </remarks>
     public Time Time { get; init; } = new();
 
-    /// <summary>
-    /// Fallback colors for the built-in controls. Assign once to theme every control at a stroke.
-    /// </summary>
-    public ControlPalette Controls { get; set; } = ControlPalette.Light;
+    ControlPalette _controls = ControlPalette.Light;
+
+    /// <summary>Fallback colors applied as independent values to each frame's root scope.</summary>
+    public ControlPalette Controls
+    {
+        get => _controls;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _controls = value;
+            if (LayoutNodeScopeStack.TryPeek(out var scope)) value.Apply(scope);
+        }
+    }
+
+    /// <summary>Control colors and dimensions inherited by the current layout node.</summary>
+    public ControlStyleValues ControlStyle => new(this);
 
     /// <summary>
     /// A property that provides an interface for handling window-specific operations.
@@ -78,6 +90,9 @@ public partial class Gui
             RootNode.ClearRoot();
             RegisterLayoutNodeScope(RootNode);
         }
+
+        _controls.Apply(CurrentNodeScope);
+        ControlMetrics.Apply(CurrentNodeScope);
 
         if (font is not null)
             SetTextFont(font);

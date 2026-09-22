@@ -70,6 +70,8 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        borderRadius = gui.ControlStyle.PanelRadiusOr(borderRadius);
+
         var id = gui.NodeId(filePath, lineNumber);
         var state = gui.ControlState(id, () => new DialogState());
 
@@ -94,7 +96,7 @@ public static partial class ControlsExtensions
             gui.SetEscapesAncestorClips();
 
             if (gui.Pass == Pass.Pass2Render && isOpen)
-                gui.DrawRect(gui.CurrentNode.Rect, overlayColor ?? gui.Controls.Overlay);
+                gui.DrawRect(gui.CurrentNode.Rect, overlayColor ?? gui.ControlStyle.Overlay);
         }
 
         var hasFooter = footer is not null;
@@ -107,8 +109,8 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render && isOpen && draggable)
             HandleTitleBarDrag(gui, state, position, width, titleBarHeight, showCloseButton);
 
-        var bodyColor = backgroundColor ?? gui.Controls.Popup;
-        var borderColorFinal = borderColor ?? gui.Controls.Border;
+        var bodyColor = backgroundColor ?? gui.ControlStyle.Popup;
+        var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
 
         var dialogNode = gui.Node(width, totalHeight).AbsoluteScreen(position.X, position.Y);
         if (isOpen) dialogNode.BlockInput();
@@ -212,7 +214,7 @@ public static partial class ControlsExtensions
             using (gui.Node().Expand().Direction(Axis.Horizontal).Padding(16, 0).ContentAlignY(0.5f).Enter())
             {
                 using (gui.Node().Expand().Enter())
-                    gui.DrawText(title, color: isOpen ? textColor ?? gui.Controls.Text : Color.Transparent,
+                    gui.DrawText(title, color: isOpen ? textColor ?? gui.ControlStyle.Text : Color.Transparent,
                         centerInRect: false);
 
                 return showCloseButton && CloseButton(gui, height * 0.6f, isOpen);
@@ -230,8 +232,8 @@ public static partial class ControlsExtensions
             var interactable = gui.GetInteractable();
             var hot = interactable.OnHover();
 
-            if (hot) gui.DrawBackgroundRect(gui.Controls.SurfaceHover, size * 0.5f);
-            gui.DrawText("×", color: hot ? gui.Controls.Text : gui.Controls.TextDim);
+            if (hot) gui.DrawBackgroundRect(gui.ControlStyle.SurfaceHover, size * 0.5f);
+            gui.DrawText("×", color: hot ? gui.ControlStyle.Text : gui.ControlStyle.TextDim);
 
             return hot && interactable.OnClick();
         }

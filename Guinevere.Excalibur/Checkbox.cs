@@ -15,6 +15,10 @@ public static partial class ControlsExtensions
         float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
+        size = gui.ControlStyle.IndicatorSizeOr(size);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        spacing = gui.ControlStyle.SpacingOr(spacing);
+
         CheckboxCore(gui, ref isChecked, label, size, backgroundColor, checkColor,
             borderColor, labelColor, fontSize, spacing, enabled);
     }
@@ -32,6 +36,10 @@ public static partial class ControlsExtensions
         float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
+        size = gui.ControlStyle.IndicatorSizeOr(size);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        spacing = gui.ControlStyle.SpacingOr(spacing);
+
         var temp = isChecked;
         CheckboxCore(gui, ref temp, label, size, backgroundColor, checkColor,
             borderColor, labelColor, fontSize, spacing, enabled);
@@ -95,23 +103,23 @@ public static partial class ControlsExtensions
 
             var rect = gui.CurrentNode.Rect;
             var bgColor = GetCheckboxBackgroundColor(gui, isChecked, backgroundColor);
-            var borderColorFinal = enabled ? borderColor ?? gui.Controls.Border : gui.Controls.Border;
+            var borderColorFinal = enabled ? borderColor ?? gui.ControlStyle.Border : gui.ControlStyle.Border;
 
             if (enabled && gui.HasFocus())
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, gui.Controls.FocusRing, 4f, 4);
+                gui.DrawRectBorder(focusRect, gui.ControlStyle.FocusRing, 4f, 4);
                 gui.DrawBackgroundRect(bgColor, 2);
-                gui.DrawRectBorder(rect, gui.Controls.Accent, 2f, 2);
+                gui.DrawRectBorder(rect, gui.ControlStyle.Accent, 2f, 2);
             }
             else
             {
-                gui.DrawBackgroundRect(enabled ? bgColor : gui.Controls.Surface, 2);
+                gui.DrawBackgroundRect(enabled ? bgColor : gui.ControlStyle.Surface, 2);
                 gui.DrawRectBorder(rect, borderColorFinal, 1f, 2);
             }
 
             if (isChecked)
-                DrawCheckmark(gui, rect, size, enabled ? checkColor ?? gui.Controls.TextOnAccent : gui.Controls.TextDisabled);
+                DrawCheckmark(gui, rect, size, enabled ? checkColor ?? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled);
         }
     }
 
@@ -120,14 +128,14 @@ public static partial class ControlsExtensions
     {
         if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = enabled ? labelColor ?? gui.Controls.Text : gui.Controls.TextDisabled;
+            var labelColorFinal = enabled ? labelColor ?? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled;
             gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
         }
     }
 
     static Color GetCheckboxBackgroundColor(Gui gui, bool isChecked, Color? backgroundColor)
     {
-        return backgroundColor ?? (isChecked ? gui.Controls.Selected : gui.Controls.Surface);
+        return backgroundColor ?? (isChecked ? gui.ControlStyle.Selected : gui.ControlStyle.Surface);
     }
 
     static void DrawCheckmark(Gui gui, Rect rect, float size, Color checkColor)

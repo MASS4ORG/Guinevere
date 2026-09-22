@@ -33,7 +33,7 @@ public static partial class ControlsExtensions
             if (gui.IconButton("➕", size: height, fontSize: fontSize)) _ = NewFolderAsync(state);
 
             if (gui.IconButton("👁", size: height, fontSize: fontSize,
-                    color: browser.ShowHidden ? gui.Controls.Accent : null))
+                    color: browser.ShowHidden ? gui.ControlStyle.Accent : null))
                 browser.ShowHidden = !browser.ShowHidden;
 
             using (gui.Node(190f, height).Enter())

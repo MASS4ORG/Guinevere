@@ -15,18 +15,18 @@ public static partial class ControlsExtensions
     static void DrawInputBackground(Gui gui, TextEditState state, Color? backgroundColor, Color? borderColor,
         bool enabled)
     {
-        var fill = backgroundColor ?? gui.Controls.Surface;
-        var outline = borderColor ?? gui.Controls.Border;
+        var fill = backgroundColor ?? gui.ControlStyle.Surface;
+        var outline = borderColor ?? gui.ControlStyle.Border;
         var borderWidth = 1f;
 
         if (!enabled)
         {
-            fill = Color.Lerp(fill, gui.Controls.BaseBackground, 0.45f);
-            outline = gui.Controls.Divider;
+            fill = Color.Lerp(fill, gui.ControlStyle.BaseBackground, 0.45f);
+            outline = gui.ControlStyle.Divider;
         }
         else if (state.IsFocused)
         {
-            outline = gui.Controls.Accent;
+            outline = gui.ControlStyle.Accent;
             borderWidth = 2f;
         }
 
@@ -50,7 +50,7 @@ public static partial class ControlsExtensions
         var x2 = origin + TextEditor.MeasureWidth(font, text[..end]);
 
         gui.DrawRect(new Rect(x1, inner.Y, Math.Max(1f, x2 - x1), inner.H),
-            gui.Controls.TextSelection);
+            gui.ControlStyle.TextSelection);
     }
 
     /// <summary>Paints the selected run per line in a multi-line field, so text areas get the same highlight as inputs.</summary>
@@ -81,7 +81,7 @@ public static partial class ControlsExtensions
             var y = inner.Y + row * lineHeight;
 
             gui.DrawRect(new Rect(x1, y, Math.Max(1f, x2 - x1), lineHeight),
-                gui.Controls.TextSelection);
+                gui.ControlStyle.TextSelection);
         }
     }
 
@@ -90,10 +90,10 @@ public static partial class ControlsExtensions
     {
         var finalDisplayText = string.IsNullOrEmpty(displayText) ? placeholder : displayText;
         var finalColor = !enabled
-            ? gui.Controls.TextDisabled
+            ? gui.ControlStyle.TextDisabled
             : string.IsNullOrEmpty(displayText)
-            ? placeholderColor ?? gui.Controls.TextDim
-            : textColor ?? gui.Controls.Text;
+            ? placeholderColor ?? gui.ControlStyle.TextDim
+            : textColor ?? gui.ControlStyle.Text;
 
         if (!string.IsNullOrEmpty(finalDisplayText))
             gui.DrawText(finalDisplayText, fontSize, finalColor, centerInRect: false);
@@ -157,7 +157,7 @@ public static partial class ControlsExtensions
             // Use a nested node for cursor positioning to avoid coordinate transformation issues
             using (gui.Node(2, cursorHeight).Margin(textWidth, cursorY, 0, 0).Enter())
             {
-                gui.DrawRect(gui.CurrentNode.Rect, cursorColor ?? gui.Controls.Text);
+                gui.DrawRect(gui.CurrentNode.Rect, cursorColor ?? gui.ControlStyle.Text);
             }
     }
 
@@ -171,6 +171,11 @@ public static partial class ControlsExtensions
         float padding = ControlMetrics.Spacing, bool enabled = true, string id = "", float alignX = 0f,
         bool grabFocus = false)
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
 
@@ -228,6 +233,11 @@ public static partial class ControlsExtensions
         float padding = ControlMetrics.Spacing, bool enabled = true, string id = "", float alignX = 0f,
         bool grabFocus = false)
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+
         gui.TextInput(ref text, width, height, placeholder, backgroundColor, borderColor,
             textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id, alignX, grabFocus);
         return text;
@@ -242,6 +252,11 @@ public static partial class ControlsExtensions
         Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
         float padding = ControlMetrics.Spacing, bool enabled = true, string id = "")
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("PasswordInput", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
 
@@ -291,6 +306,11 @@ public static partial class ControlsExtensions
         Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
         float padding = ControlMetrics.Spacing, bool enabled = true, string id = "")
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+
         gui.PasswordInput(ref text, width, height, maskChar, placeholder, backgroundColor, borderColor,
             textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id);
         return text;
@@ -326,6 +346,9 @@ public static partial class ControlsExtensions
         bool enabled = true,
         string id = "")
     {
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextArea", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
 
@@ -381,6 +404,9 @@ public static partial class ControlsExtensions
         bool enabled = true,
         string id = "")
     {
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+
         gui.TextArea(ref text, width, height, placeholder, backgroundColor, borderColor,
             textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id);
         return text;

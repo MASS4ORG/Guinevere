@@ -101,7 +101,117 @@ Measure("layout-style-copy", count, iterations, () =>
     for (var i = 0; i < count; i++) styles[i] = style;
     GC.KeepAlive(styles[count - 1]);
 });
+
+// Style token lookup: compare direct palette reads, production flattened slots, and ancestor-walking slots.
+var scopeGui = new Gui();
+var scopeNodes = new LayoutNode[9];
+scopeNodes[0] = new LayoutNode("scope-0", scopeGui, null);
+for (var i = 1; i < scopeNodes.Length; i++)
+    scopeNodes[i] = new LayoutNode($"scope-{i}", scopeGui, scopeNodes[i - 1]);
+
+var rootScope = scopeNodes[0].Scope;
+var leafScope = scopeNodes[^1].Scope;
+rootScope.Set(new LayoutNodeScopeTextColor { Value = Color.Red });
+rootScope.Set(new LayoutNodeScopeTextSize { Value = 14f });
+rootScope.Set(new LayoutNodeScopeZIndex { Value = 2 });
+rootScope.Set(new LayoutNodeScopeIsClipped { Value = true });
+rootScope.Set(new LayoutNodeScopeIsScrollContainer { Value = true });
+rootScope.Set(new LayoutNodeScopeLocalScrollOffset { Value = Vector2.One });
+rootScope.Set(new LayoutNodeScopeCumulativeScrollOffset { Value = Vector2.One });
+rootScope.Set(new LayoutNodeScopeEscapesAncestorClips { Value = false });
+var currentTokenSet = new object[]
+{
+    new LayoutNodeScopeTextColor { Value = Color.Red },
+    new LayoutNodeScopeTextSize { Value = 14f },
+    new LayoutNodeScopeZIndex { Value = 2 },
+    new LayoutNodeScopeIsClipped { Value = true },
+    new LayoutNodeScopeIsScrollContainer { Value = true },
+    new LayoutNodeScopeLocalScrollOffset { Value = Vector2.One },
+    new LayoutNodeScopeCumulativeScrollOffset { Value = Vector2.One },
+    new LayoutNodeScopeEscapesAncestorClips { Value = false }
+};
+
+var palette = ControlPalette.Dark;
+Measure("style-aggregate-8-reads", count, iterations * 4, () =>
+{
+    var sum = 0;
+    for (var i = 0; i < count; i++)
+    {
+        sum += palette.Surface.R + palette.Border.R + palette.Accent.R + palette.Text.R;
+        sum += palette.TextDim.R + palette.TextDisabled.R + palette.Selected.R + palette.Divider.R;
+    }
+    GC.KeepAlive(sum);
+});
+
+Measure("style-slotted-local-8-reads", count, iterations, () =>
+{
+    var sum = 0f;
+    for (var i = 0; i < count; i++) sum += ReadCurrentTokens(rootScope);
+    GC.KeepAlive(sum);
+});
+
+Measure("style-slotted-depth8-8-reads", count, iterations, () =>
+{
+    var sum = 0f;
+    for (var i = 0; i < count; i++) sum += ReadCurrentTokens(leafScope);
+    GC.KeepAlive(sum);
+});
+
+Measure("style-slotted-missing-read", count, iterations, () =>
+{
+    var sum = 0;
+    for (var i = 0; i < count; i++) sum += leafScope.Get<LayoutNodeScopeScrollContainerId>().Value?.Length ?? 0;
+    GC.KeepAlive(sum);
+});
+
+var indexedRoot = new IndexedScope(null, 20);
+var indexedLeaf = indexedRoot;
+for (var i = 0; i < 8; i++) indexedLeaf = new IndexedScope(indexedLeaf, 20);
+var tokenSet = Enumerable.Range(0, 20).Select(i => (object)new BoxedToken(i)).ToArray();
+indexedRoot.Apply(tokenSet);
+
+Measure("style-indexed-depth8-8-reads", count, iterations, () =>
+{
+    var sum = 0;
+    for (var i = 0; i < count; i++)
+        for (var slot = 0; slot < 8; slot++) sum += indexedLeaf.Get<BoxedToken>(slot, BoxedToken.Default).Value;
+    GC.KeepAlive(sum);
+});
+
+var flatTokens = new object?[20];
+Array.Copy(tokenSet, flatTokens, tokenSet.Length);
+Measure("style-indexed-flat-8-reads", count, iterations, () =>
+{
+    var sum = 0;
+    for (var i = 0; i < count; i++)
+        for (var slot = 0; slot < 8; slot++) sum += ((BoxedToken)flatTokens[slot]!).Value;
+    GC.KeepAlive(sum);
+});
+
+Measure("style-indexed-apply-20", 20, iterations * 20, () => indexedRoot.Apply(tokenSet));
+
+Measure("style-slotted-apply-8", 8, iterations * 20, () =>
+{
+    rootScope.Set((LayoutNodeScopeTextColor)currentTokenSet[0]);
+    rootScope.Set((LayoutNodeScopeTextSize)currentTokenSet[1]);
+    rootScope.Set((LayoutNodeScopeZIndex)currentTokenSet[2]);
+    rootScope.Set((LayoutNodeScopeIsClipped)currentTokenSet[3]);
+    rootScope.Set((LayoutNodeScopeIsScrollContainer)currentTokenSet[4]);
+    rootScope.Set((LayoutNodeScopeLocalScrollOffset)currentTokenSet[5]);
+    rootScope.Set((LayoutNodeScopeCumulativeScrollOffset)currentTokenSet[6]);
+    rootScope.Set((LayoutNodeScopeEscapesAncestorClips)currentTokenSet[7]);
+});
 GC.KeepAlive(checksum);
+
+static float ReadCurrentTokens(LayoutNodeScope scope) =>
+    scope.Get<LayoutNodeScopeTextColor>().Value.R +
+    scope.Get<LayoutNodeScopeTextSize>().Value +
+    scope.Get<LayoutNodeScopeZIndex>().Value +
+    (scope.Get<LayoutNodeScopeIsClipped>().Value ? 1 : 0) +
+    (scope.Get<LayoutNodeScopeIsScrollContainer>().Value ? 1 : 0) +
+    scope.Get<LayoutNodeScopeLocalScrollOffset>().Value.X +
+    scope.Get<LayoutNodeScopeCumulativeScrollOffset>().Value.X +
+    (scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value ? 1 : 0);
 
 static void Measure(string name, int count, int iterations, Action action)
 {
@@ -145,3 +255,25 @@ sealed class LegacyTextEffects
 }
 
 readonly record struct LegacyColor(System.Drawing.Color Value);
+
+sealed record BoxedToken(int Value)
+{
+    public static BoxedToken Default { get; } = new(0);
+}
+
+sealed class IndexedScope(IndexedScope? parent, int capacity)
+{
+    readonly object?[] _values = new object?[capacity];
+
+    public void Apply(object[] values) => Array.Copy(values, _values, Math.Min(values.Length, _values.Length));
+
+    public T Get<T>(int slot, T fallback) where T : class
+    {
+        for (var current = this; current is not null; current = current.Parent)
+            if (current._values[slot] is T value)
+                return value;
+        return fallback;
+    }
+
+    IndexedScope? Parent { get; } = parent;
+}

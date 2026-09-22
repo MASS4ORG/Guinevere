@@ -17,6 +17,10 @@ public static partial class ControlsExtensions
         float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
+        size = gui.ControlStyle.IndicatorSizeOr(size);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        spacing = gui.ControlStyle.SpacingOr(spacing);
+
         RadioButtonCore(gui, ref selectedIndex, value, label, size, backgroundColor, selectedColor,
             borderColor, labelColor, fontSize, spacing, enabled);
     }
@@ -35,6 +39,10 @@ public static partial class ControlsExtensions
         float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
+        size = gui.ControlStyle.IndicatorSizeOr(size);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        spacing = gui.ControlStyle.SpacingOr(spacing);
+
         var index = selectedIndex;
         RadioButtonCore(gui, ref index, value, label, size, backgroundColor, selectedColor,
             borderColor, labelColor, fontSize, spacing, enabled);
@@ -57,6 +65,11 @@ public static partial class ControlsExtensions
         float gap = ControlMetrics.Spacing,
         bool enabled = true)
     {
+        size = gui.ControlStyle.IndicatorSizeOr(size);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        spacing = gui.ControlStyle.SpacingOr(spacing);
+        gap = gui.ControlStyle.SpacingOr(gap);
+
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(options);
 
@@ -123,24 +136,24 @@ public static partial class ControlsExtensions
             var center = new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f);
             var radius = size * 0.32f;
 
-            var border = enabled ? borderColor ?? gui.Controls.Border : gui.Controls.Border;
+            var border = enabled ? borderColor ?? gui.ControlStyle.Border : gui.ControlStyle.Border;
             var fill = enabled
-                ? backgroundColor ?? gui.Controls.Surface
-                : gui.Controls.Surface;
+                ? backgroundColor ?? gui.ControlStyle.Surface
+                : gui.ControlStyle.Surface;
 
             if (enabled && gui.HasFocus())
-                gui.DrawCircleBorder(center, radius + 3.5f, gui.Controls.FocusRing, 3f);
+                gui.DrawCircleBorder(center, radius + 3.5f, gui.ControlStyle.FocusRing, 3f);
 
             gui.DrawCircleFilled(center, radius, fill);
 
             var accent = enabled
-                ? selectedColor ?? gui.Controls.Accent
-                : gui.Controls.Border;
+                ? selectedColor ?? gui.ControlStyle.Accent
+                : gui.ControlStyle.Border;
             gui.DrawCircleBorder(center, radius, isSelected ? accent : border, isSelected ? 2f : 1f);
 
             if (isSelected)
             {
-                var dotColor = enabled ? gui.Controls.TextOnAccent : gui.Controls.TextDisabled;
+                var dotColor = enabled ? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled;
                 gui.DrawCircleFilled(center, radius * 0.42f, dotColor);
             }
         }
@@ -152,8 +165,8 @@ public static partial class ControlsExtensions
         if (string.IsNullOrEmpty(label)) return;
 
         var color = enabled
-            ? labelColor ?? gui.Controls.Text
-            : gui.Controls.TextDisabled;
+            ? labelColor ?? gui.ControlStyle.Text
+            : gui.ControlStyle.TextDisabled;
         gui.DrawText(label, fontSize, color, centerInRect: false);
     }
 }

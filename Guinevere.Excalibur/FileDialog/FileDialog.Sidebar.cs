@@ -8,7 +8,7 @@ public static partial class ControlsExtensions
     /// </summary>
     static void Sidebar(Gui gui, FileDialogState state, float fontSize)
     {
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
 
         using (gui.Node(sidebarWidth, -1).ExpandHeight().Enter())
         {
@@ -26,7 +26,7 @@ public static partial class ControlsExtensions
 
     static void Place(Gui gui, FileDialogState state, FilePlace place, float fontSize)
     {
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
         var current = string.Equals(state.Browser.CurrentPath, place.Path, StringComparison.OrdinalIgnoreCase);
 
         using (gui.Node(-1, rowHeight, state.ControlId($"place/{place.Path}")).ExpandWidth()

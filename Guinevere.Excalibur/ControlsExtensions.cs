@@ -17,6 +17,8 @@ public static partial class ControlsExtensions
         float radius = ControlMetrics.CornerRadius,
         bool enabled = true)
     {
+        radius = gui.ControlStyle.CornerRadiusOr(radius);
+
         return ButtonCore(gui, text, width, height, backgroundColor, borderColor, hoverColor,
             pressedColor, pressedBorderColor, color, fontSize, radius, enabled);
     }
@@ -36,6 +38,9 @@ public static partial class ControlsExtensions
         float radius = ControlMetrics.CornerRadius,
         bool enabled = true)
     {
+        size = gui.ControlStyle.FieldHeightOr(size);
+        radius = gui.ControlStyle.CornerRadiusOr(radius);
+
         clicked = IconButtonCore(gui, icon, size, backgroundColor, borderColor, hoverColor,
             pressedColor, pressedBorderColor, color, fontSize, radius, enabled);
     }
@@ -55,6 +60,9 @@ public static partial class ControlsExtensions
         float radius = ControlMetrics.CornerRadius,
         bool enabled = true)
     {
+        size = gui.ControlStyle.FieldHeightOr(size);
+        radius = gui.ControlStyle.CornerRadiusOr(radius);
+
         return IconButtonCore(gui, icon, size, backgroundColor, borderColor, hoverColor,
             pressedColor, pressedBorderColor, color, fontSize, radius, enabled);
     }
@@ -76,9 +84,9 @@ public static partial class ControlsExtensions
 
             if (!enabled)
             {
-                gui.DrawBackgroundRect(gui.Controls.Surface, radius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.Controls.Border, 1f, radius);
-                RenderCenteredText(gui, text, fontSizeEffective, gui.Controls.TextDisabled);
+                gui.DrawBackgroundRect(gui.ControlStyle.Surface, radius);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.ControlStyle.Border, 1f, radius);
+                RenderCenteredText(gui, text, fontSizeEffective, gui.ControlStyle.TextDisabled);
                 return false;
             }
 
@@ -94,8 +102,8 @@ public static partial class ControlsExtensions
             {
                 var rect = gui.CurrentNode.Rect;
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, gui.Controls.AccentSubtle, 4f, radius + 4); // subtle glow
-                gui.DrawRectBorder(rect, gui.Controls.AccentHover, 2f, radius + 2); // strong blue border
+                gui.DrawRectBorder(focusRect, gui.ControlStyle.AccentSubtle, 4f, radius + 4); // subtle glow
+                gui.DrawRectBorder(rect, gui.ControlStyle.AccentHover, 2f, radius + 2); // strong blue border
             }
 
             // Keyboard activation (Space/Enter)
@@ -126,9 +134,9 @@ public static partial class ControlsExtensions
 
             if (!enabled)
             {
-                gui.DrawBackgroundRect(gui.Controls.Surface, radius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.Controls.Border, 1f, radius);
-                RenderCenteredText(gui, icon, fontSizeEffective, gui.Controls.TextDisabled);
+                gui.DrawBackgroundRect(gui.ControlStyle.Surface, radius);
+                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.ControlStyle.Border, 1f, radius);
+                RenderCenteredText(gui, icon, fontSizeEffective, gui.ControlStyle.TextDisabled);
                 return false;
             }
 
@@ -144,8 +152,8 @@ public static partial class ControlsExtensions
             {
                 var rect = gui.CurrentNode.Rect;
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, gui.Controls.AccentSubtle, 4f, radius + 4); // subtle glow
-                gui.DrawRectBorder(rect, gui.Controls.AccentHover, 2f, radius + 2); // strong blue border
+                gui.DrawRectBorder(focusRect, gui.ControlStyle.AccentSubtle, 4f, radius + 4); // subtle glow
+                gui.DrawRectBorder(rect, gui.ControlStyle.AccentHover, 2f, radius + 2); // strong blue border
             }
 
             // Keyboard activation (Space/Enter)
@@ -229,7 +237,7 @@ public static partial class ControlsExtensions
     static void RenderCenteredText(this Gui gui, Text? text, float fontSize, Color? color)
     {
         var rect = gui.CurrentNode.Rect;
-        var textColorFinal = color ?? gui.Controls.Text;
+        var textColorFinal = color ?? gui.ControlStyle.Text;
         var label = text?.Label ?? string.Empty;
         if (string.IsNullOrEmpty(label)) return;
 
@@ -270,15 +278,15 @@ public static partial class ControlsExtensions
             return pressedColor.Value;
         if (interactable.OnHover() && hoverColor.HasValue)
             return hoverColor.Value;
-        return backgroundColor ?? gui.Controls.Surface;
+        return backgroundColor ?? gui.ControlStyle.Surface;
     }
 
     static Color GetButtonBorderColor(Gui gui, InteractableElement interactable,
         Color? borderColor, Color? pressedBorderColor)
     {
         if (interactable.OnClick())
-            return pressedBorderColor ?? gui.Controls.BorderActive;
-        return borderColor ?? gui.Controls.Border;
+            return pressedBorderColor ?? gui.ControlStyle.BorderActive;
+        return borderColor ?? gui.ControlStyle.Border;
     }
 
     static bool ShouldDrawIconButtonBackground(InteractableElement interactable,

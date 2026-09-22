@@ -37,6 +37,10 @@ public static partial class ControlsExtensions
         bool showValue = false, float fontSize = ControlMetrics.CompactFontSize, bool enabled = true,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.CompactHeightOr(height);
+        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
+
         ArgumentNullException.ThrowIfNull(gui);
         if (max < min) (min, max) = (max, min);
         value = Math.Clamp(value, min, max);
@@ -53,7 +57,7 @@ public static partial class ControlsExtensions
 
             if (showValue)
                 gui.DrawText(FormatSliderValue(value, step), fontSize,
-                    enabled ? gui.Controls.Text : gui.Controls.TextDisabled, centerInRect: false);
+                    enabled ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled, centerInRect: false);
         }
     }
 
@@ -126,16 +130,16 @@ public static partial class ControlsExtensions
         var track = new Rect(rect.X, trackY, rect.W, trackHeight);
         var fillWidth = rect.X <= thumbCenter.X ? thumbCenter.X - rect.X : 0f;
 
-        gui.DrawRect(track, enabled ? trackColor ?? gui.Controls.Border : gui.Controls.Border);
+        gui.DrawRect(track, enabled ? trackColor ?? gui.ControlStyle.Border : gui.ControlStyle.Border);
         gui.DrawRect(new Rect(rect.X, trackY, fillWidth, trackHeight),
-            enabled ? fillColor ?? gui.Controls.Accent : gui.Controls.TextDisabled);
+            enabled ? fillColor ?? gui.ControlStyle.Accent : gui.ControlStyle.TextDisabled);
 
-        var thumb = enabled ? thumbColor ?? gui.Controls.TextOnAccent : gui.Controls.TextDisabled;
+        var thumb = enabled ? thumbColor ?? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled;
         if (gui.HasFocus())
-            gui.DrawCircleBorder(thumbCenter, thumbRadius + 3f, gui.Controls.Accent, 2f);
+            gui.DrawCircleBorder(thumbCenter, thumbRadius + 3f, gui.ControlStyle.Accent, 2f);
 
         gui.DrawCircleFilled(thumbCenter, thumbRadius, thumb);
-        gui.DrawCircleBorder(thumbCenter, thumbRadius, gui.Controls.Shadow);
+        gui.DrawCircleBorder(thumbCenter, thumbRadius, gui.ControlStyle.Shadow);
     }
 
     static string FormatSliderValue(float value, float step) =>

@@ -4,8 +4,57 @@ namespace Guinevere;
 /// Unified fallback colors for built-in controls combining semantic design tokens
 /// and component-specific overrides.
 /// </summary>
-public sealed class ControlPalette
+public sealed class ControlPalette : IReadOnlyList<ILayoutNodeScopeValue>
 {
+    ILayoutNodeScopeValue[]? _values;
+
+    /// <summary>Gets this palette as independently applicable scope values.</summary>
+    public IReadOnlyList<ILayoutNodeScopeValue> Values => _values ??=
+    [
+        ControlStyles.Value<ControlBaseBackground, Color>(BaseBackground),
+        ControlStyles.Value<ControlSurface, Color>(Surface),
+        ControlStyles.Value<ControlSurfaceHover, Color>(SurfaceHover),
+        ControlStyles.Value<ControlSurfaceActive, Color>(SurfaceActive),
+        ControlStyles.Value<ControlPopup, Color>(Popup),
+        ControlStyles.Value<ControlBorder, Color>(Border),
+        ControlStyles.Value<ControlBorderActive, Color>(BorderActive),
+        ControlStyles.Value<ControlDivider, Color>(Divider),
+        ControlStyles.Value<ControlAccent, Color>(Accent),
+        ControlStyles.Value<ControlAccentHover, Color>(AccentHover),
+        ControlStyles.Value<ControlAccentSubtle, Color>(AccentSubtle),
+        ControlStyles.Value<ControlText, Color>(Text),
+        ControlStyles.Value<ControlTextDim, Color>(TextDim),
+        ControlStyles.Value<ControlTextDisabled, Color>(TextDisabled),
+        ControlStyles.Value<ControlTextOnAccent, Color>(TextOnAccent),
+        ControlStyles.Value<ControlSelected, Color>(Selected),
+        ControlStyles.Value<ControlPositive, Color>(Positive),
+        ControlStyles.Value<ControlNegative, Color>(Negative),
+        ControlStyles.Value<ControlWarning, Color>(Warning),
+        ControlStyles.Value<ControlInfo, Color>(Info),
+        ControlStyles.Value<ControlFocusRing, Color>(FocusRing),
+        ControlStyles.Value<ControlShadow, Color>(Shadow),
+        ControlStyles.Value<ControlOverlay, Color>(Overlay),
+        ControlStyles.Value<ControlTextSelection, Color>(TextSelection)
+    ];
+
+    /// <inheritdoc />
+    public int Count => Values.Count;
+
+    /// <inheritdoc />
+    public ILayoutNodeScopeValue this[int index] => Values[index];
+
+    /// <inheritdoc />
+    public IEnumerator<ILayoutNodeScopeValue> GetEnumerator() => Values.GetEnumerator();
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+    /// <summary>Applies all palette values to a layout scope.</summary>
+    public void Apply(LayoutNodeScope scope)
+    {
+        ArgumentNullException.ThrowIfNull(scope);
+        scope.Set((IEnumerable<ILayoutNodeScopeValue>)Values);
+    }
+
     /// <summary>
     /// Creates a palette by applying semantic color declarations from a resolved style over a fallback.
     /// Supported names mirror the property names in kebab case, such as <c>surface-hover</c>,

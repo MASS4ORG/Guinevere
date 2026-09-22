@@ -3,6 +3,30 @@ namespace Guinevere;
 /// <summary>Shared default dimensions used by built-in and Excalibur controls.</summary>
 public static class ControlMetrics
 {
+    static readonly ILayoutNodeScopeValue[] Defaults =
+    [
+        ControlStyles.Value<ControlFieldWidth, float>(FieldWidth),
+        ControlStyles.Value<ControlFieldHeight, float>(FieldHeight),
+        ControlStyles.Value<ControlCompactHeight, float>(CompactHeight),
+        ControlStyles.Value<ControlIndicatorSize, float>(IndicatorSize),
+        ControlStyles.Value<ControlFontSize, float>(FontSize),
+        ControlStyles.Value<ControlCompactFontSize, float>(CompactFontSize),
+        ControlStyles.Value<ControlSpacing, float>(Spacing),
+        ControlStyles.Value<ControlComfortableSpacing, float>(ComfortableSpacing),
+        ControlStyles.Value<ControlCornerRadius, float>(CornerRadius),
+        ControlStyles.Value<ControlPanelRadius, float>(PanelRadius)
+    ];
+
+    /// <summary>The default dimensions as independently applicable scope values.</summary>
+    public static IReadOnlyList<ILayoutNodeScopeValue> Values => Defaults;
+
+    /// <summary>Applies all default dimensions to a layout scope.</summary>
+    public static void Apply(LayoutNodeScope scope)
+    {
+        ArgumentNullException.ThrowIfNull(scope);
+        scope.Set((IEnumerable<ILayoutNodeScopeValue>)Defaults);
+    }
+
     /// <summary>Default width of fields, sliders, and dropdowns.</summary>
     public const float FieldWidth = 200f;
     /// <summary>Default height of text fields and dropdowns.</summary>

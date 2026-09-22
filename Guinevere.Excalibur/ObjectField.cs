@@ -60,9 +60,12 @@ public static partial class ControlsExtensions
         float height = ControlMetrics.IndicatorSize,
         float fontSize = ControlMetrics.CompactFontSize)
     {
+        height = gui.ControlStyle.IndicatorSizeOr(height);
+        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
+
         ArgumentNullException.ThrowIfNull(gui);
 
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
         var state = gui.ControlState(id, () => new ObjectFieldState());
         var action = ObjectFieldAction.None;
 
@@ -123,7 +126,7 @@ public static partial class ControlsExtensions
     /// The button that opens the picker, drawn as a target rather than typed: the system fonts in play
     /// carry no "◎". Blocks input so it never also hits the box behind it.
     /// </summary>
-    static bool PickButton(Gui gui, string id, float height, ControlPalette palette)
+    static bool PickButton(Gui gui, string id, float height, ControlStyleValues palette)
     {
         using (gui.Node(height, height, id).BlockInput().Enter())
         {
@@ -144,7 +147,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>One of the slot's inline buttons. Blocks input so it never also hits the box behind it.</summary>
-    static bool GlyphButton(Gui gui, string id, string glyph, float height, ControlPalette palette)
+    static bool GlyphButton(Gui gui, string id, string glyph, float height, ControlStyleValues palette)
     {
         using (gui.Node(height, height, id).BlockInput().Enter())
         {

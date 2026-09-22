@@ -58,4 +58,40 @@ public class ControlPaletteTests
         Assert.Equal(Color.FromArgb(255, 68, 85, 102), palette.FocusRing);
         Assert.Equal(Palette.Text, palette.Text);
     }
+
+    /// <summary>Palette values are applied independently and may be overridden by a nested scope.</summary>
+    [Fact]
+    public void ControlStyle_CascadesIndependentOverrides()
+    {
+        using var surface = SKSurface.Create(new SKImageInfo(100, 100));
+        var gui = new Gui { Controls = ControlPalette.Dark };
+        gui.BeginFrame(surface.Canvas);
+
+        Assert.Equal(ControlPalette.Dark.Surface, gui.ControlStyle.Surface);
+        Assert.Equal(ControlMetrics.FieldWidth, gui.ControlStyle.FieldWidth);
+
+        using (gui.Node().Enter())
+        {
+            gui.CurrentNodeScope.Set(
+            [
+                ControlStyles.Value<ControlSurface, Color>(Color.Magenta),
+                ControlStyles.Value<ControlFieldWidth, float>(320f)
+            ]);
+
+            Assert.Equal(Color.Magenta, gui.ControlStyle.Surface);
+            Assert.Equal(320f, gui.ControlStyle.FieldWidthOr(ControlMetrics.FieldWidth));
+            Assert.Equal(ControlPalette.Dark.Text, gui.ControlStyle.Text);
+        }
+
+        Assert.Equal(ControlPalette.Dark.Surface, gui.ControlStyle.Surface);
+    }
+
+    /// <summary>Existing palette objects expose their individual values for bulk application.</summary>
+    [Fact]
+    public void Palette_IsAStyleValueCollection()
+    {
+        Assert.Equal(24, Palette.Count);
+        Assert.All(Palette, value => Assert.True(value.Slot >= 0));
+    }
+
 }

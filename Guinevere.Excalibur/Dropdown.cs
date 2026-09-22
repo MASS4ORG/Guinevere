@@ -67,12 +67,18 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(options);
 
         var id = gui.NodeId(filePath, lineNumber);
         var state = DropdownStateFor(gui, id);
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
 
         if (gui.Pass == Pass.Pass1Build)
         {
@@ -94,10 +100,10 @@ public static partial class ControlsExtensions
         }
 
         DrawButton(gui, id, options, selectedIndex, width, height, placeholder,
-            enabled ? backgroundColor ?? palette.Surface : gui.Controls.Surface,
-            enabled ? borderColor ?? palette.Border : gui.Controls.Border,
-            enabled ? textColor ?? palette.Text : gui.Controls.TextDisabled,
-            enabled ? placeholderColor ?? palette.TextDim : gui.Controls.TextDisabled,
+            enabled ? backgroundColor ?? palette.Surface : gui.ControlStyle.Surface,
+            enabled ? borderColor ?? palette.Border : gui.ControlStyle.Border,
+            enabled ? textColor ?? palette.Text : gui.ControlStyle.TextDisabled,
+            enabled ? placeholderColor ?? palette.TextDim : gui.ControlStyle.TextDisabled,
             fontSize, padding, borderRadius, state, enabled);
 
         if (!enabled || !state.IsOpen || state.Anchor.W <= 0) return;
@@ -151,6 +157,12 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        width = gui.ControlStyle.FieldWidthOr(width);
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         var index = selectedIndex;
         Dropdown(gui, options, ref index, width, height, placeholder, backgroundColor, borderColor,
             textColor, placeholderColor, dropdownColor, hoverColor, selectedColor, fontSize, padding,
@@ -187,7 +199,7 @@ public static partial class ControlsExtensions
                 var interactable = gui.GetInteractable();
 
                 gui.DrawBackgroundRect(background, borderRadius);
-                gui.DrawRectBorder(rect, state.IsOpen && enabled ? gui.Controls.Accent : border,
+                gui.DrawRectBorder(rect, state.IsOpen && enabled ? gui.ControlStyle.Accent : border,
                     state.IsOpen && enabled ? 2f : 1f, borderRadius);
 
                 if (enabled && interactable.OnClick())

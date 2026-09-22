@@ -47,4 +47,16 @@ public sealed class TabStripTheme
         InkDim = palette.TextDim,
         Accent = palette.Accent
     };
+
+    /// <summary>Creates a tab-strip theme from the values inherited by the current control scope.</summary>
+    public static TabStripTheme FromStyle(ControlStyleValues style) => new()
+    {
+        Strip = style.BaseBackground,
+        Active = style.SurfaceActive,
+        Tab = style.Surface,
+        Hover = style.SurfaceHover,
+        Ink = style.Text,
+        InkDim = style.TextDim,
+        Accent = style.Accent
+    };
 }

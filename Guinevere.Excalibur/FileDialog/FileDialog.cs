@@ -86,7 +86,7 @@ public static partial class ControlsExtensions
             {
                 using (gui.Node(52f, height).ContentAlignY(0.5f).Enter())
                     gui.DrawText(request.Mode == FileDialogMode.CreateFolder ? "Folder" : "Name",
-                        fontSize, gui.Controls.TextDim, centerInRect: false);
+                        fontSize, gui.ControlStyle.TextDim, centerInRect: false);
 
                 using (gui.Node().Expand().Enter())
                     state.Name = gui.TextInput(state.Name, width: 0, height: height,
@@ -115,7 +115,7 @@ public static partial class ControlsExtensions
         if (message is null) return;
 
         using (gui.Node(-1, rowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
-            gui.DrawText(message, fontSize - 1f, gui.Controls.Negative, centerInRect: false);
+            gui.DrawText(message, fontSize - 1f, gui.ControlStyle.Negative, centerInRect: false);
     }
 
     static void Footer(Gui gui, FileDialogState state, float fontSize)
@@ -126,7 +126,7 @@ public static partial class ControlsExtensions
 
         var choice = state.Choice();
         if (gui.Button(state.ConfirmLabel(), width: 120f, height: 28f, fontSize: fontSize,
-                backgroundColor: choice is null ? null : gui.Controls.Accent,
+                backgroundColor: choice is null ? null : gui.ControlStyle.Accent,
                 enabled: choice is not null))
             _ = ConfirmAsync(state);
     }

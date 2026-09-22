@@ -254,8 +254,8 @@ public static partial class ControlsExtensions
 
                 var interactable = gui.GetInteractable();
 
-                if (isSelected) gui.DrawBackgroundRect(gui.Controls.Selected, 2);
-                else if (interactable.OnHover()) gui.DrawBackgroundRect(gui.Controls.AccentSubtle, 2);
+                if (isSelected) gui.DrawBackgroundRect(gui.ControlStyle.Selected, 2);
+                else if (interactable.OnHover()) gui.DrawBackgroundRect(gui.ControlStyle.AccentSubtle, 2);
 
                 if (!isEditing)
                 {
@@ -274,7 +274,7 @@ public static partial class ControlsExtensions
             if (isEditing) RenameBox(gui, state, theme, item, onRename!);
             else
                 gui.DrawText(item.Label, theme.FontSize,
-                    item.Tint ?? (isSelected ? gui.Controls.Text : gui.Controls.TextDisabled), centerInRect: false);
+                    item.Tint ?? (isSelected ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled), centerInRect: false);
         }
     }
 
@@ -313,8 +313,8 @@ public static partial class ControlsExtensions
     {
         using (gui.Node(-1, theme.RowHeight).Padding(6, 0).ContentAlignY(0.5f).Enter())
         {
-            gui.DrawBackgroundRect(gui.Controls.Selected, 3);
-            gui.DrawText(item.Label, theme.FontSize, gui.Controls.Text, centerInRect: false);
+            gui.DrawBackgroundRect(gui.ControlStyle.Selected, 3);
+            gui.DrawText(item.Label, theme.FontSize, gui.ControlStyle.Text, centerInRect: false);
         }
     }
 
@@ -349,7 +349,7 @@ public static partial class ControlsExtensions
             var hot = gui.Pass == Pass.Pass2Render && interactable.OnHover();
 
             gui.DrawText(state.IsCollapsed(item.Id, item.Depth) ? "▶" : "▼", theme.FontSize * 0.7f,
-                hot ? gui.Controls.Text : gui.Controls.TextDisabled);
+                hot ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled);
 
             if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) state.Toggle(item.Id, item.Depth);
         }

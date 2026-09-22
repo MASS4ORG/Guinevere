@@ -31,7 +31,7 @@ public static partial class ControlsExtensions
         Action<DockTabStrip, Gui>? renderTabStripActions = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        var context = new DockContext(gui, layout, panelInfo, renderPanel, theme ?? DockTheme.FromPalette(gui.Controls),
+        var context = new DockContext(gui, layout, panelInfo, renderPanel, theme ?? DockTheme.FromStyle(gui.ControlStyle),
             renderTabStripActions);
 
         using (gui.Node(filePath: filePath, lineNumber: lineNumber).Expand().Enter())

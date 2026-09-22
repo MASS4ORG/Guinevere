@@ -24,7 +24,7 @@ public static partial class ControlsExtensions
     {
         ArgumentNullException.ThrowIfNull(gui);
 
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
         var track = trackColor ?? palette.Divider;
         var fill = fillColor ?? palette.Accent;
         var radius = height / 2f;

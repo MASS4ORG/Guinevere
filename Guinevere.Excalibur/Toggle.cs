@@ -16,6 +16,10 @@ public static partial class ControlsExtensions
         float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
+        height = gui.ControlStyle.CompactHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        spacing = gui.ControlStyle.SpacingOr(spacing);
+
         ToggleCore(gui, ref isOn, label, width, height, onColor, offColor,
             thumbColor, labelColor, fontSize, spacing, enabled);
     }
@@ -34,6 +38,10 @@ public static partial class ControlsExtensions
         float spacing = ControlMetrics.Spacing,
         bool enabled = true)
     {
+        height = gui.ControlStyle.CompactHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        spacing = gui.ControlStyle.SpacingOr(spacing);
+
         var temp = isOn;
         ToggleCore(gui, ref temp, label, width, height, onColor, offColor,
             thumbColor, labelColor, fontSize, spacing, enabled);
@@ -96,7 +104,7 @@ public static partial class ControlsExtensions
             if (gui.Pass != Pass.Pass2Render) return;
 
             var rect = gui.CurrentNode.Rect;
-            var trackColor = enabled ? GetToggleTrackColor(gui, isOn, onColor, offColor) : gui.Controls.Border;
+            var trackColor = enabled ? GetToggleTrackColor(gui, isOn, onColor, offColor) : gui.ControlStyle.Border;
 
             gui.DrawBackgroundRect(trackColor, height * 0.5f);
 
@@ -104,12 +112,12 @@ public static partial class ControlsExtensions
             if (enabled && gui.HasFocus())
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, gui.Controls.FocusRing, 4f, (height * 0.5f) + 4);
-                gui.DrawRectBorder(rect, gui.Controls.Accent, 2f, (height * 0.5f) + 2);
+                gui.DrawRectBorder(focusRect, gui.ControlStyle.FocusRing, 4f, (height * 0.5f) + 4);
+                gui.DrawRectBorder(rect, gui.ControlStyle.Accent, 2f, (height * 0.5f) + 2);
             }
 
             var thumbProps = CalculateThumbProperties(rect, width, height, isOn);
-            DrawToggleThumb(gui, thumbProps, enabled ? thumbColor ?? gui.Controls.TextOnAccent : gui.Controls.TextDisabled);
+            DrawToggleThumb(gui, thumbProps, enabled ? thumbColor ?? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled);
         }
     }
 
@@ -118,7 +126,7 @@ public static partial class ControlsExtensions
     {
         if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = enabled ? labelColor ?? gui.Controls.Text : gui.Controls.TextDisabled;
+            var labelColorFinal = enabled ? labelColor ?? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled;
             gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
         }
     }
@@ -128,8 +136,8 @@ public static partial class ControlsExtensions
         var interactable = gui.GetInteractable();
         var isHovered = interactable.OnHover();
 
-        var on = onColor ?? gui.Controls.Selected;
-        var off = offColor ?? gui.Controls.Border;
+        var on = onColor ?? gui.ControlStyle.Selected;
+        var off = offColor ?? gui.ControlStyle.Border;
 
         return (isOn, isHovered) switch
         {
@@ -161,6 +169,6 @@ public static partial class ControlsExtensions
     static void DrawToggleThumb(Gui gui, (Vector2 position, float radius) thumbProps, Color thumbColor)
     {
         gui.DrawCircleFilled(thumbProps.position, thumbProps.radius, thumbColor);
-        gui.DrawCircleBorder(thumbProps.position, thumbProps.radius, gui.Controls.Shadow);
+        gui.DrawCircleBorder(thumbProps.position, thumbProps.radius, gui.ControlStyle.Shadow);
     }
 }

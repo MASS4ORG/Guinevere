@@ -129,7 +129,7 @@ public static partial class ControlsExtensions
                 // Only render overlay when modal is open
                 if (isOpen)
                 {
-                    var overlay = overlayColor ?? gui.Controls.Overlay;
+                    var overlay = overlayColor ?? gui.ControlStyle.Overlay;
                     gui.DrawRect(gui.CurrentNode.Rect, overlay);
                 }
         }
@@ -156,6 +156,10 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         // Always create tooltip node for consistency
         var mousePos = gui.Input.MousePosition;
         var tooltipOffset = offset ?? new Vector2(10, -25);
@@ -183,8 +187,8 @@ public static partial class ControlsExtensions
                 // Only render background when shown and text is not empty
                 if (show && !string.IsNullOrEmpty(text))
                 {
-                    var bgColor = backgroundColor ?? gui.Controls.Surface;
-                    var borderColorFinal = borderColor ?? gui.Controls.Border;
+                    var bgColor = backgroundColor ?? gui.ControlStyle.Surface;
+                    var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
 
                     gui.DrawBackgroundRect(bgColor, borderRadius);
                     gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -192,7 +196,7 @@ public static partial class ControlsExtensions
 
             // Always draw text for consistency, but make transparent when hidden
             var textColorFinal = show && !string.IsNullOrEmpty(text)
-                ? textColor ?? gui.Controls.Text
+                ? textColor ?? gui.ControlStyle.Text
                 : Color.Transparent;
             gui.DrawText(tooltipText, fontSize, textColorFinal, centerInRect: false);
         }
@@ -215,6 +219,10 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
+        padding = gui.ControlStyle.SpacingOr(padding);
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         var id = gui.NodeId(filePath, lineNumber);
         var state = gui.ControlState(id, () => new TooltipState());
         var now = gui.Time.Elapsed;
@@ -248,6 +256,8 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         // Always create menu node for consistency
         var menuPos = position ?? gui.Input.MousePosition;
         var builder = new ContextMenuBuilder();
@@ -275,8 +285,8 @@ public static partial class ControlsExtensions
                 // Only render background when open
                 if (isOpen)
                 {
-                    var bgColor = backgroundColor ?? gui.Controls.Popup;
-                    var borderColorFinal = borderColor ?? gui.Controls.Border;
+                    var bgColor = backgroundColor ?? gui.ControlStyle.Popup;
+                    var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
 
                     gui.DrawBackgroundRect(bgColor, borderRadius);
                     gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -332,8 +342,8 @@ public static partial class ControlsExtensions
                 // Only render visually when popup is open
                 if (state.IsOpen)
                 {
-                    var bgColor = backgroundColor ?? gui.Controls.Popup;
-                    var borderColorFinal = borderColor ?? gui.Controls.Border;
+                    var bgColor = backgroundColor ?? gui.ControlStyle.Popup;
+                    var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
 
                     gui.DrawBackgroundRect(bgColor, borderRadius);
                     gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, borderWidth, borderRadius);
@@ -386,12 +396,12 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && isOpen)
             {
-                var titleBgColor = titleBarColor ?? gui.Controls.SurfaceHover;
+                var titleBgColor = titleBarColor ?? gui.ControlStyle.SurfaceHover;
                 gui.DrawBackgroundRect(titleBgColor);
             }
 
             // Always draw text for consistency, but make transparent when closed
-            var titleColorFinal = isOpen ? titleTextColor ?? gui.Controls.Text : Color.Transparent;
+            var titleColorFinal = isOpen ? titleTextColor ?? gui.ControlStyle.Text : Color.Transparent;
             gui.DrawText(title, color: titleColorFinal, centerInRect: false);
         }
     }
@@ -414,7 +424,7 @@ public static partial class ControlsExtensions
 
                         if (isHovered)
                         {
-                            var hoverColorFinal = hoverColor ?? gui.Controls.SurfaceHover;
+                            var hoverColorFinal = hoverColor ?? gui.ControlStyle.SurfaceHover;
                             gui.DrawBackgroundRect(hoverColorFinal);
                         }
 
@@ -428,7 +438,7 @@ public static partial class ControlsExtensions
                     }
 
                 // Always render text for consistency, but make transparent when closed
-                var textColor = item.Enabled ? gui.Controls.Text : gui.Controls.TextDim;
+                var textColor = item.Enabled ? gui.ControlStyle.Text : gui.ControlStyle.TextDim;
                 if (!menuIsOpen) textColor = Color.Transparent;
 
                 gui.DrawText(item.Text, color: textColor, centerInRect: false);

@@ -23,6 +23,9 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
@@ -92,6 +95,9 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         var temp = activeTabIndex;
         gui.Tabs(ref temp, buildTabs, tabBarHeight, backgroundColor, activeTabColor, inactiveTabColor,
             borderColor, textColor, activeTextColor, fontSize, borderRadius, showBorder, id, onTabClosed,
@@ -116,6 +122,10 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        height = gui.ControlStyle.FieldHeightOr(height);
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         gui.Tabs(ref activeTabIndex, builder =>
             {
                 foreach (var title in tabTitles) builder.Tab(title);
@@ -143,8 +153,8 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && showBorder)
             {
-                var bgColor = backgroundColor ?? gui.Controls.SurfaceHover;
-                var borderColorFinal = borderColor ?? gui.Controls.Border;
+                var bgColor = backgroundColor ?? gui.ControlStyle.SurfaceHover;
+                var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
 
                 gui.DrawBackgroundRect(bgColor, borderRadius);
                 gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -185,7 +195,7 @@ public static partial class ControlsExtensions
                 if (hasFocus)
                 {
                     var focusRect = new Rect(rect.X - 2, rect.Y - 2, rect.W + 4, rect.H + 4);
-                    gui.DrawRectBorder(focusRect, gui.Controls.Accent, 2f, borderRadius + 2);
+                    gui.DrawRectBorder(focusRect, gui.ControlStyle.Accent, 2f, borderRadius + 2);
                 }
 
                 // Keyboard navigation: Left/Right to move, Enter/Space to activate
@@ -238,8 +248,8 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && showBorder)
             {
-                var bgColor = backgroundColor ?? gui.Controls.Popup;
-                var borderColorFinal = borderColor ?? gui.Controls.Border;
+                var bgColor = backgroundColor ?? gui.ControlStyle.Popup;
+                var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
 
                 gui.DrawBackgroundRect(bgColor, borderRadius);
                 gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -282,9 +292,9 @@ public static partial class ControlsExtensions
             var clicked = interactable.OnClick();
 
             if (hovered || clicked)
-                gui.DrawBackgroundRect(gui.Controls.SurfaceHover, TabCloseButtonSize * 0.5f);
+                gui.DrawBackgroundRect(gui.ControlStyle.SurfaceHover, TabCloseButtonSize * 0.5f);
 
-            var markColor = hovered || clicked ? gui.Controls.Text : gui.Controls.TextDim;
+            var markColor = hovered || clicked ? gui.ControlStyle.Text : gui.ControlStyle.TextDim;
 
             var font = new SKFont { Size = 12f };
             font.MeasureText("×", out var bounds);
@@ -300,22 +310,22 @@ public static partial class ControlsExtensions
     static Color? GetTabBackgroundColor(Gui gui, bool isActive, bool isHovered, Color? tabColor,
         Color? activeTabColor, Color? inactiveTabColor)
     {
-        return tabColor ?? (isActive ? activeTabColor ?? gui.Controls.Surface :
-            isHovered ? gui.Controls.SurfaceHover :
+        return tabColor ?? (isActive ? activeTabColor ?? gui.ControlStyle.Surface :
+            isHovered ? gui.ControlStyle.SurfaceHover :
             inactiveTabColor);
     }
 
     static Color GetTabTextColor(Gui gui, bool isActive, bool enabled, Color? tabTextColor,
         Color? activeTextColor, Color? textColor)
     {
-        if (!enabled) return gui.Controls.TextDim;
-        return tabTextColor ?? (isActive ? activeTextColor ?? gui.Controls.Text : textColor ?? gui.Controls.TextDim);
+        if (!enabled) return gui.ControlStyle.TextDim;
+        return tabTextColor ?? (isActive ? activeTextColor ?? gui.ControlStyle.Text : textColor ?? gui.ControlStyle.TextDim);
     }
 
     static void DrawActiveTabIndicator(Gui gui, Color? activeTabColor)
     {
         var rect = gui.CurrentNode.Rect;
-        var indicatorColor = activeTabColor ?? gui.Controls.Accent;
+        var indicatorColor = activeTabColor ?? gui.ControlStyle.Accent;
         var indicatorRect = new Rect(rect.X, rect.Y + rect.H - 3, rect.W, 3);
         gui.DrawRect(indicatorRect, indicatorColor);
     }
@@ -365,6 +375,9 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
+
         var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, 32);
 
@@ -420,6 +433,9 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        spacing = gui.ControlStyle.SpacingOr(spacing);
+
         var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
@@ -437,10 +453,10 @@ public static partial class ControlsExtensions
 
         using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
         {
-            RenderPillTabBar(gui, state, activeTabColor ?? gui.Controls.Selected,
+            RenderPillTabBar(gui, state, activeTabColor ?? gui.ControlStyle.Selected,
                 inactiveTabColor ?? Color.Transparent, textColor, activeTextColor, fontSize, spacing);
 
-            RenderActiveTabContent(gui, state, gui.Controls.Popup, gui.Controls.Border, 4, true);
+            RenderActiveTabContent(gui, state, gui.ControlStyle.Popup, gui.ControlStyle.Border, 4, true);
         }
 
         if (state.TabToClose is { } closeRequest)
@@ -468,8 +484,8 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && showBorder)
             {
-                var bgColor = backgroundColor ?? gui.Controls.SurfaceHover;
-                var borderColorFinal = borderColor ?? gui.Controls.Border;
+                var bgColor = backgroundColor ?? gui.ControlStyle.SurfaceHover;
+                var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
 
                 gui.DrawBackgroundRect(bgColor, borderRadius);
                 gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
@@ -509,7 +525,7 @@ public static partial class ControlsExtensions
 
                 if (isActive)
                 {
-                    var indicatorColor = activeTabColor ?? gui.Controls.Accent;
+                    var indicatorColor = activeTabColor ?? gui.ControlStyle.Accent;
                     var indicatorRect = new Rect(rect.X, rect.Y, 3, rect.H);
                     gui.DrawRect(indicatorRect, indicatorColor);
                 }

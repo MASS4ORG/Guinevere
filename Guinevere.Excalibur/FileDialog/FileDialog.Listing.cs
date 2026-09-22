@@ -15,7 +15,7 @@ public static partial class ControlsExtensions
     /// </summary>
     static void Listing(Gui gui, FileDialogState state, float fontSize)
     {
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
 
         using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
         {
@@ -67,7 +67,7 @@ public static partial class ControlsExtensions
 
     static void ListingHeader(Gui gui, FileDialogState state, float fontSize)
     {
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
 
         using (gui.Node(-1, rowHeight).ExpandWidth().Direction(Axis.Horizontal).Gap(6f)
                    .PaddingX(8f).ContentAlignY(0.5f).Enter())
@@ -86,7 +86,7 @@ public static partial class ControlsExtensions
     static void Column(Gui gui, FileDialogState state, FileSortColumn column, string label,
         float width, float fontSize)
     {
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
         var active = state.Browser.Sort == column;
         var node = width > 0f ? gui.Node(width, rowHeight, state.ControlId($"column/{column}"))
             : gui.Node(-1, rowHeight, state.ControlId($"column/{column}")).Expand();
@@ -105,7 +105,7 @@ public static partial class ControlsExtensions
 
     static void Row(Gui gui, FileDialogState state, FileEntry entry, float fontSize)
     {
-        var palette = gui.Controls;
+        var palette = gui.ControlStyle;
         var selected = state.Selected?.FullPath == entry.FullPath;
 
         using (gui.Node(-1, rowHeight, state.ControlId($"row/{entry.FullPath}")).ExpandWidth()

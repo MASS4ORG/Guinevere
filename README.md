@@ -180,6 +180,21 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   shape/effect declarations, advanced macro families, and `#inherit-properties`/`#inherit-selector`
   remain planned styling features.
 
+  Color palettes are collections of independent, inheritable values. Override only the values a
+  subtree needs:
+
+  ```csharp
+  using (gui.Node().Enter())
+  {
+      gui.CurrentNodeScope.Set(
+      [
+          ControlStyles.Value<ControlAccent, Color>(Color.Orange),
+          ControlStyles.Value<ControlFieldHeight, float>(40f)
+      ]);
+      gui.Button("Locally styled");
+  }
+  ```
+
 ### Animation
 
 - Smooth value/state transitions
