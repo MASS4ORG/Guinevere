@@ -200,4 +200,28 @@ public class CursorAndPointerModeTests
 
         Assert.Equal(PointerMode.Normal, gui.PointerMode);
     }
+
+    [Fact]
+    public void ScrollbarThumbShowsTheArrowOverAnIBeamContainer()
+    {
+        var harness = new Harness();
+        void Draw(Gui gui)
+        {
+            using (gui.Node(Size, Size, "text-area").Cursor(PointerCursor.Text).Enter())
+            {
+                gui.ScrollY();
+                using (gui.Node(Size, Size * 4, "content").Enter()) { }
+            }
+        }
+
+        harness.Input.MoveTo(50, 50);
+        harness.Frame(Draw);
+        harness.Frame(Draw);
+        Assert.Equal(PointerCursor.Text, harness.Input.Cursor);
+
+        // The vertical thumb sits at the top of the right edge while scrolled to the top.
+        harness.Input.MoveTo(Size - 3, 10);
+        harness.Frame(Draw);
+        Assert.Equal(PointerCursor.Default, harness.Input.Cursor);
+    }
 }

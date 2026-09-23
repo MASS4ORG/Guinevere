@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace Guinevere;
 
 /// <summary>
@@ -107,11 +109,13 @@ public static class StyleLayout
         }
     }
 
-    static float AlignFraction(string value) => value switch
+    static readonly FrozenDictionary<string, float> AlignFractions = new Dictionary<string, float>
     {
-        "flex-start" or "start" or "left" or "top" => 0f,
-        "center" or "middle" => 0.5f,
-        "flex-end" or "end" or "right" or "bottom" => 1f,
-        _ => 0f,
-    };
+        ["flex-start"] = 0f, ["start"] = 0f, ["left"] = 0f, ["top"] = 0f,
+        ["center"] = 0.5f, ["middle"] = 0.5f,
+        ["flex-end"] = 1f, ["end"] = 1f, ["right"] = 1f, ["bottom"] = 1f
+    }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    /// <summary>Maps a CSS alignment keyword to a fraction of the free space; unknown ones align to the start.</summary>
+    internal static float AlignFraction(string value) => AlignFractions.GetValueOrDefault(value);
 }
