@@ -201,36 +201,40 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render)
         {
             Select(gui, state, lines, measureFont, inner, offsetY, lineHeight);
-
-            if (copyable && !gui.Focus.IsTextInputFocused && IsControlDown(gui))
-            {
-                if (gui.Input.IsKeyPressed(KeyboardKey.A)) state.SelectAll();
-                else if (gui.Input.IsKeyPressed(KeyboardKey.C))
-                    gui.Platform.Require<IClipboard>().SetClipboardText(state.HasSelection ? state.SelectedText : text);
-            }
+            if (copyable) HandleLabelShortcuts(gui, state, text);
         }
 
+        var highlight = selectionColor ?? gui.ControlStyle.TextSelection;
         for (var index = 0; index < lines.Count; index++)
         {
-            var line = lines[index];
             var top = inner.Y - offsetY + (index * lineHeight);
-
             using (gui.Node(-1, lineHeight, $"{nodeId}/wrappedLabelLine/{index}").ExpandWidth().Enter())
-            {
-                if (gui.Pass == Pass.Pass2Render && state.HasSelection)
-                {
-                    if (WrappedTextLayout.SelectionOn(measureFont, line, state.SelectionStart, state.SelectionEnd)
-                        is { } run)
-                        gui.DrawRectFilled(new Rect(inner.X + run.X, top, run.Width, lineHeight),
-                            selectionColor ?? gui.ControlStyle.TextSelection);
-                }
-
-                if (line.Text.Length > 0)
-                    gui.DrawText(line.Text, size, color, drawFont, centerInRect: false, clip: true);
-            }
+                DrawWrappedLine(gui, state, lines[index], measureFont, new Rect(inner.X, top, inner.W, lineHeight),
+                    size, color, highlight, drawFont);
         }
 
         return state;
+    }
+
+    /// <summary>Ctrl+A selects everything; Ctrl+C copies the selection, or the whole text with none.</summary>
+    static void HandleLabelShortcuts(Gui gui, TextEditState state, string text)
+    {
+        if (gui.Focus.IsTextInputFocused || !IsControlDown(gui)) return;
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.A)) state.SelectAll();
+        else if (gui.Input.IsKeyPressed(KeyboardKey.C))
+            gui.Platform.Require<IClipboard>().SetClipboardText(state.HasSelection ? state.SelectedText : text);
+    }
+
+    /// <summary>Draws one wrapped line into the current node, under its share of the selection highlight.</summary>
+    static void DrawWrappedLine(Gui gui, TextEditState state, WrappedLine line, SKFont measureFont, Rect row,
+        float size, Color color, Color highlight, Font? drawFont)
+    {
+        if (gui.Pass == Pass.Pass2Render && state.HasSelection &&
+            WrappedTextLayout.SelectionOn(measureFont, line, state.SelectionStart, state.SelectionEnd) is { } run)
+            gui.DrawRectFilled(new Rect(row.X + run.X, row.Y, run.Width, row.H), highlight);
+
+        if (line.Text.Length > 0) gui.DrawText(line.Text, size, color, drawFont, centerInRect: false, clip: true);
     }
 
     /// <summary>

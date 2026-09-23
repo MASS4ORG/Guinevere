@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Fixed: Text area caret was never drawn (its node was built only in the render pass)
+- Fixed: Scrollbar thumbs show the default cursor instead of their container's
+- Added: DOM-style event propagation, node cursor shapes, and hidden/relative/wrapped pointer modes
+- Changed: `gui.Input` filters edges handled with `PreventDefault`; use `gui.PlatformInput` for the raw handler
+- Removed: `PointerCursor.Hidden`; request `PointerMode.Hidden` instead
 - Added: Capability-based platform services and integration conformance checks
 - Added: Headless press, toggle, selection, drag, and repeat behaviors with optional control semantics
 - Fixed: Tab and dropdown state changes now happen between frames, preventing new trees from blinking before layout

@@ -9,7 +9,8 @@ namespace Guinevere;
 /// Represents a GUI window implementation using Raylib for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCapability
+public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCapability, ICursorCapability,
+    IPointerCapability
 {
     readonly ICanvasRenderer _canvasRenderer;
     readonly Gui _gui;
@@ -36,6 +37,8 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IDisplayCapability>(this);
+        _gui.Platform.Register<ICursorCapability>(this);
+        _gui.Platform.Register<IPointerCapability>(this);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
@@ -138,6 +141,80 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
         _fontIcon.Dispose();
         Raylib.CloseWindow();
     }
+
+    #region Cursor and pointer
+
+    PointerCursor _cursor;
+    bool _pointerVisible = true;
+    bool _pointerLocked;
+
+    /// <inheritdoc />
+    public PointerCursor Cursor
+    {
+        get => _cursor;
+        set
+        {
+            _cursor = value;
+            Raylib.SetMouseCursor(value switch
+            {
+                PointerCursor.Arrow => MouseCursor.Arrow,
+                PointerCursor.Text => MouseCursor.IBeam,
+                PointerCursor.Hand => MouseCursor.PointingHand,
+                PointerCursor.Crosshair => MouseCursor.Crosshair,
+                PointerCursor.ResizeHorizontal => MouseCursor.ResizeEw,
+                PointerCursor.ResizeVertical => MouseCursor.ResizeNs,
+                PointerCursor.ResizeDiagonalNorthWestSouthEast => MouseCursor.ResizeNwse,
+                PointerCursor.ResizeDiagonalNorthEastSouthWest => MouseCursor.ResizeNesw,
+                PointerCursor.NotAllowed => MouseCursor.NotAllowed,
+                _ => MouseCursor.Default
+            });
+        }
+    }
+
+    /// <inheritdoc />
+    public bool Visible
+    {
+        get => _pointerVisible;
+        set
+        {
+            _pointerVisible = value;
+            ApplyCursorState();
+        }
+    }
+
+    /// <inheritdoc />
+    public bool Locked
+    {
+        get => _pointerLocked;
+        set
+        {
+            _pointerLocked = value;
+            ApplyCursorState();
+        }
+    }
+
+    /// <inheritdoc />
+    public void Warp(Vector2 position)
+    {
+        Raylib.SetMousePosition((int)position.X, (int)position.Y);
+        _currentMousePosition = _prevMousePosition = position;
+    }
+
+    /// <summary>Raylib's disabled cursor hides the pointer and reports unbounded virtual positions.</summary>
+    void ApplyCursorState()
+    {
+        if (_pointerLocked)
+        {
+            Raylib.DisableCursor();
+            return;
+        }
+
+        Raylib.EnableCursor();
+        if (_pointerVisible) Raylib.ShowCursor();
+        else Raylib.HideCursor();
+    }
+
+    #endregion Cursor and pointer
 
     #region IInputHandler
 

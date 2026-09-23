@@ -35,20 +35,7 @@ public static partial class ControlsExtensions
             state.RequestedActiveTabIndex = null;
         }
 
-        var builder = new TabBuilder();
-        buildTabs(builder);
-        state.Tabs = builder.GetTabs();
-
-        // Middle-click closure lives in the widget: tabs the user closed stay out of the rebuilt list.
-        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
-
-        // Ensure active tab index is valid
-        if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
-            activeTabIndex = state.Tabs.Count > 0 ? 0 : -1;
-
-        state.ActiveTabIndex = activeTabIndex;
-
-        if (state.Tabs.Count == 0) return;
+        if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
 
         var totalHeight = CalculateTabsHeight(state, tabBarHeight);
 
@@ -60,19 +47,7 @@ public static partial class ControlsExtensions
             RenderActiveTabContent(gui, state, backgroundColor, borderColor, borderRadius, showBorder);
         }
 
-        if (state.TabToClose is { } closeRequest)
-        {
-            state.TabToClose = null;
-            state.Closed.Add(closeRequest.Title);
-
-            var openCount = state.Tabs.Count - 1;
-            if (closeRequest.Index < state.ActiveTabIndex) state.ActiveTabIndex--;
-            else if (closeRequest.Index == state.ActiveTabIndex)
-                state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
-
-            onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
-        }
-
+        ApplyTabClose(state, onTabClosed);
         activeTabIndex = state.ActiveTabIndex;
     }
 
@@ -381,17 +356,7 @@ public static partial class ControlsExtensions
         var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, 32);
 
-        var builder = new TabBuilder();
-        buildTabs(builder);
-        state.Tabs = builder.GetTabs();
-        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
-
-        if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
-            activeTabIndex = state.Tabs.Count > 0 ? 0 : -1;
-
-        state.ActiveTabIndex = activeTabIndex;
-
-        if (state.Tabs.Count == 0) return;
+        if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
 
         using (gui.Node().Expand().Direction(Axis.Horizontal).Enter())
         {
@@ -401,19 +366,7 @@ public static partial class ControlsExtensions
             RenderActiveTabContent(gui, state, backgroundColor, borderColor, borderRadius, showBorder);
         }
 
-        if (state.TabToClose is { } closeRequest)
-        {
-            state.TabToClose = null;
-            state.Closed.Add(closeRequest.Title);
-
-            var openCount = state.Tabs.Count - 1;
-            if (closeRequest.Index < state.ActiveTabIndex) state.ActiveTabIndex--;
-            else if (closeRequest.Index == state.ActiveTabIndex)
-                state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
-
-            onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
-        }
-
+        ApplyTabClose(state, onTabClosed);
         activeTabIndex = state.ActiveTabIndex;
     }
 
@@ -439,17 +392,7 @@ public static partial class ControlsExtensions
         var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
-        var builder = new TabBuilder();
-        buildTabs(builder);
-        state.Tabs = builder.GetTabs();
-        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
-
-        if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
-            activeTabIndex = state.Tabs.Count > 0 ? 0 : -1;
-
-        state.ActiveTabIndex = activeTabIndex;
-
-        if (state.Tabs.Count == 0) return;
+        if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
 
         using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
         {
@@ -459,20 +402,42 @@ public static partial class ControlsExtensions
             RenderActiveTabContent(gui, state, gui.ControlStyle.Popup, gui.ControlStyle.Border, 4, true);
         }
 
-        if (state.TabToClose is { } closeRequest)
-        {
-            state.TabToClose = null;
-            state.Closed.Add(closeRequest.Title);
-
-            var openCount = state.Tabs.Count - 1;
-            if (closeRequest.Index < state.ActiveTabIndex) state.ActiveTabIndex--;
-            else if (closeRequest.Index == state.ActiveTabIndex)
-                state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
-
-            onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
-        }
-
+        ApplyTabClose(state, onTabClosed);
         activeTabIndex = state.ActiveTabIndex;
+    }
+
+    /// <summary>
+    /// Rebuilds the tab list, leaving out tabs the user closed (middle-click closure lives in the widget), and
+    /// clamps the active index. Returns whether any tab remains.
+    /// </summary>
+    static bool LoadTabs(TabsState state, Action<TabBuilder> buildTabs, ref int activeTabIndex)
+    {
+        var builder = new TabBuilder();
+        buildTabs(builder);
+        state.Tabs = builder.GetTabs();
+        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
+
+        if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
+            activeTabIndex = state.Tabs.Count > 0 ? 0 : -1;
+
+        state.ActiveTabIndex = activeTabIndex;
+        return state.Tabs.Count > 0;
+    }
+
+    /// <summary>Closes the tab requested this frame, keeping the active tab on the same page where possible.</summary>
+    static void ApplyTabClose(TabsState state, Action<int, string>? onTabClosed)
+    {
+        if (state.TabToClose is not { } closeRequest) return;
+
+        state.TabToClose = null;
+        state.Closed.Add(closeRequest.Title);
+
+        var openCount = state.Tabs.Count - 1;
+        if (closeRequest.Index < state.ActiveTabIndex) state.ActiveTabIndex--;
+        else if (closeRequest.Index == state.ActiveTabIndex)
+            state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
+
+        onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
     }
 
     static void RenderVerticalTabBar(Gui gui, TabsState state, float tabWidth,

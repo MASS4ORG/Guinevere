@@ -128,47 +128,46 @@ public static partial class ControlsExtensions
         {
             if (item.IsSeparator)
             {
-                if (gui.Pass != Pass.Pass2Render) return;
-
-                var rect = gui.CurrentNode.Rect;
-                var sepColor = separatorColor ?? gui.ControlStyle.Border;
-                var sepY = rect.Y + rect.H * 0.5f;
-                gui.DrawLine(new Vector2(rect.X + padding, sepY),
-                    new Vector2(rect.X + rect.W - padding, sepY), sepColor);
+                DrawFlyoutSeparator(gui, separatorColor, padding);
                 return;
             }
 
-            var isHovered = index == state.HoveredIndex;
-            var itemColor = item.Enabled ? textColor ?? gui.ControlStyle.Text : disabledColor ?? gui.ControlStyle.TextDim;
+            var itemColor = item.Enabled
+                ? textColor ?? gui.ControlStyle.Text
+                : disabledColor ?? gui.ControlStyle.TextDim;
 
             if (gui.Pass == Pass.Pass2Render) gui.RegisterFocusable(canReceiveFocus: item.Enabled);
-
-            if (isHovered && item.Enabled)
-            {
-                var hoverColorFinal = hoverColor ?? gui.ControlStyle.SurfaceHover;
-                gui.DrawBackgroundRect(hoverColorFinal);
-            }
+            if (index == state.HoveredIndex && item.Enabled)
+                gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover);
 
             // Built in both passes: a node created only during the render pass never took part in
             // layout, so every label drew at the menu's origin instead of on its own row.
             using (gui.Node().Padding(padding).Direction(Axis.Horizontal).Enter())
             {
                 gui.DrawText(item.Text, fontSize, itemColor, centerInRect: false);
-
-                if (item.HasSubmenu)
-                {
-                    gui.Node().Expand();
-
-                    gui.DrawText("▶", fontSize * 0.8f, itemColor, centerInRect: false);
-                }
-                else if (!string.IsNullOrEmpty(item.Shortcut))
-                {
-                    gui.Node().Expand();
-
-                    gui.DrawText(item.Shortcut, fontSize * 0.9f, gui.ControlStyle.TextDim, centerInRect: false);
-                }
+                DrawFlyoutTrailing(gui, item, itemColor, fontSize);
             }
         }
+    }
+
+    static void DrawFlyoutSeparator(Gui gui, Color? separatorColor, float padding)
+    {
+        if (gui.Pass != Pass.Pass2Render) return;
+
+        var rect = gui.CurrentNode.Rect;
+        var sepY = rect.Y + rect.H * 0.5f;
+        gui.DrawLine(new Vector2(rect.X + padding, sepY), new Vector2(rect.X + rect.W - padding, sepY),
+            separatorColor ?? gui.ControlStyle.Border);
+    }
+
+    /// <summary>The right-aligned column: a submenu arrow, else the shortcut, else nothing.</summary>
+    static void DrawFlyoutTrailing(Gui gui, FlyoutItem item, Color itemColor, float fontSize)
+    {
+        if (!item.HasSubmenu && string.IsNullOrEmpty(item.Shortcut)) return;
+
+        gui.Node().Expand();
+        if (item.HasSubmenu) gui.DrawText("▶", fontSize * 0.8f, itemColor, centerInRect: false);
+        else gui.DrawText(item.Shortcut!, fontSize * 0.9f, gui.ControlStyle.TextDim, centerInRect: false);
     }
 
     static void CloseFlyoutRecursive(FlyoutState state)

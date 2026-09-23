@@ -17,16 +17,40 @@ public partial class Gui
     /// Useful for managing user inputs and enabling interactive elements within the GUI.
     /// </remarks>
     IInputHandler? _input;
+    FrameInput? _frameInput;
 
-    /// <summary>Required input capability. Assigning it also publishes input and clipboard services.</summary>
+    /// <summary>
+    /// Required input capability. Assigning it also publishes input and clipboard services. Reading it returns
+    /// this frame's view of that handler: edges an event listener handled with
+    /// <see cref="GuiEvent.PreventDefault"/> are hidden from it, and typed text is handed out once per frame.
+    /// </summary>
     public IInputHandler Input
     {
-        get => _input ?? Platform.Require<IInputHandler>();
+        get => FrameInputView;
         set
         {
             _input = value;
             Platform.Register<IInputHandler>(value);
             Platform.Register<IClipboard>(value);
+        }
+    }
+
+    /// <summary>
+    /// The handler the platform supplied, without this frame's filtering. Use it to reach integration-specific
+    /// members; poll through <see cref="Input"/> so handled events are respected.
+    /// </summary>
+    public IInputHandler PlatformInput => RawInput;
+
+    IInputHandler RawInput => _input ?? Platform.Require<IInputHandler>();
+
+    FrameInput FrameInputView
+    {
+        get
+        {
+            var source = RawInput;
+            if (_frameInput is null || !ReferenceEquals(_frameInput.Source, source))
+                _frameInput = new FrameInput(source);
+            return _frameInput;
         }
     }
 

@@ -119,46 +119,38 @@ public static partial class ControlsExtensions
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 
-        var font = TextEditor.MeasuringFont(gui, fontSize);
+        var (line, column, lineText) = CaretLineAndColumn(text, state.CursorPosition);
         var lineHeight = fontSize * 1.2f;
-        var lines = text.Split('\n');
-        var innerRect = gui.CurrentNode.InnerRect;
+        var inner = gui.CurrentNode.InnerRect;
+        var cursorY = line * lineHeight + 2;
+        if (cursorY < 0 || cursorY >= inner.Height) return;
 
-        // Bounds checking for empty text
-        if (lines.Length == 0) return;
+        // Drawn straight into the area rather than into a caret node: a node built only in the render pass never
+        // takes part in layout, so it had no size and the caret never showed.
+        var textWidth = TextEditor.MeasureWidth(TextEditor.MeasuringFont(gui, fontSize), lineText[..column]);
+        gui.DrawRect(new Rect(inner.X + textWidth, inner.Y + cursorY, 2, Math.Max(2, lineHeight - 4)),
+            cursorColor ?? gui.ControlStyle.Text);
+    }
 
-        // Find the cursor line and column with better bounds checking
-        var cursorInfo = lines
-            .Select((line, index) => new { Line = line, Index = index, Length = line.Length + 1 })
-            .Aggregate((Position: 0, Line: 0, Column: 0), (acc, line) =>
-                acc.Position + line.Length > state.CursorPosition
-                    ? (acc.Position, line.Index, state.CursorPosition - acc.Position)
-                    : (acc.Position + line.Length, line.Index, 0));
+    /// <summary>
+    /// The line and column a caret offset falls on in newline-separated text, clamped to the text; the column
+    /// is at most the line's length.
+    /// </summary>
+    internal static (int Line, int Column, string LineText) CaretLineAndColumn(string text, int position)
+    {
+        var lineStart = 0;
+        var line = 0;
+        while (true)
+        {
+            var lineEnd = text.IndexOf('\n', lineStart);
+            var isLast = lineEnd < 0;
+            var lineText = isLast ? text[lineStart..] : text[lineStart..lineEnd];
+            if (isLast || position <= lineEnd)
+                return (line, Math.Clamp(position - lineStart, 0, lineText.Length), lineText);
 
-        var cursorLine = Math.Min(cursorInfo.Line, lines.Length - 1);
-        var cursorColumn = cursorInfo.Column;
-
-        // Ensure cursor line and column are valid
-        if (cursorLine < 0 || cursorLine >= lines.Length) return;
-        if (cursorColumn < 0) cursorColumn = 0;
-        if (cursorColumn > lines[cursorLine].Length) cursorColumn = lines[cursorLine].Length;
-
-        // Calculate cursor position - use relative positioning to avoid clipping issues
-        var textBeforeCursor = cursorColumn > 0 && cursorLine < lines.Length
-            ? lines[cursorLine].Substring(0, cursorColumn)
-            : "";
-
-        var textWidth = TextEditor.MeasureWidth(font, textBeforeCursor);
-        var cursorY = cursorLine * lineHeight + 2;
-        var cursorHeight = Math.Max(2, lineHeight - 4);
-
-        // Ensure cursor is within the visible area
-        if (cursorY >= 0 && cursorY < innerRect.Height)
-            // Use a nested node for cursor positioning to avoid coordinate transformation issues
-            using (gui.Node(2, cursorHeight).Margin(textWidth, cursorY, 0, 0).Enter())
-            {
-                gui.DrawRect(gui.CurrentNode.Rect, cursorColor ?? gui.ControlStyle.Text);
-            }
+            lineStart = lineEnd + 1;
+            line++;
+        }
     }
 
     /// <summary>
@@ -181,7 +173,7 @@ public static partial class ControlsExtensions
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
-                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
+                   .ContentAlignX(alignX).ContentAlignY(0.5f).Cursor(FieldCursor(enabled)).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -261,7 +253,8 @@ public static partial class ControlsExtensions
         gui.Focus.RegisterTextInput(nodeId);
 
         var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f)
+                   .Cursor(FieldCursor(enabled)).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -352,7 +345,8 @@ public static partial class ControlsExtensions
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextArea", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
 
-        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f).Enter())
+        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f)
+                   .Cursor(FieldCursor(enabled)).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -419,4 +413,7 @@ public static partial class ControlsExtensions
     {
         gui.ClearControlStates<TextEditState>();
     }
+
+    /// <summary>An I-beam over an editable field; a disabled one keeps the default arrow.</summary>
+    internal static PointerCursor FieldCursor(bool enabled) => enabled ? PointerCursor.Text : PointerCursor.Default;
 }

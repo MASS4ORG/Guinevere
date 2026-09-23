@@ -209,6 +209,20 @@ public partial class Gui
 
         // Handle scrollbar dragging
         HandleScrollbarDragging(node, scrollState, mousePos);
+        RequestScrollbarCursor(node, scrollState);
+    }
+
+    /// <summary>
+    /// The thumbs live inside their container's rect rather than in nodes of their own, so they would show the
+    /// container's cursor — an I-beam over a text area's bar. A hovered or dragged thumb shows the default arrow,
+    /// unless some other element owns the pointer.
+    /// </summary>
+    void RequestScrollbarCursor(LayoutNode node, ScrollState scrollState)
+    {
+        var dragging = scrollState.IsDraggingScrollbarX || scrollState.IsDraggingScrollbarY;
+        var hovered = scrollState.IsVerticalScrollbarHovered || scrollState.IsHorizontalScrollbarHovered;
+        if (dragging || (hovered && !IsPointerCaptured && !IsHoverBlocked(node)))
+            RequestCursor(PointerCursor.Default);
     }
 
     void UpdateContentSize(LayoutNode node, ScrollState scrollState)

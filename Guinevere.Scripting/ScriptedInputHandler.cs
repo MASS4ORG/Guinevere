@@ -4,8 +4,10 @@ namespace Guinevere;
 /// An <see cref="IInputHandler"/> driven by code rather than a window, for tests and headless
 /// automation. Call <see cref="NewFrame"/> once before each frame's build pass so that per-frame
 /// edges — presses, releases, typed text, wheel movement — are visible to both passes and then clear.
+/// It also records cursor and pointer-mode changes when registered as <see cref="ICursorCapability"/> and
+/// <see cref="IPointerCapability"/>.
 /// </summary>
-public sealed class ScriptedInputHandler : IInputHandler
+public sealed class ScriptedInputHandler : IInputHandler, ICursorCapability, IPointerCapability
 {
     readonly HashSet<MouseButton> _buttonsDown = [];
     readonly HashSet<MouseButton> _buttonsPressed = [];
@@ -38,6 +40,25 @@ public sealed class ScriptedInputHandler : IInputHandler
 
     /// <summary>Moves the pointer to a position in screen space.</summary>
     public void MoveTo(Vector2 position) => _position = position;
+
+    /// <inheritdoc />
+    public PointerCursor Cursor { get; set; }
+
+    /// <inheritdoc />
+    public bool Visible { get; set; } = true;
+
+    /// <inheritdoc />
+    public bool Locked { get; set; }
+
+    /// <summary>How many times <see cref="Warp"/> moved the pointer.</summary>
+    public int WarpCount { get; private set; }
+
+    /// <inheritdoc />
+    public void Warp(Vector2 position)
+    {
+        _position = _previous = position;
+        WarpCount++;
+    }
 
     /// <summary>Presses a mouse button and holds it until <see cref="ReleaseButton"/>.</summary>
     public void PressButton(MouseButton button = MouseButton.Left)

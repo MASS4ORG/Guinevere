@@ -21,14 +21,51 @@ public enum PointerCursor
     ResizeVertical,
     ResizeDiagonalNorthWestSouthEast,
     ResizeDiagonalNorthEastSouthWest,
-    NotAllowed,
-    Hidden
+    NotAllowed
 }
 
-/// <summary>Optional native cursor control.</summary>
+/// <summary>Optional native cursor shape control. <see cref="Gui"/> resolves the shape every frame.</summary>
 public interface ICursorCapability : IPlatformCapability
 {
     PointerCursor Cursor { get; set; }
+}
+
+/// <summary>How the pointer behaves while a control requests it through <see cref="Gui.RequestPointerMode"/>.</summary>
+public enum PointerMode
+{
+    /// <summary>Visible and free.</summary>
+    Normal,
+
+    /// <summary>Invisible but free; positions stay absolute.</summary>
+    Hidden,
+
+    /// <summary>Invisible and locked to the window; positions become unbounded, so only deltas matter.</summary>
+    Relative,
+
+    /// <summary>
+    /// Visible, and warped to the opposite edge when it reaches a window edge, so a scrub can continue past
+    /// the screen. Gesture anchors move with each warp, keeping <see cref="DragArgs.TotalDelta"/> continuous.
+    /// </summary>
+    Wrapped
+}
+
+/// <summary>
+/// Optional native pointer control. Integrations supply the primitives; <see cref="Gui"/> maps each
+/// <see cref="PointerMode"/> onto them, and performs <see cref="PointerMode.Wrapped"/> itself.
+/// </summary>
+public interface IPointerCapability : IPlatformCapability
+{
+    /// <summary>Whether the pointer is drawn.</summary>
+    bool Visible { get; set; }
+
+    /// <summary>Whether the pointer is hidden and confined, reporting unbounded relative motion.</summary>
+    bool Locked { get; set; }
+
+    /// <summary>
+    /// Moves the pointer to a window position. The next <see cref="IInputHandler.MousePosition"/> must report it
+    /// without producing a movement delta.
+    /// </summary>
+    void Warp(Vector2 position);
 }
 
 /// <summary>Optional display scale and framebuffer information.</summary>

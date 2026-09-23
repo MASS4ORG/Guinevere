@@ -42,32 +42,26 @@ public class ClipOperation : IDrawListEntry
 
         if (_rect is { } clipRect)
         {
-            // Validate that we have proper dimensions before clipping
-            if (clipRect.W <= 0 || clipRect.H <= 0)
-                // If dimensions are invalid, don't apply clipping
-                return;
-
-            // For scrollable containers, ensure we're clipping to the correct viewport
-            var scrollState = gui.GetScrollState(node.Id);
-            if (scrollState != null && (scrollState.IsScrollingX || scrollState.IsScrollingY))
-            {
-                // Use the node's current inner rect as the viewport bounds
-                // This ensures we clip to the actual container size, not the content size
-                var viewportRect = node.Rect;
-
-                // Only apply clipping if the viewport has valid dimensions
-                if (viewportRect is { W: > 0, H: > 0 }) canvas.ClipRect(viewportRect);
-            }
-            else
-            {
-                // For non-scrollable content, use the provided rect
-                canvas.ClipRect(clipRect);
-            }
+            if (ClipRectFor(gui, node, clipRect) is { } rect) canvas.ClipRect(rect);
         }
-        else if (_shape != null && _position is not null)
+        else if (_shape is not null && _position is { } position)
         {
-            var shape = new ShapePos(_shape.Path, _shape.Paint, _position.Value);
-            canvas.ClipPath(shape.Path);
+            canvas.ClipPath(new ShapePos(_shape.Path, _shape.Paint, position).Path);
         }
+    }
+
+    /// <summary>
+    /// The rectangle to clip to, or null for none. A scrolling container clips to its own viewport rather than to
+    /// the content-sized rect it was given; empty rectangles never clip.
+    /// </summary>
+    static Rect? ClipRectFor(Gui gui, LayoutNode node, Rect clipRect)
+    {
+        if (clipRect.W <= 0 || clipRect.H <= 0) return null;
+
+        var scrolling = gui.GetScrollState(node.Id) is { } scroll && (scroll.IsScrollingX || scroll.IsScrollingY);
+        if (!scrolling) return clipRect;
+
+        var viewport = node.Rect;
+        return viewport.W > 0 && viewport.H > 0 ? viewport : null;
     }
 }
