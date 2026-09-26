@@ -36,6 +36,14 @@ Run("pangui-percentage-and-ratio", BuildPercentageAndRatio(args.Contains("--quic
 Run("pangui-perpendicular-expand-wrap", BuildPerpendicularExpandWrap(articleScale));
 Run("pangui-pixels-with-min-expand", BuildPixelsWithMinExpand(articleScale));
 RunCachedRead("no-change-cached-10000", BuildWide(10_000, wrap: false));
+RunStyleApply("style-apply-common", "box { width: 50%; height: 24px; padding: 4px 8px; gap: 3px; flex-direction: row; }");
+RunStyleApply("style-apply-rich", "box { width: ratio(2); height: expand; min-width: 20px; max-width: 90px; "
+    + "padding: 2px 4px 6px 8px; margin: 1px 3px; gap: 3px; flex-direction: row; "
+    + "align-items: center; justify-content: end; text-wrap: word; line-height: 1.3; max-lines: 2; }");
+RunFreshStyleApply("style-build-empty", "");
+RunFreshStyleApply("style-build-common", "box { width: 50%; height: 24px; padding: 4px 8px; gap: 3px; }");
+RunFreshStyleApply("style-build-rich", "box { width: ratio(2); height: expand; padding: 2px 4px 6px 8px; "
+    + "text-wrap: character; line-height: 1.3; max-lines: 2; }");
 RunConstruction(10_000);
 
 static void Run(string name, Fixture fixture)
@@ -81,6 +89,64 @@ static void RunCachedRead(string name, Fixture fixture)
     GC.KeepAlive(checksum);
     var meanMs = stopwatch.Elapsed.TotalMilliseconds / iterations;
     Console.WriteLine($"| {name} | {fixture.NodeCount} | {meanMs:F6} | {meanMs * 1_000_000d / fixture.NodeCount:F4} | 0 |");
+}
+
+static void RunStyleApply(string name, string css)
+{
+    var gui = new BenchmarkGui(1_000, 1_000);
+    var root = LayoutNode.CreateRoot(gui, 1_000, 1_000);
+    var node = new LayoutNode("styled", gui, root);
+    root.AddChild(node);
+    var style = StyleResolver.Resolve([StyleSheet.Parse(css)], new StyleTarget("box", null, []));
+    for (var i = 0; i < warmups; i++) StyleLayout.Apply(node, style);
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
+
+    var iterations = 0;
+    var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+    var stopwatch = Stopwatch.StartNew();
+    do
+    {
+        StyleLayout.Apply(node, style);
+        iterations++;
+    } while (stopwatch.Elapsed < TimeSpan.FromSeconds(1) || iterations < 100);
+    stopwatch.Stop();
+    var meanMs = stopwatch.Elapsed.TotalMilliseconds / iterations;
+    Console.WriteLine($"| {name} | 1 | {meanMs:F6} | {meanMs * 1_000_000d:F2} | "
+                      + $"{(GC.GetAllocatedBytesForCurrentThread() - allocatedBefore) / iterations} |");
+}
+
+static void RunFreshStyleApply(string name, string css)
+{
+    var gui = new BenchmarkGui(1_000, 1_000);
+    var root = LayoutNode.CreateRoot(gui, 1_000, 1_000);
+    var style = css.Length == 0 ? ResolvedStyle.Empty :
+        StyleResolver.Resolve([StyleSheet.Parse(css)], new StyleTarget("box", null, []));
+    for (var i = 0; i < warmups; i++) Apply();
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
+
+    var iterations = 0;
+    var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+    var stopwatch = Stopwatch.StartNew();
+    do
+    {
+        Apply();
+        iterations++;
+    } while (stopwatch.Elapsed < TimeSpan.FromSeconds(1) || iterations < 100);
+    stopwatch.Stop();
+    var meanMs = stopwatch.Elapsed.TotalMilliseconds / iterations;
+    Console.WriteLine($"| {name} | 1 | {meanMs:F6} | {meanMs * 1_000_000d:F2} | "
+                      + $"{(GC.GetAllocatedBytesForCurrentThread() - allocatedBefore) / iterations} |");
+
+    void Apply()
+    {
+        var node = new LayoutNode("styled", gui, root);
+        StyleLayout.Apply(node, style);
+        GC.KeepAlive(node);
+    }
 }
 
 static void Unsupported(string name, string reason) =>

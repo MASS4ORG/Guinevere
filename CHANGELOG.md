@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Changed: Simplified stylesheet application and intrinsic sizing; reduced hot-path allocations with benchmark coverage.
 - Tests: rendering paths and reducing the top "CRAP" score.
 
 ## v[5.0.0][] 2026-09-26

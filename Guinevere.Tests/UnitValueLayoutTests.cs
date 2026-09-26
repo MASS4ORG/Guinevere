@@ -4,6 +4,18 @@ namespace Guinevere.Tests;
 public class UnitValueLayoutTests : LayoutNodeTestBase
 {
     [Fact]
+    public void EqualExpressionsRequireEqualContributions()
+    {
+        var mixed = UnitValue.Pixels(20) + UnitValue.Percentage(0.5f) + UnitValue.FitContent();
+        var same = UnitValue.Pixels(20) + UnitValue.Percentage(0.5f) + UnitValue.FitContent();
+        var different = UnitValue.Pixels(20) + UnitValue.Percentage(0.5f) + UnitValue.FitLargest();
+
+        Assert.Equal(mixed, same);
+        Assert.NotEqual(mixed, different);
+        Assert.NotEqual(UnitValue.Pixels(50), UnitValue.Percentage(0.5f));
+    }
+
+    [Fact]
     public void Lerp_BetweenPixelsAndPercentage_PreservesBothContributions()
     {
         var value = UnitValue.Lerp(UnitValue.Pixels(100f), UnitValue.Percentage(0.5f), 0.25f);

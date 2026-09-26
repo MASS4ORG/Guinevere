@@ -129,6 +129,26 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
+    public void ComposedHeightMinimum_UsesAvailableHeight()
+    {
+        var gui = CreateTestGui();
+        var child = Tree(gui, c => c.Width(40f).Height(20f)
+            .MinHeight(UnitValue.Pixels(30f) + UnitValue.Percentage(0.5f)));
+
+        Assert.Equal(330f, child.Rect.H, 1);
+    }
+
+    [Fact]
+    public void ConflictingHeightExpressions_KeepTheMinimum()
+    {
+        var gui = CreateTestGui();
+        var child = Tree(gui, c => c.Width(40f).Height(40f)
+            .MinHeight(UnitValue.Percentage(0.5f)).MaxHeight(UnitValue.Pixels(100f)));
+
+        Assert.Equal(300f, child.Rect.H, 1);
+    }
+
+    [Fact]
     public void RatioMinimum_UsesResolvedPerpendicularSize()
     {
         var gui = CreateTestGui();
