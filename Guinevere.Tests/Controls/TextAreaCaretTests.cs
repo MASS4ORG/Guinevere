@@ -39,4 +39,24 @@ public class TextAreaCaretTests
         // The caret used to be a render-pass-only node that never got a layout rect.
         Assert.DoesNotContain(area.Children, child => child.Rect is { W: 0, H: 0 });
     }
+
+    [Fact]
+    public void SelectingAcrossLinesKeepsTheFullRangeThroughRendering()
+    {
+        using var harness = new FrameHarness();
+        var text = "first\nsecond\nthird";
+        void Draw(Gui gui) => gui.TextArea(ref text, 300, 120, id: "notes");
+
+        harness.Frame(Draw);
+        harness.Click(Draw, new Vector2(20, 30));
+        harness.Frame(Draw);
+        var state = TextEditor.State(harness.Gui, "notes", text);
+        state.SelectAll();
+
+        harness.Frame(Draw);
+
+        Assert.True(state.HasSelection);
+        Assert.Equal(text.Length, state.SelectionEnd);
+        Assert.DoesNotContain(harness.Gui.RootNode!.Children[0].Children, child => child.Rect is { W: 0, H: 0 });
+    }
 }

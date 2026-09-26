@@ -135,7 +135,7 @@ public static partial class ControlsExtensions
     /// Accepts what the dialog is pointing at, unless the mode or the request's own check refuses it.
     /// A refusal is shown under the listing and the dialog stays open.
     /// </summary>
-    static async ValueTask ConfirmAsync(FileDialogState state)
+    internal static async ValueTask ConfirmAsync(FileDialogState state)
     {
         if (state.Request is not { } request) return;
 

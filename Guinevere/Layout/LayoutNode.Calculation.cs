@@ -59,31 +59,8 @@ public partial class LayoutNode
         var height = Style.Direction == Axis.Vertical ? (FlowChildren.Count - 1) * Style.Gap : 0f;
         foreach (var child in FlowChildren)
         {
-            var widthDependsOnParent = child.Style.ExpandWidth || child.Style.IsExpanded
-                || child.Style.WidthPercent >= 0f
-                || child.Style.WidthExpression is { } widthExpression
-                && (widthExpression.PercentageContribution != 0f
-                    || widthExpression.ExpandContribution != 0f
-                    || widthExpression.RatioContribution != 0f
-                    || widthExpression.FitContentContribution != 0f
-                    || widthExpression.FitLargestContribution != 0f);
-            var heightDependsOnParent = child.Style.ExpandHeight || child.Style.IsExpanded
-                || child.Style.HeightPercent >= 0f
-                || child.Style.HeightExpression is { } heightExpression
-                && (heightExpression.PercentageContribution != 0f
-                    || heightExpression.ExpandContribution != 0f
-                    || heightExpression.RatioContribution != 0f
-                    || heightExpression.FitContentContribution != 0f
-                    || heightExpression.FitLargestContribution != 0f);
-
-            _intrinsicWidthValid &= !widthDependsOnParent
-                                    && child.Style.MinWidthExpression is null
-                                    && child.Style.MaxWidthExpression is null
-                                    && (child.Style.Width >= 0f || child._intrinsicWidthValid);
-            _intrinsicHeightValid &= !heightDependsOnParent
-                                     && child.Style.MinHeightExpression is null
-                                     && child.Style.MaxHeightExpression is null
-                                     && (child.Style.Height >= 0f || child._intrinsicHeightValid);
+            _intrinsicWidthValid &= ChildWidthIsIntrinsic(child);
+            _intrinsicHeightValid &= ChildHeightIsIntrinsic(child);
 
             var childWidth = child.Style.Width >= 0f ? child.Style.Width : child._intrinsicContentWidth;
             var childHeight = child.Style.Height >= 0f ? child.Style.Height : child._intrinsicContentHeight;
@@ -100,6 +77,31 @@ public partial class LayoutNode
         _intrinsicContentWidth = width + horizontalPadding;
         _intrinsicContentHeight = height + verticalPadding;
     }
+
+    static bool ChildWidthIsIntrinsic(LayoutNode child)
+    {
+        ref readonly var style = ref child.Style;
+        return !style.ExpandWidth && !style.IsExpanded && style.WidthPercent < 0f
+            && !HasNonPixelContribution(style.WidthExpression)
+            && style.MinWidthExpression is null && style.MaxWidthExpression is null
+            && (style.Width >= 0f || child._intrinsicWidthValid);
+    }
+
+    static bool ChildHeightIsIntrinsic(LayoutNode child)
+    {
+        ref readonly var style = ref child.Style;
+        return !style.ExpandHeight && !style.IsExpanded && style.HeightPercent < 0f
+            && !HasNonPixelContribution(style.HeightExpression)
+            && style.MinHeightExpression is null && style.MaxHeightExpression is null
+            && (style.Height >= 0f || child._intrinsicHeightValid);
+    }
+
+    static bool HasNonPixelContribution(UnitValue? expression) => expression is { } value
+        && (value.PercentageContribution != 0f
+            || value.ExpandContribution != 0f
+            || value.RatioContribution != 0f
+            || value.FitContentContribution != 0f
+            || value.FitLargestContribution != 0f);
 
     void InitializeRootLayout()
     {

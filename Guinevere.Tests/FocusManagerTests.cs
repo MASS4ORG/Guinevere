@@ -5,6 +5,46 @@ namespace Guinevere.Tests;
 /// </summary>
 public class FocusManagerTests
 {
+    [Fact]
+    public void TabAndShiftTabCycleThroughRegisteredControls()
+    {
+        var focus = new FocusManager();
+        var input = Substitute.For<IInputHandler>();
+        input.IsKeyPressed(KeyboardKey.Tab).Returns(true);
+
+        focus.BeginFrame();
+        Register();
+        focus.HandleKeyboardNavigation(input);
+        AdvanceFrame();
+        Assert.Equal("first", focus.CurrentFocusedId);
+
+        focus.HandleKeyboardNavigation(input);
+        AdvanceFrame();
+        Assert.Equal("second", focus.CurrentFocusedId);
+
+        input.IsKeyDown(KeyboardKey.LeftShift).Returns(true);
+        focus.HandleKeyboardNavigation(input);
+        AdvanceFrame();
+        Assert.Equal("first", focus.CurrentFocusedId);
+
+        focus.HandleKeyboardNavigation(input);
+        AdvanceFrame();
+        Assert.Equal("second", focus.CurrentFocusedId);
+
+        void AdvanceFrame()
+        {
+            focus.EndFrame();
+            focus.BeginFrame();
+            Register();
+        }
+
+        void Register()
+        {
+            focus.RegisterFocusableControl("first");
+            focus.RegisterFocusableControl("second");
+        }
+    }
+
     static Gui CreateTestGui()
     {
         var gui = new Gui();

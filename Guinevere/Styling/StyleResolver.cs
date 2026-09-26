@@ -9,9 +9,11 @@ public sealed class ResolvedStyle
     /// <summary>An empty resolved style — no declarations.</summary>
     public static readonly ResolvedStyle Empty = new(new Dictionary<string, string>(StringComparer.Ordinal));
 
-    readonly IReadOnlyDictionary<string, string> _declarations;
+    readonly Dictionary<string, string> _declarations;
 
-    internal ResolvedStyle(IReadOnlyDictionary<string, string> declarations) => _declarations = declarations;
+    internal ResolvedStyle(Dictionary<string, string> declarations) => _declarations = declarations;
+
+    internal Dictionary<string, string> DeclarationMap => _declarations;
 
     /// <summary>Every resolved property → value.</summary>
     public IReadOnlyDictionary<string, string> Declarations => _declarations;

@@ -3,6 +3,27 @@ namespace Guinevere.Tests.Styling;
 /// <summary>Tests for <see cref="StyleValue"/>, <see cref="Selector"/> and <see cref="StyleSheet.Parse"/>.</summary>
 public class StyleParsingTests
 {
+    [Theory]
+    [InlineData(" true ", true)]
+    [InlineData("ON", true)]
+    [InlineData("1", true)]
+    [InlineData("false", false)]
+    [InlineData("No", false)]
+    [InlineData("0", false)]
+    public void BooleanStylesAcceptCommonForms(string input, bool expected)
+    {
+        Assert.True(StyleValue.TryBool(input, out var actual));
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("enabled")]
+    public void InvalidBooleanStylesAreRejected(string? input)
+    {
+        Assert.False(StyleValue.TryBool(input, out _));
+    }
+
     /// <summary>Descendant and direct-child combinators use nearest-first ancestry.</summary>
     [Fact]
     public void HierarchyCombinators_MatchAncestors()

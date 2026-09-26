@@ -13,10 +13,13 @@ public static class StyleValue
     /// <param name="value">Pixels, or the 0..1 fraction for a percentage.</param>
     /// <param name="isPercent">True when the text ended with <c>%</c>.</param>
     public static bool TryLength(string? text, out float value, out bool isPercent)
+        => TryLength(text.AsSpan(), out value, out isPercent);
+
+    internal static bool TryLength(ReadOnlySpan<char> text, out float value, out bool isPercent)
     {
         value = 0f;
         isPercent = false;
-        if (string.IsNullOrWhiteSpace(text)) return false;
+        if (text.IsWhiteSpace()) return false;
 
         var t = text.Trim();
         if (t.EndsWith('%'))
@@ -36,7 +39,10 @@ public static class StyleValue
     /// <param name="text">The number text.</param>
     /// <param name="value">The parsed value.</param>
     public static bool TryFloat(string? text, out float value) =>
-        float.TryParse((text ?? string.Empty).Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        TryFloat(text.AsSpan(), out value);
+
+    internal static bool TryFloat(ReadOnlySpan<char> text, out float value) =>
+        float.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
 
     /// <summary>Parses a bool: <c>true</c>/<c>false</c>/<c>1</c>/<c>0</c>/<c>yes</c>/<c>no</c>/<c>on</c>/<c>off</c>.</summary>
     /// <param name="text">The text.</param>
