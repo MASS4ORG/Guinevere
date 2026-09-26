@@ -38,6 +38,10 @@ public class FocusManager
     /// <summary>Whether the focused control is an editor that must receive typed keystrokes.</summary>
     public bool IsTextInputFocused => _currentFocusedId is not null && _textInputIds.Contains(_currentFocusedId);
 
+    bool FocusedClaimsArrowKeys =>
+        _currentFocusedId is not null && _focusableControls.TryGetValue(_currentFocusedId, out var control)
+        && control.ClaimsArrowKeys;
+
     /// <summary>Marks a focusable control as a text editor.</summary>
     public void RegisterTextInput(string controlId) => _textInputIds.Add(controlId);
 
@@ -157,6 +161,15 @@ public class FocusManager
                 _focusChangedThisFrame = true;
             }
         }
+    }
+
+    /// <summary>
+    /// Marks a control that uses the arrow keys itself, such as a list or tree, so pressing them while it has focus
+    /// never also moves focus to a neighbouring control.
+    /// </summary>
+    public void SetClaimsArrowKeys(string controlId, bool claims)
+    {
+        if (_focusableControls.TryGetValue(controlId, out var control)) control.ClaimsArrowKeys = claims;
     }
 
     /// <summary>Associates explicit next and previous focus targets with a control.</summary>
@@ -296,7 +309,7 @@ public class FocusManager
             }
         }
 
-        if (IsTextInputFocused) return;
+        if (IsTextInputFocused || FocusedClaimsArrowKeys) return;
         if (input.IsKeyPressed(KeyboardKey.Left)) Navigate(FocusDirection.Left);
         else if (input.IsKeyPressed(KeyboardKey.Right)) Navigate(FocusDirection.Right);
         else if (input.IsKeyPressed(KeyboardKey.Up)) Navigate(FocusDirection.Up);
@@ -425,6 +438,8 @@ public class FocusableControl
     public string? PreviousId { get; set; }
     /// <summary>Center point used to choose a directional navigation target.</summary>
     public Vector2? NavigationPosition { get; set; }
+    /// <summary>Whether the control uses the arrow keys itself, so they never move focus away from it.</summary>
+    public bool ClaimsArrowKeys { get; set; }
 }
 
 class FocusNavigationScopeState

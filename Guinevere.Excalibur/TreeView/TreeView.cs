@@ -50,7 +50,8 @@ public static partial class ControlsExtensions
         {
             gui.ScrollY();
 
-            if (gui.Pass == Pass.Pass2Render) gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+            if (gui.Pass == Pass.Pass2Render)
+                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true, claimsArrowKeys: true);
 
             // Both passes must pick the same rows, and a node's rect is only resolved in the render
             // pass — so the window comes from what the previous frame measured.
@@ -275,8 +276,8 @@ public static partial class ControlsExtensions
             if (isEditing) RenameBox(gui, state, theme, item, onRename!);
             else
                 // A tint may match the selection fill, so a selected row always reads in the text color.
-                gui.DrawText(item.Label, theme.FontSize,
-                    isSelected ? gui.ControlStyle.Text : item.Tint ?? gui.ControlStyle.TextDisabled, centerInRect: false);
+                gui.DrawText(item.Label, theme.FontSize, (isSelected ? null : item.Tint) ?? gui.ControlStyle.Text,
+                    centerInRect: false);
         }
     }
 

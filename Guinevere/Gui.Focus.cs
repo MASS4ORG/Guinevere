@@ -13,7 +13,9 @@ public partial class Gui
     /// <param name="canReceiveFocus">Whether this control can receive keyboard focus</param>
     /// <param name="isInteractable">Whether this control responds to mouse interactions</param>
     /// <param name="parentId">Optional parent ID for cascaded focus. If null, uses the parent layout node's ID</param>
-    public void RegisterFocusable(bool canReceiveFocus = true, bool isInteractable = true, string? parentId = null)
+    /// <param name="claimsArrowKeys">Whether the control uses the arrow keys itself, so they do not move focus.</param>
+    public void RegisterFocusable(bool canReceiveFocus = true, bool isInteractable = true, string? parentId = null,
+        bool claimsArrowKeys = false)
     {
         var controlId = CurrentNode.Id;
         var actualParentId = parentId;
@@ -27,6 +29,7 @@ public partial class Gui
         var rect = CurrentNode.Rect;
         Focus.RegisterFocusableControl(controlId, actualParentId, canReceiveFocus, isInteractable,
             new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f));
+        Focus.SetClaimsArrowKeys(controlId, claimsArrowKeys);
     }
 
     /// <summary>
