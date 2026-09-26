@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+## v[5.0.0][] 2026-09-26
+
 - Breaking: `BeginFrame` and `DrawText` changed parameters, changing their CLR signatures; recompile consumers when upgrading.
 - Added: Composable min/max layout expressions and Font Awesome widget icons alongside Noto Emoji fallback.
 - Changed: Window integrations configure fonts once; `BeginFrame(canvas)` reuses them, and Vulkan render failures now surface.
@@ -142,6 +144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First Commit
 
+[5.0.0]: https://github.com/brmassa/guinevere/compare/v4.2.0...v5.0.0
 [4.2.0]: https://github.com/brmassa/guinevere/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/brmassa/guinevere/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/brmassa/guinevere/compare/v3.1.0...v4.0.0
