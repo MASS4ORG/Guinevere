@@ -220,12 +220,12 @@ public class TextInputSelectionTests
         var field = new Field("hello world");
 
         // The constructor's focus click is the first click in this run.
-        field.Frame(mouse: new Vector2(35, 15));
-        field.Frame(mouse: new Vector2(35, 15), pressed: true);
+        field.Frame(mouse: new Vector2(20, 15));
+        field.Frame(mouse: new Vector2(20, 15), pressed: true);
         field.Type("bye");
         Assert.Equal("bye world", field.Text);
 
-        field.Frame(mouse: new Vector2(35, 15), pressed: true);
+        field.Frame(mouse: new Vector2(20, 15), pressed: true);
         field.Type("all");
         Assert.Equal("all", field.Text);
     }

@@ -314,7 +314,7 @@ public static class TextEditor
         return i;
     }
 
-    /// <summary>The run of word characters containing an index, for double-click selection.</summary>
+    /// <summary>The run of word, punctuation, or whitespace characters containing an index.</summary>
     /// <param name="text">The text to look in.</param>
     /// <param name="index">The offset the word must contain.</param>
     /// <returns>The word's start and end offsets.</returns>
@@ -324,14 +324,18 @@ public static class TextEditor
         if (text.Length == 0) return (0, 0);
 
         var i = Math.Clamp(index, 0, text.Length - 1);
+        var kind = CharacterKind(text[i]);
         var start = i;
         var end = i;
 
-        while (start > 0 && !char.IsWhiteSpace(text[start - 1])) start--;
-        while (end < text.Length && !char.IsWhiteSpace(text[end])) end++;
+        while (start > 0 && CharacterKind(text[start - 1]) == kind) start--;
+        while (end < text.Length && CharacterKind(text[end]) == kind) end++;
 
         return (start, end);
     }
+
+    static int CharacterKind(char c) => char.IsLetterOrDigit(c) || c == '_' ? 0
+        : char.IsWhiteSpace(c) ? 1 : 2;
 
     // ── measurement, for whoever paints the field ───────────────────────────
 

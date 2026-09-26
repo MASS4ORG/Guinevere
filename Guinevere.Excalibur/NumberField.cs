@@ -6,6 +6,7 @@ public static partial class ControlsExtensions
     {
         public readonly TextEditState Buffer = new("0");
         public bool Captured;
+        public int ClickCount;
     }
 
     /// <summary>
@@ -120,9 +121,10 @@ public static partial class ControlsExtensions
         var hasFocus = gui.HasFocus();
         var mouse = gui.Input.MousePosition;
 
-        if (interactable.OnClick())
+        if (interactable.OnClick(out var clicks))
         {
             field.Captured = true;
+            field.ClickCount = clicks;
             field.Buffer.External = field.Buffer.Text;
         }
 
@@ -134,7 +136,14 @@ public static partial class ControlsExtensions
                 gui.RequestFocus(FocusReason.Mouse);
                 var at = TextEditor.PositionAt(gui, mouse, gui.CurrentNode.InnerRect,
                     field.Buffer.Text, fontSize);
-                field.Buffer.MoveTo(at, extend: false);
+                if (field.ClickCount >= 3) field.Buffer.SelectAll();
+                else if (field.ClickCount == 2)
+                {
+                    var (start, end) = TextEditor.WordAt(field.Buffer.Text, at);
+                    field.Buffer.MoveTo(start, extend: false);
+                    field.Buffer.MoveTo(end, extend: true);
+                }
+                else field.Buffer.MoveTo(at, extend: false);
                 field.Buffer.BlinkTimer = 0f;
                 field.Captured = false;
             }
