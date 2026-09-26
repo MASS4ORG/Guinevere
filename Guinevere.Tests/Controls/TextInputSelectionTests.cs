@@ -201,6 +201,36 @@ public class TextInputSelectionTests
     }
 
     [Fact]
+    public void ConsecutiveEditsKeepTheCaretInTheMiddle()
+    {
+        var field = new Field("hello");
+        field.Press(KeyboardKey.Home);
+        field.Press(KeyboardKey.Right);
+        field.Press(KeyboardKey.Right);
+
+        field.Type("X");
+        field.Type("Y");
+
+        Assert.Equal("heXYllo", field.Text);
+    }
+
+    [Fact]
+    public void DoubleClickSelectsAWordAndThirdClickSelectsAll()
+    {
+        var field = new Field("hello world");
+
+        // The constructor's focus click is the first click in this run.
+        field.Frame(mouse: new Vector2(35, 15));
+        field.Frame(mouse: new Vector2(35, 15), pressed: true);
+        field.Type("bye");
+        Assert.Equal("bye world", field.Text);
+
+        field.Frame(mouse: new Vector2(35, 15), pressed: true);
+        field.Type("all");
+        Assert.Equal("all", field.Text);
+    }
+
+    [Fact]
     public void DisabledFieldNeverGainsFocusAndIgnoresTyping()
     {
         using var surface = SKSurface.Create(new SKImageInfo(300, 60));

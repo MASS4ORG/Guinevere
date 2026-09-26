@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Fixed: Text fields keep the caret after edits; double-click selects a word and triple-click selects all.
 - Changed: Simplified stylesheet application and intrinsic sizing; reduced hot-path allocations with benchmark coverage.
 - Tests: rendering paths and reducing the top "CRAP" score.
 

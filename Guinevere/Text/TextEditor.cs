@@ -31,7 +31,12 @@ public static class TextEditor
 
         var state = gui.ControlState(id, () => new TextEditState { Text = text, External = text });
 
-        if (!string.Equals(state.External, text, StringComparison.Ordinal))
+        if (string.Equals(state.Text, text, StringComparison.Ordinal))
+        {
+            // The caller accepted the value edited in the previous pass/frame.
+            state.External = text;
+        }
+        else if (!string.Equals(state.External, text, StringComparison.Ordinal))
         {
             state.Text = text;
             state.External = text;
@@ -95,17 +100,20 @@ public static class TextEditor
             gui.RequestFocus(FocusReason.Mouse);
             var at = PositionAt(gui, gui.Input.MousePosition, inner, display, fontSize, multiline);
 
-            if (clicks >= 3)
+            if (clicks >= 3) state.SelectAll();
+            else if (clicks == 2)
             {
-                state.SelectAll();
+                var (start, end) = WordAt(state.Text, at);
+                state.MoveTo(start, extend: false);
+                state.MoveTo(end, extend: true);
             }
-            else if (clicks >= 2)
-                state.SelectAll();
             else
             {
                 state.MoveTo(at, extend: gui.Input.IsKeyDown(KeyboardKey.LeftShift));
                 state.IsSelecting = true;
             }
+
+            if (clicks >= 2) state.IsSelecting = false;
 
             state.ShowCursor = true;
             state.BlinkTimer = 0f;

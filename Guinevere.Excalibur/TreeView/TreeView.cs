@@ -268,13 +268,15 @@ public static partial class ControlsExtensions
             Expander(gui, state, theme, item, row);
 
             if (item.Icon is { } icon)
-                using (gui.Node(theme.IconSize, theme.RowHeight, $"treeview/row{row}/icon").Enter())
+                using (gui.Node(theme.IconSize, theme.RowHeight, $"treeview/row{row}/icon").ContentAlignX(0.5f)
+                           .ContentAlignY(0.5f).Enter())
                     icon(gui);
 
             if (isEditing) RenameBox(gui, state, theme, item, onRename!);
             else
+                // A tint may match the selection fill, so a selected row always reads in the text color.
                 gui.DrawText(item.Label, theme.FontSize,
-                    item.Tint ?? (isSelected ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled), centerInRect: false);
+                    isSelected ? gui.ControlStyle.Text : item.Tint ?? gui.ControlStyle.TextDisabled, centerInRect: false);
         }
     }
 
