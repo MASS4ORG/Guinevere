@@ -7,7 +7,7 @@ namespace Guinevere;
 /// <param name="Label">The name shown in the sidebar.</param>
 /// <param name="Path">The absolute directory the shortcut opens.</param>
 /// <param name="Icon">A glyph drawn before the label.</param>
-public sealed record FilePlace(string Label, string Path, string Icon = "📁")
+public sealed record FilePlace(string Label, string Path, string Icon = WidgetIcons.Folder)
 {
     /// <summary>
     /// The places every platform offers: the user's own folders, then each ready drive. Folders the
@@ -20,11 +20,11 @@ public sealed record FilePlace(string Label, string Path, string Icon = "📁")
         var places = new List<FilePlace>();
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-        Add("Home", home, "🏠");
-        Add("Desktop", Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "🖥");
-        Add("Documents", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "📄");
+        Add("Home", home, WidgetIcons.House);
+        Add("Desktop", Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), WidgetIcons.Desktop);
+        Add("Documents", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), WidgetIcons.FileLines);
         // Path is this record's own property, so System.IO's has to be named in full here.
-        if (home.Length > 0) Add("Downloads", System.IO.Path.Combine(home, "Downloads"), "⬇");
+        if (home.Length > 0) Add("Downloads", System.IO.Path.Combine(home, "Downloads"), WidgetIcons.Download);
 
         foreach (var drive in ReadyDrives())
             Add(drive.Label, drive.Path, drive.Icon);
@@ -82,7 +82,7 @@ public sealed record FilePlace(string Label, string Path, string Icon = "📁")
                 continue;
             }
 
-            yield return new FilePlace(label, path, "💾");
+            yield return new FilePlace(label, path, WidgetIcons.HardDrive);
         }
     }
 }

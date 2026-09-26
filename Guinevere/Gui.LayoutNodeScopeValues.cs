@@ -32,14 +32,37 @@ public partial class Gui
         scope.Set(new LayoutNodeScopeTextFont { Value = font });
     }
 
+    /// <summary>Sets inherited text layout options for this scope and its children.</summary>
+    public void SetTextLayout(TextLayoutOptions layout, LayoutNodeScope? scope = null)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        scope ??= CurrentNodeScope;
+        scope.Set(new LayoutNodeScopeTextLayout { Value = layout });
+    }
+
     /// <summary>
-    /// Sets the icon font for the current node and its children using the Font wrapper.
+    /// Sets the legacy icon font for explicit glyphs and text fallback in this scope.
     /// The font is automatically restored when exiting the node scope.
     /// </summary>
     public void SetIconFont(Font font, LayoutNodeScope? scope = null)
     {
         scope ??= CurrentNodeScope;
         scope.Set(new LayoutNodeScopeIconFont { Value = font });
+        scope.Set(new LayoutNodeScopeWidgetIconFont { Value = font });
+    }
+
+    /// <summary>Sets only the emoji and unsupported-character fallback font.</summary>
+    public void SetEmojiFont(Font font, LayoutNodeScope? scope = null)
+    {
+        scope ??= CurrentNodeScope;
+        scope.Set(new LayoutNodeScopeIconFont { Value = font });
+    }
+
+    /// <summary>Sets the UI icon font for this scope and its children.</summary>
+    public void SetWidgetIconFont(Font font, LayoutNodeScope? scope = null)
+    {
+        scope ??= CurrentNodeScope;
+        scope.Set(new LayoutNodeScopeWidgetIconFont { Value = font });
     }
 
     /// <summary>

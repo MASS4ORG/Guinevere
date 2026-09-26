@@ -233,7 +233,7 @@ public static partial class ControlsExtensions
             var hot = interactable.OnHover();
 
             if (hot) gui.DrawBackgroundRect(gui.ControlStyle.SurfaceHover, size * 0.5f);
-            gui.DrawText("×", color: hot ? gui.ControlStyle.Text : gui.ControlStyle.TextDim);
+            gui.DrawText(WidgetIcons.Xmark, color: hot ? gui.ControlStyle.Text : gui.ControlStyle.TextDim);
 
             return hot && interactable.OnClick();
         }

@@ -96,6 +96,120 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
         Assert.Equal(45f, child.Rect.H, 1);
     }
 
+    [Fact]
+    public void MixedMinimum_UsesPixelsAndAvailableSpace()
+    {
+        var gui = CreateTestGui();
+        var child = Tree(gui, c => c.Width(40f).Height(40f)
+            .MinWidth(UnitValue.Pixels(20f) + UnitValue.Expand(0.5f)));
+
+        Assert.Equal(420f, child.Rect.W, 1);
+    }
+
+    [Theory]
+    [InlineData(0f, 100f)]
+    [InlineData(0.5f, 250f)]
+    [InlineData(1f, 400f)]
+    public void InterpolatedMinimum_ResolvesEachContribution(float amount, float expected)
+    {
+        var gui = CreateTestGui();
+        var minimum = UnitValue.Lerp(UnitValue.Pixels(100f), UnitValue.Percentage(0.5f), amount);
+        var child = Tree(gui, c => c.Width(20f).Height(20f).MinWidth(minimum));
+
+        Assert.Equal(expected, child.Rect.W, 1);
+    }
+
+    [Fact]
+    public void NegativeExpressionMaximum_ClampsToZeroInsteadOfActingUnset()
+    {
+        var gui = CreateTestGui();
+        var child = Tree(gui, c => c.Width(40f).Height(20f).MaxWidth(UnitValue.Pixels(-10f)));
+
+        Assert.Equal(0f, child.Rect.W, 1);
+    }
+
+    [Fact]
+    public void RatioMinimum_UsesResolvedPerpendicularSize()
+    {
+        var gui = CreateTestGui();
+        var child = Tree(gui, c => c.Width(20f).Height(50f).MinWidth(UnitValue.Ratio(2f)));
+
+        Assert.Equal(100f, child.Rect.W, 1);
+    }
+
+    [Fact]
+    public void FitLargestMinimum_UsesLargestChild()
+    {
+        var gui = CreateTestGui();
+        var root = LayoutNode.CreateRoot(gui, 800f, 600f);
+        var parent = CreateTestLayoutNode(gui, root).Width(20f).Height(60f)
+            .MinWidth(UnitValue.FitLargest());
+        var child = CreateTestLayoutNode(gui, parent).Width(90f).Height(20f);
+        root.AddChild(parent);
+        parent.AddChild(child);
+
+        root.CalculateLayout();
+
+        Assert.Equal(90f, parent.Rect.W, 1);
+    }
+
+    [Fact]
+    public void AddAndLerpMinimum_PreserveBothTerms()
+    {
+        var gui = CreateTestGui();
+        var child = Tree(gui, c => c.Width(20f).Height(20f).MinWidth(20f)
+            .AddMinWidth(UnitValue.Percentage(0.5f))
+            .LerpMinWidth(UnitValue.Pixels(100f), 0.5f));
+
+        Assert.Equal(260f, child.Rect.W, 1);
+    }
+
+    [Fact]
+    public void ConflictingExpressions_KeepTheMinimum()
+    {
+        var gui = CreateTestGui();
+        var child = Tree(gui, c => c.Width(40f).Height(40f)
+            .MinWidth(UnitValue.Percentage(0.5f)).MaxWidth(UnitValue.Pixels(100f)));
+
+        Assert.Equal(400f, child.Rect.W, 1);
+    }
+
+    [Fact]
+    public void FitParent_AccountsForChildExpressionMinimum()
+    {
+        var gui = CreateTestGui();
+        var root = LayoutNode.CreateRoot(gui, 800f, 600f);
+        var parent = CreateTestLayoutNode(gui, root).Width(UnitValue.Fit).Height(60f);
+        var child = CreateTestLayoutNode(gui, parent).Width(20f).Height(20f)
+            .MinWidth(UnitValue.Percentage(0.5f));
+        root.AddChild(parent);
+        parent.AddChild(child);
+
+        root.CalculateLayout();
+
+        Assert.Equal(400f, parent.Rect.W, 1);
+        Assert.Equal(200f, child.Rect.W, 1);
+    }
+
+    [Fact]
+    public void WrappedRow_UsesExpressionMinimumWhenBreakingLines()
+    {
+        var gui = CreateTestGui(100, 200);
+        var root = LayoutNode.CreateRoot(gui, 100f, 200f);
+        var row = CreateTestLayoutNode(gui, root).Width(100f).Direction(Axis.Horizontal).Wrap(0);
+        root.AddChild(row);
+        var first = CreateTestLayoutNode(gui, row).Width(20f).Height(20f)
+            .MinWidth(UnitValue.Pixels(60f));
+        var second = CreateTestLayoutNode(gui, row).Width(20f).Height(20f)
+            .MinWidth(UnitValue.Pixels(60f));
+        row.AddChild(first);
+        row.AddChild(second);
+
+        root.CalculateLayout();
+
+        Assert.True(second.Rect.Y > first.Rect.Y);
+    }
+
     /// <summary>A wrapped row breaks children onto new lines and stacks the lines on the cross axis.</summary>
     [Fact]
     public void WrappedRow_BreaksChildrenIntoLines()

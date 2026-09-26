@@ -348,7 +348,7 @@ public static partial class ControlsExtensions
             var interactable = gui.GetInteractable();
             var hot = gui.Pass == Pass.Pass2Render && interactable.OnHover();
 
-            gui.DrawText(state.IsCollapsed(item.Id, item.Depth) ? "▶" : "▼", theme.FontSize * 0.7f,
+            gui.DrawText(state.IsCollapsed(item.Id, item.Depth) ? WidgetIcons.ChevronRight : WidgetIcons.ChevronDown, theme.FontSize * 0.7f,
                 hot ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled);
 
             if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) state.Toggle(item.Id, item.Depth);

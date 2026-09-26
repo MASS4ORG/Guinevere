@@ -36,6 +36,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
     readonly StringBuilder _typedCharacters = new();
     readonly Font _fontText;
     readonly Font _fontIcon;
+    readonly Font _fontWidgetIcon;
     readonly Glfw _glfw = Glfw.GetApi();
 
     /// <summary>
@@ -57,6 +58,9 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
         _fontIcon = Font.FromStream(fontStream);
+        fontStream = GetStreamResource("Guinevere.widget-icons.ttf");
+        _fontWidgetIcon = Font.FromStream(fontStream);
+        _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         _renderer = new CanvasRenderer();
         _gui.Platform.Register<ICanvasRenderer>(_renderer);
 
@@ -170,7 +174,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
         _renderer.Render(canvas =>
         {
             _gui.SetStage(Pass.Pass1Build);
-            _gui.BeginFrame(canvas, _fontText, _fontIcon);
+            _gui.BeginFrame(canvas);
             _draw.Invoke();
 
             // Process the whole layout after the build pass
@@ -277,6 +281,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
         _window.Dispose();
         _fontText.Dispose();
         _fontIcon.Dispose();
+        _fontWidgetIcon.Dispose();
         // _renderer.Dispose();
         GC.SuppressFinalize(this);
     }

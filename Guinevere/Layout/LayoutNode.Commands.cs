@@ -502,6 +502,8 @@ public partial class LayoutNode
         InvalidateLayout();
         Style.MinWidth = min;
         Style.MaxWidth = max;
+        Style.MinWidthExpression = null;
+        Style.MaxWidthExpression = null;
         return this;
     }
 
@@ -516,6 +518,8 @@ public partial class LayoutNode
         InvalidateLayout();
         Style.MinHeight = min;
         Style.MaxHeight = max;
+        Style.MinHeightExpression = null;
+        Style.MaxHeightExpression = null;
         return this;
     }
 
@@ -528,6 +532,7 @@ public partial class LayoutNode
 
         InvalidateLayout();
         Style.MinWidth = value;
+        Style.MinWidthExpression = null;
         return this;
     }
 
@@ -540,6 +545,7 @@ public partial class LayoutNode
 
         InvalidateLayout();
         Style.MaxWidth = value;
+        Style.MaxWidthExpression = null;
         return this;
     }
 
@@ -552,6 +558,7 @@ public partial class LayoutNode
 
         InvalidateLayout();
         Style.MinHeight = value;
+        Style.MinHeightExpression = null;
         return this;
     }
 
@@ -564,8 +571,69 @@ public partial class LayoutNode
 
         InvalidateLayout();
         Style.MaxHeight = value;
+        Style.MaxHeightExpression = null;
         return this;
     }
+
+    /// <summary>Sets a composable minimum width.</summary>
+    public LayoutNode MinWidth(UnitValue value)
+    {
+        if (_gui.Pass == Pass.Pass1Build) { InvalidateLayout(); Style.MinWidthExpression = value; }
+        return this;
+    }
+
+    /// <summary>Sets a composable maximum width.</summary>
+    public LayoutNode MaxWidth(UnitValue value)
+    {
+        if (_gui.Pass == Pass.Pass1Build) { InvalidateLayout(); Style.MaxWidthExpression = value; }
+        return this;
+    }
+
+    /// <summary>Sets a composable minimum height.</summary>
+    public LayoutNode MinHeight(UnitValue value)
+    {
+        if (_gui.Pass == Pass.Pass1Build) { InvalidateLayout(); Style.MinHeightExpression = value; }
+        return this;
+    }
+
+    /// <summary>Sets a composable maximum height.</summary>
+    public LayoutNode MaxHeight(UnitValue value)
+    {
+        if (_gui.Pass == Pass.Pass1Build) { InvalidateLayout(); Style.MaxHeightExpression = value; }
+        return this;
+    }
+
+    /// <summary>Adds to the current minimum width; an unset bound starts at zero.</summary>
+    public LayoutNode AddMinWidth(UnitValue value) =>
+        MinWidth((Style.MinWidthExpression ?? UnitValue.Pixels(Math.Max(0f, Style.MinWidth))) + value);
+
+    /// <summary>Adds to the current maximum width; an unset bound starts at zero.</summary>
+    public LayoutNode AddMaxWidth(UnitValue value) =>
+        MaxWidth((Style.MaxWidthExpression ?? UnitValue.Pixels(Math.Max(0f, Style.MaxWidth))) + value);
+
+    /// <summary>Adds to the current minimum height; an unset bound starts at zero.</summary>
+    public LayoutNode AddMinHeight(UnitValue value) =>
+        MinHeight((Style.MinHeightExpression ?? UnitValue.Pixels(Math.Max(0f, Style.MinHeight))) + value);
+
+    /// <summary>Adds to the current maximum height; an unset bound starts at zero.</summary>
+    public LayoutNode AddMaxHeight(UnitValue value) =>
+        MaxHeight((Style.MaxHeightExpression ?? UnitValue.Pixels(Math.Max(0f, Style.MaxHeight))) + value);
+
+    /// <summary>Interpolates the current minimum width toward another expression.</summary>
+    public LayoutNode LerpMinWidth(UnitValue target, float amount) => MinWidth(UnitValue.Lerp(
+        Style.MinWidthExpression ?? UnitValue.Pixels(Math.Max(0f, Style.MinWidth)), target, amount));
+
+    /// <summary>Interpolates the current maximum width toward another expression.</summary>
+    public LayoutNode LerpMaxWidth(UnitValue target, float amount) => MaxWidth(UnitValue.Lerp(
+        Style.MaxWidthExpression ?? UnitValue.Pixels(Math.Max(0f, Style.MaxWidth)), target, amount));
+
+    /// <summary>Interpolates the current minimum height toward another expression.</summary>
+    public LayoutNode LerpMinHeight(UnitValue target, float amount) => MinHeight(UnitValue.Lerp(
+        Style.MinHeightExpression ?? UnitValue.Pixels(Math.Max(0f, Style.MinHeight)), target, amount));
+
+    /// <summary>Interpolates the current maximum height toward another expression.</summary>
+    public LayoutNode LerpMaxHeight(UnitValue target, float amount) => MaxHeight(UnitValue.Lerp(
+        Style.MaxHeightExpression ?? UnitValue.Pixels(Math.Max(0f, Style.MaxHeight)), target, amount));
 
     /// <summary>
     /// Sets the left position of the layout node.

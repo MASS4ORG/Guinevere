@@ -2,7 +2,7 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    static readonly KeyboardKey[] AllKeys = Enum.GetValues<KeyboardKey>().Distinct().ToArray();
+    static readonly KeyboardKey[] AllKeys = [.. Enum.GetValues<KeyboardKey>().Distinct()];
     static readonly MouseButton[] AllButtons = Enum.GetValues<MouseButton>();
 
     readonly List<LayoutNode> _eventPath = [];

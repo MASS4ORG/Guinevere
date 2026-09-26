@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Breaking: `BeginFrame` and `DrawText` changed parameters, changing their CLR signatures; recompile consumers when upgrading.
+- Added: Composable min/max layout expressions and Font Awesome widget icons alongside Noto Emoji fallback.
+- Changed: Window integrations configure fonts once; `BeginFrame(canvas)` reuses them, and Vulkan render failures now surface.
+- Changed: Wrapped text layout now lives in core and is shared with ordinary text drawing.
+
 ## v[4.2.0][] 2026-09-25
 
 ## v[4.1.0][] 2026-09-23

@@ -1,163 +1,5 @@
 namespace Guinevere;
 
-/// <summary>One visual line of a wrapped message, with where it starts in the original text.</summary>
-/// <param name="Text">The line's characters, as drawn.</param>
-/// <param name="Start">Offset of the line's first character in the message.</param>
-public readonly record struct WrappedLine(string Text, int Start);
-
-/// <summary>A horizontal selection run inside one wrapped line, in pixels relative to the line's left edge.</summary>
-/// <param name="X">Where the run starts, relative to the line's left edge.</param>
-/// <param name="Width">The run's width.</param>
-/// <param name="Start">The run's character offset.</param>
-/// <param name="End">The first character after the run.</param>
-public readonly record struct LineSelection(float X, float Width, int Start, int End);
-
-/// <summary>
-/// Lays a message out into visual lines: greedy word wrap to a width, and the coordinate/offset
-/// mappings that let a pane implement drag-to-select over the wrapped result. Kept free of GUI types
-/// so the wrapping and hit-testing rules can be tested on their own; the pane supplies the font and
-/// the rectangles.
-/// </summary>
-public static class WrappedTextLayout
-{
-    /// <summary>Height one wrapped line occupies for a given font size, matching the text renderer.</summary>
-    /// <param name="fontSize">The font size the text is drawn at.</param>
-    /// <returns>The line height in pixels.</returns>
-    public static float LineHeight(float fontSize) => fontSize * 1.2f;
-
-    /// <summary>
-    /// Wraps text to a width by greedy word join, splitting paragraphs on newlines. Each returned line
-    /// carries its offset in the original message, so a click on the line maps back to a character in
-    /// the un-wrapped text.
-    /// </summary>
-    /// <param name="text">The message to wrap.</param>
-    /// <param name="font">The font measuring the glyphs.</param>
-    /// <param name="maxWidth">The width lines may occupy, in pixels.</param>
-    /// <returns>The visual lines.</returns>
-    public static IReadOnlyList<WrappedLine> Wrap(string text, SKFont font, float maxWidth)
-    {
-        ArgumentNullException.ThrowIfNull(text);
-        ArgumentNullException.ThrowIfNull(font);
-
-        if (maxWidth <= 0f)
-            return text.Split('\n').Select((line) => new WrappedLine(line, 0)).ToList();
-
-        var lines = new List<WrappedLine>();
-        var paragraphStart = 0;
-
-        foreach (var paragraph in text.Split('\n'))
-        {
-            AppendParagraph(lines, paragraph, paragraphStart, font, maxWidth);
-            paragraphStart += paragraph.Length + 1;
-        }
-
-        return lines;
-    }
-
-    static void AppendParagraph(List<WrappedLine> lines, string paragraph, int paragraphStart,
-        SKFont font, float maxWidth)
-    {
-        if (paragraph.Length == 0)
-        {
-            lines.Add(new WrappedLine("", paragraphStart));
-            return;
-        }
-
-        var current = "";
-        var currentStart = paragraphStart;
-        var searchFrom = 0;
-
-        foreach (var word in paragraph.Split(' '))
-        {
-            var relative = paragraph.IndexOf(word, searchFrom, StringComparison.Ordinal);
-            var wordStart = paragraphStart + relative;
-            searchFrom = relative + word.Length + 1;
-
-            if (current.Length == 0)
-            {
-                if (font.MeasureText(word) <= maxWidth)
-                {
-                    current = word;
-                    currentStart = wordStart;
-                }
-                else
-                {
-                    // A single word wider than the pane still gets a line of its own.
-                    lines.Add(new WrappedLine(word, wordStart));
-                }
-
-                continue;
-            }
-
-            var candidate = current + " " + word;
-            if (font.MeasureText(candidate) <= maxWidth)
-            {
-                current = candidate;
-            }
-            else
-            {
-                lines.Add(new WrappedLine(current, currentStart));
-                current = font.MeasureText(word) <= maxWidth ? word : "";
-                if (current.Length > 0) currentStart = wordStart;
-                else lines.Add(new WrappedLine(word, wordStart));
-            }
-        }
-
-        if (current.Length > 0) lines.Add(new WrappedLine(current, currentStart));
-    }
-
-    /// <summary>The character offset nearest a point on one wrapped line.</summary>
-    /// <param name="font">Font the line is measured with.</param>
-    /// <param name="line">The line's text.</param>
-    /// <param name="clickX">The x to locate, relative to the line's left edge.</param>
-    /// <returns>The column within the line.</returns>
-    public static int PositionInLine(SKFont font, string line, float clickX)
-    {
-        ArgumentNullException.ThrowIfNull(font);
-
-        return string.IsNullOrEmpty(line) ? 0 : NearestColumn(font, line, clickX);
-    }
-
-    static int NearestColumn(SKFont font, string line, float clickX)
-    {
-        var best = 0;
-        var bestDistance = float.MaxValue;
-
-        for (var index = 0; index <= line.Length; index++)
-        {
-            var distance = Math.Abs(clickX - font.MeasureText(line[..index]));
-            if (distance >= bestDistance) continue;
-
-            best = index;
-            bestDistance = distance;
-        }
-
-        return best;
-    }
-
-    /// <summary>
-    /// The run of <paramref name="selectionStart"/>..<paramref name="selectionEnd"/> that falls inside
-    /// the given line, or null when that line holds no selected characters.
-    /// </summary>
-    /// <param name="font">Font measuring the line's prefix widths.</param>
-    /// <param name="line">The wrapped line, with its offset in the message.</param>
-    /// <param name="selectionStart">The selection's lower bound.</param>
-    /// <param name="selectionEnd">The selection's upper bound.</param>
-    /// <returns>The highlight run, or null when the line is entirely outside the selection.</returns>
-    public static LineSelection? SelectionOn(SKFont font, WrappedLine line, int selectionStart, int selectionEnd)
-    {
-        ArgumentNullException.ThrowIfNull(font);
-
-        var from = Math.Max(line.Start, selectionStart);
-        var to = Math.Min(line.Start + line.Text.Length, selectionEnd);
-        if (from >= to) return null;
-
-        var x = font.MeasureText(line.Text[..(from - line.Start)]);
-        var width = font.MeasureText(line.Text[..(to - line.Start)]) - x;
-        return new LineSelection(x, Math.Max(1f, width), from, to);
-    }
-}
-
 public static partial class ControlsExtensions
 {
     /// <summary>
@@ -186,7 +28,8 @@ public static partial class ControlsExtensions
 
         var nodeId = gui.CurrentNode.Id;
         var inner = gui.CurrentNode.InnerRect;
-        var lineHeight = WrappedTextLayout.LineHeight(size);
+        var layout = gui.CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
+        var lineHeight = size * layout.LineHeight;
 
         // The width the frame lays out with. Captured during the render pass, when the inner rect is
         // final; the build pass then reuses the last captured value, so both passes wrap to the same
@@ -194,13 +37,24 @@ public static partial class ControlsExtensions
         ref var width = ref gui.GetValue(200f, $"{nodeId}/wrappedLabelWidth");
         if (gui.Pass == Pass.Pass2Render) width = Math.Max(200f, inner.W);
 
-        var lines = WrappedTextLayout.Wrap(text, measureFont, width);
+        var primary = new Font(new SKFont(drawFont?.SkFont.Typeface ?? measureFont.Typeface, size));
+        var emoji = new Font(new SKFont(
+            gui.CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface, size));
+        float Measure(string value)
+        {
+            var total = 0f;
+            foreach (var run in gui.CreateTextRuns(value, primary, emoji))
+                total += run.Font.SkFont.MeasureText(run.Text);
+            return total;
+        }
+
+        var lines = WrappedTextLayout.Wrap(text, width, Measure, layout);
         var state = TextEditor.State(gui, $"{nodeId}/wrappedLabelText", text);
         var offsetY = gui.GetScrollState(nodeId)?.ScrollOffset.Y ?? 0f;
 
         if (gui.Pass == Pass.Pass2Render)
         {
-            Select(gui, state, lines, measureFont, inner, offsetY, lineHeight);
+            Select(gui, state, lines, Measure, inner, offsetY, lineHeight);
             if (copyable) HandleLabelShortcuts(gui, state, text);
         }
 
@@ -209,7 +63,7 @@ public static partial class ControlsExtensions
         {
             var top = inner.Y - offsetY + (index * lineHeight);
             using (gui.Node(-1, lineHeight, $"{nodeId}/wrappedLabelLine/{index}").ExpandWidth().Enter())
-                DrawWrappedLine(gui, state, lines[index], measureFont, new Rect(inner.X, top, inner.W, lineHeight),
+                DrawWrappedLine(gui, state, lines[index], Measure, new Rect(inner.X, top, inner.W, lineHeight),
                     size, color, highlight, drawFont);
         }
 
@@ -227,11 +81,11 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Draws one wrapped line into the current node, under its share of the selection highlight.</summary>
-    static void DrawWrappedLine(Gui gui, TextEditState state, WrappedLine line, SKFont measureFont, Rect row,
+    static void DrawWrappedLine(Gui gui, TextEditState state, WrappedLine line, Func<string, float> measure, Rect row,
         float size, Color color, Color highlight, Font? drawFont)
     {
         if (gui.Pass == Pass.Pass2Render && state.HasSelection &&
-            WrappedTextLayout.SelectionOn(measureFont, line, state.SelectionStart, state.SelectionEnd) is { } run)
+            WrappedTextLayout.SelectionOn(measure, line, state.SelectionStart, state.SelectionEnd) is { } run)
             gui.DrawRectFilled(new Rect(row.X + run.X, row.Y, run.Width, row.H), highlight);
 
         if (line.Text.Length > 0) gui.DrawText(line.Text, size, color, drawFont, centerInRect: false, clip: true);
@@ -242,7 +96,7 @@ public static partial class ControlsExtensions
     /// ends it. No text-field focus is registered, so surrounding shortcuts keep their meaning.
     /// </summary>
     static void Select(Gui gui, TextEditState state, IReadOnlyList<WrappedLine> lines,
-        SKFont font, Rect inner, float offsetY, float lineHeight)
+        Func<string, float> measure, Rect inner, float offsetY, float lineHeight)
     {
         var mouse = gui.Input.MousePosition;
         var inside = inner.Contains(mouse);
@@ -250,12 +104,12 @@ public static partial class ControlsExtensions
 
         if (gui.Input.IsMouseButtonPressed(left) && inside)
         {
-            state.MoveTo(OffsetAt(lines, font, mouse, inner, offsetY, lineHeight), extend: false);
+            state.MoveTo(OffsetAt(lines, measure, mouse, inner, offsetY, lineHeight), extend: false);
             state.IsSelecting = true;
         }
         else if (state.IsSelecting && gui.Input.IsMouseButtonDown(left))
         {
-            state.MoveTo(OffsetAt(lines, font, mouse, inner, offsetY, lineHeight), extend: true);
+            state.MoveTo(OffsetAt(lines, measure, mouse, inner, offsetY, lineHeight), extend: true);
         }
         else if (state.IsSelecting && !gui.Input.IsMouseButtonDown(left))
         {
@@ -264,7 +118,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>The message offset nearest a screen point, from the wrapped lines' geometry.</summary>
-    static int OffsetAt(IReadOnlyList<WrappedLine> lines, SKFont font, Vector2 point,
+    static int OffsetAt(IReadOnlyList<WrappedLine> lines, Func<string, float> measure, Vector2 point,
         Rect inner, float offsetY, float lineHeight)
     {
         if (lines.Count == 0) return 0;
@@ -273,7 +127,7 @@ public static partial class ControlsExtensions
         row = Math.Clamp(row, 0, lines.Count - 1);
 
         var line = lines[row];
-        var column = WrappedTextLayout.PositionInLine(font, line.Text, point.X - inner.X);
+        var column = WrappedTextLayout.PositionInLine(measure, line.Text, point.X - inner.X);
         return Math.Clamp(line.Start + column, line.Start, line.Start + line.Text.Length);
     }
 

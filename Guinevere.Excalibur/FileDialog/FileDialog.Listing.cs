@@ -119,7 +119,7 @@ public static partial class ControlsExtensions
                 else if (interactable.OnHover()) gui.DrawBackgroundRect(palette.SurfaceHover, 3f);
             }
 
-            gui.DrawText(entry.IsDirectory ? "📁" : "📄", fontSize, palette.TextDim);
+            gui.DrawText(entry.IsDirectory ? WidgetIcons.Folder : WidgetIcons.FileLines, fontSize, palette.TextDim);
 
             using (gui.Node().Expand().ContentAlignY(0.5f).Enter())
             {

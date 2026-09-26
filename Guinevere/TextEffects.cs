@@ -1,7 +1,7 @@
 namespace Guinevere;
 
 /// <summary>
-/// Optional visual effects for <see cref="Gui.DrawText(string, float, Color?, Font?, float, bool, bool, TextEffects?)"/>:
+/// Optional visual effects for <see cref="Gui.DrawText"/>:
 /// an outline, a drop shadow, an inner shadow and a gradient fill. Any combination may be set;
 /// they are drawn shadow → outline → fill → inner-shadow.
 /// </summary>

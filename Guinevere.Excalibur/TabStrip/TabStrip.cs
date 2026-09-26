@@ -135,7 +135,7 @@ public static partial class ControlsExtensions
             }
 
             // Always built: a node that exists in only one pass never gets a rect.
-            gui.DrawText(item.Modified ? " " : "×", theme.FontSize, isActive ? theme.Ink : theme.InkDim);
+            gui.DrawText(item.Modified ? " " : WidgetIcons.Xmark, theme.FontSize, isActive ? theme.Ink : theme.InkDim);
         }
 
         return result;

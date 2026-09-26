@@ -34,13 +34,19 @@ Run("pangui-nested-vertical-stack", BuildVerticalStack(args.Contains("--quick") 
 Run("pangui-padding-and-margin", BuildPaddingAndMargin());
 Run("pangui-percentage-and-ratio", BuildPercentageAndRatio(args.Contains("--quick") ? 1_000 : 10_000));
 Run("pangui-perpendicular-expand-wrap", BuildPerpendicularExpandWrap(articleScale));
-Unsupported("pangui-pixels-with-min-expand", "composable UnitValue constraints are not implemented");
+Run("pangui-pixels-with-min-expand", BuildPixelsWithMinExpand(articleScale));
 RunCachedRead("no-change-cached-10000", BuildWide(10_000, wrap: false));
 RunConstruction(10_000);
 
 static void Run(string name, Fixture fixture)
 {
     for (var i = 0; i < warmups; i++) fixture.Layout();
+    if (name == "pangui-pixels-with-min-expand")
+    {
+        var second = fixture.Root.ChildNodes[0].ChildNodes[1];
+        if (Math.Abs(second.Rect.W - 40f) > 0.01f)
+            throw new InvalidOperationException($"Composable minimum resolved to {second.Rect.W}, expected 40.");
+    }
     GC.Collect();
     GC.WaitForPendingFinalizers();
     GC.Collect();
@@ -200,6 +206,24 @@ static Fixture BuildExpandConstraint(int count, bool useMin)
         var second = new LayoutNode($"second-{i}", gui, row, 0f, 10f);
         if (useMin) second.Style.MinWidth = 60f;
         else second.Style.MaxWidth = 40f;
+        row.AddChild(first);
+        row.AddChild(second);
+        root.AddChild(row);
+    }
+    return new Fixture(root, count * 3 + 1);
+}
+
+static Fixture BuildPixelsWithMinExpand(int count)
+{
+    var gui = new BenchmarkGui(100, 100_000);
+    var root = LayoutNode.CreateRoot(gui, 100, 100_000);
+    for (var i = 0; i < count; i++)
+    {
+        var row = new LayoutNode($"row-{i}", gui, root, 100f, 10f);
+        row.Style.Direction = Axis.Horizontal;
+        var first = new LayoutNode($"first-{i}", gui, row, 20f, 10f);
+        var second = new LayoutNode($"second-{i}", gui, row, 20f, 10f);
+        second.Style.MinWidthExpression = UnitValue.Pixels(10f) + UnitValue.Expand(0.5f);
         row.AddChild(first);
         row.AddChild(second);
         root.AddChild(row);

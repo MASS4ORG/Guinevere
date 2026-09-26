@@ -22,6 +22,7 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
     int _height;
     readonly Font _fontText;
     readonly Font _fontIcon;
+    readonly Font _fontWidgetIcon;
     readonly StringBuilder _typedCharacters = new();
 
     /// <summary>
@@ -46,6 +47,9 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
         _fontIcon = Font.FromStream(fontStream);
+        fontStream = GetStreamResource("Guinevere.widget-icons.ttf");
+        _fontWidgetIcon = Font.FromStream(fontStream);
+        _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         _canvasRenderer = new CanvasRenderer();
         _gui.Platform.Register<ICanvasRenderer>(_canvasRenderer);
         _canvasRenderer.Initialize(_width, _height);
@@ -113,7 +117,7 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
         _canvasRenderer.Render(canvas =>
         {
             _gui.SetStage(Pass.Pass1Build);
-            _gui.BeginFrame(canvas, _fontText, _fontIcon);
+            _gui.BeginFrame(canvas);
             _guiCallback();
 
             // Process the whole layout after the build pass
@@ -148,6 +152,7 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
         _canvasRenderer.Dispose();
         _fontText.Dispose();
         _fontIcon.Dispose();
+        _fontWidgetIcon.Dispose();
     }
 
     /// <summary>

@@ -77,8 +77,12 @@ public partial class LayoutNode
                     || heightExpression.FitLargestContribution != 0f);
 
             _intrinsicWidthValid &= !widthDependsOnParent
+                                    && child.Style.MinWidthExpression is null
+                                    && child.Style.MaxWidthExpression is null
                                     && (child.Style.Width >= 0f || child._intrinsicWidthValid);
             _intrinsicHeightValid &= !heightDependsOnParent
+                                     && child.Style.MinHeightExpression is null
+                                     && child.Style.MaxHeightExpression is null
                                      && (child.Style.Height >= 0f || child._intrinsicHeightValid);
 
             var childWidth = child.Style.Width >= 0f ? child.Style.Width : child._intrinsicContentWidth;
@@ -150,7 +154,7 @@ public partial class LayoutNode
                     : Style.Wrap && Style.Direction == Axis.Horizontal
                         ? availableWidth
                         : CalculateContentWidth(availableWidth);
-        return Style.ClampWidth(width);
+        return ClampResolvedWidth(width, availableWidth, Math.Max(0f, _rect.H), availableWidth);
     }
 
     float CalculateHeight(float availableHeight)
@@ -164,7 +168,39 @@ public partial class LayoutNode
                 : Style.Height >= 0
                     ? Style.Height
                     : CalculateContentHeight(availableHeight);
-        return Style.ClampHeight(height);
+        return ClampResolvedHeight(height, availableHeight, Math.Max(0f, _resolvedWidthForHeightPass),
+            availableHeight);
+    }
+
+    float ClampResolvedWidth(float width, float available, float perpendicular, float expandShare)
+    {
+        if (Style.MinWidthExpression is null && Style.MaxWidthExpression is null)
+            return Style.ClampWidth(width);
+        var min = Style.MinWidthExpression is { } minExpression
+            ? Math.Max(0f, ResolveWidth(minExpression, available, perpendicular, expandShare)) : Style.MinWidth;
+        var max = Style.MaxWidthExpression is { } maxExpression
+            ? Math.Max(0f, ResolveWidth(maxExpression, available, perpendicular, expandShare)) : Style.MaxWidth;
+        if (!float.IsFinite(min) || !float.IsFinite(max))
+            throw new InvalidOperationException("Width constraint resolved to a non-finite value.");
+        if (min >= 0f) width = Math.Max(width, min);
+        // A minimum wins when the bounds conflict.
+        if (max >= 0f) width = Math.Min(width, Math.Max(max, min));
+        return width;
+    }
+
+    float ClampResolvedHeight(float height, float available, float perpendicular, float expandShare)
+    {
+        if (Style.MinHeightExpression is null && Style.MaxHeightExpression is null)
+            return Style.ClampHeight(height);
+        var min = Style.MinHeightExpression is { } minExpression
+            ? Math.Max(0f, ResolveHeight(minExpression, available, perpendicular, expandShare)) : Style.MinHeight;
+        var max = Style.MaxHeightExpression is { } maxExpression
+            ? Math.Max(0f, ResolveHeight(maxExpression, available, perpendicular, expandShare)) : Style.MaxHeight;
+        if (!float.IsFinite(min) || !float.IsFinite(max))
+            throw new InvalidOperationException("Height constraint resolved to a non-finite value.");
+        if (min >= 0f) height = Math.Max(height, min);
+        if (max >= 0f) height = Math.Min(height, Math.Max(max, min));
+        return height;
     }
 
     float ResolveWidth(UnitValue value, float available, float perpendicular, float expandShare = 0f) =>
@@ -239,7 +275,8 @@ public partial class LayoutNode
             ? child.Style.Width
             : Math.Max(child.CalculateContentWidth(availableWidth), 10f);
 
-        return marginWidth + contentWidth;
+        return marginWidth + child.ClampResolvedWidth(contentWidth, availableWidth,
+            Math.Max(0f, child.Rect.H), availableWidth);
     }
 
     float CalculateContentHeight(float availableHeight, float outerWidthForWrap = -1f)
@@ -297,7 +334,8 @@ public partial class LayoutNode
                 Math.Max(0f, _resolvedWidthForHeightPass - Style.PaddingLeft - Style.PaddingRight)
                 - child.Style.MarginLeft - child.Style.MarginRight), 10f);
 
-        return marginHeight + contentHeight;
+        return marginHeight + child.ClampResolvedHeight(contentHeight, availableHeight,
+            Math.Max(0f, child.Rect.W), availableHeight);
     }
 
     void LayoutChildren()
@@ -377,7 +415,8 @@ public partial class LayoutNode
         var childHeight = CalculateChildHeight(child, context, remainingHeight, 30f);
         if (child.Style.Height < 0f)
             childHeight = Math.Max(childHeight, context.AvailableHeight - marginHeight > 0f ? 10f : 0f);
-        childHeight = child.Style.ClampHeight(childHeight);
+        childHeight = child.ClampResolvedHeight(childHeight, context.AvailableHeight, context.ContentWidth,
+            remainingHeight);
 
         var totalHeight = childHeight + marginHeight;
         var extraSpaceY = Math.Max(0f, context.AvailableHeight - totalHeight);
@@ -427,7 +466,8 @@ public partial class LayoutNode
             // so a 6px splitter stays 6px.
             if (child.Style.Height < 0)
                 childHeight = Math.Max(childHeight, context.AvailableHeight - marginHeight > 0 ? 10f : 0f);
-            childHeight = child.Style.ClampHeight(childHeight);
+            childHeight = child.ClampResolvedHeight(childHeight, context.AvailableHeight, context.ContentWidth,
+                remainingHeight);
 
             dimensions[i] = new ChildDimensions { Height = childHeight };
         }
@@ -558,7 +598,7 @@ public partial class LayoutNode
             : child.Style.Width >= 0
                 ? child.Style.Width
                 : Math.Max(availableChildWidth, 0);
-        childWidth = child.Style.ClampWidth(childWidth);
+        childWidth = child.ClampResolvedWidth(childWidth, availableChildWidth, childHeight, availableChildWidth);
 
         var extraSpaceX = Math.Max(0, contentRect.W - childWidth - child.Style.MarginLeft - child.Style.MarginRight);
         var alignmentOffsetX = extraSpaceX * Style.AlignContentHorizontal;
@@ -619,7 +659,7 @@ public partial class LayoutNode
                 var h = child.Style.HeightExpression is { } heightExpression
                     ? child.ResolveHeight(heightExpression, lineHeight, w)
                     : child.Style.Height >= 0 ? child.Style.Height : lineHeight;
-                h = child.Style.ClampHeight(h);
+                h = child.ClampResolvedHeight(h, lineHeight, w, lineHeight);
 
                 var alignOffsetY = Math.Max(0f, lineHeight - h) * Style.AlignContentVertical;
                 child._rect = new Rect(currentX, currentY + child.Style.MarginTop + alignOffsetY, w, h);
@@ -649,21 +689,27 @@ public partial class LayoutNode
         return FlowChildren.Count;
     }
 
-    static float NaturalChildWidth(LayoutNode child, float availableWidth) =>
-        child.Style.WidthExpression is { } expression
+    static float NaturalChildWidth(LayoutNode child, float availableWidth)
+    {
+        var width = child.Style.WidthExpression is { } expression
             ? child.ResolveWidth(expression, availableWidth, Math.Max(0f, child.Rect.H))
             : child.Style.Width >= 0
             ? child.Style.Width
             : child.Style.WidthPercent >= 0f
                 ? availableWidth * child.Style.WidthPercent
                 : Math.Max(child.CalculateContentWidth(availableWidth), 10f);
+        return child.ClampResolvedWidth(width, availableWidth, Math.Max(0f, child.Rect.H), availableWidth);
+    }
 
-    static float NaturalChildHeight(LayoutNode child, float availableWidth) =>
-        child.Style.HeightExpression is { } expression
+    static float NaturalChildHeight(LayoutNode child, float availableWidth)
+    {
+        var height = child.Style.HeightExpression is { } expression
             ? child.ResolveHeight(expression, availableWidth, Math.Max(0f, child.Rect.W))
             : child.Style.Height >= 0
             ? child.Style.Height
             : Math.Max(child.CalculateContentHeight(availableWidth, availableWidth), 10f);
+        return child.ClampResolvedHeight(height, availableWidth, Math.Max(0f, child.Rect.W), availableWidth);
+    }
 
     /// <summary>Cross-axis size of a wrapped horizontal container: stacked line heights plus gaps.</summary>
     float CalculateWrappedContentHeight(float availableWidth)
@@ -721,7 +767,8 @@ public partial class LayoutNode
                 context.AvailableWidth - child.Style.MarginLeft - child.Style.MarginRight);
             if (child.Style.Width < 0)
                 childWidth = Math.Max(childWidth, availableChildWidthForMin > 0 ? 10f : 0f);
-            childWidth = child.Style.ClampWidth(childWidth);
+            childWidth = child.ClampResolvedWidth(childWidth, context.AvailableWidth, Math.Max(0f, child.Rect.H),
+                remainingWidth);
 
             dimensions[i] = new ChildDimensions { Width = childWidth };
         }
@@ -842,7 +889,7 @@ public partial class LayoutNode
             : child.Style.Height >= 0
             ? child.Style.Height
             : Math.Max(0, availableChildHeight);
-        childHeight = child.Style.ClampHeight(childHeight);
+        childHeight = child.ClampResolvedHeight(childHeight, availableChildHeight, childWidth, availableChildHeight);
 
         var extraSpaceY = Math.Max(0, contentRect.H - childHeight - child.Style.MarginTop - child.Style.MarginBottom);
         var alignmentOffsetY = extraSpaceY * Style.AlignContentVertical;

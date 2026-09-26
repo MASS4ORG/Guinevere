@@ -14,6 +14,19 @@ public partial class Gui
     /// </remarks>
     public SKCanvas? Canvas { get; set; }
 
+    Font? _defaultTextFont;
+    Font? _defaultEmojiFont;
+    Font? _defaultWidgetIconFont;
+
+    /// <summary>Sets the fonts inherited by every frame. Optional icon fonts fall back to the text font.</summary>
+    public void ConfigureFonts(Font text, Font? emoji = null, Font? widgetIcon = null)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        _defaultTextFont = text;
+        _defaultEmojiFont = emoji;
+        _defaultWidgetIconFont = widgetIcon;
+    }
+
     /// <summary>
     /// A property that manages the application's time-related data and operations.
     /// </summary>
@@ -93,7 +106,8 @@ public partial class Gui
     /// <param name="canvas">The canvas on which the GUI elements will be rendered for the current frame.</param>
     /// <param name="font">Optional parameter to set the default font for text rendering using Font wrapper.</param>
     /// <param name="fontIcon">Optional parameter to set the font for rendering icons using Font wrapper.</param>
-    public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null)
+    /// <param name="fontWidgetIcon">Optional font for explicit widget icons.</param>
+    public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null, Font? fontWidgetIcon = null)
     {
         Canvas = canvas;
         if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.BeginFrame();
@@ -123,10 +137,12 @@ public partial class Gui
         _controls.Apply(CurrentNodeScope);
         ControlMetrics.Apply(CurrentNodeScope);
 
-        if (font is not null)
-            SetTextFont(font);
-        if (fontIcon is not null)
-            SetIconFont(fontIcon);
+        if ((font ?? _defaultTextFont) is { } textFont)
+            SetTextFont(textFont);
+        if ((fontIcon ?? _defaultEmojiFont ?? font ?? _defaultTextFont) is { } emojiFont)
+            SetEmojiFont(emojiFont);
+        SetWidgetIconFont(fontWidgetIcon ?? _defaultWidgetIconFont ?? fontIcon ?? _defaultEmojiFont
+            ?? font ?? _defaultTextFont ?? CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value);
     }
 
     /// <summary>

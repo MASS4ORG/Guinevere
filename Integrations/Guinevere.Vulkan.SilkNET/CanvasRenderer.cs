@@ -954,8 +954,8 @@ public unsafe class CanvasRenderer : ICanvasRenderer
         }
         catch (Exception ex)
         {
-            _logger.Error($"ERROR in rendering pipeline: {ex.Message}");
-            _logger.Debug($"Stack trace: {ex.StackTrace}");
+            _logger.Error(ex, "Rendering pipeline failed");
+            throw;
         }
     }
 
