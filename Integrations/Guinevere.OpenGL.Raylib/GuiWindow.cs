@@ -46,6 +46,7 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
         _fontIcon = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.widget-icons.ttf");
         _fontWidgetIcon = Font.FromStream(fontStream);
+        _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         Raylib.SetTraceLogLevel(TraceLogLevel.Warning); // Reduce verbose logging
         Raylib.InitWindow(_width, _height, title);
         _canvasRenderer = new CanvasRenderer();
@@ -119,7 +120,7 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
             _canvasRenderer.Render(canvas =>
             {
                 _gui.SetStage(Pass.Pass1Build);
-                _gui.BeginFrame(canvas, _fontText, _fontIcon, _fontWidgetIcon);
+                _gui.BeginFrame(canvas);
                 draw();
 
                 // Process the whole layout after the build pass

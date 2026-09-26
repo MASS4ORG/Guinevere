@@ -14,6 +14,19 @@ public partial class Gui
     /// </remarks>
     public SKCanvas? Canvas { get; set; }
 
+    Font? _defaultTextFont;
+    Font? _defaultEmojiFont;
+    Font? _defaultWidgetIconFont;
+
+    /// <summary>Sets the fonts inherited by every frame. Optional icon fonts fall back to the text font.</summary>
+    public void ConfigureFonts(Font text, Font? emoji = null, Font? widgetIcon = null)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        _defaultTextFont = text;
+        _defaultEmojiFont = emoji;
+        _defaultWidgetIconFont = widgetIcon;
+    }
+
     /// <summary>
     /// A property that manages the application's time-related data and operations.
     /// </summary>
@@ -124,11 +137,12 @@ public partial class Gui
         _controls.Apply(CurrentNodeScope);
         ControlMetrics.Apply(CurrentNodeScope);
 
-        if (font is not null)
-            SetTextFont(font);
-        if (fontIcon is not null)
-            SetEmojiFont(fontIcon);
-        SetWidgetIconFont(fontWidgetIcon ?? fontIcon ?? CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value);
+        if ((font ?? _defaultTextFont) is { } textFont)
+            SetTextFont(textFont);
+        if ((fontIcon ?? _defaultEmojiFont ?? font ?? _defaultTextFont) is { } emojiFont)
+            SetEmojiFont(emojiFont);
+        SetWidgetIconFont(fontWidgetIcon ?? _defaultWidgetIconFont ?? fontIcon ?? _defaultEmojiFont
+            ?? font ?? _defaultTextFont ?? CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value);
     }
 
     /// <summary>

@@ -60,6 +60,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
         _fontIcon = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.widget-icons.ttf");
         _fontWidgetIcon = Font.FromStream(fontStream);
+        _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         _renderer = new CanvasRenderer();
         _gui.Platform.Register<ICanvasRenderer>(_renderer);
 
@@ -173,7 +174,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
         _renderer.Render(canvas =>
         {
             _gui.SetStage(Pass.Pass1Build);
-            _gui.BeginFrame(canvas, _fontText, _fontIcon, _fontWidgetIcon);
+            _gui.BeginFrame(canvas);
             _draw.Invoke();
 
             // Process the whole layout after the build pass
