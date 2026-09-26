@@ -14,12 +14,13 @@ public partial class Gui
         float wrapWidth = 0,
         bool centerInRect = true,
         bool clip = false,
-        TextEffects? effects = null)
+        TextEffects? effects = null,
+        TextLayoutOptions? layout = null)
     {
         return DrawTextOrGlyph(new DrawConfig(
             text,
             font ?? CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value,
-            size, color, centerInRect, clip, wrapWidth, effects));
+            size, color, centerInRect, clip, wrapWidth, effects, layout));
     }
 
     /// <summary>
@@ -37,7 +38,7 @@ public partial class Gui
     {
         return DrawTextOrGlyph(new DrawConfig(
             iconCode.ToString(),
-            font ?? CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value,
+            font ?? CurrentNodeScope.Get<LayoutNodeScopeWidgetIconFont>().Value,
             size, color, centerInRect, clip, 0, effects));
     }
 
@@ -62,7 +63,8 @@ public partial class Gui
         bool Center,
         bool Clip,
         float WrapWidth,
-        TextEffects? Effects = null);
+        TextEffects? Effects = null,
+        TextLayoutOptions? Layout = null);
 
     record struct FontRun(
         string Text,
@@ -89,6 +91,8 @@ public partial class Gui
     /// </summary>
     List<FontRun> CreateFontRuns(string text, Font mainFont, Font iconFont)
     {
+        var widgetFont = new Font(new SKFont(
+            CurrentNodeScope.Get<LayoutNodeScopeWidgetIconFont>().Value.SkFont.Typeface, mainFont.Size));
         // Variation selectors (U+FE00-U+FE0F) sit after emoji like "⚙️" or "❤️". Most icon fonts
         // have no glyph for them, so without this step every emoji picked up a trailing tofu box.
         // They are zero-width combining marks - dropping them changes nothing visible.
@@ -100,11 +104,14 @@ public partial class Gui
             return runs;
 
         var currentRunStart = 0;
-        var currentFont = IsCharacterSupported(mainFont, text[0]) ? mainFont : iconFont;
+        Font SelectFont(char character) => IsCharacterSupported(mainFont, character) ? mainFont
+            : IsCharacterSupported(widgetFont, character) ? widgetFont : iconFont;
+
+        var currentFont = SelectFont(text[0]);
 
         for (var i = 1; i < text.Length; i++)
         {
-            var charFont = IsCharacterSupported(mainFont, text[i]) ? mainFont : iconFont;
+            var charFont = SelectFont(text[i]);
 
             if (charFont != currentFont)
             {
@@ -147,23 +154,24 @@ public partial class Gui
             new Font(new SKFont(CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface, size));
 
         // Handle text wrapping if wrapWidth is specified
-        var lines = cfg.WrapWidth > 0
-            ? WrapTextWithFallback(cfg.Text, mainFont, iconFont, cfg.WrapWidth)
-            : cfg.Text.Split('\n');
+        var layout = cfg.Layout ?? CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
+        var wrappedLines = WrappedTextLayout.Wrap(cfg.Text, cfg.WrapWidth,
+            line => MeasureLineWidth(line, mainFont, iconFont), layout);
 
         var maxWidth = 0f;
-        var lineHeight = size * 1.2f; // Add some line spacing
+        var lineHeight = size * layout.LineHeight;
 
-        foreach (var line in lines)
+        foreach (var wrappedLine in wrappedLines)
         {
-            var lineWidth = MeasureLineWidth(line, mainFont, iconFont);
+            var lineWidth = MeasureLineWidth(wrappedLine.Text, mainFont, iconFont);
             maxWidth = Math.Max(maxWidth, lineWidth);
         }
 
         // If wrapping is enabled, use the wrap width as max width
-        if (cfg.WrapWidth > 0) maxWidth = Math.Min(maxWidth, cfg.WrapWidth);
+        if (cfg.WrapWidth > 0 && layout.WrapMode != TextWrapMode.None)
+            maxWidth = Math.Min(maxWidth, cfg.WrapWidth);
 
-        var totalHeight = lines.Length * lineHeight;
+        var totalHeight = wrappedLines.Count * lineHeight;
 
         var node = Node(maxWidth, totalHeight);
 
@@ -173,9 +181,9 @@ public partial class Gui
         var layers = BuildTextPaints(color, cfg.Effects, node.InnerRect);
 
         // Draw each line
-        for (var i = 0; i < lines.Length; i++)
+        for (var i = 0; i < wrappedLines.Count; i++)
         {
-            var line = lines[i];
+            var line = wrappedLines[i].Text;
             var lineWidth = MeasureLineWidth(line, mainFont, iconFont);
 
             var pos = node.InnerRect.Position;
@@ -312,52 +320,4 @@ public partial class Gui
         }
     }
 
-    /// <summary>
-    /// Wraps text with font fallback support.
-    /// </summary>
-    string[] WrapTextWithFallback(string text, Font mainFont, Font iconFont, float maxWidth)
-    {
-        var lines = new List<string>();
-        var paragraphs = text.Split('\n');
-
-        foreach (var paragraph in paragraphs)
-        {
-            if (string.IsNullOrEmpty(paragraph))
-            {
-                lines.Add("");
-                continue;
-            }
-
-            var words = paragraph.Split(' ');
-            var currentLine = "";
-
-            foreach (var word in words)
-            {
-                var testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
-                var testWidth = MeasureLineWidth(testLine, mainFont, iconFont);
-
-                if (testWidth <= maxWidth)
-                {
-                    currentLine = testLine;
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(currentLine))
-                    {
-                        lines.Add(currentLine);
-                        currentLine = word;
-                    }
-                    else
-                    {
-                        // Single word is too long, add it anyway
-                        lines.Add(word);
-                    }
-                }
-            }
-
-            if (!string.IsNullOrEmpty(currentLine)) lines.Add(currentLine);
-        }
-
-        return [.. lines];
-    }
 }

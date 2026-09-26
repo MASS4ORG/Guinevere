@@ -21,6 +21,7 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
     Vector2 _currentMousePosition;
     readonly Font _fontText;
     readonly Font _fontIcon;
+    readonly Font _fontWidgetIcon;
 
     /// <summary>
     /// Initializes a new instance of the GuiWindow class with the specified parameters.
@@ -43,6 +44,8 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
         _fontIcon = Font.FromStream(fontStream);
+        fontStream = GetStreamResource("Guinevere.widget-icons.ttf");
+        _fontWidgetIcon = Font.FromStream(fontStream);
         Raylib.SetTraceLogLevel(TraceLogLevel.Warning); // Reduce verbose logging
         Raylib.InitWindow(_width, _height, title);
         _canvasRenderer = new CanvasRenderer();
@@ -116,7 +119,7 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
             _canvasRenderer.Render(canvas =>
             {
                 _gui.SetStage(Pass.Pass1Build);
-                _gui.BeginFrame(canvas, _fontText, _fontIcon);
+                _gui.BeginFrame(canvas, _fontText, _fontIcon, _fontWidgetIcon);
                 draw();
 
                 // Process the whole layout after the build pass
@@ -139,6 +142,7 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
         _canvasRenderer.Dispose();
         _fontText.Dispose();
         _fontIcon.Dispose();
+        _fontWidgetIcon.Dispose();
         Raylib.CloseWindow();
     }
 

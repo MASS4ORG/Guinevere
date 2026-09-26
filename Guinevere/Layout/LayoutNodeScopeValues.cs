@@ -32,6 +32,16 @@ public class LayoutNodeScopeTextSize : ILayoutNodeScopeValue<LayoutNodeScopeText
     public required float Value { get; init; }
 }
 
+/// <summary>Inherited text layout settings for drawing and measuring.</summary>
+public class LayoutNodeScopeTextLayout : ILayoutNodeScopeValue<LayoutNodeScopeTextLayout>
+{
+    /// <summary>Default text layout settings.</summary>
+    public static LayoutNodeScopeTextLayout Default { get; } = new() { Value = new TextLayoutOptions() };
+
+    /// <summary>Current text layout settings.</summary>
+    public required TextLayoutOptions Value { get; init; }
+}
+
 /// <summary>
 /// Represents the text font value for layout node scopes.
 /// </summary>
@@ -61,6 +71,16 @@ public class LayoutNodeScopeIconFont : ILayoutNodeScopeValue<LayoutNodeScopeIcon
     /// <summary>
     /// Gets the font value for icon rendering.
     /// </summary>
+    public required Font Value { get; init; }
+}
+
+/// <summary>The UI icon font, separate from the emoji fallback font.</summary>
+public class LayoutNodeScopeWidgetIconFont : ILayoutNodeScopeValue<LayoutNodeScopeWidgetIconFont>
+{
+    /// <summary>The default UI icon font.</summary>
+    public static LayoutNodeScopeWidgetIconFont Default { get; } = new() { Value = new Font() };
+
+    /// <summary>The font used by <see cref="Gui.DrawGlyph"/>.</summary>
     public required Font Value { get; init; }
 }
 

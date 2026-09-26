@@ -101,6 +101,11 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 - Horizontal/vertical flow with `Direction(Axis.Horizontal|Vertical)`
 - Responsive sizing: `Expand()`, `ExpandWidth()`, `ExpandHeight()`
 - Composable sizing: blend pixels, percentages, aspect ratios, remaining space, content size, and largest-child size
+- Composable constraints: `MinWidth(UnitValue.Pixels(20) + UnitValue.Expand(0.5f))` and matching
+  min/max APIs on both axes. The pixel overloads and `LayoutStyle` float fields remain supported;
+  expression constraints use separate nullable fields, so existing source remains valid. Recompile
+  against this version because `LayoutStyle`'s binary layout has changed. Expression bounds below
+  zero resolve to zero; when a minimum exceeds its maximum, the minimum wins.
 - Content alignment with `AlignContent(x, y)`
 
   ```csharp
@@ -165,6 +170,10 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 
 - Rich text rendering with Unicode and emoji
 - Wrapping, sizes, and color control
+- `TextLayoutOptions` controls word, character, or mixed wrapping, line height, line limits,
+  and a configurable ellipsis. `DrawText` and `WrappedTextLayout` share the line-breaking rules;
+  `SetTextLayout` makes these settings inheritable within a node scope. Styled nodes accept
+  `text-wrap`, `line-height`, `max-lines`, and `text-ellipsis` declarations.
 - Theming via transient color changes
 - Runtime stylesheets with nested selectors, `>` child selectors, custom modifiers, variables,
   `@const`, `#inherit(...)`, and non-destructive provider/file reloads
@@ -172,6 +181,8 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   ```csharp
   gui.DrawText("Title", 24, Color.White);
   gui.DrawText("Wrapped text", 12, Color.Gray, wrapWidth: 300);
+  gui.DrawText("A long message", wrapWidth: 300,
+      layout: new TextLayoutOptions { WrapMode = TextWrapMode.WordThenCharacter, MaxLines = 3 });
   gui.SetTextColor(Color.Red); // all text from now on will be red by default
   gui.DrawText("Red text");
   gui.SetTextColor(Color.White);
@@ -353,6 +364,17 @@ The repository includes comprehensive [Examples](/Examples) demonstrating variou
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
+
+The integration packages embed three fonts. [Roboto](https://android.googlesource.com/platform/external/roboto-fonts/)
+provides ordinary text; [Noto Emoji](https://github.com/googlefonts/noto-emoji) provides Unicode emoji
+fallback; [Font Awesome 6 Free](https://fontawesome.com/license/free) provides widget icons. Roboto and
+Noto Emoji use Apache 2.0 and the SIL Open Font License 1.1 respectively; the Font Awesome font also uses
+the SIL Open Font License 1.1. Each integration package includes the license texts and font notices. The Font Awesome solid font
+is embedded once per integration (about 388 KiB); Noto Emoji is about 2 MiB. Call `gui.DrawGlyph(codepoint)`
+for a Font Awesome icon, `gui.DrawText(text)` for ordinary text and emoji, or set the fonts per scope with
+`SetWidgetIconFont`, `SetTextFont`, and `SetEmojiFont`. The older `SetIconFont` still changes both icon
+and fallback fonts. Font Awesome's glyphs use private
+Unicode codepoints; use `WidgetIcons` for the built-in glyphs or Font Awesome's published mappings.
 
 - [SkiaSharp](https://github.com/mono/SkiaSharp): The foundation of our rendering system
 - [OpenTK](https://github.com/opentk/opentk): OpenGL bindings for .NET

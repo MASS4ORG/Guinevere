@@ -17,6 +17,9 @@ public static class StyleLayout
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(style);
 
+        var textOptions = node.Scope.Get<LayoutNodeScopeTextLayout>().Value;
+        var textChanged = false;
+
         foreach (var (prop, raw) in style.Declarations)
         {
             var value = raw.Trim();
@@ -63,6 +66,32 @@ public static class StyleLayout
                 case "max-height":
                     if (StyleValue.TryLength(value, out var mxh, out _)) node.MaxHeight(mxh);
                     break;
+                case "text-wrap":
+                    if (Enum.TryParse<TextWrapMode>(value.Replace("-", "", StringComparison.Ordinal),
+                            true, out var mode))
+                    {
+                        textOptions = textOptions with { WrapMode = mode };
+                        textChanged = true;
+                    }
+                    break;
+                case "line-height":
+                    if (StyleValue.TryFloat(value, out var lineHeight) && lineHeight > 0f)
+                    {
+                        textOptions = textOptions with { LineHeight = lineHeight };
+                        textChanged = true;
+                    }
+                    break;
+                case "max-lines":
+                    if (int.TryParse(value, out var maxLines) && maxLines >= 0)
+                    {
+                        textOptions = textOptions with { MaxLines = maxLines };
+                        textChanged = true;
+                    }
+                    break;
+                case "text-ellipsis":
+                    textOptions = textOptions with { Ellipsis = value.Trim('"', '\'') };
+                    textChanged = true;
+                    break;
                 case "padding":
                     ApplyBox(value, node.Padding, node.Padding, node.Padding);
                     break;
@@ -71,6 +100,7 @@ public static class StyleLayout
                     break;
             }
         }
+        if (textChanged) node.Scope.Set(new LayoutNodeScopeTextLayout { Value = textOptions });
     }
 
     static void ApplyLength(string value, Func<float, LayoutNode> px, Func<float, LayoutNode> percent,
@@ -111,9 +141,16 @@ public static class StyleLayout
 
     static readonly FrozenDictionary<string, float> AlignFractions = new Dictionary<string, float>
     {
-        ["flex-start"] = 0f, ["start"] = 0f, ["left"] = 0f, ["top"] = 0f,
-        ["center"] = 0.5f, ["middle"] = 0.5f,
-        ["flex-end"] = 1f, ["end"] = 1f, ["right"] = 1f, ["bottom"] = 1f
+        ["flex-start"] = 0f,
+        ["start"] = 0f,
+        ["left"] = 0f,
+        ["top"] = 0f,
+        ["center"] = 0.5f,
+        ["middle"] = 0.5f,
+        ["flex-end"] = 1f,
+        ["end"] = 1f,
+        ["right"] = 1f,
+        ["bottom"] = 1f
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
     /// <summary>Maps a CSS alignment keyword to a fraction of the free space; unknown ones align to the start.</summary>

@@ -166,7 +166,7 @@ public static partial class ControlsExtensions
         if (!item.HasSubmenu && string.IsNullOrEmpty(item.Shortcut)) return;
 
         gui.Node().Expand();
-        if (item.HasSubmenu) gui.DrawText("▶", fontSize * 0.8f, itemColor, centerInRect: false);
+        if (item.HasSubmenu) gui.DrawText(WidgetIcons.ChevronRight, fontSize * 0.8f, itemColor, centerInRect: false);
         else gui.DrawText(item.Shortcut!, fontSize * 0.9f, gui.ControlStyle.TextDim, centerInRect: false);
     }
 

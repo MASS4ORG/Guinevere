@@ -319,7 +319,7 @@ public static partial class ControlsExtensions
             {
                 using (gui.Node(14f).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
                     if (item.IsChecked?.Invoke() == true)
-                        gui.DrawText("🔽", fontSize, itemColor);
+                        gui.DrawText(WidgetIcons.Check, fontSize, itemColor);
             }
 
             gui.DrawText(item.Text, fontSize, itemColor, centerInRect: false);
@@ -329,7 +329,7 @@ public static partial class ControlsExtensions
             if (item.HasSubmenu)
             {
                 using (gui.Node(fontSize).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
-                    gui.DrawText("▶️", fontSize * 0.7f, itemColor);
+                    gui.DrawText(WidgetIcons.ChevronRight, fontSize * 0.7f, itemColor);
             }
             else if (!string.IsNullOrEmpty(item.Shortcut))
                 gui.DrawText(item.Shortcut, fontSize * 0.9f, gui.ControlStyle.TextDim, centerInRect: false);

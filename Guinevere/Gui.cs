@@ -93,7 +93,8 @@ public partial class Gui
     /// <param name="canvas">The canvas on which the GUI elements will be rendered for the current frame.</param>
     /// <param name="font">Optional parameter to set the default font for text rendering using Font wrapper.</param>
     /// <param name="fontIcon">Optional parameter to set the font for rendering icons using Font wrapper.</param>
-    public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null)
+    /// <param name="fontWidgetIcon">Optional font for explicit widget icons.</param>
+    public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null, Font? fontWidgetIcon = null)
     {
         Canvas = canvas;
         if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.BeginFrame();
@@ -126,7 +127,8 @@ public partial class Gui
         if (font is not null)
             SetTextFont(font);
         if (fontIcon is not null)
-            SetIconFont(fontIcon);
+            SetEmojiFont(fontIcon);
+        SetWidgetIconFont(fontWidgetIcon ?? fontIcon ?? CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value);
     }
 
     /// <summary>

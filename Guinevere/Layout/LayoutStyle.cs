@@ -195,13 +195,45 @@ public struct LayoutStyle
     /// <summary>Upper bound on the resolved height in pixels, or -1 for none.</summary>
     public float MaxHeight { get; set; }
 
+    // Most nodes have no expression constraints. An immutable sidecar keeps the common style compact
+    // and avoids sharing mutable constraint state when a LayoutStyle value is copied.
+    sealed record ConstraintExpressions(UnitValue? MinWidth = null, UnitValue? MaxWidth = null,
+        UnitValue? MinHeight = null, UnitValue? MaxHeight = null);
+
+    ConstraintExpressions? _constraints;
+
+    /// <summary>Composable minimum width; null uses the legacy pixel bound.</summary>
+    public UnitValue? MinWidthExpression
+    {
+        readonly get => _constraints?.MinWidth;
+        set { if (value is not null || _constraints is not null) _constraints = (_constraints ?? new()) with { MinWidth = value }; }
+    }
+    /// <summary>Composable maximum width; null uses the legacy pixel bound.</summary>
+    public UnitValue? MaxWidthExpression
+    {
+        readonly get => _constraints?.MaxWidth;
+        set { if (value is not null || _constraints is not null) _constraints = (_constraints ?? new()) with { MaxWidth = value }; }
+    }
+    /// <summary>Composable minimum height; null uses the legacy pixel bound.</summary>
+    public UnitValue? MinHeightExpression
+    {
+        readonly get => _constraints?.MinHeight;
+        set { if (value is not null || _constraints is not null) _constraints = (_constraints ?? new()) with { MinHeight = value }; }
+    }
+    /// <summary>Composable maximum height; null uses the legacy pixel bound.</summary>
+    public UnitValue? MaxHeightExpression
+    {
+        readonly get => _constraints?.MaxHeight;
+        set { if (value is not null || _constraints is not null) _constraints = (_constraints ?? new()) with { MaxHeight = value }; }
+    }
+
     /// <summary>Width as a fraction (0..1) of the parent's inner width, or -1 to use <see cref="Width"/>.</summary>
     public float WidthPercent { get; set; }
 
     /// <summary>Height as a fraction (0..1) of the parent's inner height, or -1 to use <see cref="Height"/>.</summary>
     public float HeightPercent { get; set; }
 
-    /// <summary>Clamps <paramref name="width"/> to <see cref="MinWidth"/> / <see cref="MaxWidth"/> when set.</summary>
+    /// <summary>Clamps <paramref name="width"/> using the legacy pixel bounds.</summary>
     /// <param name="width">The width to constrain.</param>
     public readonly float ClampWidth(float width)
     {
@@ -210,7 +242,7 @@ public struct LayoutStyle
         return width;
     }
 
-    /// <summary>Clamps <paramref name="height"/> to <see cref="MinHeight"/> / <see cref="MaxHeight"/> when set.</summary>
+    /// <summary>Clamps <paramref name="height"/> using the legacy pixel bounds.</summary>
     /// <param name="height">The height to constrain.</param>
     public readonly float ClampHeight(float height)
     {

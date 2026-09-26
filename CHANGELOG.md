@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Added: Composable min/max layout expressions and Font Awesome widget icons alongside Noto Emoji fallback.
+- Changed: Wrapped text layout now lives in core and is shared with ordinary text drawing.
+
 ## v[4.1.0][] 2026-09-23
 
 - Fixed: Text area caret was never drawn (its node was built only in the render pass)

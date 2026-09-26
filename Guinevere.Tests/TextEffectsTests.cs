@@ -1,7 +1,7 @@
 namespace Guinevere.Tests;
 
 /// <summary>
-/// Pixel-level tests for <see cref="TextEffects"/> on <see cref="Gui.DrawText(string, float, Color?, Font?, float, bool, bool, TextEffects?)"/>.
+/// Pixel-level tests for <see cref="TextEffects"/> on <see cref="Gui.DrawText"/>.
 /// The <c>ui --example text</c> CLI verb renders the same effects for eyeballing.
 /// </summary>
 public class TextEffectsTests
