@@ -118,6 +118,7 @@ public static partial class ControlsExtensions
         }
 
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+        gui.Focus.RegisterTextInput(gui.CurrentNode.Id);
         var hasFocus = gui.HasFocus();
         var mouse = gui.Input.MousePosition;
 

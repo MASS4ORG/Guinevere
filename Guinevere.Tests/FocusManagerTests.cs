@@ -460,4 +460,33 @@ public class FocusManagerTests
             focus.RegisterFocusableControl("below", new Vector2(0, 100));
         }
     }
+
+    /// <summary>A focused text field keeps the arrow keys for moving its caret.</summary>
+    [Fact]
+    public void ArrowKeys_DoNotMoveFocusAwayFromATextInput()
+    {
+        var focus = new FocusManager();
+        var input = Substitute.For<IInputHandler>();
+
+        focus.BeginFrame();
+        Register();
+        focus.RequestFocus("field");
+        focus.EndFrame();
+        focus.BeginFrame();
+        Register();
+
+        input.IsKeyPressed(KeyboardKey.Right).Returns(true);
+        focus.HandleKeyboardNavigation(input);
+        focus.EndFrame();
+        focus.BeginFrame();
+
+        Assert.Equal("field", focus.CurrentFocusedId);
+
+        void Register()
+        {
+            focus.RegisterFocusableControl("field", new Vector2(0, 0));
+            focus.RegisterTextInput("field");
+            focus.RegisterFocusableControl("right", new Vector2(100, 0));
+        }
+    }
 }

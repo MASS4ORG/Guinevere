@@ -92,6 +92,8 @@ public static class TextEditor
         float fontSize, bool multiline, string display)
     {
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+        // Focus is held by this node, so this is the id that must count as a text input for the arrow keys.
+        gui.Focus.RegisterTextInput(gui.CurrentNode.Id);
         var hasFocus = gui.HasFocus();
         var inner = gui.CurrentNode.InnerRect;
 
