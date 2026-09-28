@@ -103,6 +103,12 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
     public void Close() => _window.Close();
 
     /// <summary>
+    /// Asked when the user closes the window, such as with its close button. Returning false keeps the window open, so
+    /// an application can first ask about unsaved work and close later with <see cref="Close"/>.
+    /// </summary>
+    public Func<bool>? CloseRequested { get; set; }
+
+    /// <summary>
     /// Gets a string resource from the assembly's embedded resources.
     /// </summary>
     /// <param name="resource">The name of the resource to retrieve.</param>
@@ -234,6 +240,12 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
     /// </summary>
     void OnClosing()
     {
+        if (CloseRequested?.Invoke() == false)
+        {
+            _window.IsClosing = false;
+            return;
+        }
+
         _isInitialized = false;
     }
 

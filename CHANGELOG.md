@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed: Simplified stylesheet application and intrinsic sizing; reduced hot-path allocations with benchmark coverage.
 - Tests: rendering paths and reducing the top "CRAP" score.
 - Added: `RegisterFocusable(claimsArrowKeys:)`; tree views keep focus on arrow keys instead of also moving it.
-- Fixed: Tab close glyph and tree row icons centered; tree rows use the text color, selected rows stay readable.
+- Fixed: Text fields keep arrow keys for caret movement; tree row text stays readable when selected.
+- Added: Vulkan Silk.NET hosts can veto a window close.
 
 ## v[5.0.0][] 2026-09-26
 
