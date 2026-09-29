@@ -112,7 +112,7 @@ partial class Build
     /// an existing tag must republish that exact version. Pushes use --skip-duplicate, so a
     /// version already on the feed is a no-op instead of an error.
     /// </summary>
-    private Target PublishNuGet => td => td
+    private Target PushNuGet => td => td
         .DependsOn(PackNuGet)
         .OnlyWhenStatic(() => !string.IsNullOrEmpty(NuGetApiKey))
         .Executes(() =>

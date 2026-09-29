@@ -2,8 +2,8 @@
 
 ![guinevere](/guinevere-badge.png)
 
-[![CI](https://github.com/mass4org/guinevere/actions/workflows/ci.yml/badge.svg)](https://github.com/mass4org/guinevere/actions/workflows/ci.yml)
-[![Release](https://github.com/mass4org/guinevere/actions/workflows/release.yml/badge.svg)](https://github.com/mass4org/guinevere/actions/workflows/release.yml)
+[![CI](https://github.com/mass4org/guinevere/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/mass4org/guinevere/actions/workflows/build-and-test.yml)
+[![Release](https://github.com/mass4org/guinevere/actions/workflows/check-new-release.yml/badge.svg)](https://github.com/mass4org/guinevere/actions/workflows/check-new-release.yml)
 [![NuGet](https://img.shields.io/nuget/v/MASS4.Guinevere.svg)](https://www.nuget.org/packages/MASS4.Guinevere/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

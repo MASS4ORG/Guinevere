@@ -1,4 +1,4 @@
-name: release
+name: Check new release
 
 on:
     schedule:
@@ -35,7 +35,7 @@ jobs:
             # The tag above is created through the API with GITHUB_TOKEN, which does not
             # fire `on: push: tags`. Kick the publish workflow explicitly; a workflow_dispatch
             # via `gh` does run even when triggered with GITHUB_TOKEN. Safe to run every time —
-            # PublishNuGet pushes with --skip-duplicate.
+            # PushNuGet pushes with --skip-duplicate.
             - name: "Trigger: publish-on-tag"
               if: success()
               env:

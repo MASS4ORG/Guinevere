@@ -11,26 +11,19 @@ namespace Build;
 /// </summary>
 [ShutdownDotNetAfterServerBuild]
 [GitHubActions(
-    "ci",
+    "build-and-test",
     GitHubActionsImage.UbuntuLatest,
     On = [GitHubActionsTrigger.Push, GitHubActionsTrigger.PullRequest],
     InvokedTargets = [nameof(TestReport), nameof(Compile), nameof(Restore), nameof(Publish)],
     FetchDepth = 0,
     AutoGenerate = false)]
 [GitHubActions(
-    "daily-release",
+    "check-new-release",
     GitHubActionsImage.UbuntuLatest,
     FetchDepth = 0,
     AutoGenerate = false,
-    OnCronSchedule = "0 18 * * *", // 15h BRT (18h UTC)
+    OnCronSchedule = "0 13 * * *", // 10:00 BRT (UTC-3)
     InvokedTargets = [nameof(Test), nameof(GitHubCreateRelease)])]
-// [GitHubActions(
-//     "release",
-//     GitHubActionsImage.UbuntuLatest,
-//     GitHubActionsImage.WindowsLatest,
-//     On = new[] { GitHubActionsTrigger.Schedule },
-//     OnSchedule = "0 0 * * 4", // Every Thursday at midnight UTC
-//     InvokedTargets = new[] { nameof(PublishAll) })]
 internal sealed partial class Build : NukeBuild
 {
     private static int Main() => Execute<Build>(x => x.Compile);
@@ -48,7 +41,7 @@ internal sealed partial class Build : NukeBuild
     private Target Release => td => td
         .DependsOn(
         // CI,
-        PublishNuGet
+        PushNuGet
         // , PublishExamples, PackageExamples
         )
         .Executes(() => Log.Information("Release pipeline completed successfully"));

@@ -16,8 +16,7 @@ using Serilog;
 namespace Build;
 
 /// <summary>
-/// This is the main build file for the project.
-/// This partial is responsible for creating GitHub releases and uploading assets.
+/// Creates GitHub release tags and releases.
 /// </summary>
 partial class Build
 {
@@ -77,14 +76,15 @@ partial class Build
     /// <summary>
     /// Creates a tag in the GitHub repository following SumTree pattern
     /// </summary>
-    private Target GitHubCreateTag => td => td
-        .DependsOn(CheckNewCommits, GitHubCreateCommit)
+    public Target GitHubCreateTag => td => td
+        .DependsOn(CheckNewCommits, CreateReleaseCommit)
         .OnlyWhenStatic(() => HasNewCommits)
         .Requires(() => GitHubToken)
         .Executes(async () =>
         {
             try
             {
+                GitTasks.Git("push origin HEAD");
                 using var httpClient = HttpClientGitHubToken();
                 var message = $"Automatic tag creation: '{TagName}' in {Date}";
                 var response = await httpClient.PostAsJsonAsync(
@@ -107,60 +107,6 @@ partial class Build
                 throw;
             }
         });
-
-    /// <summary>
-    /// Creates a tag and pushes it to GitHub (legacy method)
-    /// </summary>
-    private Target CreateTag => td => td
-        .DependsOn(GitHubCreateCommit)
-        .OnlyWhenStatic(() => HasNewCommits)
-        .Executes(() =>
-        {
-            try
-            {
-                Log.Information("Creating and pushing tag: {TagName}", TagName);
-
-                // Create the tag
-                GitTasks.Git($"tag -a {TagName} -m \"Release {VersionFull}\"");
-
-                // Push the tag
-                GitTasks.Git($"push origin {TagName}");
-
-                Log.Information("Successfully created and pushed tag: {TagName}", TagName);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error creating or pushing tag");
-                throw;
-            }
-        });
-
-    private Target GitHubCreateCommit => td => td
-        .DependsOn(CheckNewCommits, UpdateProjectVersions, UpdateChangelog)
-        .OnlyWhenStatic(() => HasNewCommits)
-        .Requires(() => !string.IsNullOrWhiteSpace(GitHubToken))
-        .Executes(() =>
-        {
-            // Configure git user for CI/CD environment
-            GitTasks.Git("config --global user.name `GitHub Actions` ");
-            GitTasks.Git("config --global user.email `actions@github.com` ");
-
-            // Use Git commands to commit changes locally
-            GitTasks.Git("add .");
-            GitTasks.Git($"""commit -m "chore: Automatic commit creation in {Date} [skip ci]" """);
-            GitTasks.Git("push origin HEAD");
-
-            Log.Information(
-                "Commit in branch {branch} created and pushed",
-                Repository?.Branch ?? "main");
-        });
-
-    /// <summary>
-    /// Complete release process: commit, tag, and create GitHub release
-    /// </summary>
-    private Target PublishAll => td => td
-        .DependsOn(Test, Compile, PackNuGet, PackageExamples, CreateTag, GitHubCreateRelease, PublishNuGet)
-        .Executes(() => Log.Information("Completed full release process for version {Version}", VersionFull));
 
     /// <summary>
     /// Creates a GitHub release using the GitHub API

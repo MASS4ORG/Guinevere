@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Changed: Standardized release workflow and target names with Turian.
+
 ## v[5.2.0][] 2026-09-28
 
 ## v[5.1.0][] 2026-09-27

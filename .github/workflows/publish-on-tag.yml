@@ -6,10 +6,10 @@
 # and the repo needs a `NUGET_USER` secret set to the nuget.org account/profile name
 # that owns the `MASS4.*` packages.
 #
-# Triggered by `release.yml` via `gh workflow run` after it cuts a tag (a tag push made
+# Triggered by `check-new-release.yml` via `gh workflow run` after it cuts a tag (a tag push made
 # with GITHUB_TOKEN does not fire `on: push`), or manually via the Actions tab.
 
-name: publish-on-tag
+name: Publish on tag
 
 on:
     push:
