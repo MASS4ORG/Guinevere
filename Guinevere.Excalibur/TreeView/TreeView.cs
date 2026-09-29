@@ -19,7 +19,8 @@ public static partial class ControlsExtensions
     /// <param name="onClick">Called for a click on a row, with the button and the click count.</param>
     /// <param name="dragPayload">
     /// Supplies what a row carries when dragged, or null for a tree whose rows are not drag sources.
-    /// Returning null for a given row leaves that row undraggable.
+    /// Returning null for a given row leaves that row undraggable. A row carries the payload under its
+    /// runtime type, so a typed <c>DropTarget&lt;T&gt;</c> elsewhere in the frame can accept it.
     /// </param>
     /// <param name="onRename">
     /// Receives the new name when an inline rename started with <see cref="TreeViewState.BeginRename"/>
@@ -241,6 +242,9 @@ public static partial class ControlsExtensions
                    .Enter())
         {
             if (!isEditing && dragPayload?.Invoke(item) is { } payload)
+                // `object` on purpose: this control only ever sees the payload untyped, and the source
+                // resolves that to the payload's own type, so a typed target elsewhere in the frame —
+                // an inspector field, say — can accept a row.
                 gui.DragSource<object>($"treeview/row/{item.Id}", payload,
                     ghost: g => DragGhost(g, theme, item));
 
@@ -260,9 +264,9 @@ public static partial class ControlsExtensions
 
                 if (!isEditing)
                 {
-                    Report(state, item, interactable, MouseButton.Left, onClick);
-                    Report(state, item, interactable, MouseButton.Right, onClick);
-                    Report(state, item, interactable, MouseButton.Middle, onClick);
+                    Report(state, theme, item, interactable, MouseButton.Left, onClick);
+                    Report(state, theme, item, interactable, MouseButton.Right, onClick);
+                    Report(state, theme, item, interactable, MouseButton.Middle, onClick);
                 }
             }
 
@@ -321,10 +325,19 @@ public static partial class ControlsExtensions
         }
     }
 
-    static void Report(TreeViewState state, TreeItem item, InteractableElement interactable,
-        MouseButton button, Action<TreeViewEvent>? onClick)
+    /// <summary>
+    /// Reports a click on a row. The left button settles when the button comes back up, so a press
+    /// that goes on to be a drag never selects the row; right and middle have no drag to be confused
+    /// with, and a context menu wants its press immediately, so they stay on the press edge.
+    /// </summary>
+    static void Report(TreeViewState state, TreeViewTheme theme, TreeItem item,
+        InteractableElement interactable, MouseButton button, Action<TreeViewEvent>? onClick)
     {
-        if (!interactable.OnClick(out var clicks, button)) return;
+        int clicks;
+        var clicked = button == MouseButton.Left
+            ? interactable.OnClickCompleted(out clicks, button, theme.DragThreshold)
+            : interactable.OnClick(out clicks, button);
+        if (!clicked) return;
 
         if (button == MouseButton.Left)
         {

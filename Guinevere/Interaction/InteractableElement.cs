@@ -150,8 +150,52 @@ public readonly struct InteractableElement
     }
 
     /// <summary>
-    /// Whether this element was clicked, reporting how many clicks landed in a row so a caller can
-    /// tell a single click from a double one.
+    /// Resolves a press into a click on the frame the button comes back up, and only when the gesture
+    /// began on this element, ended over it, and never strayed further than
+    /// <paramref name="dragThreshold"/> from where it began.
+    /// </summary>
+    /// <param name="clickCount">One for a single click, two for a double click, and so on.</param>
+    /// <param name="button">The mouse button to track. Defaults to <see cref="MouseButton.Left"/>.</param>
+    /// <param name="dragThreshold">
+    /// How far the pointer may travel and still be a click. Past it the gesture is somebody else's.
+    /// </param>
+    /// <returns>True on the frame the click completed.</returns>
+    /// <remarks>
+    /// The counterpart to a press-edge <c>OnClick</c>. An element that is
+    /// also a drag source cannot use that: the press that starts the drag is the same press that would
+    /// report the click, so a drag first selects — and in an editor, where selecting rebuilds whatever
+    /// the selection points at, the drop target is gone before the pointer reaches it. Poll this every
+    /// frame, as with <c>OnHold</c>: it is what claims the pointer on the press.
+    /// </remarks>
+    public bool OnClickCompleted(out int clickCount, MouseButton button = MouseButton.Left,
+        float dragThreshold = 4f)
+    {
+        clickCount = 0;
+
+        var down = _gui.Input.IsMouseButtonDown(button);
+        var held = IsHeld(button);
+
+        if (down)
+        {
+            // Still undecided. A press that goes on to be a drag must not have reported anything yet.
+            if (held) _gui.NotePressTravel(_id);
+            return false;
+        }
+
+        // The button is up, so only a press of ours counts, and only a gesture that ended here without
+        // travelling. The press anchor outlives the frame the pointer is given back on, so this is true
+        // whichever element resolved the hold first — the row's own drag source runs before this.
+        if (!_gui.HasPressAnchor(_id)) return false;
+        if (_gui.NotePressTravel(_id) > dragThreshold) return false;
+        if (!OnHover()) return false;
+
+        clickCount = _gui.RegisterClick($"{_id}:{button}");
+        return true;
+    }
+
+    /// <summary>
+    /// Whether the element was clicked, reporting how many clicks landed in a row on this element so a
+    /// caller can tell a single click from a double one.
     /// </summary>
     /// <param name="clickCount">One for a single click, two for a double click, and so on.</param>
     /// <param name="button">The mouse button to check.</param>
@@ -188,7 +232,7 @@ public readonly struct InteractableElement
         if (!OnHover()) return false;
         if (!_gui.TryCapturePointer(_id, button)) return false;
 
-        if (!isDragging) _gui.SetPressAnchor(_id, _gui.Input.MousePosition);
+        if (!isDragging) _gui.SetPressAnchor(_id, _gui.Input.MousePosition, button);
         _gui.SetDragState(_id, true);
         return true;
     }

@@ -113,6 +113,30 @@ public class DragDropPayloadTests : IDisposable
     }
 
     [Fact]
+    public void ASourceDeclaredAsObjectCarriesThePayloadUnderItsOwnType()
+    {
+        // A control that only ever sees an untyped payload — a tree row, say — used to register the
+        // source as `object`, and since nothing is assignable from `object` but `object` itself, every
+        // typed target in the frame rejected the payload as foreign and only `DropTarget<object>` saw it.
+        _input.MoveTo(25, 25);
+        _input.PressButton();
+
+        void Draw()
+        {
+            using (_gui.Node(50, 50, "source").Enter())
+                _gui.DragSource<object>("source", 42);
+        }
+
+        Frame(Draw);
+        _input.MoveTo(150, 60);
+        Frame(Draw);
+
+        Assert.True(_gui.TryPeekPayload<int>(out var payload));
+        Assert.Equal(42, payload);
+        Assert.True(_gui.CanAccept<object>());
+    }
+
+    [Fact]
     public void KeyboardDragDropsOnTheFocusedTarget()
     {
         string? received = null;

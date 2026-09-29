@@ -370,7 +370,7 @@ public partial class Gui
 
         pointer.Warp(wrapped);
         var jump = wrapped - position;
-        foreach (var id in _pressAnchors.Keys.ToArray()) _pressAnchors[id] += jump;
+        ShiftPressAnchors(jump);
         for (var i = 0; i < _gestures.Length; i++)
             if (_gestures[i] is { } gesture)
                 gesture.Origin += jump;

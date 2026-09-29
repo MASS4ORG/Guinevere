@@ -55,7 +55,7 @@ public partial class Gui
     }
 
     readonly Dictionary<string, bool> _dragStates = new();
-    readonly Dictionary<string, Vector2> _pressAnchors = new();
+    readonly Dictionary<string, PressAnchor> _pressAnchors = new();
     Vector2 _pointerLastFrame;
     bool _hasPointerLastFrame;
     (string Id, MouseButton Button)? _pointerCapture;
@@ -179,12 +179,63 @@ public partial class Gui
 
     internal Vector2 GetPressAnchor(string id)
     {
-        return _pressAnchors.TryGetValue(id, out var anchor) ? anchor : Input.MousePosition;
+        return _pressAnchors.TryGetValue(id, out var anchor) ? anchor.Origin : Input.MousePosition;
     }
 
-    internal void SetPressAnchor(string id, Vector2 position)
+    /// <summary>
+    /// Whether a hold began on this element and has not been forgotten. The anchor is only dropped when
+    /// the frame ends, so it is still there on the frame the button comes up — after the pointer has
+    /// already been handed back.
+    /// </summary>
+    internal bool HasPressAnchor(string id) => _pressAnchors.ContainsKey(id);
+
+    internal void SetPressAnchor(string id, Vector2 position, MouseButton button)
     {
-        _pressAnchors[id] = position;
+        _pressAnchors[id] = new PressAnchor(position, button);
+    }
+
+    /// <summary>
+    /// Shifts every press anchor, so a wrap does not read as the pointer having travelled: a gesture
+    /// held across the edge is one that never moved.
+    /// </summary>
+    internal void ShiftPressAnchors(Vector2 delta)
+    {
+        foreach (var id in _pressAnchors.Keys.ToArray())
+        {
+            var press = _pressAnchors[id];
+            press.Origin += delta;
+            _pressAnchors[id] = press;
+        }
+    }
+
+    /// <summary>
+    /// How far the pointer has strayed from where the press landed, keeping the furthest it reached: a
+    /// gesture that travelled and came back is still the drag it was on the way out.
+    /// </summary>
+    internal float NotePressTravel(string id)
+    {
+        if (!_pressAnchors.TryGetValue(id, out var press)) return 0f;
+
+        var travel = (Input.MousePosition - press.Origin).Length();
+        if (travel <= press.Travel) return press.Travel;
+
+        press.Travel = travel;
+        _pressAnchors[id] = press;
+        return travel;
+    }
+
+    /// <summary>Where a hold began, which button began it, and how far the pointer has got since.</summary>
+    struct PressAnchor
+    {
+        public PressAnchor(Vector2 origin, MouseButton button)
+        {
+            Origin = origin;
+            Button = button;
+        }
+
+        public Vector2 Origin { get; set; }
+        public MouseButton? Button { get; set; }
+        public float Travel { get; set; }
     }
 
     /// <summary>
@@ -235,6 +286,13 @@ public partial class Gui
         return true;
     }
 
+    /// <summary>
+    /// Forgets gestures that are over, once the frame that finished them has been drawn. The press anchor
+    /// has to outlive the release for <c>OnClickCompleted</c> to see it, and outlive the frame so that
+    /// whichever element resolved the hold had its turn first — so it is dropped here, not by the
+    /// element that gave the pointer back. Otherwise a leftover anchor reads as a fresh press and the
+    /// next click is one frame late, counting as a double click against the one before it.
+    /// </summary>
     void ClearCompletedDrags()
     {
         var keysToRemove = new List<string>();
@@ -247,6 +305,23 @@ public partial class Gui
             _dragStates.Remove(key);
             _pressAnchors.Remove(key);
         }
+
+        // An element that never began a drag leaves no drag state behind, so its anchor can only be
+        // matched against the ones that are left.
+        foreach (var key in _pressAnchors.Keys)
+            if (!IsMouseButtonDownFor(key))
+                keysToRemove.Add(key);
+
+        foreach (var key in keysToRemove) _pressAnchors.Remove(key);
+    }
+
+    /// <summary>
+    /// Whether a press anchor still belongs to a button that is down. A button that is up means the
+    /// gesture it belongs to has already reported, however it was resolved.
+    /// </summary>
+    bool IsMouseButtonDownFor(string id)
+    {
+        return _pressAnchors[id].Button is { } button && Input.IsMouseButtonDown(button);
     }
 
     /// <summary>

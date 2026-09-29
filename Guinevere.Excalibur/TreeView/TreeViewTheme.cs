@@ -21,6 +21,13 @@ public sealed class TreeViewTheme
     /// <summary>Space left of the first indent level, so rows do not touch the panel edge.</summary>
     public float ContentPadding { get; init; } = 6f;
 
+    /// <summary>
+    /// How far the pointer may travel while a row is held and the gesture still counts as a click on
+    /// it. Past this the press is a drag, and the row is left alone — an editor that shows something
+    /// different for the selection would otherwise swap it away under the gesture.
+    /// </summary>
+    public float DragThreshold { get; init; } = 4f;
+
     /// <summary>The default theme.</summary>
     public static TreeViewTheme Default { get; } = new();
 }

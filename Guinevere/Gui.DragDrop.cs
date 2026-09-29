@@ -55,12 +55,12 @@ public partial class Gui
 
     /// <summary>Starts a type-safe drag on an optional application-defined channel.</summary>
     public bool BeginDrag<T>(string sourceId, T payload, DragDropTag tag = default, Action<Gui>? ghost = null)
-        where T : notnull => BeginDragCore(sourceId, payload, typeof(T), tag, ghost, false);
+        where T : notnull => BeginDragCore(sourceId, payload, PayloadTypeOf(payload), tag, ghost, false);
 
     /// <summary>Starts a keyboard-owned drag. Enter or Space on a focused target drops it.</summary>
     public bool BeginKeyboardDrag<T>(string sourceId, T payload, DragDropTag tag = default,
         Action<Gui>? ghost = null) where T : notnull =>
-        BeginDragCore(sourceId, payload, typeof(T), tag, ghost, true);
+        BeginDragCore(sourceId, payload, PayloadTypeOf(payload), tag, ghost, true);
 
     bool BeginDragCore(string sourceId, object payload, Type payloadType, DragDropTag tag,
         Action<Gui>? ghost, bool keyboard)
@@ -82,9 +82,22 @@ public partial class Gui
     /// Turns the current node into a typed source. A focused source starts a keyboard drag with
     /// Space or Enter; focus navigation selects a target, Enter drops, and Escape cancels.
     /// </summary>
+    /// <remarks>
+    /// A source declared as <see cref="object"/> carries the payload under its runtime type instead.
+    /// <c>object</c> says nothing a target could match on — nothing is assignable from it but
+    /// <c>object</c> itself — so a control that only knows it hands out <c>object</c> payloads would
+    /// leave every typed <c>DropTarget&lt;T&gt;</c> in the frame rejecting them as foreign.
+    /// </remarks>
     public bool DragSource<T>(string sourceId, T payload, Action<Gui>? ghost = null,
         float threshold = 4f, DragDropTag tag = default, bool keyboard = true) where T : notnull =>
-        DragSourceCore(sourceId, payload, typeof(T), tag, ghost, threshold, keyboard);
+        DragSourceCore(sourceId, payload, PayloadTypeOf(payload), tag, ghost, threshold, keyboard);
+
+    /// <summary>
+    /// The type a target matches a payload against: the one it was declared with, unless that is
+    /// <see cref="object"/>, which every type is and no type is.
+    /// </summary>
+    static Type PayloadTypeOf<T>(T payload) where T : notnull =>
+        typeof(T) == typeof(object) ? payload.GetType() : typeof(T);
 
     bool DragSourceCore(string sourceId, object payload, Type payloadType, DragDropTag tag,
         Action<Gui>? ghost, float threshold, bool keyboard)

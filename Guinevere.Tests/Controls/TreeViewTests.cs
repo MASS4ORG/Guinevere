@@ -52,9 +52,30 @@ public class TreeViewTests
             Draw();
             gui.Render();
             gui.EndFrame();
+
+            // A scripted handler rolls its own edges once the frame is over, so whatever the caller
+            // sets between calls is what the next frame sees.
+            if (input is ScriptedInputHandler scripted) scripted.NewFrame();
         }
 
         return gui;
+    }
+
+    /// <summary>
+    /// Clicks a row: a press and a release, which is what a click is now. A mock that only answers the
+    /// press edge never produces one.
+    /// </summary>
+    static Gui Click(IReadOnlyList<TreeItem> items, TreeViewState state, int x = 200, int y = 10,
+        Action<TreeViewEvent>? onClick = null, Gui? reuse = null)
+    {
+        var input = new ScriptedInputHandler();
+        input.MoveTo(x, y);
+
+        var gui = RunFrames(items, state, 1, input, onClick, reuse);
+        input.PressButton();
+        RunFrames(items, state, 1, input, onClick, gui);
+        input.ReleaseButton();
+        return RunFrames(items, state, 1, input, onClick, gui);
     }
 
     static IInputHandler OffscreenInput()
@@ -220,13 +241,8 @@ public class TreeViewTests
         var state = new TreeViewState();
         var items = Tree(roots: 3, childrenPerRoot: 0);
 
-        var input = Substitute.For<IInputHandler>();
-        input.MousePosition.Returns(new Vector2(200, 30));
-        input.PrevMousePosition.Returns(new Vector2(200, 30));
-        input.IsMouseButtonPressed(MouseButton.Left).Returns(true);
-
         TreeViewEvent? seen = null;
-        RunFrames(items, state, frames: 1, input: input, onClick: e => seen = e);
+        Click(items, state, y: 30, onClick: e => seen = e);
 
         Assert.NotNull(seen);
         Assert.Equal(MouseButton.Left, seen.Value.Button);
@@ -239,13 +255,8 @@ public class TreeViewTests
         var payload = new object();
         var items = new List<TreeItem> { new("only", "Only", 0, Tag: payload) };
 
-        var input = Substitute.For<IInputHandler>();
-        input.MousePosition.Returns(new Vector2(200, 10));
-        input.PrevMousePosition.Returns(new Vector2(200, 10));
-        input.IsMouseButtonPressed(MouseButton.Left).Returns(true);
-
         TreeViewEvent? seen = null;
-        RunFrames(items, new TreeViewState(), frames: 1, input: input, onClick: e => seen = e);
+        Click(items, new TreeViewState(), y: 10, onClick: e => seen = e);
 
         Assert.NotNull(seen);
         Assert.Same(payload, seen.Value.Item.Tag);
@@ -302,29 +313,11 @@ public class TreeViewTests
         state.SetExpanded("root0", expanded: true);
         var items = Tree(roots: 2, childrenPerRoot: 2);
 
-        var input = Substitute.For<IInputHandler>();
-        input.MousePosition.Returns(new Vector2(200, 10));
-        input.PrevMousePosition.Returns(new Vector2(200, 10));
-        input.IsMouseButtonPressed(MouseButton.Left).Returns(true);
+        var clicks = new List<int>();
+        var gui = Click(items, state, onClick: e => clicks.Add(e.ClickCount));
+        Click(items, state, reuse: gui, onClick: e => clicks.Add(e.ClickCount));
 
-        using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
-        var gui = new TestableGui { Input = input };
-        gui.SetScreenRect(Width, Height);
-
-        for (var frame = 0; frame < 2; frame++)
-        {
-            void Draw() => gui.TreeView(state, items, Theme);
-
-            gui.Time.Update(0.016);
-            gui.SetStage(Pass.Pass1Build);
-            gui.BeginFrame(surface.Canvas);
-            Draw();
-            gui.CalculateLayout();
-            gui.SetStage(Pass.Pass2Render);
-            Draw();
-            gui.EndFrame();
-        }
-
+        Assert.Equal([1, 2], clicks);
         Assert.True(state.IsCollapsed("root0"), "a second click on the label should fold the row");
     }
 
@@ -332,15 +325,7 @@ public class TreeViewTests
     /// Clicks the first row so the tree owns focus, then returns the gui to keep driving. Navigation
     /// only answers the focused tree, since a window can hold several.
     /// </summary>
-    static Gui Focused(IReadOnlyList<TreeItem> items, TreeViewState state)
-    {
-        var click = Substitute.For<IInputHandler>();
-        click.MousePosition.Returns(new Vector2(200, 10));
-        click.PrevMousePosition.Returns(new Vector2(200, 10));
-        click.IsMouseButtonPressed(MouseButton.Left).Returns(true);
-
-        return RunFrames(items, state, frames: 1, input: click);
-    }
+    static Gui Focused(IReadOnlyList<TreeItem> items, TreeViewState state) => Click(items, state);
 
     static IInputHandler KeyInput(KeyboardKey key)
     {
