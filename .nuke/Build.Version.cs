@@ -1,15 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using Nuke.Common;
-using Nuke.Common.Git;
-using Nuke.Common.ProjectModel;
-using Nuke.Common.Tools.Git;
-using Nuke.Common.Tools.GitVersion;
-using Serilog;
-
 namespace Build;
 
 /// <summary>
@@ -18,9 +6,11 @@ namespace Build;
 /// </summary>
 partial class Build
 {
-    [GitRepository] private readonly GitRepository Repository;
+    [GitRepository]
+    private readonly GitRepository Repository;
 
-    [GitVersion] private readonly GitVersion GitVersion;
+    [GitVersion]
+    private readonly GitVersion GitVersion;
 
     /// <summary>
     /// The current version, using GitVersion with fallback.
@@ -38,7 +28,8 @@ partial class Build
                 // therefore make it regress below the version calculated from the released tag history.
                 if (IsVersionEarlierThan(gitVersionValue, calculatedVersion))
                 {
-                    Log.Warning("GitVersion returned {GitVersion}, but released tags require at least {Fallback}. Using fallback.",
+                    Log.Warning(
+                        "GitVersion returned {GitVersion}, but released tags require at least {Fallback}. Using fallback",
                         gitVersionValue, calculatedVersion);
                     return calculatedVersion;
                 }
@@ -53,11 +44,6 @@ partial class Build
         }
     }
 
-    private string VersionMajor => GitVersion?.Major.ToString(CultureInfo.InvariantCulture) ?? GetFallbackMajor();
-
-    private string VersionMajorMinor =>
-        GitVersion != null ? $"{GitVersion.Major}.{GitVersion.Minor}" : GetFallbackMajorMinor();
-
     /// <summary>
     /// The version in a format that can be used as a tag.
     /// </summary>
@@ -66,7 +52,8 @@ partial class Build
     /// <summary>
     /// Checks if there are new commits since the last tag.
     /// </summary>
-    private bool HasNewCommits => GitVersion != null ? GitVersion.CommitsSinceVersionSource != "0" : GetCommitsSinceLastTag() > 0;
+    private bool HasNewCommits =>
+        GitVersion != null ? GitVersion.CommitsSinceVersionSource != "0" : GetCommitsSinceLastTag() > 0;
 
     private string CurrentVersion;
 
@@ -181,28 +168,6 @@ partial class Build
     }
 
     /// <summary>
-    /// Gets fallback major version when GitVersion is not available.
-    /// </summary>
-    private string GetFallbackMajor()
-    {
-        var version = CurrentFullVersion;
-        var parts = version.Split('.');
-        return parts.Length > 0 ? parts[0] : "1";
-    }
-
-    /// <summary>
-    /// Gets fallback major.minor version when GitVersion is not available.
-    /// </summary>
-    private string GetFallbackMajorMinor()
-    {
-        var version = CurrentFullVersion;
-        var parts = version.Split('.');
-        if (parts.Length >= 2)
-            return $"{parts[0]}.{parts[1]}";
-        return parts.Length == 1 ? $"{parts[0]}.0" : "1.0";
-    }
-
-    /// <summary>
     /// Gets version from environment variables (useful for CI/CD).
     /// </summary>
     private string GetEnvironmentVersion()
@@ -253,7 +218,8 @@ partial class Build
             }
             else
             {
-                Log.Information("GitVersion available - commits since last version: {Commits}", GitVersion.CommitsSinceVersionSource);
+                Log.Information("GitVersion available - commits since last version: {Commits}",
+                    GitVersion.CommitsSinceVersionSource);
             }
         });
 
@@ -271,9 +237,11 @@ partial class Build
             {
                 // If there are no new commits since the last tag, skip tag creation
                 // Nuke will stop here and not execute any of the following targets
-                Log.Information(HasNewCommits
-                    ? $"There are {GitVersion.CommitsSinceVersionSource} new commits since last tag."
-                    : "No new commits since last tag. Skipping tag creation.");
+                if (HasNewCommits)
+                    Log.Information("There are {GitVersionCommitsSinceVersionSource} new commits since last tag",
+                        GitVersion.CommitsSinceVersionSource);
+                else
+                    Log.Information("No new commits since last tag. Skipping tag creation");
             }
             else
             {
@@ -292,23 +260,11 @@ partial class Build
             Log.Information("Projects: {ProjectsCount}",
                 Solution.Projects.Count);
 
-            var projectsToVersion = new List<Project>
-            {
-                Solution.Guinevere,
-                Solution.GetProject("Guinevere.Scripting"),
-                Solution.GetProject("Guinevere.OpenGL.OpenTK"),
-                Solution.GetProject("Guinevere.OpenGL.Raylib"),
-                Solution.GetProject("Guinevere.OpenGL.SilkNET"),
-                Solution.GetProject("Guinevere.Vulkan.SilkNET")
-            };
-
-            projectsToVersion.ForEach(project =>
+            Solution.AllProjects.ForEach(project =>
             {
                 if (project == null) return;
-                Log.Information(
-                    "{project}:\tfrom {version} to {VersionFull}",
-                    project.Name,
-                    project.GetProperty("Version"), VersionFull);
+                Log.Information("{Project}:\tfrom {Version} to {VersionFull}",
+                    project.Name, project.GetProperty("Version"), VersionFull);
                 var msbuildProject = project.GetMSBuildProject();
                 msbuildProject.SetProperty("Version", VersionFull);
                 msbuildProject.Save(project.Path);

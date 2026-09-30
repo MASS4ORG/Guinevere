@@ -1,6 +1,3 @@
-using Nuke.Common;
-using Nuke.Common.ProjectModel;
-
 namespace Build;
 
 /// <summary>

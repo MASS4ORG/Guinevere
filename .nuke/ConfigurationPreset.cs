@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using Nuke.Common.Tooling;
-
 namespace Build;
 
 [TypeConverter(typeof(TypeConverter<ConfigurationPreset>))]

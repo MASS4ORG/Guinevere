@@ -25,6 +25,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
     Action _draw = null!;
     GL? _gl;
     bool _isInitialized;
+    readonly WindowCloseGate _close = new();
     Vector2 _mousePosition;
     Vector2 _prevMousePosition;
     Vector2 _mouseDelta;
@@ -93,6 +94,13 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
 
     /// <inheritdoc />
     public Vector2 FramebufferSize => new(_window.FramebufferSize.X, _window.FramebufferSize.Y);
+
+    /// <inheritdoc />
+    public Func<bool>? CloseRequested
+    {
+        get => _close.CloseRequested;
+        set => _close.CloseRequested = value;
+    }
 
     /// <summary>
     /// Gets a string resource from the assembly's embedded resources.
@@ -214,6 +222,12 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
     /// </summary>
     void OnClosing()
     {
+        if (!_close.MayClose())
+        {
+            _window.IsClosing = false;
+            return;
+        }
+
         _isInitialized = false;
     }
 
@@ -268,9 +282,14 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
 
     /// <summary>
     /// Ends the run loop, so <see cref="RunGui"/> returns and the caller can shut down in order.
-    /// Safe to call from inside the draw callback: the window closes at the end of the frame.
+    /// Safe to call from inside the draw callback, or from <see cref="CloseRequested"/> itself:
+    /// the window closes at the end of the frame, and a close is never vetoed.
     /// </summary>
-    public void Close() => _window.Close();
+    public void Close()
+    {
+        _close.Approve();
+        _window.Close();
+    }
 
     /// <summary>
     /// Releases all resources used by the GuiWindow.

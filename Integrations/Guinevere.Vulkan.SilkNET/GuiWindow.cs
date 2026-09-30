@@ -25,6 +25,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
     IKeyboard _keyboard = null!;
     Action _draw = null!;
     bool _isInitialized;
+    readonly WindowCloseGate _close = new();
     Vector2 _mousePosition;
     Vector2 _prevMousePosition;
     Vector2 _mouseDelta;
@@ -99,14 +100,23 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
     /// <inheritdoc />
     public Vector2 FramebufferSize => new(_window.FramebufferSize.X, _window.FramebufferSize.Y);
 
-    /// <summary>Requests that the native window close.</summary>
-    public void Close() => _window.Close();
-
     /// <summary>
-    /// Asked when the user closes the window, such as with its close button. Returning false keeps the window open, so
-    /// an application can first ask about unsaved work and close later with <see cref="Close"/>.
+    /// Ends the run loop, so <see cref="RunGui"/> returns and the caller can shut down in order.
+    /// Safe to call from inside the draw callback, or from <see cref="CloseRequested"/> itself:
+    /// the window closes at the end of the frame, and a close is never vetoed.
     /// </summary>
-    public Func<bool>? CloseRequested { get; set; }
+    public void Close()
+    {
+        _close.Approve();
+        _window.Close();
+    }
+
+    /// <inheritdoc />
+    public Func<bool>? CloseRequested
+    {
+        get => _close.CloseRequested;
+        set => _close.CloseRequested = value;
+    }
 
     /// <summary>
     /// Gets a string resource from the assembly's embedded resources.
@@ -240,7 +250,7 @@ public unsafe class GuiWindow : IInputHandler, IWindowHandler, IDisplayCapabilit
     /// </summary>
     void OnClosing()
     {
-        if (CloseRequested?.Invoke() == false)
+        if (!_close.MayClose())
         {
             _window.IsClosing = false;
             return;

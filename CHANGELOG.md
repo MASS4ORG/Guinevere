@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Fixed: Closing a window from a `CloseRequested` handler no longer wipes its own approval and freezes the host; `Close()` is reentrancy-safe, and OpenGL SilkNET, OpenTK and Raylib hosts gained `CloseRequested`.
+
 ## v[5.3.0][] 2026-09-29
 
 - Fixed: A drag source declared with an `object` payload carries it under its own type, so typed `DropTarget<T>` accept it. Tree rows could previously only be dropped on `DropTarget<object>`.

@@ -1,8 +1,3 @@
-using Nuke.Common;
-using Nuke.Common.IO;
-using Nuke.Common.Tools.DotNet;
-using Serilog;
-
 namespace Build;
 
 /// <summary>
@@ -16,6 +11,7 @@ partial class Build
 
     [Parameter("publish-directory (default: ./publish/{runtimeIdentifier})")]
     public readonly AbsolutePath PublishDirectory;
+
     private AbsolutePath PublishDir => PublishDirectory ?? RootDirectory / "publish" / RuntimeIdentifier;
 
     [Parameter("publish-self-contained (default: true)")]
@@ -50,7 +46,8 @@ partial class Build
 
             if (PublishSingleFile)
             {
-                Log.Warning("PublishSingleFile is only supported for executable applications, skipping for library project");
+                Log.Warning(
+                    "PublishSingleFile is only supported for executable applications, skipping for library project");
             }
 
             if (PublishTrimmed)
@@ -69,7 +66,8 @@ partial class Build
     /// <summary>
     /// Publishes the core Guinevere library for distribution
     /// </summary>
-    private Target PublishLibrary => td => td
+    [PublicAPI]
+    Target PublishLibrary => td => td
         .After(Compile)
         .Executes(() =>
         {
@@ -91,6 +89,7 @@ partial class Build
     /// <summary>
     /// Publishes all integration libraries for distribution
     /// </summary>
+    [PublicAPI]
     private Target PublishIntegrations => td => td
         .After(Compile)
         .Executes(() =>

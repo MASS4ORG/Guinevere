@@ -1,14 +1,10 @@
-using System;
-using Nuke.Common;
-using Nuke.Common.Tools.Git;
-using Serilog;
-
 namespace Build;
 
 /// <summary>Creates the changelog and version commit for a release.</summary>
 partial class Build
 {
-    public Target CreateReleaseCommit => td => td
+    [PublicAPI]
+    Target CreateReleaseCommit => td => td
         .DependsOn(CheckNewCommits, UpdateProjectVersions, UpdateChangelog)
         .OnlyWhenStatic(() => HasNewCommits)
         .Requires(() => !string.IsNullOrWhiteSpace(GitHubToken))

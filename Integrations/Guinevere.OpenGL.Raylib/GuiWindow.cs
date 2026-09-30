@@ -22,6 +22,8 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
     readonly Font _fontText;
     readonly Font _fontIcon;
     readonly Font _fontWidgetIcon;
+    readonly WindowCloseGate _close = new();
+    bool _closeSeen;
 
     /// <summary>
     /// Initializes a new instance of the GuiWindow class with the specified parameters.
@@ -63,6 +65,20 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
     /// <inheritdoc />
     public Vector2 FramebufferSize => LogicalSize * ScaleFactor;
 
+    /// <inheritdoc />
+    public Func<bool>? CloseRequested
+    {
+        get => _close.CloseRequested;
+        set => _close.CloseRequested = value;
+    }
+
+    /// <summary>
+    /// Ends the run loop, so <see cref="RunGui"/> returns and the caller can shut down in order.
+    /// Safe to call from inside the draw callback, or from <see cref="CloseRequested"/> itself:
+    /// the loop stops at the end of the frame, and a close is never vetoed.
+    /// </summary>
+    public void Close() => _close.Approve();
+
     /// <summary>
     /// Gets a string resource from the assembly's embedded resources.
     /// </summary>
@@ -94,45 +110,68 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
     /// <param name="draw">The callback method that defines the GUI layout and rendering.</param>
     public void RunGui(Action draw)
     {
-        while (!Raylib.WindowShouldClose())
+        while (!_close.Approved)
         {
-            if (_width != Raylib.GetScreenWidth() || _height != Raylib.GetScreenHeight())
-            {
-                _width = Raylib.GetScreenWidth();
-                _height = Raylib.GetScreenHeight();
-                _canvasRenderer.Resize(_width, _height);
-            }
+            ObserveCloseRequest();
+            if (_close.Approved) break;
 
-            _gui.Time.Update(Raylib.GetFrameTime());
-
-            // Update mouse position tracking
-            _prevMousePosition = _currentMousePosition;
-            _currentMousePosition = Raylib.GetMousePosition();
-
-            // Handle text input
-            var keyPressed = Raylib.GetCharPressed();
-            while (keyPressed > 0)
-            {
-                _typedCharacters.Append((char)keyPressed);
-                keyPressed = Raylib.GetCharPressed();
-            }
-
-            _canvasRenderer.Render(canvas =>
-            {
-                _gui.SetStage(Pass.Pass1Build);
-                _gui.BeginFrame(canvas);
-                draw();
-
-                // Process the whole layout after the build pass
-                _gui.CalculateLayout();
-
-                _gui.SetStage(Pass.Pass2Render);
-                draw();
-                _gui.Render();
-
-                _gui.EndFrame();
-            });
+            RenderFrame(draw);
         }
+    }
+
+    /// <summary>
+    /// Raylib reports a close as a flag it never clears, so the window manager's request is consumed once here: a veto
+    /// leaves the flag ignored and the loop running until <see cref="Close"/> ends it. A handler is free to answer by
+    /// closing, which the latch records before this returns, so the veto cannot outlive the exit it just granted.
+    /// </summary>
+    void ObserveCloseRequest()
+    {
+        if (_closeSeen || !Raylib.WindowShouldClose()) return;
+
+        _closeSeen = true;
+        if (_close.MayClose()) _close.Approve();
+    }
+
+    /// <summary>Advances the window by one frame.</summary>
+    /// <param name="draw">The callback method that defines the GUI layout and rendering.</param>
+    void RenderFrame(Action draw)
+    {
+        if (_width != Raylib.GetScreenWidth() || _height != Raylib.GetScreenHeight())
+        {
+            _width = Raylib.GetScreenWidth();
+            _height = Raylib.GetScreenHeight();
+            _canvasRenderer.Resize(_width, _height);
+        }
+
+        _gui.Time.Update(Raylib.GetFrameTime());
+
+        // Update mouse position tracking
+        _prevMousePosition = _currentMousePosition;
+        _currentMousePosition = Raylib.GetMousePosition();
+
+        // Handle text input
+        var keyPressed = Raylib.GetCharPressed();
+        while (keyPressed > 0)
+        {
+            _typedCharacters.Append((char)keyPressed);
+            keyPressed = Raylib.GetCharPressed();
+        }
+
+        _canvasRenderer.Render(canvas =>
+        {
+            _gui.SetStage(Pass.Pass1Build);
+            _gui.BeginFrame(canvas);
+            draw();
+
+            // Process the whole layout after the build pass
+            _gui.CalculateLayout();
+
+            _gui.SetStage(Pass.Pass2Render);
+            draw();
+            _gui.Render();
+
+            _gui.EndFrame();
+        });
     }
 
     /// <summary>

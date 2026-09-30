@@ -1,12 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Nuke.Common;
-using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
-using Nuke.Common.Tools.DotNet;
-using Serilog;
-
 namespace Build;
 
 /// <summary>
@@ -125,6 +116,7 @@ partial class Build
     /// <summary>
     /// Cleans example build outputs
     /// </summary>
+    [PublicAPI]
     private Target CleanExamples => td => td
         .Executes(() =>
         {
@@ -141,6 +133,7 @@ partial class Build
     /// <summary>
     /// Creates a README file for the examples package
     /// </summary>
+    [PublicAPI]
     private Target CreateExamplesReadme => td => td
         .Before(PackageExamples)
         .Executes(() =>
@@ -206,7 +199,7 @@ MIT License - see the project repository for full license details.
     }
 
     /// <summary>
-    /// Gets a description for a example project based on its name
+    /// Gets a description for an example project based on its name
     /// </summary>
     private static string GetExampleDescription(string projectName) =>
         projectName switch

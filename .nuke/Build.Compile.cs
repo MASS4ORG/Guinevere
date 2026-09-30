@@ -1,12 +1,3 @@
-using System;
-using System.Linq;
-using Nuke.Common;
-using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
-using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Utilities.Collections;
-using Serilog;
-
 namespace Build;
 
 /// <summary>

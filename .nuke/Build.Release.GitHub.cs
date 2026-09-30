@@ -1,18 +1,3 @@
-using System;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Nuke.Common;
-using Nuke.Common.IO;
-using Nuke.Common.Tools.Git;
-
-using Serilog;
-
 namespace Build;
 
 /// <summary>
@@ -38,7 +23,8 @@ partial class Build
     /// <summary>
     /// Creates a GitHub release with all assets following SumTree pattern
     /// </summary>
-    public Target GitHubCreateRelease => td => td
+    [PublicAPI]
+    Target GitHubCreateRelease => td => td
         .DependsOn(GitHubCreateTag, ExtractChangelogUnreleased)
         .OnlyWhenStatic(() => HasNewCommits)
         .Requires(() => GitHubToken)
@@ -55,15 +41,13 @@ partial class Build
                     {
                         tag_name = TagName,
                         name = release,
-                        body = body,
+                        body,
                         draft = false,
                         prerelease = IsPreRelease()
                     }).ConfigureAwait(false);
 
                 _ = response.EnsureSuccessStatusCode();
-                Log.Information(
-                    "Release {release} created with the description '{message}'",
-                    release, body);
+                Log.Information("Release {Release} created with the description '{Message}'", release, body);
             }
             catch (HttpRequestException ex)
             {
@@ -76,7 +60,8 @@ partial class Build
     /// <summary>
     /// Creates a tag in the GitHub repository following SumTree pattern
     /// </summary>
-    public Target GitHubCreateTag => td => td
+    [PublicAPI]
+    Target GitHubCreateTag => td => td
         .DependsOn(CheckNewCommits, CreateReleaseCommit)
         .OnlyWhenStatic(() => HasNewCommits)
         .Requires(() => GitHubToken)
@@ -96,9 +81,7 @@ partial class Build
                     }).ConfigureAwait(false);
 
                 _ = response.EnsureSuccessStatusCode();
-                Log.Information(
-                    "Tag {tag} created with the message '{message}'",
-                    TagName, message);
+                Log.Information("Tag {Tag} created with the message '{Message}'", TagName, message);
             }
             catch (HttpRequestException ex)
             {
@@ -111,7 +94,8 @@ partial class Build
     /// <summary>
     /// Creates a GitHub release using the GitHub API
     /// </summary>
-    private async Task<long?> CreateGitHubReleaseAsync(string tagName, string name, string body)
+    [PublicAPI]
+    async Task<long?> CreateGitHubReleaseAsync(string tagName, string name, string body)
     {
         using var client = new HttpClient();
         client.DefaultRequestHeaders.Add("Authorization", $"token {GitHubToken}");
@@ -121,8 +105,8 @@ partial class Build
         {
             tag_name = tagName,
             target_commitish = "main",
-            name = name,
-            body = body,
+            name,
+            body,
             draft = false,
             prerelease = IsPreRelease()
         };
@@ -163,6 +147,7 @@ partial class Build
     /// <summary>
     /// Uploads NuGet packages as release assets
     /// </summary>
+    [PublicAPI]
     private async Task UploadNuGetPackagesAsync(long releaseId)
     {
         var packages = PackagesDirectory.GlobFiles("*.nupkg").ToList();
@@ -178,7 +163,8 @@ partial class Build
     /// <summary>
     /// Uploads example packages as release assets
     /// </summary>
-    private async Task UploadExamplePackagesAsync(long releaseId)
+    [PublicAPI]
+    async Task UploadExamplePackagesAsync(long releaseId)
     {
         var examplePackages = ExamplesOutput.GlobFiles("*.zip").ToList();
 
@@ -207,7 +193,8 @@ partial class Build
 
         try
         {
-            var uploadUrl = $"https://uploads.github.com/repos/{GitHubRepository}/releases/{releaseId}/assets?name={fileName}";
+            var uploadUrl =
+                $"https://uploads.github.com/repos/{GitHubRepository}/releases/{releaseId}/assets?name={fileName}";
             var response = await client.PostAsync(uploadUrl, content);
 
             if (response.IsSuccessStatusCode)
@@ -230,7 +217,8 @@ partial class Build
     /// <summary>
     /// Extracts the section for a specific version from the changelog
     /// </summary>
-    private static string ExtractVersionSection(string changelogContent, string version)
+    [PublicAPI]
+    static string ExtractVersionSection(string changelogContent, string version)
     {
         var lines = changelogContent.Split('\n');
         var startIndex = -1;
@@ -296,7 +284,7 @@ partial class Build
     private string GitHubApiUrl(string url)
     {
         var apiUrl = $"{GitHubApiBaseUrl}/{url}";
-        Log.Information("GitHub API call: {url}", apiUrl);
+        Log.Information("GitHub API call: {Url}", apiUrl);
         return apiUrl;
     }
 }

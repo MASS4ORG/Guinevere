@@ -1,10 +1,3 @@
-using System;
-using Nuke.Common;
-using Nuke.Common.IO;
-using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.ReportGenerator;
-using Serilog;
-
 namespace Build;
 
 /// <summary>

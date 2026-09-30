@@ -1,7 +1,4 @@
-using Nuke.Common;
-using Nuke.Common.CI;
-using Nuke.Common.CI.GitHubActions;
-using Serilog;
+
 
 namespace Build;
 
@@ -31,6 +28,7 @@ internal sealed partial class Build : NukeBuild
     /// <summary>
     /// Complete CI pipeline: Clean, Restore, Compile, and Test
     /// </summary>
+    [PublicAPI]
     private Target Ci => td => td
         .DependsOn(Clean, Restore, Compile, Test)
         .Executes(() => Log.Information("CI pipeline completed successfully"));
@@ -38,6 +36,7 @@ internal sealed partial class Build : NukeBuild
     /// <summary>
     /// Complete release pipeline: Build, Test, Package, and Publish
     /// </summary>
+    [PublicAPI]
     private Target Release => td => td
         .DependsOn(
         // CI,
@@ -49,6 +48,7 @@ internal sealed partial class Build : NukeBuild
     /// <summary>
     /// Build all deliverables without publishing
     /// </summary>
+    [PublicAPI]
     private Target BuildAll => td => td
         .DependsOn(Compile, BuildExamples, PackNuGet, PackageExamples)
         .Executes(() => Log.Information("All deliverables built successfully"));

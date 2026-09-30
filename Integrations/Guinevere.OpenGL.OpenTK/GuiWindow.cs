@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
@@ -24,6 +25,7 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
     readonly Font _fontIcon;
     readonly Font _fontWidgetIcon;
     readonly StringBuilder _typedCharacters = new();
+    readonly WindowCloseGate _close = new();
 
     /// <summary>
     /// Initializes a new instance of the GuiWindow class with the specified parameters.
@@ -63,6 +65,33 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
     Vector2 IDisplayCapability.LogicalSize => new(Size.X, Size.Y);
 
     Vector2 IDisplayCapability.FramebufferSize => new(base.FramebufferSize.X, base.FramebufferSize.Y);
+
+    /// <inheritdoc />
+    public Func<bool>? CloseRequested
+    {
+        get => _close.CloseRequested;
+        set => _close.CloseRequested = value;
+    }
+
+    /// <summary>
+    /// Ends the run loop, so <see cref="RunGui"/> returns and the caller can shut down in order.
+    /// Safe to call from inside the draw callback, or from <see cref="CloseRequested"/> itself:
+    /// the window closes at the end of the frame, and a close is never vetoed.
+    /// </summary>
+    public override void Close()
+    {
+        _close.Approve();
+        base.Close();
+    }
+
+    /// <inheritdoc />
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        if (_close.MayClose()) return;
+
+        e.Cancel = true;
+    }
 
     /// <summary>
     /// Handles window resize events by updating internal dimensions and resizing the canvas renderer.
