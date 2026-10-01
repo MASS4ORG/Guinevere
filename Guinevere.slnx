@@ -44,4 +44,5 @@
   <Project Path="Guinevere.Scripting/Guinevere.Scripting.csproj" />
   <Project Path="Guinevere.Tests/Guinevere.Tests.csproj" />
   <Project Path="Guinevere/Guinevere.csproj" />
+  <Project Path="MASS4.Attributes/MASS4.Attributes.csproj" />
 </Solution>
