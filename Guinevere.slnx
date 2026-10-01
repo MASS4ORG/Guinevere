@@ -41,8 +41,8 @@
     <Build Solution="*|Any CPU" Project="false" />
   </Project>
   <Project Path="Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
-  <Project Path="Guinevere.Forms/Guinevere.Forms.csproj" />
-  <Project Path="Guinevere.Forms.Excalibur/Guinevere.Forms.Excalibur.csproj" />
+  <Project Path="MASS4.Autoformers/MASS4.Autoformers.csproj" />
+  <Project Path="MASS4.Autoformers.Excalibur/MASS4.Autoformers.Excalibur.csproj" />
   <Project Path="Guinevere.Scripting/Guinevere.Scripting.csproj" />
   <Project Path="Guinevere.Tests/Guinevere.Tests.csproj" />
   <Project Path="Guinevere/Guinevere.csproj" />
