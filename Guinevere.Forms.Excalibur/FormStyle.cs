@@ -8,6 +8,12 @@ public readonly struct FormLabelWidth : IStyleToken<float> { public static float
 /// <summary>Left indent of a nested object's members under its heading.</summary>
 public readonly struct FormIndent : IStyleToken<float> { public static float Default => 12f; }
 
+/// <summary>Inner padding of a nested object's compartment.</summary>
+public readonly struct FormCompartmentPadding : IStyleToken<float> { public static float Default => 4f; }
+
+/// <summary>How many compartments enclose the current node; set by the renderer, read to alternate fills.</summary>
+readonly struct FormNestingDepth : IStyleToken<int> { public static int Default => 0; }
+
 /// <summary>Glyph of an expanded collection or nested-object heading.</summary>
 public readonly struct FormCaretOpen : IStyleToken<string> { public static string Default => WidgetIcons.ChevronDown; }
 
@@ -35,4 +41,8 @@ readonly struct FormStyle(Gui gui)
     public Color Accent => Get<ControlAccent, Color>();
     public Color Divider => Get<ControlDivider, Color>();
     public Color Negative => Get<ControlNegative, Color>();
+    public Color Background => Get<ControlBaseBackground, Color>();
+    public float CornerRadius => Get<ControlCornerRadius, float>();
+    public float CompartmentPadding => Get<FormCompartmentPadding, float>();
+    public int Depth => Get<FormNestingDepth, int>();
 }

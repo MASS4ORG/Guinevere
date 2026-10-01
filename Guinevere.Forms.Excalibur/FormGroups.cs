@@ -39,29 +39,56 @@ static class FormGroups
     }
 
     /// <summary>
-    /// A nested object as a foldable group of its own members. Its form inherits the field's options, so null
-    /// rules, failure reporting and read-only state carry through; a struct is written back to its owner after
-    /// each edit, since the form edits a boxed copy.
+    /// A nested object as a compartment: a bordered panel holding a fold heading and, when open, the object's own
+    /// members indented below it. Panels alternate their fill with nesting depth so boxes inside boxes stay
+    /// distinct. The form inherits the field's options, so null rules, failure reporting and read-only state carry
+    /// through; a struct is written back to its owner after each edit, since the form edits a boxed copy.
     /// </summary>
     internal static void DrawNested(Gui gui, FormField field, object target, string id, FormRenderContext context)
     {
-        var isOpen = Heading(gui, FormRenderer.Summary(field, target), id, context.Collapsed,
-            context.Modified(field), actions: null);
-        if (!isOpen) return;
+        // Read from the parent: the box keeps its scope across both passes, so depth read inside would grow.
+        var style = new FormStyle(gui);
+        var depth = style.Depth;
+        var padding = style.CompartmentPadding;
 
-        Action<object> notify = target.GetType().IsValueType ? boxed => field.SetValue(boxed) : _ => field.Touch();
-        var options = field.Options with
+        using (gui.Node(-1, -1, $"{id}/box").ExpandWidth().Direction(Axis.Vertical).Gap(2f)
+                   .Padding(padding, padding, padding, padding).Enter())
         {
-            ReadOnly = field.Options.ReadOnly || field.IsReadOnly,
-            MutationNotifier = notify,
-        };
-        var fields = FormBuilder.Build(target, options).Sections.SelectMany(section => section.BodyFields).ToList();
+            DrawCompartment(gui, style, depth);
+            var isOpen = Heading(gui, FormRenderer.Summary(field, target), id, context.Collapsed,
+                context.Modified(field), actions: null);
+            if (!isOpen) return;
 
-        using (gui.Node(-1, -1, $"{id}/body").ExpandWidth().Direction(Axis.Vertical)
-                   .Margin(new FormStyle(gui).Indent, 0f, 0f, 0f).Enter())
-            for (var i = 0; i < fields.Count; i++)
-                gui.FormField(fields[i], $"{id}/f{i}", context);
+            var fields = FormBuilder.Build(target, NestedOptions(field, target)).Sections
+                .SelectMany(section => section.BodyFields).ToList();
+
+            using (gui.Node(-1, -1, $"{id}/body").ExpandWidth().Direction(Axis.Vertical)
+                       .Margin(style.Indent, 0f, 0f, 0f).Enter())
+            {
+                gui.CurrentNodeScope.Set(ControlStyles.Value<FormNestingDepth, int>(depth + 1));
+                for (var i = 0; i < fields.Count; i++)
+                    gui.FormField(fields[i], $"{id}/f{i}", context);
+            }
+        }
     }
+
+    /// <summary>The panel behind a compartment, slightly toward the text color, alternating with depth.</summary>
+    internal static Color CompartmentFill(Color background, Color ink, int depth) =>
+        GUIColorDrawer.Blend(background, ink, depth % 2 == 0 ? 0.04f : 0.08f);
+
+    static void DrawCompartment(Gui gui, FormStyle style, int depth)
+    {
+        if (gui.Pass != Pass.Pass2Render) return;
+
+        gui.DrawBackgroundRect(CompartmentFill(style.Background, style.Ink, depth), style.CornerRadius);
+        gui.DrawRectBorder(gui.CurrentNode.Rect, style.Divider, 1, style.CornerRadius);
+    }
+
+    static FormOptions NestedOptions(FormField field, object target) => field.Options with
+    {
+        ReadOnly = field.Options.ReadOnly || field.IsReadOnly,
+        MutationNotifier = target.GetType().IsValueType ? boxed => field.SetValue(boxed) : _ => field.Touch(),
+    };
 
     /// <summary>A clickable fold heading: arrow and title in the label column, optional actions beside it.</summary>
     /// <returns>Whether the group is open.</returns>
