@@ -51,6 +51,17 @@ public class FormFieldTests
     }
 
     [Fact]
+    public void ReadonlyFieldIsReadOnly()
+    {
+        var target = new Model();
+        var field = Field(target, nameof(Model.Frozen));
+
+        Assert.True(field.IsReadOnly);
+        Assert.False(field.SetValue(9));
+        Assert.Equal(1, target.Frozen);
+    }
+
+    [Fact]
     public void ReadOnlyFormMakesEveryFieldReadOnly()
     {
         var target = new Model();
@@ -288,6 +299,7 @@ public class FormFieldTests
         public int? Optional { get; set; } = 3;
         [ReadOnly] public int Locked { get; set; } = 1;
         public int Computed => 2;
+        [ShowInEditor] public readonly int Frozen = 1;
         [Range(0, 10), Tooltip("Loudness")] public float Volume { get; set; }
         [ShowInEditor, InspectorOrder(3), Expand, ReadOnly, NumericUpDown] public int Grouped = 0;
         public bool Broken;

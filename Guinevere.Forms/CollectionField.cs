@@ -88,13 +88,8 @@ public sealed class CollectionField
             return [.. keys.Select(key => new FormField(
                 key?.ToString() ?? "null", ElementType, source.Target,
                 () => map.Contains(key!) ? map[key!] : null,
-                value =>
-                {
-                    map[key!] = value;
-                    source.Touch();
-                    return true;
-                },
-                _ => source.Touch(), IsReadOnly))];
+                value => Mutate($"{source.Name}[{key}]", () => map[key!] = value),
+                _ => source.Touch(), IsReadOnly) { Options = source.Options })];
         }
 
         if (list is not { } entries) return [];
@@ -102,16 +97,10 @@ public sealed class CollectionField
         return [.. Enumerable.Range(0, entries.Count).Select(index => new FormField(
             $"[{index}]", ElementType, source.Target,
             () => index < entries.Count ? entries[index] : null,
-            value =>
-            {
-                if (index >= entries.Count) return false;
-
-                entries[index] = value;
-                source.Touch();
-                return true;
-            },
+            value => index < entries.Count && Mutate($"{source.Name}[{index}]", () => entries[index] = value),
             _ => source.Touch(), IsReadOnly)
         {
+            Options = source.Options,
             CollectionMember = source.Name,
             CollectionIndex = index,
         })];
@@ -123,19 +112,9 @@ public sealed class CollectionField
     {
         if (!CanResize) return false;
 
-        if (dictionary is { } map)
-        {
-            if (InventKey() is not { } key) return false;
+        if (dictionary is not { } map) return Mutate(source.Name, () => list!.Add(Default(ElementType)));
 
-            map[key] = Default(ElementType);
-        }
-        else
-        {
-            list!.Add(Default(ElementType));
-        }
-
-        source.Touch();
-        return true;
+        return InventKey() is { } key && Mutate(source.Name, () => map[key] = Default(ElementType));
     }
 
     /// <summary>Removes the entry at <paramref name="index"/> in enumeration order.</summary>
@@ -145,8 +124,30 @@ public sealed class CollectionField
     {
         if (!CanResize || index < 0 || index >= Count) return false;
 
-        if (dictionary is { } map) map.Remove(Keys()[index]!);
-        else list!.RemoveAt(index);
+        if (dictionary is not { } map) return Mutate($"{source.Name}[{index}]", () => list!.RemoveAt(index));
+
+        var key = Keys()[index]!;
+        return Mutate($"{source.Name}[{key}]", () => map.Remove(key));
+    }
+
+    /// <summary>
+    /// Applies a change to the collection and notifies the owner. A throwing change — a value of the wrong type,
+    /// a collection that refuses it — is reported as a write failure rather than escaping into the GUI frame.
+    /// </summary>
+    /// <param name="member">The collection member and entry, for the failure report.</param>
+    /// <param name="change">The mutation.</param>
+    /// <returns>True when the change was applied.</returns>
+    bool Mutate(string member, Action change)
+    {
+        try
+        {
+            change();
+        }
+        catch (Exception ex)
+        {
+            source.Options.Report(FormFailureKind.Write, source.Target, member, ex);
+            return false;
+        }
 
         source.Touch();
         return true;

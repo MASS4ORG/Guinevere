@@ -23,7 +23,7 @@ public sealed class InspectorMemberMetadata
         Validation = Select(attribute => attribute is ReadOnlyAttribute or RangeAttribute);
         RenderingHints = Select(attribute => attribute is NumericUpDownAttribute or TooltipAttribute);
         Priority = GetAttribute<InspectorOrderAttribute>()?.Priority ?? 0;
-        IsReadOnly = GetAttribute<ReadOnlyAttribute>() is not null || member is PropertyInfo { CanWrite: false };
+        IsReadOnly = GetAttribute<ReadOnlyAttribute>() is not null || !IsAssignable(member);
         IsVisible = IsShown(member);
     }
 
@@ -72,10 +72,14 @@ public sealed class InspectorMemberMetadata
     IReadOnlyList<Attribute> Select(Func<Attribute, bool> predicate) =>
         Array.AsReadOnly([.. attributes.Where(predicate)]);
 
-    /// <summary><c>[ShowInEditor]</c> always shows; otherwise public read-write members show unless hidden.</summary>
+    /// <summary>
+    /// Constants never show; <c>[ShowInEditor]</c> otherwise always does, and members shown by default do
+    /// unless hidden.
+    /// </summary>
     bool IsShown(MemberInfo member) =>
-        (IsPublicReadWrite(member) && GetAttribute<HideInEditorAttribute>() is null)
-        || GetAttribute<ShowInEditorAttribute>() is not null;
+        member is not FieldInfo { IsLiteral: true }
+        && ((IsShownByDefault(member) && GetAttribute<HideInEditorAttribute>() is null)
+            || GetAttribute<ShowInEditorAttribute>() is not null);
 
     static Type ValueTypeOf(MemberInfo member) => member switch
     {
@@ -84,12 +88,22 @@ public sealed class InspectorMemberMetadata
         _ => throw new ArgumentException("Expected a field or property", nameof(member))
     };
 
-    /// <summary>A public field, or a property with a public getter and any setter: visible unless hidden.</summary>
-    static bool IsPublicReadWrite(MemberInfo member) => member switch
+    /// <summary>
+    /// A public field, read-only ones included since reading a field is cheap, or a property with a public
+    /// getter and any setter. A get-only property is computed, so it is shown only on request.
+    /// </summary>
+    static bool IsShownByDefault(MemberInfo member) => member switch
     {
-        PropertyInfo property => (property.GetMethod?.IsPublic ?? false)
-                                 && property is { CanRead: true, CanWrite: true },
+        PropertyInfo property => (property.GetMethod?.IsPublic ?? false) && property is { CanRead: true, CanWrite: true },
         FieldInfo field => field.IsPublic,
+        _ => false
+    };
+
+    /// <summary>Whether the language lets the member be assigned after construction.</summary>
+    static bool IsAssignable(MemberInfo member) => member switch
+    {
+        PropertyInfo property => property.CanWrite,
+        FieldInfo field => !field.IsInitOnly && !field.IsLiteral,
         _ => false
     };
 

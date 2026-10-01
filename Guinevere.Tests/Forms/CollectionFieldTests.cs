@@ -245,6 +245,84 @@ public class CollectionFieldTests
         Assert.IsType<object>(collection.Entries()[1].GetValue());
     }
 
+    [Fact]
+    public void MistypedListEntryWriteIsReportedNotThrown()
+    {
+        var target = new Model();
+        var (options, failures, notified) = Reporting();
+
+        Assert.False(Collection(target, nameof(Model.List), options).Entries()[1].SetValue("text"));
+
+        var failure = Assert.Single(failures);
+        Assert.Equal(FormFailureKind.Write, failure.Kind);
+        Assert.Same(target, failure.Target);
+        Assert.Equal("List[1]", failure.Member);
+        Assert.IsType<ArgumentException>(failure.Exception);
+        Assert.Empty(notified);
+        Assert.Equal([1, 2, 3], target.List);
+    }
+
+    [Fact]
+    public void MistypedDictionaryEntryWriteIsReportedNotThrown()
+    {
+        var target = new Model();
+        var (options, failures, notified) = Reporting();
+
+        Assert.False(Collection(target, nameof(Model.ByName), options).Entries()[0].SetValue("text"));
+
+        Assert.Equal("ByName[a]", Assert.Single(failures).Member);
+        Assert.Empty(notified);
+        Assert.Equal(1, target.ByName["a"]);
+    }
+
+    [Fact]
+    public void ThrowingDefaultOnAddIsReportedNotThrown()
+    {
+        var target = new Model();
+        var (options, failures, notified) = Reporting();
+
+        Assert.False(Collection(target, nameof(Model.Unbuildable), options).Add());
+
+        var failure = Assert.Single(failures);
+        Assert.Equal(nameof(Model.Unbuildable), failure.Member);
+        Assert.IsType<InvalidOperationException>(failure.Exception);
+        Assert.Empty(notified);
+        Assert.Empty(target.Unbuildable);
+    }
+
+    [Fact]
+    public void RefusedRemoveIsReportedNotThrown()
+    {
+        var target = new Model();
+        var (options, failures, notified) = Reporting();
+
+        Assert.False(Collection(target, nameof(Model.Guarded), options).RemoveAt(0));
+
+        Assert.Equal("Guarded[0]", Assert.Single(failures).Member);
+        Assert.Empty(notified);
+        Assert.Single(target.Guarded);
+    }
+
+    [Fact]
+    public void NestedCollectionsInheritTheReporter()
+    {
+        var target = new Model();
+        var (options, failures, _) = Reporting();
+        var outer = Collection(target, nameof(Model.Nested), options);
+
+        var inner = CollectionField.TryCreate(outer.Entries()[0])!;
+
+        Assert.False(inner.Entries()[0].SetValue("text"));
+        Assert.Equal("[0][0]", Assert.Single(failures).Member);
+    }
+
+    static (FormOptions Options, List<FormFailure> Failures, List<object> Notified) Reporting()
+    {
+        var failures = new List<FormFailure>();
+        var notified = new List<object>();
+        return (new FormOptions { FailureReporter = failures.Add, MutationNotifier = notified.Add }, failures, notified);
+    }
+
     static FormField Field(Model target, string name, FormOptions? options = null) =>
         FormField.ForMember(typeof(Model).GetField(name)!, target, options);
 
@@ -254,6 +332,16 @@ public class CollectionFieldTests
     abstract class Base;
 
     sealed class Item;
+
+    sealed class Unbuildable
+    {
+        public Unbuildable() => throw new InvalidOperationException();
+    }
+
+    sealed class GuardedList : Collection<int>
+    {
+        protected override void RemoveItem(int index) => throw new InvalidOperationException();
+    }
 
     sealed class Model
     {
@@ -271,5 +359,8 @@ public class CollectionFieldTests
         public string Text = "abc";
         public int Number = 1;
         public List<int>? Missing = null;
+        public List<Unbuildable> Unbuildable = [];
+        public GuardedList Guarded = [1];
+        public List<List<int>> Nested = [[1]];
     }
 }

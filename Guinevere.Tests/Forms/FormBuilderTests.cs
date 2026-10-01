@@ -52,6 +52,27 @@ public class FormBuilderTests
     }
 
     [Fact]
+    public void PublicReadonlyFieldsAreVisibleAndReadOnly()
+    {
+        var names = Names(typeof(Visibility));
+        var frozen = typeof(Visibility).GetField(nameof(Visibility.Frozen))!;
+
+        Assert.Contains(nameof(Visibility.Frozen), names);
+        Assert.True(InspectorMemberMetadata.For(frozen).IsReadOnly);
+        Assert.DoesNotContain(nameof(Visibility.HiddenFrozen), names);
+        Assert.DoesNotContain("privateFrozen", names);
+    }
+
+    [Fact]
+    public void ConstantsAreNeverVisible()
+    {
+        var constant = typeof(Visibility).GetField(nameof(Visibility.Constant))!;
+
+        Assert.False(InspectorMemberMetadata.For(constant).IsVisible);
+        Assert.True(InspectorMemberMetadata.For(constant).IsReadOnly);
+    }
+
+    [Fact]
     public void IndexersAndMethodsAreNeverMembers()
     {
         var names = Names(typeof(Visibility));
@@ -251,13 +272,17 @@ public class FormBuilderTests
         [Injected] public int Injected { get; set; }
         [ShowInEditor, HideInEditor] public int Both { get; set; }
         public int GetOnly => 1;
+        public readonly int Frozen = 1;
+        [HideInEditor] public readonly int HiddenFrozen = 1;
+        readonly int privateFrozen = 1;
+        [ShowInEditor] public const int Constant = 1;
         [ShowInEditor] int secret;
         int privateField = 0;
         [ShowInEditor] int SecretProperty { get; set; }
 
         public int this[int index] => index;
 
-        public void Method() => secret = privateField + SecretProperty;
+        public void Method() => secret = privateField + SecretProperty + privateFrozen;
     }
 
     sealed class Ordered

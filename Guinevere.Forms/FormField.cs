@@ -16,6 +16,7 @@ public sealed class FormField
     FormField(InspectorMemberMetadata metadata, object target, FormOptions options)
     {
         this.metadata = metadata;
+        Options = options;
         mutationNotifier = options.MutationNotifier;
         forcedReadOnly = options.ReadOnly;
 
@@ -66,6 +67,9 @@ public sealed class FormField
 
     /// <summary>For a list element, its index in <see cref="CollectionMember"/>; otherwise -1.</summary>
     public int CollectionIndex { get; init; } = -1;
+
+    /// <summary>The policy this field was built under; entries of a collection inherit their owner's.</summary>
+    public FormOptions Options { get; internal init; } = FormOptions.Default;
 
     /// <summary>A display label derived from the name.</summary>
     public string Label { get; }
