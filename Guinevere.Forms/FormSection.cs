@@ -12,7 +12,7 @@ public sealed record FormSection(
     bool Removable = false)
 {
     /// <summary>The <c>[Button]</c> methods to draw after the fields, in declaration order.</summary>
-    public IReadOnlyList<InspectorButton> Buttons { get; init; } = [];
+    public IReadOnlyList<Button> Buttons { get; init; } = [];
 
     /// <summary>
     /// The target's own on/off switch, chosen by the consumer, so a shell can draw it as a checkbox in the

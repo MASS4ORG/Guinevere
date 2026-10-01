@@ -5,4 +5,4 @@ namespace MASS4.Attributes;
 /// attribute that always implies hiding (an injected service, say) can derive from it.
 /// </summary>
 [AttributeUsage(AttributeTargets.Enum | AttributeTargets.Field | AttributeTargets.Property)]
-public class HideInEditorAttribute : Attribute;
+public class HideAttribute : Attribute;

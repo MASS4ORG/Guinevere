@@ -15,7 +15,7 @@ public class FormBuilderTests
     }
 
     [Fact]
-    public void HideInEditorHidesPublicMembers()
+    public void HideHidesPublicMembers()
     {
         Assert.DoesNotContain(nameof(Visibility.Hidden), Names(typeof(Visibility)));
     }
@@ -27,7 +27,7 @@ public class FormBuilderTests
     }
 
     [Fact]
-    public void ShowInEditorRevealsPrivateMembers()
+    public void ShowRevealsPrivateMembers()
     {
         var names = Names(typeof(Visibility));
 
@@ -36,7 +36,7 @@ public class FormBuilderTests
     }
 
     [Fact]
-    public void ShowInEditorOverridesHideInEditor()
+    public void ShowOverridesHide()
     {
         Assert.Contains(nameof(Visibility.Both), Names(typeof(Visibility)));
     }
@@ -58,7 +58,7 @@ public class FormBuilderTests
         var frozen = typeof(Visibility).GetField(nameof(Visibility.Frozen))!;
 
         Assert.Contains(nameof(Visibility.Frozen), names);
-        Assert.True(InspectorMemberMetadata.For(frozen).IsReadOnly);
+        Assert.True(MemberMetadata.For(frozen).IsReadOnly);
         Assert.DoesNotContain(nameof(Visibility.HiddenFrozen), names);
         Assert.DoesNotContain("privateFrozen", names);
     }
@@ -68,8 +68,8 @@ public class FormBuilderTests
     {
         var constant = typeof(Visibility).GetField(nameof(Visibility.Constant))!;
 
-        Assert.False(InspectorMemberMetadata.For(constant).IsVisible);
-        Assert.True(InspectorMemberMetadata.For(constant).IsReadOnly);
+        Assert.False(MemberMetadata.For(constant).IsVisible);
+        Assert.True(MemberMetadata.For(constant).IsReadOnly);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class FormBuilderTests
     }
 
     [Fact]
-    public void InspectorOrderSortsMembersAndKeepsDeclarationOrderOnTies()
+    public void SetOrderSortsMembersAndKeepsDeclarationOrderOnTies()
     {
         Assert.Equal(["First", "A", "B", "Last"], Names(typeof(Ordered)));
     }
@@ -137,7 +137,7 @@ public class FormBuilderTests
     }
 
     [Fact]
-    public void BuildTitlesWithInspectorTitle()
+    public void BuildTitlesWithTitle()
     {
         var model = FormBuilder.Build(new Titled());
 
@@ -222,10 +222,10 @@ public class FormBuilderTests
     }
 
     [Fact]
-    public void InspectorButtonHonoursCanInvoke()
+    public void ButtonHonoursCanInvoke()
     {
-        Assert.False(new InspectorButton("B", () => { }, () => false).IsEnabled);
-        Assert.True(new InspectorButton("B", () => { }, () => true).IsEnabled);
+        Assert.False(new Button("B", () => { }, () => false).IsEnabled);
+        Assert.True(new Button("B", () => { }, () => true).IsEnabled);
     }
 
     [Fact]
@@ -262,23 +262,23 @@ public class FormBuilderTests
 
     static List<string> Names(Type type) => [.. FormBuilder.EditableMembers(type).Select(member => member.Name)];
 
-    sealed class InjectedAttribute : HideInEditorAttribute;
+    sealed class InjectedAttribute : HideAttribute;
 
     sealed class Visibility
     {
         public int PublicField = 0;
         public int PublicProperty { get; set; }
-        [HideInEditor] public int Hidden { get; set; }
+        [Hide] public int Hidden { get; set; }
         [Injected] public int Injected { get; set; }
-        [ShowInEditor, HideInEditor] public int Both { get; set; }
+        [Show, Hide] public int Both { get; set; }
         public int GetOnly => 1;
         public readonly int Frozen = 1;
-        [HideInEditor] public readonly int HiddenFrozen = 1;
+        [Hide] public readonly int HiddenFrozen = 1;
         readonly int privateFrozen = 1;
-        [ShowInEditor] public const int Constant = 1;
-        [ShowInEditor] int secret;
+        [Show] public const int Constant = 1;
+        [Show] int secret;
         int privateField = 0;
-        [ShowInEditor] int SecretProperty { get; set; }
+        [Show] int SecretProperty { get; set; }
 
         public int this[int index] => index;
 
@@ -288,22 +288,22 @@ public class FormBuilderTests
     sealed class Ordered
     {
         public int A { get; set; }
-        [InspectorOrder(10)] public int Last { get; set; }
+        [SetOrder(10)] public int Last { get; set; }
         public int B { get; set; }
-        [InspectorOrder(-1)] public int First { get; set; }
+        [SetOrder(-1)] public int First { get; set; }
     }
 
     sealed class Unsupported
     {
         public int Valid { get; set; }
-        [ShowInEditor] public int WriteOnly { set => Valid = value; }
+        [Show] public int WriteOnly { set => Valid = value; }
         public Span<int> Span { get => []; set { } }
     }
 
     class Inherited
     {
-        [Range(2, 3), InspectorOrder(-4)] public virtual int Ordered { get; set; }
-        [HideInEditor] public virtual int Hidden { get; set; }
+        [Range(2, 3), SetOrder(-4)] public virtual int Ordered { get; set; }
+        [Hide] public virtual int Hidden { get; set; }
     }
 
     sealed class Overridden : Inherited
@@ -312,9 +312,9 @@ public class FormBuilderTests
         public override int Hidden { get; set; }
     }
 
-    sealed class Titled : IInspectorTitled
+    sealed class Titled : ITitled
     {
-        public string InspectorTitle => "Custom Title";
+        public string Title => "Custom Title";
     }
 
     sealed class Throwing

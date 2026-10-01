@@ -7,13 +7,13 @@ namespace Guinevere.Forms;
 /// </summary>
 public sealed class FormField
 {
-    readonly InspectorMemberMetadata? metadata;
+    readonly MemberMetadata? metadata;
     readonly Func<object?> read;
     readonly Func<object?, bool> write;
     readonly Action<object>? mutationNotifier;
     readonly bool forcedReadOnly;
 
-    FormField(InspectorMemberMetadata metadata, object target, FormOptions options)
+    FormField(MemberMetadata metadata, object target, FormOptions options)
     {
         this.metadata = metadata;
         Options = options;
@@ -78,7 +78,7 @@ public sealed class FormField
     public Type ValueType { get; }
 
     /// <summary>Cached metadata for a reflected member; null for collection entries.</summary>
-    public InspectorMemberMetadata? Metadata => metadata;
+    public MemberMetadata? Metadata => metadata;
 
     /// <summary>Creates a field over a reflected field or property of <paramref name="target"/>.</summary>
     /// <param name="member">The field or property.</param>
@@ -88,7 +88,7 @@ public sealed class FormField
     {
         ArgumentNullException.ThrowIfNull(member);
         ArgumentNullException.ThrowIfNull(target);
-        return new FormField(InspectorMemberMetadata.For(member), target, options ?? FormOptions.Default);
+        return new FormField(MemberMetadata.For(member), target, options ?? FormOptions.Default);
     }
 
     /// <summary>Reads the current value.</summary>

@@ -9,7 +9,7 @@ public static class FormBuilder
     const BindingFlags memberScope =
         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-    static readonly ConditionalWeakTable<Type, Lazy<IReadOnlyList<InspectorMemberMetadata>>> MembersByType = new();
+    static readonly ConditionalWeakTable<Type, Lazy<IReadOnlyList<MemberMetadata>>> MembersByType = new();
     static readonly ConditionalWeakTable<Type, Lazy<IReadOnlyList<MemberInfo>>> MemberViewsByType = new();
     static readonly ConditionalWeakTable<Type, Lazy<MethodInfo[]>> ButtonMethodsByType = new();
 
@@ -20,7 +20,7 @@ public static class FormBuilder
     {
         ArgumentNullException.ThrowIfNull(target);
 
-        var title = target is IInspectorTitled titled ? titled.InspectorTitle : target.GetType().Name;
+        var title = target is ITitled titled ? titled.Title : target.GetType().Name;
         return new FormModel(target, [Section(target, title, options)]);
     }
 
@@ -57,11 +57,11 @@ public static class FormBuilder
     }
 
     /// <summary>Cached, ordered metadata for the visible members of a type.</summary>
-    public static IReadOnlyList<InspectorMemberMetadata> EditableMetadata(Type type)
+    public static IReadOnlyList<MemberMetadata> EditableMetadata(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
         return MembersByType.GetValue(type, static t =>
-            new Lazy<IReadOnlyList<InspectorMemberMetadata>>(() =>
+            new Lazy<IReadOnlyList<MemberMetadata>>(() =>
                 Array.AsReadOnly([
                     .. t.GetMembers(memberScope)
                         .Where(member => member is FieldInfo { FieldType.IsByRefLike: false } || member is PropertyInfo
@@ -70,19 +70,19 @@ public static class FormBuilder
                             } property
                             && property.GetIndexParameters().Length == 0
                             && !property.PropertyType.IsByRefLike)
-                        .Select(InspectorMemberMetadata.For)
+                        .Select(MemberMetadata.For)
                         .Where(metadata => metadata.IsVisible)
                         .OrderBy(metadata => metadata.Priority)
                 ]))).Value;
     }
 
-    static List<InspectorButton> ButtonsFor(object target, FormOptions options) =>
+    static List<Button> ButtonsFor(object target, FormOptions options) =>
         [.. ButtonMethodsByType.GetValue(target.GetType(), static t =>
                 new Lazy<MethodInfo[]>(() => [.. t
                     .GetMethods(BindingFlags.Public | BindingFlags.Instance)
                     .Where(method => method.GetCustomAttribute<ButtonAttribute>() is not null)
                     .Where(method => method.GetParameters().Length == 0)])).Value
-            .Select(method => new InspectorButton(FormField.Humanize(method.Name),
+            .Select(method => new Button(FormField.Humanize(method.Name),
                 () =>
                 {
                     try
@@ -97,7 +97,7 @@ public static class FormBuilder
                 }))];
 
     /// <summary>A property getter can throw on a half-built object; such members are skipped.</summary>
-    static bool CanReadSafely(InspectorMemberMetadata metadata, object target)
+    static bool CanReadSafely(MemberMetadata metadata, object target)
     {
         if (metadata.Member is not PropertyInfo) return true;
 

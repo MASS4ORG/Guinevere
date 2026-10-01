@@ -6,7 +6,7 @@ namespace Guinevere.Forms;
 /// </summary>
 public static class FormRenderer
 {
-    sealed record SummaryMetadata(InspectorMemberMetadata? Name, InspectorMemberMetadata? Path);
+    sealed record SummaryMetadata(MemberMetadata? Name, MemberMetadata? Path);
 
     static readonly ConditionalWeakTable<Type, SummaryMetadata> SummaryMetadataByType = [];
 
@@ -168,7 +168,7 @@ public static class FormRenderer
         var members = SummaryMetadataByType.GetValue(target.GetType(), static type =>
             new SummaryMetadata(SummaryMember(type, "Name"), SummaryMember(type, "Path")));
 
-        foreach (var member in (ReadOnlySpan<InspectorMemberMetadata?>)[members.Name, members.Path])
+        foreach (var member in (ReadOnlySpan<MemberMetadata?>)[members.Name, members.Path])
         {
             if (member is null) continue;
             try
@@ -185,9 +185,9 @@ public static class FormRenderer
         return field.Label;
     }
 
-    static InspectorMemberMetadata? SummaryMember(Type type, string name) =>
+    static MemberMetadata? SummaryMember(Type type, string name) =>
         type.GetProperty(name) is { PropertyType: var propertyType, GetMethod: not null } property
         && propertyType == typeof(string)
-            ? InspectorMemberMetadata.For(property)
+            ? MemberMetadata.For(property)
             : null;
 }

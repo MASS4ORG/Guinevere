@@ -93,16 +93,16 @@ public class FormFieldTests
     [Fact]
     public void MetadataGroupsAttributesByPurpose()
     {
-        var metadata = InspectorMemberMetadata.For(typeof(Model).GetField(nameof(Model.Grouped))!);
+        var metadata = MemberMetadata.For(typeof(Model).GetField(nameof(Model.Grouped))!);
 
         Assert.Equal(5, metadata.Attributes.Count);
-        Assert.IsType<ShowInEditorAttribute>(Assert.Single(metadata.Visibility));
+        Assert.IsType<ShowAttribute>(Assert.Single(metadata.Visibility));
         Assert.Equal(2, metadata.Layout.Count);
         Assert.IsType<ReadOnlyAttribute>(Assert.Single(metadata.Validation));
         Assert.IsType<NumericUpDownAttribute>(Assert.Single(metadata.RenderingHints));
         Assert.Equal(3, metadata.Priority);
         Assert.Single(metadata.GetAttributes<ExpandAttribute>());
-        Assert.Same(metadata, InspectorMemberMetadata.For(typeof(Model).GetField(nameof(Model.Grouped))!));
+        Assert.Same(metadata, MemberMetadata.For(typeof(Model).GetField(nameof(Model.Grouped))!));
     }
 
     [Fact]
@@ -110,8 +110,8 @@ public class FormFieldTests
     {
         var method = typeof(Model).GetMethod(nameof(Model.ToString))!;
 
-        Assert.Throws<ArgumentNullException>(() => InspectorMemberMetadata.For(null!));
-        Assert.Throws<ArgumentException>(() => InspectorMemberMetadata.For(method));
+        Assert.Throws<ArgumentNullException>(() => MemberMetadata.For(null!));
+        Assert.Throws<ArgumentException>(() => MemberMetadata.For(method));
     }
 
     [Fact]
@@ -299,9 +299,9 @@ public class FormFieldTests
         public int? Optional { get; set; } = 3;
         [ReadOnly] public int Locked { get; set; } = 1;
         public int Computed => 2;
-        [ShowInEditor] public readonly int Frozen = 1;
+        [Show] public readonly int Frozen = 1;
         [Range(0, 10), Tooltip("Loudness")] public float Volume { get; set; }
-        [ShowInEditor, InspectorOrder(3), Expand, ReadOnly, NumericUpDown] public int Grouped = 0;
+        [Show, SetOrder(3), Expand, ReadOnly, NumericUpDown] public int Grouped = 0;
         public bool Broken;
 
         public int Guarded

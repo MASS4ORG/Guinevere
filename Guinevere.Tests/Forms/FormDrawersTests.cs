@@ -112,7 +112,7 @@ public class FormDrawersTests
     {
         var drawers = new FormDrawers();
         var decorator = new Decorator();
-        using var _ = drawers.Add<HideInEditorAttribute>(decorator);
+        using var _ = drawers.Add<HideAttribute>(decorator);
 
         Assert.Same(decorator, drawers.AttributeDrawer(typeof(DerivedHideAttribute)));
         Assert.Null(drawers.AttributeDrawer(typeof(RangeAttribute)));
@@ -216,7 +216,7 @@ public class FormDrawersTests
 
     struct Point;
 
-    sealed class DerivedHideAttribute : HideInEditorAttribute;
+    sealed class DerivedHideAttribute : HideAttribute;
 
     sealed class Recording : IPropertyDrawer
     {

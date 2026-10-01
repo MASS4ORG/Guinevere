@@ -8,7 +8,7 @@ static class MemberWriter
     /// then notifies the consumer. A throwing getter or setter is reported, not propagated.
     /// </summary>
     /// <returns>True when the member now holds the new value.</returns>
-    internal static bool TrySet(InspectorMemberMetadata metadata, object target, object? value, FormOptions options)
+    internal static bool TrySet(MemberMetadata metadata, object target, object? value, FormOptions options)
     {
         var name = metadata.Member.Name;
         if (value is null && !options.CanAssignNull(metadata.ValueType)) return false;

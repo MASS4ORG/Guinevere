@@ -4,35 +4,35 @@ namespace Guinevere.Forms;
 /// Type-level inspector information. Constructed once per member, independently of the inspected
 /// object; live values and potentially throwing getters remain the responsibility of the form.
 /// </summary>
-public sealed class InspectorMemberMetadata
+public sealed class MemberMetadata
 {
-    static readonly ConditionalWeakTable<MemberInfo, Lazy<InspectorMemberMetadata>> Cache = new();
+    static readonly ConditionalWeakTable<MemberInfo, Lazy<MemberMetadata>> Cache = new();
 
     readonly IReadOnlyList<Attribute> attributes;
     readonly Lazy<Func<object, object?>> read;
 
-    InspectorMemberMetadata(MemberInfo member)
+    MemberMetadata(MemberInfo member)
     {
         Member = member;
         ValueType = ValueTypeOf(member);
         read = new Lazy<Func<object, object?>>(() => CompileGetter(member));
         Label = FormField.Humanize(member.Name);
         attributes = Array.AsReadOnly(Attribute.GetCustomAttributes(member, true));
-        Visibility = Select(attribute => attribute is ShowInEditorAttribute or HideInEditorAttribute);
-        Layout = Select(attribute => attribute is InspectorOrderAttribute or ExpandAttribute);
+        Visibility = Select(attribute => attribute is ShowAttribute or HideAttribute);
+        Layout = Select(attribute => attribute is SetOrderAttribute or ExpandAttribute);
         Validation = Select(attribute => attribute is ReadOnlyAttribute or RangeAttribute);
         RenderingHints = Select(attribute => attribute is NumericUpDownAttribute or TooltipAttribute);
-        Priority = GetAttribute<InspectorOrderAttribute>()?.Priority ?? 0;
+        Priority = GetAttribute<SetOrderAttribute>()?.Priority ?? 0;
         IsReadOnly = GetAttribute<ReadOnlyAttribute>() is not null || !IsAssignable(member);
         IsVisible = IsShown(member);
     }
 
     /// <summary>Returns the shared metadata for a reflected member.</summary>
-    public static InspectorMemberMetadata For(MemberInfo member)
+    public static MemberMetadata For(MemberInfo member)
     {
         ArgumentNullException.ThrowIfNull(member);
         return Cache.GetValue(member, static key =>
-            new Lazy<InspectorMemberMetadata>(() => new InspectorMemberMetadata(key))).Value;
+            new Lazy<MemberMetadata>(() => new MemberMetadata(key))).Value;
     }
 
     /// <summary>The reflected field or property.</summary>
@@ -73,13 +73,13 @@ public sealed class InspectorMemberMetadata
         Array.AsReadOnly([.. attributes.Where(predicate)]);
 
     /// <summary>
-    /// Constants never show; <c>[ShowInEditor]</c> otherwise always does, and members shown by default do
+    /// Constants never show; <c>[Show]</c> otherwise always does, and members shown by default do
     /// unless hidden.
     /// </summary>
     bool IsShown(MemberInfo member) =>
         member is not FieldInfo { IsLiteral: true }
-        && ((IsShownByDefault(member) && GetAttribute<HideInEditorAttribute>() is null)
-            || GetAttribute<ShowInEditorAttribute>() is not null);
+        && ((IsShownByDefault(member) && GetAttribute<HideAttribute>() is null)
+            || GetAttribute<ShowAttribute>() is not null);
 
     static Type ValueTypeOf(MemberInfo member) => member switch
     {

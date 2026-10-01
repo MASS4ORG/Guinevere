@@ -7,7 +7,7 @@ namespace Guinevere.Forms;
 /// <param name="Label">The text the button shows.</param>
 /// <param name="Invoke">Runs the annotated method on the form's target.</param>
 /// <param name="CanInvoke">Whether the action can run in the current context.</param>
-public sealed record InspectorButton(string Label, Action Invoke, Func<bool>? CanInvoke = null)
+public sealed record Button(string Label, Action Invoke, Func<bool>? CanInvoke = null)
 {
     /// <summary>Whether the action is currently available.</summary>
     public bool IsEnabled => CanInvoke?.Invoke() ?? true;
