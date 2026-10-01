@@ -30,6 +30,7 @@
         <ProjectReference Include="..\Guinevere\Guinevere.csproj"/>
         <ProjectReference Include="..\Guinevere.Excalibur\Guinevere.Excalibur.csproj"/>
         <ProjectReference Include="..\Guinevere.Forms\Guinevere.Forms.csproj"/>
+        <ProjectReference Include="..\Guinevere.Forms.Excalibur\Guinevere.Forms.Excalibur.csproj"/>
         <ProjectReference Include="..\Guinevere.Scripting\Guinevere.Scripting.csproj"/>
     </ItemGroup>
 

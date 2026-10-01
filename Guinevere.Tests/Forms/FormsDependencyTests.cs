@@ -22,6 +22,16 @@ public class FormsDependencyTests
             name => name.Name == "JetBrains.Annotations");
     }
 
+    [Fact]
+    public void RendererReferencesNoGayaOrTurian()
+    {
+        var names = typeof(FormRenderer).Assembly.GetReferencedAssemblies().Select(name => name.Name ?? "").ToList();
+
+        Assert.DoesNotContain(names, name => name.StartsWith("Gaya", StringComparison.Ordinal)
+                                             || name.StartsWith("Turian", StringComparison.Ordinal));
+        Assert.Contains("Guinevere.Forms", names);
+    }
+
     static void AssertNoForbiddenReferences(System.Reflection.Assembly assembly)
     {
         var forbidden = assembly.GetReferencedAssemblies()
