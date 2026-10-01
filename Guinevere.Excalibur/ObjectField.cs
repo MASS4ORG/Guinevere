@@ -92,7 +92,10 @@ public static partial class ControlsExtensions
             }
 
             using (gui.Node(-1, height).Expand().Padding(6, 0).ContentAlignY(0.5f).Enter())
+            {
+                gui.ClipContent();
                 gui.DrawText(text, fontSize, isEmpty ? palette.TextDim : palette.Text);
+            }
 
             if (showPick && PickButton(gui, $"{id}/pick", height, palette)) action = ObjectFieldAction.Pick;
             if (showClear && !isEmpty && GlyphButton(gui, $"{id}/clear", "×", height, palette))

@@ -113,15 +113,19 @@ public static class FormRenderer
     /// Dispatch: writable type drawer, predicate drawer, collection, nested object, built-in, read-only summary.
     /// A <c>[HideLabel]</c> field draws its value across the whole row; groups keep their heading.
     /// </summary>
-    static void DrawProperty(Gui gui, FormField field, string id, FormRenderContext context)
+    static void DrawProperty(Gui gui, FormField field, string id, FormRenderContext context, bool hideLabel = false)
     {
         var drawer = RegisteredDrawer(field, context.Drawers);
         if (drawer is null && TryDrawGroup(gui, field, id, context)) return;
 
         drawer ??= field.IsReadOnly ? BuiltinDrawers.Summary : BuiltinDrawers.For(field.ValueType);
-        if (!HidesLabel(field) || !DrawWithoutLabel(gui, drawer, field, id, context))
+        if (!(hideLabel || HidesLabel(field)) || !DrawWithoutLabel(gui, drawer, field, id, context))
             drawer.Draw(gui, field, id, context);
     }
+
+    /// <summary>Draws a collection entry like <see cref="FormField(Gui, Forms.FormField, string, FormRenderContext?)"/>, optionally without its label.</summary>
+    internal static void FormEntry(Gui gui, FormField field, string id, FormRenderContext context, bool hideLabel) =>
+        Decorate(gui, field, id, context, () => DrawProperty(gui, field, id, context, hideLabel));
 
     /// <summary>The type drawer when the field is writable, else the first matching predicate drawer.</summary>
     static IPropertyDrawer? RegisteredDrawer(FormField field, FormDrawers drawers) =>

@@ -12,6 +12,9 @@ public sealed class FormRenderContext
     /// <summary>Ids of the collection and nested-object headings the user has folded shut.</summary>
     public ISet<string> Collapsed { get; init; } = new HashSet<string>();
 
+    /// <summary>The page each paged collection shows, by collection id; clamped to the pages that exist.</summary>
+    public IDictionary<string, int> Pages { get; init; } = new Dictionary<string, int>();
+
     /// <summary>
     /// Whether a value of the given type may be expanded in place as a nested form, on top of the built-in rule
     /// (not primitive, enum, string, decimal or a System type, and has editable members). Null allows all.

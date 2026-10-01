@@ -23,7 +23,7 @@ coverage*.info
 *.coverage
 *.coveragexml
 *.Build.props
-coverage-results/
+coverage/
 .nuke/temp
 .config/
 publish/
@@ -47,6 +47,6 @@ AGENTS.md
 .cursor/
 .windsurf/
 
-docs/internal/
-coverage/
 script.sh
+script.py
+docs/internal/

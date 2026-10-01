@@ -17,11 +17,11 @@ public class AttributeTests
     }
 
     [Fact]
-    public void ListDrawerSettingsDefaultsMatchOdin()
+    public void ListDrawerSettingsDefaults()
     {
         var settings = new ListDrawerSettingsAttribute();
 
-        Assert.Equal(15, settings.NumberOfItemsPerPage);
+        Assert.Equal(10, settings.NumberOfItemsPerPage);
         Assert.True(settings.DraggableItems);
         Assert.False(settings.ShowIndexLabels);
         Assert.True(settings.ShowPaging);

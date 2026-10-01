@@ -5,7 +5,7 @@ namespace MASS4.Attributes;
 public sealed class ListDrawerSettingsAttribute : Attribute
 {
     /// <summary>Entries per page when paging is shown.</summary>
-    public int NumberOfItemsPerPage { get; set; } = 15;
+    public int NumberOfItemsPerPage { get; set; } = 10;
 
     /// <summary>Whether entries can be reordered by dragging their handle.</summary>
     public bool DraggableItems { get; set; } = true;
