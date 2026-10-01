@@ -44,12 +44,33 @@ static class BuiltinDrawers
     {
         var style = new FormStyle(gui);
         var current = field.GetValue() as string ?? string.Empty;
-        var next = gui.TextInput(current, width: 0, height: style.RowHeight, fontSize: style.FontSize,
-            backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink, padding: 4,
-            id: $"{id}/text");
+        var next = field.Attribute<TextAreaAttribute>() is { } area
+            ? gui.TextArea(current, width: 0, height: TextAreaHeight(gui, current, area), fontSize: style.FontSize,
+                backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink, padding: 4,
+                id: $"{id}/text")
+            : gui.TextInput(current, width: 0, height: style.RowHeight, fontSize: style.FontSize,
+                backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink, padding: 4,
+                id: $"{id}/text");
 
         if (!string.Equals(next, current, StringComparison.Ordinal)) field.SetValue(next);
     }
+
+    /// <summary>
+    /// A text area's height: its explicit lines clamped to <c>[TextArea]</c>'s range, never shorter than a row.
+    /// Past the maximum the area scrolls.
+    /// </summary>
+    internal static float TextAreaHeight(Gui gui, string text, TextAreaAttribute area)
+    {
+        var style = new FormStyle(gui);
+        var lines = Math.Clamp(text.Count(c => c == '\n') + 1, area.MinLines, area.MaxLines);
+        return Math.Max(style.RowHeight, lines * style.FontSize * 1.4f + 8f);
+    }
+
+    /// <summary>The row height a field's editor needs: taller for a <c>[TextArea]</c>, otherwise the default.</summary>
+    static float? RowHeightFor(Gui gui, FormField field) =>
+        field.Attribute<TextAreaAttribute>() is { } area && !field.IsReadOnly
+            ? TextAreaHeight(gui, field.GetValue() as string ?? string.Empty, area)
+            : null;
 
     static void DrawEnum(Gui gui, FormField field, Type type, string id, FormRenderContext context)
     {
@@ -90,7 +111,8 @@ static class BuiltinDrawers
         {
             var type = Nullable.GetUnderlyingType(field.ValueType) ?? field.ValueType;
             FormControls.Row(gui, field.Label, id, () => DrawValue(gui, field, id, context), context.Modified(field),
-                numeric && !field.IsReadOnly ? () => FormControls.ScrubLabel(gui, field, type) : null);
+                numeric && !field.IsReadOnly ? () => FormControls.ScrubLabel(gui, field, type) : null,
+                RowHeightFor(gui, field));
         }
 
         public bool DrawValue(Gui gui, FormField field, string id, FormRenderContext context)

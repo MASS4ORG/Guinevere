@@ -31,14 +31,16 @@ public static class FormControls
     /// <param name="editor">Draws the value side.</param>
     /// <param name="modified">Draws the label bold with an accent margin bar, for values that differ from a source.</param>
     /// <param name="labelInteraction">Runs in the render pass inside the label node, for label drags; highlights the label on hover.</param>
+    /// <param name="height">The row's height for a taller editor; the style's row height when null. The label stays on the first line.</param>
     public static void Row(Gui gui, string label, string id, Action editor, bool modified = false,
-        Action? labelInteraction = null)
+        Action? labelInteraction = null, float? height = null)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(editor);
         var style = new FormStyle(gui);
+        var rowHeight = height ?? style.RowHeight;
 
-        using (gui.Node(-1, style.RowHeight, id).ExpandWidth().Direction(Axis.Horizontal).Gap(6f).Enter())
+        using (gui.Node(-1, rowHeight, id).ExpandWidth().Direction(Axis.Horizontal).Gap(6f).Enter())
         {
             MarkModified(gui, modified);
             using (gui.Node(style.LabelWidth, style.RowHeight, $"{id}/label").Enter())
@@ -51,7 +53,7 @@ public static class FormControls
                 gui.DrawText(label, style.FontSize, color, centerInRect: false, effects: Emphasis(modified, color));
             }
 
-            using (gui.Node(-1, style.RowHeight, $"{id}/editor").Expand().Direction(Axis.Horizontal).Gap(4f).Enter())
+            using (gui.Node(-1, rowHeight, $"{id}/editor").Expand().Direction(Axis.Horizontal).Gap(4f).Enter())
                 editor();
         }
     }

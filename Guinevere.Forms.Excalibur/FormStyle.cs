@@ -33,4 +33,6 @@ readonly struct FormStyle(Gui gui)
     public Color Field => Get<ControlSurface, Color>();
     public Color Border => Get<ControlBorder, Color>();
     public Color Accent => Get<ControlAccent, Color>();
+    public Color Divider => Get<ControlDivider, Color>();
+    public Color Negative => Get<ControlNegative, Color>();
 }

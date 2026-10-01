@@ -35,7 +35,7 @@ public sealed class FormDrawers
 
     sealed record Lookup(IPropertyDrawer? Drawer);
 
-    /// <summary>The built-in drawers: vectors, colors and tooltips. Read-only.</summary>
+    /// <summary>The built-in drawers: vectors, colors, tooltips, titles, required errors and tints. Read-only.</summary>
     public static FormDrawers Default { get; } = CreateDefault();
 
     /// <summary>Creates a scope that falls back to <paramref name="parent"/>, or to <see cref="Default"/>.</summary>
@@ -150,6 +150,9 @@ public sealed class FormDrawers
         drawers.Add(typeof(Vector4), VectorDrawer.Instance);
         drawers.Add(typeof(Color), ColorDrawer.Instance);
         drawers.Add<TooltipAttribute>(TooltipDrawer.Instance);
+        drawers.Add<TitleAttribute>(TitleDrawer.Instance);
+        drawers.Add<RequiredAttribute>(RequiredDrawer.Instance);
+        drawers.Add<GUIColorAttribute>(GUIColorDrawer.Instance);
         drawers.frozen = true;
         return drawers;
     }

@@ -111,22 +111,42 @@ public static class FormRenderer
 
     /// <summary>
     /// Dispatch: writable type drawer, predicate drawer, collection, nested object, built-in, read-only summary.
+    /// A <c>[HideLabel]</c> field draws its value across the whole row; groups keep their heading.
     /// </summary>
     static void DrawProperty(Gui gui, FormField field, string id, FormRenderContext context)
     {
-        var drawers = context.Drawers;
+        var drawer = RegisteredDrawer(field, context.Drawers);
+        if (drawer is null && TryDrawGroup(gui, field, id, context)) return;
 
-        if (!field.IsReadOnly && drawers.TypeDrawer(field.ValueType) is { } typed)
-            typed.Draw(gui, field, id, context);
-        else if (drawers.PredicateDrawer(field) is { } predicate)
-            predicate.Draw(gui, field, id, context);
-        else if (CollectionField.TryCreate(field) is { } collection)
+        drawer ??= field.IsReadOnly ? BuiltinDrawers.Summary : BuiltinDrawers.For(field.ValueType);
+        if (!HidesLabel(field) || !DrawWithoutLabel(gui, drawer, field, id, context))
+            drawer.Draw(gui, field, id, context);
+    }
+
+    /// <summary>The type drawer when the field is writable, else the first matching predicate drawer.</summary>
+    static IPropertyDrawer? RegisteredDrawer(FormField field, FormDrawers drawers) =>
+        (field.IsReadOnly ? null : drawers.TypeDrawer(field.ValueType)) ?? drawers.PredicateDrawer(field);
+
+    static bool HidesLabel(FormField field) => field.Metadata?.GetAttribute<HideLabelAttribute>() is not null;
+
+    /// <summary>Draws a collection or an inlined nested object; false when the field is neither.</summary>
+    static bool TryDrawGroup(Gui gui, FormField field, string id, FormRenderContext context)
+    {
+        if (CollectionField.TryCreate(field) is { } collection)
             FormGroups.DrawCollection(gui, field, collection, id, context);
         else if (Inline(field, context) is { } target)
             FormGroups.DrawNested(gui, field, target, id, context);
         else
-            (field.IsReadOnly ? BuiltinDrawers.Summary : BuiltinDrawers.For(field.ValueType)).Draw(gui, field, id,
-                context);
+            return false;
+
+        return true;
+    }
+
+    /// <summary>The value alone across the row; false when the drawer has no value-only form.</summary>
+    static bool DrawWithoutLabel(Gui gui, IPropertyDrawer drawer, FormField field, string id, FormRenderContext context)
+    {
+        using (gui.Node(-1, -1, $"{id}/value").ExpandWidth().Direction(Axis.Horizontal).Gap(4f).Enter())
+            return drawer.DrawValue(gui, field, id, context);
     }
 
     static void DrawEditor(Gui gui, FormField field, string id, FormRenderContext context)
