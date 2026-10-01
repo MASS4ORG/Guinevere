@@ -316,6 +316,62 @@ public class CollectionFieldTests
         Assert.Equal("[0][0]", Assert.Single(failures).Member);
     }
 
+    [Theory]
+    [InlineData(0, 2, new[] { 2, 3, 1 })]
+    [InlineData(2, 0, new[] { 3, 1, 2 })]
+    [InlineData(1, 2, new[] { 1, 3, 2 })]
+    public void MoveShiftsEntriesBetweenAndNotifiesOnce(int from, int to, int[] expected)
+    {
+        var target = new Model();
+        var (options, _, notified) = Reporting();
+
+        Assert.True(Collection(target, nameof(Model.List), options).Move(from, to));
+
+        Assert.Equal(expected, target.List);
+        Assert.Single(notified);
+    }
+
+    [Fact]
+    public void ArraysReorderInPlace()
+    {
+        var target = new Model();
+        var collection = Collection(target, nameof(Model.Array));
+
+        Assert.True(collection.CanReorder);
+        Assert.True(collection.Move(1, 0));
+        Assert.Equal(["b", "a"], target.Array);
+    }
+
+    [Fact]
+    public void MoveRejectsSameIndexOutOfRangeDictionariesAndReadOnly()
+    {
+        var target = new Model();
+        var list = Collection(target, nameof(Model.List));
+        var map = Collection(target, nameof(Model.ByName));
+        var frozen = Collection(target, nameof(Model.List), new FormOptions { ReadOnly = true });
+
+        Assert.False(list.Move(1, 1));
+        Assert.False(list.Move(-1, 0));
+        Assert.False(list.Move(0, 3));
+        Assert.False(map.CanReorder);
+        Assert.False(map.Move(0, 1));
+        Assert.False(frozen.CanReorder);
+        Assert.False(frozen.Move(0, 1));
+        Assert.Equal([1, 2, 3], target.List);
+    }
+
+    [Fact]
+    public void RefusedMoveIsReportedNotThrown()
+    {
+        var target = new Model { Guarded = [1, 2] };
+        var (options, failures, notified) = Reporting();
+
+        Assert.False(Collection(target, nameof(Model.Guarded), options).Move(0, 1));
+
+        Assert.Equal("Guarded[0]", Assert.Single(failures).Member);
+        Assert.Empty(notified);
+    }
+
     static (FormOptions Options, List<FormFailure> Failures, List<object> Notified) Reporting()
     {
         var failures = new List<FormFailure>();
@@ -341,6 +397,8 @@ public class CollectionFieldTests
     sealed class GuardedList : Collection<int>
     {
         protected override void RemoveItem(int index) => throw new InvalidOperationException();
+
+        protected override void SetItem(int index, int item) => throw new InvalidOperationException();
     }
 
     sealed class Model

@@ -47,6 +47,9 @@ public sealed class CollectionField
                              && !(list?.IsFixedSize ?? false)
                              && (!IsDictionary || CanInventKey);
 
+    /// <summary>Whether entries may be moved: a writable list or array (arrays reorder but never resize).</summary>
+    public bool CanReorder => !IsReadOnly && list is not null;
+
     /// <summary>
     /// Recognises a field holding a collection, or null when it holds something else. A string is a
     /// sequence but not a collection, and it has its own drawer.
@@ -128,6 +131,27 @@ public sealed class CollectionField
 
         var key = Keys()[index]!;
         return Mutate($"{source.Name}[{key}]", () => map.Remove(key));
+    }
+
+    /// <summary>
+    /// Moves the entry at <paramref name="from"/> so it ends up at <paramref name="to"/>, shifting the entries
+    /// between them by one. Works in place, so arrays reorder too.
+    /// </summary>
+    /// <param name="from">Current index of the entry.</param>
+    /// <param name="to">Index the entry has after the move.</param>
+    /// <returns>True when the entry moved.</returns>
+    public bool Move(int from, int to)
+    {
+        if (!CanReorder || from == to || (uint)from >= (uint)Count || (uint)to >= (uint)Count) return false;
+
+        return Mutate($"{source.Name}[{from}]", () =>
+        {
+            var entries = list!;
+            var moved = entries[from];
+            var step = from < to ? 1 : -1;
+            for (var i = from; i != to; i += step) entries[i] = entries[i + step];
+            entries[to] = moved;
+        });
     }
 
     /// <summary>
