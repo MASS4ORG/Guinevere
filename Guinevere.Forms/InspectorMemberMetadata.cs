@@ -1,0 +1,109 @@
+namespace Guinevere.Forms;
+
+/// <summary>
+/// Type-level inspector information. Constructed once per member, independently of the inspected
+/// object; live values and potentially throwing getters remain the responsibility of the form.
+/// </summary>
+public sealed class InspectorMemberMetadata
+{
+    static readonly ConditionalWeakTable<MemberInfo, Lazy<InspectorMemberMetadata>> Cache = new();
+
+    readonly IReadOnlyList<Attribute> attributes;
+    readonly Lazy<Func<object, object?>> read;
+
+    InspectorMemberMetadata(MemberInfo member)
+    {
+        Member = member;
+        ValueType = ValueTypeOf(member);
+        read = new Lazy<Func<object, object?>>(() => CompileGetter(member));
+        Label = FormField.Humanize(member.Name);
+        attributes = Array.AsReadOnly(Attribute.GetCustomAttributes(member, true));
+        Visibility = Select(attribute => attribute is ShowInEditorAttribute or HideInEditorAttribute);
+        Layout = Select(attribute => attribute is InspectorOrderAttribute or ExpandAttribute);
+        Validation = Select(attribute => attribute is ReadOnlyAttribute or RangeAttribute);
+        RenderingHints = Select(attribute => attribute is NumericUpDownAttribute or TooltipAttribute);
+        Priority = GetAttribute<InspectorOrderAttribute>()?.Priority ?? 0;
+        IsReadOnly = GetAttribute<ReadOnlyAttribute>() is not null || member is PropertyInfo { CanWrite: false };
+        IsVisible = IsShown(member);
+    }
+
+    /// <summary>Returns the shared metadata for a reflected member.</summary>
+    public static InspectorMemberMetadata For(MemberInfo member)
+    {
+        ArgumentNullException.ThrowIfNull(member);
+        return Cache.GetValue(member, static key =>
+            new Lazy<InspectorMemberMetadata>(() => new InspectorMemberMetadata(key))).Value;
+    }
+
+    /// <summary>The reflected field or property.</summary>
+    public MemberInfo Member { get; }
+    /// <summary>Display label.</summary>
+    public string Label { get; }
+    /// <summary>Declared value type.</summary>
+    public Type ValueType { get; }
+    /// <summary>Ordered attributes, including attributes not yet handled by the core inspector.</summary>
+    public IReadOnlyList<Attribute> Attributes => attributes;
+    /// <summary>Visibility attributes.</summary>
+    public IReadOnlyList<Attribute> Visibility { get; }
+    /// <summary>Layout and ordering attributes.</summary>
+    public IReadOnlyList<Attribute> Layout { get; }
+    /// <summary>Editing constraints.</summary>
+    public IReadOnlyList<Attribute> Validation { get; }
+    /// <summary>Hints selecting a presentation or control.</summary>
+    public IReadOnlyList<Attribute> RenderingHints { get; }
+    /// <summary>Lower values appear earlier; ties preserve the original member order.</summary>
+    public int Priority { get; }
+    /// <summary>Whether the member should be included in the form.</summary>
+    public bool IsVisible { get; }
+    /// <summary>Whether editing is disabled.</summary>
+    public bool IsReadOnly { get; }
+
+    /// <summary>Reads a live value using the getter compiled when metadata was created.</summary>
+    public object? GetValue(object target) => read.Value(target);
+
+    /// <summary>Finds the first attribute of a given type without reflecting again.</summary>
+    public TAttribute? GetAttribute<TAttribute>() where TAttribute : Attribute =>
+        attributes.OfType<TAttribute>().FirstOrDefault();
+
+    /// <summary>Finds all attributes of a given type without reflecting again.</summary>
+    public IReadOnlyList<TAttribute> GetAttributes<TAttribute>() where TAttribute : Attribute =>
+        [.. attributes.OfType<TAttribute>()];
+
+    IReadOnlyList<Attribute> Select(Func<Attribute, bool> predicate) =>
+        Array.AsReadOnly([.. attributes.Where(predicate)]);
+
+    /// <summary><c>[ShowInEditor]</c> always shows; otherwise public read-write members show unless hidden.</summary>
+    bool IsShown(MemberInfo member) =>
+        (IsPublicReadWrite(member) && GetAttribute<HideInEditorAttribute>() is null)
+        || GetAttribute<ShowInEditorAttribute>() is not null;
+
+    static Type ValueTypeOf(MemberInfo member) => member switch
+    {
+        PropertyInfo property => property.PropertyType,
+        FieldInfo field => field.FieldType,
+        _ => throw new ArgumentException("Expected a field or property", nameof(member))
+    };
+
+    /// <summary>A public field, or a property with a public getter and any setter: visible unless hidden.</summary>
+    static bool IsPublicReadWrite(MemberInfo member) => member switch
+    {
+        PropertyInfo property => (property.GetMethod?.IsPublic ?? false)
+                                 && property is { CanRead: true, CanWrite: true },
+        FieldInfo field => field.IsPublic,
+        _ => false
+    };
+
+    static Func<object, object?> CompileGetter(MemberInfo member)
+    {
+        var target = Expression.Parameter(typeof(object), "target");
+        var instance = Expression.Convert(target, member.DeclaringType!);
+        Expression access = member switch
+        {
+            PropertyInfo property => Expression.Property(instance, property),
+            FieldInfo field => Expression.Field(instance, field),
+            _ => throw new ArgumentException("Expected a field or property", nameof(member))
+        };
+        return Expression.Lambda<Func<object, object?>>(
+            Expression.Convert(access, typeof(object)), target).Compile();
+    }
+}

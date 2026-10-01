@@ -13,29 +13,28 @@
         <NoWarn>$(NoWarn);1591</NoWarn>
 
         <DisableMSBuildAssemblyCopyCheck>true</DisableMSBuildAssemblyCopyCheck>
-
-        <Version>5.4.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.9.0" />
-        <PackageReference Include="Microsoft.Build" Version="18.9.6" />
-        <PackageReference Include="Microsoft.Build.Framework" Version="18.9.6" />
-        <PackageReference Include="NSubstitute" Version="6.2.0" />
-        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
-        <PackageReference Include="Serilog.Sinks.InMemory" Version="2.0.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.9.0"/>
+        <PackageReference Include="Microsoft.Build" Version="18.9.6"/>
+        <PackageReference Include="Microsoft.Build.Framework" Version="18.9.6"/>
+        <PackageReference Include="NSubstitute" Version="6.2.0"/>
+        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Sinks.InMemory" Version="2.0.0"/>
         <PackageReference Include="xunit.v3" Version="4.0.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Guinevere\Guinevere.csproj" />
-        <ProjectReference Include="..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
-        <ProjectReference Include="..\Guinevere.Scripting\Guinevere.Scripting.csproj" />
+        <ProjectReference Include="..\Guinevere\Guinevere.csproj"/>
+        <ProjectReference Include="..\Guinevere.Excalibur\Guinevere.Excalibur.csproj"/>
+        <ProjectReference Include="..\Guinevere.Forms\Guinevere.Forms.csproj"/>
+        <ProjectReference Include="..\Guinevere.Scripting\Guinevere.Scripting.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="Scripts/*.json" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="Scripts/*.json" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 
 </Project>
