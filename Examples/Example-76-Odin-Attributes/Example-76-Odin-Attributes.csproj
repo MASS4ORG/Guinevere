@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>$(MSBuildProjectName.Replace("-", "_"))</RootNamespace>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- The demo classes are compiled and also shown on screen, so the code displayed is the code that runs. -->
+        <EmbeddedResource Include="Demos\*.cs" LogicalName="Demos.%(Filename)%(Extension)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="..\..\MASS4.Autoformers.Excalibur\MASS4.Autoformers.Excalibur.csproj" />
+        <ProjectReference Include="..\..\Integrations\Guinevere.OpenGL.SilkNET\Guinevere.OpenGL.SilkNET.csproj" />
+    </ItemGroup>
+
+</Project>

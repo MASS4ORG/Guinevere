@@ -32,6 +32,7 @@
         <ProjectReference Include="..\MASS4.Autoformers\MASS4.Autoformers.csproj"/>
         <ProjectReference Include="..\MASS4.Autoformers.Excalibur\MASS4.Autoformers.Excalibur.csproj"/>
         <ProjectReference Include="..\Guinevere.Scripting\Guinevere.Scripting.csproj"/>
+        <ProjectReference Include="..\Examples\Example-76-Odin-Attributes\Example-76-Odin-Attributes.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
