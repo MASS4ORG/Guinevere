@@ -37,7 +37,7 @@ public class PlatformCapabilitiesTests
         var second = Substitute.For<ICursorCapability>();
 
         platform.Register<ICursorCapability>(first);
-        platform.Register<ICursorCapability>(second);
+        platform.Register(second);
 
         Assert.Same(second, platform.Require<ICursorCapability>());
         Assert.True(platform.Remove<ICursorCapability>());
@@ -57,9 +57,9 @@ public class PlatformCapabilitiesTests
 
         platform.Register<IInputHandler>(host)
             .Register<IClipboard>(host)
-            .Register<IWindowHandler>((IWindowHandler)host)
+            .Register((IWindowHandler)host)
             .Register<ITimeCapability>(new Time())
-            .Register<IDisplayCapability>(display);
+            .Register(display);
 
         Assert.Empty(PlatformConformance.Validate(platform, requireRenderer: false));
     }

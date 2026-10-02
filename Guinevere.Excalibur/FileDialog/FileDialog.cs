@@ -12,13 +12,13 @@ namespace Guinevere;
 public static partial class ControlsExtensions
 {
     /// <summary>Width of the shortcuts column.</summary>
-    const float sidebarWidth = 168f;
+    const float SidebarWidth = 168f;
 
     /// <summary>Height of one listing row, one sidebar entry and the toolbar's buttons.</summary>
-    const float rowHeight = 22f;
+    const float RowHeight = 22f;
 
     /// <summary>The gap between the dialog's regions.</summary>
-    const float regionGap = 6f;
+    const float RegionGap = 6f;
 
     /// <summary>
     /// Draws the file dialog <paramref name="state"/> is showing, and does nothing when it is closed.
@@ -52,11 +52,11 @@ public static partial class ControlsExtensions
     {
         if (state.Request is not { } request) return;
 
-        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(regionGap).Enter())
+        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(RegionGap).Enter())
         {
             Toolbar(gui, state, fontSize);
 
-            using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(regionGap).Enter())
+            using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(RegionGap).Enter())
             {
                 Sidebar(gui, state, fontSize);
                 Listing(gui, state, fontSize);
@@ -77,9 +77,9 @@ public static partial class ControlsExtensions
         var filtered = request.Filters.Count > 1;
         if (!named && !filtered) return;
 
-        var height = rowHeight + 6f;
+        var height = RowHeight + 6f;
 
-        using (gui.Node(-1, height).ExpandWidth().Direction(Axis.Horizontal).Gap(regionGap)
+        using (gui.Node(-1, height).ExpandWidth().Direction(Axis.Horizontal).Gap(RegionGap)
                    .ContentAlignY(0.5f).Enter())
         {
             if (named)
@@ -114,7 +114,7 @@ public static partial class ControlsExtensions
         var message = state.Message ?? state.Browser.Error;
         if (message is null) return;
 
-        using (gui.Node(-1, rowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
+        using (gui.Node(-1, RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
             gui.DrawText(message, fontSize - 1f, gui.ControlStyle.Negative, centerInRect: false);
     }
 
@@ -208,10 +208,10 @@ public static partial class ControlsExtensions
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
-        using (gui.Node(width, height, state.ControlId("root")).Direction(Axis.Vertical).Gap(regionGap).Enter())
+        using (gui.Node(width, height, state.ControlId("root")).Direction(Axis.Vertical).Gap(RegionGap).Enter())
         {
             Body(gui, state, fontSize);
-            using (gui.Node(-1, 36f).ExpandWidth().Direction(Axis.Horizontal).Gap(regionGap)
+            using (gui.Node(-1, 36f).ExpandWidth().Direction(Axis.Horizontal).Gap(RegionGap)
                        .ContentAlignX(1f).ContentAlignY(0.5f).Enter())
                 Footer(gui, state, fontSize);
         }

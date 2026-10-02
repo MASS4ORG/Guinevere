@@ -22,23 +22,23 @@
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <Version>5.4.0</Version>
+        <Version>1.8.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="\" />
+        <None Include="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTK" Version="4.9.4" />
-        <PackageReference Include="SkiaSharp" Version="4.152.1" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.152.1" />
-        <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.152.1" />
-        <PackageReference Include="SkiaSharp.Vulkan.SharpVk" Version="4.152.1" />
+        <PackageReference Include="OpenTK" Version="4.9.4"/>
+        <PackageReference Include="SkiaSharp" Version="4.153.1" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.153.1" />
+        <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="4.153.1" />
+        <PackageReference Include="SkiaSharp.Vulkan.SharpVk" Version="4.153.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
+        <ProjectReference Include="../../Guinevere/Guinevere.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -48,6 +48,6 @@
         <None Include="../Resources/Fonts/OFL-1.1.txt" Pack="true" PackagePath="licenses/" />
         <None Include="../Resources/Fonts/Apache-2.0.txt" Pack="true" PackagePath="licenses/" />
         <None Include="../Resources/Fonts/FONT-NOTICES.md" Pack="true" PackagePath="licenses/" />
-        <EmbeddedResource Include="../Resources/Shaders/OpenGL/*" />
+        <EmbeddedResource Include="../Resources/Shaders/OpenGL/*"/>
     </ItemGroup>
 </Project>

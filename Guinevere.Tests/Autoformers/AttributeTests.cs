@@ -33,17 +33,17 @@ public class AttributeTests
     [InlineData("#XYZ", 1f, 0f, 1f, 1f)]
     [InlineData("#12345", 1f, 0f, 1f, 1f)]
     [InlineData(null, 1f, 0f, 1f, 1f)]
-    public void GUIColorParsesHexOrFallsBackToMagenta(string? hex, float r, float g, float b, float a)
+    public void GuiColorParsesHexOrFallsBackToMagenta(string? hex, float r, float g, float b, float a)
     {
-        var color = new GUIColorAttribute(hex!);
+        var color = new GuiColorAttribute(hex!);
 
         Assert.Equal((r, g, b, a), (color.R, color.G, color.B, color.A));
     }
 
     [Fact]
-    public void GUIColorKeepsChannels()
+    public void GuiColorKeepsChannels()
     {
-        var color = new GUIColorAttribute(0.1f, 0.2f, 0.3f);
+        var color = new GuiColorAttribute(0.1f, 0.2f, 0.3f);
 
         Assert.Equal((0.1f, 0.2f, 0.3f, 1f), (color.R, color.G, color.B, color.A));
     }

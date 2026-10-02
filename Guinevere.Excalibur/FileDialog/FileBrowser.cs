@@ -7,27 +7,27 @@ namespace Guinevere;
 /// </summary>
 public sealed class FileBrowser
 {
-    readonly IFileDialogFileSystem fileSystem;
-    readonly List<string> history = [];
-    readonly List<FileEntry> loaded = [];
-    CancellationTokenSource? loading;
+    readonly IFileDialogFileSystem _fileSystem;
+    readonly List<string> _history = [];
+    readonly List<FileEntry> _loaded = [];
+    CancellationTokenSource? _loading;
 
-    int historyIndex = -1;
-    FileSortColumn sort = FileSortColumn.Name;
-    bool ascending = true;
-    bool showHidden;
-    string search = "";
-    FileDialogFilter filter = FileDialogFilter.All;
+    int _historyIndex = -1;
+    FileSortColumn _sort = FileSortColumn.Name;
+    bool _ascending = true;
+    bool _showHidden;
+    string _search = "";
+    FileDialogFilter _filter = FileDialogFilter.All;
 
     /// <summary>Creates a browser over the local filesystem.</summary>
     public FileBrowser() : this(PhysicalFileDialogFileSystem.Instance) { }
 
     /// <summary>Creates a browser over an injectable filesystem provider.</summary>
     public FileBrowser(IFileDialogFileSystem fileSystem) =>
-        this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
     /// <summary>The provider supplying entries and platform roots.</summary>
-    public IFileDialogFileSystem FileSystem => fileSystem;
+    public IFileDialogFileSystem FileSystem => _fileSystem;
 
     /// <summary>Whether a directory read is in flight.</summary>
     public bool IsLoading { get; private set; }
@@ -42,13 +42,13 @@ public sealed class FileBrowser
     public IReadOnlyList<FileEntry> Entries { get; private set; } = [];
 
     /// <summary>Whether <see cref="GoBackAsync"/> has somewhere to go.</summary>
-    public bool CanGoBack => historyIndex > 0;
+    public bool CanGoBack => _historyIndex > 0;
 
     /// <summary>Whether <see cref="GoForwardAsync"/> has somewhere to go.</summary>
-    public bool CanGoForward => historyIndex >= 0 && historyIndex < history.Count - 1;
+    public bool CanGoForward => _historyIndex >= 0 && _historyIndex < _history.Count - 1;
 
     /// <summary>Whether the current directory has a parent.</summary>
-    public bool CanGoUp => CurrentPath.Length > 0 && fileSystem.GetParent(CurrentPath) is not null;
+    public bool CanGoUp => CurrentPath.Length > 0 && _fileSystem.GetParent(CurrentPath) is not null;
 
     /// <summary>
     /// Shows a path without blocking the calling thread. A file path resolves to its parent.
@@ -57,33 +57,33 @@ public sealed class FileBrowser
     public async ValueTask<bool> NavigateAsync(string path, CancellationToken cancellationToken = default)
     {
         CancellationTokenSource next;
-        lock (loaded)
+        lock (_loaded)
         {
-            loading?.Cancel();
-            loading?.Dispose();
-            loading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            next = loading;
+            _loading?.Cancel();
+            _loading?.Dispose();
+            _loading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            next = _loading;
             IsLoading = true;
             Error = null;
         }
 
         try
         {
-            var directory = await fileSystem.ResolveDirectoryAsync(path, next.Token).ConfigureAwait(false);
+            var directory = await _fileSystem.ResolveDirectoryAsync(path, next.Token).ConfigureAwait(false);
             if (directory is null) return false;
-            var entries = await fileSystem.EnumerateAsync(directory, next.Token).ConfigureAwait(false);
+            var entries = await _fileSystem.EnumerateAsync(directory, next.Token).ConfigureAwait(false);
 
-            lock (loaded)
+            lock (_loaded)
             {
-                if (!ReferenceEquals(loading, next)) return false;
+                if (!ReferenceEquals(_loading, next)) return false;
                 CurrentPath = directory;
-                loaded.Clear();
-                loaded.AddRange(entries);
-                if (historyIndex < history.Count - 1)
-                    history.RemoveRange(historyIndex + 1, history.Count - historyIndex - 1);
-                if (history.Count == 0 || !string.Equals(history[^1], directory, StringComparison.Ordinal))
-                    history.Add(directory);
-                historyIndex = history.Count - 1;
+                _loaded.Clear();
+                _loaded.AddRange(entries);
+                if (_historyIndex < _history.Count - 1)
+                    _history.RemoveRange(_historyIndex + 1, _history.Count - _historyIndex - 1);
+                if (_history.Count == 0 || !string.Equals(_history[^1], directory, StringComparison.Ordinal))
+                    _history.Add(directory);
+                _historyIndex = _history.Count - 1;
                 Rebuild();
                 return true;
             }
@@ -94,14 +94,14 @@ public sealed class FileBrowser
         }
         catch (Exception exception) when (IsFileSystemError(exception))
         {
-            if (ReferenceEquals(loading, next)) Error = exception.Message;
+            if (ReferenceEquals(_loading, next)) Error = exception.Message;
             return false;
         }
         finally
         {
-            lock (loaded)
+            lock (_loaded)
             {
-                if (ReferenceEquals(loading, next)) IsLoading = false;
+                if (ReferenceEquals(_loading, next)) IsLoading = false;
             }
         }
     }
@@ -121,13 +121,13 @@ public sealed class FileBrowser
         try
         {
             var candidate = Path.Combine(CurrentPath, name.Trim());
-            if (await fileSystem.DirectoryExistsAsync(candidate, cancellationToken).ConfigureAwait(false))
+            if (await _fileSystem.DirectoryExistsAsync(candidate, cancellationToken).ConfigureAwait(false))
             {
                 Error = $"'{name}' already exists.";
                 return null;
             }
 
-            var path = await fileSystem.CreateDirectoryAsync(CurrentPath, name.Trim(), cancellationToken)
+            var path = await _fileSystem.CreateDirectoryAsync(CurrentPath, name.Trim(), cancellationToken)
                 .ConfigureAwait(false);
             await LoadCurrentAsync(CurrentPath, cancellationToken).ConfigureAwait(false);
             return path;
@@ -145,11 +145,11 @@ public sealed class FileBrowser
         Error = null;
         try
         {
-            var entries = await fileSystem.EnumerateAsync(path, cancellationToken).ConfigureAwait(false);
-            lock (loaded)
+            var entries = await _fileSystem.EnumerateAsync(path, cancellationToken).ConfigureAwait(false);
+            lock (_loaded)
             {
-                loaded.Clear();
-                loaded.AddRange(entries);
+                _loaded.Clear();
+                _loaded.AddRange(entries);
                 Rebuild();
             }
         }
@@ -164,19 +164,19 @@ public sealed class FileBrowser
     }
 
     /// <summary>The column the listing is ordered by.</summary>
-    public FileSortColumn Sort => sort;
+    public FileSortColumn Sort => _sort;
 
     /// <summary>Whether the listing is ordered ascending.</summary>
-    public bool Ascending => ascending;
+    public bool Ascending => _ascending;
 
     /// <summary>Whether entries the platform marks hidden are listed.</summary>
     public bool ShowHidden
     {
-        get => showHidden;
+        get => _showHidden;
         set
         {
-            if (showHidden == value) return;
-            showHidden = value;
+            if (_showHidden == value) return;
+            _showHidden = value;
             Rebuild();
         }
     }
@@ -184,12 +184,12 @@ public sealed class FileBrowser
     /// <summary>A substring the listed names must contain. Empty lists everything.</summary>
     public string Search
     {
-        get => search;
+        get => _search;
         set
         {
             var next = value;
-            if (search == next) return;
-            search = next;
+            if (_search == next) return;
+            _search = next;
             Rebuild();
         }
     }
@@ -197,12 +197,12 @@ public sealed class FileBrowser
     /// <summary>The extensions files are narrowed to. Never hides directories.</summary>
     public FileDialogFilter Filter
     {
-        get => filter;
+        get => _filter;
         set
         {
             var next = value ?? FileDialogFilter.All;
-            if (ReferenceEquals(filter, next)) return;
-            filter = next;
+            if (ReferenceEquals(_filter, next)) return;
+            _filter = next;
             Rebuild();
         }
     }
@@ -211,19 +211,19 @@ public sealed class FileBrowser
     public async ValueTask GoBackAsync(CancellationToken cancellationToken = default)
     {
         if (!CanGoBack) return;
-        await NavigateHistoryAsync(historyIndex - 1, cancellationToken).ConfigureAwait(false);
+        await NavigateHistoryAsync(_historyIndex - 1, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Moves to the next history entry asynchronously.</summary>
     public async ValueTask GoForwardAsync(CancellationToken cancellationToken = default)
     {
         if (!CanGoForward) return;
-        await NavigateHistoryAsync(historyIndex + 1, cancellationToken).ConfigureAwait(false);
+        await NavigateHistoryAsync(_historyIndex + 1, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Moves to the parent directory asynchronously.</summary>
     public ValueTask<bool> GoUpAsync(CancellationToken cancellationToken = default) =>
-        fileSystem.GetParent(CurrentPath) is { } parent
+        _fileSystem.GetParent(CurrentPath) is { } parent
             ? NavigateAsync(parent, cancellationToken)
             : ValueTask.FromResult(false);
 
@@ -233,14 +233,14 @@ public sealed class FileBrowser
         Error = null;
         try
         {
-            var target = history[index];
-            var entries = await fileSystem.EnumerateAsync(target, cancellationToken).ConfigureAwait(false);
-            lock (loaded)
+            var target = _history[index];
+            var entries = await _fileSystem.EnumerateAsync(target, cancellationToken).ConfigureAwait(false);
+            lock (_loaded)
             {
-                historyIndex = index;
+                _historyIndex = index;
                 CurrentPath = target;
-                loaded.Clear();
-                loaded.AddRange(entries);
+                _loaded.Clear();
+                _loaded.AddRange(entries);
                 Rebuild();
             }
         }
@@ -260,11 +260,11 @@ public sealed class FileBrowser
     /// <param name="column">The column to order by.</param>
     public void SortBy(FileSortColumn column)
     {
-        if (sort == column) ascending = !ascending;
+        if (_sort == column) _ascending = !_ascending;
         else
         {
-            sort = column;
-            ascending = true;
+            _sort = column;
+            _ascending = true;
         }
 
         Rebuild();
@@ -276,30 +276,30 @@ public sealed class FileBrowser
     /// </summary>
     /// <returns>Every segment from the root to the current directory.</returns>
     public IReadOnlyList<(string Label, string Path)> Breadcrumbs()
-        => fileSystem.GetBreadcrumbs(CurrentPath);
+        => _fileSystem.GetBreadcrumbs(CurrentPath);
 
     /// <summary>Applies the search, the filter and the ordering to what the last read returned.</summary>
     void Rebuild()
     {
-        lock (loaded)
+        lock (_loaded)
         {
-            var visible = loaded.Where(entry =>
-                (showHidden || !entry.IsHidden) &&
-                (search.Length == 0 || entry.Name.Contains(search, StringComparison.OrdinalIgnoreCase)) &&
-                (entry.IsDirectory || filter.Matches(entry.Name)));
+            var visible = _loaded.Where(entry =>
+                (_showHidden || !entry.IsHidden) &&
+                (_search.Length == 0 || entry.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)) &&
+                (entry.IsDirectory || _filter.Matches(entry.Name)));
 
             // Directories lead regardless of the column, which is what every file manager does.
             var ordered = visible.OrderBy(entry => entry.IsDirectory ? 0 : 1);
 
-            Entries = [.. sort switch
+            Entries = [.. _sort switch
             {
-                FileSortColumn.Size => ascending
+                FileSortColumn.Size => _ascending
                     ? ordered.ThenBy(entry => entry.Size)
                     : ordered.ThenByDescending(entry => entry.Size),
-                FileSortColumn.Modified => ascending
+                FileSortColumn.Modified => _ascending
                     ? ordered.ThenBy(entry => entry.Modified)
                     : ordered.ThenByDescending(entry => entry.Modified),
-                _ => ascending
+                _ => _ascending
                     ? ordered.ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
                     : ordered.ThenByDescending(entry => entry.Name, StringComparer.OrdinalIgnoreCase),
             }];

@@ -7,7 +7,7 @@ namespace Guinevere;
 /// </summary>
 public sealed class FileDialogState
 {
-    static int nextId;
+    static int _nextId;
 
     internal float ListingScrollY { get; set; }
     internal float ListingViewportHeight { get; set; } = 460f;
@@ -24,7 +24,7 @@ public sealed class FileDialogState
     public FileDialogState(IFileDialogFileSystem fileSystem)
     {
         Browser = new FileBrowser(fileSystem);
-        IdPrefix = $"filedialog/{Interlocked.Increment(ref nextId)}";
+        IdPrefix = $"filedialog/{Interlocked.Increment(ref _nextId)}";
     }
 
     /// <summary>What is being asked for, or null while the dialog is closed.</summary>

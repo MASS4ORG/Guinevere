@@ -6,7 +6,7 @@ namespace MASS4.Autoformers;
 /// </summary>
 public static class FormBuilder
 {
-    const BindingFlags memberScope =
+    const BindingFlags MemberScope =
         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
     static readonly ConditionalWeakTable<Type, Lazy<IReadOnlyList<MemberMetadata>>> MembersByType = new();
@@ -63,7 +63,7 @@ public static class FormBuilder
         return MembersByType.GetValue(type, static t =>
             new Lazy<IReadOnlyList<MemberMetadata>>(() =>
                 Array.AsReadOnly([
-                    .. t.GetMembers(memberScope)
+                    .. t.GetMembers(MemberScope)
                         .Where(member => member is FieldInfo { FieldType.IsByRefLike: false } || member is PropertyInfo
                             {
                                 GetMethod: not null

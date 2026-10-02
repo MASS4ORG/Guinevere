@@ -7,25 +7,25 @@ namespace MASS4.Autoformers;
 /// </summary>
 public sealed class FormField
 {
-    readonly MemberMetadata? metadata;
-    readonly Func<object?> read;
-    readonly Func<object?, bool> write;
-    readonly Action<object>? mutationNotifier;
-    readonly bool forcedReadOnly;
+    readonly MemberMetadata? _metadata;
+    readonly Func<object?> _read;
+    readonly Func<object?, bool> _write;
+    readonly Action<object>? _mutationNotifier;
+    readonly bool _forcedReadOnly;
 
     FormField(MemberMetadata metadata, object target, FormOptions options)
     {
-        this.metadata = metadata;
+        _metadata = metadata;
         Options = options;
-        mutationNotifier = options.MutationNotifier;
-        forcedReadOnly = options.ReadOnly;
+        _mutationNotifier = options.MutationNotifier;
+        _forcedReadOnly = options.ReadOnly;
 
         Target = target;
         Name = metadata.Member.Name;
         Label = metadata.Label;
         ValueType = metadata.ValueType;
 
-        read = () =>
+        _read = () =>
         {
             try { return metadata.GetValue(target); }
             catch (Exception ex)
@@ -34,7 +34,7 @@ public sealed class FormField
                 return null;
             }
         };
-        write = value => MemberWriter.TrySet(metadata, target, value, options);
+        _write = value => MemberWriter.TrySet(metadata, target, value, options);
     }
 
     /// <summary>
@@ -45,10 +45,10 @@ public sealed class FormField
     internal FormField(string name, Type valueType, object target, Func<object?> read,
         Func<object?, bool> write, Action<object>? mutationNotifier, bool isReadOnly)
     {
-        this.read = read;
-        this.write = write;
-        this.mutationNotifier = mutationNotifier;
-        forcedReadOnly = isReadOnly;
+        _read = read;
+        _write = write;
+        _mutationNotifier = mutationNotifier;
+        _forcedReadOnly = isReadOnly;
 
         Target = target;
         Name = name;
@@ -78,7 +78,7 @@ public sealed class FormField
     public Type ValueType { get; }
 
     /// <summary>Cached metadata for a reflected member; null for collection entries.</summary>
-    public MemberMetadata? Metadata => metadata;
+    public MemberMetadata? Metadata => _metadata;
 
     /// <summary>Creates a field over a reflected field or property of <paramref name="target"/>.</summary>
     /// <param name="member">The field or property.</param>
@@ -92,7 +92,7 @@ public sealed class FormField
     }
 
     /// <summary>Reads the current value.</summary>
-    public object? GetValue() => read();
+    public object? GetValue() => _read();
 
     /// <summary>Creates a calculated display field without adding a member to the inspected type.</summary>
     public static FormField Display<T>(string label, object target, Func<T> read) =>
@@ -104,18 +104,18 @@ public sealed class FormField
     /// </summary>
     /// <param name="value">The value to write.</param>
     /// <returns>True if the write succeeded.</returns>
-    public bool SetValue(object? value) => !IsReadOnly && write(value);
+    public bool SetValue(object? value) => !IsReadOnly && _write(value);
 
     /// <summary>
     /// Reports that the value behind this field was changed in place, for types edited through their
     /// own properties rather than by assignment — a transform, say.
     /// </summary>
-    public void Touch() => mutationNotifier?.Invoke(Target);
+    public void Touch() => _mutationNotifier?.Invoke(Target);
 
     /// <summary>Whether the value refuses writes, from <c>[ReadOnly]</c>, a missing setter or a read-only form.</summary>
     public bool IsReadOnly =>
-        forcedReadOnly
-        || metadata?.IsReadOnly == true;
+        _forcedReadOnly
+        || _metadata?.IsReadOnly == true;
 
     /// <summary>The inclusive bounds from <c>[Range]</c>, or null when the value is unbounded.</summary>
     public (float Min, float Max)? Range =>
@@ -124,7 +124,7 @@ public sealed class FormField
     /// <summary>Looks up an attribute on the member, for drawers that honour ranges, tooltips and such.</summary>
     /// <typeparam name="TAttribute">The attribute to find.</typeparam>
     public TAttribute? Attribute<TAttribute>() where TAttribute : Attribute =>
-        metadata?.GetAttribute<TAttribute>();
+        _metadata?.GetAttribute<TAttribute>();
 
     /// <summary>Turns <c>MaxResolution</c> into <c>Max Resolution</c>.</summary>
     internal static string Humanize(string name)

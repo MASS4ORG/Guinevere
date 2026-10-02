@@ -95,13 +95,13 @@ public sealed class ControlPalette : IReadOnlyList<ILayoutNodeScopeValue>
     }
 
     /// <summary>The lowest level background (app window, main canvas).</summary>
-    public Color BaseBackground { get; init; } = Color.FromArgb(255, 248, 248, 248);
+    public Color BaseBackground { get; init; } = Color.FromArgb(255, 242, 242, 242);
 
     /// <summary>Fill of an input, a dropdown button or an unchecked box.</summary>
     public Color Surface { get; init; } = Color.White;
 
     /// <summary>Fill of a surface under the pointer.</summary>
-    public Color SurfaceHover { get; init; } = Color.FromArgb(255, 248, 248, 248);
+    public Color SurfaceHover { get; init; } = Color.FromArgb(255, 242, 242, 242);
 
     /// <summary>Fill of an active or pressed surface.</summary>
     public Color SurfaceActive { get; init; } = Color.FromArgb(255, 240, 240, 240);

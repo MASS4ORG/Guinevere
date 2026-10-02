@@ -108,7 +108,7 @@ public class FormFieldTests
     [Fact]
     public void MetadataRejectsMembersOtherThanFieldsAndProperties()
     {
-        var method = typeof(Model).GetMethod(nameof(Model.ToString))!;
+        var method = typeof(Model).GetMethod(nameof(ToString))!;
 
         Assert.Throws<ArgumentNullException>(() => MemberMetadata.For(null!));
         Assert.Throws<ArgumentException>(() => MemberMetadata.For(method));

@@ -17,6 +17,17 @@ public class FormGroupsTests
     }
 
     [Fact]
+    public void CompartmentBodyIsIndentedAndSitsRightUnderItsHeading()
+    {
+        var gui = Render(new FormRenderContext(), Field(new Outer(), nameof(Outer.Middle)));
+        var head = Find(gui, "f0/head")!.Rect;
+        var body = Find(gui, "f0/body")!.Rect;
+
+        Assert.Equal(head.X + FormIndent.Default, body.X, 0.5f);
+        Assert.InRange(body.Y - (head.Y + head.H), 0f, 4f);
+    }
+
+    [Fact]
     public void FoldedCompartmentKeepsOnlyItsHeading()
     {
         var gui = Render(new FormRenderContext { Collapsed = { "f0" } }, Field(new Outer(), nameof(Outer.Middle)));
@@ -138,7 +149,7 @@ public class FormGroupsTests
         Assert.Null(Find(gui, "f2/entry0/handle"));
 
         var frozen = Render(new FormRenderContext(),
-            MASS4.Autoformers.FormField.ForMember(typeof(Lists).GetProperty(nameof(Lists.Words))!, target,
+            FormField.ForMember(typeof(Lists).GetProperty(nameof(Lists.Words))!, target,
                 new FormOptions { ReadOnly = true }));
         Assert.Null(Find(frozen, "f0/entry0/handle"));
     }
@@ -149,7 +160,7 @@ public class FormGroupsTests
         using var harness = new FrameHarness(800, 1200);
         var target = new Lists();
         var notified = new List<object>();
-        var field = MASS4.Autoformers.FormField.ForMember(typeof(Lists).GetProperty(nameof(Lists.Words))!, target,
+        var field = FormField.ForMember(typeof(Lists).GetProperty(nameof(Lists.Words))!, target,
             new FormOptions { MutationNotifier = notified.Add });
         void Draw(Gui gui) => gui.FormField(field, "words");
 
@@ -226,7 +237,7 @@ public class FormGroupsTests
     }
 
     static FormField Field(object target, string name) =>
-        MASS4.Autoformers.FormField.ForMember(target.GetType().GetMember(name)[0], target);
+        FormField.ForMember(target.GetType().GetMember(name)[0], target);
 
     static LayoutNode? Find(Gui gui, string id) => Walk(gui.RootNode!).FirstOrDefault(node => node.Id == id);
 

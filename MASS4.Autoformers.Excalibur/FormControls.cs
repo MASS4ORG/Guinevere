@@ -43,7 +43,7 @@ public static class FormControls
         using (gui.Node(-1, rowHeight, id).ExpandWidth().Direction(Axis.Horizontal).Gap(6f).Enter())
         {
             MarkModified(gui, modified);
-            using (gui.Node(style.LabelWidth, style.RowHeight, $"{id}/label").Enter())
+            using (gui.Node(style.LabelWidth, style.RowHeight, $"{id}/label").ContentAlignY(0.5f).Enter())
             {
                 var interactive = labelInteraction is not null && gui.Pass == Pass.Pass2Render;
                 var hot = interactive && gui.GetInteractable().OnHover();

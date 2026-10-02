@@ -31,7 +31,7 @@ public class FormBuilderTests
     {
         var names = Names(typeof(Visibility));
 
-        Assert.Contains("secret", names);
+        Assert.Contains("_secret", names);
         Assert.Contains("SecretProperty", names);
     }
 
@@ -46,7 +46,7 @@ public class FormBuilderTests
     {
         var names = Names(typeof(Visibility));
 
-        Assert.DoesNotContain("privateField", names);
+        Assert.DoesNotContain("_privateField", names);
         Assert.DoesNotContain(nameof(Visibility.GetOnly), names);
         Assert.DoesNotContain("<PublicProperty>k__BackingField", names);
     }
@@ -60,7 +60,7 @@ public class FormBuilderTests
         Assert.Contains(nameof(Visibility.Frozen), names);
         Assert.True(MemberMetadata.For(frozen).IsReadOnly);
         Assert.DoesNotContain(nameof(Visibility.HiddenFrozen), names);
-        Assert.DoesNotContain("privateFrozen", names);
+        Assert.DoesNotContain("_privateFrozen", names);
     }
 
     [Fact]
@@ -274,15 +274,15 @@ public class FormBuilderTests
         public int GetOnly => 1;
         public readonly int Frozen = 1;
         [Hide] public readonly int HiddenFrozen = 1;
-        readonly int privateFrozen = 1;
+        readonly int _privateFrozen = 1;
         [Show] public const int Constant = 1;
-        [Show] int secret;
-        int privateField = 0;
+        [Show] int _secret;
+        int _privateField = 0;
         [Show] int SecretProperty { get; set; }
 
         public int this[int index] => index;
 
-        public void Method() => secret = privateField + SecretProperty + privateFrozen;
+        public void Method() => _secret = _privateField + SecretProperty + _privateFrozen;
     }
 
     sealed class Ordered

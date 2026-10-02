@@ -2,12 +2,12 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    const int listingOverscan = 4;
+    const int ListingOverscan = 4;
     /// <summary>Width of the size column.</summary>
-    const float sizeWidth = 90f;
+    const float SizeWidth = 90f;
 
     /// <summary>Width of the modified column.</summary>
-    const float modifiedWidth = 132f;
+    const float ModifiedWidth = 132f;
 
     /// <summary>
     /// The directory listing: a sortable header over the rows. A click selects, a double click opens
@@ -33,7 +33,7 @@ public static partial class ControlsExtensions
 
                 if (state.Browser.Entries.Count == 0)
                 {
-                    using (gui.Node(-1, rowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
+                    using (gui.Node(-1, RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
                         gui.DrawText(state.Browser.IsLoading ? "Loading…" :
                                 state.Browser.Error is null ? "Nothing here" : "Cannot read this folder",
                             fontSize, palette.TextDim, centerInRect: false);
@@ -42,13 +42,13 @@ public static partial class ControlsExtensions
                 }
 
                 var entries = state.Browser.Entries;
-                var first = Math.Max(0, (int)(state.ListingScrollY / (rowHeight + 1f)) - listingOverscan);
-                var take = (int)(state.ListingViewportHeight / (rowHeight + 1f)) + (listingOverscan * 2) + 1;
+                var first = Math.Max(0, (int)(state.ListingScrollY / (RowHeight + 1f)) - ListingOverscan);
+                var take = (int)(state.ListingViewportHeight / (RowHeight + 1f)) + (ListingOverscan * 2) + 1;
                 var last = Math.Min(entries.Count, first + take);
 
-                ListingSpacer(gui, state.ControlId("pad-top"), first * (rowHeight + 1f));
+                ListingSpacer(gui, state.ControlId("pad-top"), first * (RowHeight + 1f));
                 for (var i = first; i < last; i++) Row(gui, state, entries[i], fontSize);
-                ListingSpacer(gui, state.ControlId("pad-bottom"), (entries.Count - last) * (rowHeight + 1f));
+                ListingSpacer(gui, state.ControlId("pad-bottom"), (entries.Count - last) * (RowHeight + 1f));
 
                 if (gui.Pass == Pass.Pass2Render)
                 {
@@ -69,16 +69,16 @@ public static partial class ControlsExtensions
     {
         var palette = gui.ControlStyle;
 
-        using (gui.Node(-1, rowHeight).ExpandWidth().Direction(Axis.Horizontal).Gap(6f)
+        using (gui.Node(-1, RowHeight).ExpandWidth().Direction(Axis.Horizontal).Gap(6f)
                    .PaddingX(8f).ContentAlignY(0.5f).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
-                gui.DrawRect(new Rect(gui.CurrentNode.Rect.X, gui.CurrentNode.Rect.Y + rowHeight - 1f,
+                gui.DrawRect(new Rect(gui.CurrentNode.Rect.X, gui.CurrentNode.Rect.Y + RowHeight - 1f,
                     gui.CurrentNode.Rect.W, 1f), palette.Border);
 
             Column(gui, state, FileSortColumn.Name, "Name", 0f, fontSize);
-            Column(gui, state, FileSortColumn.Size, "Size", sizeWidth, fontSize);
-            Column(gui, state, FileSortColumn.Modified, "Modified", modifiedWidth, fontSize);
+            Column(gui, state, FileSortColumn.Size, "Size", SizeWidth, fontSize);
+            Column(gui, state, FileSortColumn.Modified, "Modified", ModifiedWidth, fontSize);
         }
     }
 
@@ -88,8 +88,8 @@ public static partial class ControlsExtensions
     {
         var palette = gui.ControlStyle;
         var active = state.Browser.Sort == column;
-        var node = width > 0f ? gui.Node(width, rowHeight, state.ControlId($"column/{column}"))
-            : gui.Node(-1, rowHeight, state.ControlId($"column/{column}")).Expand();
+        var node = width > 0f ? gui.Node(width, RowHeight, state.ControlId($"column/{column}"))
+            : gui.Node(-1, RowHeight, state.ControlId($"column/{column}")).Expand();
 
         using (node.ContentAlignY(0.5f).Enter())
         {
@@ -108,7 +108,7 @@ public static partial class ControlsExtensions
         var palette = gui.ControlStyle;
         var selected = state.Selected?.FullPath == entry.FullPath;
 
-        using (gui.Node(-1, rowHeight, state.ControlId($"row/{entry.FullPath}")).ExpandWidth()
+        using (gui.Node(-1, RowHeight, state.ControlId($"row/{entry.FullPath}")).ExpandWidth()
                    .Direction(Axis.Horizontal).Gap(6f).PaddingX(4f).ContentAlignY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
@@ -127,11 +127,11 @@ public static partial class ControlsExtensions
                 gui.DrawText(entry.Name, fontSize, palette.Text, centerInRect: false, clip: true);
             }
 
-            using (gui.Node(sizeWidth, rowHeight).ContentAlignY(0.5f).Enter())
-                gui.DrawText(global::Guinevere.FileBrowser.FormatSize(entry.Size), fontSize - 1f, palette.TextDim,
+            using (gui.Node(SizeWidth, RowHeight).ContentAlignY(0.5f).Enter())
+                gui.DrawText(Guinevere.FileBrowser.FormatSize(entry.Size), fontSize - 1f, palette.TextDim,
                     centerInRect: false);
 
-            using (gui.Node(modifiedWidth, rowHeight).ContentAlignY(0.5f).Enter())
+            using (gui.Node(ModifiedWidth, RowHeight).ContentAlignY(0.5f).Enter())
                 gui.DrawText(Modified(entry), fontSize - 1f, palette.TextDim, centerInRect: false);
 
             if (gui.Pass != Pass.Pass2Render || !interactable.OnClick(out var clicks)) return;

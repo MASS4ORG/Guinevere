@@ -48,7 +48,7 @@ sealed class RequiredDrawer : IAttributeDrawer
             if (!IsMissing(field.GetValue())) return;
 
             var style = new FormStyle(gui);
-            using (gui.Node(-1, style.RowHeight, $"{id}/required/error").ExpandWidth().Padding(6f, 0f, 6f, 0f)
+            using (gui.Node(-1, style.RowHeight, $"{id}/required/error").ExpandWidth().Padding(0f, 6f, 0f, 6f)
                        .ContentAlignY(0.5f).Enter())
             {
                 var negative = style.Negative;
@@ -77,16 +77,16 @@ sealed class RequiredDrawer : IAttributeDrawer
 /// Tints a <c>[GUIColor]</c> field: its text takes the color and its surfaces blend toward it. The tint is set on
 /// the field's style scope, so nested content inherits it.
 /// </summary>
-sealed class GUIColorDrawer : IAttributeDrawer
+sealed class GuiColorDrawer : IAttributeDrawer
 {
-    internal static readonly GUIColorDrawer Instance = new();
+    internal static readonly GuiColorDrawer Instance = new();
 
     /// <summary>Inside the title, around everything else.</summary>
     public int Order => -50;
 
     public void Draw(Gui gui, FormField field, Attribute attribute, string id, FormRenderContext context, Action next)
     {
-        var tint = (GUIColorAttribute)attribute;
+        var tint = (GuiColorAttribute)attribute;
         var color = Color.FromArgb(Channel(tint.A), Channel(tint.R), Channel(tint.G), Channel(tint.B));
 
         // Read from the parent: the node keeps its scope across both passes, so reading inside would blend twice.

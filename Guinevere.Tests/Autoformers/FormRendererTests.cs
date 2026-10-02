@@ -332,7 +332,7 @@ public class FormRendererTests
     }
 
     static FormField Field(object target, string name, FormOptions? options = null) =>
-        MASS4.Autoformers.FormField.ForMember(target.GetType().GetMember(name)[0], target, options);
+        FormField.ForMember(target.GetType().GetMember(name)[0], target, options);
 
     static LayoutNode? Find(Gui gui, string id) => Walk(gui.RootNode!).FirstOrDefault(node => node.Id == id);
 

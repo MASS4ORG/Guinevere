@@ -12,19 +12,19 @@ namespace MASS4.Autoformers;
 /// </remarks>
 public sealed class FormDrawers
 {
-    static int epoch;
+    static int _epoch;
 
-    readonly FormDrawers? parent;
-    bool frozen;
-    readonly Lock gate = new();
-    readonly Dictionary<Type, List<Slot<IPropertyDrawer>>> types = [];
-    readonly Dictionary<Type, List<Slot<IAttributeDrawer>>> attributes = [];
-    readonly List<Predicate> predicates = [];
-    long sequence;
+    readonly FormDrawers? _parent;
+    bool _frozen;
+    readonly Lock _gate = new();
+    readonly Dictionary<Type, List<Slot<IPropertyDrawer>>> _types = [];
+    readonly Dictionary<Type, List<Slot<IAttributeDrawer>>> _attributes = [];
+    readonly List<Predicate> _predicates = [];
+    long _sequence;
 
-    int cacheEpoch = -1;
-    ConditionalWeakTable<Type, Lookup> typeCache = new();
-    Predicate[]? predicateCache;
+    int _cacheEpoch = -1;
+    ConditionalWeakTable<Type, Lookup> _typeCache = new();
+    Predicate[]? _predicateCache;
 
     sealed class Slot<T>(T drawer)
     {
@@ -39,10 +39,10 @@ public sealed class FormDrawers
     public static FormDrawers Default { get; } = CreateDefault();
 
     /// <summary>Creates a scope that falls back to <paramref name="parent"/>, or to <see cref="Default"/>.</summary>
-    public FormDrawers(FormDrawers? parent = null) => this.parent = parent ?? Default;
+    public FormDrawers(FormDrawers? parent = null) => _parent = parent ?? Default;
 
     /// <summary>The root scope behind <see cref="Default"/>, which has no parent.</summary>
-    FormDrawers(bool isRoot) => parent = isRoot ? null : Default;
+    FormDrawers(bool isRoot) => _parent = isRoot ? null : Default;
 
     /// <summary>
     /// Registers a drawer for a value type; it also serves derived types, implementations of an interface and
@@ -52,7 +52,7 @@ public sealed class FormDrawers
     {
         ArgumentNullException.ThrowIfNull(valueType);
         ArgumentNullException.ThrowIfNull(drawer);
-        return Register(types, valueType, drawer);
+        return Register(_types, valueType, drawer);
     }
 
     /// <summary>
@@ -66,16 +66,16 @@ public sealed class FormDrawers
         ThrowIfFrozen();
 
         Predicate entry;
-        lock (gate)
+        lock (_gate)
         {
-            entry = new Predicate(when, drawer, order, 0, sequence++);
-            predicates.Add(entry);
+            entry = new Predicate(when, drawer, order, 0, _sequence++);
+            _predicates.Add(entry);
         }
 
         Changed();
         return new Registration(() =>
         {
-            lock (gate) predicates.Remove(entry);
+            lock (_gate) _predicates.Remove(entry);
             Changed();
         });
     }
@@ -84,7 +84,7 @@ public sealed class FormDrawers
     public IDisposable Add<TAttribute>(IAttributeDrawer drawer) where TAttribute : Attribute
     {
         ArgumentNullException.ThrowIfNull(drawer);
-        return Register(attributes, typeof(TAttribute), drawer);
+        return Register(_attributes, typeof(TAttribute), drawer);
     }
 
     /// <summary>
@@ -114,10 +114,10 @@ public sealed class FormDrawers
     internal IPropertyDrawer? TypeDrawer(Type valueType)
     {
         Refresh();
-        if (typeCache.TryGetValue(valueType, out var hit)) return hit.Drawer;
+        if (_typeCache.TryGetValue(valueType, out var hit)) return hit.Drawer;
 
         var lookup = new Lookup(Resolve(valueType));
-        typeCache.AddOrUpdate(valueType, lookup);
+        _typeCache.AddOrUpdate(valueType, lookup);
         return lookup.Drawer;
     }
 
@@ -125,9 +125,9 @@ public sealed class FormDrawers
     internal IPropertyDrawer? PredicateDrawer(FormField field)
     {
         Refresh();
-        predicateCache ??= [.. Predicates(0).OrderBy(p => p.Order).ThenBy(p => p.Depth).ThenBy(p => p.Sequence)];
+        _predicateCache ??= [.. Predicates(0).OrderBy(p => p.Order).ThenBy(p => p.Depth).ThenBy(p => p.Sequence)];
 
-        foreach (var predicate in predicateCache)
+        foreach (var predicate in _predicateCache)
             if (predicate.When(field)) return predicate.Drawer;
 
         return null;
@@ -137,7 +137,7 @@ public sealed class FormDrawers
     internal IAttributeDrawer? AttributeDrawer(Type attributeType)
     {
         for (var current = attributeType; current is not null && current != typeof(Attribute); current = current.BaseType)
-            if (Exact(static scope => scope.attributes, current) is { } drawer) return drawer;
+            if (Exact(static scope => scope._attributes, current) is { } drawer) return drawer;
 
         return null;
     }
@@ -152,8 +152,8 @@ public sealed class FormDrawers
         drawers.Add<TooltipAttribute>(TooltipDrawer.Instance);
         drawers.Add<TitleAttribute>(TitleDrawer.Instance);
         drawers.Add<RequiredAttribute>(RequiredDrawer.Instance);
-        drawers.Add<GUIColorAttribute>(GUIColorDrawer.Instance);
-        drawers.frozen = true;
+        drawers.Add<GuiColorAttribute>(GuiColorDrawer.Instance);
+        drawers._frozen = true;
         return drawers;
     }
 
@@ -162,7 +162,7 @@ public sealed class FormDrawers
         ThrowIfFrozen();
 
         var slot = new Slot<T>(drawer);
-        lock (gate)
+        lock (_gate)
         {
             if (!map.TryGetValue(key, out var slots)) map[key] = slots = [];
             slots.Add(slot);
@@ -171,7 +171,7 @@ public sealed class FormDrawers
         Changed();
         return new Registration(() =>
         {
-            lock (gate)
+            lock (_gate)
                 if (map.TryGetValue(key, out var slots) && slots.Remove(slot) && slots.Count == 0)
                     map.Remove(key);
             Changed();
@@ -182,9 +182,9 @@ public sealed class FormDrawers
     {
         for (var current = valueType; current is not null; current = current.BaseType)
         {
-            if (Exact(static scope => scope.types, current) is { } drawer) return drawer;
+            if (Exact(static scope => scope._types, current) is { } drawer) return drawer;
             foreach (var face in current.GetInterfaces())
-                if (Exact(static scope => scope.types, face) is { } byInterface) return byInterface;
+                if (Exact(static scope => scope._types, face) is { } byInterface) return byInterface;
         }
 
         return Nullable.GetUnderlyingType(valueType) is { } underlying ? Resolve(underlying) : null;
@@ -193,8 +193,8 @@ public sealed class FormDrawers
     /// <summary>The latest registration for exactly <paramref name="key"/>, this scope first.</summary>
     T? Exact<T>(Func<FormDrawers, Dictionary<Type, List<Slot<T>>>> map, Type key) where T : class
     {
-        for (var scope = this; scope is not null; scope = scope.parent)
-            lock (scope.gate)
+        for (var scope = this; scope is not null; scope = scope._parent)
+            lock (scope._gate)
                 if (map(scope).TryGetValue(key, out var slots) && slots.Count > 0)
                     return slots[^1].Drawer;
 
@@ -204,33 +204,33 @@ public sealed class FormDrawers
     IEnumerable<Predicate> Predicates(int depth)
     {
         Predicate[] own;
-        lock (gate) own = [.. predicates];
+        lock (_gate) own = [.. _predicates];
 
         var mine = own.Select(p => p with { Depth = depth });
-        return parent is null ? mine : mine.Concat(parent.Predicates(depth + 1));
+        return _parent is null ? mine : mine.Concat(_parent.Predicates(depth + 1));
     }
 
     void Refresh()
     {
-        var current = Volatile.Read(ref epoch);
-        if (cacheEpoch == current) return;
+        var current = Volatile.Read(ref _epoch);
+        if (_cacheEpoch == current) return;
 
-        typeCache = new ConditionalWeakTable<Type, Lookup>();
-        predicateCache = null;
-        cacheEpoch = current;
+        _typeCache = new ConditionalWeakTable<Type, Lookup>();
+        _predicateCache = null;
+        _cacheEpoch = current;
     }
 
-    static void Changed() => Interlocked.Increment(ref epoch);
+    static void Changed() => Interlocked.Increment(ref _epoch);
 
     void ThrowIfFrozen()
     {
-        if (frozen) throw new InvalidOperationException("FormDrawers.Default is read-only; register in a child scope.");
+        if (_frozen) throw new InvalidOperationException("FormDrawers.Default is read-only; register in a child scope.");
     }
 
     sealed class Registration(Action remove) : IDisposable
     {
-        Action? remove = remove;
+        Action? _remove = remove;
 
-        public void Dispose() => Interlocked.Exchange(ref remove, null)?.Invoke();
+        public void Dispose() => Interlocked.Exchange(ref _remove, null)?.Invoke();
     }
 }

@@ -8,47 +8,47 @@ namespace MASS4.Autoformers;
 /// </summary>
 public sealed class CollectionField
 {
-    readonly FormField source;
-    readonly IList? list;
-    readonly IDictionary? dictionary;
-    readonly Type keyType;
+    readonly FormField _source;
+    readonly IList? _list;
+    readonly IDictionary? _dictionary;
+    readonly Type _keyType;
 
     CollectionField(FormField source, IList? list, IDictionary? dictionary,
         Type keyType, Type elementType)
     {
-        this.source = source;
-        this.list = list;
-        this.dictionary = dictionary;
-        this.keyType = keyType;
+        _source = source;
+        _list = list;
+        _dictionary = dictionary;
+        _keyType = keyType;
 
         ElementType = elementType;
     }
 
     /// <summary>Whether entries are addressed by key rather than by position.</summary>
-    public bool IsDictionary => dictionary is not null;
+    public bool IsDictionary => _dictionary is not null;
 
     /// <summary>The type each entry holds — a dictionary's value type, a list's element type.</summary>
     public Type ElementType { get; }
 
     /// <summary>How many entries the collection holds right now.</summary>
-    public int Count => dictionary?.Count ?? list?.Count ?? 0;
+    public int Count => _dictionary?.Count ?? _list?.Count ?? 0;
 
     /// <summary>The field's display label, so a drawer can head the group with it.</summary>
-    public string Label => source.Label;
+    public string Label => _source.Label;
 
     /// <summary>Whether entries may be written.</summary>
-    public bool IsReadOnly => source.IsReadOnly || (list?.IsReadOnly ?? dictionary?.IsReadOnly ?? true);
+    public bool IsReadOnly => _source.IsReadOnly || (_list?.IsReadOnly ?? _dictionary?.IsReadOnly ?? true);
 
     /// <summary>
     /// Whether entries may be added or removed. False for an array and for any dictionary whose key
     /// type offers no way to invent a fresh key.
     /// </summary>
     public bool CanResize => !IsReadOnly
-                             && !(list?.IsFixedSize ?? false)
+                             && !(_list?.IsFixedSize ?? false)
                              && (!IsDictionary || CanInventKey);
 
     /// <summary>Whether entries may be moved: a writable list or array (arrays reorder but never resize).</summary>
-    public bool CanReorder => !IsReadOnly && list is not null;
+    public bool CanReorder => !IsReadOnly && _list is not null;
 
     /// <summary>
     /// Recognises a field holding a collection, or null when it holds something else. A string is a
@@ -85,26 +85,26 @@ public sealed class CollectionField
     /// <returns>One field per entry.</returns>
     public IReadOnlyList<FormField> Entries()
     {
-        if (dictionary is { } map)
+        if (_dictionary is { } map)
         {
             var keys = Keys();
             return [.. keys.Select(key => new FormField(
-                key?.ToString() ?? "null", ElementType, source.Target,
+                key?.ToString() ?? "null", ElementType, _source.Target,
                 () => map.Contains(key!) ? map[key!] : null,
-                value => Mutate($"{source.Name}[{key}]", () => map[key!] = value),
-                _ => source.Touch(), IsReadOnly) { Options = source.Options })];
+                value => Mutate($"{_source.Name}[{key}]", () => map[key!] = value),
+                _ => _source.Touch(), IsReadOnly) { Options = _source.Options })];
         }
 
-        if (list is not { } entries) return [];
+        if (_list is not { } entries) return [];
 
         return [.. Enumerable.Range(0, entries.Count).Select(index => new FormField(
-            $"[{index}]", ElementType, source.Target,
+            $"[{index}]", ElementType, _source.Target,
             () => index < entries.Count ? entries[index] : null,
-            value => index < entries.Count && Mutate($"{source.Name}[{index}]", () => entries[index] = value),
-            _ => source.Touch(), IsReadOnly)
+            value => index < entries.Count && Mutate($"{_source.Name}[{index}]", () => entries[index] = value),
+            _ => _source.Touch(), IsReadOnly)
         {
-            Options = source.Options,
-            CollectionMember = source.Name,
+            Options = _source.Options,
+            CollectionMember = _source.Name,
             CollectionIndex = index,
         })];
     }
@@ -115,9 +115,9 @@ public sealed class CollectionField
     {
         if (!CanResize) return false;
 
-        if (dictionary is not { } map) return Mutate(source.Name, () => list!.Add(Default(ElementType)));
+        if (_dictionary is not { } map) return Mutate(_source.Name, () => _list!.Add(Default(ElementType)));
 
-        return InventKey() is { } key && Mutate(source.Name, () => map[key] = Default(ElementType));
+        return InventKey() is { } key && Mutate(_source.Name, () => map[key] = Default(ElementType));
     }
 
     /// <summary>Removes the entry at <paramref name="index"/> in enumeration order.</summary>
@@ -127,10 +127,10 @@ public sealed class CollectionField
     {
         if (!CanResize || index < 0 || index >= Count) return false;
 
-        if (dictionary is not { } map) return Mutate($"{source.Name}[{index}]", () => list!.RemoveAt(index));
+        if (_dictionary is not { } map) return Mutate($"{_source.Name}[{index}]", () => _list!.RemoveAt(index));
 
         var key = Keys()[index]!;
-        return Mutate($"{source.Name}[{key}]", () => map.Remove(key));
+        return Mutate($"{_source.Name}[{key}]", () => map.Remove(key));
     }
 
     /// <summary>
@@ -144,9 +144,9 @@ public sealed class CollectionField
     {
         if (!CanReorder || from == to || (uint)from >= (uint)Count || (uint)to >= (uint)Count) return false;
 
-        return Mutate($"{source.Name}[{from}]", () =>
+        return Mutate($"{_source.Name}[{from}]", () =>
         {
-            var entries = list!;
+            var entries = _list!;
             var moved = entries[from];
             var step = from < to ? 1 : -1;
             for (var i = from; i != to; i += step) entries[i] = entries[i + step];
@@ -169,19 +169,19 @@ public sealed class CollectionField
         }
         catch (Exception ex)
         {
-            source.Options.Report(FormFailureKind.Write, source.Target, member, ex);
+            _source.Options.Report(FormFailureKind.Write, _source.Target, member, ex);
             return false;
         }
 
-        source.Touch();
+        _source.Touch();
         return true;
     }
 
-    List<object?> Keys() => [.. dictionary!.Keys.Cast<object?>()];
+    List<object?> Keys() => [.. _dictionary!.Keys.Cast<object?>()];
 
     /// <summary>A key type a fresh entry can be invented for: text, or a whole number to count up.</summary>
     bool CanInventKey =>
-        keyType == typeof(string) || keyType == typeof(int) || keyType == typeof(long);
+        _keyType == typeof(string) || _keyType == typeof(int) || _keyType == typeof(long);
 
     /// <summary>
     /// The first key not already present. A dictionary has no "append", so adding an entry from a
@@ -189,13 +189,13 @@ public sealed class CollectionField
     /// </summary>
     object? InventKey()
     {
-        var map = dictionary!;
+        var map = _dictionary!;
 
         for (var i = 0; i < map.Count + 1; i++)
         {
-            var candidate = keyType == typeof(string)
+            var candidate = _keyType == typeof(string)
                 ? (i == 0 ? "New Key" : $"New Key {i}")
-                : keyType == typeof(long) ? (object)(long)i : i;
+                : _keyType == typeof(long) ? (object)(long)i : i;
 
             if (!map.Contains(candidate)) return candidate;
         }

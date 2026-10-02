@@ -2,16 +2,16 @@ namespace MASS4.Attributes;
 
 /// <summary>Tints the field's controls (text and surface); nested content inherits the tint.</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-public sealed class GUIColorAttribute : Attribute
+public sealed class GuiColorAttribute : Attribute
 {
     /// <summary>A tint from channels in 0–1.</summary>
-    public GUIColorAttribute(float r, float g, float b, float a = 1f) => (R, G, B, A) = (r, g, b, a);
+    public GuiColorAttribute(float r, float g, float b, float a = 1f) => (R, G, B, A) = (r, g, b, a);
 
     /// <summary>
     /// A tint from <c>#RRGGBB</c> or <c>#RRGGBBAA</c>. Malformed text gives magenta, so the mistake shows on
     /// screen instead of breaking the form at reflection time.
     /// </summary>
-    public GUIColorAttribute(string hex) => (R, G, B, A) = Parse(hex) ?? (1f, 0f, 1f, 1f);
+    public GuiColorAttribute(string hex) => (R, G, B, A) = Parse(hex) ?? (1f, 0f, 1f, 1f);
 
     /// <summary>Red, 0–1.</summary>
     public float R { get; }

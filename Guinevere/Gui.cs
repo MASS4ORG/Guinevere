@@ -83,7 +83,7 @@ public partial class Gui
         set
         {
             _windowHandler = value;
-            Platform.Register<IWindowHandler>(value);
+            Platform.Register(value);
         }
     }
 

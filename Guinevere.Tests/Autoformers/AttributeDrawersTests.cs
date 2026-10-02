@@ -72,7 +72,7 @@ public class AttributeDrawersTests
     }
 
     [Fact]
-    public void GUIColorTintsTextAndSurfaceForEverythingInside()
+    public void GuiColorTintsTextAndSurfaceForEverythingInside()
     {
         var seen = new List<(Color Text, Color Surface)>();
         var drawers = new FormDrawers();
@@ -83,7 +83,7 @@ public class AttributeDrawersTests
         var (text, surface) = seen[^1];
         Assert.Equal(Color.FromArgb(255, 255, 0, 0), text);
         Assert.NotEqual(ControlPalette.Light.Surface, surface);
-        Assert.Equal(GUIColorDrawer.Blend(ControlPalette.Light.Surface, text, 0.25f), surface);
+        Assert.Equal(GuiColorDrawer.Blend(ControlPalette.Light.Surface, text, 0.25f), surface);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class AttributeDrawersTests
     }
 
     static FormField Field(object target, string name, FormOptions? options = null) =>
-        MASS4.Autoformers.FormField.ForMember(target.GetType().GetMember(name)[0], target, options);
+        FormField.ForMember(target.GetType().GetMember(name)[0], target, options);
 
     static LayoutNode? Find(Gui gui, string id) => Walk(gui.RootNode!).FirstOrDefault(node => node.Id == id);
 
@@ -194,7 +194,7 @@ public class AttributeDrawersTests
         [Required("Pick tags")] public List<string> Tags { get; set; } = [];
         [Required] public string? Present { get; set; }
         [Required] public Inner? Missing { get; set; }
-        [GUIColor("#FF0000")] public int Tinted { get; set; }
+        [GuiColor("#FF0000")] public int Tinted { get; set; }
         [HideLabel] public int Unlabelled { get; set; }
         [TextArea] public string Notes { get; set; } = "";
         [TextArea(3, 10)] public string Long { get; set; } = "";

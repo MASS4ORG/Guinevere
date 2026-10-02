@@ -43,7 +43,7 @@ public sealed record FilePlace(string Label, string Path, string Icon = WidgetIc
     /// Filesystems that are mount points rather than places to store anything. Unix reports dozens of
     /// them from <see cref="DriveInfo.GetDrives"/>, and listing them would bury the real drives.
     /// </summary>
-    static readonly HashSet<string> pseudoFileSystems = new(StringComparer.OrdinalIgnoreCase)
+    static readonly HashSet<string> PseudoFileSystems = new(StringComparer.OrdinalIgnoreCase)
     {
         "autofs", "binfmt_misc", "bpf", "cgroup", "cgroup2", "configfs", "debugfs", "devpts",
         "devtmpfs", "efivarfs", "fuse.gvfsd-fuse", "fusectl", "hugetlbfs", "mqueue", "overlay",
@@ -72,7 +72,7 @@ public sealed record FilePlace(string Label, string Path, string Icon = WidgetIc
             {
                 if (!drive.IsReady) continue;
                 if (drive.DriveType is not (DriveType.Fixed or DriveType.Removable or DriveType.Network)) continue;
-                if (pseudoFileSystems.Contains(drive.DriveFormat)) continue;
+                if (PseudoFileSystems.Contains(drive.DriveFormat)) continue;
 
                 path = drive.RootDirectory.FullName;
                 label = drive.VolumeLabel.Length > 0 ? drive.VolumeLabel : path;

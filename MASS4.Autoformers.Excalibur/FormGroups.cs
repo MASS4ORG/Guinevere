@@ -148,7 +148,7 @@ static class FormGroups
                 .SelectMany(section => section.BodyFields).ToList();
 
             using (gui.Node(-1, -1, $"{id}/body").ExpandWidth().Direction(Axis.Vertical)
-                       .Margin(style.Indent, 0f, 0f, 0f).Enter())
+                       .Margin(0f, 0f, 0f, style.Indent).Enter())
             {
                 gui.CurrentNodeScope.Set(ControlStyles.Value<FormNestingDepth, int>(depth + 1));
                 for (var i = 0; i < fields.Count; i++)
@@ -159,7 +159,7 @@ static class FormGroups
 
     /// <summary>The panel behind a compartment, slightly toward the text color, alternating with depth.</summary>
     internal static Color CompartmentFill(Color background, Color ink, int depth) =>
-        GUIColorDrawer.Blend(background, ink, depth % 2 == 0 ? 0.04f : 0.08f);
+        GuiColorDrawer.Blend(background, ink, depth % 2 == 0 ? 0.04f : 0.08f);
 
     static void DrawCompartment(Gui gui, FormStyle style, int depth)
     {
@@ -186,6 +186,7 @@ static class FormGroups
         {
             FormControls.MarkModified(gui, modified);
             using (gui.Node(style.LabelWidth, style.RowHeight, $"{id}/head/label").Direction(Axis.Horizontal).Gap(2f)
+                       .ContentAlignY(0.5f)
                        .Enter())
             {
                 if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick() && !collapsed.Add(id))

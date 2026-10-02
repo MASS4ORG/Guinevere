@@ -7,7 +7,7 @@ namespace MASS4.Autoformers;
 public static class PopupAnchor
 {
     /// <summary>Height <c>Popup</c> adds above its content for the title bar.</summary>
-    const float titleBarHeight = 30f;
+    const float TitleBarHeight = 30f;
 
     /// <summary>Just under <paramref name="anchor"/>, pulled back inside the window where it would overflow.</summary>
     /// <param name="gui">The GUI for this frame, for the window size.</param>
@@ -22,6 +22,6 @@ public static class PopupAnchor
 
         return new Vector2(
             Math.Clamp(anchor.X, 0f, Math.Max(0f, screen.W - width)),
-            Math.Clamp(anchor.Y + anchor.H, 0f, Math.Max(0f, screen.H - height - titleBarHeight)));
+            Math.Clamp(anchor.Y + anchor.H, 0f, Math.Max(0f, screen.H - height - TitleBarHeight)));
     }
 }

@@ -10,7 +10,7 @@ public static partial class ControlsExtensions
     {
         var palette = gui.ControlStyle;
 
-        using (gui.Node(sidebarWidth, -1).ExpandHeight().Enter())
+        using (gui.Node(SidebarWidth, -1).ExpandHeight().Enter())
         {
             if (gui.Pass == Pass.Pass2Render) gui.DrawBackgroundRect(palette.Surface, 4f);
 
@@ -29,7 +29,7 @@ public static partial class ControlsExtensions
         var palette = gui.ControlStyle;
         var current = string.Equals(state.Browser.CurrentPath, place.Path, StringComparison.OrdinalIgnoreCase);
 
-        using (gui.Node(-1, rowHeight, state.ControlId($"place/{place.Path}")).ExpandWidth()
+        using (gui.Node(-1, RowHeight, state.ControlId($"place/{place.Path}")).ExpandWidth()
                    .Direction(Axis.Horizontal).Gap(6f).PaddingX(6f).ContentAlignY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();

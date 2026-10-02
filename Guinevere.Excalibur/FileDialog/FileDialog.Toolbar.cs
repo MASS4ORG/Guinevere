@@ -9,7 +9,7 @@ public static partial class ControlsExtensions
     static void Toolbar(Gui gui, FileDialogState state, float fontSize)
     {
         var browser = state.Browser;
-        var height = rowHeight + 6f;
+        var height = RowHeight + 6f;
 
         using (gui.Node(-1, height).ExpandWidth().Direction(Axis.Horizontal).Gap(4f)
                    .ContentAlignY(0.5f).Enter())
@@ -85,10 +85,10 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>How many trailing path segments the crumb bar shows before it starts eliding.</summary>
-    const int visibleCrumbs = 4;
+    const int VisibleCrumbs = 4;
 
     /// <summary>
-    /// The crumb trail, cut to its last <see cref="visibleCrumbs"/> segments. A deep path would
+    /// The crumb trail, cut to its last <see cref="VisibleCrumbs"/> segments. A deep path would
     /// otherwise overflow the bar and push the folder the user is actually in out of sight; the
     /// leading "…" steps back into what was dropped, and the whole trail is still there to scroll.
     /// </summary>
@@ -97,13 +97,13 @@ public static partial class ControlsExtensions
         var crumbs = state.Browser.Breadcrumbs();
         var items = new List<BreadcrumbItem>();
 
-        if (crumbs.Count > visibleCrumbs)
+        if (crumbs.Count > VisibleCrumbs)
         {
-            var elided = crumbs[^(visibleCrumbs + 1)];
+            var elided = crumbs[^(VisibleCrumbs + 1)];
             items.Add(new BreadcrumbItem("…", () => open(elided.Path)));
         }
 
-        foreach (var crumb in crumbs.TakeLast(visibleCrumbs))
+        foreach (var crumb in crumbs.TakeLast(VisibleCrumbs))
             items.Add(new BreadcrumbItem(crumb.Label, () => open(crumb.Path),
                 IsCurrent: crumb.Path == state.Browser.CurrentPath));
 

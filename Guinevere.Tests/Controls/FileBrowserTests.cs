@@ -7,30 +7,30 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public sealed class FileBrowserTests : IDisposable
 {
-    readonly string root = Path.Combine(Path.GetTempPath(), $"turian-filebrowser-{Guid.NewGuid():N}");
-    readonly FileBrowser browser = new();
+    readonly string _root = Path.Combine(Path.GetTempPath(), $"turian-filebrowser-{Guid.NewGuid():N}");
+    readonly FileBrowser _browser = new();
 
     /// <summary>A small tree: two folders, three files of different sizes, and a hidden one of each.</summary>
     public FileBrowserTests()
     {
-        Directory.CreateDirectory(Path.Combine(root, "beta"));
-        Directory.CreateDirectory(Path.Combine(root, "Alpha"));
-        Directory.CreateDirectory(Path.Combine(root, ".hidden"));
-        File.WriteAllText(Path.Combine(root, "big.png"), new string('x', 5000));
-        File.WriteAllText(Path.Combine(root, "mid.PNG"), new string('x', 100));
-        File.WriteAllText(Path.Combine(root, "small.txt"), "hi");
+        Directory.CreateDirectory(Path.Combine(_root, "beta"));
+        Directory.CreateDirectory(Path.Combine(_root, "Alpha"));
+        Directory.CreateDirectory(Path.Combine(_root, ".hidden"));
+        File.WriteAllText(Path.Combine(_root, "big.png"), new string('x', 5000));
+        File.WriteAllText(Path.Combine(_root, "mid.PNG"), new string('x', 100));
+        File.WriteAllText(Path.Combine(_root, "small.txt"), "hi");
 
-        browser.NavigateAsync(root, TestContext.Current.CancellationToken).AsTask().GetAwaiter().GetResult();
+        _browser.NavigateAsync(_root, TestContext.Current.CancellationToken).AsTask().GetAwaiter().GetResult();
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        if (Directory.Exists(root)) Directory.Delete(root, true);
+        if (Directory.Exists(_root)) Directory.Delete(_root, true);
         GC.SuppressFinalize(this);
     }
 
-    string Names() => string.Join(",", browser.Entries.Select(entry => entry.Name));
+    string Names() => string.Join(",", _browser.Entries.Select(entry => entry.Name));
 
     /// <summary>Directories lead whatever the column, and hidden entries are left out.</summary>
     [Fact]
@@ -41,7 +41,7 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public void TheHiddenToggleBringsBackDotFiles()
     {
-        browser.ShowHidden = true;
+        _browser.ShowHidden = true;
 
         Assert.Equal(".hidden,Alpha,beta,big.png,mid.PNG,small.txt", Names());
     }
@@ -50,7 +50,7 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public void SortingTheSameColumnTwiceReversesIt()
     {
-        browser.SortBy(FileSortColumn.Name);
+        _browser.SortBy(FileSortColumn.Name);
 
         Assert.Equal("beta,Alpha,small.txt,mid.PNG,big.png", Names());
     }
@@ -59,7 +59,7 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public void AnotherColumnStillKeepsDirectoriesInFront()
     {
-        browser.SortBy(FileSortColumn.Size);
+        _browser.SortBy(FileSortColumn.Size);
 
         Assert.Equal("Alpha,beta,small.txt,mid.PNG,big.png", Names());
     }
@@ -68,7 +68,7 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public void AFilterMatchesCaseInsensitivelyAndSparesFolders()
     {
-        browser.Filter = FileDialogFilter.Of("Images", ".png");
+        _browser.Filter = FileDialogFilter.Of("Images", ".png");
 
         Assert.Equal("Alpha,beta,big.png,mid.PNG", Names());
     }
@@ -77,7 +77,7 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public void SearchMatchesAnyPartOfANameRegardlessOfCase()
     {
-        browser.Search = "ALP";
+        _browser.Search = "ALP";
 
         Assert.Equal("Alpha", Names());
     }
@@ -86,20 +86,20 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public async Task BackAndForwardWalkTheHistory()
     {
-        var child = Path.Combine(root, "beta");
-        await browser.NavigateAsync(child, TestContext.Current.CancellationToken);
-        Assert.True(browser.CanGoBack);
-        Assert.False(browser.CanGoForward);
+        var child = Path.Combine(_root, "beta");
+        await _browser.NavigateAsync(child, TestContext.Current.CancellationToken);
+        Assert.True(_browser.CanGoBack);
+        Assert.False(_browser.CanGoForward);
 
-        await browser.GoBackAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(root, browser.CurrentPath);
-        Assert.True(browser.CanGoForward);
+        await _browser.GoBackAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(_root, _browser.CurrentPath);
+        Assert.True(_browser.CanGoForward);
 
-        await browser.GoForwardAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(child, browser.CurrentPath);
+        await _browser.GoForwardAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(child, _browser.CurrentPath);
 
-        await browser.GoUpAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(root, browser.CurrentPath);
+        await _browser.GoUpAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(_root, _browser.CurrentPath);
     }
 
     /// <summary>
@@ -109,41 +109,41 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public async Task AFilePathOpensTheFolderHoldingIt()
     {
-        Assert.True(await browser.NavigateAsync(Path.Combine(root, "small.txt"),
+        Assert.True(await _browser.NavigateAsync(Path.Combine(_root, "small.txt"),
             TestContext.Current.CancellationToken));
-        Assert.Equal(root, browser.CurrentPath);
+        Assert.Equal(_root, _browser.CurrentPath);
     }
 
     /// <summary>A path that is not there is refused, leaving the listing where it was.</summary>
     [Fact]
     public async Task APathThatIsNotThereIsRefused()
     {
-        Assert.False(await browser.NavigateAsync(Path.Combine(root, "nowhere"),
+        Assert.False(await _browser.NavigateAsync(Path.Combine(_root, "nowhere"),
             TestContext.Current.CancellationToken));
-        Assert.Equal(root, browser.CurrentPath);
+        Assert.Equal(_root, _browser.CurrentPath);
     }
 
     /// <summary>A new folder appears in the listing; a name already taken or empty is refused.</summary>
     [Fact]
     public async Task CreatingAFolderListsItAndRefusesATakenName()
     {
-        Assert.Equal(Path.Combine(root, "Made"),
-            await browser.CreateFolderAsync("Made", TestContext.Current.CancellationToken));
+        Assert.Equal(Path.Combine(_root, "Made"),
+            await _browser.CreateFolderAsync("Made", TestContext.Current.CancellationToken));
         Assert.Contains("Made", Names(), StringComparison.Ordinal);
 
-        Assert.Null(await browser.CreateFolderAsync("Made", TestContext.Current.CancellationToken));
-        Assert.NotNull(browser.Error);
-        Assert.Null(await browser.CreateFolderAsync(" ", TestContext.Current.CancellationToken));
+        Assert.Null(await _browser.CreateFolderAsync("Made", TestContext.Current.CancellationToken));
+        Assert.NotNull(_browser.Error);
+        Assert.Null(await _browser.CreateFolderAsync(" ", TestContext.Current.CancellationToken));
     }
 
     /// <summary>The breadcrumbs run from the filesystem root to the directory being shown.</summary>
     [Fact]
     public void BreadcrumbsRunFromTheRootToHere()
     {
-        var crumbs = browser.Breadcrumbs();
+        var crumbs = _browser.Breadcrumbs();
 
-        Assert.Equal(Path.GetPathRoot(root), crumbs[0].Path);
-        Assert.Equal(root, crumbs[^1].Path);
+        Assert.Equal(Path.GetPathRoot(_root), crumbs[0].Path);
+        Assert.Equal(_root, crumbs[^1].Path);
     }
 
     /// <summary>Sizes are shown in whole units, and something without one shows nothing.</summary>
@@ -162,15 +162,15 @@ public sealed class FileBrowserTests : IDisposable
     {
         if (OperatingSystem.IsWindows()) return;
 
-        var locked = Path.Combine(root, "locked");
+        var locked = Path.Combine(_root, "locked");
         Directory.CreateDirectory(locked);
         File.SetUnixFileMode(locked, UnixFileMode.None);
 
         try
         {
-            Assert.False(await browser.NavigateAsync(locked, TestContext.Current.CancellationToken));
+            Assert.False(await _browser.NavigateAsync(locked, TestContext.Current.CancellationToken));
 
-            Assert.NotNull(browser.Error);
+            Assert.NotNull(_browser.Error);
         }
         finally
         {
@@ -186,11 +186,11 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public async Task ADanglingLinkIsStillListed()
     {
-        File.CreateSymbolicLink(Path.Combine(root, "dangling"), Path.Combine(root, "gone"));
+        File.CreateSymbolicLink(Path.Combine(_root, "dangling"), Path.Combine(_root, "gone"));
 
-        await browser.RefreshAsync(TestContext.Current.CancellationToken);
+        await _browser.RefreshAsync(TestContext.Current.CancellationToken);
 
-        Assert.Null(browser.Error);
+        Assert.Null(_browser.Error);
         Assert.Contains("dangling", Names(), StringComparison.Ordinal);
     }
 
@@ -220,7 +220,7 @@ public sealed class FileBrowserTests : IDisposable
         await state.OpenAsync(new FileDialogRequest
         {
             Mode = FileDialogMode.OpenFile,
-            StartPath = root,
+            StartPath = _root,
             OnClosed = value => result = value,
         }, TestContext.Current.CancellationToken);
 
@@ -231,16 +231,16 @@ public sealed class FileBrowserTests : IDisposable
 
     sealed class DelayedFileSystem : IFileDialogFileSystem
     {
-        readonly TaskCompletionSource<IReadOnlyList<FileEntry>> entries =
+        readonly TaskCompletionSource<IReadOnlyList<FileEntry>> _entries =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void Complete(IReadOnlyList<FileEntry> result) => entries.SetResult(result);
+        public void Complete(IReadOnlyList<FileEntry> result) => _entries.SetResult(result);
 
         public ValueTask<string?> ResolveDirectoryAsync(string path, CancellationToken cancellationToken = default) =>
             ValueTask.FromResult<string?>("/virtual");
 
         public ValueTask<IReadOnlyList<FileEntry>> EnumerateAsync(string path,
-            CancellationToken cancellationToken = default) => new(entries.Task);
+            CancellationToken cancellationToken = default) => new(_entries.Task);
 
         public ValueTask<string> CreateDirectoryAsync(string parentPath, string name,
             CancellationToken cancellationToken = default) => ValueTask.FromResult($"{parentPath}/{name}");

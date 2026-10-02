@@ -8,16 +8,16 @@ public sealed class MemberMetadata
 {
     static readonly ConditionalWeakTable<MemberInfo, Lazy<MemberMetadata>> Cache = new();
 
-    readonly IReadOnlyList<Attribute> attributes;
-    readonly Lazy<Func<object, object?>> read;
+    readonly IReadOnlyList<Attribute> _attributes;
+    readonly Lazy<Func<object, object?>> _read;
 
     MemberMetadata(MemberInfo member)
     {
         Member = member;
         ValueType = ValueTypeOf(member);
-        read = new Lazy<Func<object, object?>>(() => CompileGetter(member));
+        _read = new Lazy<Func<object, object?>>(() => CompileGetter(member));
         Label = FormField.Humanize(member.Name);
-        attributes = Array.AsReadOnly(Attribute.GetCustomAttributes(member, true));
+        _attributes = Array.AsReadOnly(Attribute.GetCustomAttributes(member, true));
         Visibility = Select(attribute => attribute is ShowAttribute or HideAttribute);
         Layout = Select(attribute => attribute is SetOrderAttribute or ExpandAttribute);
         Validation = Select(attribute => attribute is ReadOnlyAttribute or RangeAttribute);
@@ -42,7 +42,7 @@ public sealed class MemberMetadata
     /// <summary>Declared value type.</summary>
     public Type ValueType { get; }
     /// <summary>Ordered attributes, including attributes not yet handled by the core inspector.</summary>
-    public IReadOnlyList<Attribute> Attributes => attributes;
+    public IReadOnlyList<Attribute> Attributes => _attributes;
     /// <summary>Visibility attributes.</summary>
     public IReadOnlyList<Attribute> Visibility { get; }
     /// <summary>Layout and ordering attributes.</summary>
@@ -59,18 +59,18 @@ public sealed class MemberMetadata
     public bool IsReadOnly { get; }
 
     /// <summary>Reads a live value using the getter compiled when metadata was created.</summary>
-    public object? GetValue(object target) => read.Value(target);
+    public object? GetValue(object target) => _read.Value(target);
 
     /// <summary>Finds the first attribute of a given type without reflecting again.</summary>
     public TAttribute? GetAttribute<TAttribute>() where TAttribute : Attribute =>
-        attributes.OfType<TAttribute>().FirstOrDefault();
+        _attributes.OfType<TAttribute>().FirstOrDefault();
 
     /// <summary>Finds all attributes of a given type without reflecting again.</summary>
     public IReadOnlyList<TAttribute> GetAttributes<TAttribute>() where TAttribute : Attribute =>
-        [.. attributes.OfType<TAttribute>()];
+        [.. _attributes.OfType<TAttribute>()];
 
     IReadOnlyList<Attribute> Select(Func<Attribute, bool> predicate) =>
-        Array.AsReadOnly([.. attributes.Where(predicate)]);
+        Array.AsReadOnly([.. _attributes.Where(predicate)]);
 
     /// <summary>
     /// Constants never show; <c>[Show]</c> otherwise always does, and members shown by default do
