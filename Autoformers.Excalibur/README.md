@@ -1,6 +1,6 @@
-# MASS4.Autoformers.Excalibur
+# Autoformers.Excalibur
 
-Draws a `MASS4.Autoformers` model with Excalibur controls.
+Draws a `Autoformers` model with Excalibur controls.
 
 ```csharp
 var context = new FormRenderContext();                 // keep one per panel: fold state lives here
@@ -16,4 +16,4 @@ gui.Form(FormBuilder.Build(settings), "settings", context);
   `CompactFontSize`) plus `FormLabelWidth`, `FormIndent`, `FormCaretOpen` and `FormCaretClosed`.
 - Drawing is single-threaded (the GUI thread); registration may happen from any thread.
 
-Depends on Guinevere, Guinevere.Excalibur and MASS4.Autoformers only; never on Gaya or Turian.
+Depends on Guinevere, Guinevere.Excalibur and Autoformers only; never on Gaya or Turian.

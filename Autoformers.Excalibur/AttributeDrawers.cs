@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>Draws a <c>[Title]</c> heading, optional subtitle and separating line above the field.</summary>
 sealed class TitleDrawer : IAttributeDrawer

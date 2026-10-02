@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// Everything an inspector needs to draw an object: its sections, each holding editable fields. The

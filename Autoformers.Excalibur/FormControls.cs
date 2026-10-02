@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// The layout pieces form drawers share — a labelled row, scrub numbers, buttons, fold arrows — so a custom

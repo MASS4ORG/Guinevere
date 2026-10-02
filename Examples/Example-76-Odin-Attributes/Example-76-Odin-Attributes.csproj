@@ -16,7 +16,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
-        <ProjectReference Include="..\..\MASS4.Autoformers.Excalibur\MASS4.Autoformers.Excalibur.csproj" />
+        <ProjectReference Include="..\..\Autoformers.Excalibur\Autoformers.Excalibur.csproj" />
         <ProjectReference Include="..\..\Integrations\Guinevere.OpenGL.SilkNET\Guinevere.OpenGL.SilkNET.csproj" />
     </ItemGroup>
 

@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// One editable value of an object, described without reference to any UI toolkit: what it is called,

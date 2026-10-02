@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// A scope of drawer registrations. Every <c>Add</c> returns an <see cref="IDisposable"/> that removes exactly

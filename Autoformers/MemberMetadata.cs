@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// Type-level inspector information. Constructed once per member, independently of the inspected

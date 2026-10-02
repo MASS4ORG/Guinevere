@@ -5,13 +5,13 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>MASS4.Autoformers</RootNamespace>
+        <RootNamespace>Autoformers</RootNamespace>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
         <!-- NuGet Package Properties -->
-        <Title>MASS4 Autoformers for Excalibur</Title>
+        <Title>Autoformers for Excalibur</Title>
         <PackageId>MASS4.Autoformers.Excalibur</PackageId>
-        <Description>Draws MASS4.Autoformers models with Excalibur controls: labelled rows, collections, nested objects and scoped, disposable drawer registries. Styled through inherited Guinevere control tokens.</Description>
+        <Description>Draws Autoformers models with Excalibur controls: labelled rows, collections, nested objects and scoped, disposable drawer registries. Styled through inherited Guinevere control tokens.</Description>
         <Company>MASS4</Company>
         <Product>Guinevere</Product>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -30,7 +30,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Guinevere\Guinevere.csproj"/>
         <ProjectReference Include="..\Guinevere.Excalibur\Guinevere.Excalibur.csproj"/>
-        <ProjectReference Include="..\MASS4.Autoformers\MASS4.Autoformers.csproj"/>
+        <ProjectReference Include="..\Autoformers\Autoformers.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

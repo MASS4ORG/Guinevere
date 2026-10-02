@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>An object with a composed form and a selection identity supplied by its consumer.</summary>
 /// <param name="Target">The actual settings or content being inspected.</param>

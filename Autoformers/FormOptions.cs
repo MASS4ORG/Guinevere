@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// A consumer's policy for a form: how edits are reported, which values may be cleared and where caught

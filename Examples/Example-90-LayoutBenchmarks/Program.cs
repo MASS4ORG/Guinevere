@@ -149,8 +149,8 @@ static void RunFreshStyleApply(string name, string css)
     }
 }
 
-static void Unsupported(string name, string reason) =>
-    Console.WriteLine($"| {name} (unsupported: {reason}) | 0 | — | — | — |");
+// static void Unsupported(string name, string reason) =>
+//     Console.WriteLine($"| {name} (unsupported: {reason}) | 0 | — | — | — |");
 
 static void RunConstruction(int count)
 {

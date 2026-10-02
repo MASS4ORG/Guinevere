@@ -1,5 +1,5 @@
 using Guinevere;
-using MASS4.Autoformers;
+using Autoformers;
 
 namespace Example_76_Odin_Attributes;
 

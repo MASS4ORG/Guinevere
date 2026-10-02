@@ -1,6 +1,6 @@
 # Example-76 — Autoformers: Attributes
 
-A tour of **Autoformers** (`MASS4.Autoformers` + `MASS4.Autoformers.Excalibur`) in the style of a well-known
+A tour of **Autoformers** (`Autoformers` + `Autoformers.Excalibur`) in the style of a well-known
 inspector's attribute gallery. Instead of screenshots, every page shows the real thing: the live, editable form and
 the C# class that produces it.
 

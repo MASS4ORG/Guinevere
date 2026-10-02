@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// Turns an object into a <see cref="FormModel"/> by reflection. The member list is cached per type,

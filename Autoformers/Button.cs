@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// A button the inspector draws to run an action on the inspected object — the editor half of a

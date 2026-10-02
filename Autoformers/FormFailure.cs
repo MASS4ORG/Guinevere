@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>What a form was doing when it caught an exception.</summary>
 public enum FormFailureKind

@@ -1,5 +1,5 @@
 using MASS4.Attributes;
-using MASS4.Autoformers;
+using Autoformers;
 
 namespace Guinevere.Tests.Autoformers;
 

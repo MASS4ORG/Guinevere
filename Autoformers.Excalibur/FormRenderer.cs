@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// Draws form models, sections and fields with Excalibur controls. Call from the same call site in both passes:
@@ -123,7 +123,7 @@ public static class FormRenderer
             drawer.Draw(gui, field, id, context);
     }
 
-    /// <summary>Draws a collection entry like <see cref="FormField(Gui, MASS4.Autoformers.FormField, string, FormRenderContext?)"/>, optionally without its label.</summary>
+    /// <summary>Draws a collection entry like <see cref="FormField(Gui, Autoformers.FormField, string, FormRenderContext?)"/>, optionally without its label.</summary>
     internal static void FormEntry(Gui gui, FormField field, string id, FormRenderContext context, bool hideLabel) =>
         Decorate(gui, field, id, context, () => DrawProperty(gui, field, id, context, hideLabel));
 

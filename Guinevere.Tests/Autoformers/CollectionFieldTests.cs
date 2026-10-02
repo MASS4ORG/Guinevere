@@ -1,5 +1,5 @@
 using System.Collections.ObjectModel;
-using MASS4.Autoformers;
+using Autoformers;
 
 namespace Guinevere.Tests.Autoformers;
 

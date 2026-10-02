@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>Foldable groups: collections of entries and nested objects, drawn with the same field drawers.</summary>
 static class FormGroups

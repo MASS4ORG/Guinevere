@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// Draws a field: its whole labelled presentation, or only its value when the caller owns the label. Called in

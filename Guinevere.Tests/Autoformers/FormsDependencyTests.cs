@@ -1,5 +1,5 @@
 using MASS4.Attributes;
-using MASS4.Autoformers;
+using Autoformers;
 
 namespace Guinevere.Tests.Autoformers;
 
@@ -29,7 +29,7 @@ public class FormsDependencyTests
 
         Assert.DoesNotContain(names, name => name.StartsWith("Gaya", StringComparison.Ordinal)
                                              || name.StartsWith("Turian", StringComparison.Ordinal));
-        Assert.Contains("MASS4.Autoformers", names);
+        Assert.Contains("Autoformers", names);
     }
 
     static void AssertNoForbiddenReferences(System.Reflection.Assembly assembly)

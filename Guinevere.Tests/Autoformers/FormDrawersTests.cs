@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using MASS4.Attributes;
-using MASS4.Autoformers;
+using Autoformers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -182,7 +182,7 @@ public class FormDrawersTests
     {
         const string source = """
             using Guinevere;
-            using MASS4.Autoformers;
+            using Autoformers;
             using MASS4.Attributes;
             namespace Plugin;
             public sealed class Edited;

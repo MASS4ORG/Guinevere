@@ -11,4 +11,4 @@ The model never saves, validates or logs on its own. `FormOptions` supplies the 
 
 Consumers add their own structure on top, for example a heading switch through `FormSection.EnabledField`, or calculated rows with `FormField.Display`.
 
-Dependency direction: `MASS4.Attributes` → `MASS4.Autoformers` → renderers → applications. This library references no GUI toolkit.
+Dependency direction: `MASS4.Attributes` → `Autoformers` → renderers → applications. This library references no GUI toolkit.

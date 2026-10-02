@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>An object that names itself in the inspector instead of showing its type name as the form's title.</summary>
 public interface ITitled

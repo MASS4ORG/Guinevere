@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>The fallback drawers for booleans, text, enums and numbers, plus the read-only summary.</summary>
 static class BuiltinDrawers

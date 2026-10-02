@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>A group of fields drawn under one heading, such as an object's own members.</summary>
 /// <param name="Title">The heading.</param>

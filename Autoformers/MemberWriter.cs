@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>Writes a reflected member under a form's <see cref="FormOptions"/>.</summary>
 static class MemberWriter

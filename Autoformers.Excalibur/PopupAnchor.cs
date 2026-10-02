@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// Places a popup against the control that opened it. <c>Popup</c> takes a screen position and otherwise opens

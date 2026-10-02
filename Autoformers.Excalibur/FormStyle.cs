@@ -1,6 +1,6 @@
 #pragma warning disable CS1591
 
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>Width of the label column in a form row.</summary>
 public readonly struct FormLabelWidth : IStyleToken<float> { public static float Default => 96f; }

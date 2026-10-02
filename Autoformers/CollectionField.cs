@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// A <see cref="FormField"/> holding a list, an array or a dictionary, seen as a sequence of

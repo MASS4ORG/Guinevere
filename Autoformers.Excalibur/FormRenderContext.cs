@@ -1,4 +1,4 @@
-namespace MASS4.Autoformers;
+namespace Autoformers;
 
 /// <summary>
 /// What a host supplies to draw forms: drawers, fold state and its own rules. Keep one per panel so fold state
