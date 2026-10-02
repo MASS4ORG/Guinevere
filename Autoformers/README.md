@@ -1,4 +1,4 @@
-# Guinevere Forms
+# Autoformers
 
 A GUI-free form model. `FormBuilder.Build(target, options)` reflects a plain C# object into a `FormModel`: sections of `FormField`s, `CollectionField` views over lists, arrays and dictionaries, and `[Button]` actions. Member visibility, order, read-only state, ranges and tooltips come from `MASS4.Attributes`.
 

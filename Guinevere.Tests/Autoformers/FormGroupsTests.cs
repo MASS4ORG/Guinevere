@@ -1,6 +1,6 @@
+using Autoformers;
 using Guinevere.Tests.Mocks;
 using MASS4.Attributes;
-using Autoformers;
 
 namespace Guinevere.Tests.Autoformers;
 

@@ -11,12 +11,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Integrations\Guinevere.OpenGL.SilkNET\Guinevere.OpenGL.SilkNET.csproj" />
-        <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="../../Integrations/Guinevere.OpenGL.SilkNET/Guinevere.OpenGL.SilkNET.csproj" />
+        <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="EmbeddedResources\*" />
+        <EmbeddedResource Include="EmbeddedResources/*" />
     </ItemGroup>
 
 </Project>

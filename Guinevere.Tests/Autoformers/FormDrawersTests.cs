@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using MASS4.Attributes;
 using Autoformers;
+using MASS4.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 

@@ -45,6 +45,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   - [Scrolling & Clipping](#scrolling--clipping)
   - [Headless Controls](#headless-controls)
   - [Excalibur Controls](#excalibur-controls)
+  - [Autoformers](#autoformers)
   - [Layering & Transforms](#layering--transforms)
   - [Performance](#performance)
 - [Examples](#examples)
@@ -321,6 +322,22 @@ Platform integrations publish input, clipboard, window, timing, renderer and DPI
 `gui.Platform`. Optional cursor, native-dialog, texture, GPU-effect and accessibility features use
 typed discovery with explicit fallback behavior. See the
 [platform integration guide](docs/platform-capabilities.md) for contracts and conformance checks.
+
+### Autoformers
+
+Attribute-driven forms ship as three packages. `MASS4.Attributes` holds the metadata
+(`[Show]`, `[Range]`, `[Button]`, `[Title]`, …) with no GUI dependency.
+[`Autoformers`](Autoformers/README.md) reflects a plain object into a GUI-free
+`FormModel` of sections, fields and collections. `Autoformers.Excalibur` renders that model
+with Excalibur controls through `gui.Form`.
+
+```powershell
+dotnet add package MASS4.Attributes
+dotnet add package MASS4.Autoformers
+dotnet add package MASS4.Autoformers.Excalibur
+```
+
+See [Example 76](Examples/Example-76-Odin-Attributes/README.md) for a live tour.
 
 ### Layering & Transforms
 

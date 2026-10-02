@@ -16,4 +16,4 @@ gui.Form(FormBuilder.Build(settings), "settings", context);
   `CompactFontSize`) plus `FormLabelWidth`, `FormIndent`, `FormCaretOpen` and `FormCaretClosed`.
 - Drawing is single-threaded (the GUI thread); registration may happen from any thread.
 
-Depends on Guinevere, Guinevere.Excalibur and Autoformers only; never on Gaya or Turian.
+Depends on `MASS4.Guinevere`, `MASS4.Guinevere.Excalibur` and `Autoformers` only; never on Gaya or Turian.

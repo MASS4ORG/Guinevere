@@ -11,13 +11,13 @@
 
     <ItemGroup>
         <!-- The demo classes are compiled and also shown on screen, so the code displayed is the code that runs. -->
-        <EmbeddedResource Include="Demos\*.cs" LogicalName="Demos.%(Filename)%(Extension)" />
+        <EmbeddedResource Include="Demos/*.cs" LogicalName="Demos.%(Filename)%(Extension)" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
-        <ProjectReference Include="..\..\Autoformers.Excalibur\Autoformers.Excalibur.csproj" />
-        <ProjectReference Include="..\..\Integrations\Guinevere.OpenGL.SilkNET\Guinevere.OpenGL.SilkNET.csproj" />
+        <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="../../Autoformers.Excalibur/Autoformers.Excalibur.csproj" />
+        <ProjectReference Include="../../Integrations/Guinevere.OpenGL.SilkNET/Guinevere.OpenGL.SilkNET.csproj" />
     </ItemGroup>
 
 </Project>

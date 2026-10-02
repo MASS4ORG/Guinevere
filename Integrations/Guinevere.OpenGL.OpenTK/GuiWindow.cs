@@ -53,7 +53,7 @@ public class GuiWindow : GameWindow, IInputHandler, IWindowHandler, IDisplayCapa
         _fontWidgetIcon = Font.FromStream(fontStream);
         _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         _canvasRenderer = new CanvasRenderer();
-        _gui.Platform.Register<ICanvasRenderer>(_canvasRenderer);
+        _gui.Platform.Register(_canvasRenderer);
         _canvasRenderer.Initialize(_width, _height);
 
         // Subscribe to text input events

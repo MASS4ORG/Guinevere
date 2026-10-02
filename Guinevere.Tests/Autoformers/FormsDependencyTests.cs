@@ -1,5 +1,5 @@
-using MASS4.Attributes;
 using Autoformers;
+using MASS4.Attributes;
 
 namespace Guinevere.Tests.Autoformers;
 
@@ -11,7 +11,7 @@ public class FormsDependencyTests
     public void FormsReferencesOnlyAttributesAndTheRuntime()
     {
         AssertNoForbiddenReferences(typeof(FormBuilder).Assembly);
-        Assert.Contains(typeof(FormBuilder).Assembly.GetReferencedAssemblies(), name => name.Name == "MASS4.Attributes");
+        Assert.Contains(typeof(FormBuilder).Assembly.GetReferencedAssemblies(), name => name.Name == "Attributes");
     }
 
     [Fact]

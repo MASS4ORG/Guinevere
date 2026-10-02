@@ -21,11 +21,11 @@
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <Version>1.8.0</Version>
+        <Version>5.4.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="\"/>
+        <None Include="README.md" Pack="true" PackagePath="/"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -34,7 +34,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Guinevere\Guinevere.csproj"/>
+        <ProjectReference Include="../Guinevere/Guinevere.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

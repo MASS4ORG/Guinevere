@@ -25,7 +25,7 @@ sealed class TitleDrawer : IAttributeDrawer
 
             if (title.HorizontalLine)
                 using (gui.Node(-1, 1f, $"{id}/title/line").ExpandWidth().Enter())
-                    if (gui.Pass == Pass.Pass2Render) gui.DrawBackgroundRect(style.Divider, 0f);
+                    if (gui.Pass == Pass.Pass2Render) gui.DrawBackgroundRect(style.Divider);
 
             next();
         }

@@ -11,8 +11,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Integrations\Guinevere.OpenGL.OpenTK\Guinevere.OpenGL.OpenTK.csproj" />
-        <ProjectReference Include="..\Example-01\Example-01.csproj" />
-        <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="../../Integrations/Guinevere.OpenGL.OpenTK/Guinevere.OpenGL.OpenTK.csproj" />
+        <ProjectReference Include="../Example-01/Example-01.csproj" />
+        <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
     </ItemGroup>
 </Project>

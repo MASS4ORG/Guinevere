@@ -58,7 +58,7 @@ public readonly struct Color : IEquatable<Color>
 
     #region System.Drawing.Color
 
-    public static readonly Color Empty = default;
+    public static readonly Color Empty;
 
     // -------------------------------------------------------------------
     //  static list of "web" colors...

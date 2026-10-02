@@ -251,16 +251,16 @@ partial class Build
         });
 
     /// <summary>
-    /// Update each project Version
+    /// Stamps the release version into every project that ships a package, so the committed
+    /// csproj version matches the tag. Test, build and example projects are left alone.
     /// </summary>
     private Target UpdateProjectVersions => td => td
         .DependsOn(CheckNewCommits)
         .Executes(() =>
         {
-            Log.Information("Projects: {ProjectsCount}",
-                Solution.Projects.Count);
+            Log.Information("Projects: {ProjectsCount}", PackageableProjects.Count);
 
-            Solution.AllProjects.ForEach(project =>
+            PackageableProjects.ForEach(project =>
             {
                 if (project == null) return;
                 Log.Information("{Project}:\tfrom {Version} to {VersionFull}",

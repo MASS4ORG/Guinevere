@@ -7,6 +7,6 @@
     <Version>5.4.0</Version>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Guinevere\Guinevere.csproj" />
+    <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
   </ItemGroup>
 </Project>

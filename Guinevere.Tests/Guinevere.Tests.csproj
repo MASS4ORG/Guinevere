@@ -27,12 +27,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Autoformers\Autoformers.csproj"/>
-        <ProjectReference Include="..\Autoformers.Excalibur\Autoformers.Excalibur.csproj"/>
-        <ProjectReference Include="..\Guinevere\Guinevere.csproj"/>
-        <ProjectReference Include="..\Guinevere.Excalibur\Guinevere.Excalibur.csproj"/>
-        <ProjectReference Include="..\Guinevere.Scripting\Guinevere.Scripting.csproj"/>
-        <ProjectReference Include="..\Examples\Example-76-Odin-Attributes\Example-76-Odin-Attributes.csproj"/>
+        <ProjectReference Include="../Autoformers/Autoformers.csproj"/>
+        <ProjectReference Include="../Autoformers.Excalibur/Autoformers.Excalibur.csproj"/>
+        <ProjectReference Include="../Guinevere/Guinevere.csproj"/>
+        <ProjectReference Include="../Guinevere.Excalibur/Guinevere.Excalibur.csproj"/>
+        <ProjectReference Include="../Guinevere.Scripting/Guinevere.Scripting.csproj"/>
+        <ProjectReference Include="../Examples/Example-76-Odin-Attributes/Example-76-Odin-Attributes.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

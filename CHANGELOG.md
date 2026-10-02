@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Added: Attribute-driven forms in three packages: `MASS4.Attributes` (metadata), `Autoformers` (GUI-free form model) and `Autoformers.Excalibur` (`gui.Form` on Excalibur controls). See [Example 76](Examples/Example-76-Odin-Attributes/README.md).
+- Changed: Every package now shares one version line, so the project folders drop the `MASS4.` prefix (`Attributes`, `Autoformers`, `Autoformers.Excalibur`) and the forms packages are published as `Autoformers` and `Autoformers.Excalibur`.
+
 ## v[5.4.0][] 2026-09-30
 
 - Fixed: Closing a window from a `CloseRequested` handler no longer wipes its own approval and freezes the host; `Close()` is reentrancy-safe, and OpenGL SilkNET, OpenTK and Raylib hosts gained `CloseRequested`.
@@ -165,7 +168,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First Commit
 
-[5.4.0]: https://github.com/brmassa/guinevere/compare/v5.3.0...v5.4.0
 [5.3.0]: https://github.com/brmassa/guinevere/compare/v5.2.0...v5.3.0
 [5.2.0]: https://github.com/brmassa/guinevere/compare/v5.1.0...v5.2.0
 [5.1.0]: https://github.com/brmassa/guinevere/compare/v5.0.0...v5.1.0

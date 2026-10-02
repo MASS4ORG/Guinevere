@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Autoformers;
 
 namespace Guinevere.Tests.Autoformers;
@@ -401,6 +402,9 @@ public class CollectionFieldTests
         protected override void SetItem(int index, int item) => throw new InvalidOperationException();
     }
 
+    [SuppressMessage("ReSharper", "CollectionNeverUpdated.Local")]
+    [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Local")]
+    [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
     sealed class Model
     {
         public List<int> List = [1, 2, 3];

@@ -8,7 +8,7 @@
     <Version>5.4.0</Version>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Guinevere.Excalibur\Guinevere.Excalibur.csproj" />
-    <ProjectReference Include="..\..\Integrations\Guinevere.OpenGL.SilkNET\Guinevere.OpenGL.SilkNET.csproj" />
+    <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+    <ProjectReference Include="../../Integrations/Guinevere.OpenGL.SilkNET/Guinevere.OpenGL.SilkNET.csproj" />
   </ItemGroup>
 </Project>
