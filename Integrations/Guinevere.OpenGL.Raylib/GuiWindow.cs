@@ -9,7 +9,7 @@ namespace Guinevere;
 /// Represents a GUI window implementation using Raylib for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCapability, ICursorCapability,
+public partial class GuiWindow : IDisposable, IInputHandler, IWindowChromeCapability, IDisplayCapability, ICursorCapability,
     IPointerCapability
 {
     readonly ICanvasRenderer _canvasRenderer;
@@ -39,6 +39,7 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
         _gui = gui;
         _gui.Input = this;
         _gui.WindowHandler = this;
+        _gui.Platform.Register<IWindowChromeCapability>(this);
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
@@ -389,8 +390,9 @@ public class GuiWindow : IDisposable, IInputHandler, IWindowHandler, IDisplayCap
     /// <param name="show">True to show the title bar; false to hide it.</param>
     public void DrawWindowTitlebar(bool show)
     {
-        // Raylib doesn't allow changing window border after creation
-        // This is a no-op but required for interface compliance
+        Raylib.SetWindowState(ConfigFlags.ResizableWindow);
+        if (show) Raylib.ClearWindowState(ConfigFlags.UndecoratedWindow);
+        else Raylib.SetWindowState(ConfigFlags.UndecoratedWindow);
     }
 
     #endregion IWindowHandler

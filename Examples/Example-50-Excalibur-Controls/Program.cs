@@ -22,6 +22,12 @@ public abstract partial class Program
     static void Draw(Gui gui)
     {
         gui.Controls = SelectedPalette();
+        gui.AppBar(bar => bar.Title("Guinevere Excalibur")
+            .Leading(g => g.MenuBar(menu => menu.Collapsible()
+                .Menu("File", file => file.Item("Close", () =>
+                    g.Platform.Require<IWindowChromeCapability>().RequestClose()))
+                .Menu("View", view => view.Item("Toggle theme", () => _radioChoice = _radioChoice == 0 ? 1 : 0))))
+            .Action("◐", () => _radioChoice = _radioChoice == 0 ? 1 : 0));
         DemoHeader.Header(gui, "Guinevere Excalibur");
 
         using (gui.Node().Expand().Enter())

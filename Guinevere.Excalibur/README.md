@@ -49,7 +49,7 @@ public partial class App
 | Text and values | `TextInput`, `PasswordInput`, `TextArea`, `NumberField`, `Slider`, `ObjectField` | Text editing, scrub editing, numeric ranges, and compact object fields. |
 | Display | `Image`, `ProgressBar`, `WrappedText`, `Toast`, `Toasts`, `ClearToasts` | Images, progress, wrapping, and transient notifications. |
 | Navigation | `Tabs`, `TabBar`, `TabStrip`, `PillTabs`, `VerticalTabs`, `Breadcrumb`, `TreeView`, `FileBrowser` | Tabs, trails, virtualised trees, and an embeddable filesystem picker. Tabs are closable only with `closable: true`. |
-| Menus and overlays | `MenuBar`, `Flyout`, `CascadeMenu`, `ContextMenu`, `Popup`, `ModalPopup`, `Dialog`, `Tooltip` | Command menus, popovers, modal windows, and delayed help. |
+| Menus and overlays | `AppBar`, `MenuBar`, `Flyout`, `CascadeMenu`, `ContextMenu`, `Popup`, `ModalPopup`, `Dialog`, `Tooltip` | Application chrome, command menus, popovers, modal windows, and delayed help. |
 | Layout tools | `Splitter`, `DockSpace`, `DockLayout` | Resizable panes and persistent split/tab/float docking. |
 
 ## Buttons and selection
@@ -116,6 +116,10 @@ drives.
 
 ## Menu Bar
 
+Call `menus.Collapsible()` in the builder to show a compact menu toggle. Opening it reveals the titles;
+choosing an action, clicking outside, or pressing Escape collapses it again. Menu bars, flyouts, cascade menus,
+and context menus share a 300 ms submenu grace period and support nested arrow-key navigation.
+
 ```csharp
 gui.MenuBar(menus =>
 {
@@ -133,6 +137,32 @@ gui.MenuBar(menus =>
     menus.Menu("Help", help => help.Item("About", () => ShowAbout()));
 });
 ```
+
+## Application Bar
+
+```csharp
+gui.AppBar(bar => bar
+    .Title("Studio")
+    .Leading(g => g.MenuBar(menus => menus.Collapsible()
+        .Menu("File", file => file.Item("Open", OpenProject))))
+    .Action("◐", ToggleTheme));
+```
+
+Desktop integrations register `IWindowChromeCapability` automatically. The bar hides native decorations and
+provides minimize, maximize/restore, close requests, dragging and double-click maximization. Close requests
+go through `GuiWindow.CloseRequested`, so the application's unsaved-work guard still runs. Application hosts
+with their own window can register one implementation on `gui.Platform` rather than inject window callbacks
+into their controls.
+
+Use `Content(g => ...)` to replace the flexible title region with search, project selection or other widgets.
+Those controls remain interactive, with a separate drag area beside them. Actions that do not fit move into
+a keyboard-accessible overflow menu. `Leading` measures its content by default; pass a width to reserve a
+fixed region. `windowControls: false` embeds the bar without changing native decorations.
+
+Window movement uses desktop coordinates where the backend supports them. Native Wayland movement is
+not available through the current GLFW integrations; `CanMove` lets hosts expose that limitation. Native
+snap gestures and border resizing are outside this control's scope. The bar should remain mounted while
+custom decorations are in use; call `DrawWindowTitlebar(true)` when returning to native chrome.
 
 ## Tree View
 

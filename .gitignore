@@ -47,6 +47,6 @@ AGENTS.md
 .cursor/
 .windsurf/
 
-.script.[sp][hy]
-.script-[0-9].[sp][hy]
+.script.[csp][hys]
+.script-[0-9].[csp][hys]
 docs/internal/

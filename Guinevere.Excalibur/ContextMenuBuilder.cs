@@ -5,7 +5,7 @@ namespace Guinevere;
 /// </summary>
 public class ContextMenuBuilder
 {
-    internal readonly List<ContextMenuItem> Items = [];
+    internal readonly List<FlyoutItem> Items = [];
 
     /// <summary>
     /// Adds an item to the context menu with the specified text, action, and enabled state.
@@ -16,7 +16,7 @@ public class ContextMenuBuilder
     /// <returns>The current <c>ContextMenuBuilder</c> instance with the added item.</returns>
     public ContextMenuBuilder Item(string text, Action action, bool enabled = true)
     {
-        Items.Add(new ContextMenuItem { Text = text, Action = action, Enabled = enabled });
+        Items.Add(new FlyoutItem { Text = text, Action = action, Enabled = enabled });
         return this;
     }
 
@@ -26,21 +26,17 @@ public class ContextMenuBuilder
     /// <returns>The current <c>ContextMenuBuilder</c> instance with the added separator.</returns>
     public ContextMenuBuilder Separator()
     {
-        Items.Add(new ContextMenuItem { Text = "---", IsSeparator = true });
+        Items.Add(new FlyoutItem { IsSeparator = true });
         return this;
     }
 
-    internal float CalculateWidth()
+    /// <summary>Adds a nested context menu with the same pointer tolerance as menu bars and flyouts.</summary>
+    public ContextMenuBuilder Submenu(string text, Action<ContextMenuBuilder> buildSubmenu, bool enabled = true)
     {
-        var font = new SKFont { Size = 12 };
-        var maxWidth = 0f;
-
-        foreach (var item in Items.Where(i => !i.IsSeparator))
-        {
-            font.MeasureText(item.Text, out var textBounds);
-            maxWidth = Math.Max(maxWidth, textBounds.Width + 16); // 16 for padding
-        }
-
-        return maxWidth;
+        ArgumentNullException.ThrowIfNull(buildSubmenu);
+        var builder = new ContextMenuBuilder();
+        buildSubmenu(builder);
+        Items.Add(new FlyoutItem { Text = text, Submenu = builder.Items, Enabled = enabled });
+        return this;
     }
 }

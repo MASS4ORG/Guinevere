@@ -7,6 +7,14 @@ namespace Guinevere;
 public class MenuBarBuilder
 {
     internal readonly List<MenuBarMenu> Menus = [];
+    internal string? CollapsedLabel;
+
+    /// <summary>Shows a compact toggle that reveals the menu titles while a menu is open.</summary>
+    public MenuBarBuilder Collapsible(string label = "☰")
+    {
+        CollapsedLabel = label;
+        return this;
+    }
 
     /// <summary>
     /// Adds a menu whose <paramref name="text"/> is shown in the bar. Clicking the title drops the

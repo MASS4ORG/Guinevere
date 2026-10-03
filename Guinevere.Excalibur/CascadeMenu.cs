@@ -41,14 +41,8 @@ public static partial class ControlsExtensions
         var id = gui.NodeId(filePath, lineNumber);
         var state = gui.ControlState(id, () => new MenuBarState());
 
-        if (gui.Pass == Pass.Pass1Build)
-        {
-            state.PrevSubmenuRects = state.SubmenuRects;
-            state.SubmenuRects = [];
-            state.BeginFrame();
-        }
-
         state.OpenIndex = isOpen ? 0 : -1;
+        PreparePopupMenuFrame(gui, state, isOpen);
 
         if (state.FrameOpenIndex < 0)
         {
@@ -74,11 +68,7 @@ public static partial class ControlsExtensions
                 backgroundColor, textColor, hoverColor, fontSize, padding, CascadeMenuZIndex);
         }
 
-        if (gui.Pass == Pass.Pass2Render
-            && (gui.Input.IsMouseButtonPressed(MouseButton.Left)
-                || gui.Input.IsMouseButtonPressed(MouseButton.Right))
-            && !state.SubmenuRects.Any(rect => IsMouseInRect(gui.Input.MousePosition, rect)))
-            ResetMenuState(state);
+        if (gui.Pass == Pass.Pass2Render) DismissPopupMenuOutside(gui, state, rightClick: true);
 
         isOpen = state.OpenIndex >= 0;
     }

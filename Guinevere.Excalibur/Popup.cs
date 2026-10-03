@@ -242,68 +242,6 @@ public static partial class ControlsExtensions
             filePath, lineNumber);
     }
 
-    /// <summary>
-    /// Creates a context menu popup
-    /// </summary>
-    public static void ContextMenu(this Gui gui, ref bool isOpen, Action<ContextMenuBuilder> buildMenu,
-        Vector2? position = null,
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? hoverColor = null,
-        float itemHeight = 24,
-        float minWidth = 120,
-        float borderRadius = ControlMetrics.CornerRadius,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
-    {
-        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
-
-        // Always create menu node for consistency
-        var menuPos = position ?? gui.Input.MousePosition;
-        var builder = new ContextMenuBuilder();
-        buildMenu(builder);
-
-        var menuWidth = Math.Max(minWidth, builder.CalculateWidth());
-        var menuHeight = builder.Items.Count * itemHeight;
-
-        menuPos = ConstrainToScreen(gui, menuPos, menuWidth, menuHeight);
-
-        // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
-        using (gui.Node(menuWidth, menuHeight, filePath: filePath, lineNumber: lineNumber)
-                   .AbsoluteScreen(menuPos.X, menuPos.Y)
-                   .BlockInput()
-                   .Enter())
-        {
-            using var focusScope = isOpen
-                ? gui.EnterFocusNavigationScope($"{gui.CurrentNode.Id}/focus")
-                : null;
-            focusScope?.SetActive();
-            gui.SetZIndex(PopupZIndex);
-            gui.SetEscapesAncestorClips();
-
-            if (gui.Pass == Pass.Pass2Render)
-                // Only render background when open
-                if (isOpen)
-                {
-                    var bgColor = backgroundColor ?? gui.ControlStyle.Popup;
-                    var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
-
-                    gui.DrawBackgroundRect(bgColor, borderRadius);
-                    gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
-                }
-
-            RenderContextMenuItems(gui, builder.Items, ref isOpen, itemHeight, hoverColor, isOpen);
-        }
-
-        // Handle click outside to close - check after rendering the menu
-        if (gui.Pass == Pass.Pass2Render && isOpen && gui.Input.IsMouseButtonPressed(MouseButton.Left))
-        {
-            var mousePos = gui.Input.MousePosition;
-            var menuRect = new Rect(menuPos.X, menuPos.Y, menuWidth, menuHeight);
-            if (!IsMouseInRect(mousePos, menuRect)) isOpen = false;
-        }
-    }
-
     // Core implementation helpers
     static PopupState GetOrCreatePopupState(Gui gui, string id, Vector2? position,
         bool closeOnClickOutside, bool closeOnEscape) =>
@@ -403,46 +341,6 @@ public static partial class ControlsExtensions
             // Always draw text for consistency, but make transparent when closed
             var titleColorFinal = isOpen ? titleTextColor ?? gui.ControlStyle.Text : Color.Transparent;
             gui.DrawText(title, color: titleColorFinal, centerInRect: false);
-        }
-    }
-
-    static void RenderContextMenuItems(Gui gui, List<ContextMenuItem> items, ref bool isOpen,
-        float itemHeight, Color? hoverColor, bool menuIsOpen)
-    {
-        foreach (var item in items)
-        {
-            using (gui.Node().Height(itemHeight).Direction(Axis.Horizontal).Padding(8).Enter())
-            {
-                if (gui.Pass == Pass.Pass2Render)
-                    // Only handle interaction when menu is open
-                    if (menuIsOpen)
-                    {
-                        gui.RegisterFocusable(canReceiveFocus: item.Enabled);
-                        var interactable = gui.GetInteractable();
-                        var isHovered = interactable.OnHover();
-                        var isClicked = interactable.OnClick();
-
-                        if (isHovered)
-                        {
-                            var hoverColorFinal = hoverColor ?? gui.ControlStyle.SurfaceHover;
-                            gui.DrawBackgroundRect(hoverColorFinal);
-                        }
-
-                        if (isClicked && item.Action != null)
-                        {
-                            gui.RequestFocus(FocusReason.Mouse);
-                            item.Action();
-                            isOpen = false;
-                            return;
-                        }
-                    }
-
-                // Always render text for consistency, but make transparent when closed
-                var textColor = item.Enabled ? gui.ControlStyle.Text : gui.ControlStyle.TextDim;
-                if (!menuIsOpen) textColor = Color.Transparent;
-
-                gui.DrawText(item.Text, color: textColor, centerInRect: false);
-            }
         }
     }
 

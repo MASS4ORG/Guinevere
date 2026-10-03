@@ -4,11 +4,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    class FlyoutState
-    {
-        public int HoveredIndex { get; set; } = -1;
-    }
-
     /// <summary>
     /// Creates a flyout menu at the specified position
     /// </summary>
@@ -27,158 +22,39 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
+        ArgumentNullException.ThrowIfNull(gui);
+        ArgumentNullException.ThrowIfNull(buildMenu);
         fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
         borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
-
-        if (!isOpen) return;
-
         var id = gui.NodeId(filePath, lineNumber);
-        var state = GetOrCreateFlyoutState(gui, id);
+        var state = gui.ControlState(id, () => new MenuBarState());
+        PreparePopupMenuFrame(gui, state, isOpen,
+            new MenuAppearance(itemHeight, itemHeight, minWidth, borderRadius, borderColor, separatorColor, disabledColor));
+        if (state.FrameOpenIndex < 0) return;
 
         var builder = new FlyoutBuilder();
         buildMenu(builder);
-
         if (builder.Items.Count == 0) return;
-
-        var menuWidth = CalculateFlyoutWidth(builder.Items, fontSize, padding, minWidth);
-        var menuHeight = builder.Items.Count * itemHeight;
-
-        // Adjust position to keep menu on screen
-        var adjustedPosition = ConstrainToScreen(gui, position, menuWidth, menuHeight);
-
-        // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
-        using (gui.Node(menuWidth, menuHeight, filePath: filePath, lineNumber: lineNumber)
-                   .AbsoluteScreen(adjustedPosition.X, adjustedPosition.Y)
-                   .Enter())
+        if (gui.Pass == Pass.Pass2Render) HandleMenuKeyboard(gui, state, builder.Items);
+        using (var focusScope = gui.EnterFocusNavigationScope($"{id}/focus"))
         {
-            using var focusScope = gui.EnterFocusNavigationScope($"{gui.CurrentNode.Id}/focus");
             focusScope.SetActive();
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                var bgColor = backgroundColor ?? gui.ControlStyle.Popup;
-                var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
-
-                gui.DrawBackgroundRect(bgColor, borderRadius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
-
-                HandleFlyoutInteraction(gui, state, builder.Items, gui.CurrentNode.Rect, itemHeight, ref isOpen);
-            }
-
-            // Render menu items
-            for (var i = 0; i < builder.Items.Count; i++)
-                RenderFlyoutItem(gui, state, builder.Items[i], i, menuWidth, itemHeight,
-                    textColor, hoverColor, separatorColor, disabledColor, fontSize, padding);
+            RenderMenuGroup(gui, state, id, builder.Items, position, 0,
+                backgroundColor, textColor, hoverColor, fontSize, padding, CascadeMenuZIndex);
         }
 
-        // Handle click outside to close
-        if (gui.Pass == Pass.Pass2Render && isOpen && gui.Input.IsMouseButtonPressed(MouseButton.Left))
+        if (gui.Pass == Pass.Pass2Render)
         {
-            var mousePos = gui.Input.MousePosition;
-            var menuRect = new Rect(adjustedPosition.X, adjustedPosition.Y, menuWidth, menuHeight);
-            if (!IsMouseInRect(mousePos, menuRect))
-            {
-                isOpen = false;
-                CloseFlyoutRecursive(state);
-            }
+            DismissPopupMenuOutside(gui, state, rightClick: false);
+            isOpen = state.OpenIndex >= 0;
         }
-    }
-
-    static FlyoutState GetOrCreateFlyoutState(Gui gui, string id) =>
-        gui.ControlState(id, () => new FlyoutState());
-
-    static void HandleFlyoutInteraction(Gui gui, FlyoutState state, List<FlyoutItem> items, Rect rect,
-        float itemHeight, ref bool isOpen)
-    {
-        var mousePos = gui.Input.MousePosition;
-        state.HoveredIndex = -1;
-
-        if (IsMouseInRect(mousePos, rect))
-        {
-            var relativeY = mousePos.Y - rect.Y;
-            var itemIndex = Math.Max(0, Math.Min((int)(relativeY / itemHeight), items.Count - 1));
-
-            if (!items[itemIndex].IsSeparator) state.HoveredIndex = itemIndex;
-
-            if (gui.Input.IsMouseButtonPressed(MouseButton.Left) && state.HoveredIndex >= 0)
-            {
-                var item = items[state.HoveredIndex];
-                if (item.Enabled)
-                {
-                    if (item.HasSubmenu)
-                    {
-                        // Handle submenu (simplified for now)
-                    }
-                    else
-                    {
-                        item.Action?.Invoke();
-                        isOpen = false;
-                        CloseFlyoutRecursive(state);
-                    }
-                }
-            }
-        }
-    }
-
-    static void RenderFlyoutItem(Gui gui, FlyoutState state, FlyoutItem item, int index,
-        float width, float height, Color? textColor, Color? hoverColor, Color? separatorColor,
-        Color? disabledColor, float fontSize, float padding)
-    {
-        using (gui.Node(width, height).Enter())
-        {
-            if (item.IsSeparator)
-            {
-                DrawFlyoutSeparator(gui, separatorColor, padding);
-                return;
-            }
-
-            var itemColor = item.Enabled
-                ? textColor ?? gui.ControlStyle.Text
-                : disabledColor ?? gui.ControlStyle.TextDim;
-
-            if (gui.Pass == Pass.Pass2Render) gui.RegisterFocusable(canReceiveFocus: item.Enabled);
-            if (index == state.HoveredIndex && item.Enabled)
-                gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover);
-
-            // Built in both passes: a node created only during the render pass never took part in
-            // layout, so every label drew at the menu's origin instead of on its own row.
-            using (gui.Node().Padding(padding).Direction(Axis.Horizontal).Enter())
-            {
-                gui.DrawText(item.Text, fontSize, itemColor, centerInRect: false);
-                DrawFlyoutTrailing(gui, item, itemColor, fontSize);
-            }
-        }
-    }
-
-    static void DrawFlyoutSeparator(Gui gui, Color? separatorColor, float padding)
-    {
-        if (gui.Pass != Pass.Pass2Render) return;
-
-        var rect = gui.CurrentNode.Rect;
-        var sepY = rect.Y + rect.H * 0.5f;
-        gui.DrawLine(new Vector2(rect.X + padding, sepY), new Vector2(rect.X + rect.W - padding, sepY),
-            separatorColor ?? gui.ControlStyle.Border);
-    }
-
-    /// <summary>The right-aligned column: a submenu arrow, else the shortcut, else nothing.</summary>
-    static void DrawFlyoutTrailing(Gui gui, FlyoutItem item, Color itemColor, float fontSize)
-    {
-        if (!item.HasSubmenu && string.IsNullOrEmpty(item.Shortcut)) return;
-
-        gui.Node().Expand();
-        if (item.HasSubmenu) gui.DrawText(WidgetIcons.ChevronRight, fontSize * 0.8f, itemColor, centerInRect: false);
-        else gui.DrawText(item.Shortcut!, fontSize * 0.9f, gui.ControlStyle.TextDim, centerInRect: false);
-    }
-
-    static void CloseFlyoutRecursive(FlyoutState state)
-    {
-        state.HoveredIndex = -1;
     }
 
     static float CalculateFlyoutWidth(List<FlyoutItem> items, float fontSize, float padding, float minWidth,
         bool hasCheckColumn = false)
     {
-        var font = new SKFont { Size = fontSize };
+        using var font = new SKFont { Size = fontSize };
         var maxWidth = minWidth;
         var checkColumnWidth = hasCheckColumn ? 18f : 0f;
 
