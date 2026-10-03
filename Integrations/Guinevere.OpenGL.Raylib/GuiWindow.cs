@@ -10,7 +10,7 @@ namespace Guinevere;
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
 public partial class GuiWindow : IDisposable, IInputHandler, IWindowChromeCapability, IDisplayCapability, ICursorCapability,
-    IPointerCapability
+    IPointerCapability, IWindowResizeCapability
 {
     readonly ICanvasRenderer _canvasRenderer;
     readonly Gui _gui;
@@ -40,6 +40,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowChromeCapabi
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IWindowChromeCapability>(this);
+        _gui.Platform.Register<IWindowResizeCapability>(this);
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
@@ -173,6 +174,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowChromeCapabi
 
             _gui.EndFrame();
         });
+        ApplyPendingResize();
     }
 
     /// <summary>

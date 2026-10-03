@@ -141,7 +141,8 @@ gui.MenuBar(menus =>
 ## Application Bar
 
 ```csharp
-using (gui.AppBar(nativeTitlebar: useNativeTitlebar))
+using (gui.AppBar(nativeTitlebar: useNativeTitlebar, resizable: true,
+    minimumWindowSize: new System.Numerics.Vector2(480, 320)))
 {
     gui.MenuBar(menus => menus.Collapsible()
         .Menu("File", file => file.Item("Open", OpenProject)));
@@ -163,6 +164,12 @@ Close requests go through `GuiWindow.CloseRequested`, preserving the application
 Passive content such as images and labels, and empty space, drag the window and double-click to maximize.
 Buttons, editors, custom interactions and event handlers retain their own gestures.
 
+Set `resizable: true` to enable four border and four corner handles while native decorations are hidden.
+The desktop integrations register `IWindowResizeCapability` automatically. Handles show resize cursors,
+retain pointer capture outside the window and keep the opposite edges fixed. `minimumWindowSize` defaults
+to 160 by 100 logical desktop units; custom handles are disabled with native decorations or maximization.
+Native sizing requests made during a GUI frame are applied after rendering finishes using the canvas.
+
 Set `nativeTitlebar: true` to show the operating system's decorations at runtime; set it back to `false`
 to use application chrome. The application buttons remain available while native decorations are showing. Keep the
 scope at the same call site in both passes, and apply mode changes on the next frame. `windowControls: false`
@@ -170,7 +177,7 @@ embeds the bar and releases any decoration management it previously owned.
 
 The current GLFW integrations cannot move native Wayland windows. The bar keeps native decorations when
 `CanMove` is false so the window stays movable. Native Wayland custom-titlebar dragging requires a backend
-with compositor move requests. Native snap gestures and border resizing are outside this control's scope.
+with compositor move requests. Native snap gestures require support from the window integration.
 Call `DrawWindowTitlebar(true)` when completely unmounting an application bar that replaced native chrome.
 
 Let `AppBar` manage decorations while it is mounted; calling `DrawWindowTitlebar` independently every frame

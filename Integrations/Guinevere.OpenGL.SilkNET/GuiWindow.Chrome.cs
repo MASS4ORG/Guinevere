@@ -7,6 +7,8 @@ namespace Guinevere;
 
 public unsafe partial class GuiWindow
 {
+    Vector2? _pendingClientSize;
+
     void ConfigureWindowPlatform()
     {
         if (!OperatingSystem.IsLinux() || Environment.GetEnvironmentVariable("SILKNET_USE_WAYLAND") != "0") return;
@@ -21,6 +23,27 @@ public unsafe partial class GuiWindow
 
     /// <inheritdoc />
     public bool CanMove => _window.Native?.Wayland is null;
+
+    /// <inheritdoc />
+    public bool CanResize => true;
+
+    /// <inheritdoc />
+    public Vector2 ClientSize
+    {
+        get => new(_window.Size.X, _window.Size.Y);
+        set
+        {
+            if (_gui.Canvas is not null) _pendingClientSize = value;
+            else _window.Size = new Vector2D<int>((int)value.X, (int)value.Y);
+        }
+    }
+
+    void ApplyPendingResize()
+    {
+        if (_pendingClientSize is not { } size) return;
+        _pendingClientSize = null;
+        ClientSize = size;
+    }
 
     /// <inheritdoc />
     public Vector2 Position

@@ -6,11 +6,38 @@ namespace Guinevere;
 
 public unsafe partial class GuiWindow
 {
+    Vector2? _pendingClientSize;
+
     /// <inheritdoc />
     public bool IsMaximized => WindowState == WindowState.Maximized;
 
     /// <inheritdoc />
     public bool CanMove => GLFW.GetPlatform() != global::OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland;
+
+    /// <inheritdoc />
+    public bool CanResize => true;
+
+    /// <inheritdoc />
+    Vector2 IWindowResizeCapability.ClientSize
+    {
+        get
+        {
+            GLFW.GetWindowSize(WindowPtr, out var width, out var height);
+            return new Vector2(width, height);
+        }
+        set
+        {
+            if (_gui.Canvas is not null) _pendingClientSize = value;
+            else GLFW.SetWindowSize(WindowPtr, (int)value.X, (int)value.Y);
+        }
+    }
+
+    void ApplyPendingResize()
+    {
+        if (_pendingClientSize is not { } size) return;
+        _pendingClientSize = null;
+        ((IWindowResizeCapability)this).ClientSize = size;
+    }
 
     /// <inheritdoc />
     public Vector2 Position

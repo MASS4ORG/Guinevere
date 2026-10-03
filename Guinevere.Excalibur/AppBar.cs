@@ -12,14 +12,21 @@ public static partial class ControlsExtensions
         internal bool Maximized;
         internal Vector2 DragOffset;
         internal bool PressedOverControl;
+        internal IWindowResizeCapability? ResizeWindow;
+        internal bool ResizeEnabled;
+        internal Rect ResizeBounds;
+        internal Vector2 ResizePointer;
     }
 
     /// <summary>
     /// Opens a horizontal application bar for ordinary widgets and layout nodes.
-    /// Passive content moves the window; native decorations remain available when movement is unsupported.
+    /// Passive content moves the window; optional resize handles replace native borders on supported backends.
     /// </summary>
+    /// <param name="resizable">Enables border and corner resizing while native decorations are hidden.</param>
+    /// <param name="minimumWindowSize">The minimum client size in logical desktop units; defaults to 160 by 100.</param>
     public static AppBarScope AppBar(this Gui gui, float height = 36, bool windowControls = true,
-        bool nativeTitlebar = false, Color? backgroundColor = null,
+        bool nativeTitlebar = false, Color? backgroundColor = null, bool resizable = false,
+        Vector2? minimumWindowSize = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
@@ -34,6 +41,7 @@ public static partial class ControlsExtensions
 
         var bar = gui.Node().ExpandWidth().Height(height).Direction(Axis.Horizontal).Enter();
         DrawAppBarChrome(gui, state, chrome, native, backgroundColor);
+        AppBarResizeHandles(gui, state, chrome, resizable && !native, minimumWindowSize, id);
         var content = gui.Node().ExpandWidth().Height(height).Direction(Axis.Horizontal)
             .ContentAlignY(0.5f).Padding(8, 0).Gap(8).Enter();
         gui.SetClipped(true);

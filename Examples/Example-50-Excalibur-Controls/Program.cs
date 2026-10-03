@@ -29,7 +29,7 @@ public abstract partial class Program
         gui.ControlPalette = SelectedPalette();
         var chrome = gui.Platform.Require<IWindowChromeCapability>();
         var nativeTitlebar = _nativeTitlebar || !chrome.CanMove;
-        using (gui.AppBar(windowControls: !_nativeTitlebar, nativeTitlebar: _nativeTitlebar))
+        using (gui.AppBar(windowControls: !_nativeTitlebar, nativeTitlebar: _nativeTitlebar, resizable: true))
         {
             gui.MenuBar(menu => menu.Collapsible()
                 .Menu("File", file => file.Item("Close", () => gui.Platform.Require<IWindowChromeCapability>().RequestClose()))
