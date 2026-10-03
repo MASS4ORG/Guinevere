@@ -134,6 +134,7 @@ public class MenuNavigationTests
         var collapsed = h.Gui.RootNode!.Children[0];
         Assert.Equal(30, collapsed.Rect.W);
         h.Click(Draw, collapsed.Center);
+        Assert.NotEmpty(Groups(h.Gui.RootNode!));
         h.Frame(Draw);
         Assert.True(h.Gui.RootNode!.Children[0].Rect.W > 30);
         Assert.NotEmpty(Groups(h.Gui.RootNode!));
@@ -144,6 +145,26 @@ public class MenuNavigationTests
         h.Frame(Draw);
         Assert.Equal(30, h.Gui.RootNode!.Children[0].Rect.W);
         Assert.Empty(Groups(h.Gui.RootNode!));
+    }
+
+    /// <summary>Expanded compact menus anchor their dropdown under the selected title.</summary>
+    [Fact]
+    public void ExpandedCompactMenuAnchorsUnderTheSelectedTitle()
+    {
+        using var h = new FrameHarness(width: 600);
+        void Draw(Gui gui) => gui.MenuBar(bar => bar.Collapsible()
+            .Menu("File", menu => menu.Item("Open"))
+            .Menu("Edit", menu => menu.Item("Copy"))
+            .Menu("Help", menu => menu.Item("About")));
+        h.Frame(Draw);
+        h.Click(Draw, h.Gui.RootNode!.Children[0].Center);
+        h.Frame(Draw);
+        var help = h.Gui.RootNode!.Children[0].Children[2];
+        h.Input.MoveTo(help.Center);
+        h.Frame(Draw);
+        h.Frame(Draw);
+        Assert.Equal(help.Rect.X, Group(h, 0).Rect.X, 2);
+        Assert.Equal(help.Rect.Y + help.Rect.H, Group(h, 0).Rect.Y, 2);
     }
 
     /// <summary>Checks that the default toggle remains visible without a hamburger font glyph.</summary>

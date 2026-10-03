@@ -150,13 +150,8 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render) HandleMenuKeyboard(gui, state, menu.Items);
         using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
         focusScope.SetActive();
-        if (builder.CollapsedLabel is not null)
-            RenderMenuGroup(gui, state, menu.Title, menu.Items,
-                new Vector2(state.FrameBarRect.X, state.FrameBarRect.Y + height), 0,
-                backgroundColor, textColor, hoverColor, fontSize, padding);
-        else
-            RenderMenuBarDropdown(gui, state, menu, height,
-                backgroundColor, textColor, hoverColor, fontSize, padding);
+        RenderMenuBarDropdown(gui, state, menu, height,
+            backgroundColor, textColor, hoverColor, fontSize, padding);
     }
 
     static void DismissMenuBarOutside(Gui gui, MenuBarState state)
@@ -217,6 +212,7 @@ public static partial class ControlsExtensions
         if (state.FrameOpenIndex >= state.FrameTitleRects.Count) return;
 
         var anchor = state.FrameTitleRects[state.FrameOpenIndex];
+        if (anchor.W <= 0 || anchor.H <= 0) anchor = state.FrameBarRect;
         if (anchor.W <= 0 || anchor.H <= 0) return;
 
         RenderMenuGroup(gui, state, menu.Title, menu.Items,

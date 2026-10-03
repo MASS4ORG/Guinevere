@@ -13,6 +13,48 @@ public class MenuBarTests
     const int Height = 400;
     const float BarHeight = 30f;
 
+    /// <summary>Keeps compact and regular dropdowns under their selected title, including repeated labels.</summary>
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void DropdownTracksTheSelectedTitleAfterExpansion(bool compact, bool repeated)
+    {
+        using var h = new FrameHarness(width: 800);
+        var selected = -1;
+        LayoutNode Bar() => h.Gui.RootNode!.Children[0].Children[0];
+        LayoutNode Dropdown() => MenuNodes(h.Gui.RootNode!)
+            .Single(node => node.Id.EndsWith("/v0", StringComparison.Ordinal));
+        void Draw(Gui gui)
+        {
+            using var parent = gui.Node().ExpandWidth().Padding(20).Enter();
+            gui.MenuBar(bar =>
+            {
+                if (compact) bar.Collapsible();
+                for (var index = 0; index < 5; index++)
+                {
+                    var item = index;
+                    bar.Menu(repeated ? "View" : $"Menu {index}", menu => menu.Item("Run", () => selected = item));
+                }
+            });
+        }
+        h.Frame(Draw);
+        h.Click(Draw, Bar().Children[0].Center);
+        h.Frame(Draw);
+        for (var index = 0; index < 5; index++)
+        {
+            var title = Bar().Children[index].Rect;
+            h.Input.MoveTo(title.Center);
+            h.Frame(Draw);
+            h.Frame(Draw);
+            Assert.Equal(title.X, Dropdown().Rect.X, 2);
+            Assert.Equal(title.Y + title.H, Dropdown().Rect.Y, 2);
+        }
+        h.Click(Draw, Dropdown().Children[0].Center);
+        Assert.Equal(4, selected);
+    }
+
     static Gui CreateGui()
     {
         var gui = new TestableGui { Input = NoInput() };
