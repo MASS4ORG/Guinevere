@@ -12,6 +12,9 @@ public partial class LayoutNode
 
     internal bool HasListeners => _listeners is { Count: > 0 };
 
+    /// <summary>Whether this node exposes a pointer interaction or declares input event handlers.</summary>
+    public bool IsPointerInteractive { get; internal set; }
+
     /// <summary>
     /// Listens for <typeparamref name="TEvent"/> (or any subtype) aimed at this node or a descendant.
     /// Bubble listeners run on the way back up from the target; capture listeners run on the way down, before
@@ -25,6 +28,7 @@ public partial class LayoutNode
         ArgumentNullException.ThrowIfNull(handler);
         if (_gui.Pass != Pass.Pass1Build) return this;
 
+        IsPointerInteractive = true;
         (_listeners ??= []).Add(new EventListener<TEvent>(handler, capture));
         _gui.NoteEventListener();
         return this;
@@ -96,6 +100,7 @@ public partial class LayoutNode
         _listeners?.Clear();
         CursorShape = null;
         IsHitTestVisible = true;
+        IsPointerInteractive = false;
     }
 
     abstract class EventListener(bool capture)

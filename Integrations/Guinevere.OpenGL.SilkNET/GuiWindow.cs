@@ -312,10 +312,13 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowChromeCapability, 
     /// <param name="show">True to show the title bar; false to hide it.</param>
     public void DrawWindowTitlebar(bool show)
     {
-        _window.WindowBorder = show ? WindowBorder.Resizable : WindowBorder.Hidden;
-        // Native maximization requires a resizable window even when decorations are hidden.
         if (_window.IsInitialized)
+        {
+            _glfw.SetWindowAttrib((WindowHandle*)_window.Handle, WindowAttributeSetter.Decorated, show);
+            // Native maximization requires a resizable window even when decorations are hidden.
             _glfw.SetWindowAttrib((WindowHandle*)_window.Handle, WindowAttributeSetter.Resizable, true);
+        }
+        else _window.WindowBorder = show ? WindowBorder.Resizable : WindowBorder.Hidden;
     }
 
     #region Cursor and pointer

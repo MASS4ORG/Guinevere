@@ -5,12 +5,13 @@ namespace Guinevere;
 
 public partial class GuiWindow
 {
+    readonly DesktopPointer _desktopPointer = new();
+
     /// <inheritdoc />
     public bool IsMaximized => Raylib.IsWindowMaximized();
 
-    /// <inheritdoc />
-    public bool CanMove => !OperatingSystem.IsLinux()
-        || Environment.GetEnvironmentVariable("XDG_SESSION_TYPE") != "wayland";
+    /// <summary>The bundled desktop Raylib backends support window movement, including X11 in a Wayland session.</summary>
+    public bool CanMove => true;
 
     /// <inheritdoc />
     public Vector2 Position
@@ -20,7 +21,7 @@ public partial class GuiWindow
     }
 
     /// <inheritdoc />
-    public Vector2 PointerPosition => Position + Raylib.GetMousePosition();
+    public Vector2 PointerPosition => _desktopPointer.Position;
 
     /// <inheritdoc />
     public void Minimize() => Raylib.MinimizeWindow();

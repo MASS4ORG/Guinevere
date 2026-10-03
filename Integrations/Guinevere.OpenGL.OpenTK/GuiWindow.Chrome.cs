@@ -4,7 +4,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Guinevere;
 
-public partial class GuiWindow
+public unsafe partial class GuiWindow
 {
     /// <inheritdoc />
     public bool IsMaximized => WindowState == WindowState.Maximized;
@@ -15,12 +15,23 @@ public partial class GuiWindow
     /// <inheritdoc />
     public Vector2 Position
     {
-        get => new(ClientLocation.X, ClientLocation.Y);
-        set => ClientLocation = new((int)value.X, (int)value.Y);
+        get
+        {
+            GLFW.GetWindowPos(WindowPtr, out var x, out var y);
+            return new Vector2(x, y);
+        }
+        set => GLFW.SetWindowPos(WindowPtr, (int)value.X, (int)value.Y);
     }
 
     /// <inheritdoc />
-    public Vector2 PointerPosition => Position + MousePosition;
+    public Vector2 PointerPosition
+    {
+        get
+        {
+            GLFW.GetCursorPos(WindowPtr, out var x, out var y);
+            return Position + new Vector2((float)x, (float)y);
+        }
+    }
 
     /// <inheritdoc />
     public void Minimize() => WindowState = WindowState.Minimized;

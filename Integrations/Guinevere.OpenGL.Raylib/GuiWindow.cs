@@ -180,6 +180,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowChromeCapabi
     /// </summary>
     public void Dispose()
     {
+        _desktopPointer.Dispose();
         _canvasRenderer.Dispose();
         _fontText.Dispose();
         _fontIcon.Dispose();

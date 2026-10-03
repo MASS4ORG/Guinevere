@@ -1,10 +1,11 @@
 using System.Numerics;
+using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
 namespace Guinevere;
 
-public partial class GuiWindow
+public unsafe partial class GuiWindow
 {
     /// <inheritdoc />
     public bool IsMaximized => _window.WindowState == WindowState.Maximized;
@@ -20,16 +21,28 @@ public partial class GuiWindow
     }
 
     /// <inheritdoc />
-    public Vector2 PointerPosition => Position + _mousePosition;
+    public Vector2 PointerPosition => Position + _mouse.Position;
 
     /// <inheritdoc />
-    public void Minimize() => _window.WindowState = WindowState.Minimized;
+    public void Minimize()
+    {
+        if (_window.IsInitialized) _glfw.IconifyWindow((WindowHandle*)_window.Handle);
+        else _window.WindowState = WindowState.Minimized;
+    }
 
     /// <inheritdoc />
-    public void Maximize() => _window.WindowState = WindowState.Maximized;
+    public void Maximize()
+    {
+        if (_window.IsInitialized) _glfw.MaximizeWindow((WindowHandle*)_window.Handle);
+        else _window.WindowState = WindowState.Maximized;
+    }
 
     /// <inheritdoc />
-    public void Restore() => _window.WindowState = WindowState.Normal;
+    public void Restore()
+    {
+        if (_window.IsInitialized) _glfw.RestoreWindow((WindowHandle*)_window.Handle);
+        else _window.WindowState = WindowState.Normal;
+    }
 
     /// <inheritdoc />
     public void RequestClose()

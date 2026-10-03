@@ -54,12 +54,12 @@ public partial class Gui
         }
     }
 
-    readonly Dictionary<string, bool> _dragStates = new();
-    readonly Dictionary<string, PressAnchor> _pressAnchors = new();
+    readonly Dictionary<string, bool> _dragStates = [];
+    readonly Dictionary<string, PressAnchor> _pressAnchors = [];
     Vector2 _pointerLastFrame;
     bool _hasPointerLastFrame;
     (string Id, MouseButton Button)? _pointerCapture;
-    readonly Dictionary<string, (float Time, int Count)> _clickRuns = new();
+    readonly Dictionary<string, (float Time, int Count)> _clickRuns = [];
     LayoutNode? _inputBlocker;
 
     /// <summary>
@@ -77,6 +77,7 @@ public partial class Gui
     /// <returns>An instance of <see cref="InteractableElement"/> that represents the interactable element for the current node.</returns>
     public InteractableElement GetInteractable(LayoutNode node)
     {
+        node.IsPointerInteractive = true;
         return new InteractableElement(node.Rect, this, node.Id, node);
     }
 
@@ -88,6 +89,7 @@ public partial class Gui
     /// <returns>An instance of <see cref="InteractableElement"/> representing the interactable element at the specified position and shape.</returns>
     public InteractableElement GetInteractable(Vector2 position, Shape shape)
     {
+        CurrentNode.IsPointerInteractive = true;
         var newShape = shape.Copy();
         newShape.Path.Transform(SKMatrix.CreateTranslation(position.X, position.Y));
         return new InteractableElement(newShape, this, ShapeId(position), CurrentNode);

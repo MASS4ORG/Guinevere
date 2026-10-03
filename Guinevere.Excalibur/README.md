@@ -141,28 +141,57 @@ gui.MenuBar(menus =>
 ## Application Bar
 
 ```csharp
-gui.AppBar(bar => bar
-    .Title("Studio")
-    .Leading(g => g.MenuBar(menus => menus.Collapsible()
-        .Menu("File", file => file.Item("Open", OpenProject))))
-    .Action("◐", ToggleTheme));
+using (gui.AppBar(nativeTitlebar: useNativeTitlebar))
+{
+    gui.MenuBar(menus => menus.Collapsible()
+        .Menu("File", file => file.Item("Open", OpenProject)));
+    gui.Image(badge, width: 15, height: 15);
+    gui.DrawText("Studio");
+    gui.Node().ExpandWidth();
+    if (gui.Button("◐", 36, 36)) ToggleTheme();
+}
 ```
 
-Desktop integrations register `IWindowChromeCapability` automatically. The bar hides native decorations and
-provides minimize, maximize/restore, close requests, dragging and double-click maximization. Close requests
-go through `GuiWindow.CloseRequested`, so the application's unsaved-work guard still runs. Application hosts
-with their own window can register one implementation on `gui.Platform` rather than inject window callbacks
-into their controls.
+The scope lays out arbitrary widgets in a horizontal row, with normal gaps, padding and flexible nodes.
+Repeated calls append content in order. It creates no content delegates, action lists or application title
+model. The operating system's title is supplied separately when creating `GuiWindow`.
 
-Use `Content(g => ...)` to replace the flexible title region with search, project selection or other widgets.
-Those controls remain interactive, with a separate drag area beside them. Actions that do not fit move into
-a keyboard-accessible overflow menu. `Leading` measures its content by default; pass a width to reserve a
-fixed region. `windowControls: false` embeds the bar without changing native decorations.
+Desktop integrations register `IWindowChromeCapability` automatically. Where movement is supported, the bar
+replaces native decorations. With `windowControls: true`, it appends minimize, maximize/restore and close
+buttons after the content, independently of native decorations or movement support.
+Close requests go through `GuiWindow.CloseRequested`, preserving the application's unsaved-work guard.
+Passive content such as images and labels, and empty space, drag the window and double-click to maximize.
+Buttons, editors, custom interactions and event handlers retain their own gestures.
 
-Window movement uses desktop coordinates where the backend supports them. Native Wayland movement is
-not available through the current GLFW integrations; `CanMove` lets hosts expose that limitation. Native
-snap gestures and border resizing are outside this control's scope. The bar should remain mounted while
-custom decorations are in use; call `DrawWindowTitlebar(true)` when returning to native chrome.
+Set `nativeTitlebar: true` to show the operating system's decorations at runtime; set it back to `false`
+to use application chrome. The application buttons remain available while native decorations are showing. Keep the
+scope at the same call site in both passes, and apply mode changes on the next frame. `windowControls: false`
+embeds the bar and releases any decoration management it previously owned.
+
+The current GLFW integrations cannot move native Wayland windows. The bar keeps native decorations when
+`CanMove` is false so the window stays movable. Native Wayland custom-titlebar dragging requires a backend
+with compositor move requests. Native snap gestures and border resizing are outside this control's scope.
+Call `DrawWindowTitlebar(true)` when completely unmounting an application bar that replaced native chrome.
+
+Let `AppBar` manage decorations while it is mounted; calling `DrawWindowTitlebar` independently every frame
+competes with its remembered mode. Switching OpenGL/Vulkan wrappers does not add native Wayland dragging:
+the GLFW integrations need compositor move support or an X11/XWayland startup choice.
+
+### Extending a host application
+
+Hosts can draw their own shell and registered plugin widgets inside the scope. `AppBarScope` is a value type;
+extend the composed content through host methods or extension methods. Keep plugin factories and contribution
+registries in the host, cache widget instances, and call their render methods in both GUI passes.
+
+Main-menu actions can continue to use a command registry feeding `MenuBar`; arbitrary widgets such as play
+controls or recent projects belong in the AppBar row. Apply contribution additions/removals between frames
+so the same widgets appear in both passes, and remove cached instances when their plugin unloads.
+
+### Migrating builder callers
+
+Replace `gui.AppBar(bar => ...)` with a `using (gui.AppBar())` scope. Move `Leading` and `Content` widgets
+directly into its body, render visible titles with `gui.DrawText`, and replace `Action` entries with ordinary
+buttons. Use normal layout nodes and menus to arrange content and handle overflow.
 
 ## Tree View
 
