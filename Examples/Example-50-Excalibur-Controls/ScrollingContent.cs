@@ -10,12 +10,12 @@ public abstract partial class Program
 
     static void ScrollingContent(Gui gui)
     {
-        gui.SetTextColor(gui.Controls.Text);
+        gui.SetTextColor(gui.ControlPalette.Text);
         using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(15).Enter())
         {
             using (gui.Node(220).Enter())
             {
-                gui.DrawBackgroundRect(gui.Controls.Surface, radius: 8);
+                gui.DrawBackgroundRect(gui.ControlPalette.Surface, radius: 8);
 
                 using (gui.Node().Padding(10).Direction(Axis.Vertical).Gap(6).Enter())
                 {
@@ -63,7 +63,7 @@ public abstract partial class Program
 
             using (gui.Node().Expand().Padding(10).Enter())
             {
-                gui.DrawBackgroundRect(gui.Controls.Surface, radius: 5);
+                gui.DrawBackgroundRect(gui.ControlPalette.Surface, radius: 5);
 
                 switch (_scrollDemo)
                 {

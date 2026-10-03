@@ -82,6 +82,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowChromeCapability, 
         options.IsVisible = true;
         options.WindowBorder = WindowBorder.Resizable;
 
+        ConfigureWindowPlatform();
         _window = Window.Create(options);
 
         // Hook up all necessary events

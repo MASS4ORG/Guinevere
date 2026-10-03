@@ -7,6 +7,7 @@ public static partial class ControlsExtensions
     internal sealed class AppBarState
     {
         internal IWindowChromeCapability? Window;
+        /// <summary>The last decoration request, cached to avoid repeating native updates each frame.</summary>
         internal bool? NativeTitlebar;
         internal bool Maximized;
         internal Vector2 DragOffset;

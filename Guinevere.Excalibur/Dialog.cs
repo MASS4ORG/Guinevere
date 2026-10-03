@@ -39,10 +39,10 @@ public static partial class ControlsExtensions
     /// dialog. Each open starts centered again; the dragged position is not remembered afterward.</param>
     /// <param name="closeOnEscape">Whether Escape closes the dialog.</param>
     /// <param name="closeOnClickOutside">Whether a press on the dimmed overlay closes the dialog.</param>
-    /// <param name="backgroundColor">Body fill; defaults to <see cref="Gui.Controls"/>'s popup color.</param>
-    /// <param name="borderColor">Border color; defaults to <see cref="Gui.Controls"/>'s border color.</param>
+    /// <param name="backgroundColor">Body fill; defaults to <see cref="Gui.ControlPalette"/>'s popup color.</param>
+    /// <param name="borderColor">Border color; defaults to <see cref="Gui.ControlPalette"/>'s border color.</param>
     /// <param name="titleBarColor">Title bar fill; defaults to <paramref name="backgroundColor"/>.</param>
-    /// <param name="titleTextColor">Title text color; defaults to <see cref="Gui.Controls"/>'s text color.</param>
+    /// <param name="titleTextColor">Title text color; defaults to <see cref="Gui.ControlPalette"/>'s text color.</param>
     /// <param name="overlayColor">Dimming color behind the dialog.</param>
     /// <param name="titleBarHeight">Title bar height.</param>
     /// <param name="footerHeight">Footer row height, used only when <paramref name="footer"/> is given.</param>

@@ -186,8 +186,8 @@ public partial class Gui
     {
         if (Pass != Pass.Pass2Render || state is DropTargetState.None or DropTargetState.Dropped) return;
         var color = state == DropTargetState.HoverAccepted
-            ? style.Accepted ?? Controls.Positive
-            : style.Rejected ?? Controls.Negative;
+            ? style.Accepted ?? ControlPalette.Positive
+            : style.Rejected ?? ControlPalette.Negative;
         var area = rect ?? CurrentNode.Rect;
         if (style.FillAlpha > 0)
             DrawRect(area, Color.FromArgb(style.FillAlpha, color.R, color.G, color.B), style.Radius);

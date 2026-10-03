@@ -115,7 +115,7 @@ public abstract partial class Program
 
         Section(gui, "Click Statistics", () =>
         {
-            gui.SetTextColor(gui.Controls.Text);
+            gui.SetTextColor(gui.ControlPalette.Text);
             gui.SetTextSize(14);
             gui.DrawText($"Button clicks: {_buttonClickCount}");
             gui.DrawText($"Icon button clicks: {_iconButtonClickCount}");

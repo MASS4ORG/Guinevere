@@ -10,25 +10,40 @@ namespace Controls_01;
 /// </summary>
 public abstract partial class Program
 {
+    static bool _nativeTitlebar;
+
+    /// <summary>Runs the control gallery.</summary>
     public static void Main()
     {
-        var gui = new Gui { Controls = ControlPalette.Dark };
+        var gui = new Gui { ControlPalette = ControlPalette.Dark };
         gui.StyleSheets.Add(StyleSheet.Parse(Style));
 
+        Environment.SetEnvironmentVariable("OPENTK_4_USE_WAYLAND", "0");
+        Environment.SetEnvironmentVariable("SILKNET_USE_WAYLAND", "0");
         using var win = new GuiWindow(gui, 1150, 860, "Controls");
         win.RunGui(() => Draw(gui));
     }
 
     static void Draw(Gui gui)
     {
-        gui.Controls = SelectedPalette();
-        gui.AppBar(bar => bar.Title("Guinevere Excalibur")
-            .Leading(g => g.MenuBar(menu => menu.Collapsible()
-                .Menu("File", file => file.Item("Close", () =>
-                    g.Platform.Require<IWindowChromeCapability>().RequestClose()))
-                .Menu("View", view => view.Item("Toggle theme", () => _radioChoice = _radioChoice == 0 ? 1 : 0))))
-            .Action("◐", () => _radioChoice = _radioChoice == 0 ? 1 : 0));
-        DemoHeader.Header(gui, "Guinevere Excalibur");
+        gui.ControlPalette = SelectedPalette();
+        var chrome = gui.Platform.Require<IWindowChromeCapability>();
+        var nativeTitlebar = _nativeTitlebar || !chrome.CanMove;
+        using (gui.AppBar(windowControls: !_nativeTitlebar, nativeTitlebar: _nativeTitlebar))
+        {
+            gui.MenuBar(menu => menu.Collapsible()
+                .Menu("File", file => file.Item("Close", () => gui.Platform.Require<IWindowChromeCapability>().RequestClose()))
+                .Menu("View", view => view
+                    .Item("Toggle theme", () => _radioChoice = _radioChoice == 0 ? 1 : 0)
+                    .CheckItem("Native title bar", () => nativeTitlebar, value => _nativeTitlebar = value,
+                        enabled: chrome.CanMove)));
+            DemoHeader.BadgeMini(gui);
+            gui.DrawText("Guinevere Excalibur");
+            gui.Node().ExpandWidth();
+            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, gui.ControlPalette.Text);
+            _nativeTitlebar = gui.Checkbox(_nativeTitlebar, "Native title bar");
+            if (gui.Button("◐", 36, 36)) _radioChoice = _radioChoice == 0 ? 1 : 0;
+        }
 
         using (gui.Node().Expand().Enter())
         {
@@ -68,8 +83,8 @@ public abstract partial class Program
     {
         using (gui.Node().ExpandWidth().Margin(5).Padding(5).Enter())
         {
-            gui.DrawText(title, size: 18, color: gui.Controls.Text).MarginBottom(5);
-            gui.DrawBackgroundRect(gui.Controls.SurfaceHover, 5);
+            gui.DrawText(title, size: 18, color: gui.ControlPalette.Text).MarginBottom(5);
+            gui.DrawBackgroundRect(gui.ControlPalette.SurfaceHover, 5);
             body();
         }
     }

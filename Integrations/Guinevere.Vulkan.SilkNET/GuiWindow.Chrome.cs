@@ -7,6 +7,15 @@ namespace Guinevere;
 
 public unsafe partial class GuiWindow
 {
+    void ConfigureWindowPlatform()
+    {
+        if (!OperatingSystem.IsLinux() || Environment.GetEnvironmentVariable("SILKNET_USE_WAYLAND") != "0") return;
+        // GLFW's platform hint and X11 value are absent from this binding's enums.
+        const InitHint platformHint = (InitHint)0x00050003;
+        const int x11Platform = 0x00060004;
+        _glfw.InitHint(platformHint, x11Platform);
+    }
+
     /// <inheritdoc />
     public bool IsMaximized => _window.WindowState == WindowState.Maximized;
 

@@ -64,7 +64,7 @@ public class ControlPaletteTests
     public void ControlStyle_CascadesIndependentOverrides()
     {
         using var surface = SKSurface.Create(new SKImageInfo(100, 100));
-        var gui = new Gui { Controls = ControlPalette.Dark };
+        var gui = new Gui { ControlPalette = ControlPalette.Dark };
         gui.BeginFrame(surface.Canvas);
 
         Assert.Equal(ControlPalette.Dark.Surface, gui.ControlStyle.Surface);

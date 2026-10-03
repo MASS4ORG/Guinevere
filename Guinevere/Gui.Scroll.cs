@@ -359,16 +359,16 @@ public partial class Gui
             ? scrollState.CalculateVerticalScrollbar(nodeRect)
             : scrollState.CalculateHorizontalScrollbar(nodeRect);
 
-        var bgColor = backgroundColor ?? Controls.BaseBackground;
+        var bgColor = backgroundColor ?? ControlPalette.BaseBackground;
         var isDragging = axis == Axis.Vertical ? scrollState.IsDraggingScrollbarY : scrollState.IsDraggingScrollbarX;
         var isHovered = axis == Axis.Vertical
             ? scrollState.IsVerticalScrollbarHovered
             : scrollState.IsHorizontalScrollbarHovered;
 
         // Use different colors based on interaction state
-        var fgColor = foregroundColor ?? (isDragging ? Controls.TextDim :
-            isHovered ? Controls.BorderActive :
-            Controls.Border);
+        var fgColor = foregroundColor ?? (isDragging ? ControlPalette.TextDim :
+            isHovered ? ControlPalette.BorderActive :
+            ControlPalette.Border);
 
         // Draw scrollbar background
         DrawRectFilled(track, bgColor);

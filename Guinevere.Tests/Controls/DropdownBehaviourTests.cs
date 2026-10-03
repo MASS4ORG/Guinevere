@@ -153,7 +153,7 @@ public class DropdownBehaviorTests
         {
             Gui =
             {
-                Controls = ControlPalette.Dark
+                ControlPalette = ControlPalette.Dark
             }
         };
         harness.Frame(OnButton, pressed: true);

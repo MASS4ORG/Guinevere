@@ -52,7 +52,7 @@ public partial class Gui
     ControlPalette _controls = ControlPalette.Light;
 
     /// <summary>Fallback colors applied as independent values to each frame's root scope.</summary>
-    public ControlPalette Controls
+    public ControlPalette ControlPalette
     {
         get => _controls;
         set

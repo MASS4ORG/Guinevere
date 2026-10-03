@@ -219,13 +219,7 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             ApiVersion = Vk.Version12
         };
 
-        // Manually specify required extensions for Linux
-        var extensionNames = new[]
-        {
-            "VK_KHR_surface", "VK_KHR_xlib_surface", // For Linux X11
-            "VK_KHR_wayland_surface" // For Linux Wayland
-        };
-
+        var extensionNames = RequiredInstanceExtensions();
         var extensions = SilkMarshal.StringArrayToPtr(extensionNames);
 
         var createInfo = new InstanceCreateInfo
@@ -245,6 +239,15 @@ public unsafe class CanvasRenderer : ICanvasRenderer
             throw new Exception("Failed to get KHR Surface extension");
 
         SilkMarshal.Free(extensions);
+    }
+
+    string[] RequiredInstanceExtensions()
+    {
+        if (_window.VkSurface == null)
+            return ["VK_KHR_surface", "VK_KHR_xlib_surface", "VK_KHR_wayland_surface"];
+
+        var extensions = _window.VkSurface.GetRequiredExtensions(out var count);
+        return SilkMarshal.PtrToStringArray((nint)extensions, (int)count);
     }
 
     void CreateSurface()

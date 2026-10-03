@@ -11,7 +11,7 @@ public static class Program
     /// <summary>Opens the tour window.</summary>
     public static void Main()
     {
-        var gui = new Gui { Controls = ControlPalette.Light };
+        var gui = new Gui { ControlPalette = ControlPalette.Light };
         var tour = new AttributeTour();
 
         using var win = new GuiWindow(gui, 1600, 900, "Autoformers: Attributes");

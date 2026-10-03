@@ -77,6 +77,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowChromeCapability, 
         // options.FramesPerSecond = 60;
         // options.UpdatesPerSecond = 60;
 
+        ConfigureWindowPlatform();
         _window = Window.Create(options);
 
         // Hook up all necessary events

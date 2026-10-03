@@ -6,6 +6,7 @@ static class DemoHeader
 {
     static readonly Bitmap Badge = LoadBadge();
 
+    /// <summary>Draws the gallery header with its badge and frame rate.</summary>
     public static void Header(Gui gui, string title)
     {
         using (gui.Node().Height(40).Padding(15, 0).Direction(Axis.Horizontal)
@@ -16,6 +17,13 @@ static class DemoHeader
             gui.Node().Expand();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Color.White);
         }
+    }
+
+    /// <summary>Draws a small badge for compact rows.</summary>
+    public static void BadgeMini(Gui gui)
+    {
+        using (gui.Node(15).AlignContent(.5f).Enter())
+            gui.Image(Badge, width: 15, height: 15);
     }
 
     static Bitmap LoadBadge()
