@@ -10,7 +10,69 @@ public sealed class TreeViewState
     readonly HashSet<string> _expanded = [];
 
     /// <summary>The selected row's id, or null.</summary>
-    public string? SelectedId { get; set; }
+    public string? SelectedId
+    {
+        get => selectedId;
+        set => SetSelection(value is null ? [] : [value], value);
+    }
+
+    string? selectedId;
+    string? anchor;
+
+    internal string? SelectionAnchor { get => anchor; set => anchor = value; }
+    IReadOnlyList<string> selectedIds = Array.Empty<string>();
+
+    /// <summary>Enables modifier clicks, range selection and Select All.</summary>
+    public bool MultiSelect { get; set; }
+
+    /// <summary>The selected row ids in selection order.</summary>
+    public IReadOnlyList<string> SelectedIds => selectedIds;
+
+    /// <summary>Rows participating in keyboard and pointer ranges this frame.</summary>
+    internal IReadOnlyList<string> VisibleIds { get; set; } = Array.Empty<string>();
+
+    /// <summary>Replaces selected rows and the active row without changing expansion.</summary>
+    public void SetSelection(IEnumerable<string> ids, string? active = null)
+    {
+        var next = ids.Distinct(StringComparer.Ordinal).ToArray();
+        selectedIds = Array.AsReadOnly(next);
+        selectedId = active is not null && next.Contains(active) ? active : next.LastOrDefault();
+        if (anchor is null || !next.Contains(anchor)) anchor = selectedId;
+    }
+
+    /// <summary>Selects one row, toggles it, or extends the range from the last unmodified selection.</summary>
+    public void Select(string id, IReadOnlyList<string> visible, bool toggle = false, bool range = false)
+    {
+        if (!MultiSelect || (!toggle && !range))
+        {
+            SetSelection([id], id);
+            anchor = id;
+            return;
+        }
+        if (range)
+        {
+            SelectRange(id, visible, toggle);
+        }
+        else if (selectedIds.Contains(id)) SetSelection(selectedIds.Where(item => item != id), selectedId);
+        else
+        {
+            SetSelection(selectedIds.Append(id), id);
+            anchor = id;
+        }
+    }
+
+    void SelectRange(string id, IReadOnlyList<string> visible, bool toggle)
+    {
+        var order = visible.ToList();
+        var start = order.IndexOf(anchor ?? id);
+        var end = order.IndexOf(id);
+        if (end < 0) return;
+        if (start < 0) start = end;
+        var savedAnchor = anchor;
+        var span = order.Skip(Math.Min(start, end)).Take(Math.Abs(end - start) + 1);
+        SetSelection(toggle ? selectedIds.Concat(span) : span, id);
+        anchor = savedAnchor;
+    }
 
     /// <summary>
     /// How deep the tree opens before the user touches it. Rows at or below this depth start open,

@@ -17,7 +17,7 @@ static class BuiltinDrawers
     internal static readonly IPropertyDrawer Summary = new PrimitiveDrawer((gui, field, _, _, _) =>
     {
         var style = new FormStyle(gui);
-        gui.DrawText(field.GetValue()?.ToString() ?? "—", style.FontSize, style.InkDim, centerInRect: false);
+        gui.DrawText(field.HasMixedValue ? "—" : field.GetValue()?.ToString() ?? "—", style.FontSize, style.InkDim, centerInRect: false);
     });
 
     /// <summary>The built-in drawer for a value type; the summary when there is none.</summary>
@@ -34,8 +34,8 @@ static class BuiltinDrawers
     static void DrawBool(Gui gui, FormField field)
     {
         // Checkbox builds its own nodes, so it runs in both passes; only the render pass writes.
-        var current = field.GetValue() is true;
-        var next = gui.Checkbox(current, size: new FormStyle(gui).FontSize + 2f);
+        var current = !field.HasMixedValue && field.GetValue() is true;
+        var next = gui.Checkbox(current, size: new FormStyle(gui).FontSize + 2f, mixed: field.HasMixedValue);
 
         if (gui.Pass == Pass.Pass2Render && next != current) field.SetValue(next);
     }
@@ -43,14 +43,14 @@ static class BuiltinDrawers
     static void DrawString(Gui gui, FormField field, string id)
     {
         var style = new FormStyle(gui);
-        var current = field.GetValue() as string ?? string.Empty;
+        var current = field.HasMixedValue ? string.Empty : field.GetValue() as string ?? string.Empty;
         var next = field.Attribute<TextAreaAttribute>() is { } area
             ? gui.TextArea(current, width: 0, height: TextAreaHeight(gui, current, area), fontSize: style.FontSize,
                 backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink, padding: 4,
-                id: $"{id}/text")
+                id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "")
             : gui.TextInput(current, width: 0, height: style.RowHeight, fontSize: style.FontSize,
                 backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink, padding: 4,
-                id: $"{id}/text");
+                id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "");
 
         if (!string.Equals(next, current, StringComparison.Ordinal)) field.SetValue(next);
     }
@@ -82,13 +82,13 @@ static class BuiltinDrawers
                 [.. names.Select(name => t.GetField(name)?.GetCustomAttribute<EnumLabelAttribute>()?.Label ?? name)]);
         });
         var labels = context.Translate is { } translate ? [.. metadata.Labels.Select(translate)] : metadata.Labels;
-        var current = Array.IndexOf(metadata.Names, field.GetValue()?.ToString() ?? string.Empty);
+        var current = field.HasMixedValue ? -1 : Array.IndexOf(metadata.Names, field.GetValue()?.ToString() ?? string.Empty);
 
         // Dropdown keys its open state by call site, so every enum field would otherwise share one.
         // ReSharper disable once ExplicitCallerInfoArgument
         var next = gui.Dropdown(labels, current, width: 0, height: style.RowHeight, fontSize: style.FontSize,
             backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink,
-            dropdownColor: style.Field, filePath: $"{id}/enum");
+            dropdownColor: style.Field, placeholder: "—", filePath: $"{id}/enum");
 
         if (next >= 0 && next != current) field.SetValue(Enum.Parse(type, metadata.Names[next]));
     }
@@ -99,7 +99,7 @@ static class BuiltinDrawers
         var (min, max) = field.Range ?? (float.MinValue, float.MaxValue);
 
         if (FormControls.NumberEditor(gui, current, $"{id}/num", FormControls.IsIntegral(type), min, max,
-                out var edited))
+                out var edited, field.HasMixedValue))
             field.SetValue(FormControls.ToNumber(edited, type));
     }
 
@@ -137,7 +137,18 @@ sealed class VectorDrawer : IPropertyDrawer
     public bool DrawValue(Gui gui, FormField field, string id, FormRenderContext context)
     {
         var parts = Split(field.GetValue());
-        if (FormControls.EditAxes(gui, id, parts)) field.SetValue(Compose(Array.ConvertAll(parts, p => (float)p)));
+        for (var i = 0; i < parts.Length; i++)
+        {
+            var axis = i;
+            var part = field.Project<object, double>(field.Label, value => Split(value)[axis], (value, next) =>
+            {
+                var own = Split(value);
+                own[axis] = next;
+                return Compose(Array.ConvertAll(own, p => (float)p));
+            });
+            if (FormControls.AxisField(gui, i, parts[i], $"{id}/a{i}", out var next, part.HasMixedValue))
+                part.SetValue(next);
+        }
         return true;
     }
 
@@ -177,20 +188,30 @@ sealed class ColorDrawer : IPropertyDrawer
                 gui.DrawRectBorder(gui.CurrentNode.Rect, style.Border, 1, 2);
             }
 
-        Span<int> channels = [color.R, color.G, color.B, color.A];
-        var changed = false;
+        int[] channels = [color.R, color.G, color.B, color.A];
         for (var i = 0; i < channels.Length; i++)
         {
-            if (!FormControls.NumberEditor(gui, channels[i], $"{id}/c{i}", integral: true, 0, 255, out var next))
-                continue;
-
-            channels[i] = (int)next;
-            changed = true;
+            var channel = i;
+            var part = field.Project<Color, int>(field.Label, value => Channel(value, channel), (value, next) =>
+            {
+                int[] own = [value.R, value.G, value.B, value.A];
+                own[channel] = next;
+                return Color.FromArgb(own[3], own[0], own[1], own[2]);
+            });
+            if (FormControls.NumberEditor(gui, channels[i], $"{id}/c{i}", integral: true, 0, 255,
+                    out var next, part.HasMixedValue)) part.SetValue((int)next);
         }
 
-        if (changed) field.SetValue(Color.FromArgb(channels[3], channels[0], channels[1], channels[2]));
         return true;
     }
+
+    static int Channel(Color color, int channel) => channel switch
+    {
+        0 => color.R,
+        1 => color.G,
+        2 => color.B,
+        _ => color.A,
+    };
 }
 
 /// <summary>Shows a <c>[Tooltip]</c> when the field's row is hovered.</summary>

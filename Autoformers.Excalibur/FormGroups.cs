@@ -144,8 +144,11 @@ static class FormGroups
                 context.Modified(field), actions: null);
             if (!isOpen) return;
 
-            var fields = FormBuilder.Build(target, NestedOptions(field, target)).Sections
-                .SelectMany(section => section.BodyFields).ToList();
+            var forms = field.Sources.Select(source => (Source: source, Value: source.GetValue()))
+                .Where(entry => entry.Value is not null)
+                .Select(entry => FormBuilder.Build(entry.Value!, NestedOptions(entry.Source, entry.Value!)).Sections[0])
+                .ToArray();
+            var fields = forms.Length != field.Sources.Count ? [] : SharedFields(forms);
 
             using (gui.Node(-1, -1, $"{id}/body").ExpandWidth().Direction(Axis.Vertical)
                        .Margin(0f, 0f, 0f, style.Indent).Enter())
@@ -167,6 +170,18 @@ static class FormGroups
 
         gui.DrawBackgroundRect(CompartmentFill(style.Background, style.Ink, depth), style.CornerRadius);
         gui.DrawRectBorder(gui.CurrentNode.Rect, style.Divider, 1, style.CornerRadius);
+    }
+
+    static IReadOnlyList<FormField> SharedFields(IReadOnlyList<FormSection> sections)
+    {
+        var fields = new List<FormField>();
+        foreach (var field in sections[0].BodyFields)
+        {
+            var shared = sections.Select(section => section.BodyFields.FirstOrDefault(candidate =>
+                candidate.Name == field.Name && candidate.ValueType == field.ValueType)).ToArray();
+            if (shared.All(candidate => candidate is not null)) fields.Add(FormField.Combine(shared.OfType<FormField>()));
+        }
+        return fields;
     }
 
     static FormOptions NestedOptions(FormField field, object target) => field.Options with

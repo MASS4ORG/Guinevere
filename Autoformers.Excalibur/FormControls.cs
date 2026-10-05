@@ -75,11 +75,13 @@ public static class FormControls
         ArgumentNullException.ThrowIfNull(field);
         if (!gui.GetInteractable().OnDrag(out var drag)) return;
 
-        var current = Convert.ToDouble(field.GetValue() ?? 0, CultureInfo.InvariantCulture);
         var delta = (drag.FrameDelta.X - drag.FrameDelta.Y) * (IsIntegral(type) ? 1 : 0.01);
         var (min, max) = field.Range ?? TypeRange(type);
-        var next = Math.Clamp(current + delta, min, max);
-        if (Math.Abs(next - current) > double.Epsilon) field.SetValue(ToNumber(next, type));
+        foreach (var source in field.Sources)
+        {
+            var own = Convert.ToDouble(source.GetValue() ?? 0, CultureInfo.InvariantCulture);
+            source.SetValue(ToNumber(Math.Clamp(own + delta, min, max), type));
+        }
     }
 
     /// <summary>
@@ -88,18 +90,18 @@ public static class FormControls
     /// </summary>
     /// <returns>True when the user changed the value; <paramref name="result"/> holds it.</returns>
     public static bool NumberEditor(Gui gui, double value, string id, bool integral, double min, double max,
-        out double result)
+        out double result, bool mixed = false)
     {
         ArgumentNullException.ThrowIfNull(gui);
         var style = new FormStyle(gui);
         var edited = value;
 
-        gui.NumberField(ref edited, integral ? 1d : 0.01d, min, max, width: 0, height: style.RowHeight,
+        var committed = gui.NumberField(ref edited, integral ? 1d : 0.01d, min, max, width: 0, height: style.RowHeight,
             format: integral ? "0" : "0.###", backgroundColor: style.Field, borderColor: style.Border,
-            textColor: style.Ink, fontSize: style.FontSize, padding: 4, id: id, alignX: 1f);
+            textColor: style.Ink, fontSize: style.FontSize, padding: 4, id: id, alignX: 1f, mixed: mixed);
 
         result = edited;
-        return !edited.Equals(value);
+        return committed || !edited.Equals(value);
     }
 
     /// <summary>A labelled row of X/Y fields writing through <paramref name="set"/> and touching <paramref name="owner"/>.</summary>
@@ -181,7 +183,7 @@ public static class FormControls
 
     /// <summary>One axis: a dim X/Y/Z/W prefix that scrubs, and a number field sharing the width evenly.</summary>
     /// <returns>True when the prefix was dragged or the field edited; <paramref name="result"/> holds the value.</returns>
-    internal static bool AxisField(Gui gui, int index, double value, string id, out double result)
+    internal static bool AxisField(Gui gui, int index, double value, string id, out double result, bool mixed = false)
     {
         var style = new FormStyle(gui);
         var original = value;
@@ -196,8 +198,8 @@ public static class FormControls
                 centerInRect: false);
         }
 
-        NumberEditor(gui, value, id, integral: false, float.MinValue, float.MaxValue, out result);
-        return !result.Equals(original);
+        var committed = NumberEditor(gui, value, id, integral: false, float.MinValue, float.MaxValue, out result, mixed);
+        return committed || !result.Equals(original);
     }
 
     /// <summary>Edits each axis in turn; true when any changed, with <paramref name="values"/> updated.</summary>

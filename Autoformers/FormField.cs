@@ -5,7 +5,7 @@ namespace Autoformers;
 /// what type it holds, and how to read and write it. Usually a reflected member, but a collection's
 /// element is the same thing seen through an index or a key.
 /// </summary>
-public sealed class FormField
+public sealed partial class FormField
 {
     readonly MemberMetadata? _metadata;
     readonly Func<object?> _read;

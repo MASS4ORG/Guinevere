@@ -1,3 +1,6 @@
+# Tags and publishes a release, but only where the `RELEASE_REPOSITORY` variable is set.
+# Forks leave it unset so their copies never tag or release; they receive the upstream commit and
+# tag by mirroring and nothing more.
 name: Check new release
 
 on:
@@ -8,6 +11,7 @@ on:
 jobs:
     ubuntu-latest:
         name: ubuntu-latest
+        if: ${{ vars.RELEASE_REPOSITORY != '' }}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7

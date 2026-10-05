@@ -9,6 +9,47 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class TreeViewTests
 {
+    /// <summary>Modifier clicks and keyboard ranges preserve every selected visible row.</summary>
+    [Fact]
+    public void MultiSelectionUsesModifierClicksAndKeyboard()
+    {
+        var items = Tree(5, 0);
+        var state = new TreeViewState { MultiSelect = true };
+        var input = new ScriptedInputHandler();
+        var gui = RunFrames(items, state, input: input);
+        void ClickRow(int index)
+        {
+            input.MoveTo(200, index * 20 + 10);
+            RunFrames(items, state, input: input, reuse: gui);
+            input.PressButton();
+            RunFrames(items, state, input: input, reuse: gui);
+            input.ReleaseButton();
+            RunFrames(items, state, input: input, reuse: gui);
+        }
+        ClickRow(0);
+        input.PressKey(KeyboardKey.LeftShift);
+        ClickRow(3);
+        Assert.Equal(new[] { "root0", "root1", "root2", "root3" }, state.SelectedIds);
+        input.ReleaseKey(KeyboardKey.LeftShift);
+        input.PressKey(KeyboardKey.LeftControl);
+        ClickRow(1);
+        Assert.Equal(new[] { "root0", "root2", "root3" }, state.SelectedIds);
+        input.PressKey(KeyboardKey.A);
+        RunFrames(items, state, input: input, reuse: gui);
+        Assert.Equal(items.Select(item => item.Id), state.SelectedIds);
+        input.ReleaseKey(KeyboardKey.A);
+        input.ReleaseKey(KeyboardKey.LeftControl);
+        ClickRow(1);
+        input.PressKey(KeyboardKey.LeftShift);
+        input.PressKey(KeyboardKey.Down);
+        RunFrames(items, state, input: input, reuse: gui);
+        Assert.Equal(new[] { "root1", "root2" }, state.SelectedIds);
+        input.ReleaseKey(KeyboardKey.Down);
+        input.PressKey(KeyboardKey.Down);
+        RunFrames(items, state, input: input, reuse: gui);
+        Assert.Equal(new[] { "root1", "root2", "root3" }, state.SelectedIds);
+    }
+
     const int Width = 400;
     const int Height = 400;
 

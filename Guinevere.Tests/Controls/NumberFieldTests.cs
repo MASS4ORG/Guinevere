@@ -31,6 +31,8 @@ public class NumberFieldTests
         }
 
         public float Value { get; private set; }
+        public bool Mixed { get; set; }
+        public bool Committed { get; private set; }
 
         public void Frame(Vector2? mouse = null, bool pressed = false, bool down = false,
             KeyboardKey? key = null, string typed = "", bool control = false)
@@ -50,8 +52,8 @@ public class NumberFieldTests
 
             var value = Value;
 
-            void Draw() => _gui.NumberField(ref value, step: 0.25f, min: 0f, max: 100f,
-                width: 280, height: 24, fontSize: 12, id: _id);
+            void Draw() => Committed = _gui.NumberField(ref value, step: 0.25f, min: 0f, max: 100f,
+                width: 280, height: 24, fontSize: 12, id: _id, mixed: Mixed);
 
             _gui.Time.Update(0.016);
             _gui.SetStage(Pass.Pass1Build);
@@ -65,6 +67,44 @@ public class NumberFieldTests
 
             Value = value;
         }
+    }
+
+    /// <summary>Entering the first owner's value in a mixed field still reports an explicit edit.</summary>
+    [Fact]
+    public void MixedNumberCommitsEvenWhenValueIsUnchanged()
+    {
+        var h = new Harness(10f) { Mixed = true };
+        h.Frame();
+        Assert.False(h.Committed);
+        h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
+        h.Frame(mouse: new Vector2(140, 12));
+        h.Frame(typed: "10");
+        h.Frame(key: KeyboardKey.Enter);
+        Assert.Equal(10f, h.Value);
+        Assert.True(h.Committed);
+        h.Mixed = false;
+        h.Frame();
+        Assert.False(h.Committed);
+    }
+
+    /// <summary>Invalid or untouched mixed inputs retain their value without reporting an edit.</summary>
+    [Fact]
+    public void MixedNumberDoesNotCommitPlaceholderOrInvalidInput()
+    {
+        var h = new Harness(10f) { Mixed = true };
+        h.Frame();
+        h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
+        h.Frame(mouse: new Vector2(140, 12));
+        h.Frame(key: KeyboardKey.Enter);
+        Assert.False(h.Committed);
+        h.Frame();
+        h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
+        h.Frame(mouse: new Vector2(140, 12));
+        h.Frame(key: KeyboardKey.A, control: true);
+        h.Frame(typed: "NaN");
+        h.Frame(key: KeyboardKey.Enter);
+        Assert.Equal(10f, h.Value);
+        Assert.False(h.Committed);
     }
 
     [Fact]

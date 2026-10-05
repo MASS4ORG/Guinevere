@@ -9,6 +9,8 @@
 # Triggered by `check-new-release.yml` via `gh workflow run` after it cuts a tag (a tag push made
 # with GITHUB_TOKEN does not fire `on: push`), or manually via the Actions tab. Always run it on a
 # release tag: on a branch the version is computed from the commits after the tag.
+#
+# Publishes only where the `RELEASE_REPOSITORY` variable is set; forks leave it unset.
 
 name: Publish on tag
 
@@ -25,6 +27,7 @@ permissions:
 jobs:
     ubuntu-latest:
         name: ubuntu-latest
+        if: ${{ vars.RELEASE_REPOSITORY != '' }}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7

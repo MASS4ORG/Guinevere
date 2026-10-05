@@ -6,6 +6,34 @@ namespace Guinevere.Tests.Autoformers;
 
 public class FormRendererTests
 {
+    /// <summary>Common color channels and mixed toggles remain independently editable.</summary>
+    [Fact]
+    public void MixedColorsAndBooleansRenderAndEditTogether()
+    {
+        using var harness = new FrameHarness(600, 400);
+        var first = new Settings { Tint = Color.FromArgb(10, 20, 30, 40), Enabled = true };
+        var second = new Settings { Tint = Color.FromArgb(50, 60, 70, 80), Enabled = false };
+        var color = FormField.Combine([Field(first, nameof(Settings.Tint)), Field(second, nameof(Settings.Tint))]);
+        var enabled = FormField.Combine([Field(first, nameof(Settings.Enabled)), Field(second, nameof(Settings.Enabled))]);
+        void Draw(Gui gui)
+        {
+            using (gui.Node(-1, -1, "root").ExpandWidth().Direction(Axis.Vertical).Enter())
+            {
+                gui.FormField(color, "color");
+                gui.FormField(enabled, "enabled");
+            }
+        }
+        harness.Frame(Draw);
+        Assert.True(color.HasMixedValue);
+        harness.Click(Draw, FrameHarness.Center(Find(harness.Gui, "enabled/editor")!.Children[0]));
+        harness.Frame(Draw);
+        Assert.True(first.Enabled);
+        Assert.True(second.Enabled);
+        Assert.False(enabled.HasMixedValue);
+        Assert.Equal(Color.FromArgb(10, 20, 30, 40), first.Tint);
+        Assert.Equal(Color.FromArgb(50, 60, 70, 80), second.Tint);
+    }
+
     [Fact]
     public void ClickingABoolWritesAndNotifiesOnce()
     {
@@ -243,6 +271,22 @@ public class FormRendererTests
         };
         Assert.True(x > 0f);
         Assert.Equal(0f, y);
+    }
+
+    /// <summary>A saturated member does not prevent the other selected values from being scrubbed.</summary>
+    [Fact]
+    public void MixedScrubbingClampsEachOwnerIndependently()
+    {
+        using var harness = new FrameHarness(600, 400);
+        var first = new Settings { Small = byte.MaxValue };
+        var second = new Settings { Small = 10 };
+        var field = FormField.Combine([Field(first, nameof(Settings.Small)), Field(second, nameof(Settings.Small))]);
+        void Draw(Gui gui) => gui.FormField(field, "small");
+        harness.Frame(Draw);
+        Drag(harness, Draw, FrameHarness.Center(Find(harness.Gui, "small/label")!), 20f);
+        Assert.Equal(byte.MaxValue, first.Small);
+        Assert.True(second.Small > 10);
+        Assert.True(field.HasMixedValue);
     }
 
     [Fact]

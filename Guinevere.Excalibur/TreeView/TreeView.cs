@@ -46,6 +46,7 @@ public static partial class ControlsExtensions
 
         theme ??= TreeViewTheme.Default;
         var visible = Flatten(items, state);
+        state.VisibleIds = [.. visible.Select(item => item.Id)];
 
         using (gui.Node(filePath: filePath, lineNumber: lineNumber).Expand().Direction(Axis.Vertical).Enter())
         {
@@ -75,31 +76,38 @@ public static partial class ControlsExtensions
 
             if (gui.Pass != Pass.Pass2Render) return;
 
-            Measure(gui, state);
-            if (!rowClicked)
-            {
-                var tree = gui.GetInteractable();
-                if (tree.OnClick(MouseButton.Right))
-                    onEmptyClick?.Invoke(MouseButton.Right);
-            }
-
-            if (state.WantsReveal)
-            {
-                ScrollToSelection(gui, state, theme, visible);
-                state.WantsReveal = false;
-            }
-
-            // Focus belongs to the tree, not the row that was clicked, so it is claimed here where the
-            // container is the current node.
-            if (state.WantsFocus)
-            {
-                gui.RequestFocus(FocusReason.Mouse);
-                state.WantsFocus = false;
-            }
-
-            // Several trees can be on screen at once; only the focused one answers the arrow keys.
-            if (gui.HasFocus()) Navigate(gui, state, theme, visible, onClick);
+            ProcessTreeInput(gui, state, theme, visible, rowClicked, onClick, onEmptyClick);
         }
+    }
+
+    static void ProcessTreeInput(Gui gui, TreeViewState state, TreeViewTheme theme,
+        List<TreeItem> visible, bool rowClicked, Action<TreeViewEvent>? onClick,
+        Action<MouseButton>? onEmptyClick)
+    {
+        Measure(gui, state);
+        if (!rowClicked)
+        {
+            var tree = gui.GetInteractable();
+            if (tree.OnClick(MouseButton.Right))
+                onEmptyClick?.Invoke(MouseButton.Right);
+        }
+
+        if (state.WantsReveal)
+        {
+            ScrollToSelection(gui, state, theme, visible);
+            state.WantsReveal = false;
+        }
+
+        // Focus belongs to the tree, not the row that was clicked, so it is claimed here where the
+        // container is the current node.
+        if (state.WantsFocus)
+        {
+            gui.RequestFocus(FocusReason.Mouse);
+            state.WantsFocus = false;
+        }
+
+        // Several trees can be on screen at once; only the focused one answers the arrow keys.
+        if (gui.HasFocus()) Navigate(gui, state, theme, visible, onClick);
     }
 
     /// <summary>
@@ -137,18 +145,59 @@ public static partial class ControlsExtensions
             ? -1
             : visible.FindIndex(item => item.Id == state.SelectedId);
 
+        var previous = state.SelectedId;
+        var previousIds = state.SelectedIds;
+        var previousAnchor = state.SelectionAnchor;
+        if (state.MultiSelect && ControlHeld(gui) && gui.Input.IsKeyPressed(KeyboardKey.A))
+        {
+            state.SetSelection(state.VisibleIds, previous);
+            return;
+        }
+        if (!NavigateKeys(gui, state, visible, index, onClick)) return;
+
+        ExtendKeyboardSelection(gui, state, previous, previousIds, previousAnchor);
+        ScrollToSelection(gui, state, theme, visible);
+    }
+
+    static bool NavigateKeys(Gui gui, TreeViewState state, List<TreeItem> visible, int index,
+        Action<TreeViewEvent>? onClick)
+    {
+        if (NavigateVertical(gui, state, visible, index)) return true;
+        if (gui.Input.IsKeyPressed(KeyboardKey.Right)) Open(state, visible, index);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Left)) Close(state, visible, index);
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Enter) && index >= 0)
+            onClick?.Invoke(new TreeViewEvent(visible[index], MouseButton.Left, 2));
+        else return false;
+        return true;
+    }
+
+    static bool NavigateVertical(Gui gui, TreeViewState state, List<TreeItem> visible, int index)
+    {
         if (gui.Input.IsKeyPressed(KeyboardKey.Down)) Select(state, visible, Math.Min(index + 1, visible.Count - 1));
         else if (gui.Input.IsKeyPressed(KeyboardKey.Up)) Select(state, visible, Math.Max(index - 1, 0));
         else if (gui.Input.IsKeyPressed(KeyboardKey.Home)) Select(state, visible, 0);
         else if (gui.Input.IsKeyPressed(KeyboardKey.End)) Select(state, visible, visible.Count - 1);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Right)) Open(state, visible, index);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Left)) Close(state, visible, index);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Enter) && index >= 0)
-            onClick?.Invoke(new TreeViewEvent(visible[index], MouseButton.Left, 2));
-        else return;
-
-        ScrollToSelection(gui, state, theme, visible);
+        else return false;
+        return true;
     }
+
+    static void ExtendKeyboardSelection(Gui gui, TreeViewState state, string? previous,
+        IReadOnlyList<string> previousIds, string? previousAnchor)
+    {
+        if (state.MultiSelect && state.SelectedId is { } next && next != previous)
+        {
+            state.SetSelection(previousIds, previous);
+            state.SelectionAnchor = previousAnchor;
+            state.Select(next, state.VisibleIds, ControlHeld(gui), ShiftHeld(gui));
+        }
+    }
+
+    static bool ControlHeld(Gui gui) =>
+        gui.Input.IsKeyDown(KeyboardKey.LeftControl) || gui.Input.IsKeyDown(KeyboardKey.RightControl)
+        || gui.Input.IsKeyDown(KeyboardKey.LeftSuper) || gui.Input.IsKeyDown(KeyboardKey.RightSuper);
+
+    static bool ShiftHeld(Gui gui) =>
+        gui.Input.IsKeyDown(KeyboardKey.LeftShift) || gui.Input.IsKeyDown(KeyboardKey.RightShift);
 
     static void Select(TreeViewState state, List<TreeItem> visible, int index)
     {
@@ -231,7 +280,7 @@ public static partial class ControlsExtensions
         Func<object, bool>? dropAccept, Action<TreeItem, object>? onDrop,
         Action<TreeItem, string>? onRename)
     {
-        var isSelected = item.Id == state.SelectedId;
+        var isSelected = state.SelectedIds.Contains(item.Id);
         var isEditing = onRename is not null && state.EditingId == item.Id;
 
         using (gui.Node(-1, theme.RowHeight, $"treeview/row{row}")
@@ -249,26 +298,7 @@ public static partial class ControlsExtensions
                     ghost: g => DragGhost(g, theme, item));
 
             if (gui.Pass == Pass.Pass2Render)
-            {
-                if (dropAccept is not null)
-                {
-                    var drop = gui.DropTarget($"treeview/drop/{item.Id}",
-                        canAccept: dropAccept, onDrop: payload => onDrop?.Invoke(item, payload));
-                    gui.DrawDropIndicator(drop.State);
-                }
-
-                var interactable = gui.GetInteractable();
-
-                if (isSelected) gui.DrawBackgroundRect(gui.ControlStyle.Selected, 2);
-                else if (interactable.OnHover()) gui.DrawBackgroundRect(gui.ControlStyle.AccentSubtle, 2);
-
-                if (!isEditing)
-                {
-                    Report(state, theme, item, interactable, MouseButton.Left, onClick);
-                    Report(state, theme, item, interactable, MouseButton.Right, onClick);
-                    Report(state, theme, item, interactable, MouseButton.Middle, onClick);
-                }
-            }
+                RenderRowInput(gui, state, theme, item, isSelected, isEditing, onClick, dropAccept, onDrop);
 
             Expander(gui, state, theme, item, row);
 
@@ -277,12 +307,18 @@ public static partial class ControlsExtensions
                            .ContentAlignY(0.5f).Enter())
                     icon(gui);
 
-            if (isEditing) RenameBox(gui, state, theme, item, onRename!);
-            else
-                // A tint may match the selection fill, so a selected row always reads in the text color.
-                gui.DrawText(item.Label, theme.FontSize, (isSelected ? null : item.Tint) ?? gui.ControlStyle.Text,
-                    centerInRect: false);
+            RenderRowLabel(gui, state, theme, item, isEditing, isSelected, onRename);
         }
+    }
+
+    static void RenderRowLabel(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
+        bool isEditing, bool isSelected, Action<TreeItem, string>? onRename)
+    {
+        if (isEditing) RenameBox(gui, state, theme, item, onRename!);
+        else
+            // A tint may match the selection fill, so a selected row always reads in the text color.
+            gui.DrawText(item.Label, theme.FontSize, (isSelected ? null : item.Tint) ?? gui.ControlStyle.Text,
+                centerInRect: false);
     }
 
     /// <summary>
@@ -325,12 +361,36 @@ public static partial class ControlsExtensions
         }
     }
 
+    static void RenderRowInput(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
+        bool isSelected, bool isEditing, Action<TreeViewEvent>? onClick,
+        Func<object, bool>? dropAccept, Action<TreeItem, object>? onDrop)
+    {
+        if (dropAccept is not null)
+        {
+            var drop = gui.DropTarget($"treeview/drop/{item.Id}",
+                canAccept: dropAccept, onDrop: payload => onDrop?.Invoke(item, payload));
+            gui.DrawDropIndicator(drop.State);
+        }
+
+        var interactable = gui.GetInteractable();
+
+        if (isSelected) gui.DrawBackgroundRect(gui.ControlStyle.Selected, 2);
+        else if (interactable.OnHover()) gui.DrawBackgroundRect(gui.ControlStyle.AccentSubtle, 2);
+
+        if (!isEditing)
+        {
+            Report(gui, state, theme, item, interactable, MouseButton.Left, onClick);
+            Report(gui, state, theme, item, interactable, MouseButton.Right, onClick);
+            Report(gui, state, theme, item, interactable, MouseButton.Middle, onClick);
+        }
+    }
+
     /// <summary>
     /// Reports a click on a row. The left button settles when the button comes back up, so a press
     /// that goes on to be a drag never selects the row; right and middle have no drag to be confused
     /// with, and a context menu wants its press immediately, so they stay on the press edge.
     /// </summary>
-    static void Report(TreeViewState state, TreeViewTheme theme, TreeItem item,
+    static void Report(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
         InteractableElement interactable, MouseButton button, Action<TreeViewEvent>? onClick)
     {
         int clicks;
@@ -341,7 +401,7 @@ public static partial class ControlsExtensions
 
         if (button == MouseButton.Left)
         {
-            state.SelectedId = item.Id;
+            state.Select(item.Id, state.VisibleIds, ControlHeld(gui), ShiftHeld(gui));
             state.WantsFocus = true;
 
             // Single click selects, double click folds — the arrow is the one-click shortcut.

@@ -13,14 +13,14 @@ public static partial class ControlsExtensions
         Color? labelColor = null,
         float fontSize = ControlMetrics.FontSize,
         float spacing = ControlMetrics.Spacing,
-        bool enabled = true)
+        bool enabled = true, bool mixed = false)
     {
         size = gui.ControlStyle.IndicatorSizeOr(size);
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         spacing = gui.ControlStyle.SpacingOr(spacing);
 
         CheckboxCore(gui, ref isChecked, label, size, backgroundColor, checkColor,
-            borderColor, labelColor, fontSize, spacing, enabled);
+            borderColor, labelColor, fontSize, spacing, enabled, mixed);
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public static partial class ControlsExtensions
         Color? labelColor = null,
         float fontSize = ControlMetrics.FontSize,
         float spacing = ControlMetrics.Spacing,
-        bool enabled = true)
+        bool enabled = true, bool mixed = false)
     {
         size = gui.ControlStyle.IndicatorSizeOr(size);
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
@@ -42,13 +42,13 @@ public static partial class ControlsExtensions
 
         var temp = isChecked;
         CheckboxCore(gui, ref temp, label, size, backgroundColor, checkColor,
-            borderColor, labelColor, fontSize, spacing, enabled);
+            borderColor, labelColor, fontSize, spacing, enabled, mixed);
         return temp;
     }
 
     static void CheckboxCore(Gui gui, ref bool isChecked, string label, float size,
         Color? backgroundColor, Color? checkColor, Color? borderColor, Color? labelColor,
-        float fontSize, float spacing, bool enabled)
+        float fontSize, float spacing, bool enabled, bool mixed)
     {
         var totalWidth = CalculateCheckboxWidth(label, size, fontSize, spacing);
         var totalHeight = Math.Max(size, fontSize + 4);
@@ -59,7 +59,7 @@ public static partial class ControlsExtensions
                    .Enter())
         {
             HandleCheckboxInteraction(gui, ref isChecked, enabled);
-            RenderCheckboxSquare(gui, isChecked, size, backgroundColor, checkColor, borderColor, enabled);
+            RenderCheckboxSquare(gui, isChecked, size, backgroundColor, checkColor, borderColor, enabled, mixed);
             RenderCheckboxLabel(gui, label, fontSize, labelColor, enabled);
         }
     }
@@ -95,8 +95,9 @@ public static partial class ControlsExtensions
     }
 
     static void RenderCheckboxSquare(Gui gui, bool isChecked, float size,
-        Color? backgroundColor, Color? checkColor, Color? borderColor, bool enabled)
+        Color? backgroundColor, Color? checkColor, Color? borderColor, bool enabled, bool mixed)
     {
+        var focused = enabled && gui.HasFocus();
         using (gui.Node(size, size).Enter())
         {
             if (gui.Pass != Pass.Pass2Render) return;
@@ -105,7 +106,7 @@ public static partial class ControlsExtensions
             var bgColor = GetCheckboxBackgroundColor(gui, isChecked, backgroundColor);
             var borderColorFinal = enabled ? borderColor ?? gui.ControlStyle.Border : gui.ControlStyle.Border;
 
-            if (enabled && gui.HasFocus())
+            if (focused)
             {
                 var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
                 gui.DrawRectBorder(focusRect, gui.ControlStyle.FocusRing, 4f, 4);
@@ -118,9 +119,18 @@ public static partial class ControlsExtensions
                 gui.DrawRectBorder(rect, borderColorFinal, 1f, 2);
             }
 
-            if (isChecked)
-                DrawCheckmark(gui, rect, size, enabled ? checkColor ?? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled);
+            RenderCheckboxMark(gui, rect, size, isChecked, checkColor, enabled, mixed);
         }
+    }
+
+    static void RenderCheckboxMark(Gui gui, Rect rect, float size, bool isChecked,
+        Color? checkColor, bool enabled, bool mixed)
+    {
+        if (mixed)
+            gui.DrawRect(new Rect(rect.X + size * 0.2f, rect.Y + size * 0.45f, size * 0.6f, size * 0.1f),
+                checkColor ?? gui.ControlStyle.Text);
+        else if (isChecked)
+            DrawCheckmark(gui, rect, size, enabled ? checkColor ?? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled);
     }
 
     static void RenderCheckboxLabel(Gui gui, string label, float fontSize, Color? labelColor,

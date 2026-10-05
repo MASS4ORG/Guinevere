@@ -7,6 +7,7 @@ public static partial class ControlsExtensions
         public readonly TextEditState Buffer = new("0");
         public bool Captured;
         public int ClickCount;
+        public bool Committed;
     }
 
     /// <summary>
@@ -33,13 +34,15 @@ public static partial class ControlsExtensions
     /// <param name="enabled">Whether the field responds to input.</param>
     /// <param name="id">A stable identifier; two numeric fields on the same frame must not share one.</param>
     /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
+    /// <param name="mixed">Shows a dash until the user enters a shared value.</param>
+    /// <returns>True when the user commits a valid number or changes the value.</returns>
     [PublicAPI]
-    public static void NumberField(this Gui gui, ref double value,
+    public static bool NumberField(this Gui gui, ref double value,
         double step = 1.0, double min = double.MinValue, double max = double.MaxValue,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
         Color? cursorColor = null, float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
-        double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f)
+        double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.FieldHeightOr(height);
@@ -53,7 +56,9 @@ public static partial class ControlsExtensions
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("NumberField", 0) : id;
         var field = gui.ControlState(nodeId, () => new NumberFieldState());
 
-        SyncNumberBuffer(field, value, format);
+        var original = value;
+        if (gui.Pass == Pass.Pass2Render) field.Committed = false;
+        SyncNumberBuffer(field, value, format, mixed);
 
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
                    .ContentAlignX(alignX).ContentAlignY(0.5f).Cursor(FieldCursor(enabled)).Enter())
@@ -61,23 +66,19 @@ public static partial class ControlsExtensions
             var interactable = gui.GetInteractable();
             HandleNumberFieldInteraction(gui, field, ref value, interactable, min, max, format, fontSize, enabled);
 
-            var cursorColorFinal = cursorColor ?? textColor ??
-                gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-            DrawInputBackground(gui, field.Buffer, backgroundColor, borderColor, enabled);
-            DrawSelection(gui, field.Buffer, field.Buffer.Text, fontSize);
-            DrawInputText(gui, field.Buffer.Text, "", fontSize, textColor, null, enabled);
-            DrawCursor(gui, field.Buffer, field.Buffer.Text, fontSize, cursorColorFinal);
+            DrawNumberField(gui, field, backgroundColor, borderColor, textColor, cursorColor, fontSize, enabled, mixed);
         }
+        return gui.Pass == Pass.Pass2Render && (field.Committed || !value.Equals(original));
     }
 
     /// <summary>Float wrapper over the double field, for callers whose values are floats.</summary>
     [PublicAPI]
-    public static void NumberField(this Gui gui, ref float value,
+    public static bool NumberField(this Gui gui, ref float value,
         float step = 1f, float min = float.MinValue, float max = float.MaxValue,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
         Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
         Color? cursorColor = null, float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
-        float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f)
+        float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.FieldHeightOr(height);
@@ -85,14 +86,26 @@ public static partial class ControlsExtensions
         padding = gui.ControlStyle.SpacingOr(padding);
 
         double d = value;
-        gui.NumberField(ref d, step, min, max, width, height, format, backgroundColor, borderColor,
-            textColor, cursorColor, fontSize, padding, dragSensitivity, enabled, id, alignX);
+        var changed = gui.NumberField(ref d, step, min, max, width, height, format, backgroundColor, borderColor,
+            textColor, cursorColor, fontSize, padding, dragSensitivity, enabled, id, alignX, mixed);
         value = (float)d;
+        return changed;
     }
 
-    static void SyncNumberBuffer(NumberFieldState field, double value, string format)
+    static void DrawNumberField(Gui gui, NumberFieldState field, Color? backgroundColor, Color? borderColor,
+        Color? textColor, Color? cursorColor, float fontSize, bool enabled, bool mixed)
     {
-        var formatted = FormatNumber(value, format);
+        var cursorColorFinal = cursorColor ?? textColor ??
+            gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
+        DrawInputBackground(gui, field.Buffer, backgroundColor, borderColor, enabled);
+        DrawSelection(gui, field.Buffer, field.Buffer.Text, fontSize);
+        DrawInputText(gui, field.Buffer.Text, mixed ? "—" : "", fontSize, textColor, null, enabled);
+        DrawCursor(gui, field.Buffer, field.Buffer.Text, fontSize, cursorColorFinal);
+    }
+
+    static void SyncNumberBuffer(NumberFieldState field, double value, string format, bool mixed)
+    {
+        var formatted = mixed ? "" : FormatNumber(value, format);
         var editing = field.Buffer.IsFocused || field.Captured;
 
         if (!editing && !string.Equals(field.Buffer.External, formatted, StringComparison.Ordinal))
@@ -175,9 +188,11 @@ public static partial class ControlsExtensions
     static double CommitNumber(NumberFieldState field, double fallback, double min, double max,
         string format)
     {
-        var parsed = double.TryParse(field.Buffer.Text.Trim(),
+        var valid = double.TryParse(field.Buffer.Text.Trim(),
             System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture,
-            out var number)
+            out var number) && double.IsFinite(number);
+        field.Committed = valid;
+        var parsed = valid
             ? Clamp(number, min, max)
             : Clamp(fallback, min, max);
 

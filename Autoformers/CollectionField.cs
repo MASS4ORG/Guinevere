@@ -12,6 +12,7 @@ public sealed class CollectionField
     readonly IList? _list;
     readonly IDictionary? _dictionary;
     readonly Type _keyType;
+    IReadOnlyList<CollectionField>? collections;
 
     CollectionField(FormField source, IList? list, IDictionary? dictionary,
         Type keyType, Type elementType)
@@ -31,24 +32,24 @@ public sealed class CollectionField
     public Type ElementType { get; }
 
     /// <summary>How many entries the collection holds right now.</summary>
-    public int Count => _dictionary?.Count ?? _list?.Count ?? 0;
+    public int Count => collections is not null ? SharedEntries().Count : _dictionary?.Count ?? _list?.Count ?? 0;
 
     /// <summary>The field's display label, so a drawer can head the group with it.</summary>
     public string Label => _source.Label;
 
     /// <summary>Whether entries may be written.</summary>
-    public bool IsReadOnly => _source.IsReadOnly || (_list?.IsReadOnly ?? _dictionary?.IsReadOnly ?? true);
+    public bool IsReadOnly => collections?.Any(collection => collection.IsReadOnly) == true || _source.IsReadOnly || (_list?.IsReadOnly ?? _dictionary?.IsReadOnly ?? true);
 
     /// <summary>
     /// Whether entries may be added or removed. False for an array and for any dictionary whose key
     /// type offers no way to invent a fresh key.
     /// </summary>
-    public bool CanResize => !IsReadOnly
+    public bool CanResize => (collections?.All(collection => collection.CanResize) ?? true) && !IsReadOnly
                              && !(_list?.IsFixedSize ?? false)
                              && (!IsDictionary || CanInventKey);
 
     /// <summary>Whether entries may be moved: a writable list or array (arrays reorder but never resize).</summary>
-    public bool CanReorder => !IsReadOnly && _list is not null;
+    public bool CanReorder => (collections?.All(collection => collection.CanReorder) ?? true) && !IsReadOnly && _list is not null;
 
     /// <summary>
     /// Recognises a field holding a collection, or null when it holds something else. A string is a
@@ -61,6 +62,14 @@ public sealed class CollectionField
         ArgumentNullException.ThrowIfNull(field);
 
         if (field.ValueType == typeof(string)) return null;
+        if (field.Sources.Count > 1)
+        {
+            var shared = field.Sources.Select(TryCreate).ToArray();
+            if (shared.Any(collection => collection is null)) return null;
+            var first = shared[0]!;
+            return new CollectionField(field, first._list, first._dictionary, first._keyType, first.ElementType)
+            { collections = [.. shared.OfType<CollectionField>()] };
+        }
 
         return field.GetValue() switch
         {
@@ -85,6 +94,7 @@ public sealed class CollectionField
     /// <returns>One field per entry.</returns>
     public IReadOnlyList<FormField> Entries()
     {
+        if (collections is not null) return SharedEntries();
         if (_dictionary is { } map)
         {
             var keys = Keys();
@@ -114,6 +124,7 @@ public sealed class CollectionField
     public bool Add()
     {
         if (!CanResize) return false;
+        if (collections is not null) return ApplyAll(collections, collection => collection.Add());
 
         if (_dictionary is not { } map) return Mutate(_source.Name, () => _list!.Add(Default(ElementType)));
 
@@ -126,6 +137,12 @@ public sealed class CollectionField
     public bool RemoveAt(int index)
     {
         if (!CanResize || index < 0 || index >= Count) return false;
+        if (collections is not null)
+        {
+            var entry = SharedEntries()[index];
+            return ApplyAll(collections, collection => collection.RemoveAt(
+                collection.Entries().ToList().FindIndex(candidate => candidate.Name == entry.Name)));
+        }
 
         if (_dictionary is not { } map) return Mutate($"{_source.Name}[{index}]", () => _list!.RemoveAt(index));
 
@@ -143,6 +160,7 @@ public sealed class CollectionField
     public bool Move(int from, int to)
     {
         if (!CanReorder || from == to || (uint)from >= (uint)Count || (uint)to >= (uint)Count) return false;
+        if (collections is not null) return ApplyAll(collections, collection => collection.Move(from, to));
 
         return Mutate($"{_source.Name}[{from}]", () =>
         {
@@ -175,6 +193,25 @@ public sealed class CollectionField
 
         _source.Touch();
         return true;
+    }
+
+    IReadOnlyList<FormField> SharedEntries()
+    {
+        var entries = collections!.Select(collection => collection.Entries()).ToArray();
+        var result = new List<FormField>();
+        foreach (var entry in entries[0])
+        {
+            var shared = entries.Select(list => list.FirstOrDefault(candidate => candidate.Name == entry.Name)).ToArray();
+            if (shared.All(candidate => candidate is not null)) result.Add(FormField.Combine(shared.OfType<FormField>()));
+        }
+        return result;
+    }
+
+    static bool ApplyAll(IEnumerable<CollectionField> sources, Func<CollectionField, bool> change)
+    {
+        var success = true;
+        foreach (var source in sources) success &= change(source);
+        return success;
     }
 
     List<object?> Keys() => [.. _dictionary!.Keys.Cast<object?>()];
