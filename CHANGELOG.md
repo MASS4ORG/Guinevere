@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Added: Searchable, virtualized `MultiDropdown` with filtered bulk actions, chips and keyboard navigation; flag-aware `EnumDropdown`, `[EnumButtons]` and `[EnumPaging]`, with mixed enum edits preserving each owner's unrelated flag bits. [#61](https://github.com/MASS4ORG/Guinevere/issues/61).
+
 ## v[5.7.0][] 2026-10-03
 
 ## v[5.6.1][] 2026-10-02

@@ -17,3 +17,24 @@ gui.Form(FormBuilder.Build(settings), "settings", context);
 - Drawing is single-threaded (the GUI thread); registration may happen from any thread.
 
 Depends on `MASS4.Guinevere`, `MASS4.Guinevere.Excalibur` and `Autoformers` only; never on Gaya or Turian.
+
+## Enum fields
+
+```csharp
+using MASS4.Attributes;
+
+[Flags]
+public enum Permissions { None = 0, Read = 1, Write = 2 }
+public enum Mode { Preview, Edit, Play }
+
+public sealed class Settings
+{
+    public Permissions Access { get; set; }       // Searchable flag dropdown.
+    [EnumButtons] public Mode Mode { get; set; } // One horizontal button group.
+    [EnumPaging] public Mode Step { get; set; }  // Dropdown plus previous/next.
+}
+```
+
+No enum attribute is needed for the searchable dropdown. `[Flags]` enables independent checkbox/button selection, and mixed flag edits preserve each owner's unrelated bits. Selecting None clears the full mask; paging replaces the full value and wraps through declared choices. `[EnumButtons]` takes precedence when both presentation attributes are present. Use button groups for short option lists; they currently occupy one row.
+
+Apply `[EnumLabel("Display label")]` to an enum member to override its name. `FormRenderContext.Translate` translates these labels. Read-only enum fields use the read-only summary. See the [attribute catalog](../Attributes/README.md) and [short Turian guide](../docs/turian-selection-guide.md) for custom selection controls.

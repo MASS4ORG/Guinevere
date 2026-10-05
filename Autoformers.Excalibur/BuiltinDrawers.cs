@@ -17,7 +17,8 @@ static class BuiltinDrawers
     internal static readonly IPropertyDrawer Summary = new PrimitiveDrawer((gui, field, _, _, _) =>
     {
         var style = new FormStyle(gui);
-        gui.DrawText(field.HasMixedValue ? "—" : field.GetValue()?.ToString() ?? "—", style.FontSize, style.InkDim, centerInRect: false);
+        gui.DrawText(field.HasMixedValue ? "—" : field.GetValue()?.ToString() ?? "—",
+            style.FontSize, style.InkDim, centerInRect: false);
     });
 
     /// <summary>The built-in drawer for a value type; the summary when there is none.</summary>
@@ -82,15 +83,39 @@ static class BuiltinDrawers
                 [.. names.Select(name => t.GetField(name)?.GetCustomAttribute<EnumLabelAttribute>()?.Label ?? name)]);
         });
         var labels = context.Translate is { } translate ? [.. metadata.Labels.Select(translate)] : metadata.Labels;
-        var current = field.HasMixedValue ? -1 : Array.IndexOf(metadata.Names, field.GetValue()?.ToString() ?? string.Empty);
+        var current = field.GetValue() as Enum ?? (Enum)Enum.ToObject(type, 0);
+        var presentation = field.Attribute<EnumButtonsAttribute>() is not null
+            ? EnumPresentation.ToggleButtons
+            : field.Attribute<EnumPagingAttribute>() is not null ? EnumPresentation.Paging : EnumPresentation.Dropdown;
+        string Display(Enum option)
+        {
+            var index = Array.IndexOf(metadata.Names, option.ToString());
+            return index >= 0 ? labels[index]
+                : option.Equals(Enum.ToObject(type, 0)) && type.IsDefined(typeof(FlagsAttribute), false)
+                    ? context.Translate?.Invoke("None") ?? "None" : option.ToString();
+        }
+        bool Mixed(Enum option)
+        {
+            var first = EnumSelection.Contains(current, option);
+            return field.Sources.Any(source => source.GetValue() is Enum own
+                && EnumSelection.Contains(own, option) != first);
+        }
 
-        // Dropdown keys its open state by call site, so every enum field would otherwise share one.
-        // ReSharper disable once ExplicitCallerInfoArgument
-        var next = gui.Dropdown(labels, current, width: 0, height: style.RowHeight, fontSize: style.FontSize,
-            backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink,
-            dropdownColor: style.Field, placeholder: "—", filePath: $"{id}/enum");
+        gui.EnumDropdown(current, out var changes, presentation, Display, width: 0,
+            height: style.RowHeight, fontSize: style.FontSize, mixed: field.HasMixedValue,
+            isMixed: Mixed, filePath: $"{id}/enum");
+        ApplyEnumChanges(field, changes, presentation);
+    }
 
-        if (next >= 0 && next != current) field.SetValue(Enum.Parse(type, metadata.Names[next]));
+    static void ApplyEnumChanges(FormField field, IReadOnlyList<SelectionChange<Enum>> changes,
+        EnumPresentation presentation)
+    {
+        foreach (var change in changes)
+        {
+            if (presentation == EnumPresentation.Paging) field.SetValue(change.Item);
+            else foreach (var source in field.Sources)
+                if (source.GetValue() is Enum own) source.SetValue(EnumSelection.Apply(own, change));
+        }
     }
 
     static void DrawNumber(Gui gui, FormField field, Type type, string id)

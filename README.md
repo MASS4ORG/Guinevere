@@ -314,6 +314,8 @@ The ready-to-use control collection lives in the separate
 [`MASS4.Guinevere.Excalibur`](Guinevere.Excalibur/README.md) package. It provides buttons, text and
 numeric inputs, menus, popups, dialogs, trees, tabs, docking, notifications, and more.
 
+Selection controls include searchable `MultiDropdown` with removable chips and filtered bulk actions, plus `EnumDropdown` with automatic flag checkboxes, button groups and previous/next paging. See the [selection examples](Guinevere.Excalibur/README.md#searchable-selection) and [short Turian guide](docs/turian-selection-guide.md).
+
 ```powershell
 dotnet add package MASS4.Guinevere.Excalibur
 ```
@@ -330,6 +332,8 @@ Attribute-driven forms ship as three packages. `MASS4.Attributes` holds the meta
 [`Autoformers`](Autoformers/README.md) reflects a plain object into a GUI-free
 `FormModel` of sections, fields and collections. `Autoformers.Excalibur` renders that model
 with Excalibur controls through `gui.Form`.
+
+Enum fields are searchable by default; `[Flags]` enables multiple selection. Use `[EnumButtons]` for a button group, `[EnumPaging]` for previous/next controls, and `[EnumLabel("Label")]` on enum members for display labels. Multi-object flag edits preserve each owner's unrelated bits. See the [attribute catalog](Attributes/README.md) and [enum form examples](Autoformers.Excalibur/README.md#enum-fields).
 
 ```powershell
 dotnet add package MASS4.Attributes

@@ -7,7 +7,7 @@ and `Example-11-Styling` into one example organised around eight tabs.
 
 - **Buttons**: every button style — filled, outline, text, rounded, icon, custom-size, with
   hover/press visual feedback.
-- **Selection**: checkbox, toggle and dropdown.
+- **Selection**: checkbox, toggle, dropdown, searchable multi-selection with removable chips, automatic enum flag checkboxes, enum buttons and previous/next enum paging.
 - **Text Inputs**: text fields, password fields, text areas, a right-aligned numeric field and
   clicking-to-focus; shows both the ref-based and returning APIs for each.
 - **Navigation**: a breadcrumb trail (hoverable links that navigate back up the path, current
@@ -35,6 +35,7 @@ Use the tab bar at the top to switch between the demonstrations.
 
 - **Click** a tab to switch demo.
 - **Type** in any input once it has keyboard focus; **click** an input to focus it.
+- **Multi-selection**: search, check several rows without closing, use Select all/Clear on the filtered results, or remove a chip. Up/Down and Enter select results; Escape closes. Enum paging arrows wrap through the declared choices.
 - **Tree view**: click a row to select it, click the arrow (or double-click the row) to fold,
   use **arrow keys** to move the selection and **Enter** to activate. The breadcrumb above the tree
   mirrors the selection's path; click a crumb to jump the tree to that folder.

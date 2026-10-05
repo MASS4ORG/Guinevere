@@ -10,6 +10,13 @@ public abstract partial class Program
     static readonly string[] DropdownOptions = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"];
     static readonly FileDialogState OpenFileState = new();
     static readonly FileDialogState SelectFolderState = new();
+    static IReadOnlyList<string> _multiSelection = ["Option 2"];
+    static DemoPermissions _permissions = DemoPermissions.Read;
+    static DemoMode _enumMode;
+
+    [Flags]
+    enum DemoPermissions { None = 0, Read = 1, Write = 2, Execute = 4, All = Read | Write | Execute }
+    enum DemoMode { Preview, Edit, Play }
 
     static bool _fileBrowsersInitialized;
     static string _selectedFile = "No file selected";
@@ -21,6 +28,7 @@ public abstract partial class Program
         Section(gui, "Toggles", () => ToggleRow(gui));
         Section(gui, "Radio Buttons", () => RadioButtonRow(gui));
         Section(gui, "Dropdowns", () => DropdownRow(gui));
+        Section(gui, "Multiple selection and enums", () => MultiDropdownRow(gui));
         Section(gui, "File Browsers", () => FileBrowserExamples(gui));
     }
 
@@ -94,6 +102,19 @@ public abstract partial class Program
             FileBrowserPanel(gui, "Open a file", _selectedFile, OpenFileState, OpenFileBrowser);
             FileBrowserPanel(gui, "Select a folder", _selectedFolder, SelectFolderState, OpenFolderBrowser);
         }
+    }
+
+    static void MultiDropdownRow(Gui gui)
+    {
+        using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
+        {
+            var selection = gui.MultiDropdown(DropdownOptions, _multiSelection, width: 240, chips: true);
+            if (selection.Changed) _multiSelection = selection.Selected;
+            gui.EnumDropdown(ref _permissions, width: 200);
+            gui.EnumDropdown(ref _enumMode, EnumPresentation.Paging, width: 200);
+        }
+        using (gui.Node().Height(40).Direction(Axis.Horizontal).Enter())
+            gui.EnumDropdown(ref _permissions, EnumPresentation.ToggleButtons, width: 480);
     }
 
     static void FileBrowserPanel(Gui gui, string title, string result, FileDialogState state, Action reopen)

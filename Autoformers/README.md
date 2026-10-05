@@ -12,3 +12,5 @@ The model never saves, validates or logs on its own. `FormOptions` supplies the 
 Consumers add their own structure on top, for example a heading switch through `FormSection.EnabledField`, or calculated rows with `FormField.Display`.
 
 Dependency direction: `MASS4.Attributes` → `Autoformers` → renderers → applications. This library references no GUI toolkit.
+
+Enum presentation metadata (`[EnumButtons]`, `[EnumPaging]` and member `[EnumLabel]`) is consumed by [Autoformers.Excalibur](../Autoformers.Excalibur/README.md#enum-fields). See [MASS4.Attributes](../Attributes/README.md) for the attribute catalog.

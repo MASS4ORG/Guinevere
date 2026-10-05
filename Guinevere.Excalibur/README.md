@@ -45,7 +45,7 @@ public partial class App
 | Group | APIs | Purpose |
 |-------|------|---------|
 | Actions | `Button`, `IconButton`, `ImageButton` | Pointer and keyboard-activated buttons with focus feedback. |
-| Selection | `Checkbox`, `Toggle`, `RadioButton`, `RadioGroup`, `Dropdown` | Boolean, exclusive, and list selection. |
+| Selection | `Checkbox`, `Toggle`, `RadioButton`, `RadioGroup`, `Dropdown`, `MultiDropdown`, `EnumDropdown` | Boolean, exclusive, list and flag selection, with searchable multi-selection and enum presentations. |
 | Text and values | `TextInput`, `PasswordInput`, `TextArea`, `NumberField`, `Slider`, `ObjectField` | Text editing, scrub editing, numeric ranges, and compact object fields. |
 | Display | `Image`, `ProgressBar`, `WrappedText`, `Toast`, `Toasts`, `ClearToasts` | Images, progress, wrapping, and transient notifications. |
 | Navigation | `Tabs`, `TabBar`, `TabStrip`, `PillTabs`, `VerticalTabs`, `Breadcrumb`, `TreeView`, `FileBrowser` | Tabs, trails, virtualised trees, and an embeddable filesystem picker. Tabs are closable only with `closable: true`. |
@@ -64,6 +64,35 @@ gui.Dropdown(["Draft", "Review", "Published"], ref _status);
 
 Buttons and dropdowns receive mouse focus; use Tab to move through controls and Enter or Space to
 activate buttons. Open popovers and dialogs constrain Tab to their visible controls.
+
+## Searchable selection
+
+Keep selection in your application and call the widget from the same site in both GUI passes:
+
+```csharp
+// Fields kept between frames:
+private readonly string[] _tags = ["Gameplay", "UI", "Audio"];
+private IReadOnlyList<string> _selectedTags = [];
+
+// Inside Draw(Gui gui):
+var result = gui.MultiDropdown(_tags, _selectedTags, chips: true,
+    comparer: StringComparer.Ordinal, width: 240);
+if (result.Changed) _selectedTags = result.Selected;
+```
+
+Search uses case-insensitive substring matching. Select all and Clear affect only filtered options; other selected values stay intact. Equality defaults to `EqualityComparer<T>.Default`, duplicate options show once, and returned values follow option order before unknown values in their original order. The summary shows up to two labels or a count; `chips: true` shows up to two removable chips and a remaining count. Rows are virtualized; `maxVisibleItems` defaults to six. Filtering still scans the options.
+
+Use Up/Down to move through results and Enter to select; Space toggles while the list is focused and types a space in search. Home/End and PageUp/PageDown navigate the focused list. Tab stays within the popup, and Escape or an outside click closes it. Set `enabled: false` to disable interaction. Give repeated widgets distinct node scopes or `filePath` identities.
+
+```csharp
+gui.EnumDropdown(ref _permissions); // [Flags] automatically uses checkboxes.
+gui.EnumDropdown(ref _mode, EnumPresentation.ToggleButtons);
+gui.EnumDropdown(ref _mode, EnumPresentation.Paging);
+```
+
+Ordinary enums select one value. Flag edits add/remove only the chosen bits; selecting zero (None) clears the whole value. A None option is supplied when a flags enum has no declared zero. Paging wraps through distinct declared values in `Enum.GetValues` order, including sparse values; for flags it replaces the entire mask. Button groups occupy one horizontal row: use the dropdown for many or long labels. Pass `display` to provide custom labels.
+
+`EnumDropdown(ref value)` returns true when an edit is delivered. `MultiDropdownResult<T>.Changed` and enum edits are delivered once in the build pass, so persistence/undo can run inside that condition. For custom multi-object drawers, apply `result.Changes` to each owner and use `mixed`/`isMixed` for feedback. The runtime `EnumDropdown(Enum, out changes, ...)` overload and `EnumSelection.Apply` support enum drawers. Autoformers.Excalibur handles this automatically; see the [Turian guide](../docs/turian-selection-guide.md).
 
 ## Text and numeric input
 
@@ -229,4 +258,4 @@ gui.DockSpace(layout,
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.
