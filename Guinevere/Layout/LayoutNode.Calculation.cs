@@ -38,10 +38,10 @@ public partial class LayoutNode
     {
         _ancestorScrollOffset = Style.IsAbsolute ? Vector2.Zero : inheritedScrollOffset;
         var childScrollOffset = Style.IsAbsolute ? Vector2.Zero : inheritedScrollOffset;
-        if (!Style.IsAbsolute && Scope.HasLocal<LayoutNodeScopeLocalScrollOffset>())
+        if (Scope.HasLocal<LayoutNodeScopeLocalScrollOffset>())
             childScrollOffset += Scope.Get<LayoutNodeScopeLocalScrollOffset>().Value;
 
-        foreach (var child in FlowChildren) child.PrepareIntrinsicMeasurements(childScrollOffset);
+        foreach (var child in ChildNodes) child.PrepareIntrinsicMeasurements(childScrollOffset);
 
         var horizontalPadding = Style.PaddingLeft + Style.PaddingRight;
         var verticalPadding = Style.PaddingTop + Style.PaddingBottom;

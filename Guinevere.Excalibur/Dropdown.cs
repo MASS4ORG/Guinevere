@@ -254,6 +254,7 @@ public static partial class ControlsExtensions
             using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
             focusScope.SetActive();
             gui.SetZIndex(ListZIndex);
+            gui.ScrollY();
 
             if (gui.Pass == Pass.Pass2Render)
             {

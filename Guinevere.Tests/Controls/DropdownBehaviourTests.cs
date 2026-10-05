@@ -20,8 +20,11 @@ public class DropdownBehaviorTests
         // longer share an open/closed state.
         const string Id = "test/dropdown";
 
-        public Harness()
+        readonly string[] options;
+
+        public Harness(string[]? options = null)
         {
+            this.options = options ?? Options;
             _gui = new TestableGui { Input = _input };
             _gui.SetScreenRect(300, 300);
             Selected = -1;
@@ -33,8 +36,9 @@ public class DropdownBehaviorTests
 
         public List<(Pass Pass, bool ListIsOpen)> LastFramePasses { get; } = [];
 
-        public void Frame(Vector2 mouse, bool pressed = false, KeyboardKey? key = null)
+        public void Frame(Vector2 mouse, bool pressed = false, KeyboardKey? key = null, float wheel = 0)
         {
+            _input.MouseWheelDelta.Returns(wheel);
             _input.MousePosition.Returns(mouse);
             _input.PrevMousePosition.Returns(mouse);
             _input.IsMouseButtonPressed(MouseButton.Left).Returns(pressed);
@@ -45,7 +49,7 @@ public class DropdownBehaviorTests
             LastFramePasses.Clear();
             void Draw()
             {
-                _gui.Dropdown(Options, ref index, width: 120, height: 24,
+                _gui.Dropdown(options, ref index, width: 120, height: 24,
                     filePath: Id, lineNumber: 0);
                 LastFramePasses.Add((_gui.Pass, Exists(_gui.RootNode!, "/list")));
             }
@@ -175,4 +179,38 @@ public class DropdownBehaviorTests
         Assert.True(first.ListIsOpen);
         Assert.False(second.ListIsOpen, "a second Gui inherited the first one's open dropdown");
     }
+
+    /// <summary>Long popup lists clip their rows and scroll to the final option.</summary>
+    [Fact]
+    public void LongListScrollsToLastOption()
+    {
+        var harness = new Harness([.. Enumerable.Range(0, 32).Select(index => $"Layer {index}")]);
+        harness.Frame(OnButton, pressed: true);
+        harness.Frame(OnButton);
+        var list = Find(harness.Gui.RootNode!, "/list");
+        Assert.NotNull(harness.Gui.GetScrollState(list.Id));
+        Assert.Equal(144f, list.Rect.H);
+        var clipped = Find(harness.Gui.RootNode!, "/list/7");
+        Assert.False(list.Rect.Contains(clipped.Rect.Center));
+        harness.Frame(list.Rect.Center, wheel: -100);
+        harness.Frame(list.Rect.Center);
+        var last = Find(harness.Gui.RootNode!, "/list/31");
+        Assert.True(list.Rect.Contains(last.Rect.Center));
+        harness.Frame(last.Rect.Center, pressed: true);
+        harness.Frame(OnButton);
+        Assert.Equal(31, harness.Selected);
+    }
+
+    static LayoutNode Find(LayoutNode node, string suffix)
+    {
+        if (node.Id.EndsWith(suffix, StringComparison.Ordinal)) return node;
+        foreach (var child in node.Children)
+        {
+            try { return Find(child, suffix); }
+            catch (InvalidOperationException) { }
+        }
+
+        throw new InvalidOperationException($"Node {suffix} was not found.");
+    }
+
 }
