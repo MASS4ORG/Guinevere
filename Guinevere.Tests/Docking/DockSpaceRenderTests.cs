@@ -8,6 +8,68 @@ namespace Guinevere.Tests.Docking;
 /// </summary>
 public class DockSpaceRenderTests
 {
+    /// <summary>A drop on a sibling tab reorders without creating a split or floating window.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DraggingSiblingTabsReorders(bool reverse)
+    {
+        using var h = new FrameHarness();
+        var leaf = new DockLeaf("scene", "game", "output");
+        var layout = new DockLayout { Root = leaf };
+        void Draw(Gui gui) => gui.DockSpace(layout, id => new DockPanelInfo(id), (_, _) => { }, Theme);
+        h.Frame(Draw);
+        var source = h.Gui.RootNode!.FindChildById($"dock:root/tabs/{(reverse ? "output" : "scene")}")!;
+        var target = h.Gui.RootNode.FindChildById($"dock:root/tabs/{(reverse ? "scene" : "output")}")!;
+        h.Input.MoveTo(source.Center);
+        h.Input.PressButton(MouseButton.Left);
+        h.Frame(Draw);
+        h.Input.MoveTo(target.Center);
+        h.Frame(Draw);
+        h.Frame(Draw);
+        var markerX = reverse ? target.Rect.X : target.Rect.X + target.Rect.W - 2;
+        using (var snapshot = h.Snapshot())
+        using (var bitmap = SKBitmap.FromImage(snapshot))
+            Assert.Equal((SKColor)Theme.Accent, bitmap.GetPixel((int)Math.Ceiling(markerX),
+                (int)target.Rect.Y + 4));
+        h.Input.ReleaseButton(MouseButton.Left);
+        h.Frame(Draw);
+        h.Frame(Draw);
+        Assert.Equal(reverse ? ["output", "scene", "game"] : new[] { "game", "output", "scene" }, leaf.PanelIds);
+        Assert.Same(leaf, layout.Root);
+        Assert.Empty(layout.Floating);
+        Assert.Equal(reverse ? "output" : "scene", leaf.ActivePanelId);
+    }
+
+    /// <summary>The close hover stays inside the tab and leaves its active border visible.</summary>
+    [Fact]
+    public void CloseButtonIsInsetFromTabBorders()
+    {
+        var gui = RenderDock(new DockLayout { Root = new DockLeaf("scene") }, out _);
+        var tab = RectOf(gui, "dock:root/tabs/scene");
+        var close = RectOf(gui, "dock:root/tabs/scene/close");
+        Assert.True(close.Y >= tab.Y + 4);
+        Assert.True(close.Y + close.H <= tab.Y + tab.H - 4);
+    }
+
+    /// <summary>Modified tabs keep their status dot and close through the inset hover target.</summary>
+    [Fact]
+    public void ModifiedTabCanCloseFromItsInsetButton()
+    {
+        using var h = new FrameHarness();
+        TabStripResult result = default;
+        void Draw(Gui gui) => result = gui.TabStrip(
+            [new TabStripItem("scene", "Scene", Modified: true)], "scene");
+        h.Frame(Draw);
+        var close = h.Gui.RootNode!.FindChildById("tabstrip/scene/close")!;
+        h.Input.MoveTo(close.Center);
+        h.Frame(Draw);
+        h.Input.PressButton();
+        h.Frame(Draw);
+        Assert.Equal("scene", result.Closed?.Id);
+        Assert.Null(result.Activated);
+    }
+
     const float SplitterThickness = 6f;
 
     static readonly DockTheme Theme = new() { SplitterThickness = SplitterThickness, TabHeight = 20f };

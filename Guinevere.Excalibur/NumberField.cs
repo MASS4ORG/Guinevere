@@ -63,6 +63,7 @@ public static partial class ControlsExtensions
         using (gui.Node(width, height).Padding(FitPadding(height, padding))
                    .ContentAlignX(alignX).ContentAlignY(0.5f).Cursor(FieldCursor(enabled)).Enter())
         {
+            gui.ClipContent();
             var interactable = gui.GetInteractable();
             HandleNumberFieldInteraction(gui, field, ref value, interactable, min, max, format, fontSize, enabled);
 
@@ -106,9 +107,7 @@ public static partial class ControlsExtensions
     static void SyncNumberBuffer(NumberFieldState field, double value, string format, bool mixed)
     {
         var formatted = mixed ? "" : FormatNumber(value, format);
-        var editing = field.Buffer.IsFocused || field.Captured;
-
-        if (!editing && !string.Equals(field.Buffer.External, formatted, StringComparison.Ordinal))
+        if (!string.Equals(field.Buffer.External, formatted, StringComparison.Ordinal))
         {
             field.Buffer.Text = formatted;
             field.Buffer.External = formatted;
@@ -133,13 +132,39 @@ public static partial class ControlsExtensions
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
         gui.Focus.RegisterTextInput(gui.CurrentNode.Id);
         var hasFocus = gui.HasFocus();
+        HandleNumberFieldPointer(gui, field, interactable, fontSize);
+
+        var wasEditing = field.Buffer.IsFocused;
+        field.Buffer.IsFocused = hasFocus;
+
+        if (field.Buffer.IsFocused)
+        {
+            if (gui.Input.IsKeyPressed(KeyboardKey.Enter))
+            {
+                value = CommitNumber(field, value, min, max, format);
+                field.Buffer.IsFocused = false;
+                gui.ClearFocus();
+            }
+            else
+            {
+                TextEditor.ProcessKeyboard(gui, field.Buffer);
+            }
+        }
+        else if (wasEditing)
+        {
+            value = CommitNumber(field, value, min, max, format);
+        }
+    }
+
+    static void HandleNumberFieldPointer(Gui gui, NumberFieldState field, InteractableElement interactable,
+        float fontSize)
+    {
         var mouse = gui.Input.MousePosition;
 
         if (interactable.OnClick(out var clicks))
         {
             field.Captured = true;
             field.ClickCount = clicks;
-            field.Buffer.External = field.Buffer.Text;
         }
 
         if (field.Captured)
@@ -163,26 +188,6 @@ public static partial class ControlsExtensions
             }
         }
 
-        var wasEditing = field.Buffer.IsFocused;
-        field.Buffer.IsFocused = hasFocus;
-
-        if (field.Buffer.IsFocused)
-        {
-            if (gui.Input.IsKeyPressed(KeyboardKey.Enter))
-            {
-                value = CommitNumber(field, value, min, max, format);
-                field.Buffer.IsFocused = false;
-                gui.ClearFocus();
-            }
-            else
-            {
-                TextEditor.ProcessKeyboard(gui, field.Buffer);
-            }
-        }
-        else if (wasEditing)
-        {
-            value = CommitNumber(field, value, min, max, format);
-        }
     }
 
     static double CommitNumber(NumberFieldState field, double fallback, double min, double max,

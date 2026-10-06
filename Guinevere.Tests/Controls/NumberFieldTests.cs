@@ -34,8 +34,11 @@ public class NumberFieldTests
         public bool Mixed { get; set; }
         public bool Committed { get; private set; }
 
+        /// <summary>Updates the bound value as a label scrub or another editor would.</summary>
+        public void SetExternal(float value) => Value = value;
+
         public void Frame(Vector2? mouse = null, bool pressed = false, bool down = false,
-            KeyboardKey? key = null, string typed = "", bool control = false)
+            KeyboardKey? key = null, string typed = "", bool control = false, bool shift = false)
         {
             _input.MousePosition.Returns(mouse ?? new Vector2(-100, -100));
             _input.PrevMousePosition.Returns(mouse ?? new Vector2(-100, -100));
@@ -46,14 +49,19 @@ public class NumberFieldTests
             _input.IsKeyDown(Arg.Any<KeyboardKey>()).Returns(call => call.Arg<KeyboardKey>() switch
             {
                 KeyboardKey.LeftControl => control,
+                KeyboardKey.LeftShift => shift,
                 _ => false
             });
             _input.GetTypedCharacters().Returns(typed);
 
             var value = Value;
 
-            void Draw() => Committed = _gui.NumberField(ref value, step: 0.25f, min: 0f, max: 100f,
-                width: 280, height: 24, fontSize: 12, id: _id, mixed: Mixed);
+            void Draw()
+            {
+                Committed = _gui.NumberField(ref value, step: 0.25f, min: 0f, max: 100f,
+                    width: 280, height: 24, fontSize: 12, id: _id, mixed: Mixed);
+                _gui.Button("Next", 60, 24);
+            }
 
             _gui.Time.Update(0.016);
             _gui.SetStage(Pass.Pass1Build);
@@ -67,6 +75,44 @@ public class NumberFieldTests
 
             Value = value;
         }
+    }
+
+    /// <summary>Scrubbing the bound value while focused cannot commit the stale edit buffer on focus loss.</summary>
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void ExternalChangeSurvivesTab(bool shift, bool selected)
+    {
+        var h = new Harness();
+        h.Frame();
+        h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
+        h.Frame(mouse: new Vector2(140, 12));
+        h.Frame();
+        if (selected) h.Frame(key: KeyboardKey.A, control: true);
+        h.SetExternal(65f);
+        h.Frame();
+        h.Frame(key: KeyboardKey.Tab, shift: shift);
+        h.Frame();
+        Assert.Equal(65f, h.Value);
+    }
+
+    /// <summary>Uncommitted typing is retained when the caller's numeric value has not changed.</summary>
+    [Fact]
+    public void TypingSurvivesFramesAndRepeatedClicks()
+    {
+        var h = new Harness();
+        h.Frame();
+        h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
+        h.Frame(mouse: new Vector2(140, 12));
+        h.Frame(key: KeyboardKey.A, control: true);
+        h.Frame(typed: "53");
+        h.Frame();
+        h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
+        h.Frame(mouse: new Vector2(140, 12));
+        h.Frame(key: KeyboardKey.Enter);
+        Assert.Equal(53f, h.Value);
     }
 
     /// <summary>Entering the first owner's value in a mixed field still reports an explicit edit.</summary>

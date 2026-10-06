@@ -8,6 +8,26 @@ public partial class GuiWindow
     Vector2? _pendingClientSize;
     readonly DesktopPointer _desktopPointer = new();
 
+    void PlaceInitialWindow()
+    {
+        if (!CanMove) return;
+        var count = Raylib.GetMonitorCount();
+        if (count <= 0) return;
+        var areas = new Rect[count];
+        for (var i = 0; i < count; i++)
+        {
+            var pos = Raylib.GetMonitorPosition(i);
+            areas[i] = new Rect(pos.X, pos.Y, Raylib.GetMonitorWidth(i), Raylib.GetMonitorHeight(i));
+        }
+        var size = ClientSize;
+        var posCur = Position;
+        var selected = WindowPlacement.SelectMonitor(new Rect(posCur.X, posCur.Y, size.X, size.Y), areas);
+        if (selected < 0) return;
+        var placement = WindowPlacement.Center(size, areas[selected]);
+        ClientSize = placement.Size;
+        Position = placement.Position;
+    }
+
     /// <inheritdoc />
     public bool IsMaximized => Raylib.IsWindowMaximized();
 
@@ -36,10 +56,14 @@ public partial class GuiWindow
     }
 
     /// <inheritdoc />
-    public Vector2 Position
+    public unsafe Vector2 Position
     {
         get => Raylib.GetWindowPosition();
-        set => Raylib.SetWindowPosition((int)value.X, (int)value.Y);
+        set
+        {
+            if (_desktopPointer.TryMoveWindow((nuint)Raylib.GetWindowHandle(), value)) return;
+            Raylib.SetWindowPosition((int)value.X, (int)value.Y);
+        }
     }
 
     /// <inheritdoc />

@@ -113,7 +113,7 @@ public static partial class ControlsExtensions
             state.TitleRects = [.. builder.Menus.Select(_ => new Rect())];
         if (builder.CollapsedLabel is not null && !state.FrameExpanded)
         {
-            if (RenderCompactMenuToggle(gui, builder.CollapsedLabel, height) && builder.Menus.Count > 0)
+            if (RenderCompactMenuToggle(gui, builder.CollapsedLabel, height, textColor, hoverColor, fontSize) && builder.Menus.Count > 0)
             {
                 state.Expanded = true;
                 OpenMenuBarTitle(state, 0);
@@ -124,22 +124,37 @@ public static partial class ControlsExtensions
                 RenderMenuBarTitle(gui, state, builder.Menus[i], i, height, textColor, hoverColor, fontSize, padding);
     }
 
-    static bool RenderCompactMenuToggle(Gui gui, string label, float height)
+    static bool RenderCompactMenuToggle(Gui gui, string label, float height,
+        Color? textColor, Color? hoverColor, float fontSize)
     {
         using var scope = gui.Node(height, height).Enter();
-        var hamburger = label == "☰";
-        var activated = gui.Button(hamburger ? "" : label, height, height);
-        if (hamburger)
-        {
-            using var glyph = gui.Node(height, height).Absolute(0, 0).HitTestVisible(false).Enter();
-            if (gui.Pass != Pass.Pass2Render) return activated;
-            var rect = gui.CurrentNode.Rect;
-            var x = rect.X + (rect.W - 12) * 0.5f;
-            var y = rect.Y + rect.H * 0.5f;
-            for (var offset = -4; offset <= 4; offset += 4)
-                gui.DrawLine(new Vector2(x, y + offset), new Vector2(x + 12, y + offset), gui.ControlStyle.Text);
-        }
+        var activated = ActivateCompactMenu(gui, hoverColor);
+        var color = textColor ?? gui.ControlStyle.Text;
+        if (label == "☰") DrawCompactMenuGlyph(gui, height, color);
+        else gui.DrawText(label, fontSize, color);
         return activated;
+    }
+
+    static bool ActivateCompactMenu(Gui gui, Color? hoverColor)
+    {
+        if (gui.Pass != Pass.Pass2Render) return false;
+        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+        var interaction = gui.GetInteractable();
+        if (interaction.OnHover()) gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover, 2);
+        var activated = interaction.OnClick() || MenuKeyboardActivated(gui);
+        if (activated) gui.RequestFocus(FocusReason.Mouse);
+        return activated;
+    }
+
+    static void DrawCompactMenuGlyph(Gui gui, float height, Color color)
+    {
+        using var glyph = gui.Node(height, height).Absolute(0, 0).HitTestVisible(false).Enter();
+        if (gui.Pass != Pass.Pass2Render) return;
+        var rect = gui.CurrentNode.Rect;
+        var x = rect.X + (rect.W - 12) * 0.5f;
+        var y = rect.Y + rect.H * 0.5f;
+        for (var offset = -4; offset <= 4; offset += 4)
+            gui.DrawLine(new Vector2(x, y + offset), new Vector2(x + 12, y + offset), color);
     }
 
     static void RenderOpenMenuBar(Gui gui, MenuBarState state, MenuBarBuilder builder, string id, float height,

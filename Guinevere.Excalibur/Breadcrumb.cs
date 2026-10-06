@@ -108,7 +108,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>The width the crumb content needs, measuring through the same main/icon font fallback
-    /// that <see cref="Gui.DrawText"/> uses so an icon glyph sizes its share of the crumb correctly.</summary>
+    /// that <c>Gui.DrawText</c> uses so an icon glyph sizes its share of the crumb correctly.</summary>
     static float MeasureCrumbContent(Gui gui, BreadcrumbItem item, float fontSize)
     {
         return MeasureCrumbPiece(gui, item.Icon ?? "", fontSize)

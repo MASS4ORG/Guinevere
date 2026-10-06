@@ -182,6 +182,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   ```csharp
   gui.DrawText("Title", 24, Color.White);
   gui.DrawText("Wrapped text", 12, Color.Gray, wrapWidth: 300);
+  gui.DrawText("Select and copy this label", selectable: true);
   gui.DrawText("A long message", wrapWidth: 300,
       layout: new TextLayoutOptions { WrapMode = TextWrapMode.WordThenCharacter, MaxLines = 3 });
   gui.SetTextColor(Color.Red); // all text from now on will be red by default

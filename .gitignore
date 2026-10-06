@@ -50,3 +50,10 @@ AGENTS.md
 .script.[csp][hys]
 .script-[0-9].[csp][hys]
 docs/internal/
+
+.scripts.cs
+.scripts-*.cs
+.scripts.sh
+.scripts-*.sh
+.scripts.py
+.scripts-*.py

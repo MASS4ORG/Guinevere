@@ -9,6 +9,30 @@ namespace Guinevere.Tests.Controls;
 /// </summary>
 public class MenuBarTests
 {
+    /// <summary>The compact title uses the menu surface and menu hover color.</summary>
+    [Fact]
+    public void CompactTitleUsesMenuColors()
+    {
+        using var h = new FrameHarness();
+        void Draw(Gui gui) => gui.MenuBar(bar =>
+        {
+            bar.Collapsible();
+            bar.Menu("File", menu => menu.Item("Open", () => { }));
+        }, backgroundColor: Color.Red, hoverColor: Color.Blue);
+        h.Input.MoveTo(new Vector2(-1));
+        h.Frame(Draw);
+        var surface = (SKSurface)typeof(FrameHarness).GetField("_surface",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(h)!;
+        using var image = surface.Snapshot();
+        using var bitmap = SKBitmap.FromImage(image);
+        Assert.Equal(SKColors.Red, bitmap.GetPixel(2, 2));
+        h.Input.MoveTo(new Vector2(2, 2));
+        h.Frame(Draw);
+        using var hoveredImage = surface.Snapshot();
+        using var hovered = SKBitmap.FromImage(hoveredImage);
+        Assert.Equal(SKColors.Blue, hovered.GetPixel(4, 4));
+    }
+
     const int Width = 600;
     const int Height = 400;
     const float BarHeight = 30f;

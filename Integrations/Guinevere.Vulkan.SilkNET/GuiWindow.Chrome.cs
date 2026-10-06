@@ -9,6 +9,34 @@ public unsafe partial class GuiWindow
 {
     Vector2? _pendingClientSize;
 
+    void PlaceInitialWindow()
+    {
+        if (!CanMove) return;
+        PlaceInitialWindow(GetMonitorWorkAreas());
+    }
+
+    Rect[] GetMonitorWorkAreas()
+    {
+        var monitors = _glfw.GetMonitors(out var count);
+        var areas = new Rect[count];
+        for (var i = 0; i < count; i++)
+        {
+            _glfw.GetMonitorWorkarea(monitors[i], out var x, out var y, out var width, out var height);
+            areas[i] = new Rect(x, y, width, height);
+        }
+        return areas;
+    }
+
+    void PlaceInitialWindow(Rect[] areas)
+    {
+        var selected = WindowPlacement.SelectMonitor(
+            new Rect(Position.X, Position.Y, ClientSize.X, ClientSize.Y), areas);
+        if (selected < 0) return;
+        var placement = WindowPlacement.Center(ClientSize, areas[selected]);
+        ClientSize = new Vector2(placement.W, placement.H);
+        Position = new Vector2(placement.X, placement.Y);
+    }
+
     void ConfigureWindowPlatform()
     {
         if (!OperatingSystem.IsLinux() || Environment.GetEnvironmentVariable("SILKNET_USE_WAYLAND") != "0") return;
@@ -49,7 +77,20 @@ public unsafe partial class GuiWindow
     public Vector2 Position
     {
         get => new(_window.Position.X, _window.Position.Y);
-        set => _window.Position = new Vector2D<int>((int)value.X, (int)value.Y);
+        set
+        {
+            if (TryMoveX11(value)) return;
+            _window.Position = new Vector2D<int>((int)value.X, (int)value.Y);
+        }
+    }
+
+    (nint Display, nuint Window)? NativeX11 => _window.Native?.X11;
+
+    bool TryMoveX11(Vector2 position)
+    {
+        var native = NativeX11;
+        if (!native.HasValue) return false;
+        return X11WindowPosition.TrySet(native.Value.Display, native.Value.Window, position);
     }
 
     /// <inheritdoc />

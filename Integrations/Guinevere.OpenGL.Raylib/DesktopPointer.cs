@@ -10,6 +10,13 @@ sealed partial class DesktopPointer : IDisposable
 
     internal Vector2 Position => OperatingSystem.IsWindows() ? WindowsPosition() : UnixPosition();
 
+    internal bool TryMoveWindow(nuint window, Vector2 position)
+    {
+        if (!OperatingSystem.IsLinux()) return false;
+        OpenDisplay();
+        return X11WindowPosition.TrySet(_display, window, position);
+    }
+
     static Vector2 WindowsPosition()
     {
         if (!GetCursorPos(out var point)) throw new InvalidOperationException("Cannot query desktop pointer.");

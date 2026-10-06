@@ -125,7 +125,8 @@ public static partial class ControlsExtensions
                     context.RenderPanel(activeId, gui);
             }
 
-            DropZones(context, leaf, leafRect);
+            DropZones(context, leaf, new Rect(leafRect.X, leafRect.Y + theme.TabHeight,
+                leafRect.W, Math.Max(0, leafRect.H - theme.TabHeight)));
         }
     }
 
@@ -159,13 +160,21 @@ public static partial class ControlsExtensions
         });
 
         var index = leaf.PanelIds.IndexOf(item.Id);
-        gui.DropTarget<DockTabPayload>(gui.CurrentNode.Rect, id,
+        var drop = gui.DropTarget<DockTabPayload>(gui.CurrentNode.Rect, id,
             canAccept: payload => ReferenceEquals(payload.Leaf, leaf) && payload.PanelId != item.Id,
             onDrop: payload =>
             {
                 DockLayout.Reorder(leaf, leaf.PanelIds.IndexOf(payload.PanelId), index);
                 context.Layout.MarkChanged();
             });
+
+        if (drop.IsAccepted && drop.Payload is { } payload)
+        {
+            var rect = gui.CurrentNode.Rect;
+            var after = leaf.PanelIds.IndexOf(payload.PanelId) < index;
+            gui.DrawRect(new Rect(after ? rect.X + rect.W - 2 : rect.X, rect.Y + 3, 2,
+                Math.Max(1, rect.H - 6)), context.Theme.Accent);
+        }
 
         return dragging;
     }

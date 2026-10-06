@@ -4,10 +4,24 @@ public partial class Gui
 {
     /// <summary>
     /// Draws text as a layout node: in Pass1Build phase, creates a node sized to the text; in Pass2Render phase, draws the text in the node's rect.
-    /// Returns the node for layout chaining.
+    /// Returns the node for layout chaining; selectable text supports pointer selection and copying without editing.
     /// </summary>
     public LayoutNode DrawText(
         string text,
+        float size = 0,
+        Color? color = null,
+        Font? font = null,
+        float wrapWidth = 0,
+        bool centerInRect = true,
+        bool clip = false,
+        TextEffects? effects = null,
+        TextLayoutOptions? layout = null) =>
+        DrawText(text, false, size, color, font, wrapWidth, centerInRect, clip, effects, layout);
+
+    /// <summary>Draws a text node with optional read-only pointer selection and keyboard copying.</summary>
+    public LayoutNode DrawText(
+        string text,
+        bool selectable,
         float size = 0,
         Color? color = null,
         Font? font = null,
@@ -20,7 +34,7 @@ public partial class Gui
         return DrawTextOrGlyph(new DrawConfig(
             text,
             font ?? CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value,
-            size, color, centerInRect, clip, wrapWidth, effects, layout));
+            size, color, centerInRect, clip, wrapWidth, effects, layout, selectable));
     }
 
     /// <summary>
@@ -64,7 +78,8 @@ public partial class Gui
         bool Clip,
         float WrapWidth,
         TextEffects? Effects = null,
-        TextLayoutOptions? Layout = null);
+        TextLayoutOptions? Layout = null,
+        bool Selectable = false);
 
     record struct FontRun(
         string Text,
@@ -135,7 +150,7 @@ public partial class Gui
 
     /// <summary>
     /// Splits text into main-font/icon-font runs so controls that draw text directly can match
-    /// <see cref="DrawText"/>'s emoji/icon fallback instead of rendering tofu for unsupported glyphs.
+    /// <c>DrawText</c>'s emoji/icon fallback instead of rendering tofu for unsupported glyphs.
     /// </summary>
     internal IReadOnlyList<(string Text, Font Font)> CreateTextRuns(string text, Font mainFont, Font iconFont)
     {
@@ -174,10 +189,18 @@ public partial class Gui
         var totalHeight = wrappedLines.Count * lineHeight;
 
         var node = Node(maxWidth, totalHeight);
+        RenderTextNode(cfg, node, wrappedLines, mainFont, iconFont, lineHeight, color);
+        return node;
+    }
 
-        if (Pass != Pass.Pass2Render)
-            return node;
-
+    void RenderTextNode(DrawConfig cfg, LayoutNode node, IReadOnlyList<WrappedLine> wrappedLines,
+        Font mainFont, Font iconFont, float lineHeight, Color color)
+    {
+        if (cfg.Selectable) node.Cursor(PointerCursor.Text);
+        if (Pass != Pass.Pass2Render) return;
+        var selection = cfg.Selectable
+            ? ProcessTextSelection(node, cfg.Text, wrappedLines, mainFont, iconFont, lineHeight, cfg.Center)
+            : null;
         var layers = BuildTextPaints(color, cfg.Effects, node.InnerRect);
 
         // Draw each line
@@ -191,10 +214,12 @@ public partial class Gui
 
             if (cfg.Center) pos.X += Math.Max((node.InnerRect.W - lineWidth) * 0.5f, 0f);
 
+            if (selection is not null)
+                DrawTextSelection(node, selection, wrappedLines[i], mainFont, iconFont,
+                    new Rect(pos.X, node.InnerRect.Y + i * lineHeight, lineWidth, lineHeight));
             DrawLineWithFallback(line, pos, mainFont, iconFont, layers, cfg.Clip, node);
         }
 
-        return node;
     }
 
     /// <summary>

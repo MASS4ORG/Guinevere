@@ -86,7 +86,7 @@ public static partial class ControlsExtensions
     }
 
     static void DrawInputText(Gui gui, string displayText, string placeholder, float fontSize,
-        Color? textColor, Color? placeholderColor, bool enabled)
+        Color? textColor, Color? placeholderColor, bool enabled, bool clip = true)
     {
         var finalDisplayText = string.IsNullOrEmpty(displayText) ? placeholder : displayText;
         var finalColor = !enabled
@@ -96,7 +96,7 @@ public static partial class ControlsExtensions
             : textColor ?? gui.ControlStyle.Text;
 
         if (!string.IsNullOrEmpty(finalDisplayText))
-            gui.DrawText(finalDisplayText, fontSize, finalColor, centerInRect: false);
+            gui.DrawText(finalDisplayText, fontSize, finalColor, centerInRect: false, clip: clip);
     }
 
     static void DrawCursor(Gui gui, TextEditState state, string text, float fontSize, Color cursorColor)
@@ -190,7 +190,7 @@ public static partial class ControlsExtensions
             // Rendering
             DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
             DrawSelection(gui, state, state.Text, fontSize);
-            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor, enabled);
+            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor, enabled, clip: true);
             DrawCursor(gui, state, state.Text, fontSize, cursorColorFinal);
 
             text = state.Text;
@@ -267,7 +267,7 @@ public static partial class ControlsExtensions
             // Rendering with masked text
             var maskedText = new string(maskChar, state.Text.Length);
             DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
-            DrawInputText(gui, maskedText, placeholder, fontSize, textColor, placeholderColor, enabled);
+            DrawInputText(gui, maskedText, placeholder, fontSize, textColor, placeholderColor, enabled, clip: true);
             DrawCursor(gui, state, maskedText, fontSize, cursorColorFinal);
 
             text = state.Text;
@@ -357,7 +357,7 @@ public static partial class ControlsExtensions
             // Rendering - let the parent handle clipping/scrolling to avoid nested contexts
             DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
             DrawSelectionMultiline(gui, state, state.Text, fontSize);
-            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor, enabled);
+            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor, enabled, clip: true);
 
             // Only draw cursor if enabled
             if (enabled) DrawCursorMultiline(gui, state, state.Text, fontSize, cursorColor);

@@ -8,6 +8,34 @@ public unsafe partial class GuiWindow
 {
     Vector2? _pendingClientSize;
 
+    void PlaceInitialWindow()
+    {
+        if (!CanMove) return;
+        PlaceInitialWindow(GetMonitorWorkAreas());
+    }
+
+    Rect[] GetMonitorWorkAreas()
+    {
+        var monitors = GLFW.GetMonitorsRaw(out var count);
+        var areas = new Rect[count];
+        for (var i = 0; i < count; i++)
+        {
+            GLFW.GetMonitorWorkarea(monitors[i], out var x, out var y, out var width, out var height);
+            areas[i] = new Rect(x, y, width, height);
+        }
+        return areas;
+    }
+
+    void PlaceInitialWindow(Rect[] areas)
+    {
+        var size = ((IWindowResizeCapability)this).ClientSize;
+        var selected = WindowPlacement.SelectMonitor(new Rect(Position.X, Position.Y, size.X, size.Y), areas);
+        if (selected < 0) return;
+        var placement = WindowPlacement.Center(size, areas[selected]);
+        ((IWindowResizeCapability)this).ClientSize = placement.Size;
+        Position = placement.Position;
+    }
+
     /// <inheritdoc />
     public bool IsMaximized => WindowState == WindowState.Maximized;
 
@@ -47,7 +75,23 @@ public unsafe partial class GuiWindow
             GLFW.GetWindowPos(WindowPtr, out var x, out var y);
             return new Vector2(x, y);
         }
-        set => GLFW.SetWindowPos(WindowPtr, (int)value.X, (int)value.Y);
+        set
+        {
+            if (TryMoveX11(value)) return;
+            GLFW.SetWindowPos(WindowPtr, (int)value.X, (int)value.Y);
+        }
+    }
+
+    bool TryMoveX11(Vector2 position)
+    {
+        if (!OperatingSystem.IsLinux()) return false;
+        return TryMoveOnX11(position);
+    }
+
+    bool TryMoveOnX11(Vector2 position)
+    {
+        if (!CanMove) return false;
+        return X11WindowPosition.TrySet(GLFW.GetX11Display(), (nuint)GLFW.GetX11Window(WindowPtr), position);
     }
 
     /// <inheritdoc />

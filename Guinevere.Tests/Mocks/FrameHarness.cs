@@ -15,6 +15,9 @@ public sealed class FrameHarness : IDisposable
     public ScriptedInputHandler Input { get; } = new();
     public TestableGui Gui { get; }
 
+    /// <summary>Captures the rendered pixels for clipping and feedback assertions.</summary>
+    public SKImage Snapshot() => _surface.Snapshot();
+
     public void Frame(Action<Gui> draw)
     {
         Gui.Time.Update(0.016);

@@ -13,7 +13,7 @@ namespace Guinevere;
 /// Represents a GUI window implementation using SilkNET for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public unsafe partial class GuiWindow : IInputHandler, IWindowChromeCapability, IDisplayCapability, ICursorCapability,
+public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability, IWindowChromeCapability, IDisplayCapability, ICursorCapability,
     IPointerCapability, IWindowResizeCapability, IDisposable
 {
     readonly Gui _gui;
@@ -53,6 +53,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowChromeCapability, 
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IWindowChromeCapability>(this);
+        _gui.Platform.Register<IWindowIdentityCapability>(this);
         _gui.Platform.Register<IWindowResizeCapability>(this);
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
@@ -144,6 +145,8 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowChromeCapability, 
     /// </summary>
     void OnLoad()
     {
+        PlaceInitialWindow();
+        ApplyPendingIcon();
         // Create OpenGL context
         _gl = _window.CreateOpenGL();
 

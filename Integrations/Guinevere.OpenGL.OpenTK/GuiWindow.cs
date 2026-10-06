@@ -13,7 +13,8 @@ namespace Guinevere;
 /// Represents a GUI window implementation using OpenTK for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public partial class GuiWindow : GameWindow, IInputHandler, IWindowChromeCapability, IDisplayCapability, ICursorCapability,
+public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapability, IWindowChromeCapability,
+    IDisplayCapability, ICursorCapability,
     IPointerCapability, IWindowResizeCapability, IDisposable
 {
     readonly Gui _gui;
@@ -43,6 +44,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowChromeCapabil
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IWindowChromeCapability>(this);
+        _gui.Platform.Register<IWindowIdentityCapability>(this);
         _gui.Platform.Register<IWindowResizeCapability>(this);
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
@@ -56,6 +58,9 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowChromeCapabil
         _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         _canvasRenderer = new CanvasRenderer();
         _gui.Platform.Register(_canvasRenderer);
+        PlaceInitialWindow();
+        _width = ClientSize.X;
+        _height = ClientSize.Y;
         _canvasRenderer.Initialize(_width, _height);
 
         // Subscribe to text input events

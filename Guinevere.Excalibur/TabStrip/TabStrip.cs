@@ -118,7 +118,8 @@ public static partial class ControlsExtensions
         string id, TabStripResult result)
     {
         // Blocks the tab underneath, so closing never also activates.
-        using (gui.Node(12, theme.Height, $"{id}/close").ContentAlignX(0.5f).ContentAlignY(0.5f).BlockInput()
+        using (gui.Node(12, Math.Max(1, theme.Height - 8), $"{id}/close")
+                   .ContentAlignX(0.5f).ContentAlignY(0.5f).BlockInput()
                    .Enter())
         {
             if (gui.Pass == Pass.Pass2Render)

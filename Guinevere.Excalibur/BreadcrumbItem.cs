@@ -7,7 +7,7 @@ namespace Guinevere;
 /// <param name="IsCurrent">Marks the crumb as the current page even if an action was supplied,
 /// so it points at the real position instead of a fake link.</param>
 /// <param name="Icon">An optional glyph drawn before the label. It goes through the same
-/// main-font/icon-font fallback as <see cref="Gui.DrawText"/>, so icon-font glyphs and emoji both work.</param>
+/// main-font/icon-font fallback as <c>Gui.DrawText</c>, so icon-font glyphs and emoji both work.</param>
 /// <param name="Children">An optional list of descendant crumbs. When present, the "›" to the left of
 /// the crumb becomes clickable and opens a context menu listing them, which is how you reach
 /// next-level items without visiting the crumb itself.</param>

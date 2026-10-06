@@ -9,7 +9,8 @@ namespace Guinevere;
 /// Represents a GUI window implementation using Raylib for OpenGL rendering.
 /// Provides input handling, window management, and rendering capabilities for the Guinevere GUI framework.
 /// </summary>
-public partial class GuiWindow : IDisposable, IInputHandler, IWindowChromeCapability, IDisplayCapability, ICursorCapability,
+public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapability, IWindowChromeCapability,
+    IDisplayCapability, ICursorCapability,
     IPointerCapability, IWindowResizeCapability
 {
     readonly ICanvasRenderer _canvasRenderer;
@@ -40,6 +41,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowChromeCapabi
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IWindowChromeCapability>(this);
+        _gui.Platform.Register<IWindowIdentityCapability>(this);
         _gui.Platform.Register<IWindowResizeCapability>(this);
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
@@ -53,6 +55,8 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowChromeCapabi
         _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         Raylib.SetTraceLogLevel(TraceLogLevel.Warning); // Reduce verbose logging
         Raylib.InitWindow(_width, _height, title);
+        _title = title;
+        PlaceInitialWindow();
         _canvasRenderer = new CanvasRenderer();
         _gui.Platform.Register<ICanvasRenderer>(_canvasRenderer);
         _canvasRenderer.Initialize(_width, _height);
