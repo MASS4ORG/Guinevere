@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added: Searchable, virtualized `MultiDropdown` with filtered bulk actions, chips and keyboard navigation; flag-aware `EnumDropdown`, `[EnumButtons]` and `[EnumPaging]`, with mixed enum edits preserving each owner's unrelated flag bits. [#61](https://github.com/MASS4ORG/Guinevere/issues/61).
 
+## v[5.8.0][] 2026-10-05
+
 ## v[5.7.0][] 2026-10-03
 
 ## v[5.6.1][] 2026-10-02
@@ -183,6 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First Commit
 
+[5.8.0]: https://github.com/brmassa/guinevere/compare/v5.7.0...v5.8.0
 [5.7.0]: https://github.com/brmassa/guinevere/compare/v5.6.1...v5.7.0
 [5.6.1]: https://github.com/brmassa/guinevere/compare/v5.6.0...v5.6.1
 [5.6.0]: https://github.com/brmassa/guinevere/compare/v5.5.0...v5.6.0
@@ -215,4 +218,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.0]: https://github.com/MASS4ORG/Guinevere/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/MASS4ORG/Guinevere/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/MASS4ORG/Guinevere/compare/main...1.0.0
-[Unreleased]: https://github.com/brmassa/guinevere/compare/v5.7.0...HEAD
+[Unreleased]: https://github.com/brmassa/guinevere/compare/v5.8.0...HEAD
