@@ -1,0 +1,13 @@
+@style make_icon_style(@iconName, @unicodeChar) = @iconName {
+    text-font = "fa-regular-400.ttf";
+    text-content = "\u@unicodeChar";
+    text-size = 16;
+    text-align = (0.5, 0.5);
+}
+
+// Generate icon styles
+@make_icon_style(icon_save, f0c7);
+@make_icon_style(icon_open, f07c);
+@make_icon_style(icon_close, f00d);
+@make_icon_style(icon_menu, f0c9);
+@make_icon_style(icon_settings, f013);

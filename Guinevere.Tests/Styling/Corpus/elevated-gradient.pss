@@ -1,0 +1,26 @@
+elevated-card {
+    bg-shape = roundedRect($width, $height, 12);
+    
+    effect bg-shape {
+        solidColor(white);
+        outerShadow(#00000022, 15, 0, (0, 4));
+        outerShadow(#00000011, 30, 0, (0, 8));
+        stroke(#e0e0e0, 1, 0);
+    }
+}
+
+gradient-button {
+    bg-shape = roundedRect($width, $height, 8);
+    
+    effect bg-shape {
+        linearGradient(#667eea, #764ba2, 0, $height);
+        outerShadow(#764ba255, 10, 0, (0, 4));
+    }
+    
+    :hover(0.3) {
+        effect bg-shape {
+            linearGradient(#667eea, #764ba2, 0, $height);
+            outerShadow(#764ba255, 15, 0, (0, 6));
+        }
+    }
+}

@@ -176,8 +176,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   `SetTextLayout` makes these settings inheritable within a node scope. Styled nodes accept
   `text-wrap`, `line-height`, `max-lines`, and `text-ellipsis` declarations.
 - Theming via transient color changes
-- Runtime stylesheets with nested selectors, `>` child selectors, custom modifiers, variables,
-  `@const`, `#inherit(...)`, and non-destructive provider/file reloads
+- Runtime `.pss` (PanGui Style Sheet) theme files with nested selectors, `>` child selectors, custom modifiers, `$tokens` layered across sheets and host overrides, host-readable `@const` metadata, `#inherit(...)` variants, `@font-face`/`url()` resolved against the sheet, `@import` through a host resolver, `file:line:col` errors, and non-destructive provider/file reloads
 
   ```csharp
   gui.DrawText("Title", 24, Color.White);
@@ -190,26 +189,30 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   gui.SetTextColor(Color.White);
   ```
 
-  Styles accept both the existing CSS-like form and PanGui's scalar syntax:
+  Stylesheets use PanGui's `prop = value;` syntax:
 
   ```csharp
   var styles = StyleSheetSource.FromFile("theme.pss");
   gui.AddStyleSheet(styles);
+  gui.StyleSheets.SetToken("accent", "#ff8800"); // host override above every sheet
+  var themeName = styles.Current.Constants["theme-name"];
 
   using (gui.StyledNode("checkbox", isChecked ? ["checked"] : []).Enter()) { }
   ```
 
   ```css
+  @const theme-name = "Night";
   @const spacing = 12;
+  $accent = #4a90e2;
+  @font-face { font-family = "Inter"; src = url("fonts/Inter.ttf"); }
+
   checkbox {
       padding = @spacing;
-      :checked(0.2 ease-out) { background-color = #4a90e2; }
+      :checked(0.2 ease-out) { background-color = $accent; }
   }
   ```
 
-  Transition annotations are parsed for source compatibility; animated interpolation, expressions,
-  shape/effect declarations, advanced macro families, and `#inherit-properties`/`#inherit-selector`
-  remain planned styling features.
+  Transition annotations, shapes, effects, mixins and macros parse for source compatibility and are kept in `StyleSheet.Deferred`; animated interpolation, expressions and applying those constructs remain planned styling features. The CSS-flavored `prop: value;`/`--x`/`var()` form is only accepted with `StyleSheetOptions.AllowCssSyntax` for migration tools.
 
   Color palettes are collections of independent, inheritable values. Override only the values a
   subtree needs:

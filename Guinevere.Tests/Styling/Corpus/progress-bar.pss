@@ -1,0 +1,19 @@
+progress-bar {
+    height = 30;
+    bg-shape = roundedRect($width, $height, 15);
+    
+    effect bg-shape {
+        solidColor(#2a2a2a);
+    }
+    
+    // Fill uses custom variable
+    shape fill = roundedRect(
+        $width * $progress, 
+        $height, 
+        15
+    );
+    
+    effect fill {
+        solidColor(#4a90e2);
+    }
+}

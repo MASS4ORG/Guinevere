@@ -5,51 +5,51 @@ namespace Controls_01;
 public abstract partial class Program
 {
     const string Style = """
-                         /* variables */
-                         --bg:        #12151d;
-                         --card:      #202634;
-                         --btn:       #ff0000;
-                         --btn-hover: #00ff00;
-                         --btn-down:  #0000ff;
-                         --border:    #556080;
+                         // tokens
+                         $bg        = #12151d;
+                         $card      = #202634;
+                         $btn       = #ff0000;
+                         $btn-hover = #00ff00;
+                         $btn-down  = #0000ff;
+                         $border    = #556080;
 
                          #root {
-                             flex-direction: column;
-                             gap: 16;
-                             padding: 32;
-                             background-color: var(--bg);
+                             flex-direction = column;
+                             gap = 16;
+                             padding = 32;
+                             background-color = $bg;
                          }
 
                          .card {
-                             flex-direction: column;
-                             gap: 12;
-                             padding: 18;
-                             background-color: var(--card);
-                             border-radius: 10;
+                             flex-direction = column;
+                             gap = 12;
+                             padding = 18;
+                             background-color = $card;
+                             border-radius = 10;
                          }
-                         .row { flex-direction: row; gap: 12; }
+                         .row { flex-direction = row; gap = 12; }
 
                          .btn {
-                             width: 150;
-                             height: 46;
-                             background-color: var(--btn);
-                             border-radius: 8;
-                             border-color: var(--border);
-                             border-width: 1;
-                             align-items: center;
-                             justify-content: center;
+                             width = 150;
+                             height = 46;
+                             background-color = $btn;
+                             border-radius = 8;
+                             border-color = $border;
+                             border-width = 1;
+                             align-items = center;
+                             justify-content = center;
                          }
-                         .btn:hover  { background-color: var(--btn-hover); border-color: var(--btn-hover); }
-                         .btn:active { background-color: var(--btn-down); }
+                         .btn:hover  { background-color = $btn-hover; border-color = $btn-hover; }
+                         .btn:active { background-color = $btn-down; }
 
-                         #primary { background-color: var(--btn-hover); border-width: 0; }
+                         #primary { background-color = $btn-hover; border-width = 0; }
                          """;
 
     static void StylingContent(Gui gui)
     {
         using (gui.StyledNode("VisualElement", id: "root").Expand().Enter())
         {
-            gui.DrawText("USS-styled widgets", 24, Color.FromArgb(255, 236, 238, 243));
+            gui.DrawText("PSS-styled widgets", 24, Color.FromArgb(255, 236, 238, 243));
 
             using (gui.StyledNode("VisualElement", ["card"]).Enter())
             {

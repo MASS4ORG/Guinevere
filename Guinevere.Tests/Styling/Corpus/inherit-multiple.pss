@@ -1,0 +1,6 @@
+interactive-card #inherit(card, hoverable, clickable) {
+    // Combines properties and selector matching from all three
+    // The copying combines in the declared order, letting you
+    // specify the priority or precedence of inheritance, with
+    // later inherited styles overriding earlier ones.
+}

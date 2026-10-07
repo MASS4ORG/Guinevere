@@ -36,14 +36,14 @@ Run("pangui-percentage-and-ratio", BuildPercentageAndRatio(args.Contains("--quic
 Run("pangui-perpendicular-expand-wrap", BuildPerpendicularExpandWrap(articleScale));
 Run("pangui-pixels-with-min-expand", BuildPixelsWithMinExpand(articleScale));
 RunCachedRead("no-change-cached-10000", BuildWide(10_000, wrap: false));
-RunStyleApply("style-apply-common", "box { width: 50%; height: 24px; padding: 4px 8px; gap: 3px; flex-direction: row; }");
-RunStyleApply("style-apply-rich", "box { width: ratio(2); height: expand; min-width: 20px; max-width: 90px; "
-    + "padding: 2px 4px 6px 8px; margin: 1px 3px; gap: 3px; flex-direction: row; "
-    + "align-items: center; justify-content: end; text-wrap: word; line-height: 1.3; max-lines: 2; }");
+RunStyleApply("style-apply-common", "box { width = 50%; height = 24px; padding = 4px 8px; gap = 3px; flex-direction = row; }");
+RunStyleApply("style-apply-rich", "box { width = ratio(2); height = expand; min-width = 20px; max-width = 90px; "
+    + "padding = 2px 4px 6px 8px; margin = 1px 3px; gap = 3px; flex-direction = row; "
+    + "align-items = center; justify-content = end; text-wrap = word; line-height = 1.3; max-lines = 2; }");
 RunFreshStyleApply("style-build-empty", "");
-RunFreshStyleApply("style-build-common", "box { width: 50%; height: 24px; padding: 4px 8px; gap: 3px; }");
-RunFreshStyleApply("style-build-rich", "box { width: ratio(2); height: expand; padding: 2px 4px 6px 8px; "
-    + "text-wrap: character; line-height: 1.3; max-lines: 2; }");
+RunFreshStyleApply("style-build-common", "box { width = 50%; height = 24px; padding = 4px 8px; gap = 3px; }");
+RunFreshStyleApply("style-build-rich", "box { width = ratio(2); height = expand; padding = 2px 4px 6px 8px; "
+    + "text-wrap = character; line-height = 1.3; max-lines = 2; }");
 RunConstruction(10_000);
 
 static void Run(string name, Fixture fixture)

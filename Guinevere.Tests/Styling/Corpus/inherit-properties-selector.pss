@@ -1,0 +1,12 @@
+// Copy appearance but DON'T match parent selectors
+info-panel #inherit-properties(box) {
+    // Looks like a box, but `sidebar > box` won't match it.
+}
+
+// Match parent selectors but DON'T copy properties
+info-panel #inherit-selector(box) {
+    // Acts like a box for selectors, but styles itself independently
+    // We're not convinced #inherit-selector is the best syntax to use here,
+    // but it's the most precise thing we've thought of so far that does
+    // not seem misleading.
+}

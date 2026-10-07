@@ -1,0 +1,32 @@
+toggle {
+    height = 60;
+    width = ratio(2);
+
+    $tHandleOffset = 0;
+
+    :enabled(0.15 ease-in-out-sine) {
+        $tHandleOffset = 1;
+    }
+
+    bg-shape = roundedRect($width, $height, $height * 0.5);
+
+    effect bg-shape {
+        solidColor(rgba(0.3, 0.3 + $tHandleOffset / 0.7, 0.3, 1));
+    }
+
+    shape handleShape = moveX(circle($height * 0.4), ($width - $height) * ($tHandleOffset - 0.5));
+
+    :hover(0.1 ease-in-out-sine) {
+        shape handleShape = handleShape + 10; // Expand it by 10px.
+    }
+
+    :hold(0.05) {
+        shape handleShape = handleShape + 15; // Expand it by 15px.
+    }
+
+    effect handleShape {
+        solidColor(#f3f5f7);
+        outerShadow(#00000022, 5, 0);
+        outerShadow(#00000044, 15, 0, (0,5));
+    }
+}

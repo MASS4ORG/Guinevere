@@ -1,0 +1,9 @@
+@const spacing = 16;
+@const primaryColor = #4a90e2;
+@const animSpeed = 0.3;
+
+box {
+    padding = @spacing;
+    border-radius = @spacing * 0.5;
+    bg-color = @primaryColor;
+}

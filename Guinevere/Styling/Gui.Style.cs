@@ -3,10 +3,12 @@ namespace Guinevere;
 public partial class Gui
 {
     /// <summary>
-    /// Active <c>.uss</c> stylesheets, lowest priority first. Add sheets before the frame; every
-    /// <see cref="StyledNode"/> resolves against them.
+    /// Active <c>.pss</c> stylesheets, lowest priority first, with host token overrides. Add sheets before the
+    /// frame; every <see cref="StyledNode"/> resolves against them.
     /// </summary>
-    public List<StyleSheet> StyleSheets { get; } = [];
+    public StyleSheetCollection StyleSheets { get; } = [];
+
+    readonly List<StyleTarget> _styleAncestors = [];
 
     /// <summary>Adds a reloadable source and keeps its entry in <see cref="StyleSheets"/> current.</summary>
     public void AddStyleSheet(StyleSheetSource source)
@@ -55,33 +57,38 @@ public partial class Gui
         var node = Node(-1, -1, id, filePath, lineNumber);
         if (StyleSheets.Count == 0) return node;
 
-        var ancestors = new List<StyleTarget>();
-        for (var current = parent; current is not null; current = current.Parent)
-            if (current.StyleTarget is { } ancestor) ancestors.Add(ancestor with { Ancestors = null });
-        var target = new StyleTarget(type, id, classes ?? [], Modifiers: modifiers ?? classes, Ancestors: ancestors);
-        node.StyleTarget = target;
+        var target = CreateStyleTarget(parent, type, classes, id, modifiers ?? classes);
+        node.StyleTarget = target with { Ancestors = null };
 
         if (Pass == Pass.Pass1Build)
         {
-            StyleLayout.Apply(node, StyleResolver.Resolve(StyleSheets, target, variables));
+            StyleLayout.Apply(node, StyleSheets.Resolve(target, variables));
             return node;
         }
 
-        var state = StyleState.None;
-        var interactable = GetInteractable(node);
-        if (interactable.OnHover()) state |= StyleState.Hover;
-        if (interactable.OnHold()) state |= StyleState.Active;
-
-        var resolved = state == StyleState.None
-            ? StyleResolver.Resolve(StyleSheets, target, variables)
-            : StyleResolver.Resolve(StyleSheets, target with { State = state }, variables);
-
-        DrawStyledBox(node, resolved);
+        DrawStyledBox(node, StyleSheets.Resolve(target with { State = PointerState(node) }, variables));
         return node;
     }
 
+    /// <summary>Builds a target whose ancestors live in a shared buffer that is only valid during this call.</summary>
+    StyleTarget CreateStyleTarget(LayoutNode? parent, string? type, IReadOnlyList<string>? classes, string? id,
+        IReadOnlyList<string>? modifiers)
+    {
+        _styleAncestors.Clear();
+        for (var current = parent; current is not null; current = current.Parent)
+            if (current.StyleTarget is { } ancestor) _styleAncestors.Add(ancestor);
+        return new StyleTarget(type, id, classes ?? [], Modifiers: modifiers, Ancestors: _styleAncestors);
+    }
+
+    StyleState PointerState(LayoutNode node)
+    {
+        var interactable = GetInteractable(node);
+        var state = interactable.OnHover() ? StyleState.Hover : StyleState.None;
+        return interactable.OnHold() ? state | StyleState.Active : state;
+    }
+
     /// <summary>
-    /// Resolves the effective <c>.uss</c> style for an element with the given type, classes and id
+    /// Resolves the effective <c>.pss</c> style for an element with the given type, classes and id
     /// against <see cref="StyleSheets"/>, without creating a node. Callers that draw their own
     /// control (buttons, text) use this to read declarations like <c>width</c> or <c>color</c>.
     /// </summary>
@@ -100,9 +107,7 @@ public partial class Gui
         IReadOnlyList<string>? modifiers = null,
         IReadOnlyList<StyleTarget>? ancestors = null,
         IReadOnlyList<StyleVariable>? variables = null) =>
-        StyleSheets.Count == 0
-            ? ResolvedStyle.Empty
-            : StyleResolver.Resolve(StyleSheets, new StyleTarget(type, id, classes ?? [], state, modifiers, ancestors), variables);
+        StyleSheets.Resolve(new StyleTarget(type, id, classes ?? [], state, modifiers, ancestors), variables);
 
     static void DrawStyledBox(LayoutNode node, ResolvedStyle style)
     {

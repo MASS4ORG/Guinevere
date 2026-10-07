@@ -34,6 +34,8 @@ public sealed class Selector
     /// <summary>CSS-like cascade weight: ids = 100, classes/modifiers = 10, types = 1.</summary>
     public int Specificity { get; }
 
+    internal bool HasCombinator => _parts.Length > 1;
+
     Selector(Part[] parts)
     {
         _parts = parts;

@@ -1,0 +1,52 @@
+checkbox {
+    width = 24;
+    height = 24;
+    bg-shape = roundedRect($width, $height, 4);
+    
+    effect bg-shape {
+        solidColor(#e0e0e0);
+        stroke(#999, 1, 0);
+    }
+    
+    // Custom modifier passed from C#
+    :checked(0.2 ease-out) {
+        effect bg-shape {
+            solidColor(#4a90e2);
+            stroke(#4a90e2, 1, 0);
+        }
+    }
+    
+    // Built-in modifiers work automatically
+    :hover(0.15) {
+        effect bg-shape {
+            stroke(#666, 1, 0);
+        }
+    }
+
+    // It's possible to have several of the same modifier with
+    // different durations for different sets of animated properties
+    :hover(0.25) {
+        bg-shape = bg-shape + 10; // Expand bg-shape slower than the effect
+    }
+}
+
+
+// Multiple modifiers with different transitions
+button {
+    bg-shape = roundedRect($width, $height, 8);
+    $shadowSize = 4;
+    
+    effect bg-shape {
+        solidColor(#4a90e2);
+        outerShadow(#00000033, $shadowSize, 0, (0, 2));
+    }
+    
+    :hover(0.15 ease-out) {
+        $shadowSize = 8;
+    }
+    
+    :hold(0.1 ease-in) {
+        $shadowSize = 2;
+        scale = 0.95;
+    }
+}

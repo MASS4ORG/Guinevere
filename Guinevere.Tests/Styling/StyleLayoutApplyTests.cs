@@ -21,9 +21,9 @@ public class StyleLayoutApplyTests
     public void SizesAndBoxesUseTheirDeclaredUnitsAndSideOrder()
     {
         var node = Apply("""
-            width: 50%; height: ratio(2); min-width: 10px; max-width: 200px;
-            min-height: 15px; max-height: 300px;
-            padding: 1px 2px 3px 4px; margin: 5px 6px;
+            width = 50%; height = ratio(2); min-width = 10px; max-width = 200px;
+            min-height = 15px; max-height = 300px;
+            padding = 1px 2px 3px 4px; margin = 5px 6px;
             """);
 
         Assert.Equal(0.5f, node.Style.WidthPercent);
@@ -40,9 +40,9 @@ public class StyleLayoutApplyTests
     public void FlexAndTextOptionsApplyTogether()
     {
         var node = Apply("""
-            flex-direction: row-reverse; flex-wrap: wrap; flex-grow: 1; gap: 7;
-            align-self: center; align-items: end; justify-content: start;
-            text-wrap: character; line-height: 1.5; max-lines: 3; text-ellipsis: "more";
+            flex-direction = row-reverse; flex-wrap = wrap; flex-grow = 1; gap = 7;
+            align-self = center; align-items = end; justify-content = start;
+            text-wrap = character; line-height = 1.5; max-lines = 3; text-ellipsis = "more";
             """);
         var text = node.Scope.Get<LayoutNodeScopeTextLayout>().Value;
 
@@ -61,7 +61,7 @@ public class StyleLayoutApplyTests
     [Fact]
     public void InvalidValuesLeaveExistingLayoutUntouched()
     {
-        var node = Apply("width: nonsense; height: ratio(oops); padding: 1px bad; gap: no; line-height: -2;");
+        var node = Apply("width = nonsense; height = ratio(oops); padding = 1px bad; gap = no; line-height = -2;");
 
         Assert.Null(node.Style.WidthExpression);
         Assert.Null(node.Style.HeightExpression);
@@ -73,8 +73,8 @@ public class StyleLayoutApplyTests
     [Fact]
     public void ExpandAndFitKeywordsProduceComposableSizes()
     {
-        var expanded = Apply("width: expand; height: auto; padding: 4px;");
-        var fitted = Apply("width: fit; height: 20px;");
+        var expanded = Apply("width = expand; height = auto; padding = 4px;");
+        var fitted = Apply("width = fit; height = 20px;");
 
         Assert.Equal(1f, expanded.Style.WidthExpression!.Value.ExpandContribution);
         Assert.Equal(1f, expanded.Style.HeightExpression!.Value.FitContentContribution);

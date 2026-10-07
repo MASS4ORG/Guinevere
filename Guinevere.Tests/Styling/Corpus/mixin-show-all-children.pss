@@ -1,0 +1,18 @@
+@mixin showAllChildren() {
+    effect bg-shape {
+        solidColor(#ff00ff55);
+        stroke(#ffffff77, 1, 1);
+    }
+
+    // Oh and by the way, we also support the wildcard selector.
+    * { 
+        effect bg-shape {
+            stroke(#ffffff77, 1, 1);
+        }
+    }
+}
+
+// Usage: 
+my-container {
+    @showAllChildren();
+}

@@ -1,0 +1,18 @@
+loading-spinner 
+{
+    width = 50;
+    height = 50;
+
+    // It is also possible to define a variable as an expression
+    $rotation = $time * 6.28;
+    
+    shape spinner = 
+        move(
+            circle(20), 
+            (cos($rotation) * 15, sin($rotation) * 15)
+        );
+    
+    effect spinner {
+        solidColor(white);
+    }
+}

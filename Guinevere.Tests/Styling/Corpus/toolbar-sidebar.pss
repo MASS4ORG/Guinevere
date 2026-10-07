@@ -1,0 +1,31 @@
+// Descendant selector
+dialog button {
+    min-width = 80;
+}
+
+// Direct child combinator
+sidebar > button {
+    padding = 15;
+    bg-color = #2a2a2a;
+}
+
+// You can nest selectors to keep styles organized.
+toolbar {
+    flow-dir = x;
+    gap = 10;
+    width = expand;
+    
+    button {
+        padding = 10;
+        height = expand;
+        
+        :hover(0.2 ease-out) {
+            bg-color = #3a3a3a;
+        }
+    }
+    
+    > separator {
+        width = 2;
+        bg-color = #555555;
+    }
+}

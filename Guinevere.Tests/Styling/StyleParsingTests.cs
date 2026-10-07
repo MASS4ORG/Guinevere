@@ -123,10 +123,10 @@ public class StyleParsingTests
     }
 
     /// <summary>
-    /// Verifies that a style sheet parses comments, variables, and multi-selector rules correctly.
+    /// Verifies that the CSS-flavored fallback parses comments, variables, and multi-selector rules when enabled.
     /// </summary>
     [Fact]
-    public void Sheet_Parse_Comments_Variables_MultiSelector()
+    public void Sheet_Parse_CssSyntax_Comments_Variables_MultiSelector()
     {
         var sheet = StyleSheet.Parse("""
             /* a comment */
@@ -136,7 +136,7 @@ public class StyleParsingTests
               padding: 8 16;   /* inline comment */
             }
             #save { border-width: 2; }
-            """);
+            """, new StyleSheetOptions { AllowCssSyntax = true });
 
         Assert.Equal(2, sheet.Rules.Count);
         Assert.Equal("#4a90e2", sheet.Variables["--accent"]);
@@ -151,9 +151,9 @@ public class StyleParsingTests
     {
         var sheet = StyleSheet.Parse("""
             .panel, Dialog {
-                padding: 8;
-                > Button { width: 40; }
-                &:disabled { opacity: 0.5; }
+                padding = 8;
+                > Button { width = 40; }
+                &:disabled { opacity = 0.5; }
             }
             """);
 
@@ -193,6 +193,6 @@ public class StyleParsingTests
     [Fact]
     public void Sheet_UnterminatedRule_Throws()
     {
-        Assert.Throws<FormatException>(() => StyleSheet.Parse(".x { color: red "));
+        Assert.Throws<StyleSheetException>(() => StyleSheet.Parse(".x { color = red "));
     }
 }

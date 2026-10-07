@@ -1,0 +1,12 @@
+@mixin card-appearance(@radius, @shadowSize) {
+    bg-shape = roundedRect($width, $height, @radius);
+    
+    effect bg-shape {
+        solidColor(white);
+        outerShadow(#00000022, @shadowSize, 0);
+    }
+}
+
+card {
+    @card-appearance(12, 10);
+}

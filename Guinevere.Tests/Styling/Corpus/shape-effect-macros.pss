@@ -1,0 +1,44 @@
+// Simple shape macro
+@shape pill = roundedRect($width, $height, min($width, $height) * 0.5);
+
+// Parameterized shape macro
+@shape rounded-box(@radius) = roundedRect($width, $height, @radius);
+
+// Effect macros with parameters
+@effect material-shadow() {
+    outerShadow(#00000022, 8, 0, (0, 2));
+    outerShadow(#00000011, 16, 0, (0, 4));
+}
+
+@effect elevation(@level) {
+    outerShadow(#00000022, @level * 4, 0, (0, @level));
+    outerShadow(#00000011, @level * 8, 0, (0, @level * 2));
+}
+
+// Using the macros
+button {
+    bg-shape = @pill;
+    
+    effect bg-shape {
+        solidColor(#4a90e2);
+        @material-shadow();
+    }
+}
+
+card-subtle {
+    bg-shape = @rounded-box(8);
+    
+    effect bg-shape {
+        solidColor(white);
+        @elevation(1);
+    }
+}
+
+card-prominent {
+    bg-shape = @rounded-box(16);
+    
+    effect bg-shape {
+        solidColor(white);
+        @elevation(4);
+    }
+}

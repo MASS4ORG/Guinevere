@@ -1,8 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Guinevere;
 
-/// <summary>Parsers for the scalar value forms used in <c>.uss</c> declarations.</summary>
+/// <summary>Parsers for the scalar value forms used in <c>.pss</c> declarations.</summary>
 public static class StyleValue
 {
     /// <summary>
@@ -56,6 +57,35 @@ public static class StyleValue
         return false;
 
         static bool Eq(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Parses <c>url("…")</c>, <c>url(…)</c> or a quoted string, resolving relative locations against
+    /// <paramref name="baseUri"/> when it is absolute.
+    /// </summary>
+    /// <param name="text">The URL text.</param>
+    /// <param name="baseUri">The owning sheet's base, or <c>null</c> to keep relative locations relative.</param>
+    /// <param name="uri">The parsed location.</param>
+    public static bool TryUrl(string? text, Uri? baseUri, [NotNullWhen(true)] out Uri? uri)
+    {
+        uri = null;
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        var t = text.Trim();
+        if (t.StartsWith("url(", StringComparison.OrdinalIgnoreCase) && t.EndsWith(')')) t = t[4..^1].Trim();
+        t = Unquote(t);
+        if (t.Length == 0) return false;
+        if (Uri.TryCreate(t, UriKind.Absolute, out uri)) return true;
+        return baseUri is { IsAbsoluteUri: true }
+            ? Uri.TryCreate(baseUri, t, out uri)
+            : Uri.TryCreate(t, UriKind.Relative, out uri);
+    }
+
+    /// <summary>Removes one pair of matching surrounding <c>"</c> or <c>'</c> quotes.</summary>
+    /// <param name="text">The possibly quoted text.</param>
+    public static string Unquote(string text)
+    {
+        var t = text.Trim();
+        return t.Length >= 2 && t[0] is '"' or '\'' && t[^1] == t[0] ? t[1..^1] : t;
     }
 
     /// <summary>

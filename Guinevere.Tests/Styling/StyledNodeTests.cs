@@ -48,7 +48,7 @@ public class StyledNodeTests
     public void ClassRule_AppliesLayoutAndBackground()
     {
         var px = RenderFrame(
-            ".panel { flex-grow: 1; background-color: #ff0000; }",
+            ".panel { flex-grow = 1; background-color = #ff0000; }",
             MouseAt(-100, -100),
             gui =>
             {
@@ -64,7 +64,7 @@ public class StyledNodeTests
     public void TypeSelector_Applies()
     {
         var px = RenderFrame(
-            "Box { flex-grow: 1; background-color: #00ff00; }",
+            "Box { flex-grow = 1; background-color = #00ff00; }",
             MouseAt(-100, -100),
             gui =>
             {
@@ -79,8 +79,8 @@ public class StyledNodeTests
     public void HoverModifier_SwapsBackground()
     {
         const string css = """
-            .btn        { flex-grow: 1; background-color: #101010; }
-            .btn:hover  { background-color: #00a2ff; }
+            .btn        { flex-grow = 1; background-color = #101010; }
+            .btn:hover  { background-color = #00a2ff; }
             """;
 
         var idle = RenderFrame(css, MouseAt(-100, -100),
@@ -98,8 +98,8 @@ public class StyledNodeTests
     {
         var px = RenderFrame("""
             Panel {
-                flex-grow: 1;
-                > Button:checked { flex-grow: 1; background-color: #00ff00; }
+                flex-grow = 1;
+                > Button:checked { flex-grow = 1; background-color = #00ff00; }
             }
             """, MouseAt(-100, -100), gui =>
             {

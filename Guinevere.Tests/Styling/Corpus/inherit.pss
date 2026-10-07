@@ -1,0 +1,19 @@
+box {
+    padding = 20;
+    bg-color = white;
+}
+
+warning-box #inherit(box) {
+    bg-color = orange;
+}
+
+error-box #inherit(box) {
+    bg-color = red;
+}
+
+// For all intents and purpuses, warning-box and error-box is also a box,
+// so buttons inside of a warning-box will also get the style below:
+box > button  
+{
+    padding = 10; 
+}

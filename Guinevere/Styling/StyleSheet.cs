@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Guinevere;
 
-/// <summary>One <c>.uss</c> rule: the selectors it applies to and the declarations it sets.</summary>
+/// <summary>One <c>.pss</c> rule: the selectors it applies to and the declarations it sets.</summary>
 public sealed class StyleRule
 {
     /// <summary>Selectors this rule's declarations apply to (a comma-separated group).</summary>
@@ -13,197 +13,127 @@ public sealed class StyleRule
 
     /// <summary>0-based position of the rule in its stylesheet, for cascade tie-breaking.</summary>
     public required int Order { get; init; }
+
+    /// <summary>Base for relative <c>url()</c> values, taken from the sheet that declared the rule.</summary>
+    internal Uri? BaseUri { get; init; }
 }
 
+/// <summary>A <c>@font-face</c> the host should load, with its source resolved against the sheet location.</summary>
+/// <param name="Family">The <c>font-family</c> name declarations refer to.</param>
+/// <param name="Source">The resolved <c>src</c> location.</param>
+public sealed record StyleFontFace(string Family, Uri Source);
+
+/// <summary>Kinds of PanGui constructs that are parsed and kept but not applied yet.</summary>
+public enum StyleDeferredKind
+{
+    /// <summary><c>shape name = …;</c></summary>
+    Shape,
+    /// <summary><c>effect name { … }</c></summary>
+    Effect,
+    /// <summary><c>bg-shape = …;</c></summary>
+    BackgroundShape,
+    /// <summary><c>@mixin name(…) { … }</c></summary>
+    Mixin,
+    /// <summary><c>@style name(…) = … { … }</c></summary>
+    StyleMacro,
+    /// <summary><c>@shape name = …;</c></summary>
+    ShapeMacro,
+    /// <summary><c>@effect name(…) { … }</c></summary>
+    EffectMacro,
+    /// <summary><c>@name(…);</c> invocation of a mixin or macro.</summary>
+    Invocation,
+}
+
+/// <summary>A parsed but not yet applied PanGui construct, kept verbatim with its source position.</summary>
+/// <param name="Kind">The construct kind.</param>
+/// <param name="Text">The construct's source text, with comments blanked.</param>
+/// <param name="Line">1-based line of the construct.</param>
+/// <param name="Column">1-based column of the construct.</param>
+public sealed record StyleDeferredConstruct(StyleDeferredKind Kind, string Text, int Line, int Column);
+
 /// <summary>
-/// A parsed <c>.uss</c> stylesheet: a flat list of rules plus custom-property variables. Supports
-/// type / <c>.class</c> / <c>#id</c> / compound selectors, the <c>:hover</c> / <c>:active</c> /
-/// <c>:focus</c> / <c>:disabled</c> modifiers, <c>--name: value;</c> variables and <c>var(--name)</c>,
-/// hierarchy combinators, nested rules, and <c>/* … */</c> comments.
+/// A parsed <c>.pss</c> (PanGui Style Sheet): rules, <c>$token</c> variables, <c>@const</c> constants,
+/// <c>#inherit</c> aliases, <c>@font-face</c> entries and PanGui constructs kept for later application.
 /// </summary>
 public sealed class StyleSheet
 {
-    static readonly Regex CommentPattern = new(@"/\*.*?\*/", RegexOptions.Singleline | RegexOptions.Compiled);
-    static readonly Regex LineCommentPattern = new(@"//.*$", RegexOptions.Multiline | RegexOptions.Compiled);
     static readonly Regex VarPattern = new(@"var\(\s*(--[A-Za-z0-9_-]+)\s*\)", RegexOptions.Compiled);
     static readonly Regex DollarVarPattern = new(@"\$([A-Za-z_][A-Za-z0-9_-]*)", RegexOptions.Compiled);
-    static readonly Regex ConstPattern = new(@"@const\s+([A-Za-z_][A-Za-z0-9_-]*)\s*=\s*([^;]+);",
-        RegexOptions.Compiled);
-    static readonly Regex InheritPattern = new(
-        @"^(?<child>[A-Za-z_][A-Za-z0-9_-]*)\s+#inherit\((?<parents>[^)]*)\)$", RegexOptions.Compiled);
+    const int MaxExpansionDepth = 8;
 
-    /// <summary>The stylesheet's rules, in source order.</summary>
+    /// <summary>The stylesheet's rules, imported rules first, in source order.</summary>
     public IReadOnlyList<StyleRule> Rules { get; }
 
-    /// <summary>Custom-property variables declared at the top level (<c>--name: value;</c>).</summary>
+    /// <summary>Top-level <c>$name = value;</c> tokens, stored as <c>--name</c>; later sheets override them.</summary>
     public IReadOnlyDictionary<string, string> Variables { get; }
-    /// <summary>Selector aliases declared with PanGui-compatible <c>#inherit(...)</c>.</summary>
+
+    /// <summary><c>@const name = value;</c> values, readable by the host as sheet metadata.</summary>
+    public IReadOnlyDictionary<string, string> Constants { get; }
+
+    /// <summary>Aliases declared with <c>#inherit(...)</c>: copy properties and match parent selectors.</summary>
     public IReadOnlyDictionary<string, IReadOnlyList<string>> Inheritance { get; }
 
-    StyleSheet(IReadOnlyList<StyleRule> rules, IReadOnlyDictionary<string, string> variables,
-        IReadOnlyDictionary<string, IReadOnlyList<string>> inheritance)
+    /// <summary>Aliases declared with <c>#inherit-properties(...)</c>: copy properties only.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> PropertyInheritance { get; }
+
+    /// <summary>Aliases declared with <c>#inherit-selector(...)</c>: match parent selectors only.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> SelectorInheritance { get; }
+
+    /// <summary><c>@font-face</c> entries for the host to load; the core does not load fonts itself.</summary>
+    public IReadOnlyList<StyleFontFace> FontFaces { get; }
+
+    /// <summary>PanGui shapes, effects, mixins and macros that are parsed but not applied.</summary>
+    public IReadOnlyList<StyleDeferredConstruct> Deferred { get; }
+
+    /// <summary>The options the sheet was parsed with.</summary>
+    public StyleSheetOptions Options { get; }
+
+    internal bool HasInheritance =>
+        Inheritance.Count > 0 || PropertyInheritance.Count > 0 || SelectorInheritance.Count > 0;
+
+    internal StyleSheet(StyleSheetParser parsed)
     {
-        Rules = rules;
-        Variables = variables;
-        Inheritance = inheritance;
+        Rules = parsed.Rules;
+        Variables = parsed.Variables;
+        Constants = parsed.Constants;
+        Inheritance = parsed.Inheritance;
+        PropertyInheritance = parsed.PropertyInheritance;
+        SelectorInheritance = parsed.SelectorInheritance;
+        FontFaces = parsed.FontFaces;
+        Deferred = parsed.Deferred;
+        Options = parsed.Options;
     }
 
-    /// <summary>Parses <c>.uss</c> text into a stylesheet.</summary>
-    /// <param name="css">The stylesheet source.</param>
-    /// <exception cref="FormatException">A rule block or selector is malformed.</exception>
-    public static StyleSheet Parse(string css)
+    /// <summary>Parses <c>.pss</c> text into a stylesheet.</summary>
+    /// <param name="text">The stylesheet source.</param>
+    /// <param name="options">Source name, URL base, import resolver and syntax options.</param>
+    /// <exception cref="StyleSheetException">The text is malformed; the message carries <c>source:line:column</c>.</exception>
+    public static StyleSheet Parse(string text, StyleSheetOptions? options = null)
     {
-        ArgumentNullException.ThrowIfNull(css);
-        var text = LineCommentPattern.Replace(CommentPattern.Replace(css, string.Empty), string.Empty);
-        var constants = new Dictionary<string, string>(StringComparer.Ordinal);
-        text = ConstPattern.Replace(text, match =>
-        {
-            constants[match.Groups[1].Value] = match.Groups[2].Value.Trim();
-            return string.Empty;
-        });
-        foreach (var (name, value) in constants)
-            text = Regex.Replace(text, $@"@{Regex.Escape(name)}\b", value);
-        var rules = new List<StyleRule>();
-        var variables = new Dictionary<string, string>(StringComparer.Ordinal);
-        var inheritance = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
-        var order = 0;
-        var i = 0;
-        while (i < text.Length)
-        {
-            while (i < text.Length && (char.IsWhiteSpace(text[i]) || text[i] == ';')) i++;
-            if (i >= text.Length) break;
-            if (text[i] == '$' || text[i] == '-' && i + 1 < text.Length && text[i + 1] == '-')
-            {
-                var semi = text.IndexOf(';', i);
-                var end = semi < 0 ? text.Length : semi;
-                var decl = text[i..end];
-                var separator = DeclarationSeparator(decl);
-                if (separator > 0)
-                {
-                    var name = decl[..separator].Trim();
-                    if (name[0] == '$') name = $"--{name[1..]}";
-                    variables[name] = decl[(separator + 1)..].Trim();
-                }
-                i = end + 1;
-                continue;
-            }
-            var brace = text.IndexOf('{', i);
-            if (brace < 0) throw Error(text, i, "Expected a rule block");
-            var selectorText = text[i..brace].Trim();
-            if (selectorText.Length == 0) throw Error(text, i, "Missing selector");
-            var inherit = InheritPattern.Match(selectorText);
-            if (inherit.Success)
-            {
-                selectorText = inherit.Groups["child"].Value;
-                inheritance[selectorText] = inherit.Groups["parents"].Value
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            }
-            var selectors = SplitSelectors(selectorText);
-            i = brace + 1;
-            ParseBlock(text, ref i, selectors, rules, ref order);
-        }
-        ValidateInheritance(inheritance);
-        return new StyleSheet(rules, variables, inheritance);
+        ArgumentNullException.ThrowIfNull(text);
+        return StyleSheetParser.Parse(text, options ?? new StyleSheetOptions(), []);
     }
 
-    static void ParseBlock(string text, ref int i, string[] selectorTexts, List<StyleRule> rules, ref int order)
+    /// <summary>Substitutes <c>$name</c> and <c>var(--name)</c> references using this sheet's variables.</summary>
+    /// <param name="value">A declaration value that may reference variables.</param>
+    /// <param name="scoped">Optional rule or call-site variables that override the sheet's.</param>
+    public string ExpandVariables(string value, IReadOnlyDictionary<string, string>? scoped = null) =>
+        Expand(value, name => scoped?.GetValueOrDefault(name) ?? Variables.GetValueOrDefault(name));
+
+    internal static bool References(string value) =>
+        value.Contains('$') || value.Contains("var(", StringComparison.Ordinal);
+
+    internal static string Expand(string value, Func<string, string?> lookup, int depth = 0)
     {
-        var ownOrder = order++;
-        var declarations = new Dictionary<string, string>(StringComparer.Ordinal);
-        while (true)
-        {
-            while (i < text.Length && (char.IsWhiteSpace(text[i]) || text[i] == ';')) i++;
-            if (i >= text.Length) throw Error(text, i, "Unterminated rule block: missing '}'");
-            if (text[i] == '}') { i++; break; }
-
-            var semi = text.IndexOf(';', i);
-            var brace = text.IndexOf('{', i);
-            var close = text.IndexOf('}', i);
-            if (brace >= 0 && (semi < 0 || brace < semi) && (close < 0 || brace < close))
-            {
-                var nestedText = text[i..brace].Trim();
-                var nested = SplitSelectors(nestedText)
-                    .SelectMany(child => selectorTexts.Select(parent => Combine(parent, child)))
-                    .ToArray();
-                i = brace + 1;
-                ParseBlock(text, ref i, nested, rules, ref order);
-                continue;
-            }
-
-            var end = semi >= 0 && (close < 0 || semi < close) ? semi : close;
-            if (end < 0) throw Error(text, i, "Unterminated declaration");
-            var declaration = text[i..end].Trim();
-            var separator = DeclarationSeparator(declaration);
-            if (separator <= 0) throw Error(text, i, $"Malformed declaration '{declaration}'");
-            var property = declaration[..separator].Trim();
-            if (property[0] == '$') property = $"--{property[1..]}";
-            declarations[property] = declaration[(separator + 1)..].Trim();
-            i = end + (end == close ? 0 : 1);
-        }
-
-        if (declarations.Count > 0)
-            rules.Add(new StyleRule
-            {
-                Selectors = selectorTexts.Select(Selector.Parse).ToArray(),
-                Declarations = declarations,
-                Order = ownOrder,
-            });
+        if (!References(value)) return value;
+        var expanded = VarPattern.Replace(value, m => Substitute(m.Groups[1].Value, m.Value, lookup, depth));
+        return DollarVarPattern.Replace(expanded, m => Substitute($"--{m.Groups[1].Value}", m.Value, lookup, depth));
     }
 
-    static string[] SplitSelectors(string text) =>
-        text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-    static string Combine(string parent, string child)
+    static string Substitute(string name, string original, Func<string, string?> lookup, int depth)
     {
-        if (child.Contains('&', StringComparison.Ordinal)) return child.Replace("&", parent, StringComparison.Ordinal);
-        if (child.StartsWith(':')) return $"{parent}{child}";
-        return child.StartsWith('>') ? $"{parent} {child}" : $"{parent} {child}";
+        var raw = lookup(name);
+        if (raw is null) return original;
+        return depth < MaxExpansionDepth ? Expand(raw, lookup, depth + 1) : raw;
     }
-
-    static int DeclarationSeparator(string text)
-    {
-        var equals = text.IndexOf('=');
-        var colon = text.IndexOf(':');
-        if (equals < 0) return colon;
-        return colon < 0 ? equals : Math.Min(equals, colon);
-    }
-
-    static FormatException Error(string text, int offset, string message)
-    {
-        var line = 1;
-        var column = 1;
-        for (var j = 0; j < Math.Min(offset, text.Length); j++)
-            if (text[j] == '\n') { line++; column = 1; } else column++;
-        return new FormatException($"{message} at line {line}, column {column}");
-    }
-
-    static void ValidateInheritance(IReadOnlyDictionary<string, IReadOnlyList<string>> inheritance)
-    {
-        var visiting = new HashSet<string>(StringComparer.Ordinal);
-        var visited = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var child in inheritance.Keys) Visit(child);
-        return;
-
-        void Visit(string child)
-        {
-            if (visited.Contains(child)) return;
-            if (!visiting.Add(child)) throw new FormatException($"Cyclic style inheritance involving '{child}'");
-            if (inheritance.TryGetValue(child, out var parents))
-                foreach (var parent in parents) Visit(parent);
-            visiting.Remove(child);
-            visited.Add(child);
-        }
-    }
-
-    /// <summary>Substitutes <c>var(--name)</c> references in <paramref name="value"/> using this sheet's variables.</summary>
-    /// <param name="value">A declaration value that may contain <c>var(…)</c>.</param>
-    /// <param name="scoped">Optional rule or call-site variables that override globals.</param>
-    public string ExpandVariables(string value, IReadOnlyDictionary<string, string>? scoped = null)
-    {
-        var expanded = VarPattern.Replace(value, m => Lookup(m.Groups[1].Value, scoped) ?? m.Value);
-        return DollarVarPattern.Replace(expanded, m => Lookup($"--{m.Groups[1].Value}", scoped) ?? m.Value);
-    }
-
-    string? Lookup(string name, IReadOnlyDictionary<string, string>? scoped) =>
-        scoped?.GetValueOrDefault(name) ?? Variables.GetValueOrDefault(name);
 }

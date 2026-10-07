@@ -1,0 +1,26 @@
+nodeExample {
+    // Set the built-in bg-shape property.
+    bg-shape = roundedRect($width, $height, 8); 
+
+    // Content will be clipped to the bg-shape. 
+    clip-content = true;
+
+    // Define new shapes.
+    shape myRect = roundedRect($width, $height, 8);
+
+    // Shape combinations
+    shape outer = circle(50);
+    shape inner = circle(35);
+    bg-shape = outer - inner;  // Subtract
+    
+    // Animate shapes in modifiers
+    shape icon = circle(15);
+    
+    :hover(0.2) {
+        shape icon = icon + 5; // Expand by 5px
+    }
+    
+    effect icon {
+        solidColor(white);
+    }
+}

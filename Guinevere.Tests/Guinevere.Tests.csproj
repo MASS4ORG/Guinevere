@@ -37,6 +37,7 @@
 
     <ItemGroup>
         <Content Include="Scripts/*.json" CopyToOutputDirectory="PreserveNewest"/>
+        <Content Include="Styling/Corpus/*.pss" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 
 </Project>
