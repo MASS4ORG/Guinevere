@@ -214,6 +214,8 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 
   Icons are glyphs, images or vector pictures drawn with `gui.Icon(icon, size, tint)`. With the styling package, `icon#id` rules (`glyph`/`font-family` or `src`/`tint`, plus `color`) form swappable icon themes read by `gui.StyledIcon("scene.move")`. SVG sources need the optional [`MASS4.Guinevere.Svg`](Guinevere.Svg/README.md) package.
 
+  Styled nodes draw `background` colors or `linear-gradient`s, `box-shadow`s, per-corner `border-radius` and `outline`s, and apply `opacity`, `cursor` and text `color`/`font-*` that child text inherits.
+
   Transition annotations, shapes, effects, mixins and macros parse for source compatibility and are kept in `StyleSheet.Deferred`; animated interpolation, expressions and applying those constructs remain planned styling features. The CSS-flavored `prop: value;`/`--x`/`var()` form is only accepted with `StyleSheetOptions.AllowCssSyntax` for migration tools.
 
   Color palettes are collections of independent, inheritable values. Override only the values a

@@ -43,6 +43,23 @@ public abstract partial class Program
                          .btn:active { background-color = $btn-down; }
 
                          #primary { background-color = $btn-hover; border-width = 0; }
+
+                         .visuals { color = #eceef3; font-size = 14; }
+                         .tile {
+                             width = 120;
+                             height = 64;
+                             align-items = center;
+                             justify-content = center;
+                             background-color = #2c3446;
+                             border-radius = 8;
+                             cursor = pointer;
+                         }
+                         .tile:hover   { outline = 2px solid #88c0d0; outline-offset = 2; }
+                         #corners      { border-radius = 18 0 18 0; }
+                         #gradient     { background = linear-gradient(135deg, #5e81ac, #b48ead); }
+                         #shadow       { box-shadow = 0 6px 14px #000000aa, inset 0 1px 0 #ffffff33; }
+                         #faded        { opacity = 0.5; }
+                         #bold         { font-weight = bold; font-style = italic; color = #ebcb8b; font-size = 16; }
                          """;
 
     static void StylingContent(Gui gui)
@@ -64,9 +81,27 @@ public abstract partial class Program
                     StyledBtn(gui, "Also .btn", null);
                 }
 
+                using (gui.StyledNode("VisualElement", ["card", "visuals"]).Enter())
+                {
+                    gui.DrawText("Visual properties — text color and size are inherited from .visuals; hover a tile for its outline.");
+                    using (gui.StyledNode("VisualElement", ["row"]).Enter())
+                    {
+                        StyledTile(gui, "corners", "Per-corner radius");
+                        StyledTile(gui, "gradient", "Gradient");
+                        StyledTile(gui, "shadow", "Shadows");
+                        StyledTile(gui, "faded", "Opacity 50%");
+                        StyledTile(gui, "bold", "Bold italic");
+                    }
+                }
+
                 gui.DrawText(Style, color: Color.White, centerInRect: false);
             }
         }
+    }
+
+    static void StyledTile(Gui gui, string id, string label)
+    {
+        using (gui.StyledNode("VisualElement", ["tile"], id).Enter()) gui.DrawText(label);
     }
 
     static void StyledBtn(Gui gui, string label, string? id)

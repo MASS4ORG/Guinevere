@@ -164,7 +164,7 @@ public partial class Gui
         var size = cfg.Size > 0 ? cfg.Size : CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value;
         var color = cfg.Color ?? CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
 
-        var mainFont = new Font(new SKFont(cfg.Font.SkFont.Typeface, size));
+        var mainFont = cfg.Font.Resized(size);
         var iconFont =
             new Font(new SKFont(CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface, size));
 

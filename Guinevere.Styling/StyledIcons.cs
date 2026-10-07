@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using SkiaSharp;
 
 namespace Guinevere;
 
@@ -34,7 +33,7 @@ public static class StyledIcons
             ArgumentException.ThrowIfNullOrEmpty(id);
             var sheets = gui.StyleSheets;
             var style = gui.ResolveStyle("icon", classes, id, state, modifiers);
-            return States.GetOrCreateValue(gui).Get(sheets, style);
+            return States.GetOrCreateValue(gui).Get(sheets, StylingExtensions.FontsOf(gui), style);
         }
 
         /// <summary>
@@ -54,30 +53,28 @@ public static class StyledIcons
             gui.Icon(gui.ResolveIcon(id, classes, modifiers, state), size, tint);
     }
 
-    /// <summary>Per-GUI decoders plus icons, files and fonts cached for one stylesheet version.</summary>
+    /// <summary>Per-GUI decoders plus icons and files cached for one stylesheet version.</summary>
     sealed class IconCache
     {
         public readonly List<IIconDecoder> Decoders = [];
         readonly ConditionalWeakTable<ResolvedStyle, StrongBox<Icon?>> _icons = new();
         readonly Dictionary<Uri, Icon?> _files = [];
-        readonly Dictionary<string, Font?> _fonts = new(StringComparer.OrdinalIgnoreCase);
         int _version = -1;
 
-        public Icon? Get(StyleSheetCollection sheets, ResolvedStyle style)
+        public Icon? Get(StyleSheetCollection sheets, StyleFonts fonts, ResolvedStyle style)
         {
             if (_version != sheets.Version)
             {
                 _version = sheets.Version;
                 _icons.Clear();
                 _files.Clear();
-                _fonts.Clear();
             }
-            return _icons.GetValue(style, s => new StrongBox<Icon?>(Build(sheets, s))).Value;
+            return _icons.GetValue(style, s => new StrongBox<Icon?>(Build(sheets, fonts, s))).Value;
         }
 
-        Icon? Build(StyleSheetCollection sheets, ResolvedStyle style)
+        Icon? Build(StyleSheetCollection sheets, StyleFonts fonts, ResolvedStyle style)
         {
-            var icon = Source(style) ?? Glyph(sheets, style);
+            var icon = Source(style) ?? Glyph(sheets, fonts, style);
             if (icon is null) return null;
             var tint = icon.Kind == IconKind.Glyph
                        || (StyleValue.TryBool(style.Get("tint"), out var tintable) ? tintable : icon.Tintable);
@@ -93,7 +90,7 @@ public static class StyledIcons
 
         Icon? Load(Uri uri)
         {
-            if (LocalPath(uri) is not { } path) return null;
+            if (StyleFonts.LocalPath(uri) is not { } path) return null;
             try
             {
                 return Icon.FromFile(path, Decoders);
@@ -104,47 +101,17 @@ public static class StyledIcons
             }
         }
 
-        Icon? Glyph(StyleSheetCollection sheets, ResolvedStyle style)
+        /// <summary>A glyph in the rule's <c>font-family</c>, or in the scope's font fallback when none is found.</summary>
+        static Icon? Glyph(StyleSheetCollection sheets, StyleFonts fonts, ResolvedStyle style)
         {
             var raw = style.Get("glyph");
             if (raw is null || IsNone(raw)) return null;
             var glyph = StyleValue.Unescape(StyleValue.Unquote(raw));
-            return glyph.Length == 0 ? null : Icon.FromGlyph(glyph, FontFor(sheets, style.Get("font-family")));
+            if (glyph.Length == 0) return null;
+            var font = fonts.Resolve(sheets, style.Get("font-family"), null,
+                StyleFonts.Weight(style.Get("font-weight")), StyleFonts.Italic(style.Get("font-style")));
+            return Icon.FromGlyph(glyph, font);
         }
-
-        /// <summary>
-        /// The first family in the list that a sheet's <c>@font-face</c> (later sheets first) or the system provides;
-        /// <c>null</c> leaves the glyph to the scope's font fallback.
-        /// </summary>
-        Font? FontFor(StyleSheetCollection sheets, string? families)
-        {
-            if (string.IsNullOrWhiteSpace(families)) return null;
-            foreach (var entry in families.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-            {
-                var family = StyleValue.Unquote(entry);
-                if (!_fonts.TryGetValue(family, out var font)) _fonts[family] = font = LoadFont(sheets, family);
-                if (font is not null) return font;
-            }
-            return null;
-        }
-
-        static Font? LoadFont(StyleSheetCollection sheets, string family)
-        {
-            for (var i = sheets.Count - 1; i >= 0; i--)
-                foreach (var face in sheets[i].FontFaces)
-                    if (string.Equals(face.Family, family, StringComparison.OrdinalIgnoreCase)
-                        && LocalPath(face.Source) is { } path && SKTypeface.FromFile(path) is { } typeface)
-                        return new Font(new SKFont(typeface));
-
-            var system = SKFontManager.Default.MatchFamily(family);
-            return string.Equals(system?.FamilyName, family, StringComparison.OrdinalIgnoreCase)
-                ? new Font(new SKFont(system))
-                : null;
-        }
-
-        static string? LocalPath(Uri uri) => uri.IsAbsoluteUri
-            ? uri.IsFile ? uri.LocalPath : null
-            : Uri.UnescapeDataString(uri.OriginalString);
 
         static bool IsNone(string? value) => string.Equals(value?.Trim(), "none", StringComparison.OrdinalIgnoreCase);
     }

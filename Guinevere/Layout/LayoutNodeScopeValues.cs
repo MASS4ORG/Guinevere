@@ -101,6 +101,19 @@ public class LayoutNodeScopeZIndex : ILayoutNodeScopeValue<LayoutNodeScopeZIndex
 }
 
 /// <summary>
+/// The opacity a node sets for itself and its descendants. Only values set directly on a node count; nested values
+/// multiply at render time.
+/// </summary>
+public class LayoutNodeScopeOpacity : ILayoutNodeScopeValue<LayoutNodeScopeOpacity>
+{
+    /// <summary>Fully opaque.</summary>
+    public static LayoutNodeScopeOpacity Default { get; } = new() { Value = 1f };
+
+    /// <summary>Opacity in [0, 1].</summary>
+    public required float Value { get; init; }
+}
+
+/// <summary>
 /// Represents the scroll container ID value for layout node scopes.
 /// </summary>
 public class LayoutNodeScopeScrollContainerId : ILayoutNodeScopeValue<LayoutNodeScopeScrollContainerId>

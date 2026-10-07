@@ -66,6 +66,17 @@ public partial class Gui
     }
 
     /// <summary>
+    /// Fades the current node and its descendants; opacities set on nested nodes multiply. Each node is composited on
+    /// its own, so overlapping descendants show through each other.
+    /// </summary>
+    public void SetOpacity(float opacity, LayoutNodeScope? scope = null)
+    {
+        scope ??= CurrentNodeScope;
+        scope.Set(new LayoutNodeScopeOpacity { Value = Math.Clamp(opacity, 0f, 1f) });
+        _opacityUsed = true;
+    }
+
+    /// <summary>
     /// Sets the Z-index for the current node and its children.
     /// The Z-index is automatically restored when exiting the node scope.
     /// </summary>

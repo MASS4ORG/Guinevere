@@ -79,6 +79,10 @@ public class Font
         return new Font(Typeface, size);
     }
 
+    /// <summary>The same typeface at another size, keeping synthesized bold (embolden) and italic (skew).</summary>
+    internal Font Resized(float size) =>
+        new(new SKFont(_skFont.Typeface, size) { Embolden = _skFont.Embolden, SkewX = _skFont.SkewX });
+
     /// <summary>
     /// Creates a Font from a file path.
     /// </summary>

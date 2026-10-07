@@ -4,6 +4,7 @@ public partial class Gui
 {
     readonly List<(int Z, int Sequence, LayoutNode Node)> _renderNodes = [];
     readonly List<LayoutNode> _clipAncestors = [];
+    bool _opacityUsed;
     /// <summary>
     /// A property that represents the core rendering surface for graphical operations.
     /// </summary>
@@ -204,10 +205,23 @@ public partial class Gui
         {
             var restore = Canvas!.Save();
             ApplyAncestorClips(node, Canvas!);
-            node.DrawList.Render(this, node, Canvas!);
+            var opacity = _opacityUsed ? EffectiveOpacity(node) : 1f;
+            if (opacity < 1f)
+                Canvas!.SaveLayer(new SKPaint { Color = new SKColor(255, 255, 255, (byte)(opacity * 255f + 0.5f)) });
+            if (opacity > 0f) node.DrawList.Render(this, node, Canvas!);
             Canvas!.RestoreToCount(restore);
             node.Pass2NodeCount = 0;
         }
+    }
+
+    /// <summary>The product of the opacities set on the node and its ancestors.</summary>
+    static float EffectiveOpacity(LayoutNode node)
+    {
+        var opacity = 1f;
+        for (var current = node; current is not null; current = current.Parent)
+            if (current.Scope.HasLocal<LayoutNodeScopeOpacity>())
+                opacity *= current.Scope.Get<LayoutNodeScopeOpacity>().Value;
+        return opacity;
     }
 
     /// <summary>

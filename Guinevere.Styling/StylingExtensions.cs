@@ -10,12 +10,16 @@ public static class StylingExtensions
 {
     static readonly ConditionalWeakTable<Gui, GuiStyling> States = new();
 
-    /// <summary>Per-<see cref="Gui"/> stylesheets and the ancestor buffer reused by every styled node.</summary>
+    /// <summary>Per-<see cref="Gui"/> stylesheets, fonts and the ancestor buffer reused by every styled node.</summary>
     sealed class GuiStyling
     {
         public readonly StyleSheetCollection Sheets = [];
         public readonly List<StyleTarget> Ancestors = [];
+        public readonly StyleFonts Fonts = new();
     }
+
+    /// <summary>The GUI's stylesheet font resolver, shared by styled text and icons.</summary>
+    internal static StyleFonts FontsOf(Gui gui) => States.GetOrCreateValue(gui).Fonts;
 
     extension(Gui gui)
     {
@@ -48,10 +52,11 @@ public static class StylingExtensions
             gui.ControlPalette = ControlPalette.FromStyle(gui.ResolveStyle(type), fallback ?? gui.ControlPalette);
 
         /// <summary>
-        /// Creates a layout node and styles it from the GUI's stylesheets by its type, classes and
-        /// id. Layout declarations are applied to the node in the build pass; <c>background-color</c>,
-        /// <c>border-radius</c>, <c>border-color</c> and <c>border-width</c> are drawn behind the node's
-        /// children in the render pass, re-resolved for <c>:hover</c>, <c>:active</c> and <c>:focus</c>.
+        /// Creates a layout node and styles it from the GUI's stylesheets by its type, classes and id. Layout
+        /// declarations and <c>cursor</c> apply in the build pass. The box (<c>background</c>, <c>box-shadow</c>,
+        /// <c>border-*</c>, per-corner <c>border-radius</c>, <c>outline</c>) is drawn behind the node's children in
+        /// the render pass, re-resolved for <c>:hover</c>, <c>:active</c> and <c>:focus</c>. Text properties
+        /// (<c>color</c>, <c>font-*</c>) and <c>opacity</c> apply to the node's scope, so its children inherit them.
         /// <c>:disabled</c> applies in both passes, so it may change layout, and suppresses hover and press.
         /// </summary>
         /// <param name="type">Element type name matched by a bare-type selector, or <c>null</c>.</param>
@@ -87,12 +92,17 @@ public static class StylingExtensions
 
             if (gui.Pass == Pass.Pass1Build)
             {
-                StyleLayout.Apply(node, styling.Sheets.Resolve(target, variables));
+                var style = styling.Sheets.Resolve(target, variables);
+                StyleLayout.Apply(node, style);
+                ApplyInherited(gui, node, style, styling);
+                if (StyleBoxValues.Cursor(style.Get("cursor")) is { } cursor) node.Cursor(cursor);
                 return node;
             }
 
             var live = state | InteractionState(gui, node, disabled);
-            DrawStyledBox(node, styling.Sheets.Resolve(target with { State = live }, variables));
+            var liveStyle = styling.Sheets.Resolve(target with { State = live }, variables);
+            ApplyInherited(gui, node, liveStyle, styling);
+            if (StyleBox.From(liveStyle, node.Rect) is { } box) node.DrawList.Add(box);
             return node;
         }
 
@@ -184,32 +194,30 @@ public static class StylingExtensions
         return interactable.OnHold() ? state | StyleState.Active : state;
     }
 
-    static void DrawStyledBox(LayoutNode node, ResolvedStyle style)
+    /// <summary>
+    /// Sets the text <c>color</c>, <c>font-size</c>, <c>font-family</c>/<c>font-weight</c>/<c>font-style</c> and
+    /// <c>opacity</c> on the node's scope. A weight or style without a family restyles the inherited font.
+    /// </summary>
+    static void ApplyInherited(Gui gui, LayoutNode node, ResolvedStyle style, GuiStyling styling)
     {
-        var background = style.GetColor("background-color") ?? style.GetColor("bg-color");
-        var borderColor = style.GetColor("border-color");
-        var borderWidth = style.GetLength("border-width") ?? 0f;
-        if (background is null && (borderColor is null || borderWidth <= 0f)) return;
+        if (style.GetColor("color") is { } color) gui.SetTextColor(color, node.Scope);
+        if (style.GetLength("font-size") is > 0f and var size && !style.Get("font-size")!.EndsWith('%'))
+            gui.SetTextSize(size, node.Scope);
+        if (StyleBoxValues.Opacity(style.Get("opacity")) is { } opacity) gui.SetOpacity(opacity, node.Scope);
+        ApplyFont(gui, node, style, styling);
+    }
 
-        var radius = style.GetLength("border-radius") ?? 0f;
-        var r = node.Rect;
+    /// <summary>A weight or style without a family restyles the inherited font; unknown families leave it as is.</summary>
+    static void ApplyFont(Gui gui, LayoutNode node, ResolvedStyle style, GuiStyling styling)
+    {
+        var family = style.Get("font-family");
+        var weight = style.Get("font-weight");
+        var slant = style.Get("font-style");
+        if (family is null && weight is null && slant is null) return;
 
-        if (background is { } bg)
-        {
-            var fill = radius > 0f
-                ? Shape.RoundRect(r.X, r.Y, r.X + r.W, r.Y + r.H, radius)
-                : Shape.Rect(r.X, r.Y, r.X + r.W, r.Y + r.H);
-            fill.SolidColor(bg);
-            node.DrawList.Add(fill);
-        }
-
-        if (borderColor is { } bc && borderWidth > 0f)
-        {
-            var stroke = radius > 0f
-                ? Shape.RoundRect(r.X, r.Y, r.X + r.W, r.Y + r.H, radius)
-                : Shape.Rect(r.X, r.Y, r.X + r.W, r.Y + r.H);
-            stroke.Stroke(bc, borderWidth);
-            node.DrawList.Add(stroke);
-        }
+        var inherited = (node.Parent?.Scope ?? node.Scope).Get<LayoutNodeScopeTextFont>().Value;
+        var font = styling.Fonts.Resolve(styling.Sheets, family, inherited, StyleFonts.Weight(weight),
+            StyleFonts.Italic(slant));
+        if (font is not null) gui.SetTextFont(font, node.Scope);
     }
 }
