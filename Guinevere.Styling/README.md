@@ -34,7 +34,8 @@ The package covers:
 - Type, class, id, descendant and `>` selectors.
 - Nesting, `#inherit` and custom modifiers.
 - `$tokens` layered across sheets, and `@const` values the host can read.
-- Value expressions: arithmetic, `calc()`, `em`, `min`/`max`/`clamp`, `hsl()`, `mix`, `alpha`, `lighten`, `darken`, `contrast-ink` and `shade`.
+- Value expressions: arithmetic, `calc()`, `em`, `min`/`max`/`clamp`, `rgb()`/`rgba()` (every channel 0..255), `rgb1()`/`rgba1()` (every channel 0..1), `hsl()`, `mix`, `alpha`, `lighten`, `darken`, `contrast-ink` and `shade`.
+- Icon themes: `icon#scene\.move { glyph = "\f0b2"; font-family = "fa6-solid"; }` or `{ src = url("move.png"); tint = true; }`, drawn by `gui.StyledIcon("scene.move", 16)`.
 - `@font-face`, `url()` and `@import` through a host resolver.
 - `file:line:col` errors, and reloads that keep the last valid sheet.
 - A resolved-style cache whose hits allocate nothing.

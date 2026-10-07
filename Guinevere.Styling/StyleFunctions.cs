@@ -17,8 +17,10 @@ static class StyleFunctions
         ["min"] = (1, int.MaxValue, static (a, _, p) => Extreme(a, p, max: false)),
         ["max"] = (1, int.MaxValue, static (a, _, p) => Extreme(a, p, max: true)),
         ["clamp"] = (3, 3, static (a, _, p) => Clamp(a, p)),
-        ["rgb"] = (3, 4, static (a, _, p) => Rgb(a, p)),
-        ["rgba"] = (3, 4, static (a, _, p) => Rgb(a, p)),
+        ["rgb"] = (3, 4, static (a, _, p) => Rgb(a, p, 255d)),
+        ["rgba"] = (3, 4, static (a, _, p) => Rgb(a, p, 255d)),
+        ["rgb1"] = (3, 4, static (a, _, p) => Rgb(a, p, 1d)),
+        ["rgba1"] = (3, 4, static (a, _, p) => Rgb(a, p, 1d)),
         ["hsl"] = (3, 4, static (a, _, p) => Hsl(a, p)),
         ["hsla"] = (3, 4, static (a, _, p) => Hsl(a, p)),
         ["mix"] = (3, 3, static (a, _, p) =>
@@ -94,10 +96,13 @@ static class StyleFunctions
         return low.Kind == StyleValueKind.Unknown ? low : Extreme([low, args[2]], position, max: false);
     }
 
-    /// <summary>CSS <c>rgb()</c>: channels 0..255 or percentages; alpha 0..1, a percentage, or 0..255 above 1.</summary>
-    static StyleExprValue Rgb(List<StyleExprValue> args, int position) => StyleExprValue.Of(new StyleColor(
-        Channel(args[0], position), Channel(args[1], position), Channel(args[2], position),
-        args.Count == 4 ? Alpha(args[3], position) : 1d));
+    /// <summary>
+    /// <c>rgb()</c>/<c>rgba()</c> take every channel, alpha included, in 0..<paramref name="full"/> (255) and
+    /// <c>rgb1()</c>/<c>rgba1()</c> in 0..1, so <c>rgba(1, 1, 1, 1)</c> is never ambiguous; percentages work in both.
+    /// </summary>
+    static StyleExprValue Rgb(List<StyleExprValue> args, int position, double full) => StyleExprValue.Of(new StyleColor(
+        Channel(args[0], position, full), Channel(args[1], position, full), Channel(args[2], position, full),
+        args.Count == 4 ? Channel(args[3], position, full) : 1d));
 
     /// <summary>CSS <c>hsl()</c>: hue in degrees; saturation and lightness as percentages or 0..1.</summary>
     static StyleExprValue Hsl(List<StyleExprValue> args, int position) => StyleExprValue.Of(StyleColor.FromHsl(
@@ -166,10 +171,10 @@ static class StyleFunctions
         return Math.Clamp(fraction, 0d, 1d);
     }
 
-    static double Channel(StyleExprValue arg, int position)
+    static double Channel(StyleExprValue arg, int position, double full)
     {
         var number = NumberArg(arg, position);
-        return Math.Clamp(number.Unit == StyleNumberUnit.Percent ? number.Number / 100d : number.Number / 255d, 0d, 1d);
+        return Math.Clamp(number.Number / (number.Unit == StyleNumberUnit.Percent ? 100d : full), 0d, 1d);
     }
 
     static double Alpha(StyleExprValue arg, int position)

@@ -23,7 +23,10 @@ public sealed class Selector
                                      + (p.Type is null or "*" ? 0 : 1));
     }
 
-    /// <summary>Parses a selector such as <c>Panel &gt; Button.primary:checked:hover</c>.</summary>
+    /// <summary>
+    /// Parses a selector such as <c>Panel &gt; Button.primary:checked:hover</c>; CSS escapes such as
+    /// <c>icon#scene\.move</c> put a literal <c>.</c>, <c>#</c> or <c>:</c> in a name.
+    /// </summary>
     public static Selector Parse(string text)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(text);
@@ -75,46 +78,69 @@ public sealed class Selector
     {
         var annotation = text.IndexOf('(');
         if (annotation >= 0) text = text[..annotation];
-        string? type = null;
-        string? id = null;
-        var classes = new List<string>();
-        var modifiers = new List<string>();
-        var state = StyleState.None;
+        var part = new PartBuilder(whole);
         var i = 0;
         while (i < text.Length)
         {
             var prefix = text[i];
             if (prefix is '.' or '#' or ':') i++;
-            var start = i;
-            while (i < text.Length && text[i] is not ('.' or '#' or ':')) i++;
-            var value = text[start..i];
-            if (value.Length == 0) throw new FormatException($"Malformed selector '{whole}'");
+            part.Add(prefix, ReadName(text, ref i, whole));
+        }
+        return part.Build(relation);
+    }
+
+    /// <summary>Collects one compound selector's names by their prefix.</summary>
+    sealed class PartBuilder(string whole)
+    {
+        readonly List<string> _classes = [];
+        readonly List<string> _modifiers = [];
+        string? _type;
+        string? _id;
+        StyleState _state;
+
+        public void Add(char prefix, string value)
+        {
             switch (prefix)
             {
-                case '.': classes.Add(value); break;
+                case '.': _classes.Add(value); break;
                 case '#':
-                    if (id is not null) throw new FormatException($"Multiple ids in selector '{whole}'");
-                    id = value;
+                    _id = _id is null ? value : throw new FormatException($"Multiple ids in selector '{whole}'");
                     break;
-                case ':':
-                    var builtIn = value.ToLowerInvariant() switch
-                    {
-                        "hover" => StyleState.Hover,
-                        "active" or "hold" or "pressed" => StyleState.Active,
-                        "focus" => StyleState.Focus,
-                        "disabled" => StyleState.Disabled,
-                        _ => StyleState.None,
-                    };
-                    if (builtIn == StyleState.None) modifiers.Add(value); else state |= builtIn;
-                    break;
+                case ':': AddState(value); break;
                 default:
-                    if (type is not null) throw new FormatException($"Malformed selector '{whole}'");
-                    type = value;
+                    _type = _type is null ? value : throw new FormatException($"Malformed selector '{whole}'");
                     break;
             }
         }
-        return new Part(type, id, [.. classes], state, [.. modifiers], relation);
+
+        public Part Build(Combinator relation) =>
+            new(_type, _id, [.. _classes], _state, [.. _modifiers], relation);
+
+        void AddState(string value)
+        {
+            var builtIn = BuiltInState(value);
+            if (builtIn == StyleState.None) _modifiers.Add(value);
+            else _state |= builtIn;
+        }
     }
+
+    /// <summary>Reads a name up to the next unescaped <c>.</c>, <c>#</c> or <c>:</c>, resolving its escapes.</summary>
+    static string ReadName(string text, ref int i, string whole)
+    {
+        var start = i;
+        while (i < text.Length && text[i] is not ('.' or '#' or ':')) i += text[i] == '\\' ? 2 : 1;
+        var value = StyleValue.Unescape(text[start..Math.Min(i, text.Length)]);
+        return value.Length > 0 ? value : throw new FormatException($"Malformed selector '{whole}'");
+    }
+
+    static StyleState BuiltInState(string name) => name.ToLowerInvariant() switch
+    {
+        "hover" => StyleState.Hover,
+        "active" or "hold" or "pressed" => StyleState.Active,
+        "focus" => StyleState.Focus,
+        "disabled" => StyleState.Disabled,
+        _ => StyleState.None,
+    };
 
     static bool MatchesPart(Part part, in StyleTarget target)
     {

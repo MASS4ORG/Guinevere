@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Guinevere</RootNamespace>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <!-- NuGet Package Properties -->
+        <Title>Guinevere - SVG</Title>
+        <PackageId>MASS4.Guinevere.Svg</PackageId>
+        <Description>
+            SVG icons for Guinevere through Svg.Skia: decoded once into reusable vector pictures that scale crisply
+            at any size, drawn with gui.Icon and usable as src in .pss icon themes.
+        </Description>
+        <Company>MASS4</Company>
+        <Product>Guinevere</Product>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <Version>5.8.0</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Svg.Skia" Version="5.2.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../Guinevere/Guinevere.csproj" />
+    </ItemGroup>
+
+</Project>

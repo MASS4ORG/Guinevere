@@ -32,7 +32,7 @@ public class StyleExpressionTests
     public void Lists_RewriteOnlyEvaluatedItems()
     {
         var style = Box("""
-            padding = 10px 16px; margin = 10 -4; shadow = 0 2px rgba(0, 0, 0, 0.2);
+            padding = 10px 16px; margin = 10 -4; shadow = 0 2px rgba(0, 0, 0, 51);
             width = ratio(2); src = url("http://example.com/a.png"); height = calc(100% - 10px);
             family = "Inter", sans-serif; columns = 2 * 3 1fr !important; offset = -2px + -1 -$x;
             """);
@@ -53,8 +53,12 @@ public class StyleExpressionTests
     [InlineData("hsl(0, 100%, 50%)", "#ff0000ff")]
     [InlineData("hsla(120, 1, 0.25, 50%)", "#00800080")]
     [InlineData("rgb(255, 0, 0)", "#ff0000ff")]
-    [InlineData("rgba(0, 0, 255, 0.5)", "#0000ff80")]
+    [InlineData("rgba(0, 0, 255, 128)", "#0000ff80")]
     [InlineData("rgb(100%, 0%, 0%, 255)", "#ff0000ff")]
+    [InlineData("rgba(1, 1, 1, 1)", "#01010101")]
+    [InlineData("rgba1(1, 1, 1, 1)", "#ffffffff")]
+    [InlineData("rgb1(0, 0, 1)", "#0000ffff")]
+    [InlineData("rgba1(0.2, 0.2, 0.2, 50%)", "#33333380")]
     [InlineData("mix(#000000, #ffffff, 0.5)", "#808080ff")]
     [InlineData("alpha(red, 50%)", "#ff000080")]
     [InlineData("lighten(#000000, 0.25)", "#404040ff")]

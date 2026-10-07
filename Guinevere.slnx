@@ -47,6 +47,7 @@
     <Project Path="Guinevere.Excalibur/Guinevere.Excalibur.csproj"/>
     <Project Path="Guinevere.Scripting/Guinevere.Scripting.csproj"/>
     <Project Path="Guinevere.Styling/Guinevere.Styling.csproj"/>
+    <Project Path="Guinevere.Svg/Guinevere.Svg.csproj"/>
     <Project Path="Guinevere.Tests/Guinevere.Tests.csproj"/>
     <Project Path="Guinevere/Guinevere.csproj"/>
 </Solution>

@@ -111,8 +111,45 @@ public static class StyleValue
     }
 
     /// <summary>
-    /// Parses a color: <c>#rgb</c>, <c>#rrggbb</c>, <c>#rrggbbaa</c>, <c>rgb(r,g,b)</c>,
-    /// <c>rgba(r,g,b,a)</c> (a in 0..1 or 0..255), or a named color.
+    /// Resolves CSS escapes: <c>\</c> followed by 1–6 hex digits (and one optional space) is that code point, such as
+    /// <c>"\f07b"</c> for an icon glyph; <c>\</c> followed by any other character is that character, such as
+    /// <c>scene\.move</c>.
+    /// </summary>
+    /// <param name="text">The escaped text.</param>
+    public static string Unescape(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (!text.Contains('\\')) return text;
+        var builder = new System.Text.StringBuilder(text.Length);
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '\\' && i + 1 < text.Length) i = AppendEscape(builder, text, i + 1);
+            else builder.Append(text[i]);
+        }
+        return builder.ToString();
+    }
+
+    /// <summary>Appends the escape that starts after a backslash; returns the index of its last character.</summary>
+    static int AppendEscape(System.Text.StringBuilder builder, string text, int start)
+    {
+        var end = start;
+        while (end - start < 6 && end < text.Length && char.IsAsciiHexDigit(text[end])) end++;
+        if (end == start)
+        {
+            builder.Append(text[start]);
+            return start;
+        }
+
+        var codePoint = int.Parse(text.AsSpan(start, end - start), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        builder.Append(IsScalar(codePoint) ? char.ConvertFromUtf32(codePoint) : "�");
+        return end < text.Length && text[end] == ' ' ? end : end - 1;
+    }
+
+    static bool IsScalar(int codePoint) => codePoint is > 0 and <= 0x10FFFF and not (>= 0xD800 and <= 0xDFFF);
+
+    /// <summary>
+    /// Parses a color: <c>#rgb</c>, <c>#rrggbb</c>, <c>#rrggbbaa</c>, <c>rgb(r,g,b)</c>/<c>rgba(r,g,b,a)</c> with
+    /// every channel in 0..255, <c>rgb1()</c>/<c>rgba1()</c> with every channel in 0..1, or a named color.
     /// </summary>
     /// <param name="text">The color text.</param>
     /// <param name="color">The parsed color.</param>
@@ -128,23 +165,7 @@ public static class StyleValue
         }
 
         if (t.StartsWith("rgb", StringComparison.OrdinalIgnoreCase))
-        {
-            var open = t.IndexOf('(');
-            var close = t.IndexOf(')');
-            if (open < 0 || close < open) return false;
-
-            var parts = t[(open + 1)..close].Split(',', StringSplitOptions.TrimEntries);
-            if (parts.Length is < 3 or > 4) return false;
-            if (!TryFloat(parts[0], out var rr) || !TryFloat(parts[1], out var gg) || !TryFloat(parts[2], out var bb))
-                return false;
-
-            var aa = 255f;
-            if (parts.Length == 4 && TryFloat(parts[3], out var av))
-                aa = av <= 1f ? av * 255f : av;
-
-            color = Color.FromArgb((int)aa, (int)rr, (int)gg, (int)bb);
-            return true;
-        }
+            return TryRgb(t, out color);
 
         if (t.Equals("transparent", StringComparison.OrdinalIgnoreCase))
         {
@@ -159,4 +180,40 @@ public static class StyleValue
         color = named;
         return true;
     }
+
+    /// <summary>Literal <c>rgb</c>/<c>rgba</c> (0..255 channels) and <c>rgb1</c>/<c>rgba1</c> (0..1 channels).</summary>
+    static bool TryRgb(string t, out Color color)
+    {
+        color = Color.Black;
+        var open = t.IndexOf('(');
+        var close = t.IndexOf(')');
+        if (open < 0 || close < open) return false;
+
+        var scale = RgbScale(t[..open]);
+        Span<float> channels = [0f, 0f, 0f, 255f / Math.Max(scale, 1f)];
+        if (scale == 0f || !TryChannels(t[(open + 1)..close], channels)) return false;
+
+        color = Color.FromArgb(Byte(channels[3]), Byte(channels[0]), Byte(channels[1]), Byte(channels[2]));
+        return true;
+
+        int Byte(float channel) => (int)Math.Clamp(MathF.Round(channel * scale), 0f, 255f);
+    }
+
+    /// <summary>Parses three or four comma-separated numbers over the given defaults.</summary>
+    static bool TryChannels(string list, Span<float> channels)
+    {
+        var parts = list.Split(',', StringSplitOptions.TrimEntries);
+        if (parts.Length is < 3 or > 4) return false;
+        for (var i = 0; i < parts.Length; i++)
+            if (!TryFloat(parts[i], out channels[i])) return false;
+        return true;
+    }
+
+    /// <summary>The factor from a function's channel range to 0..255, or 0 for an unknown name.</summary>
+    static float RgbScale(string name) => name.Trim().ToLowerInvariant() switch
+    {
+        "rgb" or "rgba" => 1f,
+        "rgb1" or "rgba1" => 255f,
+        _ => 0f,
+    };
 }
