@@ -7,6 +7,28 @@ namespace Guinevere;
 public static class StyleValue
 {
     /// <summary>
+    /// Formats a typed value as <c>.pss</c> text: colors as <c>#rrggbbaa</c>, numbers in invariant culture, booleans
+    /// as <c>true</c>/<c>false</c> and vectors as <c>(x, y)</c> tuples.
+    /// </summary>
+    /// <param name="value">A call-site or host value.</param>
+    public static string Format(object? value) => value switch
+    {
+        null => string.Empty,
+        string text => text,
+        bool flag => flag ? "true" : "false",
+        _ => FormatTyped(value),
+    };
+
+    static string FormatTyped(object value) => value switch
+    {
+        Color color => StyleColor.From(color).ToHex(),
+        System.Drawing.Color color => StyleColor.From(color).ToHex(),
+        System.Numerics.Vector2 vector => string.Create(CultureInfo.InvariantCulture, $"({vector.X}, {vector.Y})"),
+        IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+        _ => value.ToString() ?? string.Empty,
+    };
+
+    /// <summary>
     /// Parses a length: a bare number or <c>Npx</c> → pixels; <c>N%</c> → the 0..1 fraction via
     /// <paramref name="isPercent"/>.
     /// </summary>

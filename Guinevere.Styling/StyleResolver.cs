@@ -133,7 +133,7 @@ public static class StyleResolver
         Func<string, string?> lookup = name => locals?.GetValueOrDefault(name) ?? globals.GetValueOrDefault(name);
         foreach (var (prop, (value, baseUri)) in raw)
         {
-            merged[prop] = StyleSheet.Expand(value, lookup);
+            merged[prop] = StyleSheet.Compute(value, lookup);
             if (baseUri is not null) (bases ??= new(StringComparer.Ordinal))[prop] = baseUri;
             if (StyleSheet.References(value)) (referencing ??= new(StringComparer.Ordinal))[prop] = value;
         }
@@ -158,15 +158,14 @@ public static class StyleResolver
         {
             var variable = scoped[i];
             var name = variable.Name.StartsWith("--", StringComparison.Ordinal) ? variable.Name : $"--{variable.Name}";
-            caller[name] = Convert.ToString(variable.Value, System.Globalization.CultureInfo.InvariantCulture)
-                           ?? string.Empty;
+            caller[name] = StyleValue.Format(variable.Value);
         }
 
         var locals = entry.Locals;
         Func<string, string?> lookup = name =>
             caller.GetValueOrDefault(name) ?? locals?.GetValueOrDefault(name) ?? globals.GetValueOrDefault(name);
         var merged = new Dictionary<string, string>(entry.Style.DeclarationMap, StringComparer.Ordinal);
-        foreach (var (prop, value) in referencing) merged[prop] = StyleSheet.Expand(value, lookup);
+        foreach (var (prop, value) in referencing) merged[prop] = StyleSheet.Compute(value, lookup);
         return new ResolvedStyle(merged, entry.Style.Bases);
     }
 

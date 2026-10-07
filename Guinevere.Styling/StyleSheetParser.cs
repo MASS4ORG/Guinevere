@@ -208,8 +208,8 @@ sealed class StyleSheetParser
 
         var next = _text[end] == ';' ? end + 1 : end;
         if (StartsWithKeyword(head, "shape")) return Defer(StyleDeferredKind.Shape, i);
+        if (IsBackgroundShape(head)) return Defer(StyleDeferredKind.BackgroundShape, i);
         var (property, value) = SplitDeclaration(head, i);
-        if (property == "bg-shape") return Defer(StyleDeferredKind.BackgroundShape, i);
         declarations[property] = value;
         return next;
     }
@@ -220,9 +220,29 @@ sealed class StyleSheetParser
         if (separator <= 0) throw Error(offset, $"Malformed declaration '{declaration}'{CssHint(declaration)}");
         var name = declaration[..separator].Trim();
         var value = SubstituteConstants(declaration[(separator + 1)..].Trim());
+        ValidateValue(declaration, separator, value, offset);
         if (name[0] == '$') return ($"--{name[1..]}", value);
         if (!Css) RejectCssForms(name, value, offset);
         return (name, value);
+    }
+
+    /// <summary>
+    /// Rejects malformed expressions at parse time. The column points into the value when no <c>@const</c> changed
+    /// its text, otherwise at the value's start.
+    /// </summary>
+    void ValidateValue(string declaration, int separator, string value, int offset)
+    {
+        try
+        {
+            StyleExpression.Validate(value);
+        }
+        catch (StyleExpressionException exception)
+        {
+            var raw = declaration[(separator + 1)..];
+            var start = offset + separator + 1 + (raw.Length - raw.TrimStart().Length);
+            var position = raw.Trim() == value ? start + exception.Position : start;
+            throw Error(position, $"Invalid value '{value}': {exception.Message}");
+        }
     }
 
     string CssHint(string declaration) =>
@@ -317,6 +337,13 @@ sealed class StyleSheetParser
             }
         }
         return new StyleRule { Selectors = selectors, Declarations = declarations, Order = order, BaseUri = Options.BaseUri };
+    }
+
+    /// <summary>Whether a declaration assigns <c>bg-shape</c>, whose value is shape algebra rather than a scalar.</summary>
+    bool IsBackgroundShape(string head)
+    {
+        var separator = DeclarationSeparator(head);
+        return separator > 0 && head.AsSpan(0, separator).Trim().SequenceEqual("bg-shape");
     }
 
     static bool StartsWithKeyword(string head, string keyword) =>

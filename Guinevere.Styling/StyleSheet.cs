@@ -120,6 +120,10 @@ public sealed class StyleSheet
     public string ExpandVariables(string value, IReadOnlyDictionary<string, string>? scoped = null) =>
         Expand(value, name => scoped?.GetValueOrDefault(name) ?? Variables.GetValueOrDefault(name));
 
+    /// <summary>Substitutes tokens, then evaluates the expressions in the result.</summary>
+    internal static string Compute(string value, Func<string, string?> lookup) =>
+        StyleExpression.Evaluate(Expand(value, lookup), lookup);
+
     internal static bool References(string value) =>
         value.Contains('$') || value.Contains("var(", StringComparison.Ordinal);
 

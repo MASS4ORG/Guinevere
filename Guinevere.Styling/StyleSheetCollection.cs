@@ -11,6 +11,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     readonly Dictionary<string, string> _tokens = new(StringComparer.Ordinal);
     readonly StyleCache _cache = new();
     Dictionary<string, string>? _globals;
+    Dictionary<string, string?>? _tokenValues;
 
     /// <summary>Incremented whenever a sheet is added, removed or replaced, or a host token changes.</summary>
     public int Version { get; private set; }
@@ -57,6 +58,31 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
         return StyleResolver.ApplyScoped(entry, scopedVariables, globals);
     }
 
+    /// <summary>
+    /// The evaluated value of a token after layering sheets and host overrides, for example <c>#3b4252ff</c> for
+    /// <c>$surface = shade($base, 1.1, 0.9);</c>, or <c>null</c> when no sheet defines it.
+    /// </summary>
+    /// <param name="name">Token name, with or without the <c>$</c> or <c>--</c> prefix.</param>
+    public string? GetToken(string name)
+    {
+        var key = TokenKey(name);
+        var values = _tokenValues ??= new Dictionary<string, string?>(StringComparer.Ordinal);
+        if (values.TryGetValue(key, out var cached)) return cached;
+        var globals = _globals ??= StyleResolver.LayerVariables(this, _tokens);
+        var value = globals.TryGetValue(key, out var raw) ? StyleSheet.Compute(raw, globals.GetValueOrDefault) : null;
+        values[key] = value;
+        return value;
+    }
+
+    /// <summary>The token parsed as a color, or <c>null</c>.</summary>
+    /// <param name="name">Token name, with or without the <c>$</c> or <c>--</c> prefix.</param>
+    public Color? GetTokenColor(string name) => StyleValue.TryColor(GetToken(name), out var color) ? color : null;
+
+    /// <summary>The token parsed as a pixel length, or <c>null</c>.</summary>
+    /// <param name="name">Token name, with or without the <c>$</c> or <c>--</c> prefix.</param>
+    public float? GetTokenLength(string name) =>
+        StyleValue.TryLength(GetToken(name), out var length, out var percent) && !percent ? length : null;
+
     /// <inheritdoc/>
     protected override void InsertItem(int index, StyleSheet item)
     {
@@ -92,6 +118,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
         Version++;
         _cache.Clear();
         _globals = null;
+        _tokenValues = null;
     }
 
     static string TokenKey(string name)

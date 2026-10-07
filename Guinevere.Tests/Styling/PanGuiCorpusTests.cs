@@ -110,7 +110,7 @@ public class PanGuiCorpusTests
         var sheet = Load("const");
         var box = StyleResolver.Resolve([sheet], Target("box"));
 
-        Assert.Equal(("16", "16 * 0.5", "#4a90e2"), (box.Get("padding"), box.Get("border-radius"), box.Get("bg-color")));
+        Assert.Equal(("16", "8", "#4a90e2"), (box.Get("padding"), box.Get("border-radius"), box.Get("bg-color")));
         Assert.Equal("0.3", sheet.Constants["animSpeed"]);
     }
 
