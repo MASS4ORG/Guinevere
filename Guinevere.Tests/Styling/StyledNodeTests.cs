@@ -1,6 +1,6 @@
 namespace Guinevere.Tests.Styling;
 
-/// <summary>Integration tests for <see cref="Gui.StyledNode"/> — a stylesheet drives a real frame.</summary>
+/// <summary>Integration tests for <c>gui.StyledNode</c> — a stylesheet drives a real frame.</summary>
 public class StyledNodeTests
 {
     const int Size = 80;

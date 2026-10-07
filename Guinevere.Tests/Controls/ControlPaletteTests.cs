@@ -59,6 +59,19 @@ public class ControlPaletteTests
         Assert.Equal(Palette.Text, palette.Text);
     }
 
+    /// <summary>A GUI's sheets restyle its palette, keeping the current palette for omitted tokens.</summary>
+    [Fact]
+    public void ApplyControlPalette_UsesGuiSheets()
+    {
+        var gui = new Gui { ControlPalette = ControlPalette.Dark };
+        gui.StyleSheets.Add(StyleSheet.Parse("control-palette { accent = #112233; }"));
+
+        gui.ApplyControlPalette();
+
+        Assert.Equal(Color.FromArgb(255, 17, 34, 51), gui.ControlPalette.Accent);
+        Assert.Equal(ControlPalette.Dark.Text, gui.ControlPalette.Text);
+    }
+
     /// <summary>Palette values are applied independently and may be overridden by a nested scope.</summary>
     [Fact]
     public void ControlStyle_CascadesIndependentOverrides()

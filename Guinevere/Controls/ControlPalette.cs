@@ -55,45 +55,6 @@ public sealed class ControlPalette : IReadOnlyList<ILayoutNodeScopeValue>
         scope.Set((IEnumerable<ILayoutNodeScopeValue>)Values);
     }
 
-    /// <summary>
-    /// Creates a palette by applying semantic color declarations from a resolved style over a fallback.
-    /// Supported names mirror the property names in kebab case, such as <c>surface-hover</c>,
-    /// <c>text-disabled</c>, <c>focus-ring</c>, and <c>text-selection</c>.
-    /// </summary>
-    public static ControlPalette FromStyle(ResolvedStyle style, ControlPalette? fallback = null)
-    {
-        ArgumentNullException.ThrowIfNull(style);
-        var source = fallback ?? Light;
-        Color Get(string name, Color value) => style.GetColor(name) ?? value;
-        return new ControlPalette
-        {
-            BaseBackground = Get("base-background", source.BaseBackground),
-            Surface = Get("surface", source.Surface),
-            SurfaceHover = Get("surface-hover", source.SurfaceHover),
-            SurfaceActive = Get("surface-active", source.SurfaceActive),
-            Popup = Get("popup", source.Popup),
-            Border = Get("border", source.Border),
-            BorderActive = Get("border-active", source.BorderActive),
-            Divider = Get("divider", source.Divider),
-            Accent = Get("accent", source.Accent),
-            AccentHover = Get("accent-hover", source.AccentHover),
-            AccentSubtle = Get("accent-subtle", source.AccentSubtle),
-            Text = Get("text", source.Text),
-            TextDim = Get("text-dim", source.TextDim),
-            TextDisabled = Get("text-disabled", source.TextDisabled),
-            TextOnAccent = Get("text-on-accent", source.TextOnAccent),
-            Selected = Get("selected", source.Selected),
-            Positive = Get("positive", source.Positive),
-            Negative = Get("negative", source.Negative),
-            Warning = Get("warning", source.Warning),
-            Info = Get("info", source.Info),
-            FocusRing = Get("focus-ring", source.FocusRing),
-            Shadow = Get("shadow", source.Shadow),
-            Overlay = Get("overlay", source.Overlay),
-            TextSelection = Get("text-selection", source.TextSelection)
-        };
-    }
-
     /// <summary>The lowest level background (app window, main canvas).</summary>
     public Color BaseBackground { get; init; } = Color.FromArgb(255, 242, 242, 242);
 

@@ -9,6 +9,7 @@
     <Version>5.4.0</Version>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../../Guinevere.Styling/Guinevere.Styling.csproj" />
     <ProjectReference Include="../../Integrations/Guinevere.OpenGL.SilkNET/Guinevere.OpenGL.SilkNET.csproj" />
   </ItemGroup>
 </Project>

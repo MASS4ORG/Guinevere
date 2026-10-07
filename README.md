@@ -189,7 +189,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   gui.SetTextColor(Color.White);
   ```
 
-  Stylesheets use PanGui's `prop = value;` syntax:
+  Stylesheets live in the optional [`MASS4.Guinevere.Styling`](Guinevere.Styling/README.md) package (`dotnet add package MASS4.Guinevere.Styling`) and use PanGui's `prop = value;` syntax:
 
   ```csharp
   var styles = StyleSheetSource.FromFile("theme.pss");

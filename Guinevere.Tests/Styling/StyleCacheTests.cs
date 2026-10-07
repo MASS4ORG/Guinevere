@@ -35,7 +35,7 @@ public class StyleCacheTests
         Assert.Equal(1, sheets.CachedCount);
     }
 
-    /// <summary>Cache hits, including those with ancestors and through <see cref="Gui.ResolveStyle"/>, allocate nothing.</summary>
+    /// <summary>Cache hits, including those with ancestors and through <c>gui.ResolveStyle</c>, allocate nothing.</summary>
     [Fact]
     public void Hit_AllocatesNothing()
     {

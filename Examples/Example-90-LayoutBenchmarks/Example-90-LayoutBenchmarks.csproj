@@ -9,5 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
     <ProjectReference Include="../../Guinevere.Scripting/Guinevere.Scripting.csproj" />
+    <ProjectReference Include="../../Guinevere.Styling/Guinevere.Styling.csproj" />
   </ItemGroup>
 </Project>

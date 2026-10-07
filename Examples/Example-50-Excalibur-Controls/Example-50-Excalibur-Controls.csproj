@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="../../Guinevere.Styling/Guinevere.Styling.csproj" />
         <ProjectReference Include="../../Integrations/Guinevere.OpenGL.Raylib/Guinevere.OpenGL.Raylib.csproj" />
     </ItemGroup>
 
