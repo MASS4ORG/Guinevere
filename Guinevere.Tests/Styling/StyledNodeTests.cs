@@ -1,3 +1,5 @@
+using Guinevere.Tests.Mocks;
+
 namespace Guinevere.Tests.Styling;
 
 /// <summary>Integration tests for <c>gui.StyledNode</c> — a stylesheet drives a real frame.</summary>
@@ -118,6 +120,47 @@ public class StyledNodeTests
             MouseAt(-100, -100), gui => { using (gui.StyledNode("box").Enter()) { } });
 
         Assert.True(At(px, Size / 2, Size / 2).R > 200);
+    }
+
+    /// <summary><c>:disabled</c> drives layout in the build pass and wins over hover in the render pass.</summary>
+    [Fact]
+    public void Disabled_AppliesToLayoutAndSuppressesHover()
+    {
+        const string css = """
+            .btn          { width = 20; height = expand; background-color = #101010; }
+            .btn:hover    { background-color = #0000ff; }
+            .btn:disabled { width = 60; background-color = #ff0000; }
+            """;
+
+        var px = RenderFrame(css, MouseAt(10, Size / 2f),
+            gui => { using (gui.StyledNode("Button", ["btn"], disabled: true).Enter()) { } });
+
+        Assert.True(At(px, 10, Size / 2) is { R: > 200, B: < 60 }, "disabled should not show hover");
+        Assert.True(At(px, 50, Size / 2).R > 200, "disabled width should come from the build pass");
+    }
+
+    /// <summary>A focused styled node is matched by <c>:focus</c>.</summary>
+    [Fact]
+    public void Focus_AppliesFocusRule()
+    {
+        using var harness = new FrameHarness(Size, Size);
+        harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
+            .btn       { width = expand; height = expand; background-color = #101010; }
+            .btn:focus { background-color = #00ff00; }
+            """));
+        void Draw(Gui gui)
+        {
+            using (gui.StyledNode("Button", ["btn"], id: "target").Enter()) gui.RegisterFocusable();
+        }
+
+        harness.Frame(Draw);
+        harness.Gui.RequestFocus("target");
+        for (var i = 0; i < 3 && !harness.Gui.HasFocus("target"); i++) harness.Frame(Draw);
+        harness.Frame(Draw);
+
+        Assert.True(harness.Gui.HasFocus("target"));
+        using var bitmap = SKBitmap.FromImage(harness.Snapshot());
+        Assert.True(bitmap.GetPixel(Size / 2, Size / 2).Green > 200, "focused node should use the :focus rule");
     }
 
     /// <summary>With no stylesheet a styled node behaves like a plain node.</summary>

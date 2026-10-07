@@ -51,13 +51,18 @@ public static class StylingExtensions
         /// Creates a layout node and styles it from the GUI's stylesheets by its type, classes and
         /// id. Layout declarations are applied to the node in the build pass; <c>background-color</c>,
         /// <c>border-radius</c>, <c>border-color</c> and <c>border-width</c> are drawn behind the node's
-        /// children in the render pass, re-resolved for <c>:hover</c> / <c>:active</c> / <c>:focus</c>.
+        /// children in the render pass, re-resolved for <c>:hover</c>, <c>:active</c> and <c>:focus</c>.
+        /// <c>:disabled</c> applies in both passes, so it may change layout, and suppresses hover and press.
         /// </summary>
         /// <param name="type">Element type name matched by a bare-type selector, or <c>null</c>.</param>
         /// <param name="classes">Class names matched by <c>.class</c> selectors.</param>
         /// <param name="id">Element id matched by an <c>#id</c> selector, or <c>null</c>.</param>
-        /// <param name="modifiers">Active semantic modifiers matched by custom pseudo-classes.</param>
+        /// <param name="modifiers">
+        /// Active semantic modifiers matched by custom pseudo-classes; <see cref="StyleModifiers"/> lists the standard
+        /// names. Defaults to <paramref name="classes"/>.
+        /// </param>
         /// <param name="variables">Typed variables exposed to declarations as <c>$name</c>.</param>
+        /// <param name="disabled">Whether the element is disabled, matched by <c>:disabled</c>.</param>
         /// <param name="filePath">Compiler-supplied; do not pass.</param>
         /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
         /// <returns>The layout node, ready to <c>.Enter()</c>.</returns>
@@ -67,6 +72,7 @@ public static class StylingExtensions
             string? id = null,
             IReadOnlyList<string>? modifiers = null,
             IReadOnlyList<StyleVariable>? variables = null,
+            bool disabled = false,
             [CallerFilePath] string filePath = "",
             [CallerLineNumber] int lineNumber = 0)
         {
@@ -75,7 +81,8 @@ public static class StylingExtensions
             var styling = States.GetOrCreateValue(gui);
             if (styling.Sheets.Count == 0) return node;
 
-            var target = CreateStyleTarget(styling.Ancestors, parent, type, classes, id, modifiers ?? classes);
+            var state = disabled ? StyleState.Disabled : StyleState.None;
+            var target = CreateStyleTarget(styling.Ancestors, parent, type, classes, id, modifiers ?? classes, state);
             node.StyleTarget = target with { Ancestors = null };
 
             if (gui.Pass == Pass.Pass1Build)
@@ -84,7 +91,8 @@ public static class StylingExtensions
                 return node;
             }
 
-            DrawStyledBox(node, styling.Sheets.Resolve(target with { State = PointerState(gui, node) }, variables));
+            var live = state | InteractionState(gui, node, disabled);
+            DrawStyledBox(node, styling.Sheets.Resolve(target with { State = live }, variables));
             return node;
         }
 
@@ -158,18 +166,21 @@ public static class StylingExtensions
 
     /// <summary>Builds a target whose ancestors live in a shared buffer that is only valid during this call.</summary>
     static StyleTarget CreateStyleTarget(List<StyleTarget> buffer, LayoutNode? parent, string? type,
-        IReadOnlyList<string>? classes, string? id, IReadOnlyList<string>? modifiers)
+        IReadOnlyList<string>? classes, string? id, IReadOnlyList<string>? modifiers, StyleState state)
     {
         buffer.Clear();
         for (var current = parent; current is not null; current = current.Parent)
             if (current.StyleTarget is { } ancestor) buffer.Add(ancestor);
-        return new StyleTarget(type, id, classes ?? [], Modifiers: modifiers, Ancestors: buffer);
+        return new StyleTarget(type, id, classes ?? [], state, modifiers, buffer);
     }
 
-    static StyleState PointerState(Gui gui, LayoutNode node)
+    /// <summary>Focus, plus hover and press unless disabled; a disabled node never takes the pointer.</summary>
+    static StyleState InteractionState(Gui gui, LayoutNode node, bool disabled)
     {
+        var state = gui.HasFocus(node.Id) ? StyleState.Focus : StyleState.None;
+        if (disabled) return state;
         var interactable = gui.GetInteractable(node);
-        var state = interactable.OnHover() ? StyleState.Hover : StyleState.None;
+        if (interactable.OnHover()) state |= StyleState.Hover;
         return interactable.OnHold() ? state | StyleState.Active : state;
     }
 
