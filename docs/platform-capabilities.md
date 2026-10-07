@@ -15,6 +15,7 @@ Guinevere integrations publish host services through `gui.Platform`. Required ca
 | `ICanvasRenderer` | Canvas and renderer resource lifecycle | Yes for window integrations |
 | `IDisplayCapability` | Logical size, framebuffer size and DPI scale | Desktop integrations |
 | `ICursorCapability` | Native pointer cursor | Optional |
+| `IFileDropCapability` | Queued desktop file drops | Optional |
 | `IPlatformFileDialogCapability` | Native open/save/folder picker | Optional |
 | `ITextureCapability` | Platform-owned textures | Optional |
 | `IGpuEffectsCapability` | Named accelerated effects | Optional |
@@ -47,3 +48,19 @@ The OpenGL Silk.NET, OpenGL OpenTK, OpenGL Raylib and Vulkan Silk.NET integratio
 clipboard, window, time, renderer and display capabilities. Optional cursor, native file-dialog,
 external texture, GPU-effect and accessibility adapters are discoverable contracts with explicit
 fallbacks; integrations do not claim them until they provide native implementations.
+
+
+## Desktop file drops
+
+The four desktop integrations register `IFileDropCapability`. Native callbacks copy file paths and capture the pointer position in a `FileDropQueue`; `Gui.BeginFrame` drains it before building the next frame. Delivery targets the displayed node tree, respects clipping and blocking overlays, and follows the normal capture, target and bubble phases.
+
+```csharp
+using (gui.Node(300, 200, "drop-destination").Enter())
+    gui.On<FileDropEvent>(drop =>
+    {
+        ImportFiles(drop.Paths);
+        drop.StopPropagation();
+    });
+```
+
+`drop.Position` contains the captured GUI pointer coordinates and `drop.Paths` is a read-only snapshot. Register handlers at the same call sites in both passes; they run at the next frame boundary. Hosts without native drop support can omit the capability. Headless hosts can register a `FileDropQueue` and enqueue paths explicitly. File copying, import rules, asset metadata and undo remain application responsibilities.

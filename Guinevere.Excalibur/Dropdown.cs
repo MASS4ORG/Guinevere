@@ -212,7 +212,8 @@ public static partial class ControlsExtensions
         {
             using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
             focusScope.SetActive();
-            gui.SetZIndex(ListZIndex);
+            gui.SetZIndex(Math.Max(ListZIndex,
+                gui.CurrentNode.Parent!.Scope.Get<LayoutNodeScopeZIndex>().Value + 1));
             gui.ScrollY();
 
             for (var i = 0; i < options.Length; i++)

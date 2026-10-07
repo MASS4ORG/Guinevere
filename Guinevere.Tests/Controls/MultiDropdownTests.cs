@@ -82,6 +82,20 @@ public sealed class MultiDropdownTests
 
     internal static IEnumerable<LayoutNode> Nodes(LayoutNode node) => node.Children.SelectMany(Nodes).Prepend(node);
 
+    /// <summary>Unchecked, checked and mixed rows draw selection marks without checkbox font glyphs.</summary>
+    [Fact]
+    public void SelectionIndicatorsUseShapes()
+    {
+        using var f = new Fixture { Mixed = true, Selected = ["Beta"] };
+        f.Open();
+        var marks = Enumerable.Range(0, 3).Select(index => Nodes(f.Find($"/option/{index}")!)
+            .Single(node => node.Rect.W == node.Rect.H && node.Rect.W >= 10 && node.DrawList.Count > 0))
+            .ToArray();
+        Assert.Equal(2, marks[0].DrawList.Count);
+        Assert.Equal(3, marks[1].DrawList.Count);
+        Assert.Equal(1, marks[2].DrawList.Count);
+    }
+
     /// <summary>Toggling keeps the popup open and delivers edits once at the frame boundary.</summary>
     [Fact]
     public void ToggleKeepsPopupOpenAndReturnsOptionOrder()

@@ -104,6 +104,7 @@ public partial class Gui
         UpdateSystemAppearance();
 
         // Events run against the previous frame's tree, before it is cleared, so listeners see what the user saw.
+        DispatchFileDrops();
         DispatchInputEvents();
         _listenerCount = 0;
         _cursorNodeCount = 0;

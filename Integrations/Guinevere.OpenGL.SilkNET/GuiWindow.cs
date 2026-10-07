@@ -17,6 +17,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     IPointerCapability, IWindowResizeCapability, IDisposable
 {
     readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
+    readonly FileDropQueue _fileDrops = new();
     readonly Gui _gui;
     readonly IWindow _window;
     readonly CanvasRenderer _renderer;
@@ -60,6 +61,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
         _gui.Platform.Register<IAppearanceCapability>(_appearance);
+        _gui.Platform.Register<IFileDropCapability>(_fileDrops);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
@@ -85,6 +87,11 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _window = Window.Create(options);
 
         // Hook up all necessary events
+        _window.FileDrop += paths =>
+        {
+            _fileDrops.Enqueue(paths, MousePosition);
+            Pacing.NotifyInput();
+        };
         _window.Load += OnLoad;
         _window.Render += OnRender;
         _window.FramebufferResize += OnResize;

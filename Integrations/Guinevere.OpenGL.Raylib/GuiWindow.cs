@@ -15,6 +15,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
 {
     readonly ICanvasRenderer _canvasRenderer;
     readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
+    readonly FileDropQueue _fileDrops = new();
     readonly Gui _gui;
     int _width;
     int _height;
@@ -48,6 +49,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
         _gui.Platform.Register<IAppearanceCapability>(_appearance);
+        _gui.Platform.Register<IFileDropCapability>(_fileDrops);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
@@ -218,6 +220,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _canvasRenderer.Render(canvas =>
         {
             _gui.SetStage(Pass.Pass1Build);
+            if (Raylib.IsFileDropped()) _fileDrops.Enqueue(Raylib.GetDroppedFiles(), MousePosition);
             _gui.BeginFrame(canvas);
             draw();
 

@@ -20,7 +20,8 @@ public static partial class ControlsExtensions
                    .AbsoluteScreen(x, y).BlockInput().Direction(Axis.Vertical).Enter())
         {
             gui.SetEscapesAncestorClips();
-            gui.SetZIndex(ListZIndex);
+            gui.SetZIndex(Math.Max(ListZIndex,
+                gui.CurrentNode.Parent!.Scope.Get<LayoutNodeScopeZIndex>().Value + 1));
             using var scope = gui.EnterFocusNavigationScope($"{id}/focus", $"{id}/button");
             scope.SetActive($"{id}/button");
             if (gui.Pass == Pass.Pass2Render) state.PopupRect = gui.CurrentNode.Rect;

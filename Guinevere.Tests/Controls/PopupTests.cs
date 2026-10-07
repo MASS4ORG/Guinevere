@@ -91,4 +91,54 @@ public class PopupTests
 
         Assert.True(h.Frame(open: true, new Vector2(50, 50), pressed: true));
     }
+    /// <summary>A closed popup and its title let desktop drops reach the visible node beneath them.</summary>
+    [Fact]
+    public void ClosedPopupDoesNotInterceptDesktopDrops()
+    {
+        using var harness = new FrameHarness();
+        var queue = new FileDropQueue();
+        harness.Gui.Platform.Register<IFileDropCapability>(queue);
+        var deliveries = 0;
+        var open = false;
+        void Draw(Gui gui)
+        {
+            using (gui.Node(300, 200, "destination").Enter())
+                gui.On<FileDropEvent>(_ => deliveries++);
+            gui.Popup(ref open, () => { }, 150, 100, title: "Hidden", position: Vector2.Zero);
+        }
+        harness.Frame(Draw);
+        queue.Enqueue(["/file.png"], new Vector2(50, 15));
+        harness.Frame(Draw);
+        queue.Enqueue(["/file.png"], new Vector2(50, 60));
+        harness.Frame(Draw);
+        Assert.Equal(2, deliveries);
+        open = true;
+        harness.Frame(Draw);
+        queue.Enqueue(["/file.png"], new Vector2(50, 60));
+        harness.Frame(Draw);
+        Assert.Equal(2, deliveries);
+    }
+
+    /// <summary>Visible and hidden tooltips let desktop drops reach the underlying destination.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TooltipsDoNotInterceptDesktopDrops(bool show)
+    {
+        using var harness = new FrameHarness();
+        var queue = new FileDropQueue();
+        harness.Gui.Platform.Register<IFileDropCapability>(queue);
+        var deliveries = 0;
+        void Draw(Gui gui)
+        {
+            using (gui.Node(300, 200, "destination").Enter())
+                gui.On<FileDropEvent>(_ => deliveries++);
+            gui.Tooltip("Tip", show, offset: new Vector2(20, 20));
+        }
+        harness.Frame(Draw);
+        queue.Enqueue(["/file.png"], new Vector2(25, 25));
+        harness.Frame(Draw);
+        Assert.Equal(1, deliveries);
+    }
+
 }

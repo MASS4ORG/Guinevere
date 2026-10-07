@@ -8,6 +8,28 @@ public sealed class EnumDropdownTests
     [Flags]
     enum Flags : ulong { None = 0, A = 1, B = 2, Both = 3, High = 1UL << 63 }
     enum Ordinary { First = 1, Second = 7, Third = 12 }
+    /// <summary>A dropdown inside a settings popup draws above its parent and remains selectable.</summary>
+    [Fact]
+    public void DropdownInsidePopupStaysAboveItsParent()
+    {
+        using var h = new FrameHarness(400, 400);
+        var open = true;
+        var value = Ordinary.First;
+        void Draw(Gui gui) => gui.Popup(ref open, () =>
+            gui.EnumDropdown(ref value, width: 150, height: 24, filePath: "nested", lineNumber: 0),
+            width: 180, height: 100, position: Vector2.Zero);
+        h.Frame(Draw);
+        h.Click(Draw, Find(h, "/button")!.Rect.Center);
+        h.Frame(Draw);
+        var dropdown = Find(h, "/popup")!;
+        Assert.True(dropdown.Scope.Get<LayoutNodeScopeZIndex>().Value >
+            dropdown.Parent!.Scope.Get<LayoutNodeScopeZIndex>().Value);
+        h.Click(Draw, Find(h, "/option/2")!.Rect.Center);
+        h.Frame(Draw);
+        Assert.True(open);
+        Assert.Equal(Ordinary.Third, value);
+    }
+
     [Flags] enum Signed8 : sbyte { High = sbyte.MinValue, All = -1 }
     [Flags] enum Signed16 : short { High = short.MinValue, All = -1 }
     [Flags] enum Signed32 { High = int.MinValue, All = -1 }
