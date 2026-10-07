@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Guinevere;
+using SkiaSharp;
 
 const int warmups = 100;
 var sizes = args.Contains("--quick") ? new[] { 100, 1_000 } : [100, 1_000, 10_000];
@@ -44,6 +45,17 @@ RunFreshStyleApply("style-build-empty", "");
 RunFreshStyleApply("style-build-common", "box { width = 50%; height = 24px; padding = 4px 8px; gap = 3px; }");
 RunFreshStyleApply("style-build-rich", "box { width = ratio(2); height = expand; padding = 2px 4px 6px 8px; "
     + "text-wrap = character; line-height = 1.3; max-lines = 2; }");
+RunStyleResolve("style-resolve-cached-1000", 1_000, miss: false);
+RunStyleResolve("style-resolve-miss-1000", 1_000, miss: true);
+foreach (var raster in new[] { false, true })
+{
+    var prefix = raster ? "frame" : "loop";
+    var hardcoded = RunFrames($"{prefix}-hardcoded-1000", 1_000, StyledFrames.Mode.Hardcoded, raster);
+    var styled = RunFrames($"{prefix}-styled-1000", 1_000, StyledFrames.Mode.Styled, raster);
+    var scoped = RunFrames($"{prefix}-styled-scoped-vars-1000", 1_000, StyledFrames.Mode.ScopedVariables, raster);
+    Console.WriteLine($"Styled/hard-coded {prefix} ratio: {styled / hardcoded:F2}x "
+                      + $"(scoped variables: {scoped / hardcoded:F2}x)");
+}
 RunConstruction(10_000);
 
 static void Run(string name, Fixture fixture)
@@ -146,6 +158,82 @@ static void RunFreshStyleApply(string name, string css)
         var node = new LayoutNode("styled", gui, root);
         StyleLayout.Apply(node, style);
         GC.KeepAlive(node);
+    }
+}
+
+static void RunStyleResolve(string name, int calls, bool miss)
+{
+    var gui = new BenchmarkGui(1_000, 1_000);
+    var sheet = StyleSheet.Parse(StyledFrames.Sheet);
+    gui.StyleSheets.Add(sheet);
+    string[][] classes = [["primary"], ["secondary"], [], ["primary", "wide"]];
+    for (var i = 0; i < warmups; i++) Resolve();
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
+
+    var iterations = 0;
+    var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+    var stopwatch = Stopwatch.StartNew();
+    do
+    {
+        Resolve();
+        iterations++;
+    } while (stopwatch.Elapsed < TimeSpan.FromSeconds(1) || iterations < 100);
+    stopwatch.Stop();
+    var meanMs = stopwatch.Elapsed.TotalMilliseconds / iterations;
+    Console.WriteLine($"| {name} | {calls} | {meanMs:F4} | {meanMs * 1_000_000d / calls:F2} | "
+                      + $"{(GC.GetAllocatedBytesForCurrentThread() - allocatedBefore) / iterations} |");
+
+    void Resolve()
+    {
+        for (var i = 0; i < calls; i++)
+        {
+            if (miss) gui.StyleSheets[0] = sheet;
+            var state = i % 3 == 0 ? StyleState.Hover : StyleState.None;
+            GC.KeepAlive(gui.ResolveStyle("button", classes[i % classes.Length], state: state));
+        }
+    }
+}
+
+// raster: false times the GUI loop (both passes and layout) without Skia rasterization, matching PanGui's figures.
+static double RunFrames(string name, int count, StyledFrames.Mode mode, bool raster)
+{
+    using var surface = SKSurface.Create(new SKImageInfo(1_000, 1_000));
+    var input = new ScriptedInputHandler();
+    var gui = new BenchmarkGui(1_000, 1_000) { Input = input };
+    if (mode != StyledFrames.Mode.Hardcoded) gui.StyleSheets.Add(StyleSheet.Parse(StyledFrames.Sheet));
+    input.MoveTo(new System.Numerics.Vector2(15f, 10f));
+    for (var i = 0; i < warmups; i++) Frame();
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
+
+    var iterations = 0;
+    var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+    var stopwatch = Stopwatch.StartNew();
+    do
+    {
+        Frame();
+        iterations++;
+    } while (stopwatch.Elapsed < TimeSpan.FromSeconds(1) || iterations < 100);
+    stopwatch.Stop();
+    var meanMs = stopwatch.Elapsed.TotalMilliseconds / iterations;
+    Console.WriteLine($"| {name} | {count + 1} | {meanMs:F4} | {meanMs * 1_000_000d / (count + 1):F2} | "
+                      + $"{(GC.GetAllocatedBytesForCurrentThread() - allocatedBefore) / iterations} |");
+    return meanMs;
+
+    void Frame()
+    {
+        gui.SetStage(Pass.Pass1Build);
+        gui.BeginFrame(surface.Canvas);
+        StyledFrames.Draw(gui, count, mode);
+        gui.CalculateLayout();
+        gui.SetStage(Pass.Pass2Render);
+        StyledFrames.Draw(gui, count, mode);
+        if (raster) gui.Render();
+        gui.EndFrame();
+        input.NewFrame();
     }
 }
 
@@ -388,4 +476,58 @@ sealed record Fixture(LayoutNode Root, int NodeCount)
 sealed class BenchmarkGui(float width, float height) : Gui
 {
     public override Rect ScreenRect => new(0f, 0f, width, height);
+}
+
+/// <summary>Button-like boxes (fill, border, radius, padding, hover) drawn by hand or from a stylesheet.</summary>
+static class StyledFrames
+{
+    public enum Mode { Hardcoded, Styled, ScopedVariables }
+
+    public const string Sheet = """
+        $fill = #354158;
+        $fill-hover = #465875;
+        button {
+            width = 30; height = 20; padding = 4;
+            bg-color = $fill; border-color = #53627a; border-width = 1; border-radius = 6;
+            :hover { bg-color = $fill-hover; }
+        }
+        button.primary { bg-color = #3d8bfd; }
+        button.secondary { border-color = #8090a0; }
+        button.wide { width = 60; }
+        scoped { width = 30; height = 20; padding = 4; bg-color = $tint; border-color = #53627a;
+                 border-width = 1; border-radius = 6; }
+        """;
+
+    static readonly Color Fill = Color.FromArgb(255, 0x35, 0x41, 0x58);
+    static readonly Color FillHover = Color.FromArgb(255, 0x46, 0x58, 0x75);
+    static readonly Color Border = Color.FromArgb(255, 0x53, 0x62, 0x7a);
+    static readonly StyleVariable[] Tint = [new("tint", "#3d8bfd")];
+
+    public static void Draw(Gui gui, int count, Mode mode)
+    {
+        using (gui.Node(1_000, 1_000).Direction(Axis.Horizontal).Wrap(1).Enter())
+        {
+            for (var i = 0; i < count; i++)
+            {
+                switch (mode)
+                {
+                    case Mode.Hardcoded: Hardcoded(gui); break;
+                    case Mode.Styled: using (gui.StyledNode("button").Enter()) { } break;
+                    default: using (gui.StyledNode("scoped", variables: Tint).Enter()) { } break;
+                }
+            }
+        }
+    }
+
+    static void Hardcoded(Gui gui)
+    {
+        var node = gui.Node(30, 20).Padding(4);
+        using (node.Enter())
+        {
+            if (gui.Pass != Pass.Pass2Render) return;
+            var hover = gui.GetInteractable(node).OnHover();
+            gui.DrawRectFilled(node.Rect, hover ? FillHover : Fill, 6);
+            gui.DrawRectBorder(node.Rect, Border, 1, 6);
+        }
+    }
 }

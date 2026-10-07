@@ -176,7 +176,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   `SetTextLayout` makes these settings inheritable within a node scope. Styled nodes accept
   `text-wrap`, `line-height`, `max-lines`, and `text-ellipsis` declarations.
 - Theming via transient color changes
-- Runtime `.pss` (PanGui Style Sheet) theme files with nested selectors, `>` child selectors, custom modifiers, `$tokens` layered across sheets and host overrides, host-readable `@const` metadata, `#inherit(...)` variants, `@font-face`/`url()` resolved against the sheet, `@import` through a host resolver, `file:line:col` errors, and non-destructive provider/file reloads
+- Runtime `.pss` (PanGui Style Sheet) theme files with nested selectors, `>` child selectors, custom modifiers, `$tokens` layered across sheets and host overrides, host-readable `@const` metadata, `#inherit(...)` variants, `@font-face`/`url()` resolved against the sheet, `@import` through a host resolver, `file:line:col` errors, cached resolution, and non-destructive provider/file reloads
 
   ```csharp
   gui.DrawText("Title", 24, Color.White);

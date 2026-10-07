@@ -74,8 +74,8 @@ public static class StyleResolver
     /// <summary>
     /// Resolves the effective style for <paramref name="target"/> across <paramref name="sheets"/>
     /// (applied in order). Within and across sheets, higher <see cref="Selector.Specificity"/> wins;
-    /// ties break by sheet order then rule order. A <see cref="StyleSheetCollection"/> also applies
-    /// its host tokens.
+    /// ties break by sheet order then rule order. A <see cref="StyleSheetCollection"/> resolves through its cache
+    /// and host tokens.
     /// </summary>
     /// <param name="sheets">Stylesheets to apply, lowest priority first.</param>
     /// <param name="target">The element being styled.</param>

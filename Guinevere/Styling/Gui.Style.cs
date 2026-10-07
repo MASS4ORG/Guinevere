@@ -4,7 +4,7 @@ public partial class Gui
 {
     /// <summary>
     /// Active <c>.pss</c> stylesheets, lowest priority first, with host token overrides. Add sheets before the
-    /// frame; every <see cref="StyledNode"/> resolves against them.
+    /// frame; every <see cref="StyledNode"/> resolves against them through a cache that any change invalidates.
     /// </summary>
     public StyleSheetCollection StyleSheets { get; } = [];
 
@@ -90,7 +90,8 @@ public partial class Gui
     /// <summary>
     /// Resolves the effective <c>.pss</c> style for an element with the given type, classes and id
     /// against <see cref="StyleSheets"/>, without creating a node. Callers that draw their own
-    /// control (buttons, text) use this to read declarations like <c>width</c> or <c>color</c>.
+    /// control (buttons, text) use this to read declarations like <c>width</c> or <c>color</c>; cached hits
+    /// without variables do not allocate.
     /// </summary>
     /// <param name="type">Element type name, or <c>null</c>.</param>
     /// <param name="classes">Class names.</param>
