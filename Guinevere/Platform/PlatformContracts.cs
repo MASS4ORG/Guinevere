@@ -21,7 +21,10 @@ public enum PointerCursor
     ResizeVertical,
     ResizeDiagonalNorthWestSouthEast,
     ResizeDiagonalNorthEastSouthWest,
-    NotAllowed
+    NotAllowed,
+
+    /// <summary>Four-way arrows for moving or dragging something.</summary>
+    Move
 }
 
 /// <summary>Optional native cursor shape control. <see cref="Gui"/> resolves the shape every frame.</summary>

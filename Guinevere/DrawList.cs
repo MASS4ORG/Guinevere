@@ -65,6 +65,22 @@ public sealed class DrawList
         _entries.Add(DrawCommand.Clip(rect));
     }
 
+    /// <summary>
+    /// The area the queued drawables paint, or <c>null</c> when one of them (a custom entry, or a paint with an image
+    /// filter) cannot be bounded. Clips only shrink the result and are ignored.
+    /// </summary>
+    internal SKRect? InkBounds(LayoutNode node)
+    {
+        var ink = SKRect.Empty;
+        foreach (var entry in _entries)
+        {
+            if (entry.IsClip) continue;
+            if (entry.InkBounds(node) is not { } bounds) return null;
+            ink = Ink.Join(ink, bounds);
+        }
+        return ink;
+    }
+
     /// <summary>Removes queued commands while retaining the allocated command buffer.</summary>
     public void Clear() => _entries.Clear();
 
@@ -101,6 +117,11 @@ public sealed class DrawList
             _rect = rect;
             _position = position;
         }
+
+        public bool IsClip => _kind is DrawCommandKind.ClipRect or DrawCommandKind.ClipShape;
+
+        public SKRect? InkBounds(LayoutNode node) =>
+            _kind == DrawCommandKind.Drawable && _value is IInkBounds bounded ? bounded.InkBounds(node) : null;
 
         public static DrawCommand Drawable(IDrawable drawable) => new(DrawCommandKind.Drawable, drawable);
         public static DrawCommand Custom(IDrawListEntry entry) => new(DrawCommandKind.Custom, entry);

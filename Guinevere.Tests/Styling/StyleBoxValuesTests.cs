@@ -104,6 +104,8 @@ public class StyleBoxValuesTests
     [InlineData("nwse-resize", PointerCursor.ResizeDiagonalNorthWestSouthEast)]
     [InlineData("nesw-resize", PointerCursor.ResizeDiagonalNorthEastSouthWest)]
     [InlineData("not-allowed", PointerCursor.NotAllowed)]
+    [InlineData("move", PointerCursor.Move)]
+    [InlineData("grabbing", PointerCursor.Move)]
     public void Cursor_MapsKeywords(string value, PointerCursor expected) =>
         Assert.Equal(expected, StyleBoxValues.Cursor(value));
 
@@ -111,7 +113,7 @@ public class StyleBoxValuesTests
     [Fact]
     public void CursorAndOpacity_Fallbacks()
     {
-        Assert.Null(StyleBoxValues.Cursor("grab"));
+        Assert.Null(StyleBoxValues.Cursor("zoom-in"));
         Assert.Null(StyleBoxValues.Cursor(null));
         Assert.Equal(0.5f, StyleBoxValues.Opacity("50%"));
         Assert.Equal(1f, StyleBoxValues.Opacity("3"));

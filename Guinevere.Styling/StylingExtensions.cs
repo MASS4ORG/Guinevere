@@ -53,9 +53,9 @@ public static class StylingExtensions
 
         /// <summary>
         /// Creates a layout node and styles it from the GUI's stylesheets by its type, classes and id. Layout
-        /// declarations and <c>cursor</c> apply in the build pass. The box (<c>background</c>, <c>box-shadow</c>,
-        /// <c>border-*</c>, per-corner <c>border-radius</c>, <c>outline</c>) is drawn behind the node's children in
-        /// the render pass, re-resolved for <c>:hover</c>, <c>:active</c> and <c>:focus</c>. Text properties
+        /// declarations apply in the build pass. The box (<c>background</c>, <c>box-shadow</c>, <c>border-*</c>,
+        /// per-corner <c>border-radius</c>, <c>outline</c>) is drawn behind the node's children in the render pass,
+        /// re-resolved for <c>:hover</c>, <c>:active</c> and <c>:focus</c>, as is <c>cursor</c>. Text properties
         /// (<c>color</c>, <c>font-*</c>) and <c>opacity</c> apply to the node's scope, so its children inherit them.
         /// <c>:disabled</c> applies in both passes, so it may change layout, and suppresses hover and press.
         /// </summary>
@@ -95,7 +95,6 @@ public static class StylingExtensions
                 var style = styling.Sheets.Resolve(target, variables);
                 StyleLayout.Apply(node, style);
                 ApplyInherited(gui, node, style, styling);
-                if (StyleBoxValues.Cursor(style.Get("cursor")) is { } cursor) node.Cursor(cursor);
                 return node;
             }
 
@@ -196,15 +195,22 @@ public static class StylingExtensions
 
     /// <summary>
     /// Sets the text <c>color</c>, <c>font-size</c>, <c>font-family</c>/<c>font-weight</c>/<c>font-style</c> and
-    /// <c>opacity</c> on the node's scope. A weight or style without a family restyles the inherited font.
+    /// <c>opacity</c> on the node's scope, and the node's <c>cursor</c>. A weight or style without a family restyles
+    /// the inherited font.
     /// </summary>
     static void ApplyInherited(Gui gui, LayoutNode node, ResolvedStyle style, GuiStyling styling)
     {
+        ApplyCursor(node, style);
         if (style.GetColor("color") is { } color) gui.SetTextColor(color, node.Scope);
         if (style.GetLength("font-size") is > 0f and var size && !style.Get("font-size")!.EndsWith('%'))
             gui.SetTextSize(size, node.Scope);
         if (StyleBoxValues.Opacity(style.Get("opacity")) is { } opacity) gui.SetOpacity(opacity, node.Scope);
         ApplyFont(gui, node, style, styling);
+    }
+
+    static void ApplyCursor(LayoutNode node, ResolvedStyle style)
+    {
+        if (StyleBoxValues.Cursor(style.Get("cursor")) is { } cursor) node.Cursor(cursor);
     }
 
     /// <summary>A weight or style without a family restyles the inherited font; unknown families leave it as is.</summary>

@@ -98,6 +98,26 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     }
 
     /// <summary>
+    /// Re-inherits every value this scope did not set itself from the parent's current values. Called when a node is
+    /// reused in the render pass, so values a parent changes there (a hover color) reach its existing children.
+    /// </summary>
+    internal void Rebase()
+    {
+        if (Node.Parent?.Scope._records is not { } inherited) return;
+        if (!_ownsRecords)
+        {
+            _records = inherited;
+            return;
+        }
+
+        if (_records.Length < inherited.Length) Array.Resize(ref _records, inherited.Length);
+        for (var slot = 0; slot < _records.Length; slot++)
+            if (!IsLocal(slot)) _records[slot] = slot < inherited.Length ? inherited[slot] : null;
+    }
+
+    bool IsLocal(int slot) => _localRecords is not null && slot < _localRecords.Length && _localRecords[slot];
+
+    /// <summary>
     /// Retrieves a value from this scope's flattened inherited values.
     /// </summary>
     /// <typeparam name="TValue">The type of the value to retrieve. Must implement <see cref="ILayoutNodeScopeValue{T}"/>.</typeparam>
@@ -118,9 +138,5 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     /// Returns <c>true</c> when a value of type <typeparamref name="T"/> was set directly on this
     /// scope, as opposed to inherited from a parent scope by <see cref="Get{TValue}"/>.
     /// </summary>
-    public bool HasLocal<T>() where T : class
-    {
-        var slot = LayoutNodeScopeValueSlot<T>.Index;
-        return _localRecords is not null && slot < _localRecords.Length && _localRecords[slot];
-    }
+    public bool HasLocal<T>() where T : class => IsLocal(LayoutNodeScopeValueSlot<T>.Index);
 }

@@ -9,8 +9,12 @@ namespace Guinevere;
 /// <param name="source">Source sub-rectangle in image pixels, or <c>null</c> for the whole image.</param>
 /// <param name="paint">Paint applied to the blit, or <c>null</c> for a plain copy.</param>
 public sealed class ImageDrawable(SKImage image, Rect destination, Rect? source = null, SKPaint? paint = null)
-    : IDrawable
+    : IDrawable, IInkBounds
 {
+    /// <inheritdoc/>
+    SKRect? IInkBounds.InkBounds(LayoutNode node) => Ink.Painted(
+        new SKRect(Destination.X, Destination.Y, Destination.X + Destination.W, Destination.Y + Destination.H), Paint);
+
     static readonly SKSamplingOptions Sampling = new(SKFilterMode.Linear, SKMipmapMode.None);
 
     /// <summary>The source image.</summary>

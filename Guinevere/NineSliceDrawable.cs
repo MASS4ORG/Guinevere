@@ -11,9 +11,13 @@ namespace Guinevere;
 /// <param name="border">Corner sizes, in source pixels.</param>
 /// <param name="paint">Paint applied to every patch, or <c>null</c> for a plain copy.</param>
 public sealed class NineSliceDrawable(SKImage image, Rect destination, Insets border, SKPaint? paint = null)
-    : IDrawable
+    : IDrawable, IInkBounds
 {
     static readonly SKSamplingOptions Sampling = new(SKFilterMode.Linear, SKMipmapMode.None);
+
+    /// <inheritdoc/>
+    SKRect? IInkBounds.InkBounds(LayoutNode node) => Ink.Painted(
+        new SKRect(Destination.X, Destination.Y, Destination.X + Destination.W, Destination.Y + Destination.H), Paint);
 
     /// <summary>The source image.</summary>
     public SKImage Image { get; } = image;

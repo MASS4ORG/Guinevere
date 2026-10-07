@@ -36,13 +36,12 @@ public partial class LayoutNode
 
     /// <summary>
     /// Shows <paramref name="cursor"/> while the pointer is over this node or a descendant that sets none,
-    /// and while this node holds the pointer for a gesture.
+    /// and while this node holds the pointer for a gesture. The cursor is resolved at the end of the frame, so a
+    /// render-pass call may replace the build-pass one with a hover- or press-specific cursor.
     /// </summary>
     /// <returns>The current instance, for chaining.</returns>
     public LayoutNode Cursor(PointerCursor cursor)
     {
-        if (_gui.Pass != Pass.Pass1Build) return this;
-
         CursorShape = cursor;
         _gui.NoteCursorNode();
         return this;

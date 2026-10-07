@@ -47,6 +47,10 @@ static class StyleBoxValues
         ["nwse-resize"] = PointerCursor.ResizeDiagonalNorthWestSouthEast,
         ["nesw-resize"] = PointerCursor.ResizeDiagonalNorthEastSouthWest,
         ["not-allowed"] = PointerCursor.NotAllowed,
+        ["move"] = PointerCursor.Move,
+        ["all-scroll"] = PointerCursor.Move,
+        ["grab"] = PointerCursor.Move,
+        ["grabbing"] = PointerCursor.Move,
     };
 
     /// <summary>Splits on <paramref name="separator"/> (or any whitespace for <c>' '</c>) outside parentheses and quotes.</summary>
@@ -177,24 +181,44 @@ static class StyleBoxValues
     /// A <c>linear-gradient([angle | to side], color [pos%], color [pos%], …)</c> shader over <paramref name="box"/>
     /// with CSS geometry (0deg points up, angles turn clockwise); <c>null</c> for anything else.
     /// </summary>
-    public static SKShader? Gradient(string? value, SKRect box)
-    {
-        const string function = "linear-gradient(";
-        if (value is null || !value.StartsWith(function, StringComparison.OrdinalIgnoreCase) || !value.EndsWith(')'))
-            return null;
+    public static SKShader? Gradient(string? value, SKRect box) => Gradient(value, box, out _);
 
-        var args = Split(value[function.Length..^1], ',');
+    /// <inheritdoc cref="Gradient(string?, SKRect)"/>
+    /// <param name="value">The <c>linear-gradient(...)</c> text.</param>
+    /// <param name="box">The area the gradient spans.</param>
+    /// <param name="opaque">Whether every stop is fully opaque.</param>
+    public static SKShader? Gradient(string? value, SKRect box, out bool opaque)
+    {
+        opaque = false;
+        if (GradientArguments(value) is not { } args) return null;
         var angle = 0f;
         var hasAngle = args.Count > 0 && TryAngle(args[0], out angle);
         var degrees = hasAngle ? angle : 180f;
         if (!TryStops([.. args.Skip(hasAngle ? 1 : 0)], out var colors, out var positions)) return null;
+        opaque = Array.TrueForAll(colors, static c => c.Alpha == 255);
 
+        var (start, end) = GradientLine(box, degrees);
+        return SKShader.CreateLinearGradient(start, end, colors, positions, SKShaderTileMode.Clamp);
+    }
+
+    /// <summary>The comma-separated arguments of a <c>linear-gradient(...)</c> call, or <c>null</c> for anything else.</summary>
+    static List<string>? GradientArguments(string? value)
+    {
+        const string function = "linear-gradient(";
+        return value is not null && value.StartsWith(function, StringComparison.OrdinalIgnoreCase) && value.EndsWith(')')
+            ? Split(value[function.Length..^1], ',')
+            : null;
+    }
+
+    /// <summary>CSS's gradient line: through the center, long enough that the corners get the end colors.</summary>
+    static (SKPoint Start, SKPoint End) GradientLine(SKRect box, float degrees)
+    {
         var radians = degrees * MathF.PI / 180f;
         var direction = new SKPoint(MathF.Sin(radians), -MathF.Cos(radians));
         var half = (MathF.Abs(box.Width * direction.X) + MathF.Abs(box.Height * direction.Y)) * 0.5f;
         var offset = new SKPoint(direction.X * half, direction.Y * half);
         var center = new SKPoint(box.MidX, box.MidY);
-        return SKShader.CreateLinearGradient(center - offset, center + offset, colors, positions, SKShaderTileMode.Clamp);
+        return (center - offset, center + offset);
     }
 
     static bool TryStops(List<string> stops, out SKColor[] colors, out float[] positions)

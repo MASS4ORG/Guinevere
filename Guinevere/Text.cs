@@ -6,8 +6,18 @@ namespace Guinevere;
 /// the text content, position, font, and paint settings.
 /// </summary>
 public class Text(string label, Vector2? position = null, SKFont? font = null, SKPaint? paint = null)
-    : IDrawable
+    : IDrawable, IInkBounds
 {
+    /// <inheritdoc/>
+    SKRect? IInkBounds.InkBounds(LayoutNode node)
+    {
+        if (string.IsNullOrEmpty(Label)) return SKRect.Empty;
+        var measured = Font ?? new SKFont();
+        measured.MeasureText(Label, out var glyphs);
+        glyphs.Offset(Position.X, Position.Y);
+        return Ink.Painted(SKRect.Inflate(glyphs, 1f, 1f), Paint);
+    }
+
     /// <summary>
     /// Gets the label text to be rendered. This property contains the string value
     /// that represents the textual content associated with this drawing instance.

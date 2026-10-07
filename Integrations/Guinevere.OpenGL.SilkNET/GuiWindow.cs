@@ -396,6 +396,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         PointerCursor.ResizeDiagonalNorthWestSouthEast => StandardCursor.NwseResize,
         PointerCursor.ResizeDiagonalNorthEastSouthWest => StandardCursor.NeswResize,
         PointerCursor.NotAllowed => StandardCursor.NotAllowed,
+        PointerCursor.Move => StandardCursor.ResizeAll,
         _ => StandardCursor.Default
     };
 

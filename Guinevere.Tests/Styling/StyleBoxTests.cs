@@ -100,9 +100,12 @@ public class StyleBoxTests
         Assert.Equal((byte)0, At(px, 40, 40).A);
     }
 
-    /// <summary>Opacity fades the node and its descendants, multiplying when nested.</summary>
+    /// <summary>
+    /// Opacity fades the node and its descendants as one group, like CSS: an opaque-composited child does not show
+    /// the parent through itself, and a fully transparent node hides its subtree.
+    /// </summary>
     [Fact]
-    public void Opacity_MultipliesThroughDescendants()
+    public void Opacity_CompositesTheSubtreeAsAGroup()
     {
         var px = Render("""
             box { width = 40; height = 40; padding = 10; background-color = #ff0000; opacity = 50%; }
@@ -117,10 +120,42 @@ public class StyleBoxTests
             }
         });
 
-        // The child is 0.5 × 0.5 = 25% blue over the 50% red parent: alpha 0.25 + 0.5 × 0.75 = 0.625.
+        // Inside the group the child is 50% blue over opaque red; the whole group is then drawn at 50%.
         Assert.InRange(At(px, 22, 22).A, 120, 135);
-        Assert.InRange(At(px, 40, 40).A, 150, 170);
-        Assert.True(At(px, 40, 40).B > 0);
+        Assert.InRange(At(px, 40, 40).A, 120, 135);
+        Assert.InRange(At(px, 40, 40).R, 120, 135);
+        Assert.InRange(At(px, 40, 40).B, 120, 135);
+    }
+
+    /// <summary>The group's offscreen layer covers ink outside the box: blurred shadows and outlines.</summary>
+    [Fact]
+    public void Opacity_LayerKeepsShadowsAndOutlines()
+    {
+        var px = Render(Base + "opacity = 0.5; box-shadow = 8px 8px 6px #000000; outline = 2px #0000ff; outline-offset = 4; }",
+            g => Box(g));
+
+        Assert.InRange(At(px, 64, 64).A, 20, 135);
+        Assert.InRange(At(px, 40, 15).A, 120, 135);
+    }
+
+    /// <summary>Descendants on another z-layer leave the group but still get its opacity multiplied in.</summary>
+    [Fact]
+    public void Opacity_FadesDescendantsOnOtherLayers()
+    {
+        var px = Render("""
+            box { width = 40; height = 40; background-color = #ff0000; opacity = 0.5; }
+            over { width = 10; height = 10; background-color = #0000ff; }
+            """, g =>
+        {
+            using (g.StyledNode("box").Enter())
+            using (g.StyledNode("over").Enter())
+                g.SetZIndex(5);
+        });
+
+        // The layered child is drawn after the group, itself at 50%: 0.5 + 0.5 × 0.5 = 75% coverage, not opaque blue.
+        Assert.InRange(At(px, 25, 25).A, 185, 200);
+        Assert.InRange(At(px, 25, 25).B, 160, 180);
+        Assert.InRange(At(px, 50, 50).A, 120, 135);
     }
 
     /// <summary>Text color, size and font set on a parent are inherited by child text.</summary>
@@ -201,5 +236,42 @@ public class StyleBoxTests
         });
 
         Assert.Equal(PointerCursor.Hand, node!.CursorShape);
+    }
+
+    /// <summary>A parent's <c>:hover</c> text color reaches a styled child that only sets its own font size.</summary>
+    [Fact]
+    public void HoverTextColor_ReachesStyledChildren()
+    {
+        var input = Substitute.For<IInputHandler>();
+        input.MousePosition.Returns(new Vector2(40, 40));
+        input.PrevMousePosition.Returns(new Vector2(40, 40));
+        LayoutNodeScope? scope = null;
+
+        Render(Base + "color = #00ff00; :hover { color = #ff0000; } } inner { font-size = 20; }", g =>
+        {
+            using (g.StyledNode("box").Enter())
+            using (g.StyledNode("inner").Enter())
+                scope = g.CurrentNodeScope;
+        }, new Gui { Input = input });
+
+        Assert.Equal(Color.FromArgb(255, 255, 0, 0), scope!.Get<LayoutNodeScopeTextColor>().Value);
+        Assert.Equal(20f, scope.Get<LayoutNodeScopeTextSize>().Value);
+    }
+
+    /// <summary>A <c>:hover</c> cursor replaces the base one while the pointer is over the node.</summary>
+    [Theory]
+    [InlineData(40f, PointerCursor.Move)]
+    [InlineData(5f, PointerCursor.Hand)]
+    public void Cursor_FollowsHoverState(float pointer, PointerCursor expected)
+    {
+        var input = Substitute.For<IInputHandler>();
+        input.MousePosition.Returns(new Vector2(pointer, pointer));
+        input.PrevMousePosition.Returns(new Vector2(pointer, pointer));
+        LayoutNode? node = null;
+
+        Render(Base + "cursor = pointer; :hover { cursor = grab; } }", g => node = g.StyledNode("box"),
+            new Gui { Input = input });
+
+        Assert.Equal(expected, node!.CursorShape);
     }
 }

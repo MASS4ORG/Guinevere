@@ -241,6 +241,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
                 PointerCursor.ResizeDiagonalNorthWestSouthEast => MouseCursor.ResizeNWSE,
                 PointerCursor.ResizeDiagonalNorthEastSouthWest => MouseCursor.ResizeNESW,
                 PointerCursor.NotAllowed => MouseCursor.NotAllowed,
+                PointerCursor.Move => MouseCursor.ResizeAll,
                 _ => MouseCursor.Default
             };
         }

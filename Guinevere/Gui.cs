@@ -2,9 +2,8 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    readonly List<(int Z, int Sequence, LayoutNode Node)> _renderNodes = [];
+    readonly List<(int Z, int Sequence, int End, LayoutNode Node)> _renderNodes = [];
     readonly List<LayoutNode> _clipAncestors = [];
-    bool _opacityUsed;
     /// <summary>
     /// A property that represents the core rendering surface for graphical operations.
     /// </summary>
@@ -201,27 +200,18 @@ public partial class Gui
             return zOrder != 0 ? zOrder : left.Sequence.CompareTo(right.Sequence);
         });
 
-        foreach (var (_, _, node) in _renderNodes)
+        for (var index = 0; index < _renderNodes.Count; index++)
         {
+            var node = _renderNodes[index].Node;
+            var opacity = _opacityUsed ? EnterOpacityGroups(index) : 1f;
             var restore = Canvas!.Save();
             ApplyAncestorClips(node, Canvas!);
-            var opacity = _opacityUsed ? EffectiveOpacity(node) : 1f;
-            if (opacity < 1f)
-                Canvas!.SaveLayer(new SKPaint { Color = new SKColor(255, 255, 255, (byte)(opacity * 255f + 0.5f)) });
+            if (opacity < 1f) SaveOpacityLayer(node.DrawList.InkBounds(node), opacity);
             if (opacity > 0f) node.DrawList.Render(this, node, Canvas!);
             Canvas!.RestoreToCount(restore);
             node.Pass2NodeCount = 0;
         }
-    }
-
-    /// <summary>The product of the opacities set on the node and its ancestors.</summary>
-    static float EffectiveOpacity(LayoutNode node)
-    {
-        var opacity = 1f;
-        for (var current = node; current is not null; current = current.Parent)
-            if (current.Scope.HasLocal<LayoutNodeScopeOpacity>())
-                opacity *= current.Scope.Get<LayoutNodeScopeOpacity>().Value;
-        return opacity;
+        if (_opacityUsed) CloseOpacityGroups(int.MaxValue, int.MaxValue);
     }
 
     /// <summary>
@@ -267,12 +257,16 @@ public partial class Gui
         }
     }
 
-    void NodeFlatList(LayoutNode node, List<(int Z, int Sequence, LayoutNode Node)> list)
+    /// <summary>Lists the tree in pre-order; <c>End</c> is the sequence of the node's last descendant.</summary>
+    static void NodeFlatList(LayoutNode node, List<(int Z, int Sequence, int End, LayoutNode Node)> list)
     {
-        list.Add((node.Scope.Get<LayoutNodeScopeZIndex>().Value, list.Count, node));
+        var index = list.Count;
+        list.Add((node.Scope.Get<LayoutNodeScopeZIndex>().Value, index, index, node));
 
         foreach (var child in node.Children)
             NodeFlatList(child, list);
+
+        list[index] = list[index] with { End = list.Count - 1 };
     }
 
     /// <summary>

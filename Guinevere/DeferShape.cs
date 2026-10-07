@@ -33,6 +33,11 @@ public class DeferShape : Shape
         canvas.DrawPath(shape.Path, Paint);
     }
 
+    /// <inheritdoc/>
+    internal override SKRect? InkBounds(LayoutNode node) =>
+        Guinevere.Ink.Painted(new SKRect(node.Rect.X, node.Rect.Y, node.Rect.X + node.Rect.W, node.Rect.Y + node.Rect.H),
+            Paint);
+
     DeferShape(SKPath path) : base(path)
     {
     }

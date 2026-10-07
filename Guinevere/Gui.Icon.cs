@@ -101,9 +101,13 @@ public partial class Gui
     }
 
     /// <summary>Draws a recorded picture scaled to fit a rectangle, keeping its aspect ratio.</summary>
-    sealed class PictureDrawable(SKPicture picture, Rect destination, SKPaint? paint) : IDrawable
+    sealed class PictureDrawable(SKPicture picture, Rect destination, SKPaint? paint) : IDrawable, IInkBounds
     {
         public SKPaint? Paint { get; } = paint;
+
+        public SKRect? InkBounds(LayoutNode node) => Ink.Painted(
+            new SKRect(destination.X, destination.Y, destination.X + destination.W, destination.Y + destination.H),
+            Paint);
 
         public void Render(Gui gui, LayoutNode node, SKCanvas canvas)
         {

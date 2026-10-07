@@ -6,7 +6,7 @@ namespace Guinevere;
 /// Represents a base abstract class for creating and manipulating 2D geometric shapes
 /// with customizable rendering behaviors, transformations, and visual effects.
 /// </summary>
-public partial class Shape : IDrawable
+public partial class Shape : IDrawable, IInkBounds
 {
     /// <summary>
     /// Gets the <see cref="SKPath"/> defining the geometric representation of the shape.
@@ -31,21 +31,19 @@ public partial class Shape : IDrawable
     public readonly SortedDictionary<int, List<(SKPath path, SKPaint paint)>> Layers = new();
 
     /// <summary>
-    /// Renders the shape, including its layers and main content, onto the specified canvas.
-    /// This method draws layers in Z-order: negative layers first (outer shadows),
-    /// then the main shape at layer 0, then positive layers (inner shadows).
-    /// Applies cumulative scroll offset from parent scrollable containers.
+    /// Renders the shape onto the canvas: outer shadows, then the layers in Z-order (the main shape is layer 0),
+    /// then inset shadows.
     /// </summary>
     /// <param name="gui">The GUI context that facilitates rendering operations and state management.</param>
     /// <param name="node">The layout node associated with this shape, typically defining position and layout properties.</param>
     /// <param name="canvas">The canvas where the shape is rendered.</param>
     public virtual void Render(Gui gui, LayoutNode node, SKCanvas canvas)
     {
-        // Render all layers in Z-order
-        // Scroll offsets are now handled during layout calculation
+        DrawShadows(canvas, inset: false);
         foreach (var (_, layerList) in Layers)
             foreach (var (path, paint) in layerList)
                 canvas.DrawPath(path, paint);
+        DrawShadows(canvas, inset: true);
     }
 
     /// <summary>

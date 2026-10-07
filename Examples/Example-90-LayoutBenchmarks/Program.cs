@@ -53,8 +53,9 @@ foreach (var raster in new[] { false, true })
     var hardcoded = RunFrames($"{prefix}-hardcoded-1000", 1_000, StyledFrames.Mode.Hardcoded, raster);
     var styled = RunFrames($"{prefix}-styled-1000", 1_000, StyledFrames.Mode.Styled, raster);
     var scoped = RunFrames($"{prefix}-styled-scoped-vars-1000", 1_000, StyledFrames.Mode.ScopedVariables, raster);
+    var visuals = RunFrames($"{prefix}-styled-visuals-1000", 1_000, StyledFrames.Mode.Visuals, raster);
     Console.WriteLine($"Styled/hard-coded {prefix} ratio: {styled / hardcoded:F2}x "
-                      + $"(scoped variables: {scoped / hardcoded:F2}x)");
+                      + $"(scoped variables: {scoped / hardcoded:F2}x, visuals: {visuals / hardcoded:F2}x)");
 }
 RunConstruction(10_000);
 
@@ -481,7 +482,7 @@ sealed class BenchmarkGui(float width, float height) : Gui
 /// <summary>Button-like boxes (fill, border, radius, padding, hover) drawn by hand or from a stylesheet.</summary>
 static class StyledFrames
 {
-    public enum Mode { Hardcoded, Styled, ScopedVariables }
+    public enum Mode { Hardcoded, Styled, ScopedVariables, Visuals }
 
     public const string Sheet = """
         $fill = #354158;
@@ -496,6 +497,10 @@ static class StyledFrames
         button.wide { width = 60; }
         scoped { width = 30; height = 20; padding = 4; bg-color = $tint; border-color = #53627a;
                  border-width = 1; border-radius = 6; }
+        visual { width = 30; height = 20; padding = 4; border-radius = 6 2 6 2; opacity = 0.9;
+                 background = linear-gradient(135deg, #354158, #465875); color = #eceef3; font-size = 12;
+                 box-shadow = 0 2px 4px #00000055, inset 0 1px 0 #ffffff22;
+                 :hover { outline = 2px solid #88c0d0; } }
         """;
 
     static readonly Color Fill = Color.FromArgb(255, 0x35, 0x41, 0x58);
@@ -513,6 +518,7 @@ static class StyledFrames
                 {
                     case Mode.Hardcoded: Hardcoded(gui); break;
                     case Mode.Styled: using (gui.StyledNode("button").Enter()) { } break;
+                    case Mode.Visuals: using (gui.StyledNode("visual").Enter()) { } break;
                     default: using (gui.StyledNode("scoped", variables: Tint).Enter()) { } break;
                 }
             }

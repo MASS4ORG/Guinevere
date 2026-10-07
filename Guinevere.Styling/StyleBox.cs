@@ -1,24 +1,23 @@
+using System.Numerics;
 using SkiaSharp;
 
 namespace Guinevere;
 
 /// <summary>
-/// The visual part of a styled node: outer shadows, the background (color or gradient), inset shadows, the border
-/// and the outline, drawn in that order with per-corner radii.
+/// The visual part of a styled node: a per-corner rounded <see cref="Shape"/> with its background (color or
+/// gradient) and CSS shadows, then the border and the outline.
 /// </summary>
-sealed class StyleBox : IDrawable
+sealed class StyleBox : IDrawable, IInkBounds
 {
+    readonly Shape _shape;
     readonly SKRoundRect _box;
-    readonly SKPaint? _fill;
-    readonly List<BoxShadow> _shadows;
     readonly (Color Color, float Width)? _border;
     readonly BoxOutline? _outline;
 
-    StyleBox(SKRoundRect box, SKPaint? fill, List<BoxShadow> shadows, (Color, float)? border, BoxOutline? outline)
+    StyleBox(Shape shape, SKRoundRect box, (Color, float)? border, BoxOutline? outline)
     {
+        _shape = shape;
         _box = box;
-        _fill = fill;
-        _shadows = shadows;
         _border = border;
         _outline = outline;
     }
@@ -26,102 +25,77 @@ sealed class StyleBox : IDrawable
     /// <inheritdoc/>
     public SKPaint? Paint => null;
 
+    /// <inheritdoc/>
+    public SKRect? InkBounds(LayoutNode node)
+    {
+        var reach = Math.Max(_border?.Width * 0.5f ?? 0f, _outline is { } o ? o.Offset + o.Width : 0f) + 1f;
+        return _shape.InkBounds(node) is { } shape ? Ink.Join(shape, SKRect.Inflate(_box.Rect, reach, reach)) : null;
+    }
+
     /// <summary>
     /// Builds the box for a resolved style over <paramref name="rect"/>, or <c>null</c> when the style draws nothing.
     /// </summary>
     public static StyleBox? From(ResolvedStyle style, Rect rect)
     {
         var bounds = new SKRect(rect.X, rect.Y, rect.X + rect.W, rect.Y + rect.H);
-        var fill = Fill(style, bounds);
+        var (fill, opaqueGradient) = Fill(style, bounds);
         var shadows = StyleBoxValues.Shadows(style.Get("box-shadow"));
-        var borderColor = style.GetColor("border-color");
-        var borderWidth = style.GetLength("border-width") ?? 0f;
-        (Color, float)? border = borderColor is { } bc && borderWidth > 0f ? (bc, borderWidth) : null;
+        var border = Border(style);
         var outline = StyleBoxValues.Outline(style);
         if (fill is null && shadows.Count == 0 && border is null && outline is null) return null;
 
         var box = new SKRoundRect();
         box.SetRectRadii(bounds, StyleBoxValues.Radii(style.Get("border-radius"), rect));
-        return new StyleBox(box, fill, shadows, border, outline);
+        var shape = Shaped(box, fill, shadows);
+        if (opaqueGradient) shape.OpaqueFill = true;
+        return new StyleBox(shape, box, border, outline);
+    }
+
+    static (Color, float)? Border(ResolvedStyle style)
+    {
+        var width = style.GetLength("border-width") ?? 0f;
+        return style.GetColor("border-color") is { } color && width > 0f ? (color, width) : null;
+    }
+
+    /// <summary>The rounded box as a <see cref="Shape"/> with its fill (transparent when none) and CSS shadows.</summary>
+    static Shape Shaped(SKRoundRect box, SKPaint? fill, List<BoxShadow> shadows)
+    {
+        var builder = new SKPathBuilder();
+        builder.AddRoundRect(box);
+        var shape = Shape.FromPath(builder.Detach(), fill ?? new SKPaint { Color = SKColors.Transparent });
+        foreach (var shadow in shadows)
+        {
+            var offset = new Vector2(shadow.X, shadow.Y);
+            if (shadow.Inset) shape.InnerShadow(shadow.Color, offset, shadow.Blur, shadow.Spread);
+            else shape.OuterShadow(shadow.Color, offset, shadow.Blur, shadow.Spread);
+        }
+        return shape;
     }
 
     /// <summary>
     /// A <c>linear-gradient</c> from <c>background</c> or <c>background-image</c> over the solid
-    /// <c>background-color</c>/<c>bg-color</c>/<c>background</c> color.
+    /// <c>background-color</c>/<c>bg-color</c>/<c>background</c> color, and whether the gradient is fully opaque.
     /// </summary>
-    static SKPaint? Fill(ResolvedStyle style, SKRect bounds)
+    static (SKPaint? Fill, bool OpaqueGradient) Fill(ResolvedStyle style, SKRect bounds)
     {
-        var shader = StyleBoxValues.Gradient(style.Get("background-image"), bounds)
-                     ?? StyleBoxValues.Gradient(style.Get("background"), bounds);
-        if (shader is not null) return new SKPaint { IsAntialias = true, Shader = shader };
+        var shader = StyleBoxValues.Gradient(style.Get("background-image"), bounds, out var opaque)
+                     ?? StyleBoxValues.Gradient(style.Get("background"), bounds, out opaque);
+        if (shader is not null) return (new SKPaint { IsAntialias = true, Shader = shader }, opaque);
 
         var color = style.GetColor("background-color") ?? style.GetColor("bg-color") ?? style.GetColor("background");
-        return color is { } c ? new SKPaint { IsAntialias = true, Color = c } : null;
+        return (color is { } c ? new SKPaint { IsAntialias = true, Color = c } : null, false);
     }
 
     /// <inheritdoc/>
     public void Render(Gui gui, LayoutNode node, SKCanvas canvas)
     {
-        DrawShadows(canvas, inset: false);
-        if (_fill is not null) canvas.DrawRoundRect(_box, _fill);
-        DrawShadows(canvas, inset: true);
+        _shape.Render(gui, node, canvas);
         if (_border is { } border) canvas.DrawRoundRect(_box, Stroke(border.Color, border.Width));
-        if (_outline is { } outline) DrawOutline(canvas, outline);
-    }
-
-    /// <summary>Draws the outer or inset layers bottom-up, so the first listed shadow ends on top like CSS.</summary>
-    void DrawShadows(SKCanvas canvas, bool inset)
-    {
-        for (var i = _shadows.Count - 1; i >= 0; i--)
-        {
-            if (_shadows[i].Inset != inset) continue;
-            if (inset) DrawInsetShadow(canvas, _shadows[i]);
-            else DrawOuterShadow(canvas, _shadows[i]);
-        }
-    }
-
-    void DrawOutline(SKCanvas canvas, BoxOutline outline)
-    {
+        if (_outline is not { } outline) return;
         var ring = new SKRoundRect(_box);
         ring.Inflate(outline.Offset + outline.Width * 0.5f, outline.Offset + outline.Width * 0.5f);
         canvas.DrawRoundRect(ring, Stroke(outline.Color, outline.Width));
     }
-
-    /// <summary>The shadow of the offset, spread box, kept outside the box like CSS.</summary>
-    void DrawOuterShadow(SKCanvas canvas, BoxShadow shadow)
-    {
-        var cast = new SKRoundRect(_box);
-        cast.Offset(shadow.X, shadow.Y);
-        cast.Inflate(shadow.Spread, shadow.Spread);
-
-        canvas.Save();
-        canvas.ClipRoundRect(_box, SKClipOperation.Difference, antialias: true);
-        canvas.DrawRoundRect(cast, ShadowPaint(shadow));
-        canvas.Restore();
-    }
-
-    /// <summary>The shadow the box edge casts inward around an offset, shrunk hole, kept inside the box.</summary>
-    void DrawInsetShadow(SKCanvas canvas, BoxShadow shadow)
-    {
-        var hole = new SKRoundRect(_box);
-        hole.Offset(shadow.X, shadow.Y);
-        hole.Inflate(-shadow.Spread, -shadow.Spread);
-        var pad = shadow.Blur + Math.Abs(shadow.X) + Math.Abs(shadow.Y) + Math.Abs(shadow.Spread) + 1f;
-        var outer = new SKRoundRect(SKRect.Inflate(_box.Rect, pad, pad));
-
-        canvas.Save();
-        canvas.ClipRoundRect(_box, SKClipOperation.Intersect, antialias: true);
-        if (hole.Rect.IsEmpty) canvas.DrawRoundRect(outer, ShadowPaint(shadow));
-        else canvas.DrawRoundRectDifference(outer, hole, ShadowPaint(shadow));
-        canvas.Restore();
-    }
-
-    static SKPaint ShadowPaint(BoxShadow shadow) => new()
-    {
-        IsAntialias = true,
-        Color = shadow.Color,
-        MaskFilter = shadow.Blur > 0f ? SKMaskFilter.CreateBlur(SKBlurStyle.Normal, shadow.Blur * 0.5f) : null,
-    };
 
     static SKPaint Stroke(Color color, float width) =>
         new() { IsAntialias = true, Color = color, Style = SKPaintStyle.Stroke, StrokeWidth = width };

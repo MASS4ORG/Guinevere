@@ -66,8 +66,9 @@ public partial class Gui
     }
 
     /// <summary>
-    /// Fades the current node and its descendants; opacities set on nested nodes multiply. Each node is composited on
-    /// its own, so overlapping descendants show through each other.
+    /// Fades the current node and its descendants as one group, like CSS: the subtree is composited first, so
+    /// overlapping descendants do not show through each other. Nested opacities multiply; descendants drawn on another
+    /// z-layer, such as popups, are faded individually.
     /// </summary>
     public void SetOpacity(float opacity, LayoutNodeScope? scope = null)
     {

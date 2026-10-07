@@ -161,6 +161,7 @@ public partial class Shape
                 shape.AddToLayer(zIndex, copiedPath, copiedPaint);
             }
 
+        shape.CopyShadows(this);
         return shape;
     }
 
@@ -399,6 +400,7 @@ public partial class Shape
             }
         }
 
+        result.CopyShadows(this);
         return result;
     }
 
@@ -426,6 +428,7 @@ public partial class Shape
             }
         }
 
+        result.CopyShadows(this);
         return result;
     }
 
@@ -454,6 +457,7 @@ public partial class Shape
             }
         }
 
+        result.CopyShadows(this);
         return result;
     }
 

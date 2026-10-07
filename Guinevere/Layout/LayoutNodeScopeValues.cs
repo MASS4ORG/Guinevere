@@ -101,8 +101,8 @@ public class LayoutNodeScopeZIndex : ILayoutNodeScopeValue<LayoutNodeScopeZIndex
 }
 
 /// <summary>
-/// The opacity a node sets for itself and its descendants. Only values set directly on a node count; nested values
-/// multiply at render time.
+/// The opacity a node sets for itself and its descendants. Only values set directly on a node count; the subtree is
+/// composited as one group at render time.
 /// </summary>
 public class LayoutNodeScopeOpacity : ILayoutNodeScopeValue<LayoutNodeScopeOpacity>
 {

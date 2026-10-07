@@ -131,6 +131,7 @@ public partial class Gui : ILayoutNodeEnterExit
         else
         {
             node = nodeExist;
+            node.Scope.Rebase();
         }
 
         // Reuse the command buffer whenever this immediate-mode node is rebuilt.
@@ -164,6 +165,7 @@ public partial class Gui : ILayoutNodeEnterExit
         else
         {
             node = nodeExist;
+            node.Scope.Rebase();
         }
 
         node.DrawList.Clear();
