@@ -180,18 +180,20 @@ sealed class StyleSheetParser
     {
         var ownOrder = _order++;
         var declarations = new Dictionary<string, string>(StringComparer.Ordinal);
+        var lines = new List<int> { LineOf(selectorOffset) };
         while (true)
         {
             if (!SkipTrivia(ref i)) throw Error(i, "Unterminated rule block: missing '}'");
             if (_text[i] == '}') { i++; break; }
-            i = ParseBlockStatement(i, selectorTexts, declarations);
+            i = ParseBlockStatement(i, selectorTexts, declarations, lines);
         }
 
-        if (declarations.Count > 0) _ownRules.Add(CreateRule(selectorTexts, declarations, ownOrder, selectorOffset));
+        if (declarations.Count > 0)
+            _ownRules.Add(CreateRule(selectorTexts, declarations, ownOrder, selectorOffset, lines));
         return i;
     }
 
-    int ParseBlockStatement(int i, string[] selectorTexts, Dictionary<string, string> declarations)
+    int ParseBlockStatement(int i, string[] selectorTexts, Dictionary<string, string> declarations, List<int> lines)
     {
         if (_text[i] == '@') return ParseAtRule(i, topLevel: false);
         var end = StyleSheetLexer.FindBoundary(_text, i);
@@ -211,7 +213,24 @@ sealed class StyleSheetParser
         if (IsBackgroundShape(head)) return Defer(StyleDeferredKind.BackgroundShape, i);
         var (property, value) = SplitDeclaration(head, i);
         declarations[property] = value;
+        var line = LineOf(i);
+        if (lines[^1] != line) lines.Add(line);
         return next;
+    }
+
+    List<int>? _lineStarts;
+
+    /// <summary>The 1-based line of <paramref name="offset"/>, by binary search over the line starts.</summary>
+    int LineOf(int offset)
+    {
+        if (_lineStarts is null)
+        {
+            _lineStarts = [0];
+            for (var j = 0; j < _text.Length; j++)
+                if (_text[j] == '\n') _lineStarts.Add(j + 1);
+        }
+        var index = _lineStarts.BinarySearch(offset);
+        return index >= 0 ? index + 1 : ~index;
     }
 
     (string Name, string Value) SplitDeclaration(string declaration, int offset)
@@ -322,7 +341,8 @@ sealed class StyleSheetParser
         }
     }
 
-    StyleRule CreateRule(string[] selectorTexts, Dictionary<string, string> declarations, int order, int offset)
+    StyleRule CreateRule(string[] selectorTexts, Dictionary<string, string> declarations, int order, int offset,
+        List<int> lines)
     {
         var selectors = new Selector[selectorTexts.Length];
         for (var s = 0; s < selectors.Length; s++)
@@ -336,7 +356,10 @@ sealed class StyleSheetParser
                 throw Error(offset, exception.Message);
             }
         }
-        return new StyleRule { Selectors = selectors, Declarations = declarations, Order = order, BaseUri = Options.BaseUri };
+        return new StyleRule
+        {
+            Selectors = selectors, Declarations = declarations, Order = order, BaseUri = Options.BaseUri, Lines = lines,
+        };
     }
 
     /// <summary>Whether a declaration assigns <c>bg-shape</c>, whose value is shape algebra rather than a scalar.</summary>
@@ -426,6 +449,7 @@ sealed class StyleSheetParser
         Declarations = rule.Declarations,
         Order = order,
         BaseUri = rule.BaseUri,
+        Lines = rule.Lines,
     };
 
     StyleSheetException Error(int offset, string message)

@@ -54,6 +54,7 @@ foreach (var raster in new[] { false, true })
     var styled = RunFrames($"{prefix}-styled-1000", 1_000, StyledFrames.Mode.Styled, raster);
     var scoped = RunFrames($"{prefix}-styled-scoped-vars-1000", 1_000, StyledFrames.Mode.ScopedVariables, raster);
     var visuals = RunFrames($"{prefix}-styled-visuals-1000", 1_000, StyledFrames.Mode.Visuals, raster);
+    RunFrames($"{prefix}-excalibur-buttons-1000", 1_000, StyledFrames.Mode.Buttons, raster);
     Console.WriteLine($"Styled/hard-coded {prefix} ratio: {styled / hardcoded:F2}x "
                       + $"(scoped variables: {scoped / hardcoded:F2}x, visuals: {visuals / hardcoded:F2}x)");
 }
@@ -482,7 +483,7 @@ sealed class BenchmarkGui(float width, float height) : Gui
 /// <summary>Button-like boxes (fill, border, radius, padding, hover) drawn by hand or from a stylesheet.</summary>
 static class StyledFrames
 {
-    public enum Mode { Hardcoded, Styled, ScopedVariables, Visuals }
+    public enum Mode { Hardcoded, Styled, ScopedVariables, Visuals, Buttons }
 
     public const string Sheet = """
         $fill = #354158;
@@ -519,6 +520,7 @@ static class StyledFrames
                     case Mode.Hardcoded: Hardcoded(gui); break;
                     case Mode.Styled: using (gui.StyledNode("button").Enter()) { } break;
                     case Mode.Visuals: using (gui.StyledNode("visual").Enter()) { } break;
+                    case Mode.Buttons: gui.Button("Save"); break;
                     default: using (gui.StyledNode("scoped", variables: Tint).Enter()) { } break;
                 }
             }

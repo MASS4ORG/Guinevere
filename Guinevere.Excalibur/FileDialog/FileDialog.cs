@@ -118,6 +118,8 @@ public static partial class ControlsExtensions
             gui.DrawText(message, fontSize - 1f, gui.ControlStyle.Negative, centerInRect: false);
     }
 
+    static readonly string[] PrimaryClass = ["primary"];
+
     static void Footer(Gui gui, FileDialogState state, float fontSize)
     {
         if (!state.IsOpen) return;
@@ -126,8 +128,7 @@ public static partial class ControlsExtensions
 
         var choice = state.Choice();
         if (gui.Button(state.ConfirmLabel(), width: 120f, height: 28f, fontSize: fontSize,
-                backgroundColor: choice is null ? null : gui.ControlStyle.Accent,
-                enabled: choice is not null))
+                enabled: choice is not null, classes: PrimaryClass))
             _ = ConfirmAsync(state);
     }
 

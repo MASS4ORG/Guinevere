@@ -46,7 +46,9 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     /// </summary>
     /// <param name="target">The element being styled.</param>
     /// <param name="scopedVariables">Call-site variables, which override sheet and host tokens.</param>
-    public ResolvedStyle Resolve(in StyleTarget target, IReadOnlyList<StyleVariable>? scopedVariables = null)
+    /// <param name="inherited">Tokens passed down by ancestors, between the element's own rules and the sheets.</param>
+    public ResolvedStyle Resolve(in StyleTarget target, IReadOnlyList<StyleVariable>? scopedVariables = null,
+        StyleTokens? inherited = null)
     {
         if (Count == 0) return ResolvedStyle.Empty;
         var globals = _globals ??= StyleResolver.LayerVariables(this, _tokens);
@@ -55,8 +57,13 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
             entry = StyleResolver.ResolveEntry(this, target, globals);
             _cache.Add(target, entry);
         }
-        return StyleResolver.ApplyScoped(entry, scopedVariables, globals);
+        return StyleResolver.ApplyScoped(entry, scopedVariables, globals, inherited);
     }
+
+    /// <summary>The rules that apply to <paramref name="target"/>, with their sheets, in cascade order.</summary>
+    /// <param name="target">The element being styled.</param>
+    public IReadOnlyList<(StyleSheet Sheet, StyleRule Rule)> MatchedRules(in StyleTarget target) =>
+        StyleResolver.MatchedRules(this, target);
 
     /// <summary>
     /// The evaluated value of a token after layering sheets and host overrides, for example <c>#3b4252ff</c> for

@@ -1,0 +1,69 @@
+// Guinevere's default look for the Excalibur controls. It sits under every application sheet, so a theme
+// overrides any token or rule below; `gui.SetStyleToken` and rule tokens re-theme a subtree.
+@const theme-id = "org.mass4.guinevere.default";
+@const theme-name = "Guinevere Light";
+
+// Colors
+$base-background = #f2f2f2;
+$surface = #ffffff;
+$surface-hover = #f2f2f2;
+$surface-active = #f0f0f0;
+$popup = #ffffff;
+$border = #808080;
+$border-active = #a9a9a9;
+$divider = #e0e0e0;
+$accent = #6495ed;
+$accent-hover = #5081d9;
+$accent-subtle = #e7f1ff;
+$text = #000000;
+$text-dim = #808080;
+$text-disabled = #adb5bd;
+$text-on-accent = #ffffff;
+$selected = #6495ed;
+$positive = #3c9e5e;
+$negative = #c85454;
+$warning = #f59e0b;
+$info = #0dcaf0;
+$focus-ring = #6495ed80;
+$shadow = #00000064;
+$overlay = #0000008c;
+$text-selection = #6495ed6e;
+
+// Metrics
+$radius = 4;
+
+// Button family: gui.Button, gui.IconButton (class "icon") and gui.ImageButton (class "image").
+button {
+    padding = 8 16;
+    background-color = $surface;
+    border-radius = $radius;
+    color = $text;
+    cursor = pointer;
+    :hover { border-color = $border; border-width = 1; }
+    :active { border-color = $border-active; border-width = 1; }
+    :focus { border-color = $accent-hover; border-width = 2; outline = 4px $accent-subtle; outline-offset = 1; }
+    :disabled { color = $text-disabled; border-color = $border; border-width = 1; cursor = default; }
+}
+
+button.primary {
+    background-color = $accent;
+    color = $text-on-accent;
+    :hover { background-color = $accent-hover; }
+    :disabled { background-color = $surface; color = $text-disabled; }
+}
+
+button.icon {
+    padding = 0;
+    background-color = transparent;
+    :hover { background-color = $surface; }
+    :active { background-color = $surface; }
+    :disabled { background-color = $surface; }
+    :checked { color = $accent; }
+}
+
+button.image {
+    padding = 0;
+    background-color = transparent;
+    :focus { border-width = 0; outline = 4px $focus-ring; outline-offset = 1; }
+    :disabled { border-width = 0; opacity = 0.6; }
+}

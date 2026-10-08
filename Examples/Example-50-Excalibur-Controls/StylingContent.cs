@@ -62,8 +62,21 @@ public abstract partial class Program
                          #bold         { font-weight = bold; font-style = italic; color = #ebcb8b; font-size = 16; }
                          """;
 
+    /// <summary>The styling page's sheet, parsed once; its rules' source lines drive the highlight below.</summary>
+    static readonly StyleSheet StylingSheet = StyleSheet.Parse(Style);
+
+    // The element hovered in the last render pass, used by both passes of this frame so they agree.
+    static StyleTarget? _hovered;
+    static StyleTarget? _nextHovered;
+
     static void StylingContent(Gui gui)
     {
+        if (gui.Pass == Pass.Pass1Build)
+        {
+            _hovered = _nextHovered;
+            _nextHovered = null;
+        }
+
         using (gui.StyledNode("VisualElement", id: "root").Expand().Enter())
         {
             gui.DrawText("PSS-styled widgets", 24, Color.FromArgb(255, 236, 238, 243));
@@ -94,22 +107,82 @@ public abstract partial class Program
                     }
                 }
 
-                gui.DrawText(Style, color: Color.White, centerInRect: false);
+                SourceView(gui);
             }
         }
     }
 
+    /// <summary>The sheet source, scrollable, with the lines of the rules the hovered element uses highlighted.</summary>
+    static void SourceView(Gui gui)
+    {
+        var used = UsedLines(gui);
+        var caption = _hovered is { } target
+            ? $"Rules used by {target.Type}{(target.Id is null ? "" : "#" + target.Id)}.{string.Join('.', target.Classes)}:hover"
+            : "Hover a .btn or a tile to highlight the rules it uses.";
+        gui.DrawText(caption, 13, Color.FromArgb(255, 154, 160, 166));
+
+        using (gui.Node().ExpandWidth().Height(260).Padding(6).Enter())
+        {
+            gui.DrawBackgroundRect(Color.FromArgb(255, 20, 23, 31), 6);
+            gui.ScrollContainer(scrollY: true);
+            var lines = Style.Split('\n');
+            ScrollToFirst(gui, used, lines.Length);
+            for (var i = 0; i < lines.Length; i++)
+            {
+                using (gui.Node().ExpandWidth().Height(16).Enter())
+                {
+                    var hit = used.Contains(i + 1);
+                    if (hit) gui.DrawBackgroundRect(Color.FromArgb(90, 136, 192, 208), 2);
+                    gui.DrawText($"{i + 1,3}  {lines[i]}", 12,
+                        hit ? Color.White : Color.FromArgb(255, 154, 160, 166), centerInRect: false);
+                }
+            }
+        }
+    }
+
+    static string? _scrolledFor;
+
+    /// <summary>Scrolls the source view to the first highlighted line once per newly hovered element.</summary>
+    static void ScrollToFirst(Gui gui, HashSet<int> used, int lineCount)
+    {
+        var key = _hovered is { } target ? $"{target.Type}#{target.Id}.{string.Join('.', target.Classes)}" : null;
+        if (gui.Pass != Pass.Pass2Render || used.Count == 0 || key == _scrolledFor) return;
+        _scrolledFor = key;
+        gui.SetScrollPercentage(gui.CurrentNode.Id, Axis.Vertical, (used.Min() - 1f) / Math.Max(1, lineCount - 1));
+    }
+
+    /// <summary>The source lines of the page-sheet rules that match the hovered element.</summary>
+    static HashSet<int> UsedLines(Gui gui)
+    {
+        if (_hovered is not { } target) return [];
+        return
+        [
+            .. gui.StyleSheets.MatchedRules(target)
+                .Where(match => ReferenceEquals(match.Sheet, StylingSheet))
+                .SelectMany(match => match.Rule.Lines),
+        ];
+    }
+
     static void StyledTile(Gui gui, string id, string label)
     {
-        using (gui.StyledNode("VisualElement", ["tile"], id).Enter()) gui.DrawText(label);
+        var node = gui.StyledNode("VisualElement", ["tile"], id);
+        using (node.Enter()) gui.DrawText(label);
+        NoteHover(gui, node, new StyleTarget("VisualElement", id, ["tile"], StyleState.Hover));
     }
 
     static void StyledBtn(Gui gui, string label, string? id)
     {
-        using (gui.StyledNode("Button", ["btn"], id).Enter())
+        var node = gui.StyledNode("Button", ["btn"], id);
+        using (node.Enter())
         {
             _ = gui.GetInteractable().OnClick();
             gui.DrawText(label, 15, Color.FromArgb(255, 236, 238, 243));
         }
+        NoteHover(gui, node, new StyleTarget("Button", id, ["btn"], StyleState.Hover));
+    }
+
+    static void NoteHover(Gui gui, LayoutNode node, StyleTarget target)
+    {
+        if (gui.Pass == Pass.Pass2Render && gui.GetInteractable(node).OnHover()) _nextHovered = target;
     }
 }

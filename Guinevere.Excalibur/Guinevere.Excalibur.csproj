@@ -26,6 +26,7 @@
 
     <ItemGroup>
         <None Include="README.md" Pack="true" PackagePath="/" />
+        <EmbeddedResource Include="Styles/guinevere.default.pss" LogicalName="Guinevere.Excalibur.guinevere.default.pss" />
     </ItemGroup>
 
     <ItemGroup>
@@ -35,6 +36,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../Guinevere/Guinevere.csproj" />
+        <ProjectReference Include="../Guinevere.Styling/Guinevere.Styling.csproj" />
     </ItemGroup>
 
     <ItemGroup>

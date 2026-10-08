@@ -21,6 +21,9 @@ public sealed class ResolvedStyle
 
     internal Dictionary<string, Uri>? Bases { get; }
 
+    /// <summary>The rule-scoped tokens of the matched rules, which a styled node passes down to its subtree.</summary>
+    internal Dictionary<string, string>? Locals { get; init; }
+
     /// <summary>Every resolved property → value.</summary>
     public IReadOnlyDictionary<string, string> Declarations => _declarations;
 
@@ -89,6 +92,16 @@ public static class StyleResolver
         return ApplyScoped(ResolveEntry(sheets, target, globals), scopedVariables, globals);
     }
 
+    /// <summary>
+    /// The rules that apply to <paramref name="target"/> with the sheet each came from, in cascade order (the last one
+    /// wins a conflict). For tools such as inspectors; it does not use the resolve cache.
+    /// </summary>
+    /// <param name="sheets">Stylesheets, lowest priority first.</param>
+    /// <param name="target">The element being styled.</param>
+    public static IReadOnlyList<(StyleSheet Sheet, StyleRule Rule)> MatchedRules(IReadOnlyList<StyleSheet> sheets,
+        in StyleTarget target) =>
+        [.. Match(sheets, target).Select(m => (sheets[m.Sheet], m.Rule))];
+
     /// <summary>Top-level tokens of every sheet in order (later sheets win), then host tokens above all sheets.</summary>
     internal static Dictionary<string, string> LayerVariables(IReadOnlyList<StyleSheet> sheets,
         IReadOnlyDictionary<string, string>? hostTokens)
@@ -137,22 +150,39 @@ public static class StyleResolver
             if (baseUri is not null) (bases ??= new(StringComparer.Ordinal))[prop] = baseUri;
             if (StyleSheet.References(value)) (referencing ??= new(StringComparer.Ordinal))[prop] = value;
         }
-        return new StyleCacheEntry(new ResolvedStyle(merged, bases), referencing, locals);
+        return new StyleCacheEntry(new ResolvedStyle(merged, bases) { Locals = locals }, referencing, locals);
     }
 
     /// <summary>
-    /// Returns the cached style when no call-site variable can change it; otherwise re-expands only the
-    /// declarations that reference variables. Precedence: call site, then rule scope, then sheet and host tokens.
+    /// Returns the cached style when no call-site variable or inherited token can change it; otherwise re-expands only
+    /// the declarations that reference variables. Precedence: call site, then rule scope, then tokens inherited from
+    /// ancestors, then sheet and host tokens.
     /// </summary>
     internal static ResolvedStyle ApplyScoped(StyleCacheEntry entry, IReadOnlyList<StyleVariable>? scoped,
-        IReadOnlyDictionary<string, string> globals) =>
-        scoped is null || scoped.Count == 0 || entry.Referencing is null
+        IReadOnlyDictionary<string, string> globals, StyleTokens? inherited = null)
+    {
+        var dynamic = scoped is { Count: > 0 } || inherited is { Values.Count: > 0 };
+        return !dynamic || entry.Referencing is null
             ? entry.Style
-            : Reexpand(entry, entry.Referencing, scoped, globals);
+            : Reexpand(entry, entry.Referencing, scoped, globals, inherited?.Values);
+    }
 
     static ResolvedStyle Reexpand(StyleCacheEntry entry, Dictionary<string, string> referencing,
-        IReadOnlyList<StyleVariable> scoped, IReadOnlyDictionary<string, string> globals)
+        IReadOnlyList<StyleVariable>? scoped, IReadOnlyDictionary<string, string> globals,
+        IReadOnlyDictionary<string, string>? inherited)
     {
+        var caller = CallerTokens(scoped);
+        var locals = entry.Locals;
+        Func<string, string?> lookup = name => caller?.GetValueOrDefault(name) ?? locals?.GetValueOrDefault(name)
+            ?? inherited?.GetValueOrDefault(name) ?? globals.GetValueOrDefault(name);
+        var merged = new Dictionary<string, string>(entry.Style.DeclarationMap, StringComparer.Ordinal);
+        foreach (var (prop, value) in referencing) merged[prop] = StyleSheet.Compute(value, lookup);
+        return new ResolvedStyle(merged, entry.Style.Bases) { Locals = locals };
+    }
+
+    static Dictionary<string, string>? CallerTokens(IReadOnlyList<StyleVariable>? scoped)
+    {
+        if (scoped is not { Count: > 0 }) return null;
         var caller = new Dictionary<string, string>(scoped.Count, StringComparer.Ordinal);
         for (var i = 0; i < scoped.Count; i++)
         {
@@ -160,13 +190,7 @@ public static class StyleResolver
             var name = variable.Name.StartsWith("--", StringComparison.Ordinal) ? variable.Name : $"--{variable.Name}";
             caller[name] = StyleValue.Format(variable.Value);
         }
-
-        var locals = entry.Locals;
-        Func<string, string?> lookup = name =>
-            caller.GetValueOrDefault(name) ?? locals?.GetValueOrDefault(name) ?? globals.GetValueOrDefault(name);
-        var merged = new Dictionary<string, string>(entry.Style.DeclarationMap, StringComparer.Ordinal);
-        foreach (var (prop, value) in referencing) merged[prop] = StyleSheet.Compute(value, lookup);
-        return new ResolvedStyle(merged, entry.Style.Bases);
+        return caller;
     }
 
     static List<(int Specificity, int Sheet, int Order, StyleRule Rule)> Match(IReadOnlyList<StyleSheet> sheets,

@@ -8,8 +8,23 @@ public abstract partial class Program
     static int _iconButtonClickCount;
     static string _lastClickedButton = "None";
 
+    // Buttons take no colors or radii: these classes restyle them from a sheet layered over the default one.
+    static readonly StyleSheet ButtonsSheet = StyleSheet.Parse("""
+        button.success { background-color = #28a745; color = #ffffff; :hover { background-color = #148f31; } }
+        button.warning { background-color = #ffc107; color = #000000; :hover { background-color = #ebad00; } }
+        button.danger  { background-color = #dc3545; color = #ffffff; :hover { background-color = #c82131; } }
+        button.rounded { border-radius = 20; }
+        button.square  { border-radius = 0; }
+        button.custom  { background-color = #6a5acd; color = #ffffff; :hover { background-color = #7b68ee; } }
+        button.muted   { background-color = #80808064; }
+        button.love    { :hover { background-color = #ffb6c1; } }
+        button.ink     { color = #000000; }
+        """);
+
     static void ButtonsContent(Gui gui)
     {
+        if (!gui.StyleSheets.Contains(ButtonsSheet)) gui.StyleSheets.Add(ButtonsSheet);
+
         Section(gui, "Basic Buttons", () =>
         {
             using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
@@ -25,10 +40,10 @@ public abstract partial class Program
         {
             using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
             {
-                ColoredButton(gui, "Primary", 0, 123, 255);
-                ColoredButton(gui, "Success", 40, 167, 69);
-                ColoredButton(gui, "Warning", 255, 193, 7, Color.Black);
-                ColoredButton(gui, "Danger", 220, 53, 69);
+                Button(gui, "Primary", classes: ["primary"]);
+                Button(gui, "Success", classes: ["success"]);
+                Button(gui, "Warning", classes: ["warning"]);
+                Button(gui, "Danger", classes: ["danger"]);
             }
         });
 
@@ -36,15 +51,10 @@ public abstract partial class Program
         {
             using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
             {
-                Button(gui, "Rounded", radius: 20, width: 100);
-                Button(gui, "Square", radius: 0, width: 80);
+                Button(gui, "Rounded", width: 100, classes: ["rounded"]);
+                Button(gui, "Square", width: 80, classes: ["square"]);
                 Button(gui, "Big", fontSize: 20, width: 120, height: 45);
-
-                if (gui.Button("Custom", width: 80,
-                        backgroundColor: Color.FromArgb(255, 106, 90, 205),
-                        color: Color.White,
-                        hoverColor: Color.FromArgb(255, 123, 104, 238)))
-                    Clicked("Custom");
+                Button(gui, "Custom", width: 80, classes: ["custom"]);
             }
         });
 
@@ -58,20 +68,19 @@ public abstract partial class Program
                     Clicked("Search Icon");
                 }
 
-                if (gui.Button("⚙️", 40, backgroundColor: Color.FromArgb(100, 128, 128, 128)))
+                if (gui.Button("⚙️", 40, classes: ["muted"]))
                 {
                     _iconButtonClickCount++;
                     Clicked("Settings Icon");
                 }
 
-                if (gui.Button("❤️", 40, hoverColor: Color.FromArgb(255, 255, 182, 193)))
+                if (gui.Button("❤️", 40, classes: ["love"]))
                 {
                     _iconButtonClickCount++;
                     Clicked("Heart Icon");
                 }
 
-                if (gui.Button("⭐", 40,
-                        color: Color.Black))
+                if (gui.Button("⭐", 40, classes: ["ink"]))
                 {
                     _iconButtonClickCount++;
                     Clicked("Star Icon");
@@ -91,8 +100,8 @@ public abstract partial class Program
             {
                 Button(gui, "Disabled", enabled: false);
                 Button(gui, "Fixed Size", width: 120, enabled: false);
-                ColoredButton(gui, "Disabled Primary", 0, 123, 255, enabled: false);
-                Button(gui, "Rounded", radius: 20, width: 100, enabled: false);
+                Button(gui, "Disabled Primary", enabled: false, classes: ["primary"]);
+                Button(gui, "Rounded", width: 100, enabled: false, classes: ["rounded"]);
 
                 if (gui.Button("⚙️", 40, enabled: false))
                 {
@@ -125,22 +134,11 @@ public abstract partial class Program
     }
 
     static void Button(Gui gui, string text, float width = 0, float height = 0, float? fontSize = null,
-        float radius = 4, string? label = null, bool enabled = true)
+        string? label = null, bool enabled = true, string[]? classes = null)
     {
         var showLabel = label ?? text;
-        if (gui.Button(text, width: width, height: height, fontSize: fontSize, radius: radius, enabled: enabled))
+        if (gui.Button(text, width: width, height: height, fontSize: fontSize, enabled: enabled, classes: classes))
             Clicked(showLabel);
-    }
-
-    static void ColoredButton(Gui gui, string text, int r, int g, int b, Color? textColor = null,
-        bool enabled = true)
-    {
-        if (gui.Button(text,
-                backgroundColor: Color.FromArgb(255, r, g, b),
-                hoverColor: Color.FromArgb(255, Math.Max(0, r - 20), Math.Max(0, g - 20), Math.Max(0, b - 20)),
-                color: textColor ?? Color.White,
-                enabled: enabled))
-            Clicked(text);
     }
 
     static void Clicked(string name)

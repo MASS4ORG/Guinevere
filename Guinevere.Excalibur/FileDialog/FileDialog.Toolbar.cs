@@ -6,6 +6,8 @@ public static partial class ControlsExtensions
     /// The bar above the listing: history and parent navigation, the path itself — as breadcrumbs, or
     /// as an editable box once the user clicks the pencil — a new-folder button and the search box.
     /// </summary>
+    static readonly string[] CheckedClass = [StyleModifiers.Checked];
+
     static void Toolbar(Gui gui, FileDialogState state, float fontSize)
     {
         var browser = state.Browser;
@@ -33,7 +35,7 @@ public static partial class ControlsExtensions
             if (gui.IconButton("➕", size: height, fontSize: fontSize)) _ = NewFolderAsync(state);
 
             if (gui.IconButton("👁", size: height, fontSize: fontSize,
-                    color: browser.ShowHidden ? gui.ControlStyle.Accent : null))
+                    classes: browser.ShowHidden ? CheckedClass : null))
                 browser.ShowHidden = !browser.ShowHidden;
 
             using (gui.Node(190f, height).Enter())

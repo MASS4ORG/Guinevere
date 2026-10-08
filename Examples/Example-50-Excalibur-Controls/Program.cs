@@ -16,7 +16,7 @@ public abstract partial class Program
     public static void Main()
     {
         var gui = new Gui { ControlPalette = ControlPalette.Dark };
-        gui.StyleSheets.Add(StyleSheet.Parse(Style));
+        gui.StyleSheets.Add(StylingSheet);
 
         Environment.SetEnvironmentVariable("OPENTK_4_USE_WAYLAND", "0");
         Environment.SetEnvironmentVariable("SILKNET_USE_WAYLAND", "0");

@@ -89,20 +89,37 @@ public static class StylingExtensions
             var state = disabled ? StyleState.Disabled : StyleState.None;
             var target = CreateStyleTarget(styling.Ancestors, parent, type, classes, id, modifiers ?? classes, state);
             node.StyleTarget = target with { Ancestors = null };
+            var inherited = parent.Scope.Get<StyleTokens>();
 
             if (gui.Pass == Pass.Pass1Build)
             {
-                var style = styling.Sheets.Resolve(target, variables);
+                var style = styling.Sheets.Resolve(target, variables, inherited);
                 StyleLayout.Apply(node, style);
-                ApplyInherited(gui, node, style, styling);
+                ApplyInherited(gui, node, style, styling, inherited);
                 return node;
             }
 
             var live = state | InteractionState(gui, node, disabled);
-            var liveStyle = styling.Sheets.Resolve(target with { State = live }, variables);
-            ApplyInherited(gui, node, liveStyle, styling);
+            var liveStyle = styling.Sheets.Resolve(target with { State = live }, variables, inherited);
+            ApplyInherited(gui, node, liveStyle, styling, inherited);
             if (StyleBox.From(liveStyle, node.Rect) is { } box) node.DrawList.Add(box);
             return node;
+        }
+
+        /// <summary>
+        /// Sets a style token for the current node and its subtree, like an inherited CSS custom property: styled
+        /// descendants read <c>$name</c> as <paramref name="value"/>, above sheet and host tokens.
+        /// </summary>
+        /// <param name="name">Token name, with or without the <c>$</c> or <c>--</c> prefix.</param>
+        /// <param name="value">The value; colors, numbers and vectors are formatted as <c>.pss</c> text.</param>
+        /// <param name="scope">The scope to set it on; defaults to the current node's.</param>
+        public void SetStyleToken(string name, object value, LayoutNodeScope? scope = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+            scope ??= gui.CurrentNodeScope;
+            var key = name.StartsWith("--", StringComparison.Ordinal) ? name
+                : name[0] == '$' ? $"--{name[1..]}" : $"--{name}";
+            scope.Set(scope.Get<StyleTokens>().With(new Dictionary<string, string> { [key] = StyleValue.Format(value) }));
         }
 
         /// <summary>
@@ -118,6 +135,7 @@ public static class StylingExtensions
         /// <param name="modifiers">Active semantic modifiers.</param>
         /// <param name="ancestors">Nearest-first styled ancestors for combinator matching.</param>
         /// <param name="variables">Typed variables exposed to declarations as <c>$name</c>.</param>
+        /// <remarks>Tokens inherited by the current node (<see cref="StyleTokens"/>) apply as well.</remarks>
         public ResolvedStyle ResolveStyle(
             string? type = null,
             IReadOnlyList<string>? classes = null,
@@ -126,7 +144,8 @@ public static class StylingExtensions
             IReadOnlyList<string>? modifiers = null,
             IReadOnlyList<StyleTarget>? ancestors = null,
             IReadOnlyList<StyleVariable>? variables = null) =>
-            gui.StyleSheets.Resolve(new StyleTarget(type, id, classes ?? [], state, modifiers, ancestors), variables);
+            gui.StyleSheets.Resolve(new StyleTarget(type, id, classes ?? [], state, modifiers, ancestors), variables,
+                gui.LayoutNodeScopeStack.Count > 0 ? gui.CurrentNodeScope.Get<StyleTokens>() : null);
     }
 
     extension(ControlPalette)
@@ -198,14 +217,26 @@ public static class StylingExtensions
     /// <c>opacity</c> on the node's scope, and the node's <c>cursor</c>. A weight or style without a family restyles
     /// the inherited font.
     /// </summary>
-    static void ApplyInherited(Gui gui, LayoutNode node, ResolvedStyle style, GuiStyling styling)
+    static void ApplyInherited(Gui gui, LayoutNode node, ResolvedStyle style, GuiStyling styling,
+        StyleTokens inherited)
     {
+        PassTokens(node, style, inherited);
         ApplyCursor(node, style);
         if (style.GetColor("color") is { } color) gui.SetTextColor(color, node.Scope);
         if (style.GetLength("font-size") is > 0f and var size && !style.Get("font-size")!.EndsWith('%'))
             gui.SetTextSize(size, node.Scope);
         if (StyleBoxValues.Opacity(style.Get("opacity")) is { } opacity) gui.SetOpacity(opacity, node.Scope);
         ApplyFont(gui, node, style, styling);
+    }
+
+    /// <summary>
+    /// Passes the matched rules' tokens down to the subtree, re-derived from the parent's tokens in every pass so a
+    /// render-pass state change (a <c>:hover</c> token) replaces the build-pass value.
+    /// </summary>
+    static void PassTokens(LayoutNode node, ResolvedStyle style, StyleTokens inherited)
+    {
+        if (style.Locals is { Count: > 0 } || node.Scope.HasLocal<StyleTokens>())
+            node.Scope.Set(inherited.With(style.Locals));
     }
 
     static void ApplyCursor(LayoutNode node, ResolvedStyle style)
