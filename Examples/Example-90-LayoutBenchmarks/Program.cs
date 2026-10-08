@@ -55,6 +55,9 @@ foreach (var raster in new[] { false, true })
     var scoped = RunFrames($"{prefix}-styled-scoped-vars-1000", 1_000, StyledFrames.Mode.ScopedVariables, raster);
     var visuals = RunFrames($"{prefix}-styled-visuals-1000", 1_000, StyledFrames.Mode.Visuals, raster);
     RunFrames($"{prefix}-excalibur-buttons-1000", 1_000, StyledFrames.Mode.Buttons, raster);
+    RunFrames($"{prefix}-excalibur-sliders-1000", 1_000, StyledFrames.Mode.Sliders, raster);
+    RunFrames($"{prefix}-excalibur-progress-1000", 1_000, StyledFrames.Mode.Progress, raster);
+    RunFrames($"{prefix}-excalibur-splitters-1000", 1_000, StyledFrames.Mode.Splitters, raster);
     Console.WriteLine($"Styled/hard-coded {prefix} ratio: {styled / hardcoded:F2}x "
                       + $"(scoped variables: {scoped / hardcoded:F2}x, visuals: {visuals / hardcoded:F2}x)");
 }
@@ -483,7 +486,8 @@ sealed class BenchmarkGui(float width, float height) : Gui
 /// <summary>Button-like boxes (fill, border, radius, padding, hover) drawn by hand or from a stylesheet.</summary>
 static class StyledFrames
 {
-    public enum Mode { Hardcoded, Styled, ScopedVariables, Visuals, Buttons }
+    /// <summary>The control or styled box drawn in each benchmark iteration.</summary>
+    public enum Mode { Hardcoded, Styled, ScopedVariables, Visuals, Buttons, Sliders, Progress, Splitters }
 
     public const string Sheet = """
         $fill = #354158;
@@ -521,6 +525,18 @@ static class StyledFrames
                     case Mode.Styled: using (gui.StyledNode("button").Enter()) { } break;
                     case Mode.Visuals: using (gui.StyledNode("visual").Enter()) { } break;
                     case Mode.Buttons: gui.Button("Save"); break;
+                    case Mode.Sliders:
+                        var value = 0.3f;
+                        gui.Slider(ref value, 0, 1, width: 30, height: 20);
+                        break;
+                    case Mode.Progress: gui.ProgressBar(0.4f, width: 30); break;
+                    case Mode.Splitters:
+                        using (gui.Node(30, 20).Direction(Axis.Horizontal).Enter())
+                        {
+                            var fraction = 0.5f;
+                            gui.Splitter(ref fraction, Axis.Horizontal);
+                        }
+                        break;
                     default: using (gui.StyledNode("scoped", variables: Tint).Enter()) { } break;
                 }
             }

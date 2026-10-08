@@ -25,7 +25,7 @@ public static class ExcaliburStyles
     /// Puts the default sheet first in the GUI's sheets when it is missing or was moved, and forwards a custom
     /// <see cref="Gui.ControlPalette"/> to the sheet tokens it corresponds to.
     /// </summary>
-    internal static void Ensure(Gui gui)
+    public static void Ensure(Gui gui)
     {
         var sheets = gui.StyleSheets;
         if (sheets.Count == 0 || !ReferenceEquals(sheets[0], DefaultSheet))

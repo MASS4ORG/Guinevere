@@ -25,19 +25,22 @@ public static partial class ControlsExtensions
     /// anyone who would rather position content absolutely.
     /// </param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
+    /// <param name="classes">Stylesheet classes for the dock space.</param>
+    /// <param name="id">Stable stylesheet identity.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void DockSpace(this Gui gui, DockLayout layout,
         Func<string, DockPanelInfo?> panelInfo,
         Action<string, Gui> renderPanel,
         DockTheme? theme = null,
         Action<DockTabStrip, Gui>? renderTabStripActions = null,
+        IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ExcaliburStyles.Ensure(gui);
         var context = new DockContext(gui, layout, panelInfo, renderPanel, theme ?? DockTheme.Default,
             renderTabStripActions);
 
-        using (gui.Node(filePath: filePath, lineNumber: lineNumber).Expand().Enter())
+        using (gui.StyledNode("dockspace", classes, id, filePath: filePath, lineNumber: lineNumber).Expand().Enter())
         {
             // Declared before any zone so that a drop the zones do not claim falls through to here
             // and tears the panel off: overlapping targets resolve last-declared-wins.
@@ -212,8 +215,7 @@ public static partial class ControlsExtensions
 
             var preview = ZoneRect(rect, zone, zone == DockZone.Center ? 1f : 0.5f);
             var style = gui.ResolvePart("drop-preview");
-            gui.DrawRect(preview, style.GetColor("background-color") ?? Color.Transparent, 2);
-            gui.DrawRectBorder(preview, style.GetColor("border-color") ?? Color.Transparent, 2, 2);
+            gui.DrawStyledBox(style, preview);
         }
     }
 

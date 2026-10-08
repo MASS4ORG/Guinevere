@@ -15,20 +15,18 @@ public static partial class ControlsExtensions
     /// <param name="position">Screen position of the menu's top-left corner. Keep it stable across
     /// frames — example the pointer when the menu opens, not while it is open.</param>
     /// <param name="build">Fills the menu.</param>
-    /// <param name="backgroundColor">Menu fill. Defaults to the control palette's popup color.</param>
-    /// <param name="textColor">Item text. Defaults to the palette's text color.</param>
-    /// <param name="hoverColor">Row highlight. Defaults to the palette's hover color.</param>
     /// <param name="fontSize">Item text size.</param>
     /// <param name="padding">Horizontal padding inside a row.</param>
+    /// <param name="classes">Stylesheet classes for this control.</param>
+    /// <param name="id">Stable control and stylesheet identity.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void CascadeMenu(this Gui gui, ref bool isOpen, Vector2 position,
         Action<FlyoutBuilder> build,
-        Color? backgroundColor = null,
-        Color? textColor = null,
-        Color? hoverColor = null,
         float fontSize = ControlMetrics.CompactFontSize,
         float padding = ControlMetrics.ComfortableSpacing,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -38,8 +36,12 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(build);
 
-        var id = gui.NodeId(filePath, lineNumber);
+        id ??= gui.NodeId(filePath, lineNumber);
+        ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new MenuBarState());
+        state.Classes = classes;
+        state.StyleId = id;
+        state.PopupId = id;
 
         state.OpenIndex = isOpen ? 0 : -1;
         PreparePopupMenuFrame(gui, state, isOpen);
@@ -65,7 +67,7 @@ public static partial class ControlsExtensions
         {
             focusScope.SetActive();
             RenderMenuGroup(gui, state, id, builder.Items, position, depth: 0,
-                backgroundColor, textColor, hoverColor, fontSize, padding, CascadeMenuZIndex);
+                fontSize, padding, CascadeMenuZIndex);
         }
 
         if (gui.Pass == Pass.Pass2Render) DismissPopupMenuOutside(gui, state, rightClick: true);

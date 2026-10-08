@@ -14,18 +14,17 @@ public static partial class ControlsExtensions
     /// <summary>Creates a context menu anchored where it opened, with nested menus and keyboard navigation.</summary>
     public static void ContextMenu(this Gui gui, ref bool isOpen, Action<ContextMenuBuilder> buildMenu,
         Vector2? position = null,
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? hoverColor = null,
         float itemHeight = 24,
         float minWidth = 120,
-        float borderRadius = ControlMetrics.CornerRadius,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(buildMenu);
-        var id = gui.NodeId(filePath, lineNumber);
+        id ??= gui.NodeId(filePath, lineNumber);
+        ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id + "/anchor", () => new ContextMenuState());
         if (isOpen && !state.WasOpen) state.Position = position ?? gui.Input.MousePosition;
         state.WasOpen = isOpen;
@@ -35,8 +34,7 @@ public static partial class ControlsExtensions
             var builder = new ContextMenuBuilder();
             buildMenu(builder);
             menu.Items.AddRange(builder.Items);
-        }, minWidth, itemHeight, backgroundColor, borderColor, hoverColor: hoverColor,
-            padding: 8, borderRadius: borderRadius, filePath: filePath, lineNumber: lineNumber);
+        }, minWidth, itemHeight, padding: 8, classes: classes, id: id, filePath: filePath, lineNumber: lineNumber);
         state.WasOpen = isOpen;
     }
 }

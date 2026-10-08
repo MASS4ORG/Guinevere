@@ -2,8 +2,7 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    sealed record MenuAppearance(float ItemHeight = 26, float SeparatorHeight = 9, float MinWidth = 160,
-        float Radius = 4, Color? Border = null, Color? Separator = null, Color? Disabled = null);
+    sealed record MenuAppearance(float ItemHeight = 26, float SeparatorHeight = 9, float MinWidth = 160);
 
     sealed class MenuBranch
     {

@@ -4,6 +4,9 @@ public partial class Gui
 {
     readonly Dictionary<string, ScrollState> _scrollStates = new();
 
+    /// <summary>Optional scrollbar drawing adapter; core supplies geometry and handles input.</summary>
+    public IScrollbarRenderer? ScrollbarRenderer { get; set; }
+
     /// <summary>
     /// Enables horizontal scrolling for the current node.
     /// </summary>
@@ -364,6 +367,12 @@ public partial class Gui
         var isHovered = axis == Axis.Vertical
             ? scrollState.IsVerticalScrollbarHovered
             : scrollState.IsHorizontalScrollbarHovered;
+
+        if (ScrollbarRenderer is { } renderer && foregroundColor is null && backgroundColor is null)
+        {
+            var state = isDragging ? StyleState.Active : isHovered ? StyleState.Hover : StyleState.None;
+            if (renderer.Draw(this, node, axis, track, thumb, state)) return;
+        }
 
         // Use different colors based on interaction state
         var fgColor = foregroundColor ?? (isDragging ? ControlPalette.TextDim :

@@ -13,10 +13,10 @@ public class WrappedLabelTests
     void Draw(Gui gui, bool copyable = true)
     {
         using (gui.Node(240, 200, "pane").Enter())
-            _state = gui.WrappedLabel(Text, 14, _font, Color.White, copyable: copyable);
+            _state = gui.WrappedLabel(Text, 14, _font, copyable: copyable);
     }
 
-    static int LineCount(Gui gui) => gui.RootNode!.Children[0].Children.Count;
+    static int LineCount(Gui gui) => gui.RootNode!.Children[0].Children[0].Children.Count;
 
     [Fact]
     public void WrapsIntoOneNodePerLine()

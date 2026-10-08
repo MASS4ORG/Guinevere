@@ -15,21 +15,24 @@ public static partial class ControlsExtensions
     /// <param name="measureFont">The font measuring glyphs for wrap and hit-testing — Skia's, since the
     /// draw font keeps its own internal to Guinevere. Must be the same typeface and size as
     /// <paramref name="drawFont"/> for the selection to line up with the glyphs.</param>
-    /// <param name="color">The text color.</param>
-    /// <param name="selectionColor">The selection highlight color.</param>
+    /// <param name="classes">Stylesheet classes for the label.</param>
+    /// <param name="id">Stable stylesheet identity.</param>
     /// <param name="drawFont">The font to draw with, or null for the GUI's default.</param>
     /// <param name="copyable">Whether Ctrl+C copies the selection, or the whole text when nothing is selected.</param>
     /// <returns>The message's selection state.</returns>
     public static TextEditState WrappedLabel(this Gui gui, string text, float size, SKFont measureFont,
-        Color color, Color? selectionColor = null, Font? drawFont = null, bool copyable = true)
+        Font? drawFont = null, bool copyable = true, IReadOnlyList<string>? classes = null, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(measureFont);
+        ExcaliburStyles.Ensure(gui);
 
         var nodeId = gui.CurrentNode.Id;
         var inner = gui.CurrentNode.InnerRect;
         var layout = gui.CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
         var lineHeight = size * layout.LineHeight;
+        using var scope = gui.StyledNode("wrapped-label", classes, id).ExpandWidth().Enter();
+        var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
 
         // The width the frame lays out with. Captured during the render pass, when the inner rect is
         // final; the build pass then reuses the last captured value, so both passes wrap to the same
@@ -58,7 +61,7 @@ public static partial class ControlsExtensions
             if (copyable) HandleLabelShortcuts(gui, state, text);
         }
 
-        var highlight = selectionColor ?? gui.ControlStyle.TextSelection;
+        var highlight = gui.ResolvePart("selection");
         for (var index = 0; index < lines.Count; index++)
         {
             var top = inner.Y - offsetY + (index * lineHeight);
@@ -82,11 +85,11 @@ public static partial class ControlsExtensions
 
     /// <summary>Draws one wrapped line into the current node, under its share of the selection highlight.</summary>
     static void DrawWrappedLine(Gui gui, TextEditState state, WrappedLine line, Func<string, float> measure, Rect row,
-        float size, Color color, Color highlight, Font? drawFont)
+        float size, Color color, ResolvedStyle highlight, Font? drawFont)
     {
         if (gui.Pass == Pass.Pass2Render && state.HasSelection &&
             WrappedTextLayout.SelectionOn(measure, line, state.SelectionStart, state.SelectionEnd) is { } run)
-            gui.DrawRectFilled(new Rect(row.X + run.X, row.Y, run.Width, row.H), highlight);
+            gui.DrawStyledBox(highlight, new Rect(row.X + run.X, row.Y, run.Width, row.H));
 
         if (line.Text.Length > 0) gui.DrawText(line.Text, size, color, drawFont, centerInRect: false, clip: true);
     }

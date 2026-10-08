@@ -80,6 +80,21 @@ using (gui.Node().Enter())
 | `Button` | `button` | caller classes; `primary` in the default sheet | `:hover`, `:active`, `:focus`, `:disabled` | `background-color`/`background`, `border-*`, `border-radius`, `padding` (fit size), `color`, `font-*`, `outline`, `box-shadow`, `opacity`, `cursor` |
 | `IconButton` | `button` | `icon` + caller classes | as `Button`, plus `:checked` (pass `checked` as a class) | as `Button` |
 | `ImageButton` | `button` | `image` + caller classes | as `Button`; the images swap by state | as `Button`; the image is drawn under the border and outline |
+| `Slider` | `slider`, drawn children `track`, `fill`, `thumb` | caller classes and `id` on `slider` | `:hover`, `:active`, `:focus`, `:disabled`; `thumb:focus` | root box/text properties, `gap`, `flex-direction`, `align-items`; track `height`; thumb `width`, `height`, `max-width`, `max-height`; each part's background, border, radius, outline, shadow and opacity |
+| `ProgressBar` | `progress`, drawn child `fill` | caller classes and `id` on `progress` | `:indeterminate` when the fraction is null | root `width`, `height`, `padding` and box properties; fill background, border, radius, outline, shadow and opacity |
+| `Splitter` | `splitter` | caller classes and `id` | `:horizontal`, `:vertical`, `:hover`, `:active` while captured | axis size, background, border, radius, outline, shadow, opacity and cursor |
+
+Drawn parts support direct-child selectors such as `slider#volume > thumb` and inherit tokens from their control. Slider track height and thumb dimensions accept pixels or percentages of the track viewport's height. `Slider` value labels use the stylesheet font size unless `fontSize` is supplied. `ProgressBar` defaults to the sheet's height and fills its parent; `Splitter` defaults to the sheet's axis size. Explicit dimensions override sheet dimensions.
+
+```pss
+slider.volume > track { height = 8; border-radius = 4; }
+slider.volume > thumb { width = 18; height = 18; border-radius = 50%; }
+slider.volume:focus > thumb { outline = 2px solid $accent; outline-offset = 3; }
+progress.download > fill { background = linear-gradient(to right, #5081d9, #88c0d0); }
+splitter:horizontal { width = 8; cursor = col-resize; }
+```
+
+When upgrading, move slider/progress colors and splitter colors into the matching rules, and pass `classes` or `id` to select them. `Slider.fontSize`, `ProgressBar.height` and `Splitter.thickness` are nullable so omitted values follow the sheet; recompile callers against the updated API. Applications with positional compiler call-site arguments should use named `filePath` and `lineNumber` arguments.
 
 Default tokens: `$base-background`, `$surface`, `$surface-hover`, `$surface-active`, `$popup`, `$border`, `$border-active`, `$divider`, `$accent`, `$accent-hover`, `$accent-subtle`, `$text`, `$text-dim`, `$text-disabled`, `$text-on-accent`, `$selected`, `$positive`, `$negative`, `$warning`, `$info`, `$focus-ring`, `$shadow`, `$overlay`, `$text-selection`, `$radius`. The remaining controls move to sheets family by family.
 

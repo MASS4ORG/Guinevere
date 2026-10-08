@@ -39,15 +39,10 @@ public static partial class ControlsExtensions
     /// dialog. Each open starts centered again; the dragged position is not remembered afterward.</param>
     /// <param name="closeOnEscape">Whether Escape closes the dialog.</param>
     /// <param name="closeOnClickOutside">Whether a press on the dimmed overlay closes the dialog.</param>
-    /// <param name="backgroundColor">Body fill; defaults to <see cref="Gui.ControlPalette"/>'s popup color.</param>
-    /// <param name="borderColor">Border color; defaults to <see cref="Gui.ControlPalette"/>'s border color.</param>
-    /// <param name="titleBarColor">Title bar fill; defaults to <paramref name="backgroundColor"/>.</param>
-    /// <param name="titleTextColor">Title text color; defaults to <see cref="Gui.ControlPalette"/>'s text color.</param>
-    /// <param name="overlayColor">Dimming color behind the dialog.</param>
     /// <param name="titleBarHeight">Title bar height.</param>
     /// <param name="footerHeight">Footer row height, used only when <paramref name="footer"/> is given.</param>
-    /// <param name="borderRadius">Corner radius of the dialog window.</param>
-    /// <param name="borderWidth">Border thickness of the dialog window.</param>
+    /// <param name="classes">Stylesheet classes for the dialog.</param>
+    /// <param name="id">Stable control and stylesheet identity.</param>
     /// <param name="filePath">Caller-supplied; identifies this call site for its persistent state.</param>
     /// <param name="lineNumber">Caller-supplied; identifies this call site for its persistent state.</param>
     public static void Dialog(this Gui gui, ref bool isOpen, string title, Action content,
@@ -58,21 +53,15 @@ public static partial class ControlsExtensions
         bool draggable = true,
         bool closeOnEscape = true,
         bool closeOnClickOutside = false,
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? titleBarColor = null,
-        Color? titleTextColor = null,
-        Color? overlayColor = null,
         float titleBarHeight = 36,
         float footerHeight = 48,
-        float borderRadius = ControlMetrics.PanelRadius,
-        float borderWidth = 1,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        borderRadius = gui.ControlStyle.PanelRadiusOr(borderRadius);
-
-        var id = gui.NodeId(filePath, lineNumber);
+        ExcaliburStyles.Ensure(gui);
+        id ??= gui.NodeId(filePath, lineNumber);
         var state = gui.ControlState(id, () => new DialogState());
 
         if (gui.Pass == Pass.Pass2Render)
@@ -87,17 +76,7 @@ public static partial class ControlsExtensions
 
         // The overlay: dims the screen and, being a single node the size of it, blocks every click
         // meant for whatever is behind the dialog — not just the box itself.
-        var overlayNode = gui.Node(gui.ScreenRect.W, gui.ScreenRect.H).AbsoluteScreen(0, 0);
-        if (isOpen) overlayNode.BlockInput();
-
-        using (overlayNode.Enter())
-        {
-            gui.SetZIndex(DialogZIndex);
-            gui.SetEscapesAncestorClips();
-
-            if (gui.Pass == Pass.Pass2Render && isOpen)
-                gui.DrawRect(gui.CurrentNode.Rect, overlayColor ?? gui.ControlStyle.Overlay);
-        }
+        RenderOverlay(gui, isOpen, DialogZIndex, id + "/overlay");
 
         var hasFooter = footer is not null;
         var totalHeight = titleBarHeight + height + (hasFooter ? footerHeight : 0);
@@ -109,10 +88,8 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render && isOpen && draggable)
             HandleTitleBarDrag(gui, state, position, width, titleBarHeight, showCloseButton);
 
-        var bodyColor = backgroundColor ?? gui.ControlStyle.Popup;
-        var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
-
-        var dialogNode = gui.Node(width, totalHeight).AbsoluteScreen(position.X, position.Y);
+        var dialogNode = gui.StyledNode("dialog", classes, id, modifiers: isOpen ? [] : ["closed"])
+            .Width(width).Height(totalHeight).AbsoluteScreen(position.X, position.Y).HitTestVisible(isOpen);
         if (isOpen) dialogNode.BlockInput();
 
         using (dialogNode.Enter())
@@ -120,17 +97,11 @@ public static partial class ControlsExtensions
             gui.SetZIndex(DialogZIndex + 1);
             gui.SetEscapesAncestorClips();
 
-            if (gui.Pass == Pass.Pass2Render && isOpen)
-            {
-                gui.DrawBackgroundRect(bodyColor, borderRadius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, borderWidth, borderRadius);
-            }
-
-            if (TitleBar(gui, title, width, titleBarHeight, titleBarColor ?? bodyColor, titleTextColor,
-                    borderRadius, showCloseButton, isOpen))
+            if (TitleBar(gui, title, width, titleBarHeight, showCloseButton, isOpen))
                 isOpen = false;
 
-            using (gui.Node(width, height).Top(titleBarHeight).Padding(16).Enter())
+            using (gui.StyledNode("dialog-content").Width(width).Height(height)
+                       .Top(titleBarHeight).Padding(16).HitTestVisible(isOpen).Enter())
                 if (isOpen)
                 {
                     using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
@@ -139,14 +110,10 @@ public static partial class ControlsExtensions
                 }
 
             if (hasFooter)
-                using (gui.Node(width, footerHeight).Top(titleBarHeight + height)
+                using (gui.StyledNode("dialog-footer").Width(width).Height(footerHeight).Top(titleBarHeight + height)
                            .Direction(Axis.Horizontal).Padding(16, 8).Gap(8).ContentAlignX(1f)
                            .ContentAlignY(0.5f).Enter())
                 {
-                    if (gui.Pass == Pass.Pass2Render && isOpen)
-                        gui.DrawRect(new Rect(gui.CurrentNode.Rect.X, gui.CurrentNode.Rect.Y,
-                            gui.CurrentNode.Rect.W, borderWidth), borderColorFinal);
-
                     if (isOpen)
                     {
                         using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
@@ -203,19 +170,14 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Draws the title bar. Returns true on the frame its close button was clicked.</summary>
-    static bool TitleBar(Gui gui, string title, float width, float height, Color barColor,
-        Color? textColor, float borderRadius, bool showCloseButton, bool isOpen)
+    static bool TitleBar(Gui gui, string title, float width, float height, bool showCloseButton, bool isOpen)
     {
-        using (gui.Node(width, height).Enter())
+        using (gui.StyledNode("dialog-title").Width(width).Height(height).HitTestVisible(isOpen).Enter())
         {
-            if (gui.Pass == Pass.Pass2Render && isOpen)
-                gui.DrawBackgroundRect(barColor, borderRadius, Corner.Top);
-
             using (gui.Node().Expand().Direction(Axis.Horizontal).Padding(16, 0).ContentAlignY(0.5f).Enter())
             {
                 using (gui.Node().Expand().Enter())
-                    gui.DrawText(title, color: isOpen ? textColor ?? gui.ControlStyle.Text : Color.Transparent,
-                        centerInRect: false);
+                    gui.DrawText(title, centerInRect: false);
 
                 return showCloseButton && CloseButton(gui, height * 0.6f, isOpen);
             }
@@ -225,15 +187,14 @@ public static partial class ControlsExtensions
     /// <summary>Draws the × close button. Returns true on the frame it was clicked.</summary>
     static bool CloseButton(Gui gui, float size, bool isOpen)
     {
-        using (gui.Node(size, size).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+        using (gui.StyledNode("dialog-close").Width(size).Height(size)
+                   .ContentAlignX(0.5f).ContentAlignY(0.5f).HitTestVisible(isOpen).Enter())
         {
+            gui.DrawText(WidgetIcons.Xmark);
             if (gui.Pass != Pass.Pass2Render || !isOpen) return false;
 
             var interactable = gui.GetInteractable();
             var hot = interactable.OnHover();
-
-            if (hot) gui.DrawBackgroundRect(gui.ControlStyle.SurfaceHover, size * 0.5f);
-            gui.DrawText(WidgetIcons.Xmark, color: hot ? gui.ControlStyle.Text : gui.ControlStyle.TextDim);
 
             return hot && interactable.OnClick();
         }

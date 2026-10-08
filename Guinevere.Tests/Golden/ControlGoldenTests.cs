@@ -3,8 +3,7 @@ using Guinevere.Tests.Mocks;
 namespace Guinevere.Tests.Golden;
 
 /// <summary>
-/// Golden images of the Excalibur controls in their main states. They pin today's look so the move to stylesheet
-/// contracts (G5) can prove the default sheet reproduces it.
+/// Golden images of the Excalibur controls in their main states, using bundled fonts and a fixed frame interval.
 /// </summary>
 public class ControlGoldenTests
 {
@@ -54,7 +53,18 @@ public class ControlGoldenTests
         ["text-input-disabled"] = (240, 60, Pointer.Away, static g => g.TextInput("Guinevere", enabled: false)),
         ["text-input-focused"] = (240, 60, Pointer.Pressed, static g => g.TextInput("", placeholder: "Name")),
         ["slider"] = (240, 50, Pointer.Away, static g => Slide(g)),
+        ["slider-hover"] = (240, 50, Pointer.Over, static g => Slide(g)),
+        ["slider-pressed"] = (240, 50, Pointer.Pressed, static g => Slide(g)),
+        ["slider-disabled"] = (240, 50, Pointer.Away, static g => Slide(g, enabled: false)),
+        ["slider-sized"] = (240, 50, Pointer.Away, static g => Slide(g, width: 160, height: 12)),
         ["progress"] = (240, 40, Pointer.Away, static g => g.ProgressBar(0.4f, 200)),
+        ["progress-empty"] = (240, 40, Pointer.Away, static g => g.ProgressBar(0, 200)),
+        ["progress-full"] = (240, 40, Pointer.Away, static g => g.ProgressBar(1, 200)),
+        ["progress-indeterminate"] = (240, 40, Pointer.Away, static g => g.ProgressBar(null, 200)),
+        ["splitter-horizontal"] = (240, 50, Pointer.Away, static g => Split(g, Axis.Horizontal)),
+        ["splitter-vertical"] = (240, 50, Pointer.Away, static g => Split(g, Axis.Vertical)),
+        ["splitter-hover"] = (240, 50, Pointer.Over, static g => Split(g, Axis.Vertical)),
+        ["splitter-pressed"] = (240, 50, Pointer.Pressed, static g => Split(g, Axis.Vertical)),
         ["number-field"] = (240, 60, Pointer.Away, static g => Number(g)),
         ["dropdown-closed"] = (240, 60, Pointer.Away, static g => g.Dropdown(["One", "Two"], 0)),
         ["dropdown-placeholder"] = (240, 60, Pointer.Away, static g => g.Dropdown(["One", "Two"], enabled: false)),
@@ -62,10 +72,17 @@ public class ControlGoldenTests
         ["label"] = (200, 40, Pointer.Away, static g => g.Label("Label text")),
     };
 
-    static void Slide(Gui gui)
+    static void Slide(Gui gui, bool enabled = true, float width = ControlMetrics.FieldWidth,
+        float height = ControlMetrics.CompactHeight)
     {
         var value = 0.3f;
-        gui.Slider(ref value, 0f, 1f);
+        gui.Slider(ref value, 0f, 1f, width: width, height: height, enabled: enabled);
+    }
+
+    static void Split(Gui gui, Axis axis)
+    {
+        var fraction = 0.5f;
+        using (gui.Node(200, 30).Direction(axis).Enter()) gui.Splitter(ref fraction, axis);
     }
 
     static void Number(Gui gui)
@@ -92,7 +109,8 @@ public class ControlGoldenTests
             using (gui.Node(width, height).Padding(10).Enter()) draw(gui);
         }
 
-        harness.Input.MoveTo(pointer == Pointer.Away ? new Vector2(-50, -50) : new Vector2(18, 18));
+        var inside = name.StartsWith("splitter", StringComparison.Ordinal) ? new Vector2(13, 13) : new Vector2(18, 18);
+        harness.Input.MoveTo(pointer == Pointer.Away ? new Vector2(-50, -50) : inside);
         if (pointer == Pointer.Pressed) harness.Input.PressButton(MouseButton.Left);
         for (var i = 0; i < 3; i++) harness.Frame(Frame);
 

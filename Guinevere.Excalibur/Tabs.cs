@@ -22,6 +22,7 @@ public static partial class ControlsExtensions
     /// <param name="showBorder">Whether the bar and panel draw their box; false adds the <c>plain</c> class.</param>
     /// <param name="id">Stable state id; defaults to the call site.</param>
     /// <param name="onTabClosed">Called with the index and title of a tab the user closed.</param>
+    /// <param name="classes">Stylesheet classes for the tab container.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void Tabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
@@ -30,6 +31,7 @@ public static partial class ControlsExtensions
         bool showBorder = true,
         string id = "",
         Action<int, string>? onTabClosed = null,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -48,16 +50,16 @@ public static partial class ControlsExtensions
         if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
 
         var totalHeight = CalculateTabsHeight(state, tabBarHeight);
-        var classes = showBorder ? null : PlainClass;
+        var variantClasses = showBorder ? null : PlainClass;
 
-        using (gui.Node().Expand().Height(totalHeight).Direction(Axis.Vertical).Enter())
+        using (gui.StyledNode("tabs", classes, stateId).Expand().Height(totalHeight).Direction(Axis.Vertical).Enter())
         {
-            using (gui.StyledNode("tabbar", classes).Height(state.TabBarHeight).Direction(Axis.Horizontal).Enter())
+            using (gui.StyledNode("tabbar", variantClasses).Height(state.TabBarHeight).Direction(Axis.Horizontal).Enter())
             {
                 for (var i = 0; i < state.Tabs.Count; i++) RenderTabButton(gui, state, i, fontSize);
             }
 
-            RenderActiveTabContent(gui, state, classes);
+            RenderActiveTabContent(gui, state, variantClasses);
         }
 
         ApplyTabClose(state, onTabClosed);
@@ -73,6 +75,7 @@ public static partial class ControlsExtensions
     /// <param name="showBorder">Whether the bar and panel draw their box; false adds the <c>plain</c> class.</param>
     /// <param name="id">Stable state id; defaults to the call site.</param>
     /// <param name="onTabClosed">Called with the index and title of a tab the user closed.</param>
+    /// <param name="classes">Stylesheet classes for the tab container.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     /// <returns>The active tab after this frame.</returns>
@@ -82,11 +85,12 @@ public static partial class ControlsExtensions
         bool showBorder = true,
         string id = "",
         Action<int, string>? onTabClosed = null,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         var temp = activeTabIndex;
-        gui.Tabs(ref temp, buildTabs, tabBarHeight, fontSize, showBorder, id, onTabClosed, filePath, lineNumber);
+        gui.Tabs(ref temp, buildTabs, tabBarHeight, fontSize, showBorder, id, onTabClosed, classes, filePath, lineNumber);
         return temp;
     }
 
@@ -97,12 +101,14 @@ public static partial class ControlsExtensions
     /// <param name="height">Height of the bar.</param>
     /// <param name="fontSize">Label size.</param>
     /// <param name="showBorder">Whether the bar draws its box; false adds the <c>plain</c> class.</param>
+    /// <param name="classes">Stylesheet classes for the tab container.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void TabBar(this Gui gui, string[] tabTitles, ref int activeTabIndex,
         float height = ControlMetrics.FieldHeight,
         float fontSize = ControlMetrics.FontSize,
         bool showBorder = true,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -112,7 +118,7 @@ public static partial class ControlsExtensions
             {
                 foreach (var title in tabTitles) builder.Tab(title);
             }, height, fontSize, showBorder,
-            filePath: filePath, lineNumber: lineNumber);
+            classes: classes, filePath: filePath, lineNumber: lineNumber);
     }
 
     static TabsState GetOrCreateTabsState(Gui gui, string id, int initialActiveIndex, float tabBarHeight) =>
@@ -226,7 +232,7 @@ public static partial class ControlsExtensions
     {
         var rect = gui.CurrentNode.Rect;
         var marker = vertical ? new Rect(rect.X, rect.Y, 3, rect.H) : new Rect(rect.X, rect.Y + rect.H - 3, rect.W, 3);
-        gui.DrawRect(marker, PartColor(gui, "marker", "background-color"));
+        gui.DrawStyledBox(gui.ResolvePart("marker"), marker);
     }
 
     /// <summary>
@@ -264,6 +270,7 @@ public static partial class ControlsExtensions
     /// <param name="showBorder">Whether the bar and panel draw their box; false adds the <c>plain</c> class.</param>
     /// <param name="id">Stable state id; defaults to the call site.</param>
     /// <param name="onTabClosed">Called with the index and title of a tab the user closed.</param>
+    /// <param name="classes">Stylesheet classes for the tab container.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void VerticalTabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
@@ -272,6 +279,7 @@ public static partial class ControlsExtensions
         bool showBorder = true,
         string id = "",
         Action<int, string>? onTabClosed = null,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -283,7 +291,7 @@ public static partial class ControlsExtensions
 
         if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
 
-        using (gui.Node().Expand().Direction(Axis.Horizontal).Enter())
+        using (gui.StyledNode("tabs", classes, stateId).Expand().Direction(Axis.Horizontal).Enter())
         {
             using (gui.StyledNode("tabbar", showBorder ? VerticalClass : VerticalPlainClasses).Width(tabWidth)
                        .Expand().Direction(Axis.Vertical).Enter())
@@ -307,6 +315,7 @@ public static partial class ControlsExtensions
     /// <param name="spacing">Gap and padding around the pills.</param>
     /// <param name="id">Stable state id; defaults to the call site.</param>
     /// <param name="onTabClosed">Called with the index and title of a tab the user closed.</param>
+    /// <param name="classes">Stylesheet classes for the tab container.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void PillTabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
@@ -315,6 +324,7 @@ public static partial class ControlsExtensions
         float spacing = ControlMetrics.Spacing,
         string id = "",
         Action<int, string>? onTabClosed = null,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -327,7 +337,7 @@ public static partial class ControlsExtensions
 
         if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
 
-        using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
+        using (gui.StyledNode("tabs", classes, stateId).Expand().Direction(Axis.Vertical).Enter())
         {
             using (gui.StyledNode("tabbar", PillClass).Height(state.TabBarHeight).Direction(Axis.Horizontal)
                        .Gap(spacing).Padding(spacing).Enter())

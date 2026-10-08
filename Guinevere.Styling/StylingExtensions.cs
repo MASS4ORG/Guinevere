@@ -27,7 +27,14 @@ public static class StylingExtensions
         /// Active <c>.pss</c> stylesheets, lowest priority first, with host token overrides. Add sheets before the
         /// frame; every styled node resolves against them through a cache that any change invalidates.
         /// </summary>
-        public StyleSheetCollection StyleSheets => States.GetOrCreateValue(gui).Sheets;
+        public StyleSheetCollection StyleSheets
+        {
+            get
+            {
+                gui.ScrollbarRenderer ??= StyleScrollbarRenderer.Instance;
+                return States.GetOrCreateValue(gui).Sheets;
+            }
+        }
 
         /// <summary>Adds a reloadable source and keeps its entry in the GUI's stylesheets current.</summary>
         /// <param name="source">The reloadable sheet.</param>

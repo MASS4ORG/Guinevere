@@ -1,6 +1,6 @@
 namespace Guinevere;
 
-/// <summary>Colors and metrics a <c>TreeView</c> draws with.</summary>
+/// <summary>Layout and interaction metrics for a tree view; stylesheet rules define its appearance.</summary>
 public sealed class TreeViewTheme
 {
     /// <summary>Height of one row.</summary>

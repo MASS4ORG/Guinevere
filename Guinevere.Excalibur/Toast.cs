@@ -41,8 +41,8 @@ public sealed record ToastOptions
     /// <summary>Text size in pixels.</summary>
     public float FontSize { get; init; } = 13f;
 
-    /// <summary>Corner radius of the toast panel.</summary>
-    public float BorderRadius { get; init; } = 6f;
+    /// <summary>Stylesheet classes for the toast panel.</summary>
+    public IReadOnlyList<string>? Classes { get; init; }
 
     /// <summary>Fade-in duration in seconds while the toast appears.</summary>
     public float FadeInSeconds { get; init; } = 0.15f;
@@ -53,17 +53,6 @@ public sealed record ToastOptions
     /// <summary>Clicking a toast dismisses it immediately.</summary>
     public bool DismissOnClick { get; init; } = true;
 
-    /// <summary>Toast background fill color.</summary>
-    public Color? BackgroundColor { get; init; }
-
-    /// <summary>Toast border color.</summary>
-    public Color? BorderColor { get; init; }
-
-    /// <summary>Toast text color.</summary>
-    public Color? TextColor { get; init; }
-
-    /// <summary>Optional accent strip color drawn along the leading edge.</summary>
-    public Color? AccentColor { get; init; }
 }
 
 public static partial class ControlsExtensions
@@ -105,6 +94,7 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void Toasts(this Gui gui)
     {
+        ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(ToastStateId, () => new ToastState());
         var now = gui.Clock.Elapsed;
 
@@ -137,7 +127,7 @@ public static partial class ControlsExtensions
         foreach (var entry in state.Visible)
         {
             var opts = entry.Options;
-            var font = new SKFont { Size = opts.FontSize };
+            using var font = new SKFont { Size = opts.FontSize };
             font.MeasureText(entry.Text, out var textBounds);
 
             var width = Math.Min(textBounds.Width + opts.Padding * 2, opts.MaxWidth);
@@ -148,21 +138,15 @@ public static partial class ControlsExtensions
 
             var alpha = ToastAlpha(now, entry, opts);
 
-            using (gui.Node(width, height).AbsoluteScreen(position.X, position.Y).Enter())
+            using (gui.StyledNode("toast", opts.Classes).Width(width).Height(height)
+                       .AbsoluteScreen(position.X, position.Y).Enter())
             {
                 gui.SetZIndex(ToastZIndex);
+                gui.SetOpacity(alpha / 255f * gui.CurrentNode.Scope.Get<LayoutNodeScopeOpacity>().Value);
+                gui.DrawStyledBox(gui.ResolvePart("accent"), new Rect(position.X, position.Y, 4, height));
 
                 if (gui.Pass == Pass.Pass2Render && alpha > 0)
                 {
-                    var bg = WithAlpha(opts.BackgroundColor ?? gui.ControlStyle.Popup, alpha);
-                    var border = WithAlpha(opts.BorderColor ?? gui.ControlStyle.Border, alpha);
-
-                    gui.DrawBackgroundRect(bg, opts.BorderRadius);
-                    gui.DrawRectBorder(gui.CurrentNode.Rect, border, 1f, opts.BorderRadius);
-
-                    if (opts.AccentColor is { } accent)
-                        gui.DrawRect(new Rect(position.X, position.Y, 4, height), WithAlpha(accent, alpha));
-
                     if (opts.DismissOnClick && gui.Input.IsMouseButtonPressed(MouseButton.Left) &&
                         IsMouseInRect(gui.Input.MousePosition, gui.CurrentNode.Rect))
                         toRemove.Add(entry);
@@ -170,8 +154,7 @@ public static partial class ControlsExtensions
 
                 // Built in both passes so the text node is measured during Pass1 layout; creating it
                 // only in Pass2 leaves its rect (0,0,0,0) and the glyphs draw at the canvas origin.
-                gui.DrawText(entry.Text, opts.FontSize, WithAlpha(opts.TextColor ?? gui.ControlStyle.Text, alpha),
-                    centerInRect: false);
+                gui.DrawText(entry.Text, opts.FontSize, centerInRect: false);
             }
         }
 
@@ -209,6 +192,4 @@ public static partial class ControlsExtensions
         return Math.Max(0, Math.Min(255, (int)(alpha * 255)));
     }
 
-    static Color WithAlpha(Color color, int alpha) =>
-        Color.FromArgb(alpha, color.R, color.G, color.B);
 }

@@ -10,15 +10,10 @@ public static partial class ControlsExtensions
     public static void Flyout(this Gui gui, ref bool isOpen, Vector2 position, Action<FlyoutBuilder> buildMenu,
         float minWidth = 150,
         float itemHeight = 32,
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? textColor = null,
-        Color? hoverColor = null,
-        Color? separatorColor = null,
-        Color? disabledColor = null,
         float fontSize = ControlMetrics.CompactFontSize,
         float padding = ControlMetrics.Spacing,
-        float borderRadius = ControlMetrics.CornerRadius,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -26,11 +21,14 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(buildMenu);
         fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
-        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
-        var id = gui.NodeId(filePath, lineNumber);
+        id ??= gui.NodeId(filePath, lineNumber);
+        ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new MenuBarState());
+        state.Classes = classes;
+        state.StyleId = id;
+        state.PopupId = id;
         PreparePopupMenuFrame(gui, state, isOpen,
-            new MenuAppearance(itemHeight, itemHeight, minWidth, borderRadius, borderColor, separatorColor, disabledColor));
+            new MenuAppearance(itemHeight, itemHeight, minWidth));
         if (state.FrameOpenIndex < 0) return;
 
         var builder = new FlyoutBuilder();
@@ -41,7 +39,7 @@ public static partial class ControlsExtensions
         {
             focusScope.SetActive();
             RenderMenuGroup(gui, state, id, builder.Items, position, 0,
-                backgroundColor, textColor, hoverColor, fontSize, padding, CascadeMenuZIndex);
+                fontSize, padding, CascadeMenuZIndex);
         }
 
         if (gui.Pass == Pass.Pass2Render)

@@ -28,8 +28,11 @@ public static partial class ControlsExtensions
     /// <param name="width">The dialog's width.</param>
     /// <param name="height">The dialog's body height, before its title bar and footer.</param>
     /// <param name="fontSize">Base text size for the listing, sidebar and fields.</param>
+    /// <param name="classes">Stylesheet classes for the dialog.</param>
+    /// <param name="id">Stable control and stylesheet identity.</param>
     public static void FileDialog(this Gui gui, FileDialogState state,
-        float width = 840f, float height = 460f, float fontSize = 13f)
+        float width = 840f, float height = 460f, float fontSize = 13f,
+        IReadOnlyList<string>? classes = null, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
@@ -41,7 +44,8 @@ public static partial class ControlsExtensions
             () => Body(gui, state, fontSize),
             width, height,
             () => Footer(gui, state, fontSize),
-            footerHeight: 44f);
+            footerHeight: 44f, classes: classes is null ? ["file"] : ["file", .. classes],
+            id: id ?? state.ControlId("dialog"));
 
         // Escape and the title bar's × write straight into isOpen, so that is how the dialog reports
         // a cancellation: the request's callback still has to hear about it.
@@ -84,9 +88,9 @@ public static partial class ControlsExtensions
         {
             if (named)
             {
-                using (gui.Node(52f, height).ContentAlignY(0.5f).Enter())
+                using (gui.StyledNode("file-label").Width(52f).Height(height).ContentAlignY(0.5f).Enter())
                     gui.DrawText(request.Mode == FileDialogMode.CreateFolder ? "Folder" : "Name",
-                        fontSize, gui.ControlStyle.TextDim, centerInRect: false);
+                        fontSize, centerInRect: false);
 
                 using (gui.Node().Expand().Enter())
                     state.Name = gui.TextInput(state.Name, width: 0, height: height,
@@ -114,8 +118,8 @@ public static partial class ControlsExtensions
         var message = state.Message ?? state.Browser.Error;
         if (message is null) return;
 
-        using (gui.Node(-1, RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
-            gui.DrawText(message, fontSize - 1f, gui.ControlStyle.Negative, centerInRect: false);
+        using (gui.StyledNode("file-status").Height(RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
+            gui.DrawText(message, fontSize - 1f, centerInRect: false);
     }
 
     static readonly string[] PrimaryClass = ["primary"];
@@ -205,11 +209,13 @@ public static partial class ControlsExtensions
 
     /// <summary>Draws the same browser inline in normal layout flow.</summary>
     public static void FileBrowser(this Gui gui, FileDialogState state, float width = 840f,
-        float height = 460f, float fontSize = 13f)
+        float height = 460f, float fontSize = 13f, IReadOnlyList<string>? classes = null, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
-        using (gui.Node(width, height, state.ControlId("root")).Direction(Axis.Vertical).Gap(RegionGap).Enter())
+        ExcaliburStyles.Ensure(gui);
+        using (gui.StyledNode("file-browser", classes, id ?? state.ControlId("root"))
+                   .Width(width).Height(height).Direction(Axis.Vertical).Gap(RegionGap).Enter())
         {
             Body(gui, state, fontSize);
             using (gui.Node(-1, 36f).ExpandWidth().Direction(Axis.Horizontal).Gap(RegionGap)

@@ -25,6 +25,9 @@ public static partial class ControlsExtensions
         public Dictionary<string, MenuBranch> Branches { get; } = [];
         public Dictionary<string, int> FrameBranches { get; } = [];
         public Dictionary<string, bool> FrameChecks { get; } = [];
+        public IReadOnlyList<string>? Classes { get; set; }
+        public string? StyleId { get; set; }
+        public string? PopupId { get; set; }
         public MenuAppearance Appearance { get; set; } = new();
         public Rect BarRect { get; set; }
         public Rect FrameBarRect { get; set; }
@@ -57,11 +60,10 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void MenuBar(this Gui gui, Action<MenuBarBuilder> buildMenus,
         float height = 30,
-        Color? backgroundColor = null,
-        Color? textColor = null,
-        Color? hoverColor = null,
         float fontSize = ControlMetrics.CompactFontSize,
         float padding = ControlMetrics.ComfortableSpacing,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -71,8 +73,12 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(buildMenus);
 
-        var id = gui.NodeId(filePath, lineNumber);
+        id ??= gui.NodeId(filePath, lineNumber);
+        ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new MenuBarState());
+        state.Classes = classes;
+        state.StyleId = id;
+        state.PopupId = null;
 
         var builder = new MenuBarBuilder();
         buildMenus(builder);
@@ -85,35 +91,33 @@ public static partial class ControlsExtensions
             state.BeginFrame(gui.Input.MousePosition);
         }
 
-        RenderMenuBar(gui, state, builder, height, backgroundColor, textColor, hoverColor, fontSize, padding);
-        RenderOpenMenuBar(gui, state, builder, id, height, backgroundColor, textColor, hoverColor, fontSize, padding);
+        RenderMenuBar(gui, state, builder, height, fontSize, padding);
+        RenderOpenMenuBar(gui, state, builder, id, height, fontSize, padding);
         DismissMenuBarOutside(gui, state);
     }
 
     static void RenderMenuBar(Gui gui, MenuBarState state, MenuBarBuilder builder, float height,
-        Color? backgroundColor, Color? textColor, Color? hoverColor, float fontSize, float padding)
+        float fontSize, float padding)
     {
-        var barNode = gui.Node().Height(height).Direction(Axis.Horizontal);
+        var barNode = gui.StyledNode("menubar", state.Classes, state.StyleId).Height(height).Direction(Axis.Horizontal);
         if (builder.CollapsedLabel is not null) barNode.Width(UnitValue.Fit);
         using var scope = barNode.Enter();
         if (gui.Pass == Pass.Pass2Render)
         {
-            gui.DrawBackgroundRect(backgroundColor ?? gui.ControlStyle.Surface);
             var bar = gui.CurrentNode.Rect;
             state.BarRect = bar;
-            gui.DrawRect(new Rect(bar.X, bar.Y + bar.H - 1, bar.W, 1), gui.ControlStyle.Border);
         }
-        RenderMenuBarTitles(gui, state, builder, height, textColor, hoverColor, fontSize, padding);
+        RenderMenuBarTitles(gui, state, builder, height, fontSize, padding);
     }
 
     static void RenderMenuBarTitles(Gui gui, MenuBarState state, MenuBarBuilder builder, float height,
-        Color? textColor, Color? hoverColor, float fontSize, float padding)
+        float fontSize, float padding)
     {
         if (state.TitleRects.Count != builder.Menus.Count)
             state.TitleRects = [.. builder.Menus.Select(_ => new Rect())];
         if (builder.CollapsedLabel is not null && !state.FrameExpanded)
         {
-            if (RenderCompactMenuToggle(gui, builder.CollapsedLabel, height, textColor, hoverColor, fontSize) && builder.Menus.Count > 0)
+            if (RenderCompactMenuToggle(gui, builder.CollapsedLabel, height, fontSize) && builder.Menus.Count > 0)
             {
                 state.Expanded = true;
                 OpenMenuBarTitle(state, 0);
@@ -121,26 +125,25 @@ public static partial class ControlsExtensions
         }
         else
             for (var i = 0; i < builder.Menus.Count; i++)
-                RenderMenuBarTitle(gui, state, builder.Menus[i], i, height, textColor, hoverColor, fontSize, padding);
+                RenderMenuBarTitle(gui, state, builder.Menus[i], i, height, fontSize, padding);
     }
 
     static bool RenderCompactMenuToggle(Gui gui, string label, float height,
-        Color? textColor, Color? hoverColor, float fontSize)
+        float fontSize)
     {
-        using var scope = gui.Node(height, height).Enter();
-        var activated = ActivateCompactMenu(gui, hoverColor);
-        var color = textColor ?? gui.ControlStyle.Text;
+        using var scope = gui.StyledNode("menu-title").Width(height).Height(height).Enter();
+        var activated = ActivateCompactMenu(gui);
+        var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
         if (label == "☰") DrawCompactMenuGlyph(gui, height, color);
         else gui.DrawText(label, fontSize, color);
         return activated;
     }
 
-    static bool ActivateCompactMenu(Gui gui, Color? hoverColor)
+    static bool ActivateCompactMenu(Gui gui)
     {
         if (gui.Pass != Pass.Pass2Render) return false;
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
         var interaction = gui.GetInteractable();
-        if (interaction.OnHover()) gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover, 2);
         var activated = interaction.OnClick() || MenuKeyboardActivated(gui);
         if (activated) gui.RequestFocus(FocusReason.Mouse);
         return activated;
@@ -158,7 +161,7 @@ public static partial class ControlsExtensions
     }
 
     static void RenderOpenMenuBar(Gui gui, MenuBarState state, MenuBarBuilder builder, string id, float height,
-        Color? backgroundColor, Color? textColor, Color? hoverColor, float fontSize, float padding)
+        float fontSize, float padding)
     {
         if (state.FrameOpenIndex < 0) return;
         var menu = builder.Menus[state.FrameOpenIndex];
@@ -166,7 +169,7 @@ public static partial class ControlsExtensions
         using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
         focusScope.SetActive();
         RenderMenuBarDropdown(gui, state, menu, height,
-            backgroundColor, textColor, hoverColor, fontSize, padding);
+            fontSize, padding);
     }
 
     static void DismissMenuBarOutside(Gui gui, MenuBarState state)
@@ -180,9 +183,9 @@ public static partial class ControlsExtensions
     }
 
     static void RenderMenuBarTitle(Gui gui, MenuBarState state, MenuBarMenu menu, int index,
-        float height, Color? textColor, Color? hoverColor, float fontSize, float padding)
+        float height, float fontSize, float padding)
     {
-        using var scope = gui.Node().Height(height).Padding(padding, 0).ContentAlignY(0.5f).Enter();
+        using var scope = gui.StyledNode("menu-title", modifiers: state.FrameOpenIndex == index ? ["open"] : []).Height(height).Padding(padding, 0).ContentAlignY(0.5f).Enter();
         if (gui.Pass == Pass.Pass2Render)
         {
             state.TitleRects[index] = gui.CurrentNode.Rect;
@@ -192,10 +195,8 @@ public static partial class ControlsExtensions
             var clicked = interaction.OnClick();
             if (clicked) gui.RequestFocus(FocusReason.Mouse);
             UpdateMenuBarTitle(state, index, hovered, clicked || MenuKeyboardActivated(gui));
-            if (state.FrameOpenIndex == index || hovered)
-                gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover, 2);
         }
-        gui.DrawText(menu.Title, fontSize, textColor ?? gui.ControlStyle.Text, centerInRect: false);
+        gui.DrawText(menu.Title, fontSize, centerInRect: false);
     }
 
     static bool MenuKeyboardActivated(Gui gui) => gui.HasFocus()
@@ -222,7 +223,7 @@ public static partial class ControlsExtensions
     }
 
     static void RenderMenuBarDropdown(Gui gui, MenuBarState state, MenuBarMenu menu, float height,
-        Color? backgroundColor, Color? textColor, Color? hoverColor, float fontSize, float padding)
+        float fontSize, float padding)
     {
         if (state.FrameOpenIndex >= state.FrameTitleRects.Count) return;
 
@@ -232,18 +233,17 @@ public static partial class ControlsExtensions
 
         RenderMenuGroup(gui, state, menu.Title, menu.Items,
             new Vector2(anchor.X, anchor.Y + height), depth: 0,
-            backgroundColor, textColor, hoverColor, fontSize, padding);
+            fontSize, padding);
     }
 
     static void RenderMenuGroup(Gui gui, MenuBarState state, string baseId, List<FlyoutItem> items,
         Vector2 position, int depth,
-        Color? backgroundColor, Color? textColor, Color? hoverColor, float fontSize, float padding)
-        => RenderMenuGroup(gui, state, baseId, items, position, depth, backgroundColor, textColor,
-            hoverColor, fontSize, padding, MenuBarZIndex);
+        float fontSize, float padding)
+        => RenderMenuGroup(gui, state, baseId, items, position, depth, fontSize, padding, MenuBarZIndex);
 
     static void RenderMenuGroup(Gui gui, MenuBarState state, string baseId, List<FlyoutItem> items,
         Vector2 position, int depth,
-        Color? backgroundColor, Color? textColor, Color? hoverColor, float fontSize, float padding, int zIndex)
+        float fontSize, float padding, int zIndex)
     {
         var appearance = state.Appearance;
         var itemHeight = appearance.ItemHeight;
@@ -264,7 +264,8 @@ public static partial class ControlsExtensions
         var openSubmenuIndex = ResolveMenuBranch(gui, state, baseId, items, groupRect, hoverIndex, depth);
 
         var nodeId = $"/menubar/{baseId}/v{depth}";
-        using (gui.Node(menuWidth, menuHeight, nodeId)
+        using (gui.StyledNode("menu", state.Classes, depth == 0 ? state.PopupId ?? nodeId : nodeId)
+                   .Width(menuWidth).Height(menuHeight)
                    .AbsoluteScreen(adjustedPosition.X, adjustedPosition.Y)
                    .BlockInput()
                    .Enter())
@@ -272,16 +273,9 @@ public static partial class ControlsExtensions
             gui.SetZIndex(zIndex);
             gui.SetEscapesAncestorClips();
 
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                gui.DrawBackgroundRect(backgroundColor ?? gui.ControlStyle.Popup, appearance.Radius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, appearance.Border ?? gui.ControlStyle.Border, 1f,
-                    appearance.Radius);
-            }
-
             for (var i = 0; i < items.Count; i++)
                 RenderMenuBarRow(gui, state, items, i, nodeId, menuWidth, itemHeight, separatorHeight,
-                    hasCheckColumn, textColor, hoverColor, fontSize, padding, depth);
+                    hasCheckColumn, fontSize, padding, depth);
         }
 
         if (openSubmenuIndex >= 0 && items[openSubmenuIndex].Submenu is { } submenu)
@@ -289,13 +283,13 @@ public static partial class ControlsExtensions
             var rowOffset = RowOffset(items, openSubmenuIndex, itemHeight, separatorHeight);
             RenderMenuGroup(gui, state, $"{baseId}/{items[openSubmenuIndex].Text}", submenu,
                 SubmenuPosition(gui, submenu, groupRect, rowOffset, fontSize, padding, appearance.MinWidth), depth + 1,
-                backgroundColor, textColor, hoverColor, fontSize, padding, zIndex);
+                fontSize, padding, zIndex);
         }
     }
 
     static void RenderMenuBarRow(Gui gui, MenuBarState state, List<FlyoutItem> items, int index,
         string nodeId, float width, float itemHeight, float separatorHeight,
-        bool hasCheckColumn, Color? textColor, Color? hoverColor, float fontSize, float padding, int depth)
+        bool hasCheckColumn, float fontSize, float padding, int depth)
     {
         var item = items[index];
         if (item.IsSeparator)
@@ -303,31 +297,31 @@ public static partial class ControlsExtensions
             RenderMenuSeparator(gui, state, width, separatorHeight, $"{nodeId}/s{index}", padding);
             return;
         }
-        using var scope = gui.Node(width, itemHeight, $"{nodeId}/i{index}")
+        using var scope = gui.StyledNode("menu-item", id: $"{nodeId}/i{index}",
+            modifiers: MenuRowSelected(state, depth, index, false) ? ["highlighted"] : [], disabled: !item.Enabled)
+            .Width(width).Height(itemHeight)
             .Padding(padding, 0).Direction(Axis.Horizontal).ContentAlignY(0.5f).Enter();
-        if (gui.Pass == Pass.Pass2Render) HandleMenuRow(gui, state, item, index, depth, hoverColor);
-        RenderMenuRowContent(gui, state, item, hasCheckColumn, textColor, fontSize);
+        if (gui.Pass == Pass.Pass2Render) HandleMenuRow(gui, state, item, index, depth);
+        RenderMenuRowContent(gui, state, item, hasCheckColumn, fontSize);
     }
 
     static void RenderMenuSeparator(Gui gui, MenuBarState state, float width, float height, string id, float padding)
     {
-        using var scope = gui.Node(width, height, id).Enter();
+        using var scope = gui.StyledNode("menu-separator", id: id).Width(width).Height(height).Enter();
         if (gui.Pass != Pass.Pass2Render) return;
         var rect = gui.CurrentNode.Rect;
-        var color = state.Appearance.Separator ?? gui.ControlStyle.Border;
+        var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
         var y = rect.Y + rect.H * 0.5f;
         gui.DrawLine(new Vector2(rect.X + padding, y), new Vector2(rect.X + rect.W - padding, y), color);
     }
 
-    static void HandleMenuRow(Gui gui, MenuBarState state, FlyoutItem item, int index, int depth, Color? hoverColor)
+    static void HandleMenuRow(Gui gui, MenuBarState state, FlyoutItem item, int index, int depth)
     {
         gui.RegisterFocusable(canReceiveFocus: item.Enabled, isInteractable: true);
         var interaction = gui.GetInteractable();
         var hovered = interaction.OnHover();
         if (hovered) PreviewMenuRow(item);
         if (interaction.OnClick()) ActivateMenuRow(state, item, depth, index);
-        if (item.Enabled && MenuRowSelected(state, depth, index, hovered))
-            gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover, 2);
     }
 
     static void PreviewMenuRow(FlyoutItem item)
@@ -340,29 +334,29 @@ public static partial class ControlsExtensions
             && state.FrameKeyboardPath[depth] == index);
 
     static void RenderMenuRowContent(Gui gui, MenuBarState state, FlyoutItem item, bool hasCheckColumn,
-        Color? textColor, float fontSize)
+        float fontSize)
     {
-        var color = MenuItemColor(gui, state, item, textColor);
+        var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
         RenderMenuCheckColumn(gui, state, item, hasCheckColumn, fontSize, color);
         gui.DrawText(item.Text, fontSize, color, centerInRect: false);
         gui.Node().Expand();
         if (item.HasSubmenu)
         {
-            using var scope = gui.Node(fontSize).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter();
+            using var scope = gui.StyledNode("menu-expander").Width(fontSize).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter();
             gui.DrawText(WidgetIcons.ChevronRight, fontSize * 0.7f, color);
         }
         else if (!string.IsNullOrEmpty(item.Shortcut))
-            gui.DrawText(item.Shortcut, fontSize * 0.9f, gui.ControlStyle.TextDim, centerInRect: false);
+        {
+            using var shortcut = gui.StyledNode("menu-shortcut").Enter();
+            gui.DrawText(item.Shortcut, fontSize * 0.9f, centerInRect: false);
+        }
     }
-
-    static Color MenuItemColor(Gui gui, MenuBarState state, FlyoutItem item, Color? textColor) =>
-        item.Enabled ? textColor ?? gui.ControlStyle.Text : state.Appearance.Disabled ?? gui.ControlStyle.TextDim;
 
     static void RenderMenuCheckColumn(Gui gui, MenuBarState state, FlyoutItem item, bool hasCheckColumn,
         float fontSize, Color color)
     {
         if (!hasCheckColumn) return;
-        using var scope = gui.Node(14f).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter();
+        using var scope = gui.StyledNode("menu-check").Width(14f).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter();
         var id = gui.CurrentNode.Id;
         if (gui.Pass == Pass.Pass1Build) state.FrameChecks[id] = item.IsChecked?.Invoke() == true;
         if (state.FrameChecks.GetValueOrDefault(id)) gui.DrawText(WidgetIcons.Check, fontSize, color);

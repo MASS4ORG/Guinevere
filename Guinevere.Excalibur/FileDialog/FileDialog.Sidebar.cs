@@ -8,11 +8,9 @@ public static partial class ControlsExtensions
     /// </summary>
     static void Sidebar(Gui gui, FileDialogState state, float fontSize)
     {
-        var palette = gui.ControlStyle;
 
-        using (gui.Node(SidebarWidth, -1).ExpandHeight().Enter())
+        using (gui.StyledNode("file-sidebar").Width(SidebarWidth).ExpandHeight().Enter())
         {
-            if (gui.Pass == Pass.Pass2Render) gui.DrawBackgroundRect(palette.Surface, 4f);
 
             using (gui.Node().Expand().Direction(Axis.Vertical).Gap(1f).Padding(4f).Enter())
             {
@@ -26,27 +24,21 @@ public static partial class ControlsExtensions
 
     static void Place(Gui gui, FileDialogState state, FilePlace place, float fontSize)
     {
-        var palette = gui.ControlStyle;
         var current = string.Equals(state.Browser.CurrentPath, place.Path, StringComparison.OrdinalIgnoreCase);
 
-        using (gui.Node(-1, RowHeight, state.ControlId($"place/{place.Path}")).ExpandWidth()
+        using (gui.StyledNode("file-place", id: state.ControlId($"place/{place.Path}"),
+                       modifiers: current ? ["selected"] : []).Height(RowHeight).ExpandWidth()
                    .Direction(Axis.Horizontal).Gap(6f).PaddingX(6f).ContentAlignY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
 
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                if (current) gui.DrawBackgroundRect(palette.Selected, 3f);
-                else if (interactable.OnHover()) gui.DrawBackgroundRect(palette.SurfaceHover, 3f);
-            }
 
-            gui.DrawText(place.Icon, fontSize, palette.TextDim);
+            gui.DrawText(place.Icon, fontSize, gui.ResolvePart("file-detail").GetColor("color"));
 
             using (gui.Node().Expand().ContentAlignY(0.5f).Enter())
             {
                 gui.ClipContent();
-                gui.DrawText(place.Label, fontSize, current ? palette.Text : palette.TextDim,
-                    centerInRect: false, clip: true);
+                gui.DrawText(place.Label, fontSize, centerInRect: false, clip: true);
             }
 
             gui.Tooltip(gui.CurrentNode, place.Path, maxWidth: 600);

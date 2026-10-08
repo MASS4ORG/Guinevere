@@ -15,15 +15,9 @@ public static partial class ControlsExtensions
     /// </summary>
     static void Listing(Gui gui, FileDialogState state, float fontSize)
     {
-        var palette = gui.ControlStyle;
 
-        using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
+        using (gui.StyledNode("file-list").Expand().Direction(Axis.Vertical).Enter())
         {
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                gui.DrawBackgroundRect(palette.Surface, 4f);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, palette.Border, 1f, 4f);
-            }
 
             ListingHeader(gui, state, fontSize);
 
@@ -33,10 +27,10 @@ public static partial class ControlsExtensions
 
                 if (state.Browser.Entries.Count == 0)
                 {
-                    using (gui.Node(-1, RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
+                    using (gui.StyledNode("file-label").Height(RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
                         gui.DrawText(state.Browser.IsLoading ? "Loading…" :
                                 state.Browser.Error is null ? "Nothing here" : "Cannot read this folder",
-                            fontSize, palette.TextDim, centerInRect: false);
+                            fontSize, gui.ResolvePart("file-detail").GetColor("color"), centerInRect: false);
 
                     return;
                 }
@@ -67,14 +61,10 @@ public static partial class ControlsExtensions
 
     static void ListingHeader(Gui gui, FileDialogState state, float fontSize)
     {
-        var palette = gui.ControlStyle;
 
-        using (gui.Node(-1, RowHeight).ExpandWidth().Direction(Axis.Horizontal).Gap(6f)
+        using (gui.StyledNode("file-header").Height(RowHeight).ExpandWidth().Direction(Axis.Horizontal).Gap(6f)
                    .PaddingX(8f).ContentAlignY(0.5f).Enter())
         {
-            if (gui.Pass == Pass.Pass2Render)
-                gui.DrawRect(new Rect(gui.CurrentNode.Rect.X, gui.CurrentNode.Rect.Y + RowHeight - 1f,
-                    gui.CurrentNode.Rect.W, 1f), palette.Border);
 
             Column(gui, state, FileSortColumn.Name, "Name", 0f, fontSize);
             Column(gui, state, FileSortColumn.Size, "Size", SizeWidth, fontSize);
@@ -86,10 +76,11 @@ public static partial class ControlsExtensions
     static void Column(Gui gui, FileDialogState state, FileSortColumn column, string label,
         float width, float fontSize)
     {
-        var palette = gui.ControlStyle;
         var active = state.Browser.Sort == column;
-        var node = width > 0f ? gui.Node(width, RowHeight, state.ControlId($"column/{column}"))
-            : gui.Node(-1, RowHeight, state.ControlId($"column/{column}")).Expand();
+        var node = gui.StyledNode("file-column", id: state.ControlId($"column/{column}"),
+            modifiers: active ? ["selected"] : []).Height(RowHeight);
+        if (width > 0f) node.Width(width);
+        else node.Expand();
 
         using (node.ContentAlignY(0.5f).Enter())
         {
@@ -97,7 +88,7 @@ public static partial class ControlsExtensions
             var marker = active ? state.Browser.Ascending ? " ⬆" : " ⬇" : "";
 
             gui.DrawText(label + marker, fontSize - 1f,
-                active || interactable.OnHover() ? palette.Text : palette.TextDim, centerInRect: false);
+                centerInRect: false);
 
             if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) state.Browser.SortBy(column);
         }
@@ -105,34 +96,29 @@ public static partial class ControlsExtensions
 
     static void Row(Gui gui, FileDialogState state, FileEntry entry, float fontSize)
     {
-        var palette = gui.ControlStyle;
         var selected = state.Selected?.FullPath == entry.FullPath;
 
-        using (gui.Node(-1, RowHeight, state.ControlId($"row/{entry.FullPath}")).ExpandWidth()
+        using (gui.StyledNode("file-row", id: state.ControlId($"row/{entry.FullPath}"),
+                       modifiers: selected ? ["selected"] : []).Height(RowHeight).ExpandWidth()
                    .Direction(Axis.Horizontal).Gap(6f).PaddingX(4f).ContentAlignY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
 
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                if (selected) gui.DrawBackgroundRect(palette.Selected, 3f);
-                else if (interactable.OnHover()) gui.DrawBackgroundRect(palette.SurfaceHover, 3f);
-            }
 
-            gui.DrawText(entry.IsDirectory ? WidgetIcons.Folder : WidgetIcons.FileLines, fontSize, palette.TextDim);
+            gui.DrawText(entry.IsDirectory ? WidgetIcons.Folder : WidgetIcons.FileLines, fontSize, gui.ResolvePart("file-detail").GetColor("color"));
 
             using (gui.Node().Expand().ContentAlignY(0.5f).Enter())
             {
                 gui.ClipContent();
-                gui.DrawText(entry.Name, fontSize, palette.Text, centerInRect: false, clip: true);
+                gui.DrawText(entry.Name, fontSize, centerInRect: false, clip: true);
             }
 
             using (gui.Node(SizeWidth, RowHeight).ContentAlignY(0.5f).Enter())
-                gui.DrawText(Guinevere.FileBrowser.FormatSize(entry.Size), fontSize - 1f, palette.TextDim,
+                gui.DrawText(Guinevere.FileBrowser.FormatSize(entry.Size), fontSize - 1f, gui.ResolvePart("file-detail").GetColor("color"),
                     centerInRect: false);
 
             using (gui.Node(ModifiedWidth, RowHeight).ContentAlignY(0.5f).Enter())
-                gui.DrawText(Modified(entry), fontSize - 1f, palette.TextDim, centerInRect: false);
+                gui.DrawText(Modified(entry), fontSize - 1f, gui.ResolvePart("file-detail").GetColor("color"), centerInRect: false);
 
             if (gui.Pass != Pass.Pass2Render || !interactable.OnClick(out var clicks)) return;
 

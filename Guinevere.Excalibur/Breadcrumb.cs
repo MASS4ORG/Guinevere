@@ -30,50 +30,41 @@ public static partial class ControlsExtensions
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="items">The trail, root first. The last item is usually the current page.</param>
     /// <param name="height">Height of the bar.</param>
+    /// <param name="classes">Stylesheet classes for the breadcrumb.</param>
+    /// <param name="id">Stable stylesheet identity.</param>
     /// <param name="fontSize">Crumb and chevron size.</param>
-    /// <param name="linkColor">Color of an interactive crumb; defaults to the palette's accent.</param>
-    /// <param name="linkHoverColor">Color of a hovered or keyboard-activated crumb; defaults to the
-    /// palette's selected color.</param>
-    /// <param name="currentColor">Color of the current page; defaults to the palette's text.</param>
-    /// <param name="separatorColor">Color of the chevrons; defaults to the palette's dim text.</param>
     public static void Breadcrumb(this Gui gui,
         IReadOnlyList<BreadcrumbItem> items,
         float height = 28,
         float fontSize = 13,
-        Color? linkColor = null,
-        Color? linkHoverColor = null,
-        Color? currentColor = null,
-        Color? separatorColor = null)
+        IReadOnlyList<string>? classes = null, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(items);
         if (items.Count == 0) return;
 
-        var palette = gui.ControlStyle;
-        var link = linkColor ?? palette.Accent;
-        var linkHovered = linkHoverColor ?? palette.Selected;
-        var current = currentColor ?? palette.Text;
-        var separator = separatorColor ?? palette.TextDim;
+        ExcaliburStyles.Ensure(gui);
 
-        var font = new SKFont { Size = fontSize };
+        using var font = new SKFont { Size = fontSize };
 
-        using (gui.Node(-1, height).Direction(Axis.Horizontal).Enter())
+        using (gui.StyledNode("breadcrumb", classes, id).Height(height).Direction(Axis.Horizontal).Enter())
         {
             for (var i = 0; i < items.Count; i++)
             {
-                if (i > 0) RenderBreadcrumbSeparator(gui, items[i - 1], i, font, height, separator, link);
-                RenderBreadcrumbCrumb(gui, items[i], i, font, height, link, linkHovered, current);
+                if (i > 0) RenderBreadcrumbSeparator(gui, items[i - 1], i, font, height);
+                RenderBreadcrumbCrumb(gui, items[i], i, font, height);
             }
         }
     }
 
     static void RenderBreadcrumbCrumb(Gui gui, BreadcrumbItem item, int index, SKFont font,
-        float height, Color link, Color linkHovered, Color current)
+        float height)
     {
         var interactive = item is { IsCurrent: false, OnClick: not null };
         var width = MeasureCrumbContent(gui, item, font.Size) + (CrumbPadding * 2);
 
-        using (gui.Node(width, height, $"breadcrumb/{index}").AlignContent(0.5f, 0.5f).Enter())
+        using (gui.StyledNode("crumb", id: $"breadcrumb/{index}", modifiers: interactive ? ["link"] : ["current"])
+                   .Width(width).Height(height).AlignContent(0.5f, 0.5f).Enter())
         {
             var hovered = false;
             var clicked = false;
@@ -96,14 +87,14 @@ public static partial class ControlsExtensions
                 }
             }
 
-            var color = interactive ? (hovered || clicked ? linkHovered : link) : current;
+            var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
             if (gui.Pass == Pass.Pass2Render)
                 DrawBreadcrumbContent(gui, item, font.Size, color);
 
             if (interactive && clicked) item.OnClick?.Invoke();
 
             if (gui.Pass == Pass.Pass2Render && interactive && (hovered || clicked || gui.HasFocus()))
-                DrawBreadcrumbUnderline(gui, hovered || clicked ? linkHovered : link);
+                DrawBreadcrumbUnderline(gui);
         }
     }
 
@@ -167,11 +158,11 @@ public static partial class ControlsExtensions
         return cursor + CrumbIconGap;
     }
 
-    static void DrawBreadcrumbUnderline(Gui gui, Color color)
+    static void DrawBreadcrumbUnderline(Gui gui)
     {
         var rect = gui.CurrentNode.Rect;
-        gui.DrawRect(new Rect(rect.X + (CrumbPadding * 0.5f), rect.Y + rect.H - 3.5f,
-            rect.W - CrumbPadding, 1.5f), color);
+        gui.DrawStyledBox(gui.ResolvePart("underline"),
+            new Rect(rect.X + (CrumbPadding * 0.5f), rect.Y + rect.H - 3.5f, rect.W - CrumbPadding, 1.5f));
     }
 
     /// <summary>
@@ -179,7 +170,7 @@ public static partial class ControlsExtensions
     /// hover highlights it and a click opens a context menu listing those children under the bar.
     /// </summary>
     static void RenderBreadcrumbSeparator(Gui gui, BreadcrumbItem leftItem, int index, SKFont font,
-        float height, Color color, Color linkColor)
+        float height)
     {
         var hasChildren = leftItem.Children is { Count: > 0 };
         var state = gui.ControlState($"breadcrumb/menu/{index}", () => new BreadcrumbMenuState());
@@ -187,7 +178,8 @@ public static partial class ControlsExtensions
         var clicked = false;
         var hovered = false;
 
-        using (gui.Node(MeasureTextWidth(font, Chevron), height, $"breadcrumb/sep/{index}")
+        using (gui.StyledNode("crumb-separator", id: $"breadcrumb/sep/{index}",
+                       modifiers: hasChildren && state.IsOpen ? ["open"] : []).Width(MeasureTextWidth(font, Chevron)).Height(height)
                    .Margin(2, 0).AlignContent(0.5f, 0.5f).Enter())
         {
             if (gui.Pass == Pass.Pass2Render && hasChildren)
@@ -212,9 +204,7 @@ public static partial class ControlsExtensions
             {
                 var rect = gui.CurrentNode.Rect;
                 state.Anchor = new Vector2(rect.X, rect.Y + rect.H);
-                gui.DrawText(Chevron, font.Size,
-                    !hasChildren ? color : hovered || state.IsOpen ? linkColor : color,
-                    centerInRect: true);
+                gui.DrawText(Chevron, font.Size, centerInRect: true);
             }
 
             if (clicked) state.IsOpen = !state.IsOpen;

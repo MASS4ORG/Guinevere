@@ -48,6 +48,7 @@ public static partial class ControlsExtensions
     /// <param name="showPick">Whether to offer the button that opens a picker.</param>
     /// <param name="height">Row height.</param>
     /// <param name="fontSize">Text size.</param>
+    /// <param name="classes">Stylesheet classes for the field.</param>
     /// <returns>
     /// What the user did this frame. A drop is reported on the frame after the pointer is released,
     /// because a drag only settles once the frame it ended in is over.
@@ -58,47 +59,39 @@ public static partial class ControlsExtensions
         bool showClear = true,
         bool showPick = true,
         float height = ControlMetrics.IndicatorSize,
-        float fontSize = ControlMetrics.CompactFontSize)
+        float fontSize = ControlMetrics.CompactFontSize,
+        IReadOnlyList<string>? classes = null)
     {
         height = gui.ControlStyle.IndicatorSizeOr(height);
         fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
 
         ArgumentNullException.ThrowIfNull(gui);
 
-        var palette = gui.ControlStyle;
+        ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new ObjectFieldState());
         var action = ObjectFieldAction.None;
 
-        using (gui.Node(-1, height, id).ExpandWidth().Direction(Axis.Horizontal).Enter())
+        var eligibility = DropEligibility(gui, accept);
+        var modifiers = new List<string>();
+        if (isEmpty) modifiers.Add("empty");
+        if (eligibility is { } eligible) modifiers.Add(eligible ? "accepting" : "rejecting");
+        using (gui.StyledNode("object-field", classes, id, modifiers).Height(height)
+                   .ExpandWidth().Direction(Axis.Horizontal).Enter())
         {
             var drop = gui.DropTarget(id, canAccept: accept, onDrop: payload => state.Dropped = payload);
 
             var interactable = gui.GetInteractable();
-            var fill = interactable.OnHover() ? palette.SurfaceHover : palette.Surface;
-
-            var eligibility = DropEligibility(gui, accept);
-            var border = eligibility switch
-            {
-                true => palette.Positive,
-                false => palette.Negative,
-                null => palette.Border
-            };
-
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                var rect = gui.CurrentNode.Rect;
-                gui.DrawRect(rect, fill, 3);
-                gui.DrawRectBorder(rect, border, drop.IsAccepted ? 2.5f : eligibility is not null ? 2f : 1f, 3);
-            }
+            if (drop.IsAccepted)
+                gui.DrawStyledBox(gui.ResolvePart("drop-outline", modifiers: ["accepted"]), gui.CurrentNode.Rect);
 
             using (gui.Node(-1, height).Expand().Padding(6, 0).ContentAlignY(0.5f).Enter())
             {
                 gui.ClipContent();
-                gui.DrawText(text, fontSize, isEmpty ? palette.TextDim : palette.Text);
+                gui.DrawText(text, fontSize);
             }
 
-            if (showPick && PickButton(gui, $"{id}/pick", height, palette)) action = ObjectFieldAction.Pick;
-            if (showClear && !isEmpty && GlyphButton(gui, $"{id}/clear", "×", height, palette))
+            if (showPick && PickButton(gui, $"{id}/pick", height)) action = ObjectFieldAction.Pick;
+            if (showClear && !isEmpty && GlyphButton(gui, $"{id}/clear", "×", height))
                 action = ObjectFieldAction.Clear;
 
             // Those buttons sit inside the box, so a click on one must not also read as a reveal.
@@ -129,9 +122,9 @@ public static partial class ControlsExtensions
     /// The button that opens the picker, drawn as a target rather than typed: the system fonts in play
     /// carry no "◎". Blocks input so it never also hits the box behind it.
     /// </summary>
-    static bool PickButton(Gui gui, string id, float height, ControlStyleValues palette)
+    static bool PickButton(Gui gui, string id, float height)
     {
-        using (gui.Node(height, height, id).BlockInput().Enter())
+        using (gui.StyledNode("object-pick", id: id).Width(height).Height(height).BlockInput().Enter())
         {
             var interactable = gui.GetInteractable();
 
@@ -139,7 +132,7 @@ public static partial class ControlsExtensions
             {
                 var rect = gui.CurrentNode.Rect;
                 var center = new Vector2(rect.X + (rect.W / 2f), rect.Y + (rect.H / 2f));
-                var color = interactable.OnHover() ? palette.Text : palette.TextDim;
+                var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
 
                 gui.DrawCircleBorder(center, height * 0.28f, color);
                 gui.DrawCircleFilled(center, height * 0.1f, color);
@@ -150,12 +143,12 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>One of the slot's inline buttons. Blocks input so it never also hits the box behind it.</summary>
-    static bool GlyphButton(Gui gui, string id, string glyph, float height, ControlStyleValues palette)
+    static bool GlyphButton(Gui gui, string id, string glyph, float height)
     {
-        using (gui.Node(height, height, id).BlockInput().Enter())
+        using (gui.StyledNode("object-clear", id: id).Width(height).Height(height).BlockInput().Enter())
         {
             var interactable = gui.GetInteractable();
-            gui.DrawText(glyph, height * 0.7f, interactable.OnHover() ? palette.Text : palette.TextDim);
+            gui.DrawText(glyph, height * 0.7f);
 
             return gui.Pass == Pass.Pass2Render && interactable.OnClick();
         }

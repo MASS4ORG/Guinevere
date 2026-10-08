@@ -15,7 +15,7 @@ public static partial class ControlsExtensions
     /// <param name="gui">The GUI instance.</param>
     /// <param name="state">Expansion and selection, kept by the caller between frames.</param>
     /// <param name="items">Every row of the tree, parents before their children.</param>
-    /// <param name="theme">Colors and metrics. Defaults to <see cref="TreeViewTheme.Default"/>.</param>
+    /// <param name="theme">Layout and interaction metrics. Defaults to <see cref="TreeViewTheme.Default"/>.</param>
     /// <param name="onClick">Called for a click on a row, with the button and the click count.</param>
     /// <param name="dragPayload">
     /// Supplies what a row carries when dragged, or null for a tree whose rows are not drag sources.
@@ -29,6 +29,8 @@ public static partial class ControlsExtensions
     /// <param name="onEmptyClick">Called when the tree background receives a right click.</param>
     /// <param name="dropAccept">Whether a payload may be dropped on a row.</param>
     /// <param name="onDrop">Receives the row and payload after a successful drop.</param>
+    /// <param name="classes">Stylesheet classes for this control.</param>
+    /// <param name="id">Stable control and stylesheet identity.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void TreeView(this Gui gui, TreeViewState state, IReadOnlyList<TreeItem> items,
@@ -38,17 +40,20 @@ public static partial class ControlsExtensions
         Action<MouseButton>? onEmptyClick = null,
         Func<object, bool>? dropAccept = null,
         Action<TreeItem, object>? onDrop = null,
+        IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
         ArgumentNullException.ThrowIfNull(items);
+        ExcaliburStyles.Ensure(gui);
 
         theme ??= TreeViewTheme.Default;
         var visible = Flatten(items, state);
         state.VisibleIds = [.. visible.Select(item => item.Id)];
 
-        using (gui.Node(filePath: filePath, lineNumber: lineNumber).Expand().Direction(Axis.Vertical).Enter())
+        using (gui.StyledNode("treeview", classes, id, filePath: filePath, lineNumber: lineNumber)
+                   .Expand().Direction(Axis.Vertical).Enter())
         {
             gui.ScrollY();
 
@@ -283,7 +288,8 @@ public static partial class ControlsExtensions
         var isSelected = state.SelectedIds.Contains(item.Id);
         var isEditing = onRename is not null && state.EditingId == item.Id;
 
-        using (gui.Node(-1, theme.RowHeight, $"treeview/row{row}")
+        using (gui.StyledNode("tree-row", id: $"treeview/row{row}",
+                       modifiers: isSelected ? ["selected"] : []).Height(theme.RowHeight)
                    .ExpandWidth()
                    .Direction(Axis.Horizontal)
                    .Padding((item.Depth * theme.IndentWidth) + theme.ContentPadding, 0)
@@ -317,7 +323,7 @@ public static partial class ControlsExtensions
         if (isEditing) RenameBox(gui, state, theme, item, onRename!);
         else
             // A tint may match the selection fill, so a selected row always reads in the text color.
-            gui.DrawText(item.Label, theme.FontSize, (isSelected ? null : item.Tint) ?? gui.ControlStyle.Text,
+            gui.DrawText(item.Label, theme.FontSize, isSelected ? null : item.Tint,
                 centerInRect: false);
     }
 
@@ -354,10 +360,9 @@ public static partial class ControlsExtensions
     /// <summary>What follows the pointer while a row is dragged: the row's own label on a chip.</summary>
     static void DragGhost(Gui gui, TreeViewTheme theme, TreeItem item)
     {
-        using (gui.Node(-1, theme.RowHeight).Padding(6, 0).ContentAlignY(0.5f).Enter())
+        using (gui.StyledNode("tree-ghost").Height(theme.RowHeight).Padding(6, 0).ContentAlignY(0.5f).Enter())
         {
-            gui.DrawBackgroundRect(gui.ControlStyle.Selected, 3);
-            gui.DrawText(item.Label, theme.FontSize, gui.ControlStyle.Text, centerInRect: false);
+            gui.DrawText(item.Label, theme.FontSize, centerInRect: false);
         }
     }
 
@@ -373,9 +378,6 @@ public static partial class ControlsExtensions
         }
 
         var interactable = gui.GetInteractable();
-
-        if (isSelected) gui.DrawBackgroundRect(gui.ControlStyle.Selected, 2);
-        else if (interactable.OnHover()) gui.DrawBackgroundRect(gui.ControlStyle.AccentSubtle, 2);
 
         if (!isEditing)
         {
@@ -414,7 +416,9 @@ public static partial class ControlsExtensions
     static void Expander(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row)
     {
         // Blocks the row underneath, so clicking the arrow neither selects nor double-toggles.
-        using (gui.Node(theme.ExpanderWidth, theme.RowHeight, $"treeview/row{row}/expander")
+        using (gui.StyledNode("tree-expander", id: $"treeview/row{row}/expander",
+                       modifiers: state.IsCollapsed(item.Id, item.Depth) ? [] : ["expanded"])
+                   .Width(theme.ExpanderWidth).Height(theme.RowHeight)
                    .BlockInput(item.HasChildren)
                    .ContentAlignX(0.5f).ContentAlignY(0.5f)
                    .Enter())
@@ -422,10 +426,8 @@ public static partial class ControlsExtensions
             if (!item.HasChildren) return;
 
             var interactable = gui.GetInteractable();
-            var hot = gui.Pass == Pass.Pass2Render && interactable.OnHover();
-
-            gui.DrawText(state.IsCollapsed(item.Id, item.Depth) ? WidgetIcons.ChevronRight : WidgetIcons.ChevronDown, theme.FontSize * 0.7f,
-                hot ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled);
+            gui.DrawText(state.IsCollapsed(item.Id, item.Depth) ? WidgetIcons.ChevronRight : WidgetIcons.ChevronDown,
+                theme.FontSize * 0.7f);
 
             if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) state.Toggle(item.Id, item.Depth);
         }

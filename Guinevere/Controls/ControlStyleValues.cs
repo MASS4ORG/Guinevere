@@ -15,7 +15,7 @@ public sealed record StyleValue<TToken, TValue>(TValue Value) :
     public static StyleValue<TToken, TValue> Default { get; } = new(TToken.Default);
 }
 
-public readonly struct ControlBaseBackground : IStyleToken<Color> { public static Color Default => Color.FromArgb(255, 248, 248, 248); }
+public readonly struct ControlBaseBackground : IStyleToken<Color> { public static Color Default => Color.FromArgb(255, 242, 242, 242); }
 public readonly struct ControlSurface : IStyleToken<Color> { public static Color Default => Color.White; }
 public readonly struct ControlSurfaceHover : IStyleToken<Color> { public static Color Default => Color.FromArgb(255, 248, 248, 248); }
 public readonly struct ControlSurfaceActive : IStyleToken<Color> { public static Color Default => Color.FromArgb(255, 240, 240, 240); }

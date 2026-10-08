@@ -14,11 +14,12 @@ public class MenuBarTests
     public void CompactTitleUsesMenuColors()
     {
         using var h = new FrameHarness();
+        h.Gui.StyleSheets.Add(StyleSheet.Parse("menubar { background-color = red; } menu-title:hover { background-color = blue; }"));
         void Draw(Gui gui) => gui.MenuBar(bar =>
         {
             bar.Collapsible();
             bar.Menu("File", menu => menu.Item("Open", () => { }));
-        }, backgroundColor: Color.Red, hoverColor: Color.Blue);
+        });
         h.Input.MoveTo(new Vector2(-1));
         h.Frame(Draw);
         var surface = (SKSurface)typeof(FrameHarness).GetField("_surface",
@@ -36,6 +37,65 @@ public class MenuBarTests
     const int Width = 600;
     const int Height = 400;
     const float BarHeight = 30f;
+
+    /// <summary>Dropdowns keep their own layout and render nodes while another menu shares the container.</summary>
+    [Fact]
+    public void MainAndContextMenusKeepPositionedRowsWhenTheyShareAContainer()
+    {
+        using var h = new FrameHarness(width: 800, height: 600);
+        var contextOpen = false;
+        var invoked = 0;
+        void Draw(Gui gui)
+        {
+            using var parent = gui.Node().Expand().Padding(40).Enter();
+            gui.MenuBar(bar => bar.Menu("File", menu => menu
+                .Item("Open", () => invoked++, shortcut: "Ctrl+O")
+                .Item("Save", () => invoked++)), id: "main-menu");
+            gui.ContextMenu(ref contextOpen, menu => menu
+                .Item("Copy", () => invoked++)
+                .Item("Paste", () => invoked++), position: new Vector2(330, 190), id: "context-menu");
+        }
+
+        h.Frame(Draw);
+        var bar = h.Gui.RootNode!.FindChildById("main-menu")!;
+        h.Click(Draw, bar.Children[0].Center);
+        h.Frame(Draw);
+        contextOpen = true;
+        h.Frame(Draw);
+
+        var dropdown = h.Gui.RootNode!.FindChildById("/menubar/File/v0")!;
+        var context = h.Gui.RootNode.FindChildById("context-menu")!;
+        Assert.NotSame(bar, dropdown);
+        Assert.Equal(bar.Children[0].Rect.X, dropdown.Rect.X, 2);
+        Assert.Equal(bar.Rect.Y + bar.Rect.H, dropdown.Rect.Y, 2);
+        Assert.Equal(new Vector2(330, 190), context.Rect.Position);
+        AssertMenuRows(dropdown, 26);
+        AssertMenuRows(context, 24);
+
+        h.Click(Draw, context.Children[1].Center);
+        Assert.Equal(1, invoked);
+        Assert.False(contextOpen);
+    }
+
+    static void AssertMenuRows(LayoutNode menu, float rowHeight)
+    {
+        Assert.Equal(2, menu.Children.Count);
+        for (var i = 0; i < menu.Children.Count; i++)
+        {
+            var row = menu.Children[i];
+            Assert.Equal(menu.Rect.X, row.Rect.X, 2);
+            Assert.Equal(menu.Rect.Y + i * rowHeight, row.Rect.Y, 2);
+            Assert.Equal(rowHeight, row.Rect.H, 2);
+            Assert.True(row.Rect.W > 0);
+            Assert.All(row.Children.Where(child => child.DrawList.Count > 0), child =>
+            {
+                Assert.True(child.Rect.W > 0);
+                Assert.True(child.Rect.H > 0);
+                Assert.True(child.Rect.X >= menu.Rect.X);
+                Assert.True(child.Rect.Y >= row.Rect.Y);
+            });
+        }
+    }
 
     /// <summary>Keeps compact and regular dropdowns under their selected title, including repeated labels.</summary>
     [Theory]

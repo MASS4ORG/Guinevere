@@ -26,41 +26,41 @@ public static partial class ControlsExtensions
     /// <param name="height">The bar height in logical desktop units; must be at least 24.</param>
     /// <param name="windowControls">Displays window controls and enables window chrome integration.</param>
     /// <param name="nativeTitlebar">Keeps the native window title bar and decorations visible.</param>
-    /// <param name="backgroundColor">The bar background color; defaults to the control surface color.</param>
+    /// <param name="classes">Stylesheet classes for the application bar.</param>
+    /// <param name="id">Stable control and stylesheet identity.</param>
     /// <param name="resizable">Enables border and corner resizing while native decorations are hidden.</param>
     /// <param name="minimumWindowSize">The minimum client size in logical desktop units; defaults to 160 by 100.</param>
     /// <param name="filePath">The caller file path used to identify the application bar.</param>
     /// <param name="lineNumber">The caller line number used to identify the application bar.</param>
     public static AppBarScope AppBar(this Gui gui, float height = 36, bool windowControls = true,
-        bool nativeTitlebar = false, Color? backgroundColor = null, bool resizable = false,
+        bool nativeTitlebar = false, bool resizable = false,
         Vector2? minimumWindowSize = null,
+        IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentOutOfRangeException.ThrowIfLessThan(height, 24);
 
-        var id = gui.NodeId(filePath, lineNumber);
+        ExcaliburStyles.Ensure(gui);
+        id ??= gui.NodeId(filePath, lineNumber);
         var state = gui.ControlState(id, static () => new AppBarState());
         gui.Platform.TryGet<IWindowChromeCapability>(out var window);
         var chrome = windowControls ? window : null;
         var native = nativeTitlebar || chrome?.CanMove == false;
         if (gui.Pass == Pass.Pass1Build) state.Maximized = chrome?.IsMaximized == true;
 
-        var bar = gui.Node().ExpandWidth().Height(height).Direction(Axis.Horizontal).Enter();
-        DrawAppBarChrome(gui, state, chrome, native, backgroundColor);
+        var bar = gui.StyledNode("appbar", classes, id).ExpandWidth().Height(height).Direction(Axis.Horizontal).Enter();
+        DrawAppBarChrome(gui, state, chrome, native);
         AppBarResizeHandles(gui, state, chrome, resizable && !native, minimumWindowSize, id);
         var content = gui.Node().ExpandWidth().Height(height).Direction(Axis.Horizontal)
             .ContentAlignY(0.5f).Padding(8, 0).Gap(8).Enter();
         gui.SetClipped(true);
-        gui.SetTextColor(gui.ControlStyle.Text);
         return new AppBarScope(gui, bar, content, state, chrome, height);
     }
 
-    static void DrawAppBarChrome(Gui gui, AppBarState state, IWindowChromeCapability? window, bool native,
-        Color? backgroundColor)
+    static void DrawAppBarChrome(Gui gui, AppBarState state, IWindowChromeCapability? window, bool native)
     {
         if (gui.Pass != Pass.Pass2Render) return;
-        gui.DrawBackgroundRect(backgroundColor ?? gui.ControlStyle.Surface);
         UpdateAppBarChrome(state, window, native);
     }
 
@@ -132,12 +132,12 @@ public static partial class ControlsExtensions
 
     static bool WindowChromeButton(Gui gui, int kind, float height)
     {
-        using var scope = gui.Node(height, height).Enter();
+        using var scope = gui.StyledNode("window-button", modifiers: kind == 3 ? ["close"] : [])
+            .Width(height).Height(height).Enter();
         if (gui.Pass != Pass.Pass2Render) return false;
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
         var interaction = gui.GetInteractable();
         if (interaction.OnClick()) gui.RequestFocus(FocusReason.Mouse);
-        if (interaction.OnHover()) gui.DrawBackgroundRect(gui.ControlStyle.SurfaceHover);
         DrawWindowChromeGlyph(gui, kind, gui.CurrentNode.Rect);
         return interaction.OnClick() || (gui.HasFocus()
             && (gui.Input.IsKeyPressed(KeyboardKey.Enter) || gui.Input.IsKeyPressed(KeyboardKey.Space)));
@@ -147,7 +147,7 @@ public static partial class ControlsExtensions
     {
         var x = rect.X + (rect.W - 10) * 0.5f;
         var y = rect.Y + (rect.H - 10) * 0.5f;
-        var color = gui.ControlStyle.Text;
+        var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
         switch (kind)
         {
             case 0:
@@ -158,7 +158,7 @@ public static partial class ControlsExtensions
                 break;
             case 2:
                 gui.DrawRectBorder(new Rect(x + 2, y, 8, 8), color, 1);
-                gui.DrawRect(new Rect(x, y + 2, 8, 8), gui.ControlStyle.Surface);
+                gui.DrawStyledBox(gui.ResolvePart("glyph-fill"), new Rect(x, y + 2, 8, 8));
                 gui.DrawRectBorder(new Rect(x, y + 2, 8, 8), color, 1);
                 break;
             default:

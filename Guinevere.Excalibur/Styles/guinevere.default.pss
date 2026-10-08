@@ -150,14 +150,28 @@ option {
 option > indicator { border-color = $border; border-width = 1; border-radius = 2; color = $text; }
 // Value controls: gui.Slider (drawn parts "track", "fill" and "thumb"; thumb :focus draws its outline-color ring),
 // gui.ProgressBar (part "fill") and gui.Splitter.
-slider { color = $text; cursor = pointer; :disabled { color = $text-disabled; cursor = default; } }
-slider track { background-color = $border; }
+slider {
+    color = $text; font-size = 12; cursor = pointer;
+    flex-direction = row; gap = 8; align-items = center;
+    :disabled { color = $text-disabled; cursor = default; }
+}
+slider track { background-color = $border; height = 6; }
 slider fill { background-color = $accent; }
-slider thumb { background-color = $text-on-accent; border-color = $shadow; :focus { outline-color = $accent; } }
+slider thumb {
+    width = 14; height = 14; max-width = 76%; max-height = 76%;
+    background-color = $text-on-accent; border-color = $shadow; border-width = 1; border-radius = 50%;
+    :focus { outline = 2px solid $accent; outline-offset = 2; }
+}
 slider:disabled fill, slider:disabled thumb { background-color = $text-disabled; }
-progress { background-color = $divider; border-radius = 50%; }
-progress fill { background-color = $accent; }
-splitter { background-color = $border; :hover { background-color = $surface-hover; } :active { background-color = $surface-hover; } }
+progress { width = expand; height = 6; background-color = $divider; border-radius = 50%; }
+progress fill { background-color = $accent; border-radius = 50%; }
+splitter {
+    background-color = $border;
+    :horizontal { width = 6; height = 100%; cursor = ew-resize; }
+    :vertical { width = 100%; height = 6; cursor = ns-resize; }
+    :hover { background-color = $surface-hover; }
+    :active { background-color = $surface-hover; }
+}
 
 // Tabs and docking: gui.TabStrip (also the dock space's tab groups) and gui.DockSpace. The active tab is :selected
 // and draws its "marker" part (also the unsaved dot); drop-indicator and drop-preview are drawn while a tab is dragged.
@@ -200,10 +214,92 @@ dock-grip { background-color = $base-background; cursor = move; }
 dock-empty { background-color = $base-background; color = $text-dim; align-items = center; justify-content = center; }
 dock-ghost { background-color = $accent; border-radius = 3; color = $text-on-accent; align-items = center; justify-content = center; }
 drop-indicator { background-color = $accent; }
-drop-preview { background-color = alpha($accent, 0.27); border-color = $accent; }
+drop-preview { background-color = alpha($accent, 0.27); border-color = $accent; border-width = 2; border-radius = 2; }
 
 button.segment {
     padding = 0;
     border-radius = 3;
     :checked { background-color = $selected; }
 }
+
+// Menu roots and rows share selectors across menu bars, flyouts and cascading context menus.
+menubar { background-color = $surface; border-bottom-color = $border; border-bottom-width = 1; color = $text; }
+menu { background-color = $popup; border-color = $border; border-width = 1; border-radius = $radius; color = $text; }
+menu-title, menu-item {
+    border-radius = 2; cursor = pointer;
+    :hover { background-color = $surface-hover; }
+    :focus { outline = 1px $accent; }
+    :open { background-color = $surface-hover; }
+    :highlighted { background-color = $surface-hover; }
+    :disabled { color = $text-dim; cursor = default; background-color = transparent; }
+}
+menu-shortcut { color = $text-dim; }
+menu-separator { color = $border; }
+
+treeview { color = $text; }
+tree-row {
+    border-radius = 2;
+    :hover { background-color = $accent-subtle; }
+    :selected { background-color = $selected; }
+}
+tree-expander { color = $text-disabled; :hover { color = $text; } }
+tree-ghost { background-color = $selected; border-radius = 3; color = $text; }
+
+popup, dialog, toast { background-color = $popup; border-color = $border; border-width = 1; color = $text; }
+popup, toast { border-radius = 6; }
+dialog { border-radius = 8; }
+popup-title { background-color = $surface-hover; color = $text; }
+dialog-title { background-color = $popup; color = $text; border-radius = 8 8 0 0; }
+dialog-footer { border-top-color = $border; border-top-width = 1; }
+dialog-close { border-radius = 50%; color = $text-dim; :hover { background-color = $surface-hover; color = $text; } }
+tooltip { background-color = $surface; border-color = $border; border-width = 1; border-radius = $radius; color = $text; }
+overlay { background-color = $overlay; }
+popup:closed, dialog:closed, tooltip:closed, overlay:closed { opacity = 0; }
+toast > accent { width = 4; }
+toast.info > accent { background-color = $info; }
+toast.positive > accent { background-color = $positive; }
+toast.warning > accent { background-color = $warning; }
+toast.negative > accent { background-color = $negative; }
+appbar { background-color = $surface; color = $text; }
+window-button { :hover { background-color = $surface-hover; } }
+window-button > glyph-fill { background-color = $surface; }
+breadcrumb, label, wrapped-label { color = $text; }
+label { font-size = 14; }
+crumb { color = $text; :link { color = $accent; cursor = pointer; } }
+crumb:link:hover, crumb:link:active { color = $selected; }
+crumb > underline { background-color = $accent; }
+crumb:hover > underline { background-color = $selected; }
+crumb-separator { color = $text-dim; :hover { color = $accent; } :open { color = $accent; } }
+file-label { color = $text-dim; }
+file-status { color = $negative; }
+scrollbar { background-color = $base-background; }
+scrollbar > thumb {
+    background-color = $border; border-radius = 3;
+    :hover { background-color = $border-active; }
+    :active { background-color = $text-dim; }
+}
+form {
+    color = $text; dim-color = $text-dim; background-color = $surface; border-color = $border;
+    accent-color = $accent; divider-color = $divider; negative-color = $negative;
+    base-background = $base-background; border-radius = $radius;
+}
+object-field {
+    background-color = $surface; border-color = $border; border-width = 1; border-radius = 3; color = $text;
+    :hover { background-color = $surface-hover; }
+    :empty { color = $text-dim; }
+    :accepting { border-color = $positive; border-width = 2; }
+    :rejecting { border-color = $negative; border-width = 2; }
+}
+object-field > drop-outline:accepted { border-color = $positive; border-width = 2.5; border-radius = 3; }
+object-pick, object-clear { color = $text-dim; :hover { color = $text; } }
+file-sidebar, file-list { background-color = $surface; border-radius = 4; }
+file-list { border-color = $border; border-width = 1; }
+file-header { border-bottom-color = $border; border-bottom-width = 1; }
+file-row, file-place {
+    color = $text; border-radius = 3;
+    :hover { background-color = $surface-hover; }
+    :selected { background-color = $selected; }
+}
+file-place { color = $text-dim; :selected { color = $text; } }
+file-column { color = $text-dim; :hover { color = $text; } :selected { color = $text; } }
+file-detail { color = $text-dim; }

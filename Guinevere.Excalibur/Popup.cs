@@ -42,17 +42,14 @@ public static partial class ControlsExtensions
         bool modal = false,
         bool closeOnClickOutside = true,
         bool closeOnEscape = true,
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? titleBarColor = null,
-        Color? titleTextColor = null,
         float titleBarHeight = 30,
-        float borderRadius = 6,
-        float borderWidth = 1,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var id = gui.NodeId(filePath, lineNumber);
+        id ??= gui.NodeId(filePath, lineNumber);
+        ExcaliburStyles.Ensure(gui);
         var state = GetOrCreatePopupState(gui, id, position, closeOnClickOutside, closeOnEscape);
 
         // Sync external state with internal state
@@ -69,8 +66,8 @@ public static partial class ControlsExtensions
 
         // Always create popup structure for consistency
         HandlePopupInteraction(gui, state);
-        RenderPopup(gui, state, content, width, height, title, backgroundColor, borderColor,
-            titleBarColor, titleTextColor, titleBarHeight, borderRadius, borderWidth);
+        if (modal) RenderOverlay(gui, state.IsOpen, PopupZIndex - 1, id + "/overlay");
+        RenderPopup(gui, state, content, width, height, title, titleBarHeight, classes, id);
 
         isOpen = state.IsOpen;
     }
@@ -86,20 +83,15 @@ public static partial class ControlsExtensions
         bool modal = false,
         bool closeOnClickOutside = true,
         bool closeOnEscape = true,
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? titleBarColor = null,
-        Color? titleTextColor = null,
         float titleBarHeight = 30,
-        float borderRadius = 6,
-        float borderWidth = 1,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         var temp = isOpen;
         gui.Popup(ref temp, content, width, height, title, position, modal, closeOnClickOutside,
-            closeOnEscape, backgroundColor, borderColor, titleBarColor, titleTextColor,
-            titleBarHeight, borderRadius, borderWidth, filePath, lineNumber);
+            closeOnEscape, titleBarHeight, classes, id, filePath, lineNumber);
         return temp;
     }
 
@@ -111,34 +103,16 @@ public static partial class ControlsExtensions
         float height = 200,
         string title = "",
         Vector2? position = null,
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? titleBarColor = null,
-        Color? titleTextColor = null,
-        Color? overlayColor = null,
         float titleBarHeight = 30,
-        float borderRadius = 6,
-        float borderWidth = 1,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        // Always create overlay node for consistent structure
-        using (gui.Node(gui.ScreenRect.W, gui.ScreenRect.H).AbsoluteScreen(0, 0).Enter())
-        {
-            if (gui.Pass == Pass.Pass2Render)
-                // Only render overlay when modal is open
-                if (isOpen)
-                {
-                    var overlay = overlayColor ?? gui.ControlStyle.Overlay;
-                    gui.DrawRect(gui.CurrentNode.Rect, overlay);
-                }
-        }
-
         gui.Popup(ref isOpen, content, width, height, title,
             position ?? new Vector2(gui.ScreenRect.W * 0.5f - width * 0.5f, gui.ScreenRect.H * 0.5f - height * 0.5f),
             true, true, true,
-            backgroundColor, borderColor, titleBarColor, titleTextColor,
-            titleBarHeight, borderRadius, borderWidth, filePath, lineNumber);
+            titleBarHeight, classes, id, filePath, lineNumber);
     }
 
     /// <summary>
@@ -147,26 +121,24 @@ public static partial class ControlsExtensions
     public static void Tooltip(this Gui gui, string text, bool show = true,
         Vector2? offset = null,
         float maxWidth = 200,
-        Color? backgroundColor = null,
-        Color? textColor = null,
-        Color? borderColor = null,
         float fontSize = ControlMetrics.CompactFontSize,
         float padding = ControlMetrics.Spacing,
-        float borderRadius = ControlMetrics.CornerRadius,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
-        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
 
+        ExcaliburStyles.Ensure(gui);
         // Always create tooltip node for consistency
         var mousePos = gui.Input.MousePosition;
         var tooltipOffset = offset ?? new Vector2(10, -25);
         var tooltipPos = mousePos + tooltipOffset;
 
         // Calculate tooltip size
-        var font = new SKFont { Size = fontSize };
+        using var font = new SKFont { Size = fontSize };
         var tooltipText = text;
         font.MeasureText(tooltipText, out var textBounds);
         var tooltipWidth = Math.Min(textBounds.Width + padding * 2, maxWidth);
@@ -176,29 +148,15 @@ public static partial class ControlsExtensions
         tooltipPos = ConstrainToScreen(gui, tooltipPos, tooltipWidth, tooltipHeight);
 
         // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
-        using (gui.Node(tooltipWidth, tooltipHeight, filePath: filePath, lineNumber: lineNumber)
-                   .AbsoluteScreen(tooltipPos.X, tooltipPos.Y)
+        using (gui.StyledNode("tooltip", classes, id, modifiers: show && !string.IsNullOrEmpty(text) ? [] : ["closed"],
+                       filePath: filePath, lineNumber: lineNumber).Width(tooltipWidth).Height(tooltipHeight)
+                   .AbsoluteScreen(tooltipPos.X, tooltipPos.Y).HitTestVisible(false)
                    .Enter())
         {
             gui.SetZIndex(TooltipZIndex);
             gui.SetEscapesAncestorClips();
 
-            if (gui.Pass == Pass.Pass2Render)
-                // Only render background when shown and text is not empty
-                if (show && !string.IsNullOrEmpty(text))
-                {
-                    var bgColor = backgroundColor ?? gui.ControlStyle.Surface;
-                    var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
-
-                    gui.DrawBackgroundRect(bgColor, borderRadius);
-                    gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, 1f, borderRadius);
-                }
-
-            // Always draw text for consistency, but make transparent when hidden
-            var textColorFinal = show && !string.IsNullOrEmpty(text)
-                ? textColor ?? gui.ControlStyle.Text
-                : Color.Transparent;
-            gui.DrawText(tooltipText, fontSize, textColorFinal, centerInRect: false);
+            gui.DrawText(tooltipText, fontSize, centerInRect: false).HitTestVisible(false);
         }
     }
 
@@ -210,20 +168,18 @@ public static partial class ControlsExtensions
     public static void Tooltip(this Gui gui, LayoutNode node, string text, float delay = 0.45f,
         Vector2? offset = null,
         float maxWidth = 200,
-        Color? backgroundColor = null,
-        Color? textColor = null,
-        Color? borderColor = null,
         float fontSize = ControlMetrics.CompactFontSize,
         float padding = ControlMetrics.Spacing,
-        float borderRadius = ControlMetrics.CornerRadius,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
         fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
-        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
 
-        var id = gui.NodeId(filePath, lineNumber);
+        id ??= gui.NodeId(filePath, lineNumber);
+        ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new TooltipState());
         var now = gui.Clock.Elapsed;
 
@@ -238,8 +194,7 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render) state.AnchorRect = node.Rect;
 
         gui.Tooltip(text, show, offset ?? new Vector2(0, anchorRect.H),
-            maxWidth, backgroundColor, textColor, borderColor, fontSize, padding, borderRadius,
-            filePath, lineNumber);
+            maxWidth, fontSize, padding, classes, id, filePath, lineNumber);
     }
 
     // Core implementation helpers
@@ -261,13 +216,12 @@ public static partial class ControlsExtensions
     }
 
     static void RenderPopup(Gui gui, PopupState state, Action content, float width, float height,
-        string title, Color? backgroundColor, Color? borderColor, Color? titleBarColor,
-        Color? titleTextColor, float titleBarHeight, float borderRadius, float borderWidth)
+        string title, float titleBarHeight, IReadOnlyList<string>? classes, string id)
     {
         var totalHeight = string.IsNullOrEmpty(title) ? height : height + titleBarHeight;
 
-        var popupNode = gui.Node(width, totalHeight)
-            .AbsoluteScreen(state.Position.X, state.Position.Y);
+        var popupNode = gui.StyledNode("popup", classes, id, modifiers: state.IsOpen ? [] : ["closed"]).Width(width).Height(totalHeight)
+            .AbsoluteScreen(state.Position.X, state.Position.Y).HitTestVisible(state.IsOpen);
         if (state.IsOpen) popupNode.BlockInput();
 
         using (popupNode.Enter())
@@ -275,29 +229,13 @@ public static partial class ControlsExtensions
             gui.SetZIndex(PopupZIndex);
             gui.SetEscapesAncestorClips();
 
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                // Only render visually when popup is open
-                if (state.IsOpen)
-                {
-                    var bgColor = backgroundColor ?? gui.ControlStyle.Popup;
-                    var borderColorFinal = borderColor ?? gui.ControlStyle.Border;
-
-                    gui.DrawBackgroundRect(bgColor, borderRadius);
-                    gui.DrawRectBorder(gui.CurrentNode.Rect, borderColorFinal, borderWidth, borderRadius);
-                }
-
-                // Handle escape key
-                HandlePopupInteraction(gui, state);
-            }
-
             // Always create title bar node for consistency
             if (!string.IsNullOrEmpty(title))
-                RenderPopupTitleBar(gui, title, width, titleBarHeight, titleBarColor, titleTextColor, state.IsOpen);
+                RenderPopupTitleBar(gui, title, width, titleBarHeight, state.IsOpen);
 
             // Always create content area node for consistency
             var contentY = string.IsNullOrEmpty(title) ? 0 : titleBarHeight;
-            using (gui.Node(width, height)
+            using (gui.StyledNode("popup-content").Width(width).Height(height).HitTestVisible(state.IsOpen)
                        .Top(contentY)
                        .Padding(8)
                        .Enter())
@@ -323,25 +261,39 @@ public static partial class ControlsExtensions
 
         if (!gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
 
-        var popupRect = new Rect(state.Position.X, state.Position.Y, width, totalHeight);
-        if (!IsMouseInRect(gui.Input.MousePosition, popupRect)) state.IsOpen = false;
+        var pointer = gui.Input.MousePosition;
+        var popupRect = new Rect(state.Position.X, state.Position.Y, width, height);
+        if (PointerOutsidePopup(popupNode, popupRect, pointer)) state.IsOpen = false;
+    }
+
+    static bool PointerOutsidePopup(LayoutNode popupNode, Rect popupRect, Vector2 pointer) =>
+        !popupRect.Contains(pointer) && !PointerInChildOverlay(popupNode, pointer);
+
+    static bool PointerInChildOverlay(LayoutNode node, Vector2 pointer)
+    {
+        foreach (var child in node.Children)
+            if (child.Style.BlocksInput && child.Rect.Contains(pointer) || PointerInChildOverlay(child, pointer))
+                return true;
+        return false;
     }
 
     static void RenderPopupTitleBar(Gui gui, string title, float width, float height,
-        Color? titleBarColor, Color? titleTextColor, bool isOpen)
+        bool isOpen)
     {
-        using (gui.Node(width, height).Enter())
+        using (gui.StyledNode("popup-title").Width(width).Height(height).HitTestVisible(isOpen).Enter())
         {
-            if (gui.Pass == Pass.Pass2Render && isOpen)
-            {
-                var titleBgColor = titleBarColor ?? gui.ControlStyle.SurfaceHover;
-                gui.DrawBackgroundRect(titleBgColor);
-            }
-
-            // Always draw text for consistency, but make transparent when closed
-            var titleColorFinal = isOpen ? titleTextColor ?? gui.ControlStyle.Text : Color.Transparent;
-            gui.DrawText(title, color: titleColorFinal, centerInRect: false);
+            gui.DrawText(title, centerInRect: false).HitTestVisible(isOpen);
         }
+    }
+
+    static void RenderOverlay(Gui gui, bool isOpen, int zIndex, string id)
+    {
+        using var overlay = gui.StyledNode("overlay", id: id, modifiers: isOpen ? [] : ["closed"])
+            .Width(gui.ScreenRect.W).Height(gui.ScreenRect.H)
+            .AbsoluteScreen(gui.ScreenRect.X, gui.ScreenRect.Y)
+            .BlockInput(isOpen).HitTestVisible(isOpen).Enter();
+        gui.SetZIndex(zIndex);
+        gui.SetEscapesAncestorClips();
     }
 
     static Vector2 ConstrainToScreen(Gui gui, Vector2 position, float width, float height)

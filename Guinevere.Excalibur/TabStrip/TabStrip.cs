@@ -19,6 +19,7 @@ public static partial class ControlsExtensions
     /// <param name="idPrefix">Id of the strip's node and prefix for its tabs; needed when a frame draws several strips.</param>
     /// <param name="trailing">Draws into the width the tabs leave over, flowing from the right edge.</param>
     /// <param name="onDragSource">Lets the caller start a drag from a tab; return true when it did.</param>
+    /// <param name="classes">Stylesheet classes for the strip.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     /// <returns>Which tab was activated, closed or dragged this frame.</returns>
@@ -26,6 +27,7 @@ public static partial class ControlsExtensions
         TabStripTheme? theme = null, string idPrefix = "tabstrip",
         Action<Gui>? trailing = null,
         Func<TabStripItem, string, bool>? onDragSource = null,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
@@ -45,7 +47,7 @@ public static partial class ControlsExtensions
 
         var visible = VisibleRange(state.FirstVisible, widths, availableWidth, overflowing);
 
-        using (gui.StyledNode("tabstrip", id: idPrefix, filePath: filePath, lineNumber: lineNumber)
+        using (gui.StyledNode("tabstrip", classes, id: idPrefix, filePath: filePath, lineNumber: lineNumber)
                    .Height(theme.Height).ExpandWidth().Direction(Axis.Horizontal).Enter())
         {
             if (overflowing && Navigation(gui, $"{idPrefix}/previous", "<", state.FirstVisible > 0, theme))
@@ -88,7 +90,7 @@ public static partial class ControlsExtensions
                 if (isActive)
                 {
                     var rect = gui.CurrentNode.Rect;
-                    gui.DrawRect(new Rect(rect.X, rect.Y, rect.W, 2), PartColor(gui, "marker", "background-color"));
+                    gui.DrawStyledBox(gui.ResolvePart("marker"), new Rect(rect.X, rect.Y, rect.W, 2));
                 }
 
                 if (interactable.OnClick()) result = result with { Activated = item };
