@@ -47,11 +47,9 @@ static class BuiltinDrawers
         var current = field.HasMixedValue ? string.Empty : field.GetValue() as string ?? string.Empty;
         var next = field.Attribute<TextAreaAttribute>() is { } area
             ? gui.TextArea(current, width: 0, height: TextAreaHeight(gui, current, area), fontSize: style.FontSize,
-                backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink, padding: 4,
-                id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "")
+                padding: 4, id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "")
             : gui.TextInput(current, width: 0, height: style.RowHeight, fontSize: style.FontSize,
-                backgroundColor: style.Field, borderColor: style.Border, textColor: style.Ink, padding: 4,
-                id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "");
+                padding: 4, id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "");
 
         if (!string.Equals(next, current, StringComparison.Ordinal)) field.SetValue(next);
     }

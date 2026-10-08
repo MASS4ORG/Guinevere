@@ -38,7 +38,11 @@ public abstract partial class Program
 
             Section(gui, "Horizontal Tabs", () => HorizontalTabsContent(gui));
 
-            Section(gui, "Pill Tabs", () => gui.PillTabs(ref _pillTab, tabs =>
+            Section(gui, "Pill Tabs", () =>
+            {
+                // A subtree token recolors the active pill without a color parameter.
+                gui.SetStyleToken("selected", Color.FromArgb(255, 76, 175, 80));
+                gui.PillTabs(ref _pillTab, tabs =>
                 {
                     tabs.Tab("Overview", () => gui.DrawText("Overview content", size: 12,
                         color: Color.FromArgb(255, 102, 102, 102)));
@@ -46,7 +50,8 @@ public abstract partial class Program
                         color: Color.FromArgb(255, 102, 102, 102)));
                     tabs.Tab("History", () => gui.DrawText("History content", size: 12,
                         color: Color.FromArgb(255, 102, 102, 102)));
-                }, activeTabColor: Color.FromArgb(255, 76, 175, 80)));
+                });
+            });
 
             Section(gui, "Vertical Tabs", () =>
             {

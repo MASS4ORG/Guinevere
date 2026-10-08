@@ -10,6 +10,8 @@ public static partial class ControlsExtensions
         public bool Committed;
     }
 
+    static readonly string[] NumberClass = ["number"];
+
     /// <summary>
     /// A numeric text input. A click places the caret and opens keyboard editing, which commits on Enter or on focus
     /// loss. Invalid text reverts to the previous value, and everything stays clamped to
@@ -24,10 +26,6 @@ public static partial class ControlsExtensions
     /// <param name="width">Node width.</param>
     /// <param name="height">Node height.</param>
     /// <param name="format">Format applied when echoing numbers back into the field (for example "0.##").</param>
-    /// <param name="backgroundColor">The field fill; defaults to the palette surface.</param>
-    /// <param name="borderColor">The field outline; defaults to the palette border, the accent when focused.</param>
-    /// <param name="textColor">The text color; defaults to the palette text.</param>
-    /// <param name="cursorColor">The caret color; defaults to the text color.</param>
     /// <param name="fontSize">The font size.</param>
     /// <param name="padding">Inner padding.</param>
     /// <param name="dragSensitivity">Multiplier on the drag distance, letting one-step span several pixels.</param>
@@ -35,14 +33,15 @@ public static partial class ControlsExtensions
     /// <param name="id">A stable identifier; two numeric fields on the same frame must not share one.</param>
     /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
     /// <param name="mixed">Shows a dash until the user enters a shared value.</param>
+    /// <param name="classes">Extra classes for the sheet; the field is styled as <c>input.number</c>.</param>
     /// <returns>True when the user commits a valid number or changes the value.</returns>
     [PublicAPI]
     public static bool NumberField(this Gui gui, ref double value,
         double step = 1.0, double min = double.MinValue, double max = double.MaxValue,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
-        Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? cursorColor = null, float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
-        double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false)
+        float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
+        double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false,
+        IReadOnlyList<string>? classes = null)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.FieldHeightOr(height);
@@ -60,14 +59,16 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render) field.Committed = false;
         SyncNumberBuffer(field, value, format, mixed);
 
-        using (gui.Node(width, height).Padding(FitPadding(height, padding))
-                   .ContentAlignX(alignX).ContentAlignY(0.5f).Cursor(FieldCursor(enabled)).Enter())
+        using (FieldNode(gui, NumberClass, classes, id, enabled, width, height, padding)
+                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
             var interactable = gui.GetInteractable();
             HandleNumberFieldInteraction(gui, field, ref value, interactable, min, max, format, fontSize, enabled);
 
-            DrawNumberField(gui, field, backgroundColor, borderColor, textColor, cursorColor, fontSize, enabled, mixed);
+            DrawSelection(gui, field.Buffer, field.Buffer.Text, fontSize);
+            DrawInputText(gui, field.Buffer.Text, mixed ? "—" : "", fontSize, enabled);
+            DrawCursor(gui, field.Buffer, field.Buffer.Text, fontSize);
         }
         return gui.Pass == Pass.Pass2Render && (field.Committed || !value.Equals(original));
     }
@@ -77,31 +78,15 @@ public static partial class ControlsExtensions
     public static bool NumberField(this Gui gui, ref float value,
         float step = 1f, float min = float.MinValue, float max = float.MaxValue,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
-        Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? cursorColor = null, float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
-        float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false)
+        float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
+        float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false,
+        IReadOnlyList<string>? classes = null)
     {
-        width = gui.ControlStyle.FieldWidthOr(width);
-        height = gui.ControlStyle.FieldHeightOr(height);
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        padding = gui.ControlStyle.SpacingOr(padding);
-
         double d = value;
-        var changed = gui.NumberField(ref d, step, min, max, width, height, format, backgroundColor, borderColor,
-            textColor, cursorColor, fontSize, padding, dragSensitivity, enabled, id, alignX, mixed);
+        var changed = gui.NumberField(ref d, step, min, max, width, height, format, fontSize, padding,
+            dragSensitivity, enabled, id, alignX, mixed, classes);
         value = (float)d;
         return changed;
-    }
-
-    static void DrawNumberField(Gui gui, NumberFieldState field, Color? backgroundColor, Color? borderColor,
-        Color? textColor, Color? cursorColor, float fontSize, bool enabled, bool mixed)
-    {
-        var cursorColorFinal = cursorColor ?? textColor ??
-            gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        DrawInputBackground(gui, field.Buffer, backgroundColor, borderColor, enabled);
-        DrawSelection(gui, field.Buffer, field.Buffer.Text, fontSize);
-        DrawInputText(gui, field.Buffer.Text, mixed ? "—" : "", fontSize, textColor, null, enabled);
-        DrawCursor(gui, field.Buffer, field.Buffer.Text, fontSize, cursorColorFinal);
     }
 
     static void SyncNumberBuffer(NumberFieldState field, double value, string format, bool mixed)

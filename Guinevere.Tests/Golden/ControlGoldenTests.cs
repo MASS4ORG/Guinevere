@@ -32,7 +32,8 @@ public class ControlGoldenTests
             g.SetStyleToken("surface", Color.FromArgb(255, 40, 44, 52));
             g.SetStyleToken("text", Color.White);
             g.Button("Save");
-        }),
+        }
+        ),
         ["icon-button-checked"] = (60, 60, Pointer.Away, static g => g.IconButton("⚙", classes: ["checked"])),
         ["icon-button-normal"] = (60, 60, Pointer.Away, static g => g.IconButton("⚙")),
         ["icon-button-hover"] = (60, 60, Pointer.Over, static g => g.IconButton("⚙")),
@@ -43,12 +44,20 @@ public class ControlGoldenTests
         ["radio-on"] = (160, 50, Pointer.Away, static g => g.RadioButton(1, 1, "Choice")),
         ["toggle-off"] = (160, 50, Pointer.Away, static g => g.Toggle(false, "Power")),
         ["toggle-on"] = (160, 50, Pointer.Away, static g => g.Toggle(true, "Power")),
+        ["checkbox-mixed"] = (160, 50, Pointer.Away, static g => g.Checkbox(false, "Option", mixed: true)),
+        ["checkbox-disabled"] = (160, 50, Pointer.Away, static g => g.Checkbox(true, "Option", enabled: false)),
+        ["checkbox-pressed"] = (160, 50, Pointer.Pressed, static g => g.Checkbox(false, "Option")),
+        ["radio-disabled"] = (160, 50, Pointer.Away, static g => g.RadioButton(1, 1, "Choice", enabled: false)),
+        ["toggle-disabled"] = (160, 50, Pointer.Away, static g => g.Toggle(true, "Power", enabled: false)),
         ["text-input-empty"] = (240, 60, Pointer.Away, static g => g.TextInput("", placeholder: "Name")),
         ["text-input-filled"] = (240, 60, Pointer.Away, static g => g.TextInput("Guinevere")),
+        ["text-input-disabled"] = (240, 60, Pointer.Away, static g => g.TextInput("Guinevere", enabled: false)),
+        ["text-input-focused"] = (240, 60, Pointer.Pressed, static g => g.TextInput("", placeholder: "Name")),
         ["slider"] = (240, 50, Pointer.Away, static g => Slide(g)),
         ["progress"] = (240, 40, Pointer.Away, static g => g.ProgressBar(0.4f, 200)),
         ["number-field"] = (240, 60, Pointer.Away, static g => Number(g)),
         ["dropdown-closed"] = (240, 60, Pointer.Away, static g => g.Dropdown(["One", "Two"], 0)),
+        ["dropdown-placeholder"] = (240, 60, Pointer.Away, static g => g.Dropdown(["One", "Two"], enabled: false)),
         ["tabs"] = (300, 120, Pointer.Away, static g => g.Tabs(0, tabs => tabs.Tab("First").Tab("Second").DisabledTab("Third"))),
         ["label"] = (200, 40, Pointer.Away, static g => g.Label("Label text")),
     };

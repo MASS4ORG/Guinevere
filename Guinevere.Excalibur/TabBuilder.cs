@@ -15,11 +15,10 @@ public class TabBuilder
     /// <param name="enabled">A value indicating whether the tab is enabled or disabled. Defaults to true.</param>
     /// <param name="closable">Whether the user may close the tab (middle click or the "×" button).
     /// Defaults to false.</param>
-    /// <param name="backgroundColor">The background color of the tab. Defaults to null.</param>
-    /// <param name="textColor">The text color of the tab. Defaults to null.</param>
+    /// <param name="classes">Extra classes for this tab's <c>tab</c> node, to restyle it from a sheet.</param>
     /// <returns>Returns the current TabBuilder instance with the newly added tab, allowing for further configuration.</returns>
     public TabBuilder Tab(string title, Action? content = null, bool enabled = true,
-        bool closable = false, Color? backgroundColor = null, Color? textColor = null)
+        bool closable = false, IReadOnlyList<string>? classes = null)
     {
         _tabs.Add(new TabInfo
         {
@@ -27,8 +26,7 @@ public class TabBuilder
             Content = content,
             Enabled = enabled,
             Closable = closable,
-            BackgroundColor = backgroundColor,
-            TextColor = textColor
+            Classes = classes
         });
         return this;
     }

@@ -30,7 +30,7 @@ public class DockSpaceRenderTests
         var markerX = reverse ? target.Rect.X : target.Rect.X + target.Rect.W - 2;
         using (var snapshot = h.Snapshot())
         using (var bitmap = SKBitmap.FromImage(snapshot))
-            Assert.Equal((SKColor)Theme.Accent, bitmap.GetPixel((int)Math.Ceiling(markerX),
+            Assert.Equal((SKColor)h.Gui.StyleSheets.GetTokenColor("accent")!.Value, bitmap.GetPixel((int)Math.Ceiling(markerX),
                 (int)target.Rect.Y + 4));
         h.Input.ReleaseButton(MouseButton.Left);
         h.Frame(Draw);

@@ -2,6 +2,10 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
+    const string Highlighted = "highlighted";
+    static readonly string[] HighlightedModifier = [Highlighted];
+    static readonly string[] SelectedHighlightedModifiers = [StyleModifiers.Selected, Highlighted];
+
     static void ChoicePopup<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,
         bool multiple, float rowHeight, float fontSize, int visible)
     {
@@ -12,19 +16,14 @@ public static partial class ControlsExtensions
         var y = state.Anchor.Y + state.Anchor.H + 2;
         if (y + popupHeight > gui.ScreenRect.Y + gui.ScreenRect.H)
             y = Math.Max(gui.ScreenRect.Y, state.Anchor.Y - popupHeight - 2);
-        using (gui.Node(state.Anchor.W, popupHeight, $"{id}/popup").AbsoluteScreen(x, y)
-                   .BlockInput().Direction(Axis.Vertical).Enter())
+        using (gui.StyledNode("listbox", id: $"{id}/popup").Width(state.Anchor.W).Height(popupHeight)
+                   .AbsoluteScreen(x, y).BlockInput().Direction(Axis.Vertical).Enter())
         {
             gui.SetEscapesAncestorClips();
             gui.SetZIndex(ListZIndex);
             using var scope = gui.EnterFocusNavigationScope($"{id}/focus", $"{id}/button");
             scope.SetActive($"{id}/button");
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                state.PopupRect = gui.CurrentNode.Rect;
-                gui.DrawBackgroundRect(gui.ControlStyle.Popup, 4);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, gui.ControlStyle.Border, 1, 4);
-            }
+            if (gui.Pass == Pass.Pass2Render) state.PopupRect = gui.CurrentNode.Rect;
             ChoiceSearch(gui, id, state, rowHeight, fontSize);
             if (multiple) ChoiceBulk(gui, id, state, options, rowHeight, fontSize);
             ChoiceRows(gui, id, state, options, multiple, rows * rowHeight, rowHeight, fontSize);
@@ -55,9 +54,10 @@ public static partial class ControlsExtensions
     static void ChoiceBulkButton<T>(Gui gui, string id, string label, ChoiceState<T> state,
         IReadOnlyList<T> options, bool selected, float height, float fontSize)
     {
-        using (gui.Node(-1, height, id).ExpandWidth().ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+        using (gui.StyledNode("option", id: id).Height(height).ExpandWidth().ContentAlignX(0.5f).ContentAlignY(0.5f)
+                   .Enter())
         {
-            gui.DrawText(label, fontSize, gui.ControlStyle.Text);
+            gui.DrawText(label, fontSize);
             if (gui.Pass != Pass.Pass2Render) return;
             gui.RegisterFocusable(claimsArrowKeys: true);
             if (!gui.GetInteractable().OnClick() && !(gui.HasFocus() && ChoiceActivateKey(gui))) return;
@@ -81,7 +81,7 @@ public static partial class ControlsExtensions
             ListingSpacer(gui, $"{id}/pad-bottom", (state.Filtered.Count - state.Last) * height);
             if (state.Filtered.Count == 0)
                 using (gui.Node(-1, height, $"{id}/empty").ExpandWidth().ContentAlignY(0.5f).Enter())
-                    gui.DrawText("No results", fontSize, gui.ControlStyle.TextDim);
+                    gui.DrawText("No results", fontSize, PlaceholderColor(gui, true));
             if (gui.Pass != Pass.Pass2Render) return;
             state.ScrollY = gui.GetScrollState(gui.CurrentNode.Id)?.ScrollOffset.Y ?? 0;
             NavigateChoices(gui, id, state, options, multiple, viewport, height);
@@ -92,17 +92,16 @@ public static partial class ControlsExtensions
         int position, bool multiple, float height, float fontSize)
     {
         var index = state.Filtered[position];
-        using (gui.Node(-1, height, $"{id}/option/{index}").ExpandWidth().Padding(8, 0)
-                   .ContentAlignY(0.5f).Enter())
+        var modifiers = state.Checked[index]
+            ? position == state.Active ? SelectedHighlightedModifiers : SelectedModifier
+            : position == state.Active ? HighlightedModifier : NoModifiers;
+        using (gui.StyledNode("option", id: $"{id}/option/{index}", modifiers: modifiers).Height(height).ExpandWidth()
+                   .Padding(8, 0).Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(6).Enter())
         {
-            var indicator = ChoiceIndicator(multiple, state.Mixed[index], state.Checked[index]);
-            gui.DrawText(indicator + state.Labels[index], fontSize, gui.ControlStyle.Text, centerInRect: false);
+            if (multiple) ChoiceMark(gui, state.Mixed[index], state.Checked[index], fontSize);
+            gui.DrawText(state.Labels[index], fontSize, centerInRect: false);
             if (gui.Pass != Pass.Pass2Render) return;
-            var interaction = gui.GetInteractable();
-            if (state.Checked[index]) gui.DrawBackgroundRect(gui.ControlStyle.Selected, 2);
-            else if (interaction.OnHover() || position == state.Active)
-                gui.DrawBackgroundRect(gui.ControlStyle.SurfaceHover, 2);
-            if (!interaction.OnClick()) return;
+            if (!gui.GetInteractable().OnClick()) return;
             state.Active = position;
             gui.RequestFocus($"{id}/list", FocusReason.Mouse);
             QueueChoice(state, options[index], !state.Checked[index] || state.Mixed[index], multiple);
@@ -123,11 +122,15 @@ public static partial class ControlsExtensions
         state.Reveal = false;
     }
 
-    static string ChoiceIndicator(bool multiple, bool mixed, bool selected)
+    /// <summary>The check box of a multi-select row: an <c>option &gt; indicator</c> with the mark in its color.</summary>
+    static void ChoiceMark(Gui gui, bool mixed, bool selected, float fontSize)
     {
-        if (!multiple) return "";
-        if (mixed) return "— ";
-        return selected ? "☑ " : "☐ ";
+        var size = Math.Max(10, fontSize);
+        var modifiers = mixed ? MixedModifier : selected ? CheckedModifier : NoModifiers;
+        using (ChoicePart(gui, "indicator", size, size, modifiers).Enter())
+        {
+            if (gui.Pass == Pass.Pass2Render && (mixed || selected)) RenderCheckboxMark(gui, size, mixed);
+        }
     }
 
     static void NavigateChoices<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,

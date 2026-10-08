@@ -11,6 +11,7 @@ class TabInfo
     public bool Closable { get; set; }
 
     public Action? Content { get; set; }
-    public Color? BackgroundColor { get; set; }
-    public Color? TextColor { get; set; }
+
+    /// <summary>Extra classes for this tab's <c>tab</c> node.</summary>
+    public IReadOnlyList<string>? Classes { get; set; }
 }

@@ -154,18 +154,18 @@ public static partial class ControlsExtensions
         Func<T, string> display, float width, float height, float fontSize, bool enabled)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
-        using (gui.Node(width, height, $"{id}/button").Direction(Axis.Horizontal)
-                   .Padding(8, 0).ContentAlignY(0.5f).Enter())
+        ExcaliburStyles.Ensure(gui);
+        var modifiers = state.Open && enabled ? OpenModifier : NoModifiers;
+        using (Sized(gui.StyledNode("dropdown", id: $"{id}/button", modifiers: modifiers, disabled: !enabled),
+                       width, height)
+                   .Direction(Axis.Horizontal).Padding(8, 0).ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
             if (gui.Pass == Pass.Pass2Render)
             {
                 state.ButtonRect = gui.CurrentNode.Rect;
                 gui.RegisterFocusable(enabled, enabled, claimsArrowKeys: true);
-                gui.DrawBackgroundRect(gui.ControlStyle.Surface, 4);
-                gui.DrawRectBorder(gui.CurrentNode.Rect,
-                    state.Open ? gui.ControlStyle.Accent : gui.ControlStyle.Border, 1, 4);
-                DrawArrow(gui, gui.CurrentNode.Rect, 8, gui.ControlStyle.Text);
+                DrawArrow(gui, gui.CurrentNode.Rect, 8);
                 if (ChoicePressed(gui, enabled))
                 {
                     gui.RequestFocus(gui.Input.IsMouseButtonPressed(MouseButton.Left)
@@ -175,8 +175,7 @@ public static partial class ControlsExtensions
             }
             if (chips && state.Selection.Count > 0)
                 ChoiceChips(gui, id, state, display, height, fontSize, enabled);
-            else gui.DrawText(summary, fontSize, enabled ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled,
-                centerInRect: false);
+            else gui.DrawText(summary, fontSize, centerInRect: false);
         }
     }
 
@@ -186,19 +185,18 @@ public static partial class ControlsExtensions
         var count = Math.Min(2, state.Selection.Count);
         for (var i = 0; i < count; i++)
         {
-            using (gui.Node(-1, height - 6, $"{id}/chip/{i}").Padding(4, 0).BlockInput()
-                       .ContentAlignY(0.5f).Enter())
+            using (gui.StyledNode("chip", id: $"{id}/chip/{i}", disabled: !enabled).Height(height - 6).Padding(4, 0)
+                       .BlockInput().ContentAlignY(0.5f).Enter())
             {
-                gui.DrawText(display(state.Selection[i]) + " ×", fontSize, gui.ControlStyle.Text, centerInRect: false);
+                gui.DrawText(display(state.Selection[i]) + " ×", fontSize, centerInRect: false);
                 if (gui.Pass != Pass.Pass2Render) continue;
-                gui.DrawBackgroundRect(gui.ControlStyle.Selected, 3);
                 gui.RegisterFocusable(enabled, enabled);
                 if (ChoicePressed(gui, enabled))
                     state.Pending.Add(new SelectionChange<T>(state.Selection[i], false));
             }
         }
         if (state.Selection.Count > count)
-            gui.DrawText($"+{state.Selection.Count - count}", fontSize, gui.ControlStyle.TextDim);
+            gui.DrawText($"+{state.Selection.Count - count}", fontSize, PlaceholderColor(gui, enabled));
     }
 
     static bool ChoiceActivateKey(Gui gui) =>

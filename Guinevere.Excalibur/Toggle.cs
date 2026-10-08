@@ -1,174 +1,85 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
     /// <summary>
-    /// Creates a toggle switch that can be turned on/off with internal state management
+    /// A switch styled by the <c>toggle</c> rules of the GUI's sheets; its track is a <c>toggle &gt; track</c> child
+    /// holding a <c>thumb</c>, both matching <c>:checked</c> while on. Clicking the row or pressing Space while focused
+    /// flips <paramref name="isOn"/>.
     /// </summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="isOn">The value, flipped when the switch is activated.</param>
+    /// <param name="label">Text after the track.</param>
+    /// <param name="width">Track width.</param>
+    /// <param name="height">Track height.</param>
+    /// <param name="fontSize">Label size.</param>
+    /// <param name="spacing">Gap between the track and the label.</param>
+    /// <param name="enabled">When false the switch matches <c>:disabled</c> and never changes.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="id">Element id for <c>toggle#id</c> rules.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
     public static void Toggle(this Gui gui, ref bool isOn, string label = "",
         float width = 50,
         float height = ControlMetrics.CompactHeight,
-        Color? onColor = null,
-        Color? offColor = null,
-        Color? thumbColor = null,
-        Color? labelColor = null,
         float fontSize = ControlMetrics.FontSize,
         float spacing = ControlMetrics.Spacing,
-        bool enabled = true)
+        bool enabled = true,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         height = gui.ControlStyle.CompactHeightOr(height);
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         spacing = gui.ControlStyle.SpacingOr(spacing);
 
-        ToggleCore(gui, ref isOn, label, width, height, onColor, offColor,
-            thumbColor, labelColor, fontSize, spacing, enabled);
+        var row = ChoiceRowNode(gui, "toggle", label, width, height, fontSize, spacing, enabled, classes, id, filePath,
+            lineNumber);
+        using (row.Enter())
+        {
+            // The thumb's side is layout, settled in the build pass; a click shows on the next frame.
+            var thumbSide = isOn ? 1f : 0f;
+            if (ChoiceActivated(gui, enabled)) isOn = !isOn;
+            var modifiers = isOn ? CheckedModifier : NoModifiers;
+            var thumb = height * 0.8f;
+            using (ChoicePart(gui, "track", width, height, modifiers).Padding((height - thumb) * 0.5f)
+                       .ContentAlignX(thumbSide).ContentAlignY(0.5f).Enter())
+            using (ChoicePart(gui, "thumb", thumb, thumb, modifiers).Enter())
+            {
+            }
+            ChoiceLabel(gui, label, fontSize);
+        }
     }
 
-    /// <summary>
-    /// Creates a toggle switch that returns the toggled state without modifying the input
-    /// </summary>
+    /// <summary>A switch that returns the value after this frame's activation instead of changing a field.</summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="isOn">The current value.</param>
+    /// <param name="label">Text after the track.</param>
+    /// <param name="width">Track width.</param>
+    /// <param name="height">Track height.</param>
+    /// <param name="fontSize">Label size.</param>
+    /// <param name="spacing">Gap between the track and the label.</param>
+    /// <param name="enabled">When false the switch matches <c>:disabled</c> and never changes.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="id">Element id for <c>toggle#id</c> rules.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The value, flipped on the frame the switch is activated.</returns>
     public static bool Toggle(this Gui gui, bool isOn, string label = "",
         float width = 50,
         float height = ControlMetrics.CompactHeight,
-        Color? onColor = null,
-        Color? offColor = null,
-        Color? thumbColor = null,
-        Color? labelColor = null,
         float fontSize = ControlMetrics.FontSize,
         float spacing = ControlMetrics.Spacing,
-        bool enabled = true)
+        bool enabled = true,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
-        height = gui.ControlStyle.CompactHeightOr(height);
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        spacing = gui.ControlStyle.SpacingOr(spacing);
-
-        var temp = isOn;
-        ToggleCore(gui, ref temp, label, width, height, onColor, offColor,
-            thumbColor, labelColor, fontSize, spacing, enabled);
-        return temp;
-    }
-
-    static void ToggleCore(Gui gui, ref bool isOn, string label, float width, float height,
-        Color? onColor, Color? offColor, Color? thumbColor, Color? labelColor,
-        float fontSize, float spacing, bool enabled)
-    {
-        var totalWidth = CalculateToggleWidth(label, width, fontSize, spacing);
-        var totalHeight = Math.Max(height, fontSize + 4);
-
-        using (gui.Node(totalWidth, totalHeight)
-                   .Direction(Axis.Horizontal)
-                   .Gap(spacing)
-                   .Enter())
-        {
-            HandleToggleInteraction(gui, ref isOn, enabled);
-            RenderToggleSwitch(gui, isOn, width, height, onColor, offColor, thumbColor, enabled);
-            RenderToggleLabel(gui, label, fontSize, labelColor, enabled);
-        }
-    }
-
-    static float CalculateToggleWidth(string label, float width, float fontSize, float spacing)
-    {
-        return string.IsNullOrEmpty(label)
-            ? width
-            : width + spacing + MeasureTextWidth(new SKFont { Size = fontSize }, label);
-    }
-
-    static void HandleToggleInteraction(Gui gui, ref bool isOn, bool enabled)
-    {
-        if (gui.Pass != Pass.Pass2Render || !enabled) return;
-
-        // Register this toggle as focusable
-        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-
-        var interactable = gui.GetInteractable();
-
-        // Handle mouse click for focus and toggle
-        if (interactable.OnClick())
-        {
-            gui.RequestFocus(FocusReason.Mouse);
-            isOn = !isOn;
-        }
-
-        // Handle keyboard interaction for focused toggle
-        if (gui.HasFocus() && gui.Input.IsKeyPressed(KeyboardKey.Space))
-        {
-            isOn = !isOn;
-        }
-    }
-
-    static void RenderToggleSwitch(Gui gui, bool isOn, float width, float height,
-        Color? onColor, Color? offColor, Color? thumbColor, bool enabled)
-    {
-        using (gui.Node(width, height).Enter())
-        {
-            if (gui.Pass != Pass.Pass2Render) return;
-
-            var rect = gui.CurrentNode.Rect;
-            var trackColor = enabled ? GetToggleTrackColor(gui, isOn, onColor, offColor) : gui.ControlStyle.Border;
-
-            gui.DrawBackgroundRect(trackColor, height * 0.5f);
-
-            // Draw stronger focus indicator if this toggle has focus
-            if (enabled && gui.HasFocus())
-            {
-                var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, gui.ControlStyle.FocusRing, 4f, (height * 0.5f) + 4);
-                gui.DrawRectBorder(rect, gui.ControlStyle.Accent, 2f, (height * 0.5f) + 2);
-            }
-
-            var thumbProps = CalculateThumbProperties(rect, width, height, isOn);
-            DrawToggleThumb(gui, thumbProps, enabled ? thumbColor ?? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled);
-        }
-    }
-
-    static void RenderToggleLabel(Gui gui, string label, float fontSize, Color? labelColor,
-        bool enabled)
-    {
-        if (!string.IsNullOrEmpty(label))
-        {
-            var labelColorFinal = enabled ? labelColor ?? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled;
-            gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
-        }
-    }
-
-    static Color GetToggleTrackColor(Gui gui, bool isOn, Color? onColor, Color? offColor)
-    {
-        var interactable = gui.GetInteractable();
-        var isHovered = interactable.OnHover();
-
-        var on = onColor ?? gui.ControlStyle.Selected;
-        var off = offColor ?? gui.ControlStyle.Border;
-
-        return (isOn, isHovered) switch
-        {
-            (true, true) => Lighten(on),
-            (true, false) => on,
-            (false, true) => Lighten(off),
-            (false, false) => off
-        };
-    }
-
-    static (Vector2 position, float radius) CalculateThumbProperties(
-        Rect rect, float width, float height, bool isOn)
-    {
-        var thumbRadius = height * 0.4f;
-        var thumbY = rect.Y + height * 0.5f;
-        var thumbX = isOn
-            ? rect.X + width - thumbRadius - 2 // Right side when on
-            : rect.X + thumbRadius + 2; // Left side when off
-
-        return (new Vector2(thumbX, thumbY), thumbRadius);
-    }
-
-    static Color Lighten(Color color) => Color.FromArgb(
-        color.A,
-        Math.Min(255, color.R + 24),
-        Math.Min(255, color.G + 24),
-        Math.Min(255, color.B + 24));
-
-    static void DrawToggleThumb(Gui gui, (Vector2 position, float radius) thumbProps, Color thumbColor)
-    {
-        gui.DrawCircleFilled(thumbProps.position, thumbProps.radius, thumbColor);
-        gui.DrawCircleBorder(thumbProps.position, thumbProps.radius, gui.ControlStyle.Shadow);
+        gui.Toggle(ref isOn, label, width, height, fontSize, spacing, enabled, classes, id, filePath, lineNumber);
+        return isOn;
     }
 }

@@ -10,6 +10,9 @@ public static class StyleModifiers
     /// <summary>A checkbox, toggle, radio button or checkable menu item is on.</summary>
     public const string Checked = "checked";
 
+    /// <summary>A checkbox stands for a mix of on and off values, such as a multi-selection.</summary>
+    public const string Mixed = "mixed";
+
     /// <summary>A row, tab, chip or list item is part of the current selection.</summary>
     public const string Selected = "selected";
 

@@ -1,171 +1,111 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
     /// <summary>
-    /// Creates a checkbox that can be toggled on/off with internal state management
+    /// A checkbox styled by the <c>checkbox</c> rules of the GUI's sheets; its box is a <c>checkbox &gt; indicator</c>
+    /// child matching <c>:checked</c> or <c>:mixed</c>, and the mark is drawn in the indicator's <c>color</c>.
+    /// Clicking the row or pressing Space while focused flips <paramref name="isChecked"/>.
     /// </summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="isChecked">The value, flipped when the checkbox is activated.</param>
+    /// <param name="label">Text after the box.</param>
+    /// <param name="size">Side of the box.</param>
+    /// <param name="fontSize">Label size.</param>
+    /// <param name="spacing">Gap between the box and the label.</param>
+    /// <param name="enabled">When false the checkbox matches <c>:disabled</c> and never changes.</param>
+    /// <param name="mixed">Shows the mixed mark and matches <c>:mixed</c> instead of <c>:checked</c>.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="id">Element id for <c>checkbox#id</c> rules.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
     public static void Checkbox(this Gui gui, ref bool isChecked, string label = "",
         float size = ControlMetrics.IndicatorSize,
-        Color? backgroundColor = null,
-        Color? checkColor = null,
-        Color? borderColor = null,
-        Color? labelColor = null,
         float fontSize = ControlMetrics.FontSize,
         float spacing = ControlMetrics.Spacing,
-        bool enabled = true, bool mixed = false)
+        bool enabled = true, bool mixed = false,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         size = gui.ControlStyle.IndicatorSizeOr(size);
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         spacing = gui.ControlStyle.SpacingOr(spacing);
 
-        CheckboxCore(gui, ref isChecked, label, size, backgroundColor, checkColor,
-            borderColor, labelColor, fontSize, spacing, enabled, mixed);
+        CheckboxCore(gui, ref isChecked, label, size, fontSize, spacing, enabled, mixed, classes, id, filePath,
+            lineNumber);
     }
 
-    /// <summary>
-    /// Creates a checkbox that returns the toggled state without modifying the input
-    /// </summary>
+    /// <summary>A checkbox that returns the value after this frame's activation instead of changing a field.</summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="isChecked">The current value.</param>
+    /// <param name="label">Text after the box.</param>
+    /// <param name="size">Side of the box.</param>
+    /// <param name="fontSize">Label size.</param>
+    /// <param name="spacing">Gap between the box and the label.</param>
+    /// <param name="enabled">When false the checkbox matches <c>:disabled</c> and never changes.</param>
+    /// <param name="mixed">Shows the mixed mark and matches <c>:mixed</c> instead of <c>:checked</c>.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="id">Element id for <c>checkbox#id</c> rules.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The value, flipped on the frame the checkbox is activated.</returns>
     public static bool Checkbox(this Gui gui, bool isChecked, string label = "",
         float size = ControlMetrics.IndicatorSize,
-        Color? backgroundColor = null,
-        Color? checkColor = null,
-        Color? borderColor = null,
-        Color? labelColor = null,
         float fontSize = ControlMetrics.FontSize,
         float spacing = ControlMetrics.Spacing,
-        bool enabled = true, bool mixed = false)
+        bool enabled = true, bool mixed = false,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
-        size = gui.ControlStyle.IndicatorSizeOr(size);
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        spacing = gui.ControlStyle.SpacingOr(spacing);
-
-        var temp = isChecked;
-        CheckboxCore(gui, ref temp, label, size, backgroundColor, checkColor,
-            borderColor, labelColor, fontSize, spacing, enabled, mixed);
-        return temp;
+        gui.Checkbox(ref isChecked, label, size, fontSize, spacing, enabled, mixed, classes, id, filePath, lineNumber);
+        return isChecked;
     }
 
-    static void CheckboxCore(Gui gui, ref bool isChecked, string label, float size,
-        Color? backgroundColor, Color? checkColor, Color? borderColor, Color? labelColor,
-        float fontSize, float spacing, bool enabled, bool mixed)
+    static void CheckboxCore(Gui gui, ref bool isChecked, string label, float size, float fontSize, float spacing,
+        bool enabled, bool mixed, IReadOnlyList<string>? classes, string? id, string filePath, int lineNumber)
     {
-        var totalWidth = CalculateCheckboxWidth(label, size, fontSize, spacing);
-        var totalHeight = Math.Max(size, fontSize + 4);
-
-        using (gui.Node(totalWidth, totalHeight)
-                   .Direction(Axis.Horizontal)
-                   .Gap(spacing)
-                   .Enter())
+        var row = ChoiceRowNode(gui, "checkbox", label, size, size, fontSize, spacing, enabled, classes, id, filePath,
+            lineNumber);
+        using (row.Enter())
         {
-            HandleCheckboxInteraction(gui, ref isChecked, enabled);
-            RenderCheckboxSquare(gui, isChecked, size, backgroundColor, checkColor, borderColor, enabled, mixed);
-            RenderCheckboxLabel(gui, label, fontSize, labelColor, enabled);
-        }
-    }
-
-    static float CalculateCheckboxWidth(string label, float size, float fontSize, float spacing)
-    {
-        return string.IsNullOrEmpty(label)
-            ? size
-            : size + spacing + MeasureTextWidth(new SKFont { Size = fontSize }, label);
-    }
-
-    static void HandleCheckboxInteraction(Gui gui, ref bool isChecked, bool enabled)
-    {
-        if (gui.Pass != Pass.Pass2Render || !enabled) return;
-
-        // Register this checkbox as focusable
-        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-
-        var interactable = gui.GetInteractable();
-
-        // Handle mouse click for focus and toggle
-        if (interactable.OnClick())
-        {
-            gui.RequestFocus(FocusReason.Mouse);
-            isChecked = !isChecked;
-        }
-
-        // Handle keyboard interaction for focused checkbox
-        if (gui.HasFocus() && gui.Input.IsKeyPressed(KeyboardKey.Space))
-        {
-            isChecked = !isChecked;
-        }
-    }
-
-    static void RenderCheckboxSquare(Gui gui, bool isChecked, float size,
-        Color? backgroundColor, Color? checkColor, Color? borderColor, bool enabled, bool mixed)
-    {
-        var focused = enabled && gui.HasFocus();
-        using (gui.Node(size, size).Enter())
-        {
-            if (gui.Pass != Pass.Pass2Render) return;
-
-            var rect = gui.CurrentNode.Rect;
-            var bgColor = GetCheckboxBackgroundColor(gui, isChecked, backgroundColor);
-            var borderColorFinal = enabled ? borderColor ?? gui.ControlStyle.Border : gui.ControlStyle.Border;
-
-            if (focused)
+            if (ChoiceActivated(gui, enabled)) isChecked = !isChecked;
+            var modifiers = mixed ? MixedModifier : isChecked ? CheckedModifier : NoModifiers;
+            using (ChoicePart(gui, "indicator", size, size, modifiers).Enter())
             {
-                var focusRect = new Rect(rect.X - 3, rect.Y - 3, rect.W + 6, rect.H + 6);
-                gui.DrawRectBorder(focusRect, gui.ControlStyle.FocusRing, 4f, 4);
-                gui.DrawBackgroundRect(bgColor, 2);
-                gui.DrawRectBorder(rect, gui.ControlStyle.Accent, 2f, 2);
+                if (gui.Pass == Pass.Pass2Render && (mixed || isChecked)) RenderCheckboxMark(gui, size, mixed);
             }
-            else
-            {
-                gui.DrawBackgroundRect(enabled ? bgColor : gui.ControlStyle.Surface, 2);
-                gui.DrawRectBorder(rect, borderColorFinal, 1f, 2);
-            }
-
-            RenderCheckboxMark(gui, rect, size, isChecked, checkColor, enabled, mixed);
+            ChoiceLabel(gui, label, fontSize);
         }
     }
 
-    static void RenderCheckboxMark(Gui gui, Rect rect, float size, bool isChecked,
-        Color? checkColor, bool enabled, bool mixed)
+    static void RenderCheckboxMark(Gui gui, float size, bool mixed)
     {
+        var rect = gui.CurrentNode.Rect;
+        var color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         if (mixed)
-            gui.DrawRect(new Rect(rect.X + size * 0.2f, rect.Y + size * 0.45f, size * 0.6f, size * 0.1f),
-                checkColor ?? gui.ControlStyle.Text);
-        else if (isChecked)
-            DrawCheckmark(gui, rect, size, enabled ? checkColor ?? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled);
-    }
-
-    static void RenderCheckboxLabel(Gui gui, string label, float fontSize, Color? labelColor,
-        bool enabled)
-    {
-        if (!string.IsNullOrEmpty(label))
         {
-            var labelColorFinal = enabled ? labelColor ?? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled;
-            gui.DrawText(label, fontSize, labelColorFinal, centerInRect: false);
+            gui.DrawRect(new Rect(rect.X + size * 0.2f, rect.Y + size * 0.45f, size * 0.6f, size * 0.1f), color);
+            return;
         }
+
+        DrawCheckmark(gui, rect, size, color);
     }
 
-    static Color GetCheckboxBackgroundColor(Gui gui, bool isChecked, Color? backgroundColor)
-    {
-        return backgroundColor ?? (isChecked ? gui.ControlStyle.Selected : gui.ControlStyle.Surface);
-    }
-
-    static void DrawCheckmark(Gui gui, Rect rect, float size, Color checkColor)
+    /// <summary>Draws a two-stroke check mark centred in <paramref name="rect"/>.</summary>
+    static void DrawCheckmark(Gui gui, Rect rect, float size, Color color)
     {
         var (centerX, centerY) = (rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f);
         var checkSize = size * 0.3f;
-
-        var points = CalculateCheckmarkPoints(centerX, centerY, checkSize);
-
-        gui.DrawLine(points.p1, points.p2, checkColor, 2f);
-        gui.DrawLine(points.p2, points.p3, checkColor, 2f);
-    }
-
-    static (Vector2 p1, Vector2 p2, Vector2 p3) CalculateCheckmarkPoints(
-        float centerX, float centerY, float checkSize)
-    {
-        return (
-            new Vector2(centerX - checkSize * 0.5f, centerY),
-            new Vector2(centerX - checkSize * 0.1f, centerY + checkSize * 0.4f),
-            new Vector2(centerX + checkSize * 0.6f, centerY - checkSize * 0.4f)
-        );
+        var p1 = new Vector2(centerX - checkSize * 0.5f, centerY);
+        var p2 = new Vector2(centerX - checkSize * 0.1f, centerY + checkSize * 0.4f);
+        var p3 = new Vector2(centerX + checkSize * 0.6f, centerY - checkSize * 0.4f);
+        gui.DrawLine(p1, p2, color, 2f);
+        gui.DrawLine(p2, p3, color, 2f);
     }
 }

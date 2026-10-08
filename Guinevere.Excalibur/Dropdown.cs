@@ -25,8 +25,13 @@ public static partial class ControlsExtensions
         public Rect Anchor { get; set; }
     }
 
+    static readonly string[] OpenModifier = [StyleModifiers.Open];
+    static readonly string[] SelectedModifier = [StyleModifiers.Selected];
+
     /// <summary>
-    /// A dropdown that opens a list of options over the rest of the frame.
+    /// A dropdown that opens a list of options over the rest of the frame. The button is styled by the
+    /// <c>dropdown</c> rules (<c>:open</c>, <c>:hover</c>, <c>:disabled</c>), with its label in a <c>value</c> or
+    /// <c>placeholder</c> child; the list is a <c>listbox</c> of <c>option</c> rows, the chosen one <c>:selected</c>.
     /// </summary>
     /// <param name="gui">The GUI instance.</param>
     /// <param name="options">The choices.</param>
@@ -34,36 +39,22 @@ public static partial class ControlsExtensions
     /// <param name="width">Button width. Zero fills the parent.</param>
     /// <param name="height">Button height.</param>
     /// <param name="placeholder">Shown when nothing is selected.</param>
-    /// <param name="backgroundColor">Button fill. Defaults to the palette's surface.</param>
-    /// <param name="borderColor">Button outline. Defaults to the palette's border.</param>
-    /// <param name="textColor">Label color. Defaults to the palette's text.</param>
-    /// <param name="placeholderColor">Placeholder color. Defaults to the palette's dim text.</param>
-    /// <param name="dropdownColor">List fill. Defaults to the palette's popup.</param>
-    /// <param name="hoverColor">Fill of the option under the pointer.</param>
-    /// <param name="selectedColor">Fill of the chosen option.</param>
     /// <param name="fontSize">Label size.</param>
     /// <param name="padding">Horizontal padding inside the button and the options.</param>
-    /// <param name="borderRadius">Corner radius.</param>
     /// <param name="maxVisibleItems">How many options the list shows before it scrolls.</param>
     /// <param name="enabled">Whether the dropdown may be opened. A disabled dropdown is dimmed and inert.</param>
+    /// <param name="classes">Extra classes for the button.</param>
     /// <param name="filePath">Call site, supplied by the compiler. Pass an id to separate two dropdowns sharing one.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void Dropdown(this Gui gui, string[] options, ref int selectedIndex,
         float width = ControlMetrics.FieldWidth,
         float height = ControlMetrics.FieldHeight,
         string placeholder = "Select an option...",
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? textColor = null,
-        Color? placeholderColor = null,
-        Color? dropdownColor = null,
-        Color? hoverColor = null,
-        Color? selectedColor = null,
         float fontSize = ControlMetrics.FontSize,
         float padding = ControlMetrics.Spacing,
-        float borderRadius = ControlMetrics.CornerRadius,
         int maxVisibleItems = 6,
         bool enabled = true,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
@@ -71,14 +62,13 @@ public static partial class ControlsExtensions
         height = gui.ControlStyle.FieldHeightOr(height);
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
-        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
 
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(options);
+        ExcaliburStyles.Ensure(gui);
 
         var id = gui.NodeId(filePath, lineNumber);
         var state = DropdownStateFor(gui, id);
-        var palette = gui.ControlStyle;
 
         if (gui.Pass == Pass.Pass1Build)
         {
@@ -99,19 +89,12 @@ public static partial class ControlsExtensions
             if (!enabled) state.IsOpen = false;
         }
 
-        DrawButton(gui, id, options, selectedIndex, width, height, placeholder,
-            enabled ? backgroundColor ?? palette.Surface : gui.ControlStyle.Surface,
-            enabled ? borderColor ?? palette.Border : gui.ControlStyle.Border,
-            enabled ? textColor ?? palette.Text : gui.ControlStyle.TextDisabled,
-            enabled ? placeholderColor ?? palette.TextDim : gui.ControlStyle.TextDisabled,
-            fontSize, padding, borderRadius, state, enabled);
+        DrawButton(gui, id, options, selectedIndex, width, height, placeholder, fontSize, padding, state, enabled,
+            classes);
 
         if (!enabled || !state.IsOpen || state.Anchor.W <= 0) return;
 
-        DrawList(gui, id, options, ref selectedIndex, state.Anchor, height,
-            dropdownColor ?? palette.Popup, borderColor ?? palette.Border,
-            textColor ?? palette.Text, hoverColor ?? palette.SurfaceHover,
-            selectedColor ?? palette.Selected, fontSize, padding, borderRadius, maxVisibleItems, state);
+        DrawList(gui, id, options, ref selectedIndex, state.Anchor, height, fontSize, padding, maxVisibleItems, state);
     }
 
     /// <summary>
@@ -123,18 +106,11 @@ public static partial class ControlsExtensions
     /// <param name="width">Button width. Zero fills the parent.</param>
     /// <param name="height">Button height.</param>
     /// <param name="placeholder">Shown when nothing is selected.</param>
-    /// <param name="backgroundColor">Button fill.</param>
-    /// <param name="borderColor">Button outline.</param>
-    /// <param name="textColor">Label color.</param>
-    /// <param name="placeholderColor">Placeholder color.</param>
-    /// <param name="dropdownColor">List fill.</param>
-    /// <param name="hoverColor">Fill of the option under the pointer.</param>
-    /// <param name="selectedColor">Fill of the chosen option.</param>
     /// <param name="fontSize">Label size.</param>
     /// <param name="padding">Horizontal padding.</param>
-    /// <param name="borderRadius">Corner radius.</param>
     /// <param name="maxVisibleItems">How many options the list shows before it scrolls.</param>
     /// <param name="enabled">Whether the dropdown may be opened. A disabled dropdown is dimmed and inert.</param>
+    /// <param name="classes">Extra classes for the button.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     /// <returns>The chosen index after this frame.</returns>
@@ -142,31 +118,17 @@ public static partial class ControlsExtensions
         float width = ControlMetrics.FieldWidth,
         float height = ControlMetrics.FieldHeight,
         string placeholder = "Select an option...",
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? textColor = null,
-        Color? placeholderColor = null,
-        Color? dropdownColor = null,
-        Color? hoverColor = null,
-        Color? selectedColor = null,
         float fontSize = ControlMetrics.FontSize,
         float padding = ControlMetrics.Spacing,
-        float borderRadius = ControlMetrics.CornerRadius,
         int maxVisibleItems = 6,
         bool enabled = true,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        width = gui.ControlStyle.FieldWidthOr(width);
-        height = gui.ControlStyle.FieldHeightOr(height);
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        padding = gui.ControlStyle.SpacingOr(padding);
-        borderRadius = gui.ControlStyle.CornerRadiusOr(borderRadius);
-
         var index = selectedIndex;
-        Dropdown(gui, options, ref index, width, height, placeholder, backgroundColor, borderColor,
-            textColor, placeholderColor, dropdownColor, hoverColor, selectedColor, fontSize, padding,
-            borderRadius, maxVisibleItems, enabled, filePath, lineNumber);
+        Dropdown(gui, options, ref index, width, height, placeholder, fontSize, padding, maxVisibleItems, enabled,
+            classes, filePath, lineNumber);
         return index;
     }
 
@@ -181,13 +143,13 @@ public static partial class ControlsExtensions
     static DropdownState DropdownStateFor(Gui gui, string id) =>
         gui.ControlState(id, () => new DropdownState());
 
-    static void DrawButton(Gui gui, string id, string[] options, int selectedIndex,
-        float width, float height, string placeholder, Color background, Color border, Color text,
-        Color placeholderText, float fontSize, float padding, float borderRadius, DropdownState state,
-        bool enabled)
+    static void DrawButton(Gui gui, string id, string[] options, int selectedIndex, float width, float height,
+        string placeholder, float fontSize, float padding, DropdownState state, bool enabled,
+        IReadOnlyList<string>? classes)
     {
-        using (gui.Node(width, height, $"{id}/button").Direction(Axis.Horizontal)
-                   .Padding(padding, 0).ContentAlignY(0.5f).Enter())
+        var modifiers = state.IsOpen && enabled ? OpenModifier : NoModifiers;
+        using (Sized(gui.StyledNode("dropdown", classes, $"{id}/button", modifiers, disabled: !enabled), width, height)
+                   .Direction(Axis.Horizontal).Padding(padding, 0).ContentAlignY(0.5f).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
             {
@@ -198,27 +160,25 @@ public static partial class ControlsExtensions
                 gui.RegisterFocusable();
                 var interactable = gui.GetInteractable();
 
-                gui.DrawBackgroundRect(background, borderRadius);
-                gui.DrawRectBorder(rect, state.IsOpen && enabled ? gui.ControlStyle.Accent : border,
-                    state.IsOpen && enabled ? 2f : 1f, borderRadius);
-
                 if (enabled && interactable.OnClick())
                 {
                     gui.RequestFocus(FocusReason.Mouse);
                     state.RequestedOpen = !state.IsOpen;
                 }
 
-                DrawArrow(gui, rect, padding, text);
+                DrawArrow(gui, rect, padding);
             }
 
-            var label = selectedIndex >= 0 && selectedIndex < options.Length ? options[selectedIndex] : placeholder;
-            gui.DrawText(label, fontSize, selectedIndex >= 0 ? text : placeholderText, centerInRect: false);
+            var label = selectedIndex >= 0 && selectedIndex < options.Length ? options[selectedIndex] : "";
+            DrawInputText(gui, label, placeholder, fontSize, enabled, clip: false);
         }
     }
 
-    static void DrawArrow(Gui gui, Rect rect, float padding, Color color)
+    /// <summary>The open-list arrow at the right of a dropdown button, in the button's text color.</summary>
+    static void DrawArrow(Gui gui, Rect rect, float padding)
     {
         const float size = 4f;
+        var color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         var x = rect.X + rect.W - padding - size;
         var y = rect.Y + (rect.H / 2f);
 
@@ -232,10 +192,8 @@ public static partial class ControlsExtensions
     /// The option list, positioned over the frame rather than inside the flow, so it is not clipped by
     /// whatever panel the dropdown sits in.
     /// </summary>
-    static void DrawList(Gui gui, string id, string[] options, ref int selectedIndex,
-        Rect buttonRect, float rowHeight, Color background, Color border, Color text, Color hover,
-        Color selected, float fontSize, float padding, float borderRadius, int maxVisibleItems,
-        DropdownState state)
+    static void DrawList(Gui gui, string id, string[] options, ref int selectedIndex, Rect buttonRect,
+        float rowHeight, float fontSize, float padding, int maxVisibleItems, DropdownState state)
     {
         var visible = Math.Min(options.Length, Math.Max(1, maxVisibleItems));
         var listHeight = visible * rowHeight;
@@ -245,7 +203,7 @@ public static partial class ControlsExtensions
 
         var chosen = -1;
 
-        using (gui.Node(buttonRect.W, listHeight, $"{id}/list")
+        using (gui.StyledNode("listbox", id: $"{id}/list").Width(buttonRect.W).Height(listHeight)
                    .AbsoluteScreen(buttonRect.X, top)
                    .BlockInput()
                    .Direction(Axis.Vertical)
@@ -256,37 +214,34 @@ public static partial class ControlsExtensions
             gui.SetZIndex(ListZIndex);
             gui.ScrollY();
 
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                gui.DrawBackgroundRect(background, borderRadius);
-                gui.DrawRectBorder(gui.CurrentNode.Rect, border, 1f, borderRadius);
-            }
-
             for (var i = 0; i < options.Length; i++)
             {
-                using (gui.Node(-1, rowHeight, $"{id}/list/{i}").ExpandWidth()
-                           .Padding(padding, 0).ContentAlignY(0.5f).Enter())
+                var modifiers = i == selectedIndex ? SelectedModifier : NoModifiers;
+                using (gui.StyledNode("option", id: $"{id}/list/{i}", modifiers: modifiers).Height(rowHeight)
+                           .ExpandWidth().Padding(padding, 0).ContentAlignY(0.5f).Enter())
                 {
-                    if (gui.Pass == Pass.Pass2Render)
-                    {
-                        gui.RegisterFocusable(parentId: $"{id}/button");
-                        var interactable = gui.GetInteractable();
+                    if (DropdownOptionInput(gui, id)) chosen = i;
 
-                        if (i == selectedIndex) gui.DrawBackgroundRect(selected, borderRadius);
-                        else if (interactable.OnHover()) gui.DrawBackgroundRect(hover, borderRadius);
-
-                        if (interactable.OnClick())
-                        {
-                            gui.RequestFocus(FocusReason.Mouse);
-                            chosen = i;
-                        }
-                    }
-
-                    gui.DrawText(options[i], fontSize, text, centerInRect: false);
+                    gui.DrawText(options[i], fontSize, centerInRect: false);
                 }
             }
         }
 
+        CompleteDropdownSelection(gui, state, chosen, buttonRect);
+    }
+
+    static bool DropdownOptionInput(Gui gui, string id)
+    {
+        if (gui.Pass != Pass.Pass2Render) return false;
+        gui.RegisterFocusable(parentId: $"{id}/button");
+        var interactable = gui.GetInteractable();
+        if (!interactable.OnClick()) return false;
+        gui.RequestFocus(FocusReason.Mouse);
+        return true;
+    }
+
+    static void CompleteDropdownSelection(Gui gui, DropdownState state, int chosen, Rect buttonRect)
+    {
         if (gui.Pass != Pass.Pass2Render) return;
 
         if (chosen >= 0)

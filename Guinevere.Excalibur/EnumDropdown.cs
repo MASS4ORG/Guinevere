@@ -16,6 +16,7 @@ public enum EnumPresentation
 public static partial class ControlsExtensions
 {
     static readonly ConditionalWeakTable<Type, EnumChoices> EnumChoicesByType = new();
+    static readonly string[] SegmentClass = ["segment"];
 
     sealed class EnumChoices
     {
@@ -129,14 +130,14 @@ public static partial class ControlsExtensions
         string label, bool checkedValue, bool isMixed,
         bool multiple, float fontSize, bool enabled)
     {
-        using (gui.Node(-1, -1, $"{id}/toggle/{option}").Expand().BlockInput()
-                           .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+        ExcaliburStyles.Ensure(gui);
+        var modifiers = checkedValue && !isMixed ? CheckedModifier : NoModifiers;
+        using (gui.StyledNode("button", SegmentClass, $"{id}/toggle/{option}", modifiers, disabled: !enabled)
+                   .Expand().BlockInput().ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
         {
-            gui.DrawText((isMixed ? "— " : "") + label, gui.ControlStyle.FontSizeOr(fontSize),
-                enabled ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled);
+            gui.DrawText((isMixed ? "— " : "") + label, gui.ControlStyle.FontSizeOr(fontSize));
             if (gui.Pass != Pass.Pass2Render) return;
             gui.RegisterFocusable(enabled, enabled);
-            gui.DrawBackgroundRect(checkedValue && !isMixed ? gui.ControlStyle.Selected : gui.ControlStyle.Surface, 3);
             if (ChoicePressed(gui, enabled))
             {
                 gui.RequestFocus(FocusReason.Mouse);
@@ -163,9 +164,11 @@ public static partial class ControlsExtensions
     static void EnumPageButton(Gui gui, string id, string label, int step, ChoiceState<Enum> state,
         Enum[] values, Enum current, float height, float fontSize, bool enabled)
     {
-        using (gui.Node(height, height, id).BlockInput().ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+        ExcaliburStyles.Ensure(gui);
+        using (gui.StyledNode("button", IconClass, id, disabled: !enabled).Width(height).Height(height).BlockInput()
+                   .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
         {
-            gui.DrawText(label, fontSize, enabled ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled);
+            gui.DrawText(label, fontSize);
             if (gui.Pass != Pass.Pass2Render) return;
             gui.RegisterFocusable(enabled && values.Length > 0, enabled);
             if (!enabled || values.Length == 0) return;

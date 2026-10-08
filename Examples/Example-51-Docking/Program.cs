@@ -41,7 +41,7 @@ public abstract class Program
 
     public static void Main()
     {
-        var gui = new Gui();
+        var gui = new Gui { ControlPalette = ControlPalette.Dark };
         using var window = new GuiWindow(gui, 1200, 800, "Guinevere — Docking");
         window.RunGui(() => Draw(gui));
     }
@@ -64,6 +64,9 @@ public abstract class Program
         Toolbar(gui);
         gui.DockSpace(_layout, PanelInfo, RenderPanel, Theme, TabStripActions);
     }
+
+    /// <summary>A theme color from the GUI's sheets, so the demo's own drawing follows the dock's look.</summary>
+    static Color Token(Gui gui, string name) => gui.StyleSheets.GetTokenColor(name) ?? Color.Magenta;
 
     static DockPanelInfo? PanelInfo(string panelId) =>
         Titles.TryGetValue(panelId, out var title)
@@ -92,12 +95,12 @@ public abstract class Program
             if (gui.Pass == Pass.Pass2Render)
             {
                 var interactable = gui.GetInteractable();
-                if (interactable.OnHover()) gui.DrawBackgroundRect(Theme.Hover, 2);
+                if (interactable.OnHover()) gui.DrawBackgroundRect(Token(gui, "surface-hover"), 2);
                 if (interactable.OnClick()) _menuPanelId = _menuPanelId == panelId ? null : panelId;
             }
 
             if (gui.Pass == Pass.Pass2Render)
-                DrawOverflowDots(gui, _menuPanelId == panelId ? Theme.Ink : Theme.InkDim);
+                DrawOverflowDots(gui, Token(gui, _menuPanelId == panelId ? "text" : "text-dim"));
         }
     }
 
@@ -115,7 +118,7 @@ public abstract class Program
     {
         using (gui.Node(-1, 32).ExpandWidth().Direction(Axis.Horizontal).Padding(0, 6).Gap(6).Enter())
         {
-            gui.DrawBackgroundRect(Theme.TabStrip);
+            gui.DrawBackgroundRect(Token(gui, "base-background"));
 
             if (ToolbarButton(gui, "Save layout")) _saved = _layout.ToJson();
             if (ToolbarButton(gui, "Load layout") && _saved is not null)
@@ -137,11 +140,11 @@ public abstract class Program
             if (gui.Pass == Pass.Pass2Render)
             {
                 var interactable = gui.GetInteractable();
-                gui.DrawBackgroundRect(interactable.OnHover() ? Theme.Hover : Theme.Tab, 3);
+                gui.DrawBackgroundRect(Token(gui, interactable.OnHover() ? "surface-hover" : "surface"), 3);
                 clicked = interactable.OnClick();
             }
 
-            gui.DrawText(label, 11, Theme.Ink);
+            gui.DrawText(label, 11, Token(gui, "text"));
         }
 
         return clicked;
@@ -149,12 +152,15 @@ public abstract class Program
 
     static void RenderPanel(string panelId, Gui gui)
     {
+        var ink = Token(gui, "text");
+        var inkDim = Token(gui, "text-dim");
         using (gui.Node().Expand().Padding(10).Gap(6).Enter())
         {
-            gui.DrawText(Titles.GetValueOrDefault(panelId, panelId), 15, Theme.Ink, centerInRect: false);
+            gui.DrawText(Titles.GetValueOrDefault(panelId, panelId), 15, ink, centerInRect: false);
 
             if (_menuPanelId == panelId)
-                gui.DrawText("(the overflow menu for this panel is open)", 11, Theme.Accent, centerInRect: false);
+                gui.DrawText("(the overflow menu for this panel is open)", 11, Token(gui, "accent"),
+                    centerInRect: false);
 
             switch (panelId)
             {
@@ -166,15 +172,15 @@ public abstract class Program
 
                 case "hierarchy":
                     foreach (var name in new[] { "Root", "  Camera", "  Light", "  Player", "    Mesh" })
-                        gui.DrawText(name, 12, Theme.InkDim, centerInRect: false);
+                        gui.DrawText(name, 12, inkDim, centerInRect: false);
                     break;
 
                 case "inspector":
                     foreach (var field in new[] { "Position", "Rotation", "Scale" })
                         using (gui.Node(-1, 20).ExpandWidth().Direction(Axis.Horizontal).Gap(8).Enter())
                         {
-                            gui.DrawText(field, 12, Theme.InkDim, centerInRect: false);
-                            gui.DrawText("0.0, 0.0, 0.0", 12, Theme.Ink, centerInRect: false);
+                            gui.DrawText(field, 12, inkDim, centerInRect: false);
+                            gui.DrawText("0.0, 0.0, 0.0", 12, ink, centerInRect: false);
                         }
 
                     break;
@@ -184,7 +190,7 @@ public abstract class Program
                     {
                         gui.ScrollY();
                         for (var i = 0; i < 40; i++)
-                            gui.DrawText($"[{i:00}] log line", 11, Theme.InkDim, centerInRect: false);
+                            gui.DrawText($"[{i:00}] log line", 11, inkDim, centerInRect: false);
                     }
 
                     break;
@@ -202,7 +208,7 @@ public abstract class Program
 
             var rect = gui.CurrentNode.Rect;
             var center = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);
-            gui.DrawCircleFilled(center, MathF.Min(rect.W, rect.H) * 0.2f, Color.FromArgb(90, Theme.Accent));
+            gui.DrawCircleFilled(center, MathF.Min(rect.W, rect.H) * 0.2f, Color.FromArgb(90, Token(gui, "accent")));
         }
     }
 }

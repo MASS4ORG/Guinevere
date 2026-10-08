@@ -13,7 +13,9 @@ public static partial class ControlsExtensions
     /// A numeric slider. The caller owns the value (like <c>Toggle</c>), so the control never fights an
     /// external databind. Clicking anywhere on the track jumps there, dragging keeps scrubbing even when
     /// the pointer leaves the widget, and the keyboard arrows push the value by one <paramref name="step"/>
-    /// when the slider has focus. Pass <paramref name="step"/> larger than zero to snap to multiples.
+    /// when the slider has focus. Pass <paramref name="step"/> larger than zero to snap to multiples. Styled by the
+    /// <c>slider</c> rules (<c>:disabled</c>; <c>color</c> for the value label) and its drawn parts <c>track</c>,
+    /// <c>fill</c> and <c>thumb</c> (<c>:focus</c> while the slider has focus).
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="value">The current value; clamped into [<paramref name="min"/>, <paramref name="max"/>].</param>
@@ -22,19 +24,17 @@ public static partial class ControlsExtensions
     /// <param name="width">Node width. The value label, when shown, adds its own width after the track.</param>
     /// <param name="height">Node height.</param>
     /// <param name="step">Snap interval, or 0 to move continuously.</param>
-    /// <param name="trackColor">The groove color; defaults to the palette border.</param>
-    /// <param name="fillColor">The filled portion color; defaults to the palette accent.</param>
-    /// <param name="thumbColor">The thumb color; defaults to the palette knob.</param>
     /// <param name="showValue">Whether to draw the numeric value to the right of the track.</param>
     /// <param name="fontSize">Font size of the value label.</param>
     /// <param name="enabled">Whether the slider responds to input.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site's slider a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site's slider a unique control.</param>
     [PublicAPI]
     public static void Slider(this Gui gui, ref float value, float min, float max,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.CompactHeight, float step = 0f,
-        Color? trackColor = null, Color? fillColor = null, Color? thumbColor = null,
         bool showValue = false, float fontSize = ControlMetrics.CompactFontSize, bool enabled = true,
+        IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
@@ -44,25 +44,25 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         if (max < min) (min, max) = (max, min);
         value = Math.Clamp(value, min, max);
+        ExcaliburStyles.Ensure(gui);
 
         var id = gui.NodeId(filePath, lineNumber);
         var state = gui.ControlState(id, () => new SliderState());
 
-        using (gui.Node(width, height).Direction(Axis.Horizontal).Gap(8).ContentAlignY(0.5f).Enter())
+        using (Sized(gui.StyledNode("slider", classes, disabled: !enabled), width, height)
+                   .Direction(Axis.Horizontal).Gap(8).ContentAlignY(0.5f).Enter())
         {
             using (gui.Node().Expand().Enter())
             {
-                RenderSlider(gui, state, ref value, min, max, step, trackColor, fillColor, thumbColor, enabled);
+                RenderSlider(gui, state, ref value, min, max, step, enabled);
             }
 
-            if (showValue)
-                gui.DrawText(FormatSliderValue(value, step), fontSize,
-                    enabled ? gui.ControlStyle.Text : gui.ControlStyle.TextDisabled, centerInRect: false);
+            if (showValue) gui.DrawText(FormatSliderValue(value, step), fontSize, centerInRect: false);
         }
     }
 
     static void RenderSlider(Gui gui, SliderState state, ref float value, float min, float max,
-        float step, Color? trackColor, Color? fillColor, Color? thumbColor, bool enabled)
+        float step, bool enabled)
     {
         if (gui.Pass != Pass.Pass2Render) return;
 
@@ -111,8 +111,7 @@ public static partial class ControlsExtensions
             }
         }
 
-        DrawSliderShape(gui, rect, trackY, trackHeight, thumbCenter, thumbRadius,
-            trackColor, fillColor, thumbColor, enabled);
+        DrawSliderShape(gui, rect, trackY, trackHeight, thumbCenter, thumbRadius);
     }
 
     static float ValueFromPointerX(float x, Rect rect, float min, float max, float step)
@@ -123,23 +122,22 @@ public static partial class ControlsExtensions
         return Math.Clamp(value, min, max);
     }
 
+    /// <summary>Draws the <c>track</c>, <c>fill</c> and <c>thumb</c> parts in their sheet colors.</summary>
     static void DrawSliderShape(Gui gui, Rect rect, float trackY, float trackHeight,
-        Vector2 thumbCenter, float thumbRadius,
-        Color? trackColor, Color? fillColor, Color? thumbColor, bool enabled)
+        Vector2 thumbCenter, float thumbRadius)
     {
         var track = new Rect(rect.X, trackY, rect.W, trackHeight);
         var fillWidth = rect.X <= thumbCenter.X ? thumbCenter.X - rect.X : 0f;
 
-        gui.DrawRect(track, enabled ? trackColor ?? gui.ControlStyle.Border : gui.ControlStyle.Border);
-        gui.DrawRect(new Rect(rect.X, trackY, fillWidth, trackHeight),
-            enabled ? fillColor ?? gui.ControlStyle.Accent : gui.ControlStyle.TextDisabled);
+        gui.DrawRect(track, PartColor(gui, "track", "background-color"));
+        gui.DrawRect(new Rect(rect.X, trackY, fillWidth, trackHeight), PartColor(gui, "fill", "background-color"));
 
-        var thumb = enabled ? thumbColor ?? gui.ControlStyle.TextOnAccent : gui.ControlStyle.TextDisabled;
-        if (gui.HasFocus())
-            gui.DrawCircleBorder(thumbCenter, thumbRadius + 3f, gui.ControlStyle.Accent, 2f);
+        var thumb = gui.ResolvePart("thumb", gui.HasFocus() ? StyleState.Focus : StyleState.None);
+        if (thumb.GetColor("outline-color") is { } ring)
+            gui.DrawCircleBorder(thumbCenter, thumbRadius + 3f, ring, 2f);
 
-        gui.DrawCircleFilled(thumbCenter, thumbRadius, thumb);
-        gui.DrawCircleBorder(thumbCenter, thumbRadius, gui.ControlStyle.Shadow);
+        gui.DrawCircleFilled(thumbCenter, thumbRadius, thumb.GetColor("background-color") ?? Color.Transparent);
+        gui.DrawCircleBorder(thumbCenter, thumbRadius, thumb.GetColor("border-color") ?? Color.Transparent);
     }
 
     static string FormatSliderValue(float value, float step) =>

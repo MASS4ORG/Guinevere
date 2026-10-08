@@ -15,22 +15,21 @@ public static partial class ControlsExtensions
     /// <param name="axis">The container's layout direction: horizontal splits side by side.</param>
     /// <param name="thickness">The divider's width across the split, in pixels.</param>
     /// <param name="min">The closest either side may get to collapsing, as a fraction.</param>
-    /// <param name="color">The divider color. Defaults to a mid grey.</param>
-    /// <param name="hoverColor">The highlight color painted over the whole handle while hovered or
-    /// dragged, so the grab zone reads as a handle. Defaults to a lighter grey.</param>
+    /// <param name="classes">Extra classes for the sheet; the handle is styled by the <c>splitter</c> rules, with
+    /// <c>:hover</c> and <c>:active</c> (dragging) marking the grab zone.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     /// <returns>True if this frame moved the divider.</returns>
     public static bool Splitter(this Gui gui, ref float fraction, Axis axis, float thickness = 6f,
-        float min = 0.1f, Color? color = null, Color? hoverColor = null,
+        float min = 0.1f, IReadOnlyList<string>? classes = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         bool changed;
         var horizontal = axis == Axis.Horizontal;
 
-        var node = horizontal
-            ? gui.Node(thickness, filePath: filePath, lineNumber: lineNumber).ExpandHeight()
-            : gui.Node(-1, thickness, filePath: filePath, lineNumber: lineNumber).ExpandWidth();
+        ExcaliburStyles.Ensure(gui);
+        var node = gui.StyledNode("splitter", classes, filePath: filePath, lineNumber: lineNumber);
+        node = horizontal ? node.Width(thickness).ExpandHeight() : node.Height(thickness).ExpandWidth();
         node.Cursor(horizontal ? PointerCursor.ResizeHorizontal : PointerCursor.ResizeVertical);
 
         using (node.Enter())
@@ -39,12 +38,6 @@ public static partial class ControlsExtensions
 
             var interactable = gui.GetInteractable();
             var dragging = interactable.OnDrag(out var args);
-            // Not "grabbable" while something else owns the pointer - a tab being dragged past it.
-            var active = dragging || (!gui.IsPointerCaptured && interactable.OnHover());
-
-            gui.DrawRectFilled(gui.CurrentNode.Rect, color ?? gui.ControlStyle.Border);
-            if (active)
-                gui.DrawBackgroundRect(hoverColor ?? gui.ControlStyle.SurfaceHover);
 
             // The split position is anchored to where it was when the drag started and then offset by
             // the pointer's total travel, rather than accumulated frame by frame: summing deltas cannot

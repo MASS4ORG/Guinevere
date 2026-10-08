@@ -94,6 +94,28 @@ public class StyledNodeTests
         Assert.True(At(hot, Size / 2, Size / 2).B > 180, "hover should be blue");
     }
 
+    /// <summary>A child matches a selector on its parent's live state, such as <c>Row:hover &gt; Box</c>.</summary>
+    [Fact]
+    public void ParentHover_StylesChild()
+    {
+        const string css = """
+            Row { flex-grow = 1; }
+            Row > Box { flex-grow = 1; background-color = #101010; }
+            Row:hover > Box { background-color = #00a2ff; }
+            """;
+        static void Draw(Gui gui)
+        {
+            using (gui.StyledNode("Row").Enter())
+            using (gui.StyledNode("Box").Enter()) { }
+        }
+
+        var idle = RenderFrame(css, MouseAt(-100, -100), Draw);
+        var hot = RenderFrame(css, MouseAt(Size / 2f, Size / 2f), Draw);
+
+        Assert.True(At(idle, Size / 2, Size / 2) is { R: < 40, G: < 40, B: < 40 }, "idle should be dark");
+        Assert.True(At(hot, Size / 2, Size / 2).B > 180, "parent hover should turn the child blue");
+    }
+
     /// <summary>Styled-node scopes automatically provide ancestry and semantic modifiers.</summary>
     [Fact]
     public void NestedRuleAndCustomModifier_ApplyThroughStyledHierarchy()

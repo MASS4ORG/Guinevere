@@ -97,8 +97,8 @@ public static class FormControls
         var edited = value;
 
         var committed = gui.NumberField(ref edited, integral ? 1d : 0.01d, min, max, width: 0, height: style.RowHeight,
-            format: integral ? "0" : "0.###", backgroundColor: style.Field, borderColor: style.Border,
-            textColor: style.Ink, fontSize: style.FontSize, padding: 4, id: id, alignX: 1f, mixed: mixed);
+            format: integral ? "0" : "0.###", fontSize: style.FontSize, padding: 4, id: id, alignX: 1f,
+            mixed: mixed);
 
         result = edited;
         return committed || !edited.Equals(value);

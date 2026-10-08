@@ -67,3 +67,143 @@ button.image {
     :focus { border-width = 0; outline = 4px $focus-ring; outline-offset = 1; }
     :disabled { border-width = 0; opacity = 0.6; }
 }
+
+// Choice family: gui.Checkbox, gui.RadioButton and gui.Toggle. The row holds the label; its indicator (checkbox,
+// radio) or track (toggle) is a child matching :checked, and :mixed for checkboxes.
+checkbox, radio, toggle {
+    color = $text;
+    cursor = pointer;
+    :disabled { color = $text-disabled; cursor = default; }
+}
+
+checkbox > indicator, radio > indicator {
+    background-color = $surface;
+    border-color = $border;
+    border-width = 1;
+    color = $text-on-accent;
+    :checked { background-color = $selected; border-color = $selected; }
+}
+checkbox > indicator { border-radius = 2; :mixed { color = $text; } }
+radio > indicator { border-radius = 50%; }
+radio dot { border-radius = 50%; :checked { background-color = $text-on-accent; } }
+
+checkbox:focus > indicator, radio:focus > indicator, toggle:focus > track {
+    border-color = $accent;
+    border-width = 2;
+    outline = 4px $focus-ring;
+    outline-offset = 1;
+}
+checkbox:disabled > indicator, radio:disabled > indicator {
+    background-color = $surface;
+    border-color = $border;
+    color = $text-disabled;
+}
+radio:disabled dot { :checked { background-color = $text-disabled; } }
+
+toggle > track {
+    border-radius = 50%;
+    background-color = $border;
+    :checked { background-color = $selected; }
+}
+toggle:hover > track { background-color = lighten($border, 0.1); :checked { background-color = lighten($selected, 0.1); } }
+toggle:disabled > track { background-color = $border; }
+toggle thumb { border-radius = 50%; background-color = $text-on-accent; border-color = $shadow; border-width = 1; }
+toggle:disabled thumb { background-color = $text-disabled; }
+
+// Text fields: gui.TextInput, gui.PasswordInput (class "password"), gui.TextArea (class "area") and gui.NumberField
+// (class "number"). The caret uses the field's color; placeholders read the "placeholder" rule and the selection
+// the "selection" rule.
+input {
+    background-color = $surface;
+    border-color = $border;
+    border-width = 1;
+    color = $text;
+    cursor = text;
+    :focus { border-color = $accent; border-width = 2; }
+    :disabled { background-color = mix($surface, $base-background, 45%); border-color = $divider; color = $text-disabled; cursor = default; }
+}
+placeholder { color = $text-dim; :disabled { color = $text-disabled; } }
+selection { background-color = $text-selection; }
+
+// Dropdown family: gui.Dropdown, gui.MultiDropdown and gui.EnumDropdown. The button matches :open while its list is
+// shown; the list is a "listbox" of "option" rows (:selected, :highlighted for the keyboard row), and multi-select rows
+// hold an "indicator". Chips are the selected items shown in the button. Enum toggle buttons are "button.segment".
+dropdown {
+    background-color = $surface;
+    border-color = $border;
+    border-width = 1;
+    border-radius = $radius;
+    color = $text;
+    cursor = pointer;
+    :open { border-color = $accent; border-width = 2; }
+    :disabled { color = $text-disabled; cursor = default; }
+}
+chip { background-color = $selected; border-radius = 3; color = $text; cursor = pointer; }
+listbox { background-color = $popup; border-color = $border; border-width = 1; border-radius = $radius; color = $text; }
+option {
+    border-radius = 2;
+    cursor = pointer;
+    :hover { background-color = $surface-hover; }
+    :highlighted { background-color = $surface-hover; }
+    :selected { background-color = $selected; }
+}
+option > indicator { border-color = $border; border-width = 1; border-radius = 2; color = $text; }
+// Value controls: gui.Slider (drawn parts "track", "fill" and "thumb"; thumb :focus draws its outline-color ring),
+// gui.ProgressBar (part "fill") and gui.Splitter.
+slider { color = $text; cursor = pointer; :disabled { color = $text-disabled; cursor = default; } }
+slider track { background-color = $border; }
+slider fill { background-color = $accent; }
+slider thumb { background-color = $text-on-accent; border-color = $shadow; :focus { outline-color = $accent; } }
+slider:disabled fill, slider:disabled thumb { background-color = $text-disabled; }
+progress { background-color = $divider; border-radius = 50%; }
+progress fill { background-color = $accent; }
+splitter { background-color = $border; :hover { background-color = $surface-hover; } :active { background-color = $surface-hover; } }
+
+// Tabs and docking: gui.TabStrip (also the dock space's tab groups) and gui.DockSpace. The active tab is :selected
+// and draws its "marker" part (also the unsaved dot); drop-indicator and drop-preview are drawn while a tab is dragged.
+tabstrip { background-color = $base-background; }
+tabstrip > tab {
+    background-color = $surface;
+    color = $text-dim;
+    cursor = pointer;
+    :hover { background-color = $surface-hover; }
+    :selected { background-color = $surface-active; color = $text; }
+}
+tab marker { background-color = $accent; }
+tab-close { border-radius = 2; :hover { background-color = $surface-hover; } }
+
+// gui.Tabs, gui.VerticalTabs (class "vertical") and gui.PillTabs (class "pill"); "plain" drops the boxes. The
+// content sits in a "tabpanel".
+tabbar { background-color = $surface-hover; border-color = $border; border-width = 1; border-radius = $radius; }
+tabbar.plain, tabbar.pill { background-color = transparent; border-width = 0; }
+tabbar > tab {
+    color = $text-dim;
+    border-radius = $radius;
+    cursor = pointer;
+    :hover { background-color = $surface-hover; }
+    :selected { background-color = $surface; color = $text; }
+    :focus { outline = 2px $accent; }
+    :disabled { color = $text-dim; cursor = default; }
+}
+tabbar.pill > tab {
+    border-radius = 50%;
+    :hover { background-color = alpha($selected, 0.4); }
+    :selected { background-color = $selected; }
+}
+tabbar tab-close { border-radius = 50%; color = $text-dim; :hover { color = $text; } }
+tabpanel { background-color = $popup; border-color = $border; border-width = 1; border-radius = $radius; }
+tabpanel.plain { background-color = transparent; border-width = 0; }
+tab-nav { color = $text; :hover { background-color = $surface-hover; } :disabled { color = $text-dim; } }
+dock-panel { background-color = $surface-active; }
+dock-window { background-color = $surface-active; border-color = $border; border-width = 1; border-radius = 3; }
+dock-grip { background-color = $base-background; cursor = move; }
+dock-empty { background-color = $base-background; color = $text-dim; align-items = center; justify-content = center; }
+dock-ghost { background-color = $accent; border-radius = 3; color = $text-on-accent; align-items = center; justify-content = center; }
+drop-indicator { background-color = $accent; }
+drop-preview { background-color = alpha($accent, 0.27); border-color = $accent; }
+
+button.segment {
+    padding = 0;
+    border-radius = 3;
+    :checked { background-color = $selected; }
+}

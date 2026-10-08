@@ -15,37 +15,6 @@ public class ControlPaletteTests
         Accent = Color.FromArgb(255, 22, 23, 24)
     };
 
-    /// <summary>Docking derives every semantic color from the shared palette.</summary>
-    [Fact]
-    public void DockTheme_MapsSharedPalette()
-    {
-        var theme = DockTheme.FromPalette(Palette);
-
-        Assert.Equal(Palette.BaseBackground, theme.TabStrip);
-        Assert.Equal(Palette.Surface, theme.Tab);
-        Assert.Equal(Palette.SurfaceActive, theme.Panel);
-        Assert.Equal(Palette.SurfaceHover, theme.Hover);
-        Assert.Equal(Palette.Border, theme.Border);
-        Assert.Equal(Palette.Text, theme.Ink);
-        Assert.Equal(Palette.TextDim, theme.InkDim);
-        Assert.Equal(Palette.Accent, theme.Accent);
-    }
-
-    /// <summary>Standalone tab strips use the same semantic mapping as dock tabs.</summary>
-    [Fact]
-    public void TabStripTheme_MapsSharedPalette()
-    {
-        var theme = TabStripTheme.FromPalette(Palette);
-
-        Assert.Equal(Palette.BaseBackground, theme.Strip);
-        Assert.Equal(Palette.Surface, theme.Tab);
-        Assert.Equal(Palette.SurfaceActive, theme.Active);
-        Assert.Equal(Palette.SurfaceHover, theme.Hover);
-        Assert.Equal(Palette.Text, theme.Ink);
-        Assert.Equal(Palette.TextDim, theme.InkDim);
-        Assert.Equal(Palette.Accent, theme.Accent);
-    }
-
     /// <summary>Stylesheets can replace selected semantic tokens while retaining the fallback.</summary>
     [Fact]
     public void FromStyle_OverridesSemanticTokens()

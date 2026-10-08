@@ -4,6 +4,8 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
+    static readonly string[] PasswordClass = ["password"];
+    static readonly string[] AreaClass = ["area"];
 
     /// <summary>
     /// Shrinks the padding so it never eats the whole field. A short input keeps a little breathing
@@ -12,27 +14,35 @@ public static partial class ControlsExtensions
     static float FitPadding(float height, float padding) =>
         height <= 0 ? padding : Math.Min(padding, Math.Max(2f, (height - 4f) / 2f));
 
-    static void DrawInputBackground(Gui gui, TextEditState state, Color? backgroundColor, Color? borderColor,
-        bool enabled)
+    /// <summary>
+    /// The box of a text field: an <c>input</c> node with its variant and caller classes, styled from the GUI's
+    /// sheets (<c>:focus</c>, <c>:disabled</c>), sized like <c>gui.Node(width, height)</c>.
+    /// </summary>
+    static LayoutNode FieldNode(Gui gui, string[]? variant, IReadOnlyList<string>? classes, string? id, bool enabled,
+        float width, float height, float padding)
     {
-        var fill = backgroundColor ?? gui.ControlStyle.Surface;
-        var outline = borderColor ?? gui.ControlStyle.Border;
-        var borderWidth = 1f;
-
-        if (!enabled)
-        {
-            fill = Color.Lerp(fill, gui.ControlStyle.BaseBackground, 0.45f);
-            outline = gui.ControlStyle.Divider;
-        }
-        else if (state.IsFocused)
-        {
-            outline = gui.ControlStyle.Accent;
-            borderWidth = 2f;
-        }
-
-        gui.DrawBackgroundRect(fill);
-        gui.DrawRectBorder(gui.CurrentNode.Rect, outline, borderWidth);
+        ExcaliburStyles.Ensure(gui);
+        var all = classes is null ? variant : variant is null ? classes : [.. variant, .. classes];
+        var node = gui.StyledNode("input", all, string.IsNullOrEmpty(id) ? null : id, disabled: !enabled);
+        return Sized(node, width, height).Padding(FitPadding(height, padding));
     }
+
+    /// <summary>Sizes a node the way <c>gui.Node(width, height)</c> does: 0 expands, a negative value fits the content.</summary>
+    static LayoutNode Sized(LayoutNode node, float width, float height)
+    {
+        if (width == 0) node.ExpandWidth();
+        else if (width > 0) node.Width(width);
+        if (height == 0) node.ExpandHeight();
+        else if (height > 0) node.Height(height);
+        return node;
+    }
+
+    /// <summary>
+    /// A color declared for a part the control draws itself, such as <c>input selection { background-color = …; }</c>,
+    /// matched as a child of the current node.
+    /// </summary>
+    static Color PartColor(Gui gui, string type, string property, StyleState state = StyleState.None) =>
+        gui.ResolvePart(type, state).GetColor(property) ?? Color.Transparent;
 
     /// <summary>Paints the selected run behind the glyphs, so the text stays readable over it.</summary>
     static void DrawSelection(Gui gui, TextEditState state, string text, float fontSize)
@@ -50,7 +60,7 @@ public static partial class ControlsExtensions
         var x2 = origin + TextEditor.MeasureWidth(font, text[..end]);
 
         gui.DrawRect(new Rect(x1, inner.Y, Math.Max(1f, x2 - x1), inner.H),
-            gui.ControlStyle.TextSelection);
+            PartColor(gui, "selection", "background-color"));
     }
 
     /// <summary>Paints the selected run per line in a multi-line field, so text areas get the same highlight as inputs.</summary>
@@ -69,6 +79,7 @@ public static partial class ControlsExtensions
         var lines = text.Split('\n');
         var (startRow, startCol) = TextEditor.LineAndColumn(lines, start);
         var (endRow, endCol) = TextEditor.LineAndColumn(lines, end);
+        var color = PartColor(gui, "selection", "background-color");
 
         for (var row = startRow; row <= endRow && row < lines.Length; row++)
         {
@@ -80,26 +91,31 @@ public static partial class ControlsExtensions
             var x2 = inner.X + TextEditor.MeasureWidth(font, lines[row][..colEnd]);
             var y = inner.Y + row * lineHeight;
 
-            gui.DrawRect(new Rect(x1, y, Math.Max(1f, x2 - x1), lineHeight),
-                gui.ControlStyle.TextSelection);
+            gui.DrawRect(new Rect(x1, y, Math.Max(1f, x2 - x1), lineHeight), color);
         }
     }
 
-    static void DrawInputText(Gui gui, string displayText, string placeholder, float fontSize,
-        Color? textColor, Color? placeholderColor, bool enabled, bool clip = true)
+    /// <summary>
+    /// Draws the value in the field's text color, or the placeholder in the color of the <c>placeholder</c> rule
+    /// (<c>:disabled</c> when the field is).
+    /// </summary>
+    static void DrawInputText(Gui gui, string displayText, string placeholder, float fontSize, bool enabled,
+        bool clip = true)
     {
-        var finalDisplayText = string.IsNullOrEmpty(displayText) ? placeholder : displayText;
-        var finalColor = !enabled
-            ? gui.ControlStyle.TextDisabled
-            : string.IsNullOrEmpty(displayText)
-            ? placeholderColor ?? gui.ControlStyle.TextDim
-            : textColor ?? gui.ControlStyle.Text;
-
-        if (!string.IsNullOrEmpty(finalDisplayText))
-            gui.DrawText(finalDisplayText, fontSize, finalColor, centerInRect: false, clip: clip);
+        var empty = string.IsNullOrEmpty(displayText);
+        var shown = empty ? placeholder : displayText;
+        if (string.IsNullOrEmpty(shown)) return;
+        Color? color = empty ? PlaceholderColor(gui, enabled) : null;
+        gui.DrawText(shown, fontSize, color, centerInRect: false, clip: clip);
     }
 
-    static void DrawCursor(Gui gui, TextEditState state, string text, float fontSize, Color cursorColor)
+    /// <summary>The color of the current node's <c>placeholder</c> part (<c>:disabled</c> when the control is).</summary>
+    static Color PlaceholderColor(Gui gui, bool enabled) =>
+        gui.ResolvePart("placeholder", enabled ? StyleState.None : StyleState.Disabled).GetColor("color")
+        ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
+
+    /// <summary>Draws the caret in the field's text color.</summary>
+    static void DrawCursor(Gui gui, TextEditState state, string text, float fontSize)
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 
@@ -112,10 +128,11 @@ public static partial class ControlsExtensions
         var cursorY1 = innerRect.Y;
         var cursorY2 = innerRect.Y + innerRect.H;
 
-        gui.DrawRect(new Rect(cursorX, cursorY1, 1.5f, cursorY2 - cursorY1), cursorColor);
+        gui.DrawRect(new Rect(cursorX, cursorY1, 1.5f, cursorY2 - cursorY1),
+            gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value);
     }
 
-    static void DrawCursorMultiline(Gui gui, TextEditState state, string text, float fontSize, Color? cursorColor)
+    static void DrawCursorMultiline(Gui gui, TextEditState state, string text, float fontSize)
     {
         if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
 
@@ -129,7 +146,7 @@ public static partial class ControlsExtensions
         // takes part in layout, so it had no size and the caret never showed.
         var textWidth = TextEditor.MeasureWidth(TextEditor.MeasuringFont(gui, fontSize), lineText[..column]);
         gui.DrawRect(new Rect(inner.X + textWidth, inner.Y + cursorY, 2, Math.Max(2, lineHeight - 4)),
-            cursorColor ?? gui.ControlStyle.Text);
+            gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value);
     }
 
     /// <summary>
@@ -154,14 +171,27 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>
-    /// Creates a text input field with ref parameter
+    /// A single-line text field styled by the <c>input</c> rules of the GUI's sheets (<c>:focus</c>,
+    /// <c>:disabled</c>); the placeholder is a <c>placeholder</c> child and the selection reads the
+    /// <c>selection</c> rule. The caret uses the field's text color.
     /// </summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="text">The edited text.</param>
+    /// <param name="width">Field width; 0 expands.</param>
+    /// <param name="height">Field height; 0 expands.</param>
+    /// <param name="placeholder">Text shown while the field is empty.</param>
+    /// <param name="fontSize">Text size.</param>
+    /// <param name="padding">Inner padding, shrunk to fit short fields.</param>
+    /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
+    /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
+    /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
+    /// <param name="grabFocus">Keeps the field focused without a click, for one that appears already
+    /// being edited — an inline rename. Its value is selected when focus first lands.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
     public static void TextInput(this Gui gui, ref string text,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string placeholder = "",
-        Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
-        float padding = ControlMetrics.Spacing, bool enabled = true, string id = "", float alignX = 0f,
-        bool grabFocus = false)
+        float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing, bool enabled = true,
+        string id = "", float alignX = 0f, bool grabFocus = false, IReadOnlyList<string>? classes = null)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.FieldHeightOr(height);
@@ -171,9 +201,8 @@ public static partial class ControlsExtensions
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
 
-        var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        using (gui.Node(width, height).Padding(FitPadding(height, padding))
-                   .ContentAlignX(alignX).ContentAlignY(0.5f).Cursor(FieldCursor(enabled)).Enter())
+        using (FieldNode(gui, null, classes, id, enabled, width, height, padding)
+                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -187,62 +216,56 @@ public static partial class ControlsExtensions
                 state.SelectAll();
             }
 
-            // Rendering
-            DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
             DrawSelection(gui, state, state.Text, fontSize);
-            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor, enabled, clip: true);
-            DrawCursor(gui, state, state.Text, fontSize, cursorColorFinal);
+            DrawInputText(gui, state.Text, placeholder, fontSize, enabled);
+            DrawCursor(gui, state, state.Text, fontSize);
 
             text = state.Text;
         }
     }
 
-    /// <summary>
-    /// Renders a text input control within the given GUI context.
-    /// </summary>
-    /// <param name="gui">The GUI context in which the text input is rendered.</param>
-    /// <param name="text">The reference to the text content displayed or inputted in the text input field.</param>
-    /// <param name="width">The width of the text input field. Default is 200.</param>
-    /// <param name="height">The height of the text input field. Default is 32.</param>
-    /// <param name="placeholder">The placeholder text displayed when the text input is empty. Default is an empty string.</param>
-    /// <param name="backgroundColor">The background color of the text input field. Default is null.</param>
-    /// <param name="borderColor">The border color of the text input field. Default is null.</param>
-    /// <param name="textColor">The color of the text entered in the text input field. Default is null.</param>
-    /// <param name="placeholderColor">The color of the placeholder text. Default is null.</param>
-    /// <param name="cursorColor">The color of the cursor in the text input field. Default is null.</param>
-    /// <param name="fontSize">The font size of the text in the input field. Default is 14.</param>
-    /// <param name="padding">The padding inside the text input field. Default is 8.</param>
-    /// <param name="enabled">Indicates whether the text input field is enabled. Default is true.</param>
-    /// <param name="id">The unique identifier for the text input control. Default is an empty string.</param>
+    /// <summary>A single-line text field that returns the edited text instead of changing a field.</summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="text">The current text.</param>
+    /// <param name="width">Field width; 0 expands.</param>
+    /// <param name="height">Field height; 0 expands.</param>
+    /// <param name="placeholder">Text shown while the field is empty.</param>
+    /// <param name="fontSize">Text size.</param>
+    /// <param name="padding">Inner padding, shrunk to fit short fields.</param>
+    /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
+    /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
     /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
     /// <param name="grabFocus">Keeps the field focused without a click, for one that appears already
     /// being edited — an inline rename. Its value is selected when focus first lands.</param>
-    /// <returns>The updated value of the text in the input field.</returns>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <returns>The text after this frame's edits.</returns>
     public static string TextInput(this Gui gui, string text,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string placeholder = "",
-        Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
-        float padding = ControlMetrics.Spacing, bool enabled = true, string id = "", float alignX = 0f,
-        bool grabFocus = false)
+        float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing, bool enabled = true,
+        string id = "", float alignX = 0f, bool grabFocus = false, IReadOnlyList<string>? classes = null)
     {
-        width = gui.ControlStyle.FieldWidthOr(width);
-        height = gui.ControlStyle.FieldHeightOr(height);
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        padding = gui.ControlStyle.SpacingOr(padding);
-
-        gui.TextInput(ref text, width, height, placeholder, backgroundColor, borderColor,
-            textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id, alignX, grabFocus);
+        gui.TextInput(ref text, width, height, placeholder, fontSize, padding, enabled, id, alignX, grabFocus, classes);
         return text;
     }
 
     /// <summary>
-    /// Password input field with masked text (ref parameter)
+    /// A text field that shows <paramref name="maskChar"/> for every character, styled as <c>input.password</c>.
     /// </summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="text">The edited secret.</param>
+    /// <param name="width">Field width; 0 expands.</param>
+    /// <param name="height">Field height; 0 expands.</param>
+    /// <param name="maskChar">Character shown in place of each typed one.</param>
+    /// <param name="placeholder">Text shown while the field is empty.</param>
+    /// <param name="fontSize">Text size.</param>
+    /// <param name="padding">Inner padding, shrunk to fit short fields.</param>
+    /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
+    /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
     public static void PasswordInput(this Gui gui, ref string text,
-        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, char maskChar = '*', string placeholder = "",
-        Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
-        float padding = ControlMetrics.Spacing, bool enabled = true, string id = "")
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, char maskChar = '*',
+        string placeholder = "", float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
+        bool enabled = true, string id = "", IReadOnlyList<string>? classes = null)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.FieldHeightOr(height);
@@ -252,9 +275,7 @@ public static partial class ControlsExtensions
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("PasswordInput", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
 
-        var cursorColorFinal = cursorColor ?? textColor ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f)
-                   .Cursor(FieldCursor(enabled)).Enter())
+        using (FieldNode(gui, PasswordClass, classes, id, enabled, width, height, padding).ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -264,80 +285,55 @@ public static partial class ControlsExtensions
                     displayText: new string(maskChar, state.Text.Length));
             else state.IsFocused = false;
 
-            // Rendering with masked text
             var maskedText = new string(maskChar, state.Text.Length);
-            DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
-            DrawInputText(gui, maskedText, placeholder, fontSize, textColor, placeholderColor, enabled, clip: true);
-            DrawCursor(gui, state, maskedText, fontSize, cursorColorFinal);
+            DrawInputText(gui, maskedText, placeholder, fontSize, enabled);
+            DrawCursor(gui, state, maskedText, fontSize);
 
             text = state.Text;
         }
     }
 
-    /// <summary>
-    /// Creates a password input field with the specified parameters, supporting masked characters.
-    /// </summary>
-    /// <param name="gui">The GUI instance used to render the password input field.</param>
-    /// <param name="text">The reference to the string variable where the entered password will be stored.</param>
-    /// <param name="width">The width of the password input field. Default is 200.</param>
-    /// <param name="height">The height of the password input field. Default is 32.</param>
-    /// <param name="maskChar">The character used to mask the password input. Default is '*'.</param>
-    /// <param name="placeholder">The placeholder text displayed when the input is empty. Default is an empty string.</param>
-    /// <param name="backgroundColor">The background color of the input field. Default is null.</param>
-    /// <param name="borderColor">The border color of the input field. Default is null.</param>
-    /// <param name="textColor">The text color for the input field. Default is null.</param>
-    /// <param name="placeholderColor">The color of the placeholder text. Default is null.</param>
-    /// <param name="cursorColor">The color of the cursor within the input field. Default is null.</param>
-    /// <param name="fontSize">The font size of the input text. Default is 14.</param>
-    /// <param name="padding">The padding inside the input field. Default is 8.</param>
-    /// <param name="enabled">Indicates whether the input field is interactive. Default is true.</param>
-    /// <param name="id">The unique identifier for the input field. Default is an empty string.</param>
-    /// <returns>Returns the updated text entered in the password input field.</returns>
+    /// <summary>A masked text field that returns the edited secret instead of changing a field.</summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="text">The current secret.</param>
+    /// <param name="width">Field width; 0 expands.</param>
+    /// <param name="height">Field height; 0 expands.</param>
+    /// <param name="maskChar">Character shown in place of each typed one.</param>
+    /// <param name="placeholder">Text shown while the field is empty.</param>
+    /// <param name="fontSize">Text size.</param>
+    /// <param name="padding">Inner padding, shrunk to fit short fields.</param>
+    /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
+    /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <returns>The secret after this frame's edits.</returns>
     public static string PasswordInput(this Gui gui, string text,
-        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, char maskChar = '*', string placeholder = "",
-        Color? backgroundColor = null, Color? borderColor = null, Color? textColor = null,
-        Color? placeholderColor = null, Color? cursorColor = null, float fontSize = ControlMetrics.FontSize,
-        float padding = ControlMetrics.Spacing, bool enabled = true, string id = "")
+        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, char maskChar = '*',
+        string placeholder = "", float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
+        bool enabled = true, string id = "", IReadOnlyList<string>? classes = null)
     {
-        width = gui.ControlStyle.FieldWidthOr(width);
-        height = gui.ControlStyle.FieldHeightOr(height);
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        padding = gui.ControlStyle.SpacingOr(padding);
-
-        gui.PasswordInput(ref text, width, height, maskChar, placeholder, backgroundColor, borderColor,
-            textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id);
+        gui.PasswordInput(ref text, width, height, maskChar, placeholder, fontSize, padding, enabled, id, classes);
         return text;
     }
 
-    /// <summary>
-    /// Creates a text area input field with ref parameter.
-    /// </summary>
-    /// <param name="gui">The GUI context in which the text area is drawn.</param>
-    /// <param name="text">The text content of the text area, passed by reference.</param>
-    /// <param name="width">The width of the text area in pixels. Default is 300.</param>
-    /// <param name="height">The height of the text area in pixels. Default is 100.</param>
-    /// <param name="placeholder">The placeholder text displayed when the text area is empty. Default is an empty string.</param>
-    /// <param name="backgroundColor">The background color of the text area. Default is null, which uses the default color.</param>
-    /// <param name="borderColor">The border color of the text area. Default is null, which uses the default color.</param>
-    /// <param name="textColor">The color of the text in the text area. Default is null, which uses the default color.</param>
-    /// <param name="placeholderColor">The color of the placeholder text. Default is null, which uses the default color.</param>
-    /// <param name="cursorColor">The color of the cursor in the text area. Default is null, which uses the default color.</param>
-    /// <param name="fontSize">The font size of the text. Default is 14.</param>
-    /// <param name="padding">The padding inside the text area. Default is 8.</param>
-    /// <param name="enabled">Specifies whether the text area is enabled for input. Default is true.</param>
-    /// <param name="id">An optional identifier for the text area. Default is an empty string.</param>
+    /// <summary>A multi-line text field, styled as <c>input.area</c>.</summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="text">The edited text.</param>
+    /// <param name="width">Field width; 0 expands.</param>
+    /// <param name="height">Field height; 0 expands.</param>
+    /// <param name="placeholder">Text shown while the field is empty.</param>
+    /// <param name="fontSize">Text size.</param>
+    /// <param name="padding">Inner padding, shrunk to fit short fields.</param>
+    /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
+    /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
     public static void TextArea(this Gui gui, ref string text,
         float width = 300, float height = 100,
         string placeholder = "",
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? textColor = null,
-        Color? placeholderColor = null,
-        Color? cursorColor = null,
         float fontSize = ControlMetrics.FontSize,
         float padding = ControlMetrics.Spacing,
         bool enabled = true,
-        string id = "")
+        string id = "",
+        IReadOnlyList<string>? classes = null)
     {
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
@@ -345,8 +341,7 @@ public static partial class ControlsExtensions
         var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextArea", 0) : id;
         gui.Focus.RegisterTextInput(nodeId);
 
-        using (gui.Node(width, height).Padding(FitPadding(height, padding)).ContentAlignY(0.5f)
-                   .Cursor(FieldCursor(enabled)).Enter())
+        using (FieldNode(gui, AreaClass, classes, id, enabled, width, height, padding).ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
             var state = TextEditor.State(gui, nodeId, text);
@@ -354,55 +349,37 @@ public static partial class ControlsExtensions
             if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize, multiline: true);
             else state.IsFocused = false;
 
-            // Rendering - let the parent handle clipping/scrolling to avoid nested contexts
-            DrawInputBackground(gui, state, backgroundColor, borderColor, enabled);
             DrawSelectionMultiline(gui, state, state.Text, fontSize);
-            DrawInputText(gui, state.Text, placeholder, fontSize, textColor, placeholderColor, enabled, clip: true);
-
-            // Only draw cursor if enabled
-            if (enabled) DrawCursorMultiline(gui, state, state.Text, fontSize, cursorColor);
+            DrawInputText(gui, state.Text, placeholder, fontSize, enabled);
+            if (enabled) DrawCursorMultiline(gui, state, state.Text, fontSize);
 
             text = state.Text;
         }
     }
 
-    /// <summary>
-    /// Creates a multi-line text area for user input.
-    /// </summary>
-    /// <param name="gui">The GUI context where the text area will be drawn.</param>
-    /// <param name="text">The text content of the text area, passed by reference.</param>
-    /// <param name="width">The width of the text area in pixels. Default is 300.</param>
-    /// <param name="height">The height of the text area in pixels. Default is 100.</param>
-    /// <param name="placeholder">The placeholder text shown when the text area is empty. Default is an empty string.</param>
-    /// <param name="backgroundColor">The background color of the text area. Default is null.</param>
-    /// <param name="borderColor">The border color of the text area. Default is null.</param>
-    /// <param name="textColor">The text color used inside the text area. Default is null.</param>
-    /// <param name="placeholderColor">The color of the placeholder text. Default is null.</param>
-    /// <param name="cursorColor">The color of the cursor in the text area. Default is null.</param>
-    /// <param name="fontSize">The font size of the text. Default is 14.</param>
-    /// <param name="padding">The padding inside the text area. Default is 8.</param>
-    /// <param name="enabled">Indicates whether the text area is active and editable. Default is true.</param>
-    /// <param name="id">An optional identifier for the text area. Default is an empty string.</param>
-    /// <returns>The updated text content of the text area.</returns>
+    /// <summary>A multi-line text field that returns the edited text instead of changing a field.</summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="text">The current text.</param>
+    /// <param name="width">Field width; 0 expands.</param>
+    /// <param name="height">Field height; 0 expands.</param>
+    /// <param name="placeholder">Text shown while the field is empty.</param>
+    /// <param name="fontSize">Text size.</param>
+    /// <param name="padding">Inner padding, shrunk to fit short fields.</param>
+    /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
+    /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <returns>The text after this frame's edits.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string TextArea(this Gui gui, string text,
         float width = 300, float height = 100,
         string placeholder = "",
-        Color? backgroundColor = null,
-        Color? borderColor = null,
-        Color? textColor = null,
-        Color? placeholderColor = null,
-        Color? cursorColor = null,
         float fontSize = ControlMetrics.FontSize,
         float padding = ControlMetrics.Spacing,
         bool enabled = true,
-        string id = "")
+        string id = "",
+        IReadOnlyList<string>? classes = null)
     {
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        padding = gui.ControlStyle.SpacingOr(padding);
-
-        gui.TextArea(ref text, width, height, placeholder, backgroundColor, borderColor,
-            textColor, placeholderColor, cursorColor, fontSize, padding, enabled, id);
+        gui.TextArea(ref text, width, height, placeholder, fontSize, padding, enabled, id, classes);
         return text;
     }
 
@@ -413,7 +390,4 @@ public static partial class ControlsExtensions
     {
         gui.ClearControlStates<TextEditState>();
     }
-
-    /// <summary>An I-beam over an editable field; a disabled one keeps the default arrow.</summary>
-    internal static PointerCursor FieldCursor(bool enabled) => enabled ? PointerCursor.Text : PointerCursor.Default;
 }

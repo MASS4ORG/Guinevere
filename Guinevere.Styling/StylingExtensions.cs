@@ -57,7 +57,8 @@ public static class StylingExtensions
         /// per-corner <c>border-radius</c>, <c>outline</c>) is drawn behind the node's children in the render pass,
         /// re-resolved for <c>:hover</c>, <c>:active</c> and <c>:focus</c>, as is <c>cursor</c>. Text properties
         /// (<c>color</c>, <c>font-*</c>) and <c>opacity</c> apply to the node's scope, so its children inherit them.
-        /// <c>:disabled</c> applies in both passes, so it may change layout, and suppresses hover and press.
+        /// <c>:disabled</c> applies in both passes, so it may change layout, and suppresses hover and press. In the
+        /// render pass, styled descendants see this node's live state, so <c>checkbox:hover &gt; indicator</c> matches.
         /// </summary>
         /// <param name="type">Element type name matched by a bare-type selector, or <c>null</c>.</param>
         /// <param name="classes">Class names matched by <c>.class</c> selectors.</param>
@@ -100,6 +101,7 @@ public static class StylingExtensions
             }
 
             var live = state | InteractionState(gui, node, disabled);
+            node.StyleTarget = target with { State = live, Ancestors = null };
             var liveStyle = styling.Sheets.Resolve(target with { State = live }, variables, inherited);
             ApplyInherited(gui, node, liveStyle, styling, inherited);
             if (StyleBox.From(liveStyle, node.Rect) is { } box) node.DrawList.Add(box);
@@ -146,6 +148,23 @@ public static class StylingExtensions
             IReadOnlyList<StyleVariable>? variables = null) =>
             gui.StyleSheets.Resolve(new StyleTarget(type, id, classes ?? [], state, modifiers, ancestors), variables,
                 gui.LayoutNodeScopeStack.Count > 0 ? gui.CurrentNodeScope.Get<StyleTokens>() : null);
+
+        /// <summary>
+        /// Resolves a part that a control draws itself instead of building as a node, such as a slider's thumb. The
+        /// part matches as a child of the current node, so <c>slider:disabled thumb</c> applies, and reads the
+        /// current node's tokens. Call inside a frame.
+        /// </summary>
+        /// <param name="type">The part's type name.</param>
+        /// <param name="state">The part's own state, such as <see cref="StyleState.Focus"/>.</param>
+        /// <param name="modifiers">The part's semantic modifiers.</param>
+        /// <returns>The resolved style; cached hits do not allocate.</returns>
+        public ResolvedStyle ResolvePart(string type, StyleState state = StyleState.None,
+            IReadOnlyList<string>? modifiers = null)
+        {
+            var styling = States.GetOrCreateValue(gui);
+            var target = CreateStyleTarget(styling.Ancestors, gui.CurrentNode, type, null, null, modifiers, state);
+            return styling.Sheets.Resolve(target, null, gui.CurrentNodeScope.Get<StyleTokens>());
+        }
     }
 
     extension(ControlPalette)
@@ -202,14 +221,20 @@ public static class StylingExtensions
         return new StyleTarget(type, id, classes ?? [], state, modifiers, buffer);
     }
 
-    /// <summary>Focus, plus hover and press unless disabled; a disabled node never takes the pointer.</summary>
+    /// <summary>
+    /// Focus, plus hover and press unless disabled. Styling never takes pointer capture, so a styled container does
+    /// not steal a press from the controls inside it: the node is pressed while it holds the pointer (its control
+    /// captured it), or while the button is down over it and nothing holds the pointer.
+    /// </summary>
     static StyleState InteractionState(Gui gui, LayoutNode node, bool disabled)
     {
         var state = gui.HasFocus(node.Id) ? StyleState.Focus : StyleState.None;
         if (disabled) return state;
-        var interactable = gui.GetInteractable(node);
-        if (interactable.OnHover()) state |= StyleState.Hover;
-        return interactable.OnHold() ? state | StyleState.Active : state;
+        var hovered = gui.GetInteractable(node).OnHover();
+        if (hovered) state |= StyleState.Hover;
+        var pressed = gui.HoldsPointer(node.Id, MouseButton.Left)
+                      || (hovered && !gui.IsPointerCaptured && gui.Input.IsMouseButtonDown(MouseButton.Left));
+        return pressed ? state | StyleState.Active : state;
     }
 
     /// <summary>

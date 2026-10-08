@@ -22,8 +22,14 @@ public abstract partial class Program
     static string _selectedFile = "No file selected";
     static string _selectedFolder = "No folder selected";
 
+    // Choice controls take no colors: this class restyles a toggle's track from a sheet over the default one.
+    static readonly StyleSheet SelectionSheet = StyleSheet.Parse("""
+        toggle.purple > track { background-color = #9e9e9e; :checked { background-color = #9c27b0; } }
+        """);
+
     static void SelectionContent(Gui gui)
     {
+        if (!gui.StyleSheets.Contains(SelectionSheet)) gui.StyleSheets.Add(SelectionSheet);
         Section(gui, "Checkboxes", () => CheckboxRow(gui));
         Section(gui, "Toggles", () => ToggleRow(gui));
         Section(gui, "Radio Buttons", () => RadioButtonRow(gui));
@@ -47,9 +53,7 @@ public abstract partial class Program
         using (gui.Node().Height(30).Direction(Axis.Horizontal).Gap(20).Enter())
         {
             gui.Toggle(ref _toggle1, "Dark mode");
-            gui.Toggle(ref _toggle2, "High contrast",
-                onColor: Color.FromArgb(255, 156, 39, 176),
-                offColor: Color.FromArgb(255, 158, 158, 158));
+            gui.Toggle(ref _toggle2, "High contrast", classes: ["purple"]);
             gui.Toggle(ref _toggle1, "Disabled toggle", enabled: false);
         }
     }
@@ -78,7 +82,9 @@ public abstract partial class Program
 
             using (gui.Node().Width(200).Enter())
             {
-                gui.Dropdown(DropdownOptions, ref _dropdown2, selectedColor: Color.FromArgb(255, 76, 175, 80));
+                // A token set on a node themes its whole subtree, including the dropdown's option list.
+                gui.SetStyleToken("selected", Color.FromArgb(255, 76, 175, 80));
+                gui.Dropdown(DropdownOptions, ref _dropdown2);
             }
             gui.Dropdown(DropdownOptions, ref _dropdown1, placeholder: "Disabled dropdown",
                 enabled: false);

@@ -51,7 +51,11 @@ public abstract partial class Program
                                     centerInRect: false);
 
                             using (gui.Node().Expand().Enter())
-                                gui.ProgressBar(value, height: 10, fillColor: Hsb(value * 240f));
+                            {
+                                // Controls take no colors: a token set here recolors this subtree's fill.
+                                gui.SetStyleToken("accent", Hsb(value * 240f));
+                                gui.ProgressBar(value, height: 10);
+                            }
                         }
                     }
                 }
@@ -65,10 +69,17 @@ public abstract partial class Program
                         color: Color.FromArgb(255, 102, 102, 102));
 
                     gui.ProgressBar(null, height: 6);
-                    gui.ProgressBar(null, height: 10, fillColor: Hsb(220f));
-                    gui.ProgressBar(null, height: 14,
-                        trackColor: Color.FromArgb(255, 224, 224, 224),
-                        fillColor: Color.FromArgb(255, 76, 175, 80));
+                    using (gui.Node().ExpandWidth().Enter())
+                    {
+                        gui.SetStyleToken("accent", Hsb(220f));
+                        gui.ProgressBar(null, height: 10);
+                    }
+                    using (gui.Node().ExpandWidth().Enter())
+                    {
+                        gui.SetStyleToken("divider", Color.FromArgb(255, 224, 224, 224));
+                        gui.SetStyleToken("accent", Color.FromArgb(255, 76, 175, 80));
+                        gui.ProgressBar(null, height: 14);
+                    }
                 }
             });
         }
