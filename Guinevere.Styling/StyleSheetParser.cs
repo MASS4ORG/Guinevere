@@ -211,11 +211,17 @@ sealed class StyleSheetParser
         var next = _text[end] == ';' ? end + 1 : end;
         if (StartsWithKeyword(head, "shape")) return Defer(StyleDeferredKind.Shape, i);
         if (IsBackgroundShape(head)) return Defer(StyleDeferredKind.BackgroundShape, i);
-        var (property, value) = SplitDeclaration(head, i);
-        declarations[property] = value;
-        var line = LineOf(i);
-        if (lines[^1] != line) lines.Add(line);
+        AddDeclaration(head, i, declarations, lines);
         return next;
+    }
+
+    /// <summary>Records a <c>name = value</c> declaration and the source line it is on.</summary>
+    void AddDeclaration(string head, int offset, Dictionary<string, string> declarations, List<int> lines)
+    {
+        var (property, value) = SplitDeclaration(head, offset);
+        declarations[property] = value;
+        var line = LineOf(offset);
+        if (lines[^1] != line) lines.Add(line);
     }
 
     List<int>? _lineStarts;
@@ -358,7 +364,11 @@ sealed class StyleSheetParser
         }
         return new StyleRule
         {
-            Selectors = selectors, Declarations = declarations, Order = order, BaseUri = Options.BaseUri, Lines = lines,
+            Selectors = selectors,
+            Declarations = declarations,
+            Order = order,
+            BaseUri = Options.BaseUri,
+            Lines = lines,
         };
     }
 

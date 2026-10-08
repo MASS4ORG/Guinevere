@@ -57,3 +57,7 @@ docs/internal/
 .scripts-*.sh
 .scripts.py
 .scripts-*.py
+
+# Golden-image mismatch artifacts
+Guinevere.Tests/Golden/**/*.actual.png
+Guinevere.Tests/Golden/**/*.diff.png

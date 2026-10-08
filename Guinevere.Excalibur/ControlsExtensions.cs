@@ -89,7 +89,7 @@ public static partial class ControlsExtensions
         bool enabled, string filePath, int lineNumber)
     {
         ExcaliburStyles.Ensure(gui);
-        IReadOnlyList<string>? all = classes is null ? variant : variant is null ? classes : [.. variant, .. classes];
+        var all = classes is null ? variant : variant is null ? classes : [.. variant, .. classes];
         return gui.StyledNode("button", all, id, disabled: !enabled, filePath: filePath, lineNumber: lineNumber);
     }
 

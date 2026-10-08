@@ -52,6 +52,37 @@ public partial class App
 | Menus and overlays | `AppBar`, `MenuBar`, `Flyout`, `CascadeMenu`, `ContextMenu`, `Popup`, `ModalPopup`, `Dialog`, `Tooltip` | Application chrome, command menus, popovers, modal windows, and delayed help. |
 | Layout tools | `Splitter`, `DockSpace`, `DockLayout` | Resizable panes and persistent split/tab/float docking. |
 
+## Styling
+
+Controls take no colors or radii; their look comes from `.pss` stylesheets. Excalibur ships a default sheet (`ExcaliburStyles.DefaultSheet`) that is kept under every application sheet, so a theme overrides any token or rule in it. Restyle with classes, sheets, or tokens for a subtree:
+
+```csharp
+gui.StyleSheets.Add(StyleSheet.Parse("""
+    $accent = #88c0d0;
+    button.danger { background-color = #dc3545; color = #ffffff; :hover { background-color = #c82131; } }
+    """));
+
+if (gui.Button("Delete", classes: ["danger"])) Delete();
+
+using (gui.Node().Enter())
+{
+    gui.SetStyleToken("surface", Color.FromArgb(255, 40, 44, 52)); // this subtree only
+    gui.Button("Dark");
+}
+```
+
+`ExcaliburStyles.DefaultSheetText` is a starting point for a full theme. During the move to sheets, a non-default `gui.ControlPalette` is forwarded to the matching tokens.
+
+### Contracts
+
+| Control | Element | Classes | States and modifiers | Properties read |
+|---|---|---|---|---|
+| `Button` | `button` | caller classes; `primary` in the default sheet | `:hover`, `:active`, `:focus`, `:disabled` | `background-color`/`background`, `border-*`, `border-radius`, `padding` (fit size), `color`, `font-*`, `outline`, `box-shadow`, `opacity`, `cursor` |
+| `IconButton` | `button` | `icon` + caller classes | as `Button`, plus `:checked` (pass `checked` as a class) | as `Button` |
+| `ImageButton` | `button` | `image` + caller classes | as `Button`; the images swap by state | as `Button`; the image is drawn under the border and outline |
+
+Default tokens: `$base-background`, `$surface`, `$surface-hover`, `$surface-active`, `$popup`, `$border`, `$border-active`, `$divider`, `$accent`, `$accent-hover`, `$accent-subtle`, `$text`, `$text-dim`, `$text-disabled`, `$text-on-accent`, `$selected`, `$positive`, `$negative`, `$warning`, `$info`, `$focus-ring`, `$shadow`, `$overlay`, `$text-selection`, `$radius`. The remaining controls move to sheets family by family.
+
 ## Buttons and selection
 
 ```csharp
