@@ -100,6 +100,38 @@ public class StyleBoxTests
         Assert.Equal((byte)0, At(px, 40, 40).A);
     }
 
+    /// <summary>A border lies inside the border box, so a 1px border fills the edge pixels and nothing outside them.</summary>
+    [Fact]
+    public void Border_LiesInsideTheBox()
+    {
+        var px = Render(Base + "border-color = #00ff00; border-width = 1; }", g => Box(g));
+
+        Assert.Equal((0, 255, 0, 255), At(px, 40, 20));
+        Assert.Equal((0, 255, 0, 255), At(px, 59, 40));
+        Assert.Equal((byte)0, At(px, 40, 19).A);
+        Assert.Equal((byte)0, At(px, 60, 40).A);
+        Assert.Equal((byte)0, At(px, 40, 21).A);
+    }
+
+    /// <summary>Per-side widths and colors override the shorthand ones; a side without a color draws nothing.</summary>
+    [Fact]
+    public void Border_PerSide()
+    {
+        var bottom = Render(Base + "border-bottom-color = #ff0000; border-bottom-width = 2; }", g => Box(g));
+        var mixed = Render(Base + "border-color = #00ff00; border-width = 1; border-top-width = 3; border-left-color = #0000ff; }",
+            g => Box(g));
+
+        Assert.Equal((255, 0, 0, 255), At(bottom, 40, 58));
+        Assert.Equal((255, 0, 0, 255), At(bottom, 40, 59));
+        Assert.Equal((byte)0, At(bottom, 40, 57).A);
+        Assert.Equal((byte)0, At(bottom, 40, 20).A);
+        Assert.Equal((byte)0, At(bottom, 20, 40).A);
+        Assert.Equal((0, 255, 0, 255), At(mixed, 40, 22));
+        Assert.Equal((byte)0, At(mixed, 40, 23).A);
+        Assert.Equal((0, 0, 255, 255), At(mixed, 20, 40));
+        Assert.Equal((0, 255, 0, 255), At(mixed, 59, 40));
+    }
+
     /// <summary>
     /// Opacity fades the node and its descendants as one group, like CSS: an opaque-composited child does not show
     /// the parent through itself, and a fully transparent node hides its subtree.

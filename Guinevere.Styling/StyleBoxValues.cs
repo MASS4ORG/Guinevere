@@ -9,6 +9,19 @@ readonly record struct BoxShadow(bool Inset, float X, float Y, float Blur, float
 /// <summary>A resolved <c>outline</c>: a ring drawn <paramref name="Offset"/> pixels outside the box.</summary>
 readonly record struct BoxOutline(float Width, float Offset, Color Color);
 
+/// <summary>One side of a resolved border; a side without a color has no width.</summary>
+readonly record struct BorderSide(float Width, Color Color);
+
+/// <summary>A resolved border, one <see cref="BorderSide"/> per side.</summary>
+readonly record struct BoxBorder(BorderSide Top, BorderSide Right, BorderSide Bottom, BorderSide Left)
+{
+    /// <summary>Whether every side has the same width and color, so the border is one rounded stroke.</summary>
+    public bool Uniform => Top == Right && Top == Bottom && Top == Left;
+
+    /// <summary>Whether any side has a width.</summary>
+    public bool Visible => Top.Width > 0f || Right.Width > 0f || Bottom.Width > 0f || Left.Width > 0f;
+}
+
 /// <summary>Parsers for the CSS-shaped visual values a styled box reads.</summary>
 static class StyleBoxValues
 {
@@ -151,6 +164,27 @@ static class StyleBoxValues
         radius = Math.Max(0f, percent ? length * shorter : length);
         return parsed;
     }
+
+    /// <summary>
+    /// The border per side: <c>border-&lt;side&gt;-width</c> and <c>border-&lt;side&gt;-color</c> over
+    /// <c>border-width</c> and <c>border-color</c>; <c>null</c> when no side has both a width and a color.
+    /// </summary>
+    public static BoxBorder? Border(ResolvedStyle style)
+    {
+        var width = style.GetLength("border-width") ?? 0f;
+        var color = style.GetColor("border-color");
+        var border = new BoxBorder(
+            Side(style, "border-top-width", "border-top-color", width, color),
+            Side(style, "border-right-width", "border-right-color", width, color),
+            Side(style, "border-bottom-width", "border-bottom-color", width, color),
+            Side(style, "border-left-width", "border-left-color", width, color));
+        return border.Visible ? border : null;
+    }
+
+    static BorderSide Side(ResolvedStyle style, string widthName, string colorName, float width, Color? color) =>
+        (style.GetColor(colorName) ?? color) is { } c
+            ? new BorderSide(Math.Max(0f, style.GetLength(widthName) ?? width), c)
+            : default;
 
     /// <summary>
     /// <c>outline</c> (<c>width [style] color</c> in any order, or <c>none</c>) overridden by <c>outline-width</c>,

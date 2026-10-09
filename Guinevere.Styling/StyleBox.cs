@@ -11,10 +11,10 @@ sealed class StyleBox : IDrawable, IInkBounds
 {
     readonly Shape _shape;
     readonly SKRoundRect _box;
-    readonly (Color Color, float Width)? _border;
+    readonly BoxBorder? _border;
     readonly BoxOutline? _outline;
 
-    StyleBox(Shape shape, SKRoundRect box, (Color, float)? border, BoxOutline? outline)
+    StyleBox(Shape shape, SKRoundRect box, BoxBorder? border, BoxOutline? outline)
     {
         _shape = shape;
         _box = box;
@@ -28,7 +28,7 @@ sealed class StyleBox : IDrawable, IInkBounds
     /// <inheritdoc/>
     public SKRect? InkBounds(LayoutNode node)
     {
-        var reach = Math.Max(_border?.Width * 0.5f ?? 0f, _outline is { } o ? o.Offset + o.Width : 0f) + 1f;
+        var reach = (_outline is { } o ? o.Offset + o.Width : 0f) + 1f;
         return _shape.InkBounds(node) is { } shape ? Ink.Join(shape, SKRect.Inflate(_box.Rect, reach, reach)) : null;
     }
 
@@ -40,7 +40,7 @@ sealed class StyleBox : IDrawable, IInkBounds
         var bounds = new SKRect(rect.X, rect.Y, rect.X + rect.W, rect.Y + rect.H);
         var (fill, opaqueGradient) = Fill(style, bounds);
         var shadows = StyleBoxValues.Shadows(style.Get("box-shadow"));
-        var border = Border(style);
+        var border = StyleBoxValues.Border(style);
         var outline = StyleBoxValues.Outline(style);
         if (fill is null && shadows.Count == 0 && border is null && outline is null) return null;
 
@@ -49,12 +49,6 @@ sealed class StyleBox : IDrawable, IInkBounds
         var shape = Shaped(box, fill, shadows);
         if (opaqueGradient) shape.OpaqueFill = true;
         return new StyleBox(shape, box, border, outline);
-    }
-
-    static (Color, float)? Border(ResolvedStyle style)
-    {
-        var width = style.GetLength("border-width") ?? 0f;
-        return style.GetColor("border-color") is { } color && width > 0f ? (color, width) : null;
     }
 
     /// <summary>The rounded box as a <see cref="Shape"/> with its fill (transparent when none) and CSS shadows.</summary>
@@ -90,11 +84,42 @@ sealed class StyleBox : IDrawable, IInkBounds
     public void Render(Gui gui, LayoutNode node, SKCanvas canvas)
     {
         _shape.Render(gui, node, canvas);
-        if (_border is { } border) canvas.DrawRoundRect(_box, Stroke(border.Color, border.Width));
+        if (_border is { } border) DrawBorder(canvas, border);
         if (_outline is not { } outline) return;
         var ring = new SKRoundRect(_box);
         ring.Inflate(outline.Offset + outline.Width * 0.5f, outline.Offset + outline.Width * 0.5f);
         canvas.DrawRoundRect(ring, Stroke(outline.Color, outline.Width));
+    }
+
+    /// <summary>
+    /// Draws the border inside the border box, as CSS does: one rounded stroke inset by half its width, or each side
+    /// as a strip clipped to the rounded box when the sides differ.
+    /// </summary>
+    void DrawBorder(SKCanvas canvas, BoxBorder border)
+    {
+        if (border.Uniform)
+        {
+            var half = border.Top.Width * 0.5f;
+            var edge = new SKRoundRect(_box);
+            edge.Inflate(-half, -half);
+            canvas.DrawRoundRect(edge, Stroke(border.Top.Color, border.Top.Width));
+            return;
+        }
+
+        var r = _box.Rect;
+        canvas.Save();
+        canvas.ClipRoundRect(_box, SKClipOperation.Intersect, true);
+        Strip(canvas, new SKRect(r.Left, r.Top, r.Right, r.Top + border.Top.Width), border.Top.Color);
+        Strip(canvas, new SKRect(r.Right - border.Right.Width, r.Top, r.Right, r.Bottom), border.Right.Color);
+        Strip(canvas, new SKRect(r.Left, r.Bottom - border.Bottom.Width, r.Right, r.Bottom), border.Bottom.Color);
+        Strip(canvas, new SKRect(r.Left, r.Top, r.Left + border.Left.Width, r.Bottom), border.Left.Color);
+        canvas.Restore();
+    }
+
+    static void Strip(SKCanvas canvas, SKRect strip, Color color)
+    {
+        if (strip.Width > 0f && strip.Height > 0f && color.A > 0)
+            canvas.DrawRect(strip, new SKPaint { IsAntialias = true, Color = color });
     }
 
     static SKPaint Stroke(Color color, float width) =>
