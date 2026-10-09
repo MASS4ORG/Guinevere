@@ -37,7 +37,7 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(build);
 
         var explicitId = id;
-        id ??= gui.NodeId(filePath, lineNumber);
+        id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new MenuBarState());
         state.Classes = classes;

@@ -40,7 +40,7 @@ public partial class Gui
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
     {
-        return Focus.EnterScope(id ?? NodeId(filePath, lineNumber), restoreFocusId);
+        return Focus.EnterScope(id ?? AutomaticId(filePath, lineNumber), restoreFocusId);
     }
 
     /// <summary>Sets explicit Tab order links for the current focusable control.</summary>

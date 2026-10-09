@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 public static partial class ControlsExtensions
@@ -34,6 +36,8 @@ public static partial class ControlsExtensions
     /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
     /// <param name="mixed">Shows a dash until the user enters a shared value.</param>
     /// <param name="classes">Extra classes for the sheet; the field is styled as <c>input.number</c>.</param>
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
     /// <returns>True when the user commits a valid number or changes the value.</returns>
     [PublicAPI]
     public static bool NumberField(this Gui gui, ref double value,
@@ -41,7 +45,8 @@ public static partial class ControlsExtensions
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
         float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
         double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false,
-        IReadOnlyList<string>? classes = null)
+        IReadOnlyList<string>? classes = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.FieldHeightOr(height);
@@ -52,15 +57,16 @@ public static partial class ControlsExtensions
         if (max < min) (min, max) = (max, min);
         value = Clamp(value, min, max);
 
-        var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("NumberField", 0) : id;
+        var node = FieldNode(gui, NumberClass, classes, id, enabled, width, height, padding,
+            filePath, lineNumber);
+        var nodeId = node.Id;
         var field = gui.ControlState(nodeId, () => new NumberFieldState());
 
         var original = value;
         if (gui.Pass == Pass.Pass2Render) field.Committed = false;
         SyncNumberBuffer(field, value, format, mixed);
 
-        using (FieldNode(gui, NumberClass, classes, id, enabled, width, height, padding)
-                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
+        using (node.ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
             var interactable = gui.GetInteractable();
@@ -80,11 +86,12 @@ public static partial class ControlsExtensions
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
         float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
         float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false,
-        IReadOnlyList<string>? classes = null)
+        IReadOnlyList<string>? classes = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         double d = value;
         var changed = gui.NumberField(ref d, step, min, max, width, height, format, fontSize, padding,
-            dragSensitivity, enabled, id, alignX, mixed, classes);
+            dragSensitivity, enabled, id, alignX, mixed, classes, filePath, lineNumber);
         value = (float)d;
         return changed;
     }

@@ -61,18 +61,10 @@ public static partial class ControlsExtensions
         [CallerLineNumber] int lineNumber = 0)
     {
         ExcaliburStyles.Ensure(gui);
-        id ??= gui.NodeId(filePath, lineNumber);
+        id ??= gui.AutomaticId(filePath, lineNumber);
         var state = gui.ControlState(id, () => new DialogState());
 
-        if (gui.Pass == Pass.Pass2Render)
-        {
-            state.JustOpened = isOpen && !state.WasOpen;
-            state.WasOpen = isOpen;
-            if (state.JustOpened) state.DragOffset = Vector2.Zero;
-            if (!isOpen) state.IsDragging = false;
-
-            if (closeOnEscape && isOpen && gui.Input.IsKeyPressed(KeyboardKey.Escape)) isOpen = false;
-        }
+        UpdateDialogState(gui, state, ref isOpen, closeOnEscape);
 
         // The overlay: dims the screen and, being a single node the size of it, blocks every click
         // meant for whatever is behind the dialog — not just the box itself.
@@ -97,36 +89,57 @@ public static partial class ControlsExtensions
             gui.SetZIndex(DialogZIndex + 1);
             gui.SetEscapesAncestorClips();
 
-            if (TitleBar(gui, title, width, titleBarHeight, showCloseButton, isOpen))
-                isOpen = false;
-
-            using (gui.StyledNode("dialog-content").Width(width).Height(height)
-                       .Top(titleBarHeight).Padding(16).HitTestVisible(isOpen).Enter())
-                if (isOpen)
-                {
-                    using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
-                    focusScope.SetActive();
-                    content.Invoke();
-                }
-
-            if (hasFooter)
-                using (gui.StyledNode("dialog-footer").Width(width).Height(footerHeight).Top(titleBarHeight + height)
-                           .Direction(Axis.Horizontal).Padding(16, 8).Gap(8).ContentAlignX(1f)
-                           .ContentAlignY(0.5f).Enter())
-                {
-                    if (isOpen)
-                    {
-                        using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
-                        focusScope.SetActive();
-                        footer!.Invoke();
-                    }
-                }
+            if (TitleBar(gui, title, width, titleBarHeight, showCloseButton, isOpen)) isOpen = false;
+            DialogContent(gui, isOpen, content, width, height, titleBarHeight, id);
+            DialogFooter(gui, isOpen, footer, width, footerHeight, titleBarHeight + height, id);
         }
 
+        DismissDialogOutside(gui, state, ref isOpen, closeOnClickOutside,
+            new Rect(position.X, position.Y, width, totalHeight));
+    }
+
+    static void UpdateDialogState(Gui gui, DialogState state, ref bool isOpen, bool closeOnEscape)
+    {
+        if (gui.Pass != Pass.Pass2Render) return;
+        state.JustOpened = isOpen && !state.WasOpen;
+        state.WasOpen = isOpen;
+        if (state.JustOpened) state.DragOffset = Vector2.Zero;
+        if (!isOpen) state.IsDragging = false;
+        if (closeOnEscape && isOpen && gui.Input.IsKeyPressed(KeyboardKey.Escape)) isOpen = false;
+    }
+
+    static void DialogContent(Gui gui, bool isOpen, Action content, float width, float height,
+        float titleBarHeight, string id)
+    {
+        using (gui.StyledNode("dialog-content").Width(width).Height(height)
+                   .Top(titleBarHeight).Padding(16).HitTestVisible(isOpen).Enter())
+            if (isOpen)
+            {
+                using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
+                focusScope.SetActive();
+                content.Invoke();
+            }
+    }
+
+    static void DialogFooter(Gui gui, bool isOpen, Action? footer, float width, float height, float top, string id)
+    {
+        if (footer is null) return;
+        using (gui.StyledNode("dialog-footer").Width(width).Height(height).Top(top)
+                   .Direction(Axis.Horizontal).Padding(16, 8).Gap(8).ContentAlignX(1f)
+                   .ContentAlignY(0.5f).Enter())
+            if (isOpen)
+            {
+                using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
+                focusScope.SetActive();
+                footer.Invoke();
+            }
+    }
+
+    static void DismissDialogOutside(Gui gui, DialogState state, ref bool isOpen, bool closeOnClickOutside,
+        Rect dialogRect)
+    {
         if (gui.Pass != Pass.Pass2Render || !isOpen || !closeOnClickOutside || state.JustOpened) return;
         if (!gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
-
-        var dialogRect = new Rect(position.X, position.Y, width, totalHeight);
         if (!IsMouseInRect(gui.Input.MousePosition, dialogRect)) isOpen = false;
     }
 

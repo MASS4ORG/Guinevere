@@ -68,7 +68,7 @@ public static partial class ControlsExtensions
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(value);
-        var id = gui.NodeId(filePath, lineNumber);
+        var id = gui.AutomaticId(filePath, lineNumber);
         var state = gui.ControlState(id, () => new EnumChoiceState());
         changes = BeginChoices(gui, state.Choices, enabled);
         var metadata = EnumChoicesByType.GetValue(value.GetType(), static type => new EnumChoices(type));

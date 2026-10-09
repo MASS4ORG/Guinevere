@@ -22,7 +22,7 @@ public static partial class ControlsExtensions
         fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
         var explicitId = id;
-        id ??= gui.NodeId(filePath, lineNumber);
+        id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new MenuBarState());
         state.Classes = classes;

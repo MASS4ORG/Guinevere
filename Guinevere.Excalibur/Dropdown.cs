@@ -67,27 +67,10 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(options);
         ExcaliburStyles.Ensure(gui);
 
-        var id = gui.NodeId(filePath, lineNumber);
+        var id = gui.AutomaticId(filePath, lineNumber);
         var state = DropdownStateFor(gui, id);
 
-        if (gui.Pass == Pass.Pass1Build)
-        {
-            state.Anchor = state.ButtonRect;
-            if (state.RequestedOpen is { } requestedOpen)
-            {
-                state.IsOpen = requestedOpen;
-                state.RequestedOpen = null;
-            }
-
-            if (state.RequestedSelection is { } requestedSelection)
-            {
-                selectedIndex = requestedSelection;
-                state.SelectedIndex = requestedSelection;
-                state.RequestedSelection = null;
-            }
-
-            if (!enabled) state.IsOpen = false;
-        }
+        ApplyDropdownRequests(gui, state, ref selectedIndex, enabled);
 
         DrawButton(gui, id, options, selectedIndex, width, height, placeholder, fontSize, padding, state, enabled,
             classes);
@@ -95,6 +78,24 @@ public static partial class ControlsExtensions
         if (!enabled || !state.IsOpen || state.Anchor.W <= 0) return;
 
         DrawList(gui, id, options, ref selectedIndex, state.Anchor, height, fontSize, padding, maxVisibleItems, state);
+    }
+
+    static void ApplyDropdownRequests(Gui gui, DropdownState state, ref int selectedIndex, bool enabled)
+    {
+        if (gui.Pass != Pass.Pass1Build) return;
+        state.Anchor = state.ButtonRect;
+        if (state.RequestedOpen is { } requestedOpen)
+        {
+            state.IsOpen = requestedOpen;
+            state.RequestedOpen = null;
+        }
+        if (state.RequestedSelection is { } requestedSelection)
+        {
+            selectedIndex = requestedSelection;
+            state.SelectedIndex = requestedSelection;
+            state.RequestedSelection = null;
+        }
+        if (!enabled) state.IsOpen = false;
     }
 
     /// <summary>

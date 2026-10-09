@@ -48,7 +48,7 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        id ??= gui.NodeId(filePath, lineNumber);
+        id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = GetOrCreatePopupState(gui, id, position, closeOnClickOutside, closeOnEscape);
 
@@ -178,23 +178,25 @@ public static partial class ControlsExtensions
         fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
 
-        id ??= gui.NodeId(filePath, lineNumber);
+        id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new TooltipState());
-        var now = gui.Clock.Elapsed;
-
         var anchorRect = state.AnchorRect;
-        var hovering = anchorRect.W > 0 && IsMouseInRect(gui.Input.MousePosition, anchorRect);
-
-        if (hovering && !state.WasHovering) state.EnteredAt = now;
-        state.WasHovering = hovering;
-
-        var show = hovering && now - state.EnteredAt >= delay;
+        var show = TooltipIsVisible(gui, state, anchorRect, delay);
 
         if (gui.Pass == Pass.Pass2Render) state.AnchorRect = node.Rect;
 
         gui.Tooltip(text, show, offset ?? new Vector2(0, anchorRect.H),
             maxWidth, fontSize, padding, classes, id, filePath, lineNumber);
+    }
+
+    static bool TooltipIsVisible(Gui gui, TooltipState state, Rect anchorRect, float delay)
+    {
+        var now = gui.Clock.Elapsed;
+        var hovering = anchorRect.W > 0 && IsMouseInRect(gui.Input.MousePosition, anchorRect);
+        if (hovering && !state.WasHovering) state.EnteredAt = now;
+        state.WasHovering = hovering;
+        return hovering && now - state.EnteredAt >= delay;
     }
 
     // Core implementation helpers

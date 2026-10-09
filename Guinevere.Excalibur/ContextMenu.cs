@@ -24,7 +24,7 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(buildMenu);
         var explicitId = id;
-        id ??= gui.NodeId(filePath, lineNumber);
+        id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id + "/anchor", () => new ContextMenuState());
         if (isOpen && !state.WasOpen) state.Position = position ?? gui.Input.MousePosition;

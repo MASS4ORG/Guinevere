@@ -19,11 +19,12 @@ public static partial class ControlsExtensions
     /// sheets (<c>:focus</c>, <c>:disabled</c>), sized like <c>gui.Node(width, height)</c>.
     /// </summary>
     static LayoutNode FieldNode(Gui gui, string[]? variant, IReadOnlyList<string>? classes, string? id, bool enabled,
-        float width, float height, float padding)
+        float width, float height, float padding, string filePath, int lineNumber)
     {
         ExcaliburStyles.Ensure(gui);
         var all = classes is null ? variant : variant is null ? classes : [.. variant, .. classes];
-        var node = gui.StyledNode("input", all, string.IsNullOrEmpty(id) ? null : id, disabled: !enabled);
+        var node = gui.StyledNode("input", all, string.IsNullOrEmpty(id) ? null : id, disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
         return Sized(node, width, height).Padding(FitPadding(height, padding));
     }
 
@@ -188,23 +189,25 @@ public static partial class ControlsExtensions
     /// <param name="grabFocus">Keeps the field focused without a click, for one that appears already
     /// being edited — an inline rename. Its value is selected when focus first lands.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
     public static void TextInput(this Gui gui, ref string text,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string placeholder = "",
         float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing, bool enabled = true,
-        string id = "", float alignX = 0f, bool grabFocus = false, IReadOnlyList<string>? classes = null)
+        string id = "", float alignX = 0f, bool grabFocus = false, IReadOnlyList<string>? classes = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.FieldHeightOr(height);
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
 
-        var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextInput", 0) : id;
-        gui.Focus.RegisterTextInput(nodeId);
-
-        using (FieldNode(gui, null, classes, id, enabled, width, height, padding)
+        using (FieldNode(gui, null, classes, id, enabled, width, height, padding, filePath, lineNumber)
                    .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
+            var nodeId = gui.CurrentNode.Id;
+            gui.Focus.RegisterTextInput(nodeId);
             var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize);
@@ -238,13 +241,17 @@ public static partial class ControlsExtensions
     /// <param name="grabFocus">Keeps the field focused without a click, for one that appears already
     /// being edited — an inline rename. Its value is selected when focus first lands.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
     /// <returns>The text after this frame's edits.</returns>
     public static string TextInput(this Gui gui, string text,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string placeholder = "",
         float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing, bool enabled = true,
-        string id = "", float alignX = 0f, bool grabFocus = false, IReadOnlyList<string>? classes = null)
+        string id = "", float alignX = 0f, bool grabFocus = false, IReadOnlyList<string>? classes = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        gui.TextInput(ref text, width, height, placeholder, fontSize, padding, enabled, id, alignX, grabFocus, classes);
+        gui.TextInput(ref text, width, height, placeholder, fontSize, padding, enabled, id, alignX, grabFocus,
+            classes, filePath, lineNumber);
         return text;
     }
 
@@ -262,22 +269,25 @@ public static partial class ControlsExtensions
     /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
     /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
     public static void PasswordInput(this Gui gui, ref string text,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, char maskChar = '*',
         string placeholder = "", float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
-        bool enabled = true, string id = "", IReadOnlyList<string>? classes = null)
+        bool enabled = true, string id = "", IReadOnlyList<string>? classes = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.FieldHeightOr(height);
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
 
-        var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("PasswordInput", 0) : id;
-        gui.Focus.RegisterTextInput(nodeId);
-
-        using (FieldNode(gui, PasswordClass, classes, id, enabled, width, height, padding).ContentAlignY(0.5f).Enter())
+        using (FieldNode(gui, PasswordClass, classes, id, enabled, width, height, padding, filePath, lineNumber)
+                   .ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
+            var nodeId = gui.CurrentNode.Id;
+            gui.Focus.RegisterTextInput(nodeId);
             var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled)
@@ -305,13 +315,17 @@ public static partial class ControlsExtensions
     /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
     /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
     /// <returns>The secret after this frame's edits.</returns>
     public static string PasswordInput(this Gui gui, string text,
         float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, char maskChar = '*',
         string placeholder = "", float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
-        bool enabled = true, string id = "", IReadOnlyList<string>? classes = null)
+        bool enabled = true, string id = "", IReadOnlyList<string>? classes = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        gui.PasswordInput(ref text, width, height, maskChar, placeholder, fontSize, padding, enabled, id, classes);
+        gui.PasswordInput(ref text, width, height, maskChar, placeholder, fontSize, padding, enabled, id,
+            classes, filePath, lineNumber);
         return text;
     }
 
@@ -326,6 +340,8 @@ public static partial class ControlsExtensions
     /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
     /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
     public static void TextArea(this Gui gui, ref string text,
         float width = 300, float height = 100,
         string placeholder = "",
@@ -333,17 +349,18 @@ public static partial class ControlsExtensions
         float padding = ControlMetrics.Spacing,
         bool enabled = true,
         string id = "",
-        IReadOnlyList<string>? classes = null)
+        IReadOnlyList<string>? classes = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
 
-        var nodeId = string.IsNullOrEmpty(id) ? gui.NodeId("TextArea", 0) : id;
-        gui.Focus.RegisterTextInput(nodeId);
-
-        using (FieldNode(gui, AreaClass, classes, id, enabled, width, height, padding).ContentAlignY(0.5f).Enter())
+        using (FieldNode(gui, AreaClass, classes, id, enabled, width, height, padding, filePath, lineNumber)
+                   .ContentAlignY(0.5f).Enter())
         {
             gui.ClipContent();
+            var nodeId = gui.CurrentNode.Id;
+            gui.Focus.RegisterTextInput(nodeId);
             var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize, multiline: true);
@@ -368,6 +385,8 @@ public static partial class ControlsExtensions
     /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
     /// <param name="id">Stable identifier of the edit state, also the element id for <c>input#id</c> rules.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
     /// <returns>The text after this frame's edits.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string TextArea(this Gui gui, string text,
@@ -377,9 +396,11 @@ public static partial class ControlsExtensions
         float padding = ControlMetrics.Spacing,
         bool enabled = true,
         string id = "",
-        IReadOnlyList<string>? classes = null)
+        IReadOnlyList<string>? classes = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        gui.TextArea(ref text, width, height, placeholder, fontSize, padding, enabled, id, classes);
+        gui.TextArea(ref text, width, height, placeholder, fontSize, padding, enabled, id, classes,
+            filePath, lineNumber);
         return text;
     }
 

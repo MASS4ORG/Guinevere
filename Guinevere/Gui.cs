@@ -96,6 +96,7 @@ public partial class Gui
     /// <param name="fontWidgetIcon">Optional font for explicit widget icons.</param>
     public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null, Font? fontWidgetIcon = null)
     {
+        BeginIdentityPass();
         Canvas = canvas;
         if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.BeginFrame();
         UpdateSystemAppearance();
@@ -175,6 +176,7 @@ public partial class Gui
     /// <param name="newPass">The new rendering stage to assign, represented as a value of the <see cref="Pass"/> enumeration.</param>
     public void SetStage(Pass newPass)
     {
+        BeginIdentityPass();
         Pass = newPass;
         if (RootNode is not null) RootNode!.Pass2NodeCount = 0;
     }

@@ -42,11 +42,11 @@ public static partial class ControlsExtensions
         ArgumentOutOfRangeException.ThrowIfLessThan(height, 24);
 
         ExcaliburStyles.Ensure(gui);
-        id ??= gui.NodeId(filePath, lineNumber);
+        id ??= gui.AutomaticId(filePath, lineNumber);
         var state = gui.ControlState(id, static () => new AppBarState());
         gui.Platform.TryGet<IWindowChromeCapability>(out var window);
         var chrome = windowControls ? window : null;
-        var native = nativeTitlebar || chrome?.CanMove == false;
+        var native = AppBarUsesNativeTitlebar(chrome, nativeTitlebar);
         if (gui.Pass == Pass.Pass1Build) state.Maximized = chrome?.IsMaximized == true;
 
         var bar = gui.StyledNode("appbar", classes, id).ExpandWidth().Height(height).Direction(Axis.Horizontal).Enter();
@@ -57,6 +57,9 @@ public static partial class ControlsExtensions
         gui.SetClipped(true);
         return new AppBarScope(gui, bar, content, state, chrome, height);
     }
+
+    static bool AppBarUsesNativeTitlebar(IWindowChromeCapability? chrome, bool nativeTitlebar) =>
+        nativeTitlebar || chrome?.CanMove == false;
 
     static void DrawAppBarChrome(Gui gui, AppBarState state, IWindowChromeCapability? window, bool native)
     {

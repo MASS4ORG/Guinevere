@@ -67,10 +67,8 @@ public partial class Gui : ILayoutNodeEnterExit
     /// <returns>A formatted string representing the unique node identifier.</returns>
     public string NodeId(string filePath, int lineNumber, int extra = 0, LayoutNode? parentNode = null)
     {
-        var idLocal = $"{filePath}:{lineNumber} {extra}";
         parentNode ??= CurrentNode;
-        var idGlobal = $"{parentNode.Id}{idLocal}";
-        return idGlobal;
+        return IdentityName(_nodeIdentities.At(parentNode.Identity, _itemKey, filePath, lineNumber, extra));
     }
 
     /// <summary>
@@ -120,12 +118,14 @@ public partial class Gui : ILayoutNodeEnterExit
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        id ??= NodeId(filePath, lineNumber, CurrentNode.Pass2NodeCount++);
+        var identity = NodeIdentity(id, filePath, lineNumber, CurrentNode);
+        if (id is null) CurrentNode.Pass2NodeCount++;
+        SubmitIdentity(identity);
         LayoutNode node;
-        var nodeExist = CurrentNode.Children.FirstOrDefault(child => child.Id == id);
+        var nodeExist = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
         if (Pass == Pass.Pass1Build || nodeExist is null)
         {
-            node = new LayoutNode(id, this, CurrentNode, width, height);
+            node = new LayoutNode(identity, this, CurrentNode, width, height);
             CurrentNode.AddChild(node);
         }
         else
@@ -152,12 +152,14 @@ public partial class Gui : ILayoutNodeEnterExit
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        id ??= NodeId(filePath, lineNumber, CurrentNode.Pass2NodeCount++);
-        var nodeExist = CurrentNode.Children.FirstOrDefault(child => child.Id == id);
+        var identity = NodeIdentity(id, filePath, lineNumber, CurrentNode);
+        if (id is null) CurrentNode.Pass2NodeCount++;
+        SubmitIdentity(identity);
+        var nodeExist = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
         LayoutNode node;
         if (Pass == Pass.Pass1Build || nodeExist is null)
         {
-            node = new LayoutNode(id, this, CurrentNode);
+            node = new LayoutNode(identity, this, CurrentNode);
             node.ApplyWidth(width);
             node.ApplyHeight(height);
             CurrentNode.AddChild(node);
@@ -171,6 +173,13 @@ public partial class Gui : ILayoutNodeEnterExit
         node.DrawList.Clear();
         node.Pass2NodeCount = 0;
         return node;
+    }
+
+    LayoutNode? FindImmediateNode(int identity)
+    {
+        foreach (var child in CurrentNode.ChildNodes)
+            if (child.Identity == identity) return child;
+        return null;
     }
 
     LayoutNode CreateRootNode(Rect rect)

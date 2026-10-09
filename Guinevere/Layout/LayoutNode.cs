@@ -75,7 +75,9 @@ public partial class LayoutNode : IDisposable
     /// It is used to uniquely identify a node within the GUI layout structure,
     /// allowing interactions and traversal methods to reliably target specific nodes.
     /// </remarks>
-    public string Id { get; private set; }
+    public string Id => _gui.IdentityName(Identity);
+
+    internal int Identity { get; }
 
     /// <summary>
     /// Gets the scope management object associated with this layout node.
@@ -214,13 +216,18 @@ public partial class LayoutNode : IDisposable
     /// for managing the node's contextual state.
     /// </remarks>
     public LayoutNode(string? id, Gui gui, LayoutNode? parent, float? width = null, float? height = null)
+        : this(gui.NodeIdentity(id, string.Empty, 0, parent), gui, parent, width, height)
+    {
+    }
+
+    internal LayoutNode(int identity, Gui gui, LayoutNode? parent, float? width = null, float? height = null)
     {
         _gui = gui;
         _parent = parent;
         Style = LayoutStyle.Default;
         if (width.HasValue) Style.Width = width.Value;
         if (height.HasValue) Style.Height = height.Value;
-        Id = id ?? _gui.NodeId(string.Empty, 0);
+        Identity = identity;
         Scope = new LayoutNodeScope(gui, this);
         if (width == 0) ExpandWidth();
         if (height == 0) ExpandHeight();
@@ -297,8 +304,7 @@ public partial class LayoutNode : IDisposable
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        // var id = gui.NodeId(filePath, lineNumber);
-        var node = new LayoutNode(null, _gui, this);
+        var node = new LayoutNode(_gui.NodeIdentity(null, filePath, lineNumber, this), _gui, this);
         if (sizeX.HasValue) node.ApplyWidth(sizeX.Value);
         if (sizeY.HasValue) node.ApplyHeight(sizeY.Value);
         return node;

@@ -38,7 +38,7 @@ public static partial class ControlsExtensions
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         ExcaliburStyles.Ensure(gui);
 
-        var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
+        var stateId = string.IsNullOrEmpty(id) ? gui.AutomaticId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
         if (gui.Pass == Pass.Pass1Build && state.RequestedActiveTabIndex is { } requested)
@@ -291,7 +291,7 @@ public static partial class ControlsExtensions
         fontSize = gui.ControlStyle.FontSizeOr(fontSize);
         ExcaliburStyles.Ensure(gui);
 
-        var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
+        var stateId = string.IsNullOrEmpty(id) ? gui.AutomaticId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, 32);
 
         if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
@@ -337,7 +337,7 @@ public static partial class ControlsExtensions
         spacing = gui.ControlStyle.SpacingOr(spacing);
         ExcaliburStyles.Ensure(gui);
 
-        var stateId = string.IsNullOrEmpty(id) ? gui.NodeId(filePath, lineNumber) : id;
+        var stateId = string.IsNullOrEmpty(id) ? gui.AutomaticId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
         if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;

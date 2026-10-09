@@ -19,13 +19,17 @@ public static class FormRenderer
     /// </summary>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="model">The form to draw.</param>
-    /// <param name="id">Stable id, unique among siblings.</param>
+    /// <param name="id">Optional explicit id; automatic identity uses call site and occurrence.</param>
     /// <param name="context">Drawers, fold state and host rules; keep one per panel.</param>
-    public static void Form(this Gui gui, FormModel model, string id, FormRenderContext? context = null)
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
+    public static void Form(this Gui gui, FormModel model, string? id = null, FormRenderContext? context = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(model);
         context ??= Fallback;
+        id ??= gui.AutomaticId(filePath, lineNumber);
 
         using (gui.Node(-1, -1, id).ExpandWidth().Direction(Axis.Vertical).Gap(2f).Enter())
             for (var i = 0; i < model.Sections.Count; i++)
@@ -35,13 +39,17 @@ public static class FormRenderer
     /// <summary>Draws one field as a labelled row, or as a group for collections and nested objects.</summary>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="field">The value to edit.</param>
-    /// <param name="id">Stable id, unique among siblings.</param>
+    /// <param name="id">Optional explicit id; automatic identity uses call site and occurrence.</param>
     /// <param name="context">Drawers, fold state and host rules; keep one per panel.</param>
-    public static void FormField(this Gui gui, FormField field, string id, FormRenderContext? context = null)
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
+    public static void FormField(this Gui gui, FormField field, string? id = null, FormRenderContext? context = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(field);
         var resolved = context ?? Fallback;
+        id ??= gui.AutomaticId(filePath, lineNumber);
 
         Decorate(gui, field, id, resolved, () => DrawProperty(gui, field, id, resolved));
     }
@@ -49,13 +57,18 @@ public static class FormRenderer
     /// <summary>Draws only a field's editor, for a caller that lays out the label itself.</summary>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="field">The value to edit.</param>
-    /// <param name="id">Stable id, unique among siblings.</param>
+    /// <param name="id">Optional explicit id; automatic identity uses call site and occurrence.</param>
     /// <param name="context">Drawers and host rules; its <see cref="FormRenderContext.Translate"/> applies to enums.</param>
-    public static void FormFieldEditor(this Gui gui, FormField field, string id, FormRenderContext? context = null)
+    /// <param name="filePath">Call site supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site supplied by the compiler.</param>
+    public static void FormFieldEditor(this Gui gui, FormField field, string? id = null,
+        FormRenderContext? context = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(field);
         var resolved = context ?? Fallback;
+        id ??= gui.AutomaticId(filePath, lineNumber);
 
         Decorate(gui, field, id, resolved, () => DrawEditor(gui, field, id, resolved));
     }
@@ -123,7 +136,7 @@ public static class FormRenderer
             drawer.Draw(gui, field, id, context);
     }
 
-    /// <summary>Draws a collection entry like <see cref="FormField(Gui, Autoformers.FormField, string, FormRenderContext?)"/>, optionally without its label.</summary>
+    /// <summary>Draws a collection entry like <see cref="FormField"/>, optionally without its label.</summary>
     internal static void FormEntry(Gui gui, FormField field, string id, FormRenderContext context, bool hideLabel) =>
         Decorate(gui, field, id, context, () => DrawProperty(gui, field, id, context, hideLabel));
 
