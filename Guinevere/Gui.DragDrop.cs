@@ -185,14 +185,18 @@ public partial class Gui
     public void DrawDropIndicator(DropTargetState state, Rect? rect = null, DropIndicatorStyle style = default)
     {
         if (Pass != Pass.Pass2Render || state is DropTargetState.None or DropTargetState.Dropped) return;
-        var color = state == DropTargetState.HoverAccepted
-            ? style.Accepted ?? ControlPalette.Positive
-            : style.Rejected ?? ControlPalette.Negative;
+        var color = DropIndicatorColor(state, style);
         var area = rect ?? CurrentNode.Rect;
         if (style.FillAlpha > 0)
             DrawRect(area, Color.FromArgb(style.FillAlpha, color.R, color.G, color.B), style.Radius);
         DrawRectBorder(area, color, style.Thickness, style.Radius);
     }
+
+    /// <summary>The style's accepted or rejected color, defaulting to a green or red that reads on light and dark.</summary>
+    static Color DropIndicatorColor(DropTargetState state, DropIndicatorStyle style) =>
+        state == DropTargetState.HoverAccepted
+            ? style.Accepted ?? Color.FromArgb(255, 60, 158, 94)
+            : style.Rejected ?? Color.FromArgb(255, 200, 84, 84);
 
     /// <summary>Draws the active drag's ghost under the cursor.</summary>
     public void DragGhost()

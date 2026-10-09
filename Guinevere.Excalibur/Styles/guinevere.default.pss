@@ -1,33 +1,34 @@
 // Guinevere's default look for the Excalibur controls. It sits under every application sheet, so a theme
 // overrides any token or rule below; `gui.SetStyleToken` and rule tokens re-theme a subtree.
 @const theme-id = "org.mass4.guinevere.default";
-@const theme-name = "Guinevere Light";
+@const theme-name = "Guinevere Dark";
+@const theme-kind = dark;
 
 // Colors
-$base-background = #f2f2f2;
-$surface = #ffffff;
-$surface-hover = #f2f2f2;
-$surface-active = #f0f0f0;
-$popup = #ffffff;
-$border = #808080;
-$border-active = #a9a9a9;
-$divider = #e0e0e0;
-$accent = #6495ed;
-$accent-hover = #5081d9;
-$accent-subtle = #e7f1ff;
-$text = #000000;
-$text-dim = #808080;
-$text-disabled = #adb5bd;
+$base-background = #181b20;
+$surface = #1c1f25;
+$surface-hover = #262a32;
+$surface-active = #333842;
+$popup = #20242b;
+$border = #333842;
+$border-active = #4e5562;
+$divider = #3c424e;
+$accent = #548fe0;
+$accent-hover = #68a3f4;
+$accent-subtle = #262a32;
+$text = #d7dae0;
+$text-dim = #8b929c;
+$text-disabled = #606876;
 $text-on-accent = #ffffff;
-$selected = #6495ed;
-$positive = #3c9e5e;
-$negative = #c85454;
+$selected = #548fe0;
+$positive = #58b074;
+$negative = #d06666;
 $warning = #f59e0b;
 $info = #0dcaf0;
-$focus-ring = #6495ed80;
+$focus-ring = #548fe096;
+$text-selection = #548fe078;
 $shadow = #00000064;
 $overlay = #0000008c;
-$text-selection = #6495ed6e;
 
 // Metrics
 $radius = 4;

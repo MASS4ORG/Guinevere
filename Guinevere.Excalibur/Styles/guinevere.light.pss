@@ -1,0 +1,29 @@
+// A light color theme. Token-only: it layers over guinevere.default.pss.
+@const theme-id = "org.mass4.guinevere.light";
+@const theme-name = "Guinevere Light";
+@const theme-kind = light;
+
+$base-background = #f2f2f2;
+$surface = #ffffff;
+$surface-hover = #f2f2f2;
+$surface-active = #f0f0f0;
+$popup = #ffffff;
+$border = #808080;
+$border-active = #a9a9a9;
+$divider = #e0e0e0;
+$accent = #6495ed;
+$accent-hover = #5081d9;
+$accent-subtle = #e7f1ff;
+$text = #000000;
+$text-dim = #808080;
+$text-disabled = #adb5bd;
+$text-on-accent = #ffffff;
+$selected = #6495ed;
+$positive = #3c9e5e;
+$negative = #c85454;
+$warning = #f59e0b;
+$info = #0dcaf0;
+$focus-ring = #6495ed80;
+$shadow = #00000064;
+$overlay = #0000008c;
+$text-selection = #6495ed6e;

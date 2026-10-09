@@ -26,7 +26,7 @@
 
     <ItemGroup>
         <None Include="README.md" Pack="true" PackagePath="/" />
-        <EmbeddedResource Include="Styles/guinevere.default.pss" LogicalName="Guinevere.Excalibur.guinevere.default.pss" />
+        <EmbeddedResource Include="Styles/*.pss" LogicalName="Guinevere.Excalibur.%(Filename)%(Extension)" />
     </ItemGroup>
 
     <ItemGroup>

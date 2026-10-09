@@ -1,0 +1,25 @@
+// A monochrome light color theme (GitHub Light style). Token-only: it layers over guinevere.default.pss.
+@const theme-id = "org.mass4.guinevere.mono-light";
+@const theme-name = "Guinevere Mono Light";
+@const theme-kind = light;
+
+$base-background = #f4f4f6;
+$surface = #ffffff;
+$surface-hover = #eaecef;
+$surface-active = #e1e4e8;
+$popup = #ffffff;
+$border = #d0d7de;
+$border-active = #8c959f;
+$divider = #ebefef;
+$accent = #24292f;
+$accent-hover = #32383e;
+$accent-subtle = #eaecef;
+$text = #1f2328;
+$text-dim = #656d76;
+$text-disabled = #8c959f;
+$text-on-accent = #ffffff;
+$selected = #e1e4e8;
+$positive = #1a7f37;
+$negative = #cf222e;
+$focus-ring = #24292f91;
+$text-selection = #24292f64;

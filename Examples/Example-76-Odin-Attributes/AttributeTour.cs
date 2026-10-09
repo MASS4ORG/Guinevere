@@ -25,13 +25,16 @@ public sealed class AttributeTour
     /// <summary>The index of the page on screen.</summary>
     public int Selected { get; set; }
 
+    /// <summary>A color token of the active theme, for the tour's own drawing.</summary>
+    static Color Token(Gui gui, string name) => ExcaliburStyles.TokenColor(gui, name);
+
     /// <summary>Draws the header, the sidebar and the selected page.</summary>
     public void Draw(Gui gui)
     {
-        gui.SetTextColor(gui.ControlPalette.Text);
+        gui.SetTextColor(Token(gui, "text"));
         using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
         {
-            gui.DrawBackgroundRect(gui.ControlPalette.BaseBackground);
+            gui.DrawBackgroundRect(Token(gui, "base-background"));
             Header(gui);
 
             using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(12).Padding(12).Enter())
@@ -46,7 +49,7 @@ public sealed class AttributeTour
     {
         using (gui.Node().Height(48).Padding(16, 0).Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(10).Enter())
         {
-            gui.DrawText("Autoformers", 20, gui.ControlPalette.Text);
+            gui.DrawText("Autoformers", 20, Token(gui, "text"));
         }
     }
 
@@ -54,7 +57,7 @@ public sealed class AttributeTour
     {
         using (gui.Node(230).ExpandHeight().Padding(10).Direction(Axis.Vertical).Gap(2).Enter())
         {
-            gui.DrawBackgroundRect(gui.ControlPalette.Surface, 8);
+            gui.DrawBackgroundRect(Token(gui, "surface"), 8);
             gui.ScrollContainer(scrollY: true);
 
             string? group = null;
@@ -66,7 +69,7 @@ public sealed class AttributeTour
                 if (page.Group != group)
                 {
                     group = page.Group;
-                    gui.DrawText(group.ToUpperInvariant(), 11, gui.ControlPalette.TextDim).Margin(4, 10, 0, 4);
+                    gui.DrawText(group.ToUpperInvariant(), 11, Token(gui, "text-dim")).Margin(4, 10, 0, 4);
                 }
 
                 SidebarEntry(gui, page, i);
@@ -81,10 +84,10 @@ public sealed class AttributeTour
             var interactable = gui.GetInteractable();
             var selected = index == Selected;
             if (gui.Pass == Pass.Pass2Render && (selected || interactable.OnHover()))
-                gui.DrawBackgroundRect(selected ? gui.ControlPalette.Selected : gui.ControlPalette.SurfaceHover, 4);
+                gui.DrawBackgroundRect(selected ? Token(gui, "selected") : Token(gui, "surface-hover"), 4);
 
-            var color = selected ? gui.ControlPalette.TextOnAccent
-                : page.IsAvailable ? gui.ControlPalette.Text : gui.ControlPalette.TextDisabled;
+            var color = selected ? Token(gui, "text-on-accent")
+                : page.IsAvailable ? Token(gui, "text") : Token(gui, "text-disabled");
             gui.DrawText(page.Title, 13, color, centerInRect: false);
 
             if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) Selected = index;
@@ -95,15 +98,15 @@ public sealed class AttributeTour
     {
         using (gui.Node().Expand().Padding(16).Direction(Axis.Vertical).Gap(10).Enter())
         {
-            gui.DrawBackgroundRect(gui.ControlPalette.Surface, 8);
+            gui.DrawBackgroundRect(Token(gui, "surface"), 8);
             gui.ScrollContainer(scrollY: true);
 
-            gui.DrawText(page.Title, 24, gui.ControlPalette.Text, centerInRect: false);
-            gui.DrawText(page.Summary, 14, gui.ControlPalette.TextDim, centerInRect: false);
+            gui.DrawText(page.Title, 24, Token(gui, "text"), centerInRect: false);
+            gui.DrawText(page.Summary, 14, Token(gui, "text-dim"), centerInRect: false);
 
             if (!page.IsAvailable)
             {
-                gui.DrawText("Coming soon.", 14, gui.ControlPalette.Warning, centerInRect: false);
+                gui.DrawText("Coming soon.", 14, Token(gui, "warning"), centerInRect: false);
                 return;
             }
 
@@ -116,7 +119,7 @@ public sealed class AttributeTour
                     () => gui.Form(new FormModel(target, [FormBuilder.Section(target, page.Title)]), "page/form",
                         context));
                 Panel(gui, "Code", UnitValue.Expand(), "page/code", true,
-                    () => gui.DrawText(source, 12, gui.ControlPalette.Text, CodeFont, centerInRect: false, clip: true));
+                    () => gui.DrawText(source, 12, Token(gui, "text"), CodeFont, centerInRect: false, clip: true));
             }
         }
     }
@@ -132,12 +135,12 @@ public sealed class AttributeTour
     {
         using (gui.Node(-1, -1, id).Width(width).Direction(Axis.Vertical).Enter())
         {
-            gui.DrawBackgroundRect(gui.ControlPalette.BaseBackground, 6);
+            gui.DrawBackgroundRect(Token(gui, "base-background"), 6);
 
             using (gui.Node(-1, height: 25).AlignContent(.5f).ExpandWidth().Enter())
             {
-                gui.DrawBackgroundRect(gui.ControlPalette.TextDim, 6, Corner.Top);
-                gui.DrawText(title.ToUpperInvariant(), 11, gui.ControlPalette.BaseBackground);
+                gui.DrawBackgroundRect(Token(gui, "text-dim"), 6, Corner.Top);
+                gui.DrawText(title.ToUpperInvariant(), 11, Token(gui, "base-background"));
             }
 
             using (gui.Node().Expand().Margin(8).Padding(12).Enter())

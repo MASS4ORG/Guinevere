@@ -82,8 +82,9 @@ public class AttributeDrawersTests
 
         var (text, surface) = seen[^1];
         Assert.Equal(Color.FromArgb(255, 255, 0, 0), text);
-        Assert.NotEqual(ControlPalette.Light.Surface, surface);
-        Assert.Equal(GuiColorDrawer.Blend(ControlPalette.Light.Surface, text, 0.25f), surface);
+        var themeSurface = ExcaliburStyles.TokenColor(new Gui(), "surface");
+        Assert.NotEqual(themeSurface, surface);
+        Assert.Equal(GuiColorDrawer.Blend(themeSurface, text, 0.25f), surface);
     }
 
     [Fact]

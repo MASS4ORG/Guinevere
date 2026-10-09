@@ -87,7 +87,7 @@ public partial class Gui
         float Measure(string value) => MeasureLineWidth(value, mainFont, iconFont);
         if (WrappedTextLayout.SelectionOn(Measure, line, state.SelectionStart, state.SelectionEnd) is not { } run)
             return;
-        var shape = Shape.Rectangle(run.Width, row.H).SolidColor(ControlStyle.TextSelection);
+        var shape = Shape.Rectangle(run.Width, row.H).SolidColor(Color.FromArgb(110, 100, 149, 237));
         node.DrawList.Add(new ShapePos(shape.Path, shape.Paint, new Vector2(row.X + run.X, row.Y)));
     }
 }

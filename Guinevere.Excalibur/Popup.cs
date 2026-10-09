@@ -151,7 +151,7 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("tooltip", classes, id, modifiers: show && !string.IsNullOrEmpty(text) ? [] : ["closed"],
                        filePath: filePath, lineNumber: lineNumber).Width(tooltipWidth).Height(tooltipHeight)
                    .AbsoluteScreen(tooltipPos.X, tooltipPos.Y).HitTestVisible(false)
-                   .Enter())
+                   .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
         {
             gui.SetZIndex(TooltipZIndex);
             gui.SetEscapesAncestorClips();
@@ -280,7 +280,8 @@ public static partial class ControlsExtensions
     static void RenderPopupTitleBar(Gui gui, string title, float width, float height,
         bool isOpen)
     {
-        using (gui.StyledNode("popup-title").Width(width).Height(height).HitTestVisible(isOpen).Enter())
+        using (gui.StyledNode("popup-title").Width(width).Height(height).Padding(8, 0).ContentAlignY(0.5f)
+                   .HitTestVisible(isOpen).Enter())
         {
             gui.DrawText(title, centerInRect: false).HitTestVisible(isOpen);
         }

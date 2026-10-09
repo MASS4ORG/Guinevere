@@ -374,7 +374,7 @@ public static partial class ControlsExtensions
         {
             var drop = gui.DropTarget($"treeview/drop/{item.Id}",
                 canAccept: dropAccept, onDrop: payload => onDrop?.Invoke(item, payload));
-            gui.DrawDropIndicator(drop.State);
+            gui.DrawDropIndicator(drop.State, style: ExcaliburStyles.DroppableArea(gui));
         }
 
         var interactable = gui.GetInteractable();

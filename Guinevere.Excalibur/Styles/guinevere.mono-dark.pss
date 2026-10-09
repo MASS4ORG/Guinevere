@@ -1,0 +1,25 @@
+// A monochrome dark color theme. Token-only: it layers over guinevere.default.pss.
+@const theme-id = "org.mass4.guinevere.mono-dark";
+@const theme-name = "Guinevere Mono Dark";
+@const theme-kind = dark;
+
+$base-background = #181a1f;
+$surface = #1e222a;
+$surface-hover = #252b35;
+$surface-active = #2c323d;
+$popup = #252b35;
+$border = #2d333f;
+$border-active = #4c566a;
+$divider = #232731;
+$accent = #9da5b4;
+$accent-hover = #bbc3d2;
+$accent-subtle = #282e39;
+$text = #d7dae0;
+$text-dim = #6f788a;
+$text-disabled = #4b5263;
+$text-on-accent = #d7dae0;
+$selected = #282e39;
+$positive = #50a14f;
+$negative = #e06c75;
+$focus-ring = #9da5b496;
+$text-selection = #9da5b46e;

@@ -49,21 +49,7 @@ public partial class Gui
         Platform.Register<ITimeCapability>(Time);
     }
 
-    ControlPalette _controls = ControlPalette.Light;
-
-    /// <summary>Fallback colors applied as independent values to each frame's root scope.</summary>
-    public ControlPalette ControlPalette
-    {
-        get => _controls;
-        set
-        {
-            ArgumentNullException.ThrowIfNull(value);
-            _controls = value;
-            if (LayoutNodeScopeStack.TryPeek(out var scope)) value.Apply(scope);
-        }
-    }
-
-    /// <summary>Control colors and dimensions inherited by the current layout node.</summary>
+    /// <summary>Control dimensions inherited by the current layout node.</summary>
     public ControlStyleValues ControlStyle => new(this);
 
     /// <summary>
@@ -134,7 +120,6 @@ public partial class Gui
             RegisterLayoutNodeScope(RootNode);
         }
 
-        _controls.Apply(CurrentNodeScope);
         ControlMetrics.Apply(CurrentNodeScope);
 
         if ((font ?? _defaultTextFont) is { } textFont)

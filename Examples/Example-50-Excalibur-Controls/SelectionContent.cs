@@ -62,11 +62,10 @@ public abstract partial class Program
     {
         using (gui.Node().Height(120).Direction(Axis.Horizontal).Gap(40).Enter())
         {
-            gui.DrawText("Control palette:", 14, gui.ControlPalette.Text);
+            gui.DrawText("Theme:", 14, Token(gui, "text"));
 
             gui.RadioGroup(ref _radioChoice,
                 [(0, "Light"), (1, "Dark"), (2, "Mono Light"), (3, "Mono Dark")]);
-            gui.ControlPalette = SelectedPalette();
             gui.RadioButton(ref _radioChoice, 4, "Disabled radio", enabled: false);
         }
     }
@@ -101,7 +100,7 @@ public abstract partial class Program
         }
 
         gui.DrawText("The same asynchronous control can select files or folders and can be embedded in any panel.",
-            size: 12, color: gui.ControlPalette.TextDim);
+            size: 12, color: Token(gui, "text-dim"));
 
         using (gui.Node().ExpandWidth().Margin(0, 8, 0, 0).Direction(Axis.Horizontal).Gap(12).Enter())
         {
@@ -127,8 +126,8 @@ public abstract partial class Program
     {
         using (gui.Node().Width(520).Height(500).Padding(8).Direction(Axis.Vertical).Gap(6).Enter())
         {
-            gui.DrawText(title, size: 14, color: gui.ControlPalette.Text);
-            gui.DrawText(result, size: 11, color: gui.ControlPalette.TextDim, wrapWidth: 500);
+            gui.DrawText(title, size: 14, color: Token(gui, "text"));
+            gui.DrawText(result, size: 11, color: Token(gui, "text-dim"), wrapWidth: 500);
 
             if (state.IsOpen) gui.FileBrowser(state, width: 504, height: 450, fontSize: 12);
             else if (gui.Button("Browse again", width: 120, height: 28, fontSize: 12)) reopen();

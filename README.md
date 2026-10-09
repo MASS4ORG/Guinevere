@@ -218,17 +218,13 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 
   Transition annotations, shapes, effects, mixins and macros parse for source compatibility and are kept in `StyleSheet.Deferred`; animated interpolation, expressions and applying those constructs remain planned styling features. The CSS-flavored `prop: value;`/`--x`/`var()` form is only accepted with `StyleSheetOptions.AllowCssSyntax` for migration tools.
 
-  Color palettes are collections of independent, inheritable values. Override only the values a
-  subtree needs:
+  Excalibur's colors are sheet tokens. `ExcaliburStyles.SetTheme(gui, ExcaliburStyles.Dark)` swaps the whole set (`Light`, `Dark`, `MonoLight`, `MonoDark` or any token sheet), and a subtree overrides only the tokens it needs; control dimensions stay independent, inheritable scope values:
 
   ```csharp
   using (gui.Node().Enter())
   {
-      gui.CurrentNodeScope.Set(
-      [
-          ControlStyles.Value<ControlAccent, Color>(Color.Orange),
-          ControlStyles.Value<ControlFieldHeight, float>(40f)
-      ]);
+      gui.SetStyleToken("accent", Color.Orange);
+      gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFieldHeight, float>(40f));
       gui.Button("Locally styled");
   }
   ```

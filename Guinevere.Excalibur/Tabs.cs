@@ -140,7 +140,7 @@ public static partial class ControlsExtensions
         var tabWidth = CalculateTabWidth(tab.Title, fontSize, tab.Closable);
 
         using (TabNode(gui, tab, isActive).Width(tabWidth).Height(state.TabBarHeight).Direction(Axis.Horizontal)
-                   .Enter())
+                   .ContentAlignY(0.5f).Enter())
         {
             var behavior = gui.Selectable(isActive, new ControlBehaviorOptions(
                 Enabled: tab.Enabled, Role: ControlRole.Tab, Label: tab.Title));
@@ -154,7 +154,7 @@ public static partial class ControlsExtensions
                 if (isActive) DrawTabMarker(gui, vertical: false);
             }
 
-            using (gui.Node().Expand().Height(state.TabBarHeight).Enter())
+            using (gui.Node().Expand().Height(state.TabBarHeight).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
                 gui.DrawText(tab.Title, fontSize, centerInRect: true);
 
             if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
@@ -220,7 +220,8 @@ public static partial class ControlsExtensions
                 rect.Y + (rect.H + bounds.Height) * 0.5f);
             gui.CurrentNode.DrawList.Add(new Text("×", pos, font, new SKPaint
             {
-                Color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value, IsAntialias = true
+                Color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value,
+                IsAntialias = true
             }));
 
             if (gui.GetInteractable().OnClick() && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
@@ -410,7 +411,7 @@ public static partial class ControlsExtensions
                 if (isActive) DrawTabMarker(gui, vertical: true);
             }
 
-            using (gui.Node().Expand().Height(36).Enter())
+            using (gui.Node().Expand().Height(36).ContentAlignY(0.5f).Enter())
                 gui.DrawText(tab.Title, fontSize, centerInRect: false);
 
             if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
@@ -428,7 +429,7 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render) HandleTabPointer(gui, state, tabIndex, tab);
 
-            using (gui.Node().Expand().Height(state.TabBarHeight - 16).Enter())
+            using (gui.Node().Expand().Height(state.TabBarHeight - 16).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
                 gui.DrawText(tab.Title, fontSize, centerInRect: true);
 
             if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);

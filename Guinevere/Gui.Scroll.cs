@@ -349,6 +349,9 @@ public partial class Gui
     /// <summary>Where scrollbars draw: above their container's content, below popups and drag ghosts.</summary>
     const int ScrollbarZIndex = 2_000;
 
+    /// <summary>Track fill when no <see cref="ScrollbarRenderer"/> or call-site color styles the scrollbar.</summary>
+    static readonly Color ScrollTrackColor = Color.FromArgb(255, 242, 242, 242);
+
     void DrawScrollbar(LayoutNode node, ScrollState scrollState, Axis axis, Color? foregroundColor,
         Color? backgroundColor)
     {
@@ -357,36 +360,40 @@ public partial class Gui
 
         // The container's own rect, not its content box: a scrollbar belongs on the border, and the
         // padding then applies to what is left.
-        var nodeRect = node.Rect;
-        var (track, thumb) = axis == Axis.Vertical
-            ? scrollState.CalculateVerticalScrollbar(nodeRect)
-            : scrollState.CalculateHorizontalScrollbar(nodeRect);
+        var (track, thumb, state) = ScrollbarParts(scrollState, axis, node.Rect);
 
-        var bgColor = backgroundColor ?? ControlPalette.BaseBackground;
-        var isDragging = axis == Axis.Vertical ? scrollState.IsDraggingScrollbarY : scrollState.IsDraggingScrollbarX;
-        var isHovered = axis == Axis.Vertical
-            ? scrollState.IsVerticalScrollbarHovered
-            : scrollState.IsHorizontalScrollbarHovered;
+        if (ScrollbarRenderer is { } renderer && foregroundColor is null && backgroundColor is null
+            && renderer.Draw(this, node, axis, track, thumb, state)) return;
 
-        if (ScrollbarRenderer is { } renderer && foregroundColor is null && backgroundColor is null)
-        {
-            var state = isDragging ? StyleState.Active : isHovered ? StyleState.Hover : StyleState.None;
-            if (renderer.Draw(this, node, axis, track, thumb, state)) return;
-        }
+        DrawPlainScrollbar(track, thumb, state, foregroundColor, backgroundColor);
+    }
 
-        // Use different colors based on interaction state
-        var fgColor = foregroundColor ?? (isDragging ? ControlPalette.TextDim :
-            isHovered ? ControlPalette.BorderActive :
-            ControlPalette.Border);
-
-        // Draw scrollbar background
-        DrawRectFilled(track, bgColor);
-
-        // Draw scrollbar thumb with rounded corners
+    /// <summary>A flat track and rounded thumb in the call-site colors, or grays when none are given.</summary>
+    void DrawPlainScrollbar(Rect track, Rect thumb, StyleState state, Color? foregroundColor, Color? backgroundColor)
+    {
+        DrawRectFilled(track, backgroundColor ?? ScrollTrackColor);
         var shape = Shape.RoundRect(thumb.X, thumb.Y, thumb.X + thumb.W, thumb.Y + thumb.H, 3f);
-        shape.Paint!.Color = fgColor;
+        shape.Paint!.Color = foregroundColor ?? (state == StyleState.Hover ? Color.DarkGray : Color.Gray);
         AddDraw(shape);
     }
+
+    /// <summary>The track and thumb of one axis' scrollbar, and its state: active while dragged, else hover.</summary>
+    static (Rect Track, Rect Thumb, StyleState State) ScrollbarParts(ScrollState scrollState, Axis axis, Rect rect)
+    {
+        if (axis == Axis.Vertical)
+        {
+            var (track, thumb) = scrollState.CalculateVerticalScrollbar(rect);
+            return (track, thumb,
+                ScrollbarState(scrollState.IsDraggingScrollbarY, scrollState.IsVerticalScrollbarHovered));
+        }
+
+        var (trackX, thumbX) = scrollState.CalculateHorizontalScrollbar(rect);
+        return (trackX, thumbX,
+            ScrollbarState(scrollState.IsDraggingScrollbarX, scrollState.IsHorizontalScrollbarHovered));
+    }
+
+    static StyleState ScrollbarState(bool dragging, bool hovered) =>
+        dragging ? StyleState.Active : hovered ? StyleState.Hover : StyleState.None;
 
     /// <summary>
     /// Gets the scroll offset for the specified node.

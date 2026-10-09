@@ -172,7 +172,7 @@ public class MenuNavigationTests
     public void CompactHamburgerRendersAboveItsButtonBackground()
     {
         using var surface = SKSurface.Create(new SKImageInfo(60, 60));
-        var gui = new TestableGui { ControlPalette = ControlPalette.Dark, Input = new ScriptedInputHandler() };
+        var gui = new TestableGui { Input = new ScriptedInputHandler() };
         gui.SetScreenRect(60, 60);
         void Draw() => gui.MenuBar(bar => bar.Collapsible().Menu("File", menu => menu.Item("Open")));
         surface.Canvas.Clear(SKColors.Black);

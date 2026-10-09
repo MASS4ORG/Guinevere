@@ -41,7 +41,7 @@ public abstract class Program
 
     public static void Main()
     {
-        var gui = new Gui { ControlPalette = ControlPalette.Dark };
+        var gui = new Gui();
         using var window = new GuiWindow(gui, 1200, 800, "Guinevere — Docking");
         window.RunGui(() => Draw(gui));
     }

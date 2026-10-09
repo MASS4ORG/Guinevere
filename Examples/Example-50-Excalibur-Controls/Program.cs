@@ -15,7 +15,7 @@ public abstract partial class Program
     /// <summary>Runs the control gallery.</summary>
     public static void Main()
     {
-        var gui = new Gui { ControlPalette = ControlPalette.Dark };
+        var gui = new Gui();
         gui.StyleSheets.Add(StylingSheet);
 
         Environment.SetEnvironmentVariable("OPENTK_4_USE_WAYLAND", "0");
@@ -26,7 +26,7 @@ public abstract partial class Program
 
     static void Draw(Gui gui)
     {
-        gui.ControlPalette = SelectedPalette();
+        ExcaliburStyles.SetTheme(gui, SelectedTheme());
         var chrome = gui.Platform.Require<IWindowChromeCapability>();
         var nativeTitlebar = _nativeTitlebar || !chrome.CanMove;
         using (gui.AppBar(windowControls: !_nativeTitlebar, nativeTitlebar: _nativeTitlebar, resizable: true))
@@ -40,7 +40,7 @@ public abstract partial class Program
             DemoHeader.BadgeMini(gui);
             gui.DrawText("Guinevere Excalibur");
             gui.Node().ExpandWidth();
-            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, gui.ControlPalette.Text);
+            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Token(gui, "text"));
             _nativeTitlebar = gui.Checkbox(_nativeTitlebar, "Native title bar");
             if (gui.Button("◐", 36, 36)) _radioChoice = _radioChoice == 0 ? 1 : 0;
         }
@@ -61,14 +61,17 @@ public abstract partial class Program
         }
     }
 
-    static ControlPalette SelectedPalette() => _radioChoice switch
+    static StyleSheet SelectedTheme() => _radioChoice switch
     {
-        0 => ControlPalette.Light,
-        1 => ControlPalette.Dark,
-        2 => ControlPalette.MonoLight,
-        3 => ControlPalette.MonoDark,
-        _ => ControlPalette.Dark
+        0 => ExcaliburStyles.Light,
+        1 => ExcaliburStyles.Dark,
+        2 => ExcaliburStyles.MonoLight,
+        3 => ExcaliburStyles.MonoDark,
+        _ => ExcaliburStyles.Dark
     };
+
+    /// <summary>A color token of the active theme, for the gallery's own drawing.</summary>
+    static Color Token(Gui gui, string name) => ExcaliburStyles.TokenColor(gui, name);
 
     static Color Hsb(float hueDegrees)
     {
@@ -83,8 +86,8 @@ public abstract partial class Program
     {
         using (gui.Node().ExpandWidth().Margin(5).Padding(5).Enter())
         {
-            gui.DrawText(title, size: 18, color: gui.ControlPalette.Text).MarginBottom(5);
-            gui.DrawBackgroundRect(gui.ControlPalette.SurfaceHover, 5);
+            gui.DrawText(title, size: 18, color: Token(gui, "text")).MarginBottom(5);
+            gui.DrawBackgroundRect(Token(gui, "surface-hover"), 5);
             body();
         }
     }

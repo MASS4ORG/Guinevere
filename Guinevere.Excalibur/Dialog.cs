@@ -176,7 +176,7 @@ public static partial class ControlsExtensions
         {
             using (gui.Node().Expand().Direction(Axis.Horizontal).Padding(16, 0).ContentAlignY(0.5f).Enter())
             {
-                using (gui.Node().Expand().Enter())
+                using (gui.Node().Expand().ContentAlignY(0.5f).Enter())
                     gui.DrawText(title, centerInRect: false);
 
                 return showCloseButton && CloseButton(gui, height * 0.6f, isOpen);

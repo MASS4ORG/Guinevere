@@ -139,7 +139,7 @@ public static partial class ControlsExtensions
             var alpha = ToastAlpha(now, entry, opts);
 
             using (gui.StyledNode("toast", opts.Classes).Width(width).Height(height)
-                       .AbsoluteScreen(position.X, position.Y).Enter())
+                       .AbsoluteScreen(position.X, position.Y).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
             {
                 gui.SetZIndex(ToastZIndex);
                 gui.SetOpacity(alpha / 255f * gui.CurrentNode.Scope.Get<LayoutNodeScopeOpacity>().Value);

@@ -36,7 +36,7 @@ The package covers:
 - `$tokens` layered across sheets, and `@const` values the host can read.
 - Tokens inherited down the node tree like CSS custom properties: a rule's `$token = value;` and `gui.SetStyleToken(name, value)` theme a node's whole subtree.
 - Value expressions: arithmetic, `calc()`, `em`, `min`/`max`/`clamp`, `rgb()`/`rgba()` (every channel 0..255), `rgb1()`/`rgba1()` (every channel 0..1), `hsl()`, `mix`, `alpha`, `lighten`, `darken`, `contrast-ink` and `shade`.
-- Visual properties on `StyledNode`: `background` colors and `linear-gradient`s, `box-shadow` (outer and inset), per-corner `border-radius`, `outline`, `opacity`, `cursor`, and text `color`/`font-*` inherited by child text.
+- Visual properties on `StyledNode`: `background` colors and `linear-gradient`s, `box-shadow` (outer and inset), borders drawn inside the box (per side with `border-<side>-width`/`-color`), per-corner `border-radius`, `outline`, `opacity`, `cursor`, and text `color`/`font-*` inherited by child text.
 - Icon themes: `icon#scene\.move { glyph = "\f0b2"; font-family = "fa6-solid"; }` or `{ src = url("move.png"); tint = true; }`, drawn by `gui.StyledIcon("scene.move", 16)`.
 - `@font-face`, `url()` and `@import` through a host resolver.
 - `file:line:col` errors, and reloads that keep the last valid sheet.

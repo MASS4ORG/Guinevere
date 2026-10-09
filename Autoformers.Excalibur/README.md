@@ -12,8 +12,8 @@ gui.Form(FormBuilder.Build(settings), "settings", context);
   a child scope falls back to its parent and `FormDrawers.Default` holds the built-ins.
 - Dispatch: attribute decorators wrap → writable type drawer → predicate drawers → collection → nested object →
   built-in (bool, string, enum, numbers) → read-only summary.
-- Colors and sizes come from inherited Guinevere control style tokens (`ControlPalette`, `CompactHeight`,
-  `CompactFontSize`) plus `FormLabelWidth`, `FormIndent`, `FormCaretOpen` and `FormCaretClosed`.
+- Colors come from the `form` stylesheet rule and its theme tokens; sizes from inherited control style tokens
+  (`CompactHeight`, `CompactFontSize`) plus `FormLabelWidth`, `FormIndent`, `FormCaretOpen` and `FormCaretClosed`.
 - Drawing is single-threaded (the GUI thread); registration may happen from any thread.
 
 Depends on `MASS4.Guinevere`, `MASS4.Guinevere.Excalibur` and `Autoformers` only; never on Gaya or Turian.

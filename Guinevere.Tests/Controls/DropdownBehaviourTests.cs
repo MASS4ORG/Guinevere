@@ -151,15 +151,10 @@ public class DropdownBehaviorTests
     }
 
     [Fact]
-    public void TheListTakesItsColorsFromTheControlPalette()
+    public void TheListOpensUnderALightTheme()
     {
-        var harness = new Harness
-        {
-            Gui =
-            {
-                ControlPalette = ControlPalette.Dark
-            }
-        };
+        var harness = new Harness();
+        ExcaliburStyles.SetTheme(harness.Gui, ExcaliburStyles.Light);
         harness.Frame(OnButton, pressed: true);
         harness.Frame(OnButton);
 

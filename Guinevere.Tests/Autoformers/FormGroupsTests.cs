@@ -56,8 +56,8 @@ public class FormGroupsTests
     [Fact]
     public void CompartmentFillAlternatesWithDepth()
     {
-        var background = ControlPalette.Light.BaseBackground;
-        var ink = ControlPalette.Light.Text;
+        var background = Color.FromArgb(255, 242, 242, 242);
+        var ink = Color.Black;
 
         Assert.NotEqual(background, FormGroups.CompartmentFill(background, ink, 0));
         Assert.NotEqual(FormGroups.CompartmentFill(background, ink, 0), FormGroups.CompartmentFill(background, ink, 1));

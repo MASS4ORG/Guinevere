@@ -119,7 +119,7 @@ static class FormGroups
         var drop = gui.DropTarget<EntryDrag>($"{id}/entry{index}/drop", EntryTag,
             drag => drag.CollectionId == id && drag.Index != index, keyboard: false);
 
-        if (drop.IsAccepted) gui.DrawDropIndicator(drop.State);
+        if (drop.IsAccepted) gui.DrawDropIndicator(drop.State, style: ExcaliburStyles.DroppableArea(gui));
         if (drop.IsDropped) collection.Move(drop.Payload!.Index, index);
     }
 

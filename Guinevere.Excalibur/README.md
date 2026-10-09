@@ -71,7 +71,30 @@ using (gui.Node().Enter())
 }
 ```
 
-`ExcaliburStyles.DefaultSheetText` is a starting point for a full theme. During the move to sheets, a non-default `gui.ControlPalette` is forwarded to the matching tokens.
+`ExcaliburStyles.DefaultSheetText` is a starting point for a full theme.
+
+### Themes
+
+A color theme is a token-only sheet layered right above the default sheet. Excalibur ships `ExcaliburStyles.Dark` (the default sheet itself), `Light`, `MonoLight` and `MonoDark`; any sheet of `$token = value;` declarations works the same way. Application sheets added with `gui.StyleSheets.Add` still override the theme.
+
+```csharp
+ExcaliburStyles.SetTheme(gui, ExcaliburStyles.Light); // replaces the previous theme; Dark or null restores the default
+var ink = ExcaliburStyles.TokenColor(gui, "text");    // theme colors for an application's own drawing
+gui.DrawDropIndicator(drop.State, style: ExcaliburStyles.DroppableArea(gui));
+```
+
+`ControlPalette` and `gui.ControlPalette` are gone, and so are the color tokens of `gui.ControlStyle` (dimensions stay). To migrate:
+
+| Before | After |
+|---|---|
+| the default light palette | `ExcaliburStyles.SetTheme(gui, ExcaliburStyles.Light)`; the default is now dark |
+| `new Gui { ControlPalette = ControlPalette.Dark }` | nothing: dark is the default |
+| a custom `new ControlPalette { Surface = … }` | a sheet of `$surface = …;` tokens passed to `SetTheme`, or `gui.StyleSheets.SetToken("surface", …)` |
+| `gui.ControlPalette.Text`, `gui.ControlStyle.Text` | `ExcaliburStyles.TokenColor(gui, "text")` |
+| `ControlStyles.Value<ControlAccent, Color>(c)` on a subtree | `gui.SetStyleToken("accent", c)` |
+| `gui.ApplyControlPalette()` with a `control-palette { … }` rule | top-level `$token = value;` declarations in the sheet |
+
+Token names are the palette's property names in kebab case (`SurfaceHover` → `surface-hover`).
 
 ### Contracts
 
@@ -80,11 +103,34 @@ using (gui.Node().Enter())
 | `Button` | `button` | caller classes; `primary` in the default sheet | `:hover`, `:active`, `:focus`, `:disabled` | `background-color`/`background`, `border-*`, `border-radius`, `padding` (fit size), `color`, `font-*`, `outline`, `box-shadow`, `opacity`, `cursor` |
 | `IconButton` | `button` | `icon` + caller classes | as `Button`, plus `:checked` (pass `checked` as a class) | as `Button` |
 | `ImageButton` | `button` | `image` + caller classes | as `Button`; the images swap by state | as `Button`; the image is drawn under the border and outline |
+| `Checkbox` | `checkbox`, drawn child `indicator` | caller classes and `id` | `:hover`, `:active`, `:focus`, `:disabled`, `:checked`, `:mixed` | row `color`/`cursor`; indicator background, border, radius and color; focus `outline`; root box/text properties |
+| `RadioButton` | `radio`, drawn children `indicator`, `dot` | caller classes and `id` | `:hover`, `:active`, `:focus`, `:disabled`, `:checked` | as `Checkbox`; `dot` background/border/radius |
+| `Toggle` | `toggle`, drawn children `track`, `thumb` | caller classes and `id` | `:hover`, `:focus`, `:disabled`, `:checked` | as `Checkbox`; track background/radius; thumb background/border/radius |
+| `TextInput`/`PasswordInput`/`TextArea`/`NumberField` | `input` | `password`, `area`, `number` respectively, plus caller classes and `id` | `:hover`, `:active`, `:focus`, `:disabled` | root box/text/font properties and `cursor`; child `placeholder` color (`:disabled`), child `selection` background |
+| `Dropdown` | `dropdown`, popup children `listbox`, `option` | caller classes and `id` | button `:open`, `:disabled`; option `:hover`, `:highlighted`, `:selected` | root box/text properties and `cursor`; listbox background/border/radius; option background/radius and `cursor` |
+| `MultiDropdown` | `dropdown`, children `chip`, `listbox`, `option`, `indicator` | caller classes and `id` | button `:open`, `:disabled`; chip `:hover`; option `:selected`, `:highlighted`; indicator `:checked`, `:mixed` | as `Dropdown`, plus chip background/radius/color and indicator border/radius |
+| `EnumDropdown` | `dropdown`; `button.segment` with `EnumPresentation.ToggleButtons` | `segment` (toggle buttons) plus caller classes | segment `:checked` | as `Dropdown`/`Button` |
 | `Slider` | `slider`, drawn children `track`, `fill`, `thumb` | caller classes and `id` on `slider` | `:hover`, `:active`, `:focus`, `:disabled`; `thumb:focus` | root box/text properties, `gap`, `flex-direction`, `align-items`; track `height`; thumb `width`, `height`, `max-width`, `max-height`; each part's background, border, radius, outline, shadow and opacity |
 | `ProgressBar` | `progress`, drawn child `fill` | caller classes and `id` on `progress` | `:indeterminate` when the fraction is null | root `width`, `height`, `padding` and box properties; fill background, border, radius, outline, shadow and opacity |
 | `Splitter` | `splitter` | caller classes and `id` | `:horizontal`, `:vertical`, `:hover`, `:active` while captured | axis size, background, border, radius, outline, shadow, opacity and cursor |
+| `Tabs`/`PillTabs`/`VerticalTabs` | `tabs`, `tabbar`, `tab`, `tabpanel`, `tab-close`, `tab-nav` | `plain`, `pill`, `vertical` plus caller classes | tab `:hover`, `:selected`, `:focus`, `:disabled`; `tab-nav` `:hover`, `:disabled`; `tab-close` `:hover` | tabbar background/border/radius; tab color/background/radius/outline; tabpanel background/border/radius; close radius/color; nav color |
+| `TabStrip` | `tabstrip`, `tab`, `marker`, `tab-close` | caller classes and `id` | tab `:hover`, `:selected`; `tab-close` `:hover` | tabstrip background; tab background/color; marker background; close radius |
+| `DockSpace`/`DockLayout` | `dockspace`, `dock-panel`, `dock-window`, `dock-grip`, `dock-empty`, `dock-ghost`, `drop-indicator`, `drop-preview` | `dock` on floating windows | — | background, border, radius, color and cursor per element |
+| `TreeView` | `treeview`, `tree-row`, `tree-expander`, `tree-ghost` | caller classes and `id` | row `:hover`, `:selected`; expander `:hover` | treeview color; row background/radius; expander color; ghost background/radius/color |
+| scrollbar | `scrollbar`, child `thumb` (drawn by the styling package) | — | thumb `:hover`, `:active` | scrollbar background; thumb background/radius |
+| `Popup` | `popup`, `popup-content`, `popup-title`, `overlay` | caller classes and `id` | `:closed` while hidden | popup background/border/radius; title background/color; overlay background |
+| `Dialog` | `dialog`, `dialog-title`, `dialog-content`, `dialog-footer`, `dialog-close` | caller classes and `id` | `:closed`; close `:hover` | dialog background/border/radius; title/color; footer border; close radius/color |
+| `Tooltip` | `tooltip` | caller classes and `id` | `:closed` | background/border/radius/color |
+| `Toast` | `toast`, drawn child `accent` | `info`, `positive`, `warning`, `negative` plus caller classes | — | toast background/border/radius/color; accent width/background |
+| `MenuBar`/`Flyout`/`ContextMenu` | `menubar`, `menu`, `menu-title`, `menu-item`, `menu-shortcut`, `menu-separator`, `menu-expander`, `menu-check` | caller classes | `:hover`, `:focus`, `:open`, `:highlighted`, `:disabled` | background/border/radius/color; item background/radius/outline; shortcut and separator color |
+| `AppBar` | `appbar`, `window-button`, `glyph-fill` | — | `window-button` `:hover` | appbar background/color; window-button background; glyph-fill background |
+| `Breadcrumb` | `breadcrumb`, `crumb`, `underline`, `crumb-separator` | crumb `link`/`current` classes | `:link:hover`, `:link:active`; separator `:hover`, `:open` | crumb color and underline; separator color |
+| `Label`/`WrappedText` | `label`, `wrapped-label` | caller classes and `id` | — | `color`, `font-*` |
+| `ObjectField` | `object-field`, `drop-outline`, `object-pick`, `object-clear` | caller classes and `id` | `:hover`, `:empty`, `:accepting`, `:rejecting`; drop-outline `:accepted` | background/border/radius/color; pick and clear color |
+| `FileDialog` | `file-browser`, `file-sidebar`, `file-list`, `file-header`, `file-column`, `file-row`, `file-place`, `file-label`, `file-status`, `file-detail` | `primary` on the accept button | row/place/column `:hover`, `:selected` | background, border, radius and color per element |
+| Autoformers form | `form` | — | — | `color`, `dim-color`, `background-color`, `border-color`, `accent-color`, `divider-color`, `negative-color`, `base-background`, `border-radius` |
 
-Drawn parts support direct-child selectors such as `slider#volume > thumb` and inherit tokens from their control. Slider track height and thumb dimensions accept pixels or percentages of the track viewport's height. `Slider` value labels use the stylesheet font size unless `fontSize` is supplied. `ProgressBar` defaults to the sheet's height and fills its parent; `Splitter` defaults to the sheet's axis size. Explicit dimensions override sheet dimensions.
+The embedded default sheet (`Styles/guinevere.default.pss`, exposed as `ExcaliburStyles.DefaultSheetText`) is the normative list of selectors and of the properties each one reads; the table above summarises it. Drawn parts support direct-child selectors such as `slider#volume > thumb` and inherit tokens from their control. Slider track height and thumb dimensions accept pixels or percentages of the track viewport's height. `Slider` value labels use the stylesheet font size unless `fontSize` is supplied. `ProgressBar` defaults to the sheet's height and fills its parent; `Splitter` defaults to the sheet's axis size. Explicit dimensions override sheet dimensions.
 
 ```pss
 slider.volume > track { height = 8; border-radius = 4; }
@@ -96,7 +142,7 @@ splitter:horizontal { width = 8; cursor = col-resize; }
 
 When upgrading, move slider/progress colors and splitter colors into the matching rules, and pass `classes` or `id` to select them. `Slider.fontSize`, `ProgressBar.height` and `Splitter.thickness` are nullable so omitted values follow the sheet; recompile callers against the updated API. Applications with positional compiler call-site arguments should use named `filePath` and `lineNumber` arguments.
 
-Default tokens: `$base-background`, `$surface`, `$surface-hover`, `$surface-active`, `$popup`, `$border`, `$border-active`, `$divider`, `$accent`, `$accent-hover`, `$accent-subtle`, `$text`, `$text-dim`, `$text-disabled`, `$text-on-accent`, `$selected`, `$positive`, `$negative`, `$warning`, `$info`, `$focus-ring`, `$shadow`, `$overlay`, `$text-selection`, `$radius`. The remaining controls move to sheets family by family.
+Default tokens: `$base-background`, `$surface`, `$surface-hover`, `$surface-active`, `$popup`, `$border`, `$border-active`, `$divider`, `$accent`, `$accent-hover`, `$accent-subtle`, `$text`, `$text-dim`, `$text-disabled`, `$text-on-accent`, `$selected`, `$positive`, `$negative`, `$warning`, `$info`, `$focus-ring`, `$shadow`, `$overlay`, `$text-selection`, `$radius`. Every Excalibur control now draws from sheets, including the Autoformers `form` contract.
 
 ## Buttons and selection
 

@@ -131,7 +131,7 @@ var currentTokenSet = new object[]
     new LayoutNodeScopeEscapesAncestorClips { Value = false }
 };
 
-var palette = ControlPalette.Dark;
+var palette = new AggregatePalette();
 Measure("style-aggregate-8-reads", count, iterations * 4, () =>
 {
     var sum = 0;
@@ -255,6 +255,19 @@ sealed class ReferenceTextEffects
 }
 
 readonly record struct ReferenceColor(System.Drawing.Color Value);
+
+/// <summary>Eight colors on one object, the baseline the slotted scope reads are compared with.</summary>
+sealed class AggregatePalette
+{
+    public Color Surface { get; } = Color.FromArgb(255, 28, 31, 37);
+    public Color Border { get; } = Color.FromArgb(255, 51, 56, 66);
+    public Color Accent { get; } = Color.FromArgb(255, 84, 143, 224);
+    public Color Text { get; } = Color.FromArgb(255, 215, 218, 224);
+    public Color TextDim { get; } = Color.FromArgb(255, 139, 146, 156);
+    public Color TextDisabled { get; } = Color.FromArgb(255, 96, 104, 118);
+    public Color Selected { get; } = Color.FromArgb(255, 84, 143, 224);
+    public Color Divider { get; } = Color.FromArgb(255, 60, 66, 78);
+}
 
 sealed record BoxedToken(int Value)
 {
