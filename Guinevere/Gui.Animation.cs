@@ -5,6 +5,7 @@ namespace Guinevere;
 public partial class Gui
 {
     AnimationManager? _animationManager;
+    readonly Dictionary<int, ScopedBoolAnimation> _scopedAnimations = new();
 
     AnimationManager AnimationManager => _animationManager ??= new AnimationManager(Time);
 
@@ -21,9 +22,8 @@ public partial class Gui
     }
 
     /// <summary>
-    /// Animates a boolean value to a float between 0.0 and 1.0 with automatic ID generation
-    /// based on the caller's file path and line number. This method both starts and processes
-    /// the animation on each call, maintaining state internally.
+    /// Animates a boolean using shared node, item and data identity, sampling once per frame in both passes.
+    /// Calls outside a frame retain caller-location identity.
     /// </summary>
     /// <param name="targetState">The target boolean state to animate towards.</param>
     /// <param name="duration">The duration of the animation in seconds.</param>
@@ -39,20 +39,50 @@ public partial class Gui
         [CallerFilePath] string callerFilePath = "",
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        return AnimationManager.AnimateBool01(targetState, duration, easingFunction, callerFilePath, callerLineNumber);
+        if (Canvas is null)
+            return AnimationManager.AnimateBool01(targetState, duration, easingFunction, callerFilePath, callerLineNumber);
+        return AnimateScopedBool(DataIdentity(null, callerFilePath, callerLineNumber),
+            targetState, duration, easingFunction);
+    }
+
+    /// <summary>Animates a boolean shared by a named ID within the current data and item context.</summary>
+    public float AnimateBool01(string id, bool targetState, float duration, Func<float, float> easingFunction) =>
+        AnimateScopedBool(DataIdentity(id, "", 0), targetState, duration, easingFunction);
+
+    float AnimateScopedBool(int identity, bool target, float duration, Func<float, float> easing)
+    {
+        ArgumentNullException.ThrowIfNull(easing);
+        if (!_scopedAnimations.TryGetValue(identity, out var state))
+            _scopedAnimations.Add(identity, state = new ScopedBoolAnimation(new AnimationFloat(target ? 1f : 0f, Time)));
+        if (state.Frame != _dataFrame)
+        {
+            if (state.Animation.TargetValue != (target ? 1f : 0f))
+                state.Animation.AnimateTo(target ? 1f : 0f, duration, easing);
+            state.Value = state.Animation.GetValue();
+            state.Frame = _dataFrame;
+        }
+        return state.Value;
+    }
+
+    sealed class ScopedBoolAnimation(AnimationFloat animation)
+    {
+        internal readonly AnimationFloat Animation = animation;
+        internal ulong Frame = ulong.MaxValue;
+        internal float Value;
     }
 
     /// <summary>
     /// Gets the total number of active boolean animations being managed.
     /// </summary>
     [PublicAPI]
-    public int ActiveAnimationCount => _animationManager?.ActiveAnimationCount ?? 0;
+    public int ActiveAnimationCount => (_animationManager?.ActiveAnimationCount ?? 0) + _scopedAnimations.Count;
 
     /// <summary>
     /// Gets the number of currently running boolean animations.
     /// </summary>
     [PublicAPI]
-    public int RunningAnimationCount => _animationManager?.RunningAnimationCount ?? 0;
+    public int RunningAnimationCount => (_animationManager?.RunningAnimationCount ?? 0)
+        + _scopedAnimations.Values.Count(state => state.Animation.IsAnimating);
 
     /// <summary>
     /// Clears all animation instances. This should typically be called
@@ -62,5 +92,6 @@ public partial class Gui
     public void ClearAnimations()
     {
         _animationManager?.Clear();
+        _scopedAnimations.Clear();
     }
 }

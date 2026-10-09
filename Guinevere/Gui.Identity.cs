@@ -11,7 +11,7 @@ public partial class Gui
     public ItemKeyScope ItemKey<T>(T key) where T : notnull
     {
         var previous = _itemKey;
-        _itemKey = _nodeIdentities.EnterItem(CurrentNode.Identity, previous, key);
+        _itemKey = _nodeIdentities.EnterItem(CurrentNode.Identity, previous, key, CurrentDataScope);
         return new ItemKeyScope(this, previous, _itemKey);
     }
 
@@ -23,8 +23,8 @@ public partial class Gui
 
     internal int NodeIdentity(string? id, string filePath, int lineNumber, LayoutNode? parent) =>
         id is null
-            ? _nodeIdentities.Automatic(parent?.Identity ?? 0, _itemKey, filePath, lineNumber)
-            : _nodeIdentities.Explicit(parent?.Identity ?? 0, _itemKey, id);
+            ? _nodeIdentities.Automatic(parent?.Identity ?? 0, _itemKey, filePath, lineNumber, data: CurrentDataScope)
+            : _nodeIdentities.Explicit(parent?.Identity ?? 0, _itemKey, id, CurrentDataScope);
 
     internal string IdentityName(int identity) => _nodeIdentities.Name(identity);
 
@@ -32,17 +32,19 @@ public partial class Gui
     public string AutomaticId(
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0) =>
-        IdentityName(_nodeIdentities.Automatic(CurrentNode.Identity, _itemKey, filePath, lineNumber, control: true));
+        IdentityName(DataIdentity(null, filePath, lineNumber));
 
     void SubmitIdentity(int identity)
     {
         if (!_submittedNodes.Add(identity))
-            throw new InvalidOperationException("An explicit node ID must be unique within its parent and item scope.");
+            throw new InvalidOperationException(
+                "An explicit node ID must be unique within its parent, item and data scope.");
     }
 
     void BeginIdentityPass()
     {
         if (_itemKey != 0) throw new InvalidOperationException("Item scopes must end before changing passes.");
+        BeginDataPass();
         _nodeIdentities.BeginPass();
         _submittedNodes.Clear();
     }

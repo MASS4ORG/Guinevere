@@ -4,9 +4,10 @@ namespace Guinevere;
 sealed class NodeIdentityRegistry
 {
     readonly record struct CallSite(string FilePath, int LineNumber);
-    readonly record struct Occurrence(int Parent, int Scope, int Site, bool Control);
+    readonly record struct Occurrence(int Parent, int Scope, int Site, bool Control, int Data = 0);
     readonly record struct Identity(Occurrence Location, int Index, string? ExplicitId);
-    readonly record struct ItemScope(int Parent, int Outer, int Item);
+    readonly record struct ItemScope(int Parent, int Outer, int Item, int Data);
+    readonly record struct DataScopeKey(int Outer, int ItemScope, int Key);
 
     readonly Dictionary<CallSite, int> _sites = new();
     readonly List<CallSite> _siteNames = [default];
@@ -17,6 +18,7 @@ sealed class NodeIdentityRegistry
     readonly Dictionary<Type, object> _items = new();
     readonly Dictionary<ItemScope, int> _scopes = new();
     readonly HashSet<int> _visitedScopes = [];
+    readonly Dictionary<DataScopeKey, int> _dataScopes = new();
     int _itemCount;
 
     internal void BeginPass()
@@ -25,28 +27,32 @@ sealed class NodeIdentityRegistry
         _visitedScopes.Clear();
     }
 
-    internal int Automatic(int parent, int scope, string filePath, int lineNumber, bool control = false)
+    internal int Automatic(int parent, int scope, string filePath, int lineNumber, bool control = false,
+        int data = 0)
     {
-        var location = new Occurrence(parent, scope, Site(filePath, lineNumber), control);
+        var location = new Occurrence(parent, scope, Site(filePath, lineNumber), control, data);
         _occurrences.TryGetValue(location, out var index);
         _occurrences[location] = index + 1;
         return Intern(new Identity(location, index, null));
     }
 
-    internal int At(int parent, int scope, string filePath, int lineNumber, int index) =>
-        Intern(new Identity(new Occurrence(parent, scope, Site(filePath, lineNumber), false), index, null));
+    internal int At(int parent, int scope, string filePath, int lineNumber, int index, int data = 0) =>
+        Intern(new Identity(new Occurrence(parent, scope, Site(filePath, lineNumber), false, data), index, null));
 
-    internal int Explicit(int parent, int scope, string id) =>
-        Intern(new Identity(new Occurrence(parent, scope, 0, false), 0, id));
+    internal int Explicit(int parent, int scope, string id, int data = 0) =>
+        Intern(new Identity(new Occurrence(parent, scope, 0, false, data), 0, id));
 
-    internal int EnterItem<T>(int parent, int outer, T item) where T : notnull
+    internal int DataScope<T>(int outer, int itemScope, T key) where T : notnull
     {
-        if (!typeof(T).IsValueType && item is null) throw new ArgumentNullException(nameof(item));
-        if (!_items.TryGetValue(typeof(T), out var table))
-            _items[typeof(T)] = table = new Dictionary<T, int>();
-        var items = (Dictionary<T, int>)table;
-        if (!items.TryGetValue(item, out var token)) items.Add(item, token = checked(++_itemCount));
-        var descriptor = new ItemScope(parent, outer, token);
+        var descriptor = new DataScopeKey(outer, itemScope, ItemToken(key));
+        if (!_dataScopes.TryGetValue(descriptor, out var scope))
+            _dataScopes.Add(descriptor, scope = checked(_dataScopes.Count + 1));
+        return scope;
+    }
+
+    internal int EnterItem<T>(int parent, int outer, T item, int data = 0) where T : notnull
+    {
+        var descriptor = new ItemScope(parent, outer, ItemToken(item), data);
         if (!_scopes.TryGetValue(descriptor, out var scope))
             _scopes.Add(descriptor, scope = checked(_scopes.Count + 1));
         if (!_visitedScopes.Add(scope))
@@ -54,12 +60,22 @@ sealed class NodeIdentityRegistry
         return scope;
     }
 
+    int ItemToken<T>(T item) where T : notnull
+    {
+        if (!typeof(T).IsValueType && item is null) throw new ArgumentNullException(nameof(item));
+        if (!_items.TryGetValue(typeof(T), out var table))
+            _items[typeof(T)] = table = new Dictionary<T, int>();
+        var items = (Dictionary<T, int>)table;
+        if (!items.TryGetValue(item, out var token)) items.Add(item, token = checked(++_itemCount));
+        return token;
+    }
+
     internal string Name(int key)
     {
         if (_names[key] is { } cached) return cached;
         var descriptor = _descriptors[key];
         var location = descriptor.Location;
-        if (location.Scope != 0 || location.Control)
+        if (location.Scope != 0 || location.Control || location.Data != 0)
             return _names[key] = $"@node:{key}";
         if (descriptor.ExplicitId is { } explicitId) return _names[key] = explicitId;
         var site = _siteNames[location.Site];

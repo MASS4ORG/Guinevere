@@ -13,6 +13,11 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     /// </summary>
     public LayoutNode Node { get; } = node;
 
+    internal int DataScope { get; set; } = node.Parent?.Scope.DataScope ?? 0;
+    internal int InheritedDataScope { get; private set; } = node.Parent?.Scope.DataScope ?? 0;
+
+    internal void ResetDataScope(int scope) => DataScope = InheritedDataScope = scope;
+
 
     /// <summary>
     /// Releases all resources used by the <see cref="LayoutNodeScope"/> instance and exits the current layout node context.

@@ -68,7 +68,8 @@ public partial class Gui : ILayoutNodeEnterExit
     public string NodeId(string filePath, int lineNumber, int extra = 0, LayoutNode? parentNode = null)
     {
         parentNode ??= CurrentNode;
-        return IdentityName(_nodeIdentities.At(parentNode.Identity, _itemKey, filePath, lineNumber, extra));
+        return IdentityName(_nodeIdentities.At(parentNode.Identity, _itemKey, filePath, lineNumber, extra,
+            CurrentDataScope));
     }
 
     /// <summary>
@@ -135,6 +136,7 @@ public partial class Gui : ILayoutNodeEnterExit
         }
 
         // Reuse the command buffer whenever this immediate-mode node is rebuilt.
+        node.Scope.ResetDataScope(CurrentDataScope);
         node.DrawList.Clear();
         node.Pass2NodeCount = 0;
 
@@ -170,6 +172,7 @@ public partial class Gui : ILayoutNodeEnterExit
             node.Scope.Rebase();
         }
 
+        node.Scope.ResetDataScope(CurrentDataScope);
         node.DrawList.Clear();
         node.Pass2NodeCount = 0;
         return node;

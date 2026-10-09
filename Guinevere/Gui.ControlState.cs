@@ -2,7 +2,8 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    readonly Dictionary<Type, Dictionary<string, object>> _controlStates = new();
+    readonly record struct ControlStateKey(int Scope, string Id);
+    readonly Dictionary<Type, Dictionary<ControlStateKey, object>> _controlStates = new();
 
     /// <summary>
     /// Per-control state that survives between frames, owned by this <see cref="Gui"/> rather than by
@@ -16,12 +17,13 @@ public partial class Gui
     internal TState ControlState<TState>(string id, Func<TState> create) where TState : class
     {
         if (!_controlStates.TryGetValue(typeof(TState), out var store))
-            _controlStates[typeof(TState)] = store = new Dictionary<string, object>();
+            _controlStates[typeof(TState)] = store = new Dictionary<ControlStateKey, object>();
 
-        if (store.TryGetValue(id, out var existing)) return (TState)existing;
+        var key = new ControlStateKey(CurrentDataScope, id);
+        if (store.TryGetValue(key, out var existing)) return (TState)existing;
 
         var state = create();
-        store[id] = state;
+        store[key] = state;
         return state;
     }
 
@@ -29,7 +31,7 @@ public partial class Gui
     internal TState? TryGetControlState<TState>(string id) where TState : class
     {
         if (!_controlStates.TryGetValue(typeof(TState), out var store)) return null;
-        return store.TryGetValue(id, out var existing) ? (TState)existing : null;
+        return store.TryGetValue(new ControlStateKey(CurrentDataScope, id), out var existing) ? (TState)existing : null;
     }
 
     /// <summary>Forgets every control's remembered state.</summary>
