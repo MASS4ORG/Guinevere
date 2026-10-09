@@ -205,6 +205,7 @@ public partial class Gui
             return zOrder != 0 ? zOrder : left.Sequence.CompareTo(right.Sequence);
         });
 
+        using var renderer = new PrimitiveRenderer();
         for (var index = 0; index < _renderNodes.Count; index++)
         {
             var node = _renderNodes[index].Node;
@@ -212,7 +213,7 @@ public partial class Gui
             var restore = Canvas!.Save();
             ApplyAncestorClips(node, Canvas!);
             if (opacity < 1f) SaveOpacityLayer(node.DrawList.InkBounds(node), opacity);
-            if (opacity > 0f) node.DrawList.Render(this, node, Canvas!);
+            if (opacity > 0f) node.DrawList.Render(this, node, Canvas!, renderer);
             Canvas!.RestoreToCount(restore);
             node.Pass2NodeCount = 0;
         }

@@ -43,5 +43,3 @@ These attributes expose information for application consumers. Autoformers retai
 | `[TypeId("guid")]` | Declare a stable type identity for serialization consumers. |
 | `[InternalService(...)]` | Declare a service type and `InternalServiceLifetime`. |
 | `[SuppressPrivate]` | Prevent an attribute from implicitly exposing nonpublic members. |
-
-For direct GUI widgets and custom layer-mask drawers, see the [short Turian guide](../docs/turian-selection-guide.md).

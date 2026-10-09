@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Changed (breaking): Node ids are automatic and numeric #167.
+- Changed (breaking): GUI data has scopes and animations are keyed and sampled once per frame #174.
+- Changed (breaking): Mutable fluent effects use `Draw…` shapes #20.
 - Changed (breaking): Stylesheets move to the new `MASS4.Guinevere.Styling` package, and are `.pss` theme files #157 #158 #159.
 - Changed (breaking): Excalibur controls are styled by `.pss` instead old `.uss` #160.
 - Fixed (breaking): shadows follow CSS `box-shadow` semantics.
 - Added: Style value expressions and theme color functions #39.
 - Added: Font registry with runtime file/stream registration #161.
-- Added: Themeable font and SVG icons (`gui.Icon`) #162.
+- Added: Themeable font and SVG icons #162.
 - Added: System color scheme and accent color #163.
 
 ## v[5.9.0][] 2026-10-06

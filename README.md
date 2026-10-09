@@ -255,6 +255,8 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 
 ### Shapes & Effects
 
+Drawing overloads with an explicit color record direct primitive commands. Geometry-only overloads return mutable `Shape` objects for fluent effects; `DrawShape(position, shape)` returns a translated copy. For example, `gui.DrawRect(rect, Color.Blue)` draws directly, while `gui.DrawRect(rect).SolidColor(Color.Blue)` supports chained effects. `gui.DrawBackgroundRect()` returns a white fluent background; pass a color or `null` explicitly for a direct background.
+
 - Basic shapes: circle, rectangle, arc
 - Fills: solid, linear/radial gradients
 - Borders and rounded corners
@@ -318,7 +320,7 @@ The ready-to-use control collection lives in the separate
 [`MASS4.Guinevere.Excalibur`](Guinevere.Excalibur/README.md) package. It provides buttons, text and
 numeric inputs, menus, popups, dialogs, trees, tabs, docking, notifications, and more.
 
-Selection controls include searchable `MultiDropdown` with removable chips and filtered bulk actions, plus `EnumDropdown` with automatic flag checkboxes, button groups and previous/next paging. See the [selection examples](Guinevere.Excalibur/README.md#searchable-selection) and [short Turian guide](docs/turian-selection-guide.md).
+Selection controls include searchable `MultiDropdown` with removable chips and filtered bulk actions, plus `EnumDropdown` with automatic flag checkboxes, button groups and previous/next paging.
 
 ```powershell
 dotnet add package MASS4.Guinevere.Excalibur

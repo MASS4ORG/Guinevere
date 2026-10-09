@@ -184,7 +184,7 @@ gui.EnumDropdown(ref _mode, EnumPresentation.Paging);
 
 Ordinary enums select one value. Flag edits add/remove only the chosen bits; selecting zero (None) clears the whole value. A None option is supplied when a flags enum has no declared zero. Paging wraps through distinct declared values in `Enum.GetValues` order, including sparse values; for flags it replaces the entire mask. Button groups occupy one horizontal row: use the dropdown for many or long labels. Pass `display` to provide custom labels.
 
-`EnumDropdown(ref value)` returns true when an edit is delivered. `MultiDropdownResult<T>.Changed` and enum edits are delivered once in the build pass, so persistence/undo can run inside that condition. For custom multi-object drawers, apply `result.Changes` to each owner and use `mixed`/`isMixed` for feedback. The runtime `EnumDropdown(Enum, out changes, ...)` overload and `EnumSelection.Apply` support enum drawers. Autoformers.Excalibur handles this automatically; see the [Turian guide](../docs/turian-selection-guide.md).
+`EnumDropdown(ref value)` returns true when an edit is delivered. `MultiDropdownResult<T>.Changed` and enum edits are delivered once in the build pass, so persistence/undo can run inside that condition. For custom multi-object drawers, apply `result.Changes` to each owner and use `mixed`/`isMixed` for feedback. The runtime `EnumDropdown(Enum, out changes, ...)` overload and `EnumSelection.Apply` support enum drawers. Autoformers.Excalibur handles this automatically;
 
 ## Text and numeric input
 

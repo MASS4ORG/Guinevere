@@ -6,12 +6,29 @@ namespace Guinevere;
 public sealed class DrawList
 {
     readonly List<DrawCommand> _entries = [];
+    List<PrimitiveCommand>? _primitives;
 
     /// <summary>Number of commands currently queued.</summary>
     public int Count => _entries.Count;
 
     /// <summary>Reserves storage for at least <paramref name="capacity"/> commands.</summary>
-    public void EnsureCapacity(int capacity) => _entries.EnsureCapacity(capacity);
+    public void EnsureCapacity(int capacity)
+    {
+        _entries.EnsureCapacity(capacity);
+        (_primitives ??= []).EnsureCapacity(capacity);
+    }
+
+    /// <summary>Number of direct primitive submissions queued for each replay.</summary>
+    public int PrimitiveCount => _primitives?.Count ?? 0;
+
+    internal void Add(in PrimitiveCommand primitive, bool prepend = false)
+    {
+        var primitives = _primitives ??= [];
+        var command = DrawCommand.Primitive(primitives.Count);
+        primitives.Add(primitive);
+        if (prepend) _entries.Insert(0, command);
+        else _entries.Add(command);
+    }
 
     /// <summary>
     /// Adds a drawable shape to the draw list.
@@ -75,14 +92,18 @@ public sealed class DrawList
         foreach (var entry in _entries)
         {
             if (entry.IsClip) continue;
-            if (entry.InkBounds(node) is not { } bounds) return null;
+            if (entry.InkBounds(node, _primitives) is not { } bounds) return null;
             ink = Ink.Join(ink, bounds);
         }
         return ink;
     }
 
     /// <summary>Removes queued commands while retaining the allocated command buffer.</summary>
-    public void Clear() => _entries.Clear();
+    public void Clear()
+    {
+        _entries.Clear();
+        _primitives?.Clear();
+    }
 
     /// <summary>
     /// Renders all drawable entries in the list onto the specified canvas.
@@ -92,7 +113,13 @@ public sealed class DrawList
     /// <param name="canvas">The canvas to render the drawable entries onto.</param>
     public void Render(Gui gui, LayoutNode node, SKCanvas canvas)
     {
-        foreach (var entry in _entries) entry.Execute(gui, node, canvas);
+        using var renderer = new PrimitiveRenderer();
+        Render(gui, node, canvas, renderer);
+    }
+
+    internal void Render(Gui gui, LayoutNode node, SKCanvas canvas, PrimitiveRenderer renderer)
+    {
+        foreach (var entry in _entries) entry.Execute(gui, node, canvas, _primitives, renderer);
     }
 
     enum DrawCommandKind : byte
@@ -100,7 +127,8 @@ public sealed class DrawList
         Drawable,
         ClipRect,
         ClipShape,
-        Custom
+        Custom,
+        Primitive
     }
 
     readonly struct DrawCommand
@@ -108,28 +136,35 @@ public sealed class DrawList
         readonly DrawCommandKind _kind;
         readonly object _value;
         readonly Rect _rect;
-        readonly Vector2 _position;
+        readonly int _primitiveIndex;
 
-        DrawCommand(DrawCommandKind kind, object value, Rect rect = default, Vector2 position = default)
+        DrawCommand(DrawCommandKind kind, object value, Rect rect = default, int primitiveIndex = 0)
         {
             _kind = kind;
             _value = value;
             _rect = rect;
-            _position = position;
+            _primitiveIndex = primitiveIndex;
         }
 
         public bool IsClip => _kind is DrawCommandKind.ClipRect or DrawCommandKind.ClipShape;
 
-        public SKRect? InkBounds(LayoutNode node) =>
-            _kind == DrawCommandKind.Drawable && _value is IInkBounds bounded ? bounded.InkBounds(node) : null;
+        public SKRect? InkBounds(LayoutNode node, List<PrimitiveCommand>? primitives)
+        {
+            if (_kind == DrawCommandKind.Primitive) return primitives![_primitiveIndex].InkBounds();
+            return _kind == DrawCommandKind.Drawable && _value is IInkBounds bounded ? bounded.InkBounds(node) : null;
+        }
+
+        public static DrawCommand Primitive(int index) =>
+            new(DrawCommandKind.Primitive, null!, primitiveIndex: index);
 
         public static DrawCommand Drawable(IDrawable drawable) => new(DrawCommandKind.Drawable, drawable);
         public static DrawCommand Custom(IDrawListEntry entry) => new(DrawCommandKind.Custom, entry);
         public static DrawCommand Clip(Rect rect) => new(DrawCommandKind.ClipRect, null!, rect);
         public static DrawCommand Clip(Shape shape, Vector2 position) =>
-            new(DrawCommandKind.ClipShape, shape, position: position);
+            new(DrawCommandKind.ClipShape, shape, new Rect(position.X, position.Y));
 
-        public void Execute(Gui gui, LayoutNode node, SKCanvas canvas)
+        public void Execute(Gui gui, LayoutNode node, SKCanvas canvas, List<PrimitiveCommand>? primitives,
+            PrimitiveRenderer renderer)
         {
             switch (_kind)
             {
@@ -142,11 +177,16 @@ public sealed class DrawList
                 case DrawCommandKind.ClipShape:
                     canvas.Save();
                     var shape = (Shape)_value;
-                    var positioned = new ShapePos(shape.Path, shape.Paint, _position);
-                    canvas.ClipPath(positioned.Path);
+                    var matrix = canvas.TotalMatrix;
+                    canvas.Translate(_rect.X, _rect.Y);
+                    canvas.ClipPath(shape.Path);
+                    canvas.SetMatrix(matrix);
                     break;
                 case DrawCommandKind.Custom:
                     ((IDrawListEntry)_value).Execute(gui, node, canvas);
+                    break;
+                case DrawCommandKind.Primitive:
+                    renderer.Render(primitives![_primitiveIndex], canvas);
                     break;
             }
         }

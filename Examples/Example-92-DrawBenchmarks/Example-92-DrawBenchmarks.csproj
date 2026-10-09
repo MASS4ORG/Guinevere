@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Version>5.8.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+    <ProjectReference Include="../../Guinevere.Scripting/Guinevere.Scripting.csproj" />
+    <ProjectReference Include="../Example-75-PaperUI-Dashboard/Example-75-PaperUI-Dashboard.csproj" />
+  </ItemGroup>
+</Project>

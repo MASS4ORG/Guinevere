@@ -1,250 +1,128 @@
-using System.Runtime.CompilerServices;
-
 namespace Guinevere;
 
-/// <summary>
-/// Represents the main GUI class for drawing shapes and managing graphical objects.
-/// </summary>
+/// <summary>Builds immediate-mode layouts and queues their drawing commands.</summary>
 public partial class Gui
 {
-    /// <summary>
-    /// Draws a rectangle border
-    /// </summary>
-    [PublicAPI]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Shape DrawRectBorder(Rect screenRect, Color color, float thickness = 1f,
-        float radius = 0.0f,
-        Corner corners = Corner.All)
-    {
-        return DrawRectBorder(
-            new Vector2(screenRect.X, screenRect.Y),
-            new Vector2(screenRect.W, screenRect.H),
-            color, thickness, radius, corners);
-    }
+    /// <summary>Queues a rectangle border using paint values captured by the draw command.</summary>
+    public void DrawRectBorder(Rect screenRect, Color color, float thickness = 1f,
+        float radius = 0f, Corner corners = Corner.All) =>
+        AddPrimitive(new PrimitiveCommand(PrimitiveKind.Rect, screenRect, color, radius, corners, thickness, true));
 
-    /// <summary>
-    /// Draws a rectangle border
-    /// </summary>
-    [PublicAPI]
-    public Shape DrawRectBorder(Vector2 topLeft, Vector2 size, Color color, float thickness = 1f,
-        float radius = 0.0f,
-        Corner corners = Corner.All)
+    /// <summary>Queues a rectangle border at the given position and size.</summary>
+    public void DrawRectBorder(Vector2 topLeft, Vector2 size, Color color, float thickness = 1f,
+        float radius = 0f, Corner corners = Corner.All) =>
+        DrawRectBorder(new Rect(topLeft.X, topLeft.Y, size.X, size.Y), color, thickness, radius, corners);
+
+    /// <summary>Queues a filled rectangle; a null color uses black.</summary>
+    public void DrawRectFilled(Rect screenRect, Color? color, float radius = 0f, Corner corners = Corner.All) =>
+        AddPrimitive(new PrimitiveCommand(PrimitiveKind.Rect, screenRect, color ?? Color.Black, radius, corners));
+
+    /// <summary>Queues a filled rectangle defined by its edges; a null color uses black.</summary>
+    public void DrawRectFilled(float left, float top, float right, float bottom, Color? color,
+        float radius = 0f, Corner corners = Corner.All) =>
+        DrawRectFilled(new Rect(left, top, right - left, bottom - top), color, radius, corners);
+
+    /// <summary>Queues a filled rectangle using paint values captured by the draw command.</summary>
+    public void DrawRect(Rect rect, Color color, float radius = 0f, Corner corners = Corner.All) =>
+        DrawRectFilled(rect, color, radius, corners);
+
+    /// <summary>Queues a filled rectangle at the given position and size.</summary>
+    public void DrawRect(Vector2 position, Vector2 size, Color color, float radius = 0f,
+        Corner corners = Corner.All) =>
+        DrawRectFilled(new Rect(position.X, position.Y, size.X, size.Y), color, radius, corners);
+
+    /// <summary>Queues a filled rectangle; a null color uses black.</summary>
+    public void DrawRect(Rect rect, Color? color, float radius = 0f, Corner corners = Corner.All) =>
+        DrawRectFilled(rect, color, radius, corners);
+
+    /// <summary>Queues a circle border using paint values captured by the draw command.</summary>
+    public void DrawCircleBorder(Vector2 center, float radius, Color color, float thickness = 1f) =>
+        AddPrimitive(new PrimitiveCommand(PrimitiveKind.Circle, default, color, radius,
+            Thickness: thickness, Stroke: true, A: center));
+
+    /// <summary>Queues a filled circle using paint values captured by the draw command.</summary>
+    public void DrawCircleFilled(Vector2 center, float radius, Color color) =>
+        AddPrimitive(new PrimitiveCommand(PrimitiveKind.Circle, default, color, radius, A: center));
+
+    /// <summary>Queues a filled circle using paint values captured by the draw command.</summary>
+    public void DrawCircle(Vector2 center, float radius, Color color) => DrawCircleFilled(center, radius, color);
+
+    /// <summary>Queues a triangle with interpolated vertex colors; omitted colors use the first color.</summary>
+    public void DrawTriangleFilled(Vector2 a, Vector2 b, Vector2 c, Color colorA,
+        Color? colorB = null, Color? colorC = null) =>
+        AddPrimitive(new PrimitiveCommand(PrimitiveKind.Triangle, default, colorA, A: a, B: b, C: c,
+            ColorB: colorB ?? colorA, ColorC: colorC ?? colorA));
+
+    /// <summary>Queues a triangle with interpolated vertex colors; omitted colors use the first color.</summary>
+    public void DrawTriangle(Vector2 a, Vector2 b, Vector2 c, Color colorA,
+        Color? colorB = null, Color? colorC = null) => DrawTriangleFilled(a, b, c, colorA, colorB, colorC);
+
+    /// <summary>Queues one filled rectangle behind the current node's other commands; null uses white.</summary>
+    public void DrawBackgroundRect(Color? color, float radius = 0f, Corner corners = Corner.All) =>
+        AddPrimitive(new PrimitiveCommand(PrimitiveKind.Rect, CurrentNode.Rect, color ?? Color.White, radius, corners),
+            prepend: true);
+
+    /// <summary>Queues a flat-ended line in the current node's draw order, with a minimum width of one pixel.</summary>
+    public void DrawLine(Vector2 start, Vector2 end, Color color, float thickness = 1f) =>
+        AddPrimitive(new PrimitiveCommand(PrimitiveKind.Line, default, color, Thickness: thickness, A: start, B: end));
+
+    /// <summary>Queues a mutable rectangle for fluent fills, strokes, shaders and shadows.</summary>
+    public Shape DrawRect(Rect rect, float radius = 0f, Corner corners = Corner.All)
     {
-        var bottomRight = new Vector2(topLeft.X + size.X, topLeft.Y + size.Y);
-        var shape = DrawRect(topLeft.X, topLeft.Y, bottomRight.X, bottomRight.Y, radius, corners);
-        shape.Stroke(color, thickness);
+        var shape = CreateRect(rect, radius, corners);
         AddDraw(shape);
         return shape;
     }
 
-    Shape DrawRect(float left, float top, float right, float bottom,
-        float radius = 0.0f, Corner corners = Corner.All)
-    {
-        return ImMath.ApproximatelyEquals(radius, 0.0f)
-            ? Shape.Rect(left, top, right, bottom)
-            : Shape.RoundRect(left, top, right, bottom, radius, corners);
-    }
+    /// <summary>Queues a mutable rectangle at the given position and size.</summary>
+    public Shape DrawRect(Vector2 position, Vector2 size, float radius = 0f, Corner corners = Corner.All) =>
+        DrawRect(new Rect(position.X, position.Y, size.X, size.Y), radius, corners);
 
-    /// <summary>
-    /// Draws a filled rectangle
-    /// </summary>
-    [PublicAPI]
-    public Shape DrawRectFilled(
-        Rect screenRect,
-        Color? color,
-        float radius = 0.0f, Corner corners = Corner.All)
+    /// <summary>Queues a mutable circle for fluent fills, strokes, shaders and shadows.</summary>
+    public Shape DrawCircle(Vector2 center, float radius)
     {
-        return DrawRectFilled(
-            screenRect.X, screenRect.Y,
-            screenRect.BottomRight.X, screenRect.BottomRight.Y,
-            color, radius, corners);
-    }
-
-    /// <summary>
-    /// Draws a filled rectangle
-    /// </summary>
-    [PublicAPI]
-    public Shape DrawRectFilled(
-        float left, float top, float right, float bottom,
-        Color? color,
-        float radius = 0.0f, Corner corners = Corner.All)
-    {
-        var shape = DrawRect(left, top, right, bottom, radius, corners);
-        if (color != null)
-            shape.SolidColor(color.Value);
+        var shape = Shape.Circle(radius, center);
         AddDraw(shape);
         return shape;
     }
 
-    /// <summary>
-    /// Draws a filled triangle
-    /// </summary>
-    [PublicAPI]
-    public Shape DrawTriangleFilled(
-        Vector2 a, Vector2 b, Vector2 c,
-        Color colorA, Color? colorB = null, Color? colorC = null)
+    /// <summary>Queues a mutable triangle for fluent fills, strokes, shaders and shadows.</summary>
+    public Shape DrawTriangle(Vector2 a, Vector2 b, Vector2 c)
     {
         var shape = Shape.Triangle(a, b, c);
-
-        // Handle gradient coloring if multiple colors provided
-        if (colorB.HasValue || colorC.HasValue)
-        {
-            var color2 = colorB ?? colorA;
-            // var color3 = colorC ?? colorA;
-
-            // Use linear gradient as an approximation for multicolor triangle
-            shape.LinearGradientColor(colorA, color2);
-        }
-        else
-        {
-            shape.SolidColor(colorA);
-        }
-
         AddDraw(shape);
         return shape;
     }
 
-    /// <summary>
-    /// Draws a filled rectangle (alias for DrawRectFilled)
-    /// </summary>
-    [PublicAPI]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Shape DrawRect(
-        Rect rect,
-        Color color,
-        float radius = 0.0f, Corner corners = Corner.All)
+    /// <summary>Queues a mutable white background behind the current node's other commands.</summary>
+    public Shape DrawBackgroundRect(float radius = 0f, Corner corners = Corner.All)
     {
-        return DrawRectFilled(rect.X, rect.Y, rect.BottomRight.X, rect.BottomRight.Y, color, radius, corners);
-    }
-
-    /// <summary>
-    /// Draws a filled rectangle (alias for DrawRectFilled)
-    /// </summary>
-    [PublicAPI]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Shape DrawRect(
-        Vector2 position, Vector2 size,
-        Color color,
-        float radius = 0.0f, Corner corners = Corner.All)
-    {
-        return DrawRectFilled(position.X, position.Y, position.X + size.X, position.Y + size.Y, color, radius, corners);
-    }
-
-    /// <summary>
-    /// Draws a filled rectangle (alias for DrawRectFilled)
-    /// </summary>
-    [PublicAPI]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Shape DrawRect(Rect rect,
-        Color? color = null,
-        float radius = 0.0f, Corner corners = Corner.All)
-    {
-        return DrawRectFilled(rect.Position.X, rect.Position.Y, rect.BottomRight.X, rect.BottomRight.Y, color, radius,
-            corners);
-    }
-
-
-    /// <summary>
-    /// Draws a circle border
-    /// </summary>
-    [PublicAPI]
-    public Shape DrawCircleBorder(Vector2 center, float radius, Color color, float thickness = 1f)
-    {
-        var shape = Shape.Circle(radius, center);
-        shape.Stroke(color, thickness);
-        AddDraw(shape);
+        var shape = CreateRect(CurrentNode.Rect, radius, corners).SolidColor(Color.White);
+        AddDraw(shape, prepend: true);
         return shape;
     }
 
-    /// <summary>
-    /// Draws a filled circle
-    /// </summary>
-    [PublicAPI]
-    public Shape DrawCircleFilled(Vector2 center, float radius,
-        Color color)
-    {
-        var shape = Shape.Circle(radius, center);
-        shape.SolidColor(color);
-        AddDraw(shape);
-        return shape;
-    }
+    static Shape CreateRect(Rect rect, float radius, Corner corners) =>
+        ImMath.ApproximatelyEquals(radius, 0f)
+            ? Shape.Rect(rect.X, rect.Y, rect.X + rect.W, rect.Y + rect.H)
+            : Shape.RoundRect(rect.X, rect.Y, rect.X + rect.W, rect.Y + rect.H, radius, corners);
 
-    /// <summary>
-    /// Draws a filled circle (alias for DrawCircleFilled)
-    /// </summary>
-    [PublicAPI]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Shape DrawCircle(Vector2 center, float radius,
-        Color color)
-    {
-        return DrawCircleFilled(center, radius, color);
-    }
-
-    /// <summary>
-    /// Draws a filled triangle (alias for DrawTriangleFilled)
-    /// </summary>
-    [PublicAPI]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DrawTriangle(Vector2 a, Vector2 b, Vector2 c,
-        Color colorA, Color? colorB = null, Color? colorC = null)
-    {
-        DrawTriangleFilled(a, b, c, colorA, colorB, colorC);
-    }
-
-    /// <summary>
-    /// Draws a filled rectangle
-    /// </summary>
-    [PublicAPI]
-    public Shape DrawBackgroundRect(
-        Color? color = null,
-        float radius = 0.0f, Corner corners = Corner.All)
-    {
-        var shape = DrawRectFilled(CurrentNode.Rect, color, radius, corners);
-        shape.SolidColor(color);
-        AddDraw(shape, true);
-        return shape;
-    }
-
-    // /// <summary>
-    // /// Draws a filled rectangle
-    // /// </summary>
-    // [PublicAPI]
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    // public Shape DrawBackgroundRect(
-    //     float radius = 0.0f, Corner corners = Corner.All) =>
-    //     DrawBackgroundRect(Color.White, radius, corners);
-
-    /// <summary>
-    /// Draws a line between two points
-    /// </summary>
-    [PublicAPI]
-    public void DrawLine(Vector2 start, Vector2 end, Color color, float thickness = 1f)
-    {
-        // Through the draw list like every other shape: drawing straight to the canvas here put the
-        // line under everything the z-ordered pass paints afterwards.
-        var shape = Shape.Line(start, end, thickness);
-        shape.SolidColor(color);
-        AddDraw(shape);
-    }
-
-    /// <summary>
-    /// Draws a shape at the specified position and applies transformations.
-    /// </summary>
-    /// <param name="position">The position where the shape should be drawn.</param>
-    /// <param name="shape">The shape to be drawn, which will be transformed and rendered.</param>
-    /// <returns>The newly created and rendered shape.</returns>
+    /// <summary>Queues a translated, independently mutable copy of the supplied shape and its layers.</summary>
     public Shape DrawShape(Vector2 position, Shape shape)
     {
-        var newShape = shape.Copy();
-        newShape.Node = CurrentNode;
-        foreach (var (_, layerList) in newShape.Layers)
-            foreach (var (layerPath, _) in layerList)
-                layerPath.Transform(SKMatrix.CreateTranslation(
-                    position.X,
-                    position.Y));
+        var copy = shape.Copy();
+        copy.Node = CurrentNode;
+        foreach (var (_, layers) in copy.Layers)
+            foreach (var (path, _) in layers)
+                path.Transform(SKMatrix.CreateTranslation(position.X, position.Y));
+        AddDraw(copy);
+        return copy;
+    }
 
-        AddDraw(newShape);
-        return newShape;
+    void AddPrimitive(in PrimitiveCommand command, bool prepend = false)
+    {
+        if (Pass != Pass.Pass2Render) return;
+        CurrentNode.DrawList.Add(command, prepend);
     }
 
     /// <summary>

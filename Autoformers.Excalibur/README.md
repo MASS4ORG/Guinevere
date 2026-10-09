@@ -37,4 +37,4 @@ public sealed class Settings
 
 No enum attribute is needed for the searchable dropdown. `[Flags]` enables independent checkbox/button selection, and mixed flag edits preserve each owner's unrelated bits. Selecting None clears the full mask; paging replaces the full value and wraps through declared choices. `[EnumButtons]` takes precedence when both presentation attributes are present. Use button groups for short option lists; they currently occupy one row.
 
-Apply `[EnumLabel("Display label")]` to an enum member to override its name. `FormRenderContext.Translate` translates these labels. Read-only enum fields use the read-only summary. See the [attribute catalog](../Attributes/README.md) and [short Turian guide](../docs/turian-selection-guide.md) for custom selection controls.
+Apply `[EnumLabel("Display label")]` to an enum member to override its name. `FormRenderContext.Translate` translates these labels. Read-only enum fields use the read-only summary. See the [attribute catalog](../Attributes/README.md) for custom selection controls.

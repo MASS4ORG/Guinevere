@@ -31,6 +31,7 @@
         <Project Path="Examples/Example-76-Odin-Attributes/Example-76-Odin-Attributes.csproj"/>
         <Project Path="Examples/Example-90-LayoutBenchmarks/Example-90-LayoutBenchmarks.csproj"/>
         <Project Path="Examples/Example-91-TypeBenchmarks/Example-91-TypeBenchmarks.csproj"/>
+        <Project Path="Examples/Example-92-DrawBenchmarks/Example-92-DrawBenchmarks.csproj"/>
     </Folder>
     <Folder Name="/Integrations/">
         <Project Path="Integrations/Guinevere.OpenGL.OpenTK/Guinevere.OpenGL.OpenTK.csproj"/>
