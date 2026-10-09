@@ -23,6 +23,7 @@ public static partial class ControlsExtensions
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(buildMenu);
+        var explicitId = id;
         id ??= gui.NodeId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id + "/anchor", () => new ContextMenuState());
@@ -34,7 +35,7 @@ public static partial class ControlsExtensions
             var builder = new ContextMenuBuilder();
             buildMenu(builder);
             menu.Items.AddRange(builder.Items);
-        }, minWidth, itemHeight, padding: 8, classes: classes, id: id, filePath: filePath, lineNumber: lineNumber);
+        }, minWidth, itemHeight, padding: 8, classes: classes, id: explicitId, filePath: filePath, lineNumber: lineNumber);
         state.WasOpen = isOpen;
     }
 }

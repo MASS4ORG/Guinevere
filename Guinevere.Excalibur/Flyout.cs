@@ -21,12 +21,13 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(buildMenu);
         fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
         padding = gui.ControlStyle.SpacingOr(padding);
+        var explicitId = id;
         id ??= gui.NodeId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new MenuBarState());
         state.Classes = classes;
         state.StyleId = id;
-        state.PopupId = id;
+        state.PopupId = explicitId;
         PreparePopupMenuFrame(gui, state, isOpen,
             new MenuAppearance(itemHeight, itemHeight, minWidth));
         if (state.FrameOpenIndex < 0) return;

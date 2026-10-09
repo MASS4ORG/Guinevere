@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
-- Changed (breaking): Stylesheets move to the new `MASS4.Guinevere.Styling` package, and are `.pss` theme files in PanGui syntax. Hosts can read `@const` values from `StyleSheet.Constants`. `$tokens` layer across sheets, and `gui.StyleSheets.SetToken` overrides them all. `@font-face` and `url()` resolve against the sheet, `@import` goes through a host resolver, and parse errors report `file:line:col`. Shapes, effects, mixins and macros parse but are not applied yet. Resolved styles are cached, and cache hits allocate nothing. `gui.StyledNode` matches `:focus` and takes `disabled:` for `:disabled`, and `StyleModifiers` names the standard `:checked`, `:selected`, `:open` and `:dragging` modifiers. Migration: reference `MASS4.Guinevere.Styling`; `gui.StyleSheets`, `gui.StyledNode`, `gui.ResolveStyle` and `ControlPalette.FromStyle` keep their call syntax as extension members. `gui.StyleSheets` is now a `StyleSheetCollection` (`Add`, indexer and `Remove` are unchanged). Rewrite `prop: value;`, `--x` and `var(--x)` as `prop = value;` and `$x`, or parse with `StyleSheetOptions.AllowCssSyntax = true`. [#157](https://github.com/MASS4ORG/Guinevere/issues/157), [#158](https://github.com/MASS4ORG/Guinevere/issues/158).
+- Changed (breaking): Stylesheets move to the new `MASS4.Guinevere.Styling` package, and are `.pss` theme files #157 #158 #159.
+- Changed (breaking): Excalibur controls are styled by `.pss` instead old `.uss` #160.
+- Fixed (breaking): shadows follow CSS `box-shadow` semantics.
+- Added: Style value expressions and theme color functions #39.
+- Added: Font registry with runtime file/stream registration #161.
+- Added: Themeable font and SVG icons (`gui.Icon`) #162.
+- Added: System color scheme and accent color #163.
 
 ## v[5.9.0][] 2026-10-06
 
-- Improved: dock tab reordering shows its destination and close-button hover stays inside the tab border; compact menu titles share menu styling; Silk.NET and OpenTK windows fit the current monitor's work area at startup; X11 desktop windows can move beyond OS work-area boundaries; all desktop hosts expose native titles and icons; numeric fields clip overflowing text and preserve external value changes when tabbing away; ordinary labels support selection and copying with `DrawText(..., selectable: true)`.
+- Improved: dock tab reordering shows its destination and close-button hover stays inside the tab border
+- Added: compact menu titles share menu styling.
 - Added: Searchable, virtualized `MultiDropdown` with filtered bulk actions, chips and keyboard navigation; flag-aware `EnumDropdown`, `[EnumButtons]` and `[EnumPaging]`, with mixed enum edits preserving each owner's unrelated flag bits. [#61](https://github.com/MASS4ORG/Guinevere/issues/61).
 
 ## v[5.8.0][] 2026-10-05

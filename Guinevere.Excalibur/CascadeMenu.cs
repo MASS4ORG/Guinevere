@@ -18,7 +18,7 @@ public static partial class ControlsExtensions
     /// <param name="fontSize">Item text size.</param>
     /// <param name="padding">Horizontal padding inside a row.</param>
     /// <param name="classes">Stylesheet classes for this control.</param>
-    /// <param name="id">Stable control and stylesheet identity.</param>
+    /// <param name="id">Stable control and stylesheet identity; when given, also the top menu's node id.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void CascadeMenu(this Gui gui, ref bool isOpen, Vector2 position,
@@ -36,12 +36,13 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(build);
 
+        var explicitId = id;
         id ??= gui.NodeId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new MenuBarState());
         state.Classes = classes;
         state.StyleId = id;
-        state.PopupId = id;
+        state.PopupId = explicitId;
 
         state.OpenIndex = isOpen ? 0 : -1;
         PreparePopupMenuFrame(gui, state, isOpen);
