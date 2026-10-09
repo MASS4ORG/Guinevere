@@ -58,6 +58,20 @@ public class Font
     /// </summary>
     internal SKFont SkFont => _skFont;
 
+    /// <summary>The underlying face's family name.</summary>
+    public string FamilyName => _skFont.Typeface.FamilyName;
+
+    /// <summary>The requested numeric weight, or the face's intrinsic weight.</summary>
+    public int Weight => RequestedWeight ?? _skFont.Typeface.FontWeight;
+
+    /// <summary>Whether the requested or intrinsic face is slanted.</summary>
+    public bool Italic => RequestedItalic ?? (_skFont.Typeface.FontSlant != SKFontStyleSlant.Upright);
+
+    internal string? Families { get; set; }
+    internal int? RequestedWeight { get; set; }
+    internal bool? RequestedItalic { get; set; }
+    internal IReadOnlyList<Font> Fallbacks { get; set; } = [];
+
     /// <summary>
     /// Measures the dimensions of the specified text when rendered with this font.
     /// </summary>
@@ -65,8 +79,20 @@ public class Font
     /// <returns>A rectangle representing the bounds of the text.</returns>
     public Rect MeasureText(string text)
     {
-        _skFont.MeasureText(text, out var bounds);
-        return new Rect(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+        ArgumentNullException.ThrowIfNull(text);
+        var runs = FontTextLayout.Create(text, this, this, this);
+        if (runs.Count == 0) return new Rect();
+        var width = 0f;
+        var bounds = SKRect.Empty;
+        var first = true;
+        foreach (var run in runs)
+        {
+            run.Font.SkFont.MeasureText(run.Text, out var ink);
+            bounds = first ? ink : SKRect.Union(bounds, ink);
+            first = false;
+            width += ink.Width;
+        }
+        return new Rect(bounds.Left, bounds.Top, width, bounds.Height);
     }
 
     /// <summary>
@@ -76,12 +102,28 @@ public class Font
     /// <returns>A new Font instance with the specified size.</returns>
     public Font WithSize(float size)
     {
-        return new Font(Typeface, size);
+        return Resized(size);
     }
 
     /// <summary>The same typeface at another size, keeping synthesized bold (embolden) and italic (skew).</summary>
     internal Font Resized(float size) =>
-        new(new SKFont(_skFont.Typeface, size) { Embolden = _skFont.Embolden, SkewX = _skFont.SkewX });
+        new(new SKFont(_skFont.Typeface, size) { Embolden = _skFont.Embolden, SkewX = _skFont.SkewX })
+        {
+            Families = Families,
+            RequestedWeight = RequestedWeight,
+            RequestedItalic = RequestedItalic,
+            Fallbacks = Fallbacks,
+        };
+
+    internal Font Restyled(int weight, bool italic)
+    {
+        var font = Resized(Size);
+        font.RequestedWeight = weight;
+        font.RequestedItalic = italic;
+        font.SkFont.Embolden = weight >= 600 && _skFont.Typeface.FontWeight < 600;
+        font.SkFont.SkewX = italic && _skFont.Typeface.FontSlant == SKFontStyleSlant.Upright ? -0.25f : 0f;
+        return font;
+    }
 
     /// <summary>
     /// Creates a Font from a file path.

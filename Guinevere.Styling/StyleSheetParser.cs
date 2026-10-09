@@ -327,7 +327,11 @@ sealed class StyleSheetParser
             || !declarations.TryGetValue("src", out var src)
             || !StyleValue.TryUrl(src, Options.BaseUri, out var uri))
             throw Error(i, "@font-face needs font-family and a valid src");
-        FontFaces.Add(new StyleFontFace(StyleValue.Unquote(family), uri));
+        FontFaces.Add(new StyleFontFace(StyleValue.Unquote(family), uri)
+        {
+            Weight = StyleFonts.Weight(declarations.GetValueOrDefault("font-weight")),
+            Italic = StyleFonts.Italic(declarations.GetValueOrDefault("font-style")),
+        });
         return close + 1;
     }
 

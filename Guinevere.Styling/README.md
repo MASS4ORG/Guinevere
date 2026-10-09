@@ -31,6 +31,7 @@ button {
 `gui.StyleSheets.GetTokenColor("surface")` returns the evaluated token, so host code can use the same derived colors.
 
 The package covers:
+
 - Type, class, id, descendant and `>` selectors.
 - Nesting, `#inherit` and custom modifiers.
 - `$tokens` layered across sheets, and `@const` values the host can read.
@@ -42,3 +43,38 @@ The package covers:
 - `file:line:col` errors, and reloads that keep the last valid sheet.
 - Inspection: `gui.StyleSheets.MatchedRules(target)` lists the rules an element uses, and `StyleRule.Lines` points at their source.
 - A resolved-style cache whose hits allocate nothing.
+
+## Font registration and roles
+
+Register faces through `gui.Fonts`, or declare them in an active sheet. Numeric weights and italic faces are selected before synthetic bold or italic is applied. Later sheets replace matching family/weight/style descriptors; removing a sheet restores earlier faces. Missing files and unsupported remote sources leave other fallback families usable.
+
+```css
+@font-face { font-family = "Brand"; src = url("fonts/Brand-Regular.ttf"); font-weight = 400; }
+@font-face { font-family = "Brand"; src = url("fonts/Brand-Bold.ttf"); font-weight = 700; }
+$font-ui = "Brand", "Noto Emoji";
+$font-ui-mono = monospace;
+$font-code = $font-ui-mono;
+$font-icon = "fa6-solid";
+$font-emoji = "Noto Emoji";
+label { font-family = $font-ui; }
+```
+
+```csharp
+gui.Fonts.RegisterFile("Brand", "fonts/Brand-Regular.ttf");
+gui.Fonts.RegisterStream("Symbols", fontStream);
+gui.Fonts.SetRole(FontRole.Ui, "Brand, Noto Emoji");
+
+gui.BeginFrame(canvas);
+gui.UseFontRole(FontRole.Ui); // reads $font-ui, including host and subtree token overrides
+using (gui.StyledNode("label").Enter())
+    gui.DrawText("Hello 😀");
+
+var width = gui.MeasureTextWidth("Hello 😀", 14);
+var codeFont = gui.ResolveFontRole(FontRole.Code, 14, weight: 700);
+```
+
+Call `UseFontRole` from the same call site in both passes. `font-family` lists fall back per Unicode code point, preserving surrogate pairs; `MeasureTextWidth` and `GetTextFont` share the renderer's scope font and DPI scaling. Display scaling is applied to logical text sizes and adjusted for an existing canvas scale. `ConfigureFonts` and the font-taking `BeginFrame` shortcuts register supplied faces while preserving configured defaults and per-frame overrides.
+
+Custom controls can resolve declarations with `gui.ResolveStyle` and obtain their face with `gui.GetStyleFont(style, scope)`. This preserves inherited weight and slant when a rule omits them, and retains fallback families.
+
+The registry owns faces loaded from files/streams and fonts returned by lookup. Dispose `gui.Fonts` when the GUI is no longer used. Fonts passed to `Register`, `ConfigureFonts` or `BeginFrame` remain caller-owned. Shaping and ligatures are outside this API.

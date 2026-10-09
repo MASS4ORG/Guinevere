@@ -37,21 +37,12 @@ public static partial class ControlsExtensions
         ExcaliburStyles.Ensure(gui);
         var result = TabStripResult.None;
         var state = gui.ControlState($"{idPrefix}/overflow", () => new TabStripState());
-        var widths = items.Select(item => MeasureTab(item, theme)).ToArray();
-        var overflowing = state.ViewportWidth > 0 && widths.Sum() > state.ViewportWidth;
-        var availableWidth = Math.Max(0, state.ViewportWidth - (overflowing ? NavigationButtonWidth * 2 : 0));
-        var activeIndex = items.ToList().FindIndex(item => item.Id == activeId);
-
-        if (overflowing) EnsureActiveIsVisible(state, activeIndex, widths, availableWidth);
-        else state.FirstVisible = 0;
-
-        var visible = VisibleRange(state.FirstVisible, widths, availableWidth, overflowing);
-
         using (gui.StyledNode("tabstrip", classes, id: idPrefix, filePath: filePath, lineNumber: lineNumber)
                    .Height(theme.Height).ExpandWidth().Direction(Axis.Horizontal).Enter())
         {
-            if (overflowing && Navigation(gui, $"{idPrefix}/previous", "<", state.FirstVisible > 0, theme))
-                state.FirstVisible = PreviousRange(state.FirstVisible, widths, availableWidth);
+            var (widths, availableWidth, overflowing) = PrepareTabWidths(gui, items, activeId, theme, state, idPrefix);
+            var visible = VisibleRange(state.FirstVisible, widths, availableWidth, overflowing);
+            PreviousTabPage(gui, idPrefix, theme, state, widths, availableWidth, overflowing);
 
             for (var index = visible.Start; index < visible.End; index++)
             {
@@ -60,11 +51,7 @@ public static partial class ControlsExtensions
                     onDragSource, result);
             }
 
-            // Always built, callback or not, so the strip's structure does not change when a host
-            // adds or drops one.
-            using (gui.Node(-1, theme.Height, $"{idPrefix}/actions")
-                       .ExpandWidth().Direction(Axis.Horizontal).ContentAlignX(1f).Enter())
-                trailing?.Invoke(gui);
+            RenderTabActions(gui, theme, idPrefix, trailing);
 
             if (overflowing && Navigation(gui, $"{idPrefix}/next", ">", visible.End < items.Count, theme))
                 state.FirstVisible = visible.End;
@@ -75,33 +62,58 @@ public static partial class ControlsExtensions
         return result;
     }
 
+    static void PreviousTabPage(Gui gui, string idPrefix, TabStripTheme theme, TabStripState state,
+        float[] widths, float availableWidth, bool overflowing)
+    {
+        if (overflowing && Navigation(gui, $"{idPrefix}/previous", "<", state.FirstVisible > 0, theme))
+            state.FirstVisible = PreviousRange(state.FirstVisible, widths, availableWidth);
+    }
+
+    static (float[] Widths, float Available, bool Overflowing) PrepareTabWidths(Gui gui,
+        IReadOnlyList<TabStripItem> items, string? activeId, TabStripTheme theme, TabStripState state, string idPrefix)
+    {
+        var ancestors = new List<StyleTarget>();
+        for (var parent = gui.CurrentNode; parent is not null; parent = parent.Parent)
+            if (parent.StyleTarget is { } ancestor) ancestors.Add(ancestor);
+        var widths = items.Select(item => PreviewTabWidth(gui, item, theme, $"{idPrefix}/{item.Id}",
+            item.Id == activeId, ancestors)).ToArray();
+        var overflowing = state.ViewportWidth > 0 && widths.Sum() > state.ViewportWidth;
+        var available = Math.Max(0, state.ViewportWidth - (overflowing ? NavigationButtonWidth * 2 : 0));
+        var activeIndex = items.ToList().FindIndex(item => item.Id == activeId);
+        if (overflowing) EnsureActiveIsVisible(state, activeIndex, widths, available);
+        else state.FirstVisible = 0;
+        return (widths, available, overflowing);
+    }
+
+    static float PreviewTabWidth(Gui gui, TabStripItem item, TabStripTheme theme, string id, bool isActive,
+        IReadOnlyList<StyleTarget> ancestors)
+    {
+        var style = gui.ResolveStyle("tab", id: id, modifiers: isActive ? SelectedModifier : NoModifiers,
+            ancestors: ancestors);
+        var font = gui.GetStyleFont(style).Resized(theme.FontSize * gui.FontScale);
+        var emoji = gui.CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.Resized(font.Size);
+        return TabWidth(item, theme, gui.MeasureLineWidth(item.Label, font, emoji));
+    }
+
+    /// <summary>The trailing action scope exists in both passes, including when no callback is supplied.</summary>
+    static void RenderTabActions(Gui gui, TabStripTheme theme, string idPrefix, Action<Gui>? trailing)
+    {
+        using (gui.Node(-1, theme.Height, $"{idPrefix}/actions")
+                   .ExpandWidth().Direction(Axis.Horizontal).ContentAlignX(1f).Enter())
+            trailing?.Invoke(gui);
+    }
+
     static TabStripResult RenderTab(Gui gui, TabStripItem item, bool isActive, TabStripTheme theme,
         string id, Func<TabStripItem, string, bool>? onDragSource, TabStripResult result)
     {
-        var width = MeasureTab(item, theme);
+        var node = gui.StyledNode("tab", id: id, modifiers: isActive ? SelectedModifier : NoModifiers);
+        var width = TabWidth(item, theme, gui.MeasureTextWidth(item.Label, theme.FontSize, node.Scope));
 
-        using (gui.StyledNode("tab", id: id, modifiers: isActive ? SelectedModifier : NoModifiers).Width(width)
+        using (node.Width(width)
                    .Height(theme.Height).Direction(Axis.Horizontal).Padding(8, 0).Gap(6f).ContentAlignY(0.5f).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
-            {
-                var interactable = gui.GetInteractable();
-
-                if (isActive)
-                {
-                    var rect = gui.CurrentNode.Rect;
-                    gui.DrawStyledBox(gui.ResolvePart("marker"), new Rect(rect.X, rect.Y, rect.W, 2));
-                }
-
-                if (interactable.OnClick()) result = result with { Activated = item };
-
-                // Middle-click closes, as every tabbed editor does; the close button is the
-                // discoverable half of the same gesture.
-                if (item.Closable && interactable.OnClick(MouseButton.Middle))
-                    result = result with { Closed = item };
-
-                if (onDragSource?.Invoke(item, id) == true) result = result with { Dragged = item };
-            }
+                result = HandleStripTab(gui, item, isActive, id, onDragSource, result);
 
             if (item.Icon is { } icon)
                 using (gui.Node(theme.IconSize, theme.IconSize, $"{id}/icon").Enter())
@@ -112,6 +124,21 @@ public static partial class ControlsExtensions
             if (item.Closable) result = RenderClose(gui, item, theme, id, result);
         }
 
+        return result;
+    }
+
+    static TabStripResult HandleStripTab(Gui gui, TabStripItem item, bool isActive, string id,
+        Func<TabStripItem, string, bool>? onDragSource, TabStripResult result)
+    {
+        var interactable = gui.GetInteractable();
+        if (isActive)
+        {
+            var rect = gui.CurrentNode.Rect;
+            gui.DrawStyledBox(gui.ResolvePart("marker"), new Rect(rect.X, rect.Y, rect.W, 2));
+        }
+        if (interactable.OnClick()) result = result with { Activated = item };
+        if (item.Closable && interactable.OnClick(MouseButton.Middle)) result = result with { Closed = item };
+        if (onDragSource?.Invoke(item, id) == true) result = result with { Dragged = item };
         return result;
     }
 
@@ -143,12 +170,9 @@ public static partial class ControlsExtensions
         return result;
     }
 
-    static float MeasureTab(TabStripItem item, TabStripTheme theme)
+    static float TabWidth(TabStripItem item, TabStripTheme theme, float textWidth)
     {
-        var font = new SKFont { Size = theme.FontSize };
-        font.MeasureText(item.Label, out var bounds);
-
-        return bounds.Width + 18
+        return textWidth + 18
                             + (item.Closable ? 18 : 0)
                             + (item.Icon is null ? 0 : theme.IconSize + 6);
     }

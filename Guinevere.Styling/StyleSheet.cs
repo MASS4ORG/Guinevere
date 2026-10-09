@@ -27,7 +27,14 @@ public sealed class StyleRule
 /// <summary>A <c>@font-face</c> the host should load, with its source resolved against the sheet location.</summary>
 /// <param name="Family">The <c>font-family</c> name declarations refer to.</param>
 /// <param name="Source">The resolved <c>src</c> location.</param>
-public sealed record StyleFontFace(string Family, Uri Source);
+public sealed record StyleFontFace(string Family, Uri Source)
+{
+    /// <summary>Numeric face weight from 1 to 1000; defaults to regular.</summary>
+    public int Weight { get; init; } = 400;
+
+    /// <summary>Whether this face is italic or oblique.</summary>
+    public bool Italic { get; init; }
+}
 
 /// <summary>Kinds of PanGui constructs that are parsed and kept but not applied yet.</summary>
 public enum StyleDeferredKind

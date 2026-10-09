@@ -66,7 +66,11 @@ public partial class Gui
     /// <summary>The explicit font, else the first scope font (text, widget icons, icons) that has the glyph.</summary>
     SKTypeface GlyphTypeface(Font? font, string glyph)
     {
-        if (font is not null) return font.SkFont.Typeface;
+        if (font is not null)
+        {
+            var runs = FontTextLayout.Create(glyph, font, font, font);
+            return runs.Count > 0 ? runs[0].Font.SkFont.Typeface : font.SkFont.Typeface;
+        }
         var codePoint = char.ConvertToUtf32(glyph, 0);
         var text = CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.SkFont;
         if (text.GetGlyph(codePoint) != 0) return text.Typeface;

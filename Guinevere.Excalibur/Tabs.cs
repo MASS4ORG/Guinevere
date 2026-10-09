@@ -137,9 +137,10 @@ public static partial class ControlsExtensions
     {
         var tab = state.Tabs[tabIndex];
         var isActive = state.ActiveTabIndex == tabIndex;
-        var tabWidth = CalculateTabWidth(tab.Title, fontSize, tab.Closable);
+        var node = TabNode(gui, tab, isActive);
+        var tabWidth = CalculateTabWidth(gui, tab.Title, fontSize, tab.Closable, node.Scope);
 
-        using (TabNode(gui, tab, isActive).Width(tabWidth).Height(state.TabBarHeight).Direction(Axis.Horizontal)
+        using (node.Width(tabWidth).Height(state.TabBarHeight).Direction(Axis.Horizontal)
                    .ContentAlignY(0.5f).Enter())
         {
             var behavior = gui.Selectable(isActive, new ControlBehaviorOptions(
@@ -148,9 +149,7 @@ public static partial class ControlsExtensions
 
             if (gui.Pass == Pass.Pass2Render)
             {
-                var closed = gui.GetInteractable().OnClick(MouseButton.Middle) && tab.Closable;
-                if (behavior.Is(ControlVisualState.Focused)) NavigateTabs(gui, state, tabIndex);
-                if (closed && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
+                HandleTabBehavior(gui, state, tabIndex, tab, behavior);
                 if (isActive) DrawTabMarker(gui, vertical: false);
             }
 
@@ -159,6 +158,13 @@ public static partial class ControlsExtensions
 
             if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
         }
+    }
+
+    static void HandleTabBehavior(Gui gui, TabsState state, int tabIndex, TabInfo tab, ControlBehaviorResult behavior)
+    {
+        var closed = gui.GetInteractable().OnClick(MouseButton.Middle) && tab.Closable;
+        if (behavior.Is(ControlVisualState.Focused)) NavigateTabs(gui, state, tabIndex);
+        if (closed && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
     }
 
     /// <summary>Left/Right move the selection to the nearest enabled tab.</summary>
@@ -189,11 +195,9 @@ public static partial class ControlsExtensions
 
     const float TabCloseButtonSize = 18f;
 
-    static float CalculateTabWidth(string title, float fontSize, bool closable)
+    static float CalculateTabWidth(Gui gui, string title, float fontSize, bool closable, LayoutNodeScope? scope = null)
     {
-        var font = new SKFont { Size = fontSize };
-        font.MeasureText(title, out var textBounds);
-        return textBounds.Width + 24 + (closable ? TabCloseButtonSize + 6 : 0);
+        return gui.MeasureTextWidth(title, fontSize, scope) + 24 + (closable ? TabCloseButtonSize + 6 : 0);
     }
 
     /// <summary>True when the pointer sits over the "×" that closes a closable tab.</summary>
@@ -214,7 +218,7 @@ public static partial class ControlsExtensions
             if (gui.Pass != Pass.Pass2Render) return;
 
             var rect = gui.CurrentNode.Rect;
-            var font = new SKFont { Size = 12f };
+            var font = gui.GetTextFont(12f).SkFont;
             font.MeasureText("×", out var bounds);
             var pos = new Vector2(rect.X + (rect.W - bounds.Width) * 0.5f,
                 rect.Y + (rect.H + bounds.Height) * 0.5f);
@@ -422,9 +426,10 @@ public static partial class ControlsExtensions
     {
         var tab = state.Tabs[tabIndex];
         var isActive = state.ActiveTabIndex == tabIndex;
-        var tabWidth = CalculateTabWidth(tab.Title, fontSize, tab.Closable);
+        var node = TabNode(gui, tab, isActive);
+        var tabWidth = CalculateTabWidth(gui, tab.Title, fontSize, tab.Closable, node.Scope);
 
-        using (TabNode(gui, tab, isActive).Width(tabWidth).Height(state.TabBarHeight - 16).Direction(Axis.Horizontal)
+        using (node.Width(tabWidth).Height(state.TabBarHeight - 16).Direction(Axis.Horizontal)
                    .Enter())
         {
             if (gui.Pass == Pass.Pass2Render) HandleTabPointer(gui, state, tabIndex, tab);

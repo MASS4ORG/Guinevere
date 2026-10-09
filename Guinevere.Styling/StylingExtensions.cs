@@ -15,11 +15,20 @@ public static class StylingExtensions
     {
         public readonly StyleSheetCollection Sheets = [];
         public readonly List<StyleTarget> Ancestors = [];
-        public readonly StyleFonts Fonts = new();
+        public readonly StyleFontRegistry Fonts;
+
+        /// <summary>Keeps the GUI's registered font faces synchronized with its active sheets.</summary>
+        public GuiStyling(Gui gui)
+        {
+            Fonts = new StyleFontRegistry(gui.Fonts);
+            Sheets.FontFacesChanged += () => Fonts.Synchronize(Sheets);
+        }
     }
 
     /// <summary>The GUI's stylesheet font resolver, shared by styled text and icons.</summary>
-    internal static StyleFonts FontsOf(Gui gui) => States.GetOrCreateValue(gui).Fonts;
+    static GuiStyling StateOf(Gui gui) => States.GetValue(gui, static g => new GuiStyling(g));
+
+    internal static StyleFontRegistry FontsOf(Gui gui) => StateOf(gui).Fonts;
 
     extension(Gui gui)
     {
@@ -32,7 +41,7 @@ public static class StylingExtensions
             get
             {
                 gui.ScrollbarRenderer ??= StyleScrollbarRenderer.Instance;
-                return States.GetOrCreateValue(gui).Sheets;
+                return StateOf(gui).Sheets;
             }
         }
 
@@ -85,7 +94,7 @@ public static class StylingExtensions
         {
             var parent = gui.CurrentNode;
             var node = gui.Node(-1, -1, id, filePath, lineNumber);
-            var styling = States.GetOrCreateValue(gui);
+            var styling = StateOf(gui);
             if (styling.Sheets.Count == 0) return node;
 
             var state = disabled ? StyleState.Disabled : StyleState.None;
@@ -162,7 +171,7 @@ public static class StylingExtensions
         public ResolvedStyle ResolvePart(string type, StyleState state = StyleState.None,
             IReadOnlyList<string>? modifiers = null)
         {
-            var styling = States.GetOrCreateValue(gui);
+            var styling = StateOf(gui);
             var target = CreateStyleTarget(styling.Ancestors, gui.CurrentNode, type, null, null, modifiers, state);
             return styling.Sheets.Resolve(target, null, gui.CurrentNodeScope.Get<StyleTokens>());
         }
@@ -235,8 +244,30 @@ public static class StylingExtensions
         if (family is null && weight is null && slant is null) return;
 
         var inherited = (node.Parent?.Scope ?? node.Scope).Get<LayoutNodeScopeTextFont>().Value;
-        var font = styling.Fonts.Resolve(styling.Sheets, family, inherited, StyleFonts.Weight(weight),
-            StyleFonts.Italic(slant));
+        var font = ResolveInheritedFont(inherited, styling, family, weight, slant);
         if (font is not null) gui.SetTextFont(font, node.Scope);
+    }
+
+    static Font? ResolveInheritedFont(Font inherited, GuiStyling styling, string? family, string? weight, string? slant)
+    {
+        return styling.Fonts.Resolve(styling.Sheets, family, inherited,
+            weight is null ? inherited.Weight : StyleFonts.Weight(weight),
+            slant is null ? inherited.Italic : StyleFonts.Italic(slant));
+    }
+
+    extension(Gui gui)
+    {
+        /// <summary>Resolves a style's font declarations against the scope font for custom drawing and measurement.</summary>
+        public Font GetStyleFont(ResolvedStyle style, LayoutNodeScope? scope = null)
+        {
+            ArgumentNullException.ThrowIfNull(style);
+            scope ??= gui.CurrentNodeScope;
+            var inherited = scope.Get<LayoutNodeScopeTextFont>().Value;
+            var family = style.Get("font-family");
+            var weight = style.Get("font-weight");
+            var slant = style.Get("font-style");
+            if (family is null && weight is null && slant is null) return inherited;
+            return ResolveInheritedFont(inherited, StateOf(gui), family, weight, slant) ?? inherited;
+        }
     }
 }

@@ -13,6 +13,8 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     Dictionary<string, string>? _globals;
     Dictionary<string, string?>? _tokenValues;
 
+    internal event Action? FontFacesChanged;
+
     /// <summary>Incremented whenever a sheet is added, removed or replaced, or a host token changes.</summary>
     public int Version { get; private set; }
 
@@ -96,6 +98,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
         ArgumentNullException.ThrowIfNull(item);
         base.InsertItem(index, item);
         Invalidate();
+        FontFacesChanged?.Invoke();
     }
 
     /// <inheritdoc/>
@@ -104,6 +107,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
         ArgumentNullException.ThrowIfNull(item);
         base.SetItem(index, item);
         Invalidate();
+        FontFacesChanged?.Invoke();
     }
 
     /// <inheritdoc/>
@@ -111,6 +115,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     {
         base.RemoveItem(index);
         Invalidate();
+        FontFacesChanged?.Invoke();
     }
 
     /// <inheritdoc/>
@@ -118,6 +123,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     {
         base.ClearItems();
         Invalidate();
+        FontFacesChanged?.Invoke();
     }
 
     void Invalidate()

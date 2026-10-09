@@ -14,17 +14,18 @@ public partial class Gui
     /// </remarks>
     public SKCanvas? Canvas { get; set; }
 
-    Font? _defaultTextFont;
-    Font? _defaultEmojiFont;
-    Font? _defaultWidgetIconFont;
+    /// <summary>Runtime font faces, fallback lists and frame font roles.</summary>
+    public FontRegistry Fonts { get; } = new();
 
     /// <summary>Sets the fonts inherited by every frame. Optional icon fonts fall back to the text font.</summary>
     public void ConfigureFonts(Font text, Font? emoji = null, Font? widgetIcon = null)
     {
         ArgumentNullException.ThrowIfNull(text);
-        _defaultTextFont = text;
-        _defaultEmojiFont = emoji;
-        _defaultWidgetIconFont = widgetIcon;
+        Fonts.SetRole(FontRole.Ui, text);
+        if (emoji is null) Fonts.ClearRole(FontRole.Emoji);
+        else Fonts.SetRole(FontRole.Emoji, emoji);
+        if (widgetIcon is null) Fonts.ClearRole(FontRole.Icon);
+        else Fonts.SetRole(FontRole.Icon, widgetIcon);
     }
 
     /// <summary>
@@ -121,13 +122,28 @@ public partial class Gui
         }
 
         ControlMetrics.Apply(CurrentNodeScope);
+        ApplyFontScale();
 
-        if ((font ?? _defaultTextFont) is { } textFont)
-            SetTextFont(textFont);
-        if ((fontIcon ?? _defaultEmojiFont ?? font ?? _defaultTextFont) is { } emojiFont)
-            SetEmojiFont(emojiFont);
-        SetWidgetIconFont(fontWidgetIcon ?? _defaultWidgetIconFont ?? fontIcon ?? _defaultEmojiFont
-            ?? font ?? _defaultTextFont ?? CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value);
+        var textFont = ApplyFrameTextFonts(font, fontIcon);
+        ApplyFrameWidgetFont(textFont, fontIcon, fontWidgetIcon);
+    }
+
+    Font? ApplyFrameTextFonts(Font? font, Font? fontIcon)
+    {
+        if (font is not null) Fonts.Register(font.FamilyName, font);
+        if (fontIcon is not null) Fonts.Register(fontIcon.FamilyName, fontIcon);
+        var textFont = font ?? Fonts.ResolveRole(FontRole.Ui);
+        if (textFont is not null) SetTextFont(textFont);
+        var emojiFont = fontIcon ?? Fonts.ResolveRole(FontRole.Emoji) ?? textFont;
+        if (emojiFont is not null) SetEmojiFont(emojiFont);
+        return textFont;
+    }
+
+    void ApplyFrameWidgetFont(Font? textFont, Font? fontIcon, Font? fontWidgetIcon)
+    {
+        if (fontWidgetIcon is not null) Fonts.Register(fontWidgetIcon.FamilyName, fontWidgetIcon);
+        SetWidgetIconFont(fontWidgetIcon ?? Fonts.ResolveRole(FontRole.Icon) ?? fontIcon
+            ?? Fonts.ResolveRole(FontRole.Emoji) ?? textFont ?? LayoutNodeScopeIconFont.Default.Value);
     }
 
     /// <summary>

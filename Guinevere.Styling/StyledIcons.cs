@@ -60,19 +60,22 @@ public static class StyledIcons
         readonly ConditionalWeakTable<ResolvedStyle, StrongBox<Icon?>> _icons = new();
         readonly Dictionary<Uri, Icon?> _files = [];
         int _version = -1;
+        int _fontVersion = -1;
 
-        public Icon? Get(StyleSheetCollection sheets, StyleFonts fonts, ResolvedStyle style)
+        public Icon? Get(StyleSheetCollection sheets, StyleFontRegistry fonts, ResolvedStyle style)
         {
-            if (_version != sheets.Version)
+            fonts.Synchronize(sheets);
+            if (_version != sheets.Version || _fontVersion != fonts.Version)
             {
                 _version = sheets.Version;
+                _fontVersion = fonts.Version;
                 _icons.Clear();
                 _files.Clear();
             }
             return _icons.GetValue(style, s => new StrongBox<Icon?>(Build(sheets, fonts, s))).Value;
         }
 
-        Icon? Build(StyleSheetCollection sheets, StyleFonts fonts, ResolvedStyle style)
+        Icon? Build(StyleSheetCollection sheets, StyleFontRegistry fonts, ResolvedStyle style)
         {
             var icon = Source(style) ?? Glyph(sheets, fonts, style);
             if (icon is null) return null;
@@ -102,7 +105,7 @@ public static class StyledIcons
         }
 
         /// <summary>A glyph in the rule's <c>font-family</c>, or in the scope's font fallback when none is found.</summary>
-        static Icon? Glyph(StyleSheetCollection sheets, StyleFonts fonts, ResolvedStyle style)
+        static Icon? Glyph(StyleSheetCollection sheets, StyleFontRegistry fonts, ResolvedStyle style)
         {
             var raw = style.Get("glyph");
             if (raw is null || IsNone(raw)) return null;

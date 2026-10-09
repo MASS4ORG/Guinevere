@@ -15,12 +15,13 @@ public static partial class ControlsExtensions
         string filePath, int lineNumber)
     {
         ExcaliburStyles.Ensure(gui);
+        var node = gui.StyledNode(type, classes, id, NoModifiers, disabled: !enabled, filePath: filePath,
+            lineNumber: lineNumber);
         var width = string.IsNullOrEmpty(label)
             ? indicatorWidth
-            : indicatorWidth + spacing + MeasureTextWidth(MeasuringFont(gui, fontSize), label);
-        return gui.StyledNode(type, classes, id, NoModifiers, disabled: !enabled, filePath: filePath,
-                lineNumber: lineNumber)
-            .Width(width).Height(Math.Max(indicatorHeight, fontSize + 4))
+            : indicatorWidth + spacing + gui.MeasureTextWidth(label, fontSize, node.Scope);
+        return node
+            .Width(width).Height(Math.Max(indicatorHeight, fontSize * gui.FontScale + 4))
             .Direction(Axis.Horizontal).Gap(spacing);
     }
 

@@ -112,7 +112,7 @@ public static partial class ControlsExtensions
         // size the button to the glyphs that will actually render.
         var textWidth = 0f;
         var textHeight = 0f;
-        foreach (var (runText, runFont) in TextRuns(gui, text.Label ?? "", fontSize))
+        foreach (var (runText, runFont) in TextRuns(gui, text.Label ?? "", fontSize, node.Scope))
         {
             runFont.SkFont.MeasureText(runText, out var bounds);
             textWidth += bounds.Width;
@@ -126,13 +126,13 @@ public static partial class ControlsExtensions
         );
     }
 
-    static (string Text, Font Font)[] TextRuns(Gui gui, string text, float fontSize)
+    static (string Text, Font Font)[] TextRuns(Gui gui, string text, float fontSize, LayoutNodeScope? scope = null)
     {
-        var mainFont = gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.Resized(fontSize);
-        var iconFont = new Font(new SKFont(
-            gui.CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface, fontSize));
+        scope ??= gui.CurrentNodeScope;
+        var mainFont = gui.GetTextFont(fontSize, scope);
+        var iconFont = scope.Get<LayoutNodeScopeIconFont>().Value.Resized(mainFont.Size);
 
-        return [.. gui.CreateTextRuns(text, mainFont, iconFont).Select(run => (run.Text, run.Font))];
+        return [.. gui.CreateTextRuns(text, mainFont, iconFont, scope)];
     }
 
     /// <summary>Draws a caption centred in the current node, in the scope's text color (which the style sets).</summary>

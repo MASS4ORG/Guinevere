@@ -81,87 +81,9 @@ public partial class Gui
         TextLayoutOptions? Layout = null,
         bool Selectable = false);
 
-    record struct FontRun(
-        string Text,
-        Font Font);
-
-    /// <summary>
-    /// Checks if a character is supported by the given font by querying the underlying typeface.
-    /// Returns true if the font contains a glyph for the specified character, false otherwise.
-    /// This is used to determine when to fall back to the icon font for unsupported characters.
-    /// </summary>
-    /// <param name="font">The font to check for character support.</param>
-    /// <param name="character">The character to test for support.</param>
-    /// <returns>True if the font supports the character, false if fallback is needed.</returns>
-    static bool IsCharacterSupported(Font font, char character)
-    {
-        return font.SkFont.GetGlyph(character) != 0;
-    }
-
-    static readonly char[] UnsupportedVariationSelector =
-        [.. Enumerable.Range('\uFE00', '\uFE0F' - '\uFE00' + 1).Select(i => (char)i)];
-
-    /// <summary>
-    /// Splits text into runs where each run uses the same font (either main font or icon font fallback).
-    /// </summary>
-    List<FontRun> CreateFontRuns(string text, Font mainFont, Font iconFont)
-    {
-        var widgetFont = new Font(new SKFont(
-            CurrentNodeScope.Get<LayoutNodeScopeWidgetIconFont>().Value.SkFont.Typeface, mainFont.Size));
-        // Variation selectors (U+FE00-U+FE0F) sit after emoji like "⚙️" or "❤️". Most icon fonts
-        // have no glyph for them, so without this step every emoji picked up a trailing tofu box.
-        // They are zero-width combining marks - dropping them changes nothing visible.
-        if (text.IndexOfAny(UnsupportedVariationSelector) >= 0)
-            text = new string([.. text.Where(c => c is < '\uFE00' or > '\uFE0F')]);
-
-        var runs = new List<FontRun>();
-        if (string.IsNullOrEmpty(text))
-            return runs;
-
-        var currentRunStart = 0;
-        Font SelectFont(char character) => IsCharacterSupported(mainFont, character) ? mainFont
-            : IsCharacterSupported(widgetFont, character) ? widgetFont : iconFont;
-
-        var currentFont = SelectFont(text[0]);
-
-        for (var i = 1; i < text.Length; i++)
-        {
-            var charFont = SelectFont(text[i]);
-
-            if (charFont != currentFont)
-            {
-                // End current run and start a new one
-                runs.Add(new FontRun(
-                    text.Substring(currentRunStart, i - currentRunStart),
-                    currentFont));
-
-                currentRunStart = i;
-                currentFont = charFont;
-            }
-        }
-
-        // Add the final run
-        runs.Add(new FontRun(
-            text.Substring(currentRunStart),
-            currentFont));
-
-        return runs;
-    }
-
-    /// <summary>
-    /// Splits text into main-font/icon-font runs so controls that draw text directly can match
-    /// <c>DrawText</c>'s emoji/icon fallback instead of rendering tofu for unsupported glyphs.
-    /// </summary>
-    internal IReadOnlyList<(string Text, Font Font)> CreateTextRuns(string text, Font mainFont, Font iconFont)
-    {
-        return CreateFontRuns(text, mainFont, iconFont)
-            .Select(run => (run.Text, run.Font))
-            .ToArray();
-    }
-
     LayoutNode DrawTextOrGlyph(DrawConfig cfg)
     {
-        var size = cfg.Size > 0 ? cfg.Size : CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value;
+        var size = (cfg.Size > 0 ? cfg.Size : CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value) * FontScale;
         var color = cfg.Color ?? CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
 
         var mainFont = cfg.Font.Resized(size);
@@ -306,9 +228,9 @@ public partial class Gui
     /// <summary>
     /// Measures the width of a line of text with font fallback support.
     /// </summary>
-    float MeasureLineWidth(string line, Font mainFont, Font iconFont)
+    internal float MeasureLineWidth(string line, Font mainFont, Font iconFont, LayoutNodeScope? scope = null)
     {
-        var runs = CreateFontRuns(line, mainFont, iconFont);
+        var runs = CreateFontRuns(line, mainFont, iconFont, scope);
         var totalWidth = 0f;
 
         foreach (var run in runs)

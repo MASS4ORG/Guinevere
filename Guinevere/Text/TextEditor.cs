@@ -351,7 +351,7 @@ public static class TextEditor
     public static SKFont MeasuringFont(Gui gui, float fontSize)
     {
         ArgumentNullException.ThrowIfNull(gui);
-        return new SKFont(gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.SkFont.Typeface, fontSize);
+        return gui.GetTextFont(fontSize).SkFont;
     }
 
     /// <summary>Width of a run of text.</summary>
