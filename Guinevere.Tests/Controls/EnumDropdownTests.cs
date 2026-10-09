@@ -195,6 +195,40 @@ public sealed class EnumDropdownTests
         Assert.Equal(Ordinary.Second, value);
     }
 
+    [Flags] enum Multi { None = 0, Read = 1, Write = 2, Execute = 4, All = Read | Write | Execute }
+    enum Modes { Preview, Edit, Play }
+
+    /// <summary>Activating a dock tab defers to the next build pass, so a toggle-button row whose panel
+    /// was never built this frame does not index control state that only the build pass fills.</summary>
+    [Fact]
+    public void ActivatingDockTabDoesNotCrashToggleButtons()
+    {
+        using var h = new FrameHarness(700, 400);
+        var perms = Multi.Read;
+        var mode = Modes.Edit;
+        var layout = new DockLayout { Root = new DockLeaf("buttons", "selection") };
+        void Panel(string id, Gui gui)
+        {
+            if (id != "selection") return;
+            using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
+            {
+                gui.ScrollY();
+                gui.EnumDropdown(ref perms, width: 200, filePath: "regression-perms", lineNumber: 0);
+                gui.EnumDropdown(ref mode, EnumPresentation.Paging, width: 200,
+                    filePath: "regression-mode", lineNumber: 0);
+                gui.EnumDropdown(ref perms, EnumPresentation.ToggleButtons, width: 480,
+                    filePath: "regression-toggle", lineNumber: 0);
+            }
+        }
+        void Draw(Gui gui) => gui.DockSpace(layout, id => new DockPanelInfo(id), Panel, new DockTheme());
+        h.Frame(Draw);
+        var tab = h.Gui.RootNode!.FindChildById("dock:root/tabs/selection")!;
+        h.Click(Draw, tab.Rect.Center);
+        var leaf = layout.FindLeaf("selection")!;
+        Assert.Equal("selection", leaf.ActivePanelId);
+        Assert.NotNull(Find(h, "/toggle/All"));
+    }
+
     /// <summary>An enum without members renders inert paging buttons.</summary>
     [Fact]
     public void EmptyEnumCanRenderEveryPresentation()

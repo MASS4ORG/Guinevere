@@ -53,8 +53,13 @@ public static partial class ControlsExtensions
             gui.DragGhost();
 
             // A close click is the one edit that has no drop to wait for. Applying it at the end of
-            // the render pass keeps both passes of this frame agreeing on the tree.
+            // the render pass keeps both passes of this frame agreeing on the tree and defers the
+            // change to the next frame's build pass. A tab activation is deferred the same way: the
+            // strip reports it during the render pass, and switching the body mid-frame would render
+            // the new panel in one pass only, wiping its controls' build-pass state.
             if (gui.Pass == Pass.Pass2Render && context.Closing is { } closing) layout.Remove(closing);
+            if (gui.Pass == Pass.Pass2Render && context.Activating is { } activating)
+                Activate(context, activating.Leaf, activating.Item);
         }
     }
 
@@ -118,7 +123,7 @@ public static partial class ControlsExtensions
                     new DockTabStrip(leaf, leaf.ActivePanelId, g.CurrentNode.Rect), g),
                 (item, id) => DragTab(context, leaf, item, id));
 
-            if (outcome.Activated is { } activated) Activate(context, leaf, activated);
+            if (outcome.Activated is { } activated) context.Activating = (leaf, activated);
             if (outcome.Closed is { } closed) context.Closing = closed.Id;
 
             using (gui.StyledNode("dock-panel", id: $"{path}/body").Expand().Enter())
@@ -342,5 +347,6 @@ public static partial class ControlsExtensions
         public DockTheme Theme { get; } = theme;
         public Action<DockTabStrip, Gui>? RenderTabStripActions { get; } = renderTabStripActions;
         public string? Closing { get; set; }
+        public (DockLeaf Leaf, TabStripItem Item)? Activating { get; set; }
     }
 }

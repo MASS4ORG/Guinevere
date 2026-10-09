@@ -347,8 +347,6 @@ dotnet add package MASS4.Autoformers
 dotnet add package MASS4.Autoformers.Excalibur
 ```
 
-See [Example 76](Examples/Example-76-Odin-Attributes/README.md) for a live tour.
-
 ### Layering & Transforms
 
 - Z-index layering and transforms

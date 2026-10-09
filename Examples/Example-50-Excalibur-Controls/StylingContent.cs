@@ -79,6 +79,7 @@ public abstract partial class Program
 
         using (gui.StyledNode("VisualElement", id: "root").Expand().Enter())
         {
+            gui.ScrollY();
             gui.DrawText("PSS-styled widgets", 24, Color.FromArgb(255, 236, 238, 243));
 
             using (gui.StyledNode("VisualElement", ["card"]).Enter())

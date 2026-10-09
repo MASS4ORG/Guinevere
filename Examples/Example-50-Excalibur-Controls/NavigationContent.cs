@@ -8,7 +8,6 @@ public abstract partial class Program
     static int _nestedTab;
     static int _pillTab;
     static int _verticalTab;
-    static int _activeTab;
 
     static readonly TreeViewState FileTreeState = new() { DefaultExpandedDepth = 1 };
 

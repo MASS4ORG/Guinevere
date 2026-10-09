@@ -6,7 +6,7 @@ public abstract partial class Program
 {
     static void FeedbackContent(Gui gui)
     {
-        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(16).Padding(10).Enter())
+        using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Gap(16).Padding(10).Enter())
         {
             Section(gui, "Toasts & Tooltips", () => ToastTooltipContent(gui));
 
@@ -153,8 +153,6 @@ public abstract partial class Program
 
             gui.Tooltip(tooltipAnchor, "Sticking around on a button reveals this hint",
                 delay: 0.35f);
-
-            gui.Toasts();
         }
     }
 }

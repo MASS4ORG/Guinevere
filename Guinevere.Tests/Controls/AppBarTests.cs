@@ -120,6 +120,37 @@ public class AppBarTests
         Assert.Equal(new Vector2(100, 100), window.Position);
     }
 
+    /// <summary>Keeps the background draggable when interactive widgets and menus fill the bar.</summary>
+    [Fact]
+    public void MenuBarAndWidgetsStillLeaveTheBarDraggable()
+    {
+        using var h = new FrameHarness();
+        var window = new Window(h);
+        h.Gui.Platform.Register<IWindowChromeCapability>(window);
+        var checkbox = false;
+        LayoutNode? spacer = null;
+        void Gallery(Gui gui)
+        {
+            using var bar = gui.AppBar();
+            gui.MenuBar(menu => menu.Collapsible()
+                .Menu("File", file => file.Item("Close", () => { }))
+                .Menu("View", view => view.Item("Toggle", () => { })));
+            gui.DrawText("Guinevere Excalibur");
+            using (gui.Node().ExpandWidth().Enter()) spacer = gui.CurrentNode;
+            gui.DrawText("FPS: 60.0");
+            checkbox = gui.Checkbox(checkbox, "Native title bar");
+            gui.Button("◐", 36, 36);
+        }
+        h.Frame(Gallery);
+        Assert.NotNull(spacer);
+        h.Input.MoveTo(spacer!.Center);
+        h.Input.PressButton(MouseButton.Left);
+        h.Frame(Gallery);
+        h.Input.MoveTo(spacer.Center + new Vector2(40, 20));
+        h.Frame(Gallery);
+        Assert.Equal(new Vector2(140, 120), window.Position);
+    }
+
     /// <summary>Keeps native decorations when the backend cannot move the window.</summary>
     [Fact]
     public void UnsupportedMovementKeepsTheNativeTitlebar()
