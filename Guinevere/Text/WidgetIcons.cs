@@ -23,4 +23,10 @@ public static class WidgetIcons
     public const string Download = "\uf019";
     /// <summary>Drive.</summary>
     public const string HardDrive = "\uf0a0";
+    /// <summary>Copy to the clipboard.</summary>
+    public const string Copy = "\uf0c5";
+    /// <summary>Paste from the clipboard.</summary>
+    public const string Paste = "\uf0ea";
+    /// <summary>Eyedropper.</summary>
+    public const string Eyedropper = "\uf1fb";
 }

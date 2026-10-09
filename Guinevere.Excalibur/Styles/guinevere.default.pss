@@ -164,6 +164,39 @@ slider thumb {
     :focus { outline = 2px solid $accent; outline-offset = 2; }
 }
 slider:disabled fill, slider:disabled thumb { background-color = $text-disabled; }
+// Color picker: gui.ColorPicker (a "color-picker" column of "color-picker-row" rows) and its parts gui.ColorArea (drawn
+// "cursor"), gui.ColorStrip (drawn "thumb"; :vertical), gui.ColorSwatches ("swatches" of "swatch", :selected),
+// gui.ColorPreview, gui.ColorHex ("color-hex" with "input.hex") and gui.ColorChannels ("color-channels" of
+// "color-channel"). gui.ColorField is a "color-field" row whose "swatch" is :open while its "popup.color-popup" shows.
+// Translucent colors are drawn over the "checker" part: background-color and color are its two tones.
+color-picker { flex-direction = column; gap = 8; color = $text; :disabled { opacity = 0.5; } }
+color-picker-row { flex-direction = row; gap = 8; align-items = center; }
+color-area, color-strip { padding = 1; border-color = $border; border-width = 1; cursor = crosshair; }
+color-area { border-radius = 2; }
+color-area cursor {
+    width = 12; height = 12; border-radius = 50%; border-color = #ffffff; border-width = 2; outline = 1px #00000080;
+    :focus { outline = 2px solid $accent; outline-offset = 1; }
+}
+color-strip { cursor = pointer; }
+color-strip thumb {
+    width = 6; height = 6; border-radius = 2; border-color = #ffffff; border-width = 2; outline = 1px #00000080;
+    :focus { outline = 2px solid $accent; }
+}
+checker { background-color = #f2f2f2; color = #c4c4c4; }
+swatches { flex-direction = row; flex-wrap = wrap; gap = 4; }
+swatch {
+    padding = 2; border-color = $border; border-width = 1; border-radius = 3; cursor = pointer;
+    :hover { border-color = $text-dim; }
+    :selected { border-color = $accent; border-width = 2; }
+    :open { border-color = $accent; border-width = 2; }
+    :focus { outline = 2px $focus-ring; outline-offset = 1; }
+    :disabled { cursor = default; opacity = 0.5; }
+}
+color-preview { padding = 1; border-color = $border; border-width = 1; border-radius = 3; cursor = pointer; }
+color-hex, color-channels, color-field { flex-direction = row; gap = 4; align-items = center; }
+color-channel { flex-direction = row; gap = 4; align-items = center; }
+color-channel > label { color = $text-dim; font-size = 12; }
+button.color-mode { padding = 2 10; font-size = 12; :checked { background-color = $selected; color = $text-on-accent; } }
 progress { width = expand; height = 6; background-color = $divider; border-radius = 50%; }
 progress fill { background-color = $accent; border-radius = 50%; }
 splitter {

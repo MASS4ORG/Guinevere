@@ -11,6 +11,7 @@ namespace Controls_01;
 public abstract partial class Program
 {
     static bool _nativeTitlebar;
+    static bool _followSystem = true;
 
     /// <summary>Runs the control gallery.</summary>
     public static void Main()
@@ -26,7 +27,8 @@ public abstract partial class Program
 
     static void Draw(Gui gui)
     {
-        ExcaliburStyles.SetTheme(gui, SelectedTheme());
+        if (_followSystem) ExcaliburStyles.FollowSystemAppearance(gui);
+        else ExcaliburStyles.SetTheme(gui, SelectedTheme());
         var chrome = gui.Platform.Require<IWindowChromeCapability>();
         var nativeTitlebar = _nativeTitlebar || !chrome.CanMove;
         using (gui.AppBar(windowControls: !_nativeTitlebar, nativeTitlebar: _nativeTitlebar, resizable: true))
@@ -34,7 +36,8 @@ public abstract partial class Program
             gui.MenuBar(menu => menu.Collapsible()
                 .Menu("File", file => file.Item("Close", () => gui.Platform.Require<IWindowChromeCapability>().RequestClose()))
                 .Menu("View", view => view
-                    .Item("Toggle theme", () => _radioChoice = _radioChoice == 0 ? 1 : 0)
+                    .Item("Toggle theme", ToggleTheme)
+                    .CheckItem("Follow system theme", () => _followSystem, value => _followSystem = value)
                     .CheckItem("Native title bar", () => nativeTitlebar, value => _nativeTitlebar = value,
                         enabled: chrome.CanMove)));
             DemoHeader.BadgeMini(gui);
@@ -42,7 +45,7 @@ public abstract partial class Program
             gui.Node().ExpandWidth();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Token(gui, "text"));
             _nativeTitlebar = gui.Checkbox(_nativeTitlebar, "Native title bar");
-            if (gui.Button("◐", 36, 36)) _radioChoice = _radioChoice == 0 ? 1 : 0;
+            if (gui.Button("◐", 36, 36)) ToggleTheme();
         }
 
         using (gui.Node().Expand().Enter())
@@ -57,8 +60,16 @@ public abstract partial class Program
                 tabs.Tab("Feedback", () => FeedbackContent(gui));
                 tabs.Tab("Scrolling", () => ScrollingContent(gui));
                 tabs.Tab("Styling", () => StylingContent(gui));
+                tabs.Tab("Colors", () => ColorsContent(gui));
             });
         }
+    }
+
+    /// <summary>Switches between the light and dark themes, leaving follow-system mode.</summary>
+    static void ToggleTheme()
+    {
+        _followSystem = false;
+        _radioChoice = _radioChoice == 0 ? 1 : 0;
     }
 
     static StyleSheet SelectedTheme() => _radioChoice switch
