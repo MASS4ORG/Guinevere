@@ -98,6 +98,7 @@ public partial class Gui
     {
         Canvas = canvas;
         if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.BeginFrame();
+        UpdateSystemAppearance();
 
         // Events run against the previous frame's tree, before it is cleared, so listeners see what the user saw.
         DispatchInputEvents();

@@ -68,6 +68,42 @@ public static class ExcaliburStyles
     }
 
     /// <summary>
+    /// Follows <see cref="Gui.SystemAppearance"/>: applies <paramref name="light"/> or <paramref name="dark"/> with
+    /// <see cref="SetTheme"/> (<paramref name="fallback"/> when the platform has no preference) and, with
+    /// <paramref name="accent"/>, sets the system accent as the <c>$accent</c>, <c>$accent-hover</c>, <c>$selected</c>
+    /// and <c>$focus-ring</c> tokens of the current scope. Call it every frame at the root, before building controls.
+    /// </summary>
+    /// <param name="gui">The GUI to theme.</param>
+    /// <param name="light">The light theme; <see cref="Light"/> by default.</param>
+    /// <param name="dark">The dark theme; <see cref="Dark"/> by default.</param>
+    /// <param name="fallback">The theme without a preference; <paramref name="dark"/> by default.</param>
+    /// <param name="accent">Whether to adopt the system accent color.</param>
+    public static void FollowSystemAppearance(Gui gui, StyleSheet? light = null, StyleSheet? dark = null,
+        StyleSheet? fallback = null, bool accent = true)
+    {
+        ArgumentNullException.ThrowIfNull(gui);
+        var appearance = gui.SystemAppearance;
+        SetTheme(gui, ThemeFor(appearance.ColorScheme, light ?? Light, dark ?? Dark, fallback));
+        if (accent && appearance.AccentColor is { } color) ApplyAccent(gui, color);
+    }
+
+    static StyleSheet ThemeFor(ColorScheme scheme, StyleSheet light, StyleSheet dark, StyleSheet? fallback) =>
+        scheme switch
+        {
+            ColorScheme.Light => light,
+            ColorScheme.Dark => dark,
+            _ => fallback ?? dark
+        };
+
+    static void ApplyAccent(Gui gui, Color color)
+    {
+        gui.SetStyleToken("accent", color);
+        gui.SetStyleToken("accent-hover", Color.Lerp(color, Color.White, 0.15f));
+        gui.SetStyleToken("selected", color);
+        gui.SetStyleToken("focus-ring", new Color(color, 0.6f));
+    }
+
+    /// <summary>
     /// A color token of the active sheets, such as <c>text</c> or <c>surface-hover</c>, for drawing that should follow
     /// the theme; transparent when no sheet defines it.
     /// </summary>

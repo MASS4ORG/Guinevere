@@ -57,6 +57,13 @@ public class ColorRepresentationTests
     [InlineData("1122334455")]
     public void RejectsInvalidCssHex(string text) => Assert.False(Color.TryParseHex(text, out _));
 
+    [Theory]
+    [InlineData("#A855F780", true, "#a855f780")]
+    [InlineData("#000a0b0c", false, "#000a0b")]
+    [InlineData("fff", true, "#ffffffff")]
+    public void FormatsLowercaseCssHex(string text, bool includeAlpha, string expected) =>
+        Assert.Equal(expected, Color.ParseHex(text).ToHex(includeAlpha));
+
     [Fact]
     public void AlphaCopyConstructorKeepsRgbOrder()
     {

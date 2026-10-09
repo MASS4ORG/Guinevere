@@ -262,6 +262,13 @@ public readonly struct Color : IEquatable<Color>
         return true;
     }
 
+    /// <summary>Formats as lowercase CSS hexadecimal, <c>#rrggbbaa</c>, or <c>#rrggbb</c> without alpha.</summary>
+    /// <param name="includeAlpha">Whether to append the alpha byte.</param>
+    public string ToHex(bool includeAlpha = true) =>
+        includeAlpha
+            ? $"#{_rgba:x8}"
+            : $"#{_rgba >> 8:x6}";
+
     public static Color FromArgb(int argb)
     {
         return FromArgb((argb >> 24) & 255, (argb >> 16) & 255, (argb >> 8) & 255, argb & 255);

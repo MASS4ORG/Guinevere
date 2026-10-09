@@ -17,6 +17,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     IPointerCapability, IWindowResizeCapability, IDisposable
 {
     readonly ILogger _logger;
+    readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly Gui _gui;
     readonly IWindow _window;
     readonly CanvasRenderer _renderer;
@@ -60,6 +61,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
+        _gui.Platform.Register<IAppearanceCapability>(_appearance);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
@@ -327,6 +329,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _fontText.Dispose();
         _fontIcon.Dispose();
         _fontWidgetIcon.Dispose();
+        _appearance.Dispose();
         GC.SuppressFinalize(this);
     }
 

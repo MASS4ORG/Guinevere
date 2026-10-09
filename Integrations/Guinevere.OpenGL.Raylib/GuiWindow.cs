@@ -14,6 +14,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     IPointerCapability, IWindowResizeCapability
 {
     readonly ICanvasRenderer _canvasRenderer;
+    readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly Gui _gui;
     int _width;
     int _height;
@@ -46,6 +47,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
+        _gui.Platform.Register<IAppearanceCapability>(_appearance);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");
@@ -191,6 +193,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _fontText.Dispose();
         _fontIcon.Dispose();
         _fontWidgetIcon.Dispose();
+        _appearance.Dispose();
         Raylib.CloseWindow();
     }
 
