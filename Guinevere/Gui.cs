@@ -115,6 +115,7 @@ public partial class Gui
         LayoutNodeScopeStack.Clear();
 
         // Clear the previous tree completely
+        ClearTransforms();
         if (RootNode is null)
         {
             RootNode = CreateRootNode(ScreenRect);

@@ -27,7 +27,7 @@ public static partial class ControlsExtensions
         id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id + "/anchor", () => new ContextMenuState());
-        if (isOpen && !state.WasOpen) state.Position = position ?? gui.Input.MousePosition;
+        if (isOpen && !state.WasOpen) state.Position = position ?? gui.LocalMousePosition;
         state.WasOpen = isOpen;
         if (gui.Pass == Pass.Pass1Build) state.FramePosition = position ?? state.Position;
         gui.Flyout(ref isOpen, state.FramePosition, menu =>

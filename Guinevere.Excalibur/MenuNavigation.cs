@@ -21,7 +21,7 @@ public static partial class ControlsExtensions
         state.OpenIndex = isOpen ? 0 : -1;
         state.SubmenuRects = [];
         state.Appearance = appearance ?? state.Appearance;
-        state.BeginFrame(gui.Input.MousePosition);
+        state.BeginFrame(gui.LocalMousePosition);
     }
 
     static int ResolveMenuBranch(Gui gui, MenuBarState state, string id, List<FlyoutItem> items,
@@ -64,7 +64,7 @@ public static partial class ControlsExtensions
         var childId = $"{id}/{items[branch.OpenIndex].Text}";
         var insideChild = state.Branches.Any(pair =>
             (pair.Key == childId || pair.Key.StartsWith(childId + "/", StringComparison.Ordinal))
-            && pair.Value.Rect.Contains(gui.Input.MousePosition));
+            && gui.IsPointerIn(pair.Value.Rect));
         if (hovered == branch.OpenIndex || insideChild)
         {
             branch.LastInside = gui.Clock.Elapsed;
@@ -130,7 +130,7 @@ public static partial class ControlsExtensions
     {
         var pressed = gui.Input.IsMouseButtonPressed(MouseButton.Left)
             || (rightClick && gui.Input.IsMouseButtonPressed(MouseButton.Right));
-        if (pressed && !state.SubmenuRects.Any(rect => rect.Contains(gui.Input.MousePosition)))
+        if (pressed && !state.SubmenuRects.Any(gui.IsPointerIn))
             ResetMenuState(state);
     }
 }

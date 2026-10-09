@@ -146,12 +146,7 @@ public static partial class ControlsExtensions
                 gui.SetOpacity(alpha / 255f * gui.CurrentNode.Scope.Get<LayoutNodeScopeOpacity>().Value);
                 gui.DrawStyledBox(gui.ResolvePart("accent"), new Rect(position.X, position.Y, 4, height));
 
-                if (gui.Pass == Pass.Pass2Render && alpha > 0)
-                {
-                    if (opts.DismissOnClick && gui.Input.IsMouseButtonPressed(MouseButton.Left) &&
-                        IsMouseInRect(gui.Input.MousePosition, gui.CurrentNode.Rect))
-                        toRemove.Add(entry);
-                }
+                if (alpha > 0 && ClickedToDismiss(gui, opts)) toRemove.Add(entry);
 
                 // Built in both passes so the text node is measured during Pass1 layout; creating it
                 // only in Pass2 leaves its rect (0,0,0,0) and the glyphs draw at the canvas origin.
@@ -163,6 +158,11 @@ public static partial class ControlsExtensions
             foreach (var entry in toRemove)
                 state.Entries.Remove(entry);
     }
+
+    /// <summary>Whether a dismissable toast was pressed this frame, where it is drawn.</summary>
+    static bool ClickedToDismiss(Gui gui, ToastOptions opts) =>
+        gui.Pass == Pass.Pass2Render && opts.DismissOnClick && gui.Input.IsMouseButtonPressed(MouseButton.Left)
+        && gui.IsPointerIn(gui.CurrentNode.Rect);
 
     static Vector2 ToastPosition(Rect screen, ToastOptions opts, float width, float height, float above)
     {

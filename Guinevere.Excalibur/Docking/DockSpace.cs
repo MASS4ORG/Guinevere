@@ -205,7 +205,7 @@ public static partial class ControlsExtensions
             if (gui.Pass != Pass.Pass2Render) return;
             if (rect is { W: <= 0 } or { H: <= 0 }) return;
 
-            var zone = ZoneAt(rect, gui.Input.MousePosition, context.Theme.DropZoneFraction);
+            var zone = ZoneAt(rect, gui.LocalMousePosition, context.Theme.DropZoneFraction);
 
             var drop = gui.DropTarget<DockTabPayload>(rect, $"__zone_{leaf.GetHashCode()}",
                 canAccept: payload => !IsNoOpDrop(payload, leaf, zone),

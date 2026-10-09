@@ -396,7 +396,7 @@ public static partial class ControlsExtensions
     {
         var interactable = gui.GetInteractable();
         if (interactable.OnClick() && tab.Enabled
-            && !OverTabCloseButton(tab.Closable, gui.CurrentNode.Rect, gui.Input.MousePosition))
+            && !OverTabCloseButton(tab.Closable, gui.CurrentNode.Rect, gui.LocalMousePosition))
             state.ActiveTabIndex = tabIndex;
         if (interactable.OnClick(MouseButton.Middle) && tab.Enabled && tab.Closable)
             state.TabToClose = (tabIndex, tab.Title);

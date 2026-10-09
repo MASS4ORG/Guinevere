@@ -94,8 +94,7 @@ public static partial class ControlsExtensions
             DialogFooter(gui, isOpen, footer, width, footerHeight, titleBarHeight + height, id);
         }
 
-        DismissDialogOutside(gui, state, ref isOpen, closeOnClickOutside,
-            new Rect(position.X, position.Y, width, totalHeight));
+        DismissDialogOutside(gui, state, ref isOpen, closeOnClickOutside, dialogNode);
     }
 
     static void UpdateDialogState(Gui gui, DialogState state, ref bool isOpen, bool closeOnEscape)
@@ -136,11 +135,11 @@ public static partial class ControlsExtensions
     }
 
     static void DismissDialogOutside(Gui gui, DialogState state, ref bool isOpen, bool closeOnClickOutside,
-        Rect dialogRect)
+        LayoutNode dialogNode)
     {
         if (gui.Pass != Pass.Pass2Render || !isOpen || !closeOnClickOutside || state.JustOpened) return;
         if (!gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
-        if (!IsMouseInRect(gui.Input.MousePosition, dialogRect)) isOpen = false;
+        if (!dialogNode.ContainsScreenPoint(gui.Input.MousePosition)) isOpen = false;
     }
 
     /// <summary>
@@ -152,7 +151,7 @@ public static partial class ControlsExtensions
     static void HandleTitleBarDrag(Gui gui, DialogState state, Vector2 position, float width,
         float titleBarHeight, bool showCloseButton)
     {
-        var mouse = gui.Input.MousePosition;
+        var mouse = gui.LocalMousePosition;
 
         if (state.IsDragging)
         {

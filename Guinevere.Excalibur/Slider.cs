@@ -89,7 +89,7 @@ public static partial class ControlsExtensions
         }
         if (!gui.Input.IsMouseButtonDown(MouseButton.Left)) state.Dragging = false;
         if (state.Dragging && rect.W > 0)
-            value = ValueFromPointerX(gui.Input.MousePosition.X, rect, min, max, step);
+            value = ValueFromPointerX(gui.LocalMousePosition.X, rect, min, max, step);
     }
 
     static void HandleSliderKeys(Gui gui, ref float value, float min, float max, float step)

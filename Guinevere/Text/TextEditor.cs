@@ -100,32 +100,15 @@ public static class TextEditor
         if (interactable.OnClick(out var clicks))
         {
             gui.RequestFocus(FocusReason.Mouse);
-            var at = PositionAt(gui, gui.Input.MousePosition, inner, display, fontSize, multiline);
-
-            if (clicks >= 3) state.SelectAll();
-            else if (clicks == 2)
-            {
-                var (start, end) = WordAt(state.Text, at);
-                state.MoveTo(start, extend: false);
-                state.MoveTo(end, extend: true);
-            }
-            else
-            {
-                state.MoveTo(at, extend: gui.Input.IsKeyDown(KeyboardKey.LeftShift));
-                state.IsSelecting = true;
-            }
-
-            if (clicks >= 2) state.IsSelecting = false;
-
-            state.ShowCursor = true;
-            state.BlinkTimer = 0f;
+            ApplyClick(gui, state, PositionAt(gui, gui.LocalMousePosition, inner, display, fontSize, multiline),
+                clicks);
         }
 
         // Dragging after a press extends the selection to wherever the pointer is.
         if (state.IsSelecting)
         {
             if (gui.Input.IsMouseButtonDown(MouseButton.Left))
-                state.MoveTo(PositionAt(gui, gui.Input.MousePosition, inner, display, fontSize, multiline),
+                state.MoveTo(PositionAt(gui, gui.LocalMousePosition, inner, display, fontSize, multiline),
                     extend: true);
             else
                 state.IsSelecting = false;
@@ -136,6 +119,28 @@ public static class TextEditor
         if (hasFocus && !state.IsFocused && gui.FocusReason == FocusReason.Keyboard) state.SelectAll();
 
         state.IsFocused = hasFocus;
+    }
+
+    /// <summary>Places the caret for a single click, selects a word on a double click and everything on a triple.</summary>
+    static void ApplyClick(Gui gui, TextEditState state, int at, int clicks)
+    {
+        if (clicks >= 3) state.SelectAll();
+        else if (clicks == 2)
+        {
+            var (start, end) = WordAt(state.Text, at);
+            state.MoveTo(start, extend: false);
+            state.MoveTo(end, extend: true);
+        }
+        else
+        {
+            state.MoveTo(at, extend: gui.Input.IsKeyDown(KeyboardKey.LeftShift));
+            state.IsSelecting = true;
+        }
+
+        if (clicks >= 2) state.IsSelecting = false;
+
+        state.ShowCursor = true;
+        state.BlinkTimer = 0f;
     }
 
     // ── keyboard ────────────────────────────────────────────────────────────

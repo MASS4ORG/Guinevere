@@ -257,7 +257,7 @@ public static partial class ControlsExtensions
         // A press that reached neither the button nor the list dismisses it. The list blocks input, so
         // a press inside it never gets here.
         if (gui.Input.IsMouseButtonPressed(MouseButton.Left)
-            && !buttonRect.Contains(gui.Input.MousePosition)
+            && !gui.IsPointerIn(buttonRect)
             && !gui.IsPointerOverBlocker)
             state.RequestedOpen = false;
     }

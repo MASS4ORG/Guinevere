@@ -179,7 +179,7 @@ public static partial class ControlsExtensions
             gui.RequestFocus($"{id}/button");
         }
         if (gui.Input.IsMouseButtonPressed(MouseButton.Left)
-            && !state.Anchor.Contains(gui.Input.MousePosition) && !state.PopupRect.Contains(gui.Input.MousePosition))
+            && !gui.IsPointerIn(state.Anchor) && !gui.IsPointerIn(state.PopupRect))
             state.RequestedOpen = false;
     }
 }

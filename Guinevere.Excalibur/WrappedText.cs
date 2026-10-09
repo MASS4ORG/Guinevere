@@ -101,8 +101,8 @@ public static partial class ControlsExtensions
     static void Select(Gui gui, TextEditState state, IReadOnlyList<WrappedLine> lines,
         Func<string, float> measure, Rect inner, float offsetY, float lineHeight)
     {
-        var mouse = gui.Input.MousePosition;
-        var inside = inner.Contains(mouse);
+        var mouse = gui.LocalMousePosition;
+        var inside = gui.IsPointerIn(inner);
         var left = MouseButton.Left;
 
         if (gui.Input.IsMouseButtonPressed(left) && inside)

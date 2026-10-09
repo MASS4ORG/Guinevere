@@ -151,7 +151,7 @@ public static partial class ControlsExtensions
     static void HandleNumberFieldPointer(Gui gui, NumberFieldState field, InteractableElement interactable,
         float fontSize)
     {
-        var mouse = gui.Input.MousePosition;
+        var mouse = gui.LocalMousePosition;
 
         if (interactable.OnClick(out var clicks))
         {

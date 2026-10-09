@@ -29,6 +29,9 @@ public static partial class ControlsExtensions
         /// <summary>The anchor's rect from the previous frame. Rects handed to the widget mid-pass1
         /// are not laid out yet, so hover tests and the tooltip position use last frame's rect.</summary>
         public Rect AnchorRect { get; set; }
+
+        /// <summary>The previous frame's anchor where it was drawn, for the hover test.</summary>
+        public Rect AnchorScreenRect { get; set; }
     }
 
     /// <summary>
@@ -133,7 +136,7 @@ public static partial class ControlsExtensions
 
         ExcaliburStyles.Ensure(gui);
         // Always create tooltip node for consistency
-        var mousePos = gui.Input.MousePosition;
+        var mousePos = gui.LocalMousePosition;
         var tooltipOffset = offset ?? new Vector2(10, -25);
         var tooltipPos = mousePos + tooltipOffset;
 
@@ -182,9 +185,13 @@ public static partial class ControlsExtensions
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, () => new TooltipState());
         var anchorRect = state.AnchorRect;
-        var show = TooltipIsVisible(gui, state, anchorRect, delay);
+        var show = TooltipIsVisible(gui, state, state.AnchorScreenRect, delay);
 
-        if (gui.Pass == Pass.Pass2Render) state.AnchorRect = node.Rect;
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            state.AnchorRect = node.Rect;
+            state.AnchorScreenRect = node.LocalToScreen(node.Rect);
+        }
 
         gui.Tooltip(text, show, offset ?? new Vector2(0, anchorRect.H),
             maxWidth, fontSize, padding, classes, id, filePath, lineNumber);
@@ -254,7 +261,11 @@ public static partial class ControlsExtensions
             }
         }
 
-        // Handle click outside to close - check after rendering the popup
+        DismissPopupOutside(gui, state, popupNode);
+    }
+
+    static void DismissPopupOutside(Gui gui, PopupState state, LayoutNode popupNode)
+    {
         if (gui.Pass != Pass.Pass2Render || state is not { IsOpen: true, CloseOnClickOutside: true }) return;
 
         if (state.JustOpened)
@@ -265,18 +276,16 @@ public static partial class ControlsExtensions
 
         if (!gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
 
-        var pointer = gui.Input.MousePosition;
-        var popupRect = new Rect(state.Position.X, state.Position.Y, width, height);
-        if (PointerOutsidePopup(popupNode, popupRect, pointer)) state.IsOpen = false;
+        if (PointerOutsidePopup(popupNode, gui.Input.MousePosition)) state.IsOpen = false;
     }
 
-    static bool PointerOutsidePopup(LayoutNode popupNode, Rect popupRect, Vector2 pointer) =>
-        !popupRect.Contains(pointer) && !PointerInChildOverlay(popupNode, pointer);
+    static bool PointerOutsidePopup(LayoutNode popupNode, Vector2 pointer) =>
+        !popupNode.ContainsScreenPoint(pointer) && !PointerInChildOverlay(popupNode, pointer);
 
     static bool PointerInChildOverlay(LayoutNode node, Vector2 pointer)
     {
         foreach (var child in node.Children)
-            if (child.Style.BlocksInput && child.Rect.Contains(pointer) || PointerInChildOverlay(child, pointer))
+            if (child.Style.BlocksInput && child.ContainsScreenPoint(pointer) || PointerInChildOverlay(child, pointer))
                 return true;
         return false;
     }

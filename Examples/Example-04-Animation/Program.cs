@@ -10,7 +10,7 @@ abstract class Program
     public static void Main()
     {
         _gui = new Gui();
-        using var win = new GuiWindow(_gui, 1000, 800, "Animation System Demo");
+        using var win = new GuiWindow(_gui, 1200, 800, "Animation System Demo");
 
         win.RunGui(RenderGui);
     }
@@ -22,9 +22,16 @@ abstract class Program
 
         using (_gui.Node().Expand().Gap(20).Enter())
         {
-            DrawLayoutBlendingDemo();
-            DrawSliderAnimationDemo();
-            DrawEasingFunctionsDemo();
+            using (_gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
+            {
+                DrawLayoutBlendingDemo();
+                MotionDemos.Springs(_gui);
+            }
+            using (_gui.Node().Expand().Direction(Axis.Horizontal).Gap(20).Enter())
+            {
+                MotionDemos.Transforms(_gui);
+                DrawEasingFunctionsDemo();
+            }
         }
     }
 
@@ -46,37 +53,7 @@ abstract class Program
         }
     }
 
-    static void DrawSliderAnimationDemo()
-    {
-        using (_gui.Node().Expand().Enter())
-        {
-            _gui.DrawRect(_gui.CurrentNode.Rect, Color.FromArgb(52, 58, 64), 8);
-
-            for (var i = 0; i < 5; i++)
-            {
-                var phase = _gui.Time.Elapsed + (i * Math.PI / 3);
-                var x = (float)(Math.Sin(phase * 0.8) * 100);
-                var y = (float)(Math.Cos(phase * 0.6) * 50);
-                var scale = (float)(0.8 + 0.3 * Math.Sin(phase * 1.2));
-
-                var size = 80 * scale;
-
-                using (_gui.Node(size, size)
-                           .AlignSelf(0.5f + x / 400f)
-                           .AlignContent(0.5f + y / 200f)
-                           .Enter())
-                {
-                    var hue = (i * 60 + _gui.Time.Elapsed * 30) % 360;
-                    var color = HsvToColor(hue, 0.7f, 0.9f);
-                    _gui.DrawRect(_gui.CurrentNode.Rect, color, size / 4);
-
-                    _gui.DrawText($"Panel {i + 1}", 12, Color.White);
-                }
-            }
-        }
-    }
-
-    static Color HsvToColor(double hue, double saturation, double value)
+    internal static Color HsvToColor(double hue, double saturation, double value)
     {
         // Simple HSV to RGB conversion
         var c = value * saturation;
@@ -141,11 +118,12 @@ abstract class Program
                 _gui.RequestFrame();
                 var time = (_gui.Time.Elapsed % 3.0f) / 3.0f; // 3-second loop
 
+                Easing.TryParse("ease", out var cssEase);
                 var easingFunctions = new[]
                 {
-                    ("Linear", (Func<float, float>)Easing.Linear), ("EaseIn", Easing.EaseIn),
-                    ("EaseOut", Easing.EaseOut), ("SmoothStep", Easing.SmoothStep), ("BackOut", Easing.BackOut),
-                    ("ElasticOut", Easing.ElasticOut)
+                    ("Linear", (Func<float, float>)Easing.Linear), ("EaseInOutSine", Easing.EaseInOutSine),
+                    ("CSS ease", cssEase), ("SmoothStep", Easing.SmoothStep), ("EaseOutBack", Easing.EaseOutBack),
+                    ("EaseOutElastic", Easing.EaseOutElastic)
                 };
 
                 using (_gui.Node().Expand().Gap(8).Enter())
@@ -155,7 +133,7 @@ abstract class Program
                         using (_gui.Node().Height(25).Direction(Axis.Horizontal).Gap(15).Enter())
                         {
                             // Label
-                            using (_gui.Node(80, 25).AlignContent(0.0f).Enter())
+                            using (_gui.Node(110, 25).AlignContent(0.0f).Enter())
                             {
                                 _gui.DrawText($"{name}:", 12, Color.FromArgb(200, 200, 200));
                             }

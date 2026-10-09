@@ -26,7 +26,7 @@ public static class Program
         using (gui.StyledNode("screen").Enter())
         {
             gui.DrawText("Styling system", 30, primaryText);
-            gui.DrawText("Nested selectors, inheritance, modifiers, variables and live theme reload", 16,
+            gui.DrawText("Nested selectors, inheritance, modifiers, variables, transitions and live theme reload", 16,
                 secondaryText);
 
             using (gui.StyledNode("toolbar").Enter())
@@ -101,7 +101,12 @@ public static class Program
             border-width = 1;
         }
 
-        feature-card #inherit(card) { width = expand; }
+        feature-card #inherit(card) {
+            width = expand;
+            box-shadow = 0 2 6 #00000040;
+
+            :hover(0.3 ease-out) { translate = 0 -4; box-shadow = 0 14 28 #00000070; }
+        }
 
         button {
             padding = 10 16;
@@ -109,9 +114,11 @@ public static class Program
             bg-color = #354158;
             border-color = #53627a;
             border-width = 1;
+            scale = 1;
 
-            :hover(0.15 ease-out) { bg-color = #465875; }
-            :selected { bg-color = $accent; border-color = $accent; }
+            :hover(0.15 ease-out) { bg-color = #465875; scale = 1.05; }
+            :active(0.08 ease-out) { scale = 0.96; }
+            :selected(0.25 ease-in-out-sine) { bg-color = $accent; border-color = $accent; }
         }
 
         progress-track {

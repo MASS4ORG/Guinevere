@@ -88,7 +88,7 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass1Build)
         {
             state.SubmenuRects = [];
-            state.BeginFrame(gui.Input.MousePosition);
+            state.BeginFrame(gui.LocalMousePosition);
         }
 
         RenderMenuBar(gui, state, builder, height, fontSize, padding);
@@ -176,9 +176,7 @@ public static partial class ControlsExtensions
     {
         if (gui.Pass != Pass.Pass2Render || state.FrameOpenIndex < 0
             || !gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
-        var mouse = gui.Input.MousePosition;
-        if (!state.TitleRects.Any(rect => rect.Contains(mouse))
-            && !state.SubmenuRects.Any(rect => rect.Contains(mouse)))
+        if (!state.TitleRects.Any(gui.IsPointerIn) && !state.SubmenuRects.Any(gui.IsPointerIn))
             ResetMenuState(state);
     }
 
@@ -258,7 +256,7 @@ public static partial class ControlsExtensions
 
         state.SubmenuRects.Add(groupRect);
 
-        var mousePos = gui.Input.MousePosition;
+        var mousePos = gui.LocalMousePosition;
         var hoverIndex = HoveredRowIndex(items, groupRect, mousePos, itemHeight, separatorHeight);
 
         var openSubmenuIndex = ResolveMenuBranch(gui, state, baseId, items, groupRect, hoverIndex, depth);

@@ -342,7 +342,7 @@ public static partial class ControlsExtensions
         if (gui.Pass != Pass.Pass2Render) return;
 
         var clickedAway = gui.Input.IsMouseButtonPressed(MouseButton.Left)
-                          && !gui.CurrentNode.Rect.Contains(gui.Input.MousePosition);
+                          && !gui.IsPointerIn(gui.CurrentNode.Rect);
 
         if (gui.Input.IsKeyPressed(KeyboardKey.Escape))
         {

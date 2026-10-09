@@ -78,7 +78,6 @@ public partial class LayoutNode
         _flowChildrenCache = null;
         MatchCursor = 0;
         DrawList.Clear();
-        LocalTransform = null;
         ResetInteraction();
         InvalidateLayout();
     }

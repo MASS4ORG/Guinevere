@@ -77,13 +77,18 @@ public class GuiFrameRequestsTests
         thread.Join();
     }
 
-    /// <summary>Boolean animations request frames while moving and stop once settled.</summary>
+    /// <summary>Springs, tweens and boolean animations request frames while moving and stop once settled.</summary>
     [Fact]
     public void Animations_RequestFramesUntilSettled()
     {
         using var harness = new FrameHarness();
         var target = 0f;
-        void Draw(Gui gui) => gui.AnimateBool01(target > 0f, 0.1f, Easing.Linear);
+        void Draw(Gui gui)
+        {
+            gui.Smoothdamp(target);
+            gui.AnimateFloat(target, 0.1f);
+            gui.AnimateBool01(target > 0f, 0.1f, Easing.Linear);
+        }
 
         harness.Frame(Draw);
         Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
@@ -94,5 +99,20 @@ public class GuiFrameRequestsTests
 
         for (var i = 0; i < 120; i++) harness.Frame(Draw);
         Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
+    }
+
+    /// <summary>A frame after a long idle wait does not make a spring jump past the motion the input just started.</summary>
+    [Fact]
+    public void Smoothdamp_AfterIdleWait_StillAnimates()
+    {
+        using var harness = new FrameHarness();
+        var target = 0f;
+        var value = 0f;
+        void Draw(Gui gui) => value = gui.Smoothdamp(target);
+
+        harness.Frame(Draw);
+        target = 10f;
+        harness.Frame(Draw, deltaTime: 2.0);
+        Assert.InRange(value, 0.1f, 9.9f);
     }
 }

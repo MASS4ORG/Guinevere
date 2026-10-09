@@ -11,5 +11,4 @@ Run it with:
 dotnet run --project Examples/Example-76-Styling/
 ```
 
-The transition annotation on `:hover` is accepted for forward source compatibility; animated style
-interpolation, expression evaluation, and styled shape/effect stacks remain planned features.
+Transition annotations such as `:hover(0.15 ease-out)` interpolate colors, shadows and the `scale`/`translate` transforms: buttons grow on hover and shrink while pressed, and the feature card lifts. Styled shape/effect stacks remain planned features.

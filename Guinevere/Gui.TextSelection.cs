@@ -12,7 +12,8 @@ public partial class Gui
         var held = interaction.OnHold();
         if (held)
         {
-            var at = TextSelectionOffset(node.InnerRect, lines, mainFont, iconFont, lineHeight, centered);
+            var at = TextSelectionOffset(node.InnerRect, LocalPointer(node), lines, mainFont, iconFont, lineHeight,
+                centered);
             if (interaction.OnClick(out var clicks))
             {
                 RequestFocus(node.Id, FocusReason.Mouse);
@@ -41,15 +42,15 @@ public partial class Gui
         state.IsSelecting = clicks == 1;
     }
 
-    int TextSelectionOffset(Rect inner, IReadOnlyList<WrappedLine> lines, Font mainFont, Font iconFont,
-        float lineHeight, bool centered)
+    int TextSelectionOffset(Rect inner, Vector2 pointer, IReadOnlyList<WrappedLine> lines, Font mainFont,
+        Font iconFont, float lineHeight, bool centered)
     {
         if (lines.Count == 0) return 0;
-        var row = Math.Clamp((int)((Input.MousePosition.Y - inner.Y) / lineHeight), 0, lines.Count - 1);
+        var row = Math.Clamp((int)((pointer.Y - inner.Y) / lineHeight), 0, lines.Count - 1);
         var line = lines[row];
         float Measure(string value) => MeasureLineWidth(value, mainFont, iconFont);
         var origin = inner.X + (centered ? Math.Max(0, (inner.W - Measure(line.Text)) * 0.5f) : 0);
-        return line.Start + WrappedTextLayout.PositionInLine(Measure, line.Text, Input.MousePosition.X - origin);
+        return line.Start + WrappedTextLayout.PositionInLine(Measure, line.Text, pointer.X - origin);
     }
 
     void HandleTextSelectionKeys(TextEditState state)
