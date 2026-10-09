@@ -37,7 +37,7 @@ public partial class Gui
         {
             var member = _renderNodes[i].Node;
             if (member.DrawList.InkBounds(member) is not { } bounds) return null;
-            ink = Ink.Join(ink, bounds);
+            ink = Ink.Join(ink, TransformsUsed ? DrawnBounds(member, bounds) : bounds);
         }
         return ink;
     }

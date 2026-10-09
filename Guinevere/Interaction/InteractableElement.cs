@@ -49,7 +49,7 @@ public readonly struct InteractableElement
     /// </returns>
     public bool On(Interactions mask)
     {
-        var pos = _gui.Input.MousePosition;
+        var pos = LocalPointer();
 
         if (!_shape.Contains(pos.X, pos.Y))
             return false;
@@ -75,10 +75,18 @@ public readonly struct InteractableElement
         if (_gui.IsHoverBlocked(_node)) return false;
 
         var position = _gui.Input.MousePosition;
-        if (!_shape.Contains(position.X, position.Y)) return false;
+        var local = LocalPointer();
+        if (!_shape.Contains(local.X, local.Y)) return false;
         if (OutsideClippedAncestors(position)) return false;
 
         return true;
+    }
+
+    /// <summary>The pointer in the hit shape's layout coordinates, through any transform on the node.</summary>
+    Vector2 LocalPointer()
+    {
+        var position = _gui.Input.MousePosition;
+        return _node is null ? position : _node.ScreenToLocal(position);
     }
 
     /// <summary>

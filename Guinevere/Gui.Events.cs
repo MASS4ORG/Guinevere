@@ -222,7 +222,7 @@ public partial class Gui
 
         void FindBlocker(LayoutNode node)
         {
-            if (node.Style.BlocksInput && node.Rect.Contains(position))
+            if (node.Style.BlocksInput && node.ContainsScreenPoint(position))
             {
                 var z = node.Scope.Get<LayoutNodeScopeZIndex>().Value;
                 if (z >= blockerZ) (blocker, blockerZ) = (node, z);
@@ -232,7 +232,8 @@ public partial class Gui
 
         void Visit(LayoutNode node)
         {
-            if (node.IsHitTestVisible && node.Rect.Contains(position) && !IsOutsideClippedAncestors(node, position))
+            if (node.IsHitTestVisible && node.ContainsScreenPoint(position)
+                && !IsOutsideClippedAncestors(node, position))
             {
                 var z = node.Scope.Get<LayoutNodeScopeZIndex>().Value;
                 if (z >= bestZ) (best, bestZ) = (node, z);
@@ -247,22 +248,13 @@ public partial class Gui
     /// </summary>
     internal static bool IsOutsideClippedAncestors(LayoutNode node, Vector2 position)
     {
-        if (node.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
-            && node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
-            return false;
+        if (EscapesClips(node)) return false;
 
         for (var ancestor = node.Parent; ancestor is not null; ancestor = ancestor.Parent)
         {
-            if (ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()
-                && ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value)
-            {
-                var rect = ancestor.Rect;
-                if (rect is { W: > 0, H: > 0 } && !rect.Contains(position)) return true;
-            }
-
-            if (ancestor.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
-                && ancestor.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
-                break;
+            if (IsClipped(ancestor) && ancestor.Rect is { W: > 0, H: > 0 } && !ancestor.ContainsScreenPoint(position))
+                return true;
+            if (EscapesClips(ancestor)) break;
         }
 
         return false;

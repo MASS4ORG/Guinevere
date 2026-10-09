@@ -5,11 +5,14 @@ public sealed class Selector
 {
     enum Combinator { None, Descendant, Child }
     sealed record Part(string? Type, string? Id, string[] Classes, StyleState State,
-        string[] Modifiers, Combinator Relation);
+        string[] Modifiers, Combinator Relation, StyleTransition? Transition);
     readonly Part[] _parts;
 
     /// <summary>The built-in state required by the right-most compound selector.</summary>
     public StyleState Modifier => _parts[^1].State;
+
+    /// <summary>The right-most compound's transition annotation, such as <c>:hover(0.15 ease-out)</c>, if any.</summary>
+    public StyleTransition? Transition => _parts[^1].Transition;
     /// <summary>CSS-like cascade weight: ids = 100, classes/modifiers = 10, types = 1.</summary>
     public int Specificity { get; }
 
@@ -76,8 +79,7 @@ public sealed class Selector
 
     static Part ParsePart(string text, Combinator relation, string whole)
     {
-        var annotation = text.IndexOf('(');
-        if (annotation >= 0) text = text[..annotation];
+        text = StripAnnotations(text, whole, out var transition);
         var part = new PartBuilder(whole);
         var i = 0;
         while (i < text.Length)
@@ -86,7 +88,38 @@ public sealed class Selector
             if (prefix is '.' or '#' or ':') i++;
             part.Add(prefix, ReadName(text, ref i, whole));
         }
-        return part.Build(relation);
+        return part.Build(relation, transition);
+    }
+
+    /// <summary>Removes every <c>(…)</c> transition annotation, keeping the last one as the compound's transition.</summary>
+    static string StripAnnotations(string text, string whole, out StyleTransition? transition)
+    {
+        transition = null;
+        var open = text.IndexOf('(');
+        if (open < 0) return text;
+        var names = new System.Text.StringBuilder(text.Length);
+        var start = 0;
+        while (open >= 0)
+        {
+            var close = MatchingParenthesis(text, open);
+            names.Append(text, start, open - start);
+            try { transition = StyleTransition.Parse(text[(open + 1)..close]); }
+            catch (FormatException error) { throw new FormatException($"{error.Message} in '{whole}'", error); }
+            start = close + 1;
+            open = text.IndexOf('(', start);
+        }
+        return names.Append(text, start, text.Length - start).ToString();
+    }
+
+    static int MatchingParenthesis(string text, int open)
+    {
+        var depth = 0;
+        for (var i = open; i < text.Length; i++)
+        {
+            if (text[i] == '(') depth++;
+            else if (text[i] == ')' && --depth == 0) return i;
+        }
+        return text.Length - 1;
     }
 
     /// <summary>Collects one compound selector's names by their prefix.</summary>
@@ -113,8 +146,8 @@ public sealed class Selector
             }
         }
 
-        public Part Build(Combinator relation) =>
-            new(_type, _id, [.. _classes], _state, [.. _modifiers], relation);
+        public Part Build(Combinator relation, StyleTransition? transition) =>
+            new(_type, _id, [.. _classes], _state, [.. _modifiers], relation, transition);
 
         void AddState(string value)
         {

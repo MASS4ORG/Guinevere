@@ -12,6 +12,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     readonly StyleCache _cache = new();
     Dictionary<string, string>? _globals;
     Dictionary<string, string?>? _tokenValues;
+    bool? _hasTransitions;
 
     internal event Action? FontFacesChanged;
 
@@ -22,6 +23,10 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     public IReadOnlyDictionary<string, string> Tokens => _tokens;
 
     internal int CachedCount => _cache.Count;
+
+    /// <summary>Whether any rule carries a transition annotation, so styled nodes must track their last style.</summary>
+    internal bool HasTransitions => _hasTransitions ??=
+        this.Any(sheet => sheet.Rules.Any(rule => rule.Selectors.Any(selector => selector.Transition is not null)));
 
     /// <summary>Overrides the <c>$name</c> token for every sheet, above any sheet's own value.</summary>
     /// <param name="name">Token name, with or without the <c>$</c> or <c>--</c> prefix.</param>
@@ -132,6 +137,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
         _cache.Clear();
         _globals = null;
         _tokenValues = null;
+        _hasTransitions = null;
     }
 
     static string TokenKey(string name)

@@ -146,40 +146,53 @@ public partial class Gui
         Func<T, bool>? canAccept = null, Action<T>? onDrop = null, bool keyboard = true) =>
         DropTarget(CurrentNode.Rect, id, tag, canAccept, onDrop, keyboard);
 
-    /// <summary>Offers an explicit screen-space rectangle as a typed drop target.</summary>
+    /// <summary>Offers an explicit layout rectangle, hit-tested through the current node's transform, as a drop target.</summary>
     public DropTargetResult<T> DropTarget<T>(Rect rect, string id, DragDropTag tag = default,
         Func<T, bool>? canAccept = null, Action<T>? onDrop = null, bool keyboard = true)
     {
         if (Pass != Pass.Pass2Render) return default;
-
-        if (_completedDrop is { TargetId: var targetId } completed && targetId == id
-            && completed.Tag == tag && completed.Payload is T dropped)
-        {
-            _completedDrop = null;
-            return new(DropTargetState.Dropped, dropped);
-        }
+        if (TryTakeCompletedDrop<T>(id, tag, out var dropped)) return new(DropTargetState.Dropped, dropped);
 
         if (_drag is null) return default;
         if (keyboard)
             Focus.RegisterFocusableControl(id,
                 new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f));
 
-        var preview = !_drag.Keyboard
-            ? rect.Contains(Input.MousePosition)
-            : keyboard && HasFocus(id);
-        if (!preview) return default;
+        if (!IsDropPreview(_drag, rect, id, keyboard)) return default;
 
-        if (!TryPeekPayload<T>(out var payload, tag) || !(canAccept?.Invoke(payload!) ?? true))
-            return new(DropTargetState.HoverRejected, payload);
+        if (!TryAcceptPayload(tag, canAccept, out var payload)) return new(DropTargetState.HoverRejected, payload);
 
-        var released = !_drag.Keyboard && !Input.IsMouseButtonDown(MouseButton.Left);
-        var confirmed = _drag.Keyboard && (Input.IsKeyPressed(KeyboardKey.Enter)
-                                           || Input.IsKeyPressed(KeyboardKey.Space));
-        if (released || confirmed)
+        if (IsDropConfirmed(_drag))
             _pendingDrop = new(id, _drag.Payload, _drag.Tag, value => onDrop?.Invoke((T)value));
 
         return new(DropTargetState.HoverAccepted, payload);
     }
+
+    /// <summary>Consumes the drop that the previous frame completed on this target, if its payload is a T.</summary>
+    bool TryTakeCompletedDrop<T>(string id, DragDropTag tag, out T dropped)
+    {
+        dropped = default!;
+        if (_completedDrop is not { } completed || completed.TargetId != id || completed.Tag != tag
+            || completed.Payload is not T value)
+            return false;
+        _completedDrop = null;
+        dropped = value;
+        return true;
+    }
+
+    /// <summary>Peeks the payload as a T and checks it against the target's predicate.</summary>
+    bool TryAcceptPayload<T>(DragDropTag tag, Func<T, bool>? canAccept, out T? payload) =>
+        TryPeekPayload(out payload, tag) && (canAccept?.Invoke(payload!) ?? true);
+
+    /// <summary>Whether the drag is over the target: the pointer, through the node's transform, or keyboard focus.</summary>
+    bool IsDropPreview(DragSession drag, Rect rect, string id, bool keyboard) => !drag.Keyboard
+        ? rect.Contains(CurrentNode.ScreenToLocal(Input.MousePosition))
+        : keyboard && HasFocus(id);
+
+    /// <summary>Whether the drag is being dropped: the pointer released, or Enter/Space for a keyboard drag.</summary>
+    bool IsDropConfirmed(DragSession drag) => drag.Keyboard
+        ? Input.IsKeyPressed(KeyboardKey.Enter) || Input.IsKeyPressed(KeyboardKey.Space)
+        : !Input.IsMouseButtonDown(MouseButton.Left);
 
     /// <summary>Draws standard accepted or rejected feedback over a drop target.</summary>
     public void DrawDropIndicator(DropTargetState state, Rect? rect = null, DropIndicatorStyle style = default)

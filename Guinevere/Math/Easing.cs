@@ -6,7 +6,7 @@ namespace Guinevere;
 /// over time to achieve various motion effects such as acceleration, deceleration,
 /// and elastic behaviors.
 /// </summary>
-public static class Easing
+public static partial class Easing
 {
     /// <summary>
     /// Linear interpolation with no easing.

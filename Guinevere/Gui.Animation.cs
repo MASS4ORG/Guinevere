@@ -61,7 +61,7 @@ public partial class Gui
     void SampleScopedBool(ScopedBoolAnimation state, bool target, float duration, Func<float, float> easing)
     {
         if (state.Animation.TargetValue != (target ? 1f : 0f))
-            state.Animation.AnimateTo(target ? 1f : 0f, duration, easing);
+            state.Animation.AnimateTo(target ? 1f : 0f, ReduceMotion ? 0f : duration, easing);
         state.Value = state.Animation.GetValue();
         state.Frame = _dataFrame;
         if (state.Animation.IsAnimating) RequestFrame();
@@ -96,5 +96,7 @@ public partial class Gui
     {
         _animationManager?.Clear();
         _scopedAnimations.Clear();
+        _springs.Clear();
+        _tweens.Clear();
     }
 }

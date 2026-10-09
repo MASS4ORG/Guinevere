@@ -16,6 +16,7 @@ public static class StylingExtensions
         public readonly StyleSheetCollection Sheets = [];
         public readonly List<StyleTarget> Ancestors = [];
         public readonly StyleFontRegistry Fonts;
+        public readonly StyleTransitions Transitions = new();
 
         /// <summary>Keeps the GUI's registered font faces synchronized with its active sheets.</summary>
         public GuiStyling(Gui gui)
@@ -29,6 +30,8 @@ public static class StylingExtensions
     static GuiStyling StateOf(Gui gui) => States.GetValue(gui, static g => new GuiStyling(g));
 
     internal static StyleFontRegistry FontsOf(Gui gui) => StateOf(gui).Fonts;
+
+    internal static StyleTransitions TransitionsOf(Gui gui) => StateOf(gui).Transitions;
 
     extension(Gui gui)
     {
@@ -69,6 +72,8 @@ public static class StylingExtensions
         /// (<c>color</c>, <c>font-*</c>) and <c>opacity</c> apply to the node's scope, so its children inherit them.
         /// <c>:disabled</c> applies in both passes, so it may change layout, and suppresses hover and press. In the
         /// render pass, styled descendants see this node's live state, so <c>checkbox:hover &gt; indicator</c> matches.
+        /// Values set under a transition annotation such as <c>:hover(0.15 ease-out)</c> interpolate on the GUI clock,
+        /// and <c>scale</c>/<c>rotate</c>/<c>translate</c>/<c>transform-origin</c> set the node's render-pass transform.
         /// </summary>
         /// <param name="type">Element type name matched by a bare-type selector, or <c>null</c>.</param>
         /// <param name="classes">Class names matched by <c>.class</c> selectors.</param>
@@ -104,7 +109,7 @@ public static class StylingExtensions
 
             if (gui.Pass == Pass.Pass1Build)
             {
-                var style = styling.Sheets.Resolve(target, variables, inherited);
+                var style = Transition(gui, node, styling, styling.Sheets.Resolve(target, variables, inherited));
                 StyleLayout.Apply(node, style);
                 ApplyInherited(gui, node, style, styling, inherited);
                 return node;
@@ -112,8 +117,10 @@ public static class StylingExtensions
 
             var live = state | InteractionState(gui, node, disabled);
             node.StyleTarget = target with { State = live, Ancestors = null };
-            var liveStyle = styling.Sheets.Resolve(target with { State = live }, variables, inherited);
+            var liveStyle = Transition(gui, node, styling,
+                styling.Sheets.Resolve(target with { State = live }, variables, inherited));
             ApplyInherited(gui, node, liveStyle, styling, inherited);
+            if (StyleTransform.From(liveStyle, node.Rect) is { } transform) gui.SetTransform(transform, node.Scope);
             if (StyleBox.From(liveStyle, node.Rect) is { } box) node.DrawList.Add(box);
             return node;
         }
@@ -176,6 +183,10 @@ public static class StylingExtensions
             return styling.Sheets.Resolve(target, null, gui.CurrentNodeScope.Get<StyleTokens>());
         }
     }
+
+    /// <summary>Interpolates properties in transition when any sheet declares a transition annotation.</summary>
+    static ResolvedStyle Transition(Gui gui, LayoutNode node, GuiStyling styling, ResolvedStyle style) =>
+        styling.Sheets.HasTransitions ? styling.Transitions.Apply(gui, node, style) : style;
 
     /// <summary>Builds a target whose ancestors live in a shared buffer that is only valid during this call.</summary>
     static StyleTarget CreateStyleTarget(List<StyleTarget> buffer, LayoutNode? parent, string? type,

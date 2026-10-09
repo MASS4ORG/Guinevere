@@ -256,7 +256,7 @@ public partial class Gui
 
         void Visit(LayoutNode node)
         {
-            if (node.Style.BlocksInput && node.Rect.Contains(pos))
+            if (node.Style.BlocksInput && node.ContainsScreenPoint(pos))
             {
                 var z = node.Scope.Get<LayoutNodeScopeZIndex>().Value;
                 if (z >= bestZ)

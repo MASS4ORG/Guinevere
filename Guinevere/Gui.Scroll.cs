@@ -161,7 +161,7 @@ public partial class Gui
 
     void HandleScrollInput(LayoutNode node, ScrollState scrollState)
     {
-        var mousePos = Input.MousePosition;
+        var mousePos = node.ScreenToLocal(Input.MousePosition);
         var nodeRect = node.InnerRect;
 
         // Update viewport size
@@ -178,41 +178,37 @@ public partial class Gui
         // Handle mouse wheel scrolling only when the mouse is over the node and nothing with a
         // higher z-index -- a modal dialog's dimmed overlay, say -- is blocking it from here.
         var screenRect = new Rect(nodeRect.X, nodeRect.Y, nodeRect.W, nodeRect.H);
-        if (screenRect.Contains(mousePos) && !IsHoverBlocked(node))
-        {
-            var wheelDelta = Input.MouseWheelDelta;
-            if (Math.Abs(wheelDelta) > 0.01f)
-            {
-                if (Input.IsKeyDown(KeyboardKey.LeftShift) || Input.IsKeyDown(KeyboardKey.RightShift))
-                {
-                    // Horizontal scroll with shift
-                    if (scrollState.IsScrollingX)
-                    {
-                        scrollState.ScrollOffset = new Vector2(
-                            scrollState.ScrollOffset.X - wheelDelta * 50f,
-                            scrollState.ScrollOffset.Y);
-                        scrollState.ClampScrollPosition();
-                        SetLocalScrollOffset(scrollState.ScrollOffset, node.Scope);
-                    }
-                }
-                else
-                {
-                    // Vertical scroll
-                    if (scrollState.IsScrollingY)
-                    {
-                        scrollState.ScrollOffset = new Vector2(
-                            scrollState.ScrollOffset.X,
-                            scrollState.ScrollOffset.Y - wheelDelta * 50f);
-                        scrollState.ClampScrollPosition();
-                        SetLocalScrollOffset(scrollState.ScrollOffset, node.Scope);
-                    }
-                }
-            }
-        }
+        if (screenRect.Contains(mousePos) && !IsHoverBlocked(node)) ApplyWheelScroll(node, scrollState);
 
         // Handle scrollbar dragging
-        HandleScrollbarDragging(node, scrollState, mousePos);
+        if (!float.IsNaN(mousePos.X)) HandleScrollbarDragging(node, scrollState, mousePos);
         RequestScrollbarCursor(node, scrollState);
+    }
+
+    /// <summary>Scrolls by this frame's wheel delta: horizontally while Shift is held, otherwise vertically.</summary>
+    void ApplyWheelScroll(LayoutNode node, ScrollState scrollState)
+    {
+        var wheelDelta = Input.MouseWheelDelta;
+        if (Math.Abs(wheelDelta) <= 0.01f) return;
+
+        if (Input.IsKeyDown(KeyboardKey.LeftShift) || Input.IsKeyDown(KeyboardKey.RightShift))
+        {
+            // Horizontal scroll with shift
+            if (!scrollState.IsScrollingX) return;
+            scrollState.ScrollOffset = new Vector2(
+                scrollState.ScrollOffset.X - wheelDelta * 50f,
+                scrollState.ScrollOffset.Y);
+        }
+        else
+        {
+            // Vertical scroll
+            if (!scrollState.IsScrollingY) return;
+            scrollState.ScrollOffset = new Vector2(
+                scrollState.ScrollOffset.X,
+                scrollState.ScrollOffset.Y - wheelDelta * 50f);
+        }
+        scrollState.ClampScrollPosition();
+        SetLocalScrollOffset(scrollState.ScrollOffset, node.Scope);
     }
 
     /// <summary>
