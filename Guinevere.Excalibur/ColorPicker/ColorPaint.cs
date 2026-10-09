@@ -38,7 +38,7 @@ public static class ColorPaint
         if (gui.Pass != Pass.Pass2Render || rect.W <= 0 || rect.H <= 0) return;
         var from = vertical ? new SKPoint(rect.X, rect.Y + rect.H) : new SKPoint(rect.X, rect.Y);
         var to = vertical ? new SKPoint(rect.X, rect.Y) : new SKPoint(rect.X + rect.W, rect.Y);
-        Shade(gui.DrawRect(rect, Color.White, radius),
+        Shade(gui.DrawRect(rect, radius).SolidColor(Color.White),
             SKShader.CreateLinearGradient(from, to, stops.ToArray(), null, SKShaderTileMode.Clamp));
     }
 
@@ -49,7 +49,7 @@ public static class ColorPaint
     public static void FillHueWheel(Gui gui, Vector2 center, float radius)
     {
         if (gui.Pass != Pass.Pass2Render || radius <= 0) return;
-        Shade(gui.DrawCircle(center, radius, Color.White),
+        Shade(gui.DrawCircle(center, radius).SolidColor(Color.White),
             SKShader.CreateSweepGradient(new SKPoint(center.X, center.Y), HueColors, null));
     }
 
@@ -62,7 +62,7 @@ public static class ColorPaint
     public static void FillRadial(Gui gui, Vector2 center, float radius, Color inner, Color outer)
     {
         if (gui.Pass != Pass.Pass2Render || radius <= 0) return;
-        Shade(gui.DrawCircle(center, radius, Color.White),
+        Shade(gui.DrawCircle(center, radius).SolidColor(Color.White),
             SKShader.CreateRadialGradient(new SKPoint(center.X, center.Y), radius, [inner, outer], null,
                 SKShaderTileMode.Clamp));
     }

@@ -172,7 +172,7 @@ public static partial class ControlsExtensions
             var half = new Rect(rect.X, rect.Y, rect.W / 2f, rect.H);
             DrawColorSample(gui, half, old);
             DrawColorSample(gui, new Rect(rect.X + half.W, rect.Y, rect.W - half.W, rect.H), after);
-            return gui.GetInteractable().OnClick() && half.Contains(gui.Input.MousePosition);
+            return gui.GetInteractable().OnClick() && gui.IsPointerIn(half);
         }
     }
 
@@ -187,7 +187,7 @@ public static partial class ControlsExtensions
     static Hsva EditArea(Gui gui, ColorDragState drag, IColorPickerShape shape, Rect rect, Hsva value)
     {
         gui.RegisterFocusable(claimsArrowKeys: true);
-        if (Dragged(gui, drag)) value = shape.Pick(rect, gui.Input.MousePosition, value);
+        if (Dragged(gui, drag)) value = shape.Pick(rect, gui.LocalMousePosition, value);
         if (ArrowDirection(gui) is not { } direction) return value;
         return shape.Pick(rect, shape.Cursor(rect, value) + direction * new Vector2(rect.W, rect.H) / 100f, value);
     }
@@ -196,7 +196,7 @@ public static partial class ControlsExtensions
     static Hsva EditStrip(Gui gui, ColorDragState drag, Rect rect, Hsva value, HsvChannel channel, bool vertical)
     {
         gui.RegisterFocusable(claimsArrowKeys: true);
-        if (Dragged(gui, drag)) value = WithChannel(value, channel, StripFraction(rect, gui.Input.MousePosition, vertical));
+        if (Dragged(gui, drag)) value = WithChannel(value, channel, StripFraction(rect, gui.LocalMousePosition, vertical));
         if (ArrowDirection(gui) is not { } direction) return value;
         var step = (vertical ? -direction.Y : direction.X) / 100f;
         return WithChannel(value, channel, ChannelFraction(value, channel) + step);

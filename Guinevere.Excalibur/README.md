@@ -54,7 +54,7 @@ public partial class App
 
 ## Styling
 
-Controls take no colors or radii; their look comes from `.pss` stylesheets. Excalibur ships a default sheet (`ExcaliburStyles.DefaultSheet`) that is kept under every application sheet, so a theme overrides any token or rule in it. Restyle with classes, sheets, or tokens for a subtree:
+Controls take no colors or radii; their look comes from `.pss` stylesheets. Excalibur ships a default base (`ExcaliburStyles.DefaultSheet`); the selected base is kept under every application sheet, so a theme overrides any token or rule in it. Restyle with classes, sheets, or tokens for a subtree:
 
 ```csharp
 gui.StyleSheets.Add(StyleSheet.Parse("""
@@ -73,12 +73,55 @@ using (gui.Node().Enter())
 
 `ExcaliburStyles.DefaultSheetText` is a starting point for a full theme.
 
-### Themes
+### Selecting a base
 
-A color theme is a token-only sheet layered right above the default sheet. Excalibur ships `ExcaliburStyles.Dark` (the default sheet itself), `Light`, `MonoLight` and `MonoDark`; any sheet of `$token = value;` declarations works the same way. Application sheets added with `gui.StyleSheets.Add` still override the theme.
+Select a complete base independently for each `Gui` before building controls. `Ensure`, control rendering and token reads preserve this selection, including when the selected sheet is removed or moved in `gui.StyleSheets`.
 
 ```csharp
-ExcaliburStyles.SetTheme(gui, ExcaliburStyles.Light); // replaces the previous theme; Dark or null restores the default
+var brand = StyleSheet.Parse(File.ReadAllText("brand.pss"));
+var errors = ExcaliburStyles.ValidateBaseSheet(brand);
+ExcaliburStyles.SetBaseSheet(gui, brand); // throws ArgumentException if the base is incomplete
+var selected = ExcaliburStyles.GetBaseSheet(gui);
+
+ExcaliburStyles.SetTheme(gui, ExcaliburStyles.Light); // color overlay above the selected base
+ExcaliburStyles.SetTheme(gui, null);                 // remove the color overlay
+ExcaliburStyles.SetBaseSheet(gui, null);             // restore the shipped base
+```
+
+Sheet order is selected base → color overlay → application sheets in their existing relative order. Selector specificity still wins across sheets; later sheets break specificity ties. Host tokens, inherited tokens and scoped tokens supply overrides. Base changes preserve the color overlay and application sheets. Repeated selection is a no-op when the base is already first. Resetting the base preserves the overlay; `SetTheme(null)` and `SetTheme(Dark)` remove the overlay and expose the selected base. Passing the selected base to `SetTheme` adds no duplicate layer; selecting a complete sheet already used as an overlay promotes it to the base.
+
+The replacement must supply its own fallbacks: all 24 color tokens listed below and a nonnegative pixel `$radius`. Tokens must evaluate to their required types in the replacement alone, including its imports; overlays, host tokens and application sheets cannot make an incomplete base valid. Missing references, cycles and wrong token types are reported by `ValidateBaseSheet`; `SetBaseSheet` rejects an incomplete sheet before changing GUI state. No shipped appearance rules are silently inserted behind a replacement.
+
+Essential control declarations are checked by resolving representative elements and parts against the replacement. Grouped rules, universal selectors and stylesheet inheritance are supported; a replacement can share common rules and needs no copy of the shipped selector structure. Required declarations must be present and have no unresolved token references. Background requirements also accept `background`, including gradients, except for the `form` and `checker` contracts whose painters read `background-color` directly. The minimum contract is:
+
+| Elements or parts | Required declarations |
+|---|---|
+| Buttons, choice rows, inputs, dropdowns, sliders, trees, breadcrumbs and labels | `color` |
+| Button/input/dropdown surfaces, chips, lists, progress, tab bars/panels, docking surfaces and feedback, menus, popups/dialogs/toasts/tooltips, application bars, overlays, scrollbars, object fields and file panels | `background-color` or `background` |
+| Tab rows/navigation, menu text, tree expanders/ghosts, popup/dialog titles and close buttons, breadcrumb crumbs/separators, object pick/clear buttons, file text/rows/places/columns/details, input placeholders and color-channel labels | `color` |
+| Choice indicators, radio checked dots, toggle tracks/thumbs, input selection, slider parts, progress fill, tab markers, breadcrumb underline, window glyph fill and scrollbar thumb | `background-color` or `background` |
+| Selected option/tree rows and each toast severity's accent | `background-color` or `background` |
+| Option indicators, color areas/strips, swatches, previews and file lists | `border-color` |
+| File headers; dialog footers | `border-bottom-color`; `border-top-color` respectively |
+| Color-area cursors and color-strip thumbs | `width`, `height`, `border-color` |
+| Checkerboard | `background-color`, `color` |
+| Color picker, picker rows, swatches, hex fields, channel groups/rows and color fields | `flex-direction` |
+| Slider track and progress | `height` |
+| Slider thumb | `width`, `height` |
+| Horizontal/vertical splitter | `width`/`height` respectively, `cursor` |
+| Toast accent | `width` |
+| Autoformers `form` | `color`, `dim-color`, `background-color`, `border-color`, `accent-color`, `divider-color`, `negative-color`, `base-background`, `border-radius` |
+
+Borders, radii, spacing, fonts, interaction feedback and other optional visuals remain choices of the base author. Validation checks completeness, while the control contracts below describe the properties and states available for designing the appearance. Test contrast, keyboard focus, disabled states and layouts when authoring a base.
+
+Material 3, neutral and platform-specific bases are separate future design choices. A Material 3 base needs its own state, elevation and shape rules; a neutral base can share compact rules across control families; platform-specific bases need separate authored sheets and platform selection by the application. `FollowSystemAppearance` selects color overlays and accent tokens, so it does not select a platform base. The shipped dark appearance remains the default; a future default switch requires an explicit compatibility decision and migration instructions.
+
+### Themes
+
+A color theme is a token-only sheet layered right above the selected base. Excalibur ships `Light`, `MonoLight` and `MonoDark`; any sheet of `$token = value;` declarations works the same way. `ExcaliburStyles.Dark` aliases the shipped default sheet and removes the color overlay. Application sheets added with `gui.StyleSheets.Add` still override the theme.
+
+```csharp
+ExcaliburStyles.SetTheme(gui, ExcaliburStyles.Light); // replaces the previous overlay; Dark or null removes it
 var ink = ExcaliburStyles.TokenColor(gui, "text");    // theme colors for an application's own drawing
 gui.DrawDropIndicator(drop.State, style: ExcaliburStyles.DroppableArea(gui));
 ```

@@ -3,11 +3,11 @@ using System.Runtime.CompilerServices;
 namespace Guinevere;
 
 /// <summary>
-/// The default <c>.pss</c> sheet that gives the Excalibur controls their look, and the built-in color themes layered
-/// over it. The default sheet is kept as the lowest-priority sheet of every GUI that draws a control, so themes,
+/// The base <c>.pss</c> sheet that gives the Excalibur controls their look, and the built-in color themes layered
+/// over it. The selected base is kept as the lowest-priority sheet of every GUI that draws a control, so themes,
 /// application sheets and <c>gui.SetStyleToken</c> override any of it.
 /// </summary>
-public static class ExcaliburStyles
+public static partial class ExcaliburStyles
 {
     const string ResourcePrefix = "Guinevere.Excalibur.";
 
@@ -36,18 +36,19 @@ public static class ExcaliburStyles
     /// <summary>A monochrome dark color theme.</summary>
     public static StyleSheet MonoDark => MonoDarkSheet.Value;
 
-    /// <summary>Puts the default sheet first in the GUI's sheets when it is missing or was moved.</summary>
+    /// <summary>Puts the selected base sheet first in the GUI's sheets when it is missing or was moved.</summary>
     public static void Ensure(Gui gui)
     {
+        var sheet = GetBaseSheet(gui);
         var sheets = gui.StyleSheets;
-        if (sheets.Count != 0 && ReferenceEquals(sheets[0], DefaultSheet)) return;
-        sheets.Remove(DefaultSheet);
-        sheets.Insert(0, DefaultSheet);
+        if (sheets.Count != 0 && ReferenceEquals(sheets[0], sheet)) return;
+        sheets.Remove(sheet);
+        sheets.Insert(0, sheet);
     }
 
     /// <summary>
-    /// Layers a color theme right above the default sheet, replacing the theme set before; <see cref="Dark"/> or
-    /// <c>null</c> restores the default look. Application sheets added after it still override it.
+    /// Layers a color theme right above the selected base, replacing the theme set before; <see cref="Dark"/> or
+    /// <c>null</c> removes the color overlay. Application sheets added after it still override it.
     /// </summary>
     /// <param name="gui">The GUI to theme.</param>
     /// <param name="theme">A token sheet such as <see cref="Light"/>, or any sheet of the application's own.</param>
@@ -62,7 +63,7 @@ public static class ExcaliburStyles
             sheets.Remove(current);
             Themes.Remove(gui);
         }
-        if (theme is null || ReferenceEquals(theme, DefaultSheet)) return;
+        if (theme is null || ReferenceEquals(theme, DefaultSheet) || ReferenceEquals(theme, GetBaseSheet(gui))) return;
         sheets.Insert(1, theme);
         Themes.AddOrUpdate(gui, theme);
     }

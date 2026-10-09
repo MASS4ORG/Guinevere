@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added: `gui.SetTransform` for drawing, clips and hit testing #176.
 - Added: Keyed springs and tweens and property transitions #51.
 - Added: Custom style modifiers and animated state transitions #38.
+- Added: Color picker from swappable parts #57.
+- Added: Explicit per-GUI Excalibur base stylesheet selection #191.
+- Added: Desktop file-drop capability and bubbling events across the 4 integrations.
 - Changed: Silk.NET, OpenTK and Raylib windows draw with Skia on the GPU; CPU rasterization remains the fallback #186.
 - Changed: Render-pass node matching is linear #166.
 - Changed: Nodes are reused across frames by identity #168.

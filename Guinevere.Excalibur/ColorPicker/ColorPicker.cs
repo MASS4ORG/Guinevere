@@ -52,7 +52,7 @@ public static partial class ControlsExtensions
     {
         ArgumentNullException.ThrowIfNull(gui);
         var initial = color;
-        var state = gui.ControlState((id ?? gui.NodeId(filePath, lineNumber)) + "/value",
+        var state = gui.ControlState((id ?? gui.AutomaticId(filePath, lineNumber)) + "/value",
             () => new ColorValueState { Value = Hsva.FromColor(initial) });
         state.Value = Hsva.Sync(state.Value, color);
         var changed = gui.ColorPicker(ref state.Value, options, original, enabled, classes, id, filePath, lineNumber);
