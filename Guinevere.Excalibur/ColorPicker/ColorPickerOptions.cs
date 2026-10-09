@@ -15,7 +15,7 @@ public delegate bool ColorPickerBody(Gui gui, ref Hsva value, Color? original);
 /// </summary>
 public sealed record ColorPickerOptions
 {
-    static readonly ConditionalWeakTable<Gui, ColorPickerOptions> Defaults = new();
+    static readonly ConditionalWeakTable<Gui, ColorPickerOptions> Defaults = [];
 
     /// <summary>A small palette of saturated colors plus white, gray and black.</summary>
     public static IReadOnlyList<Color> DefaultSwatches { get; } =
@@ -84,7 +84,7 @@ public sealed record ColorPickerOptions
 /// <param name="capacity">How many colors to keep.</param>
 public sealed class ColorRecents(int capacity = 10)
 {
-    static readonly ConditionalWeakTable<Gui, ColorRecents> PerGui = new();
+    static readonly ConditionalWeakTable<Gui, ColorRecents> PerGui = [];
     readonly List<Color> _items = [];
 
     /// <summary>How many colors are kept.</summary>

@@ -3,7 +3,7 @@ namespace Autoformers;
 /// <summary>Shared fields retain each owner's accessor so an edit reaches every selected object.</summary>
 public sealed partial class FormField
 {
-    IReadOnlyList<FormField>? sources;
+    IReadOnlyList<FormField>? _sources;
 
     FormField(FormField source, Func<object?> read, Func<object?, bool> write, Type valueType, string label, bool? readOnly = null)
         : this(source.Name, valueType, source.Target, read, write, null, readOnly ?? source.IsReadOnly)
@@ -16,11 +16,11 @@ public sealed partial class FormField
     }
 
     /// <summary>The individual accessors represented by this field, or this field for a single owner.</summary>
-    public IReadOnlyList<FormField> Sources => sources ?? [this];
+    public IReadOnlyList<FormField> Sources => _sources ?? [this];
 
     /// <summary>Whether the selected owners have different values for this field.</summary>
-    public bool HasMixedValue => sources is { Count: > 1 }
-        && sources.Skip(1).Any(source => !Equals(sources[0].GetValue(), source.GetValue()));
+    public bool HasMixedValue => _sources is { Count: > 1 }
+        && _sources.Skip(1).Any(source => !Equals(_sources[0].GetValue(), source.GetValue()));
 
     /// <summary>Combines compatible accessors, preserving metadata and refusing edits if any source is read only.</summary>
     public static FormField Combine(IEnumerable<FormField> fields)
@@ -34,7 +34,7 @@ public sealed partial class FormField
         if (all.Length == 1) return first;
         return new FormField(first, first.GetValue, value => WriteAll(all, value), first.ValueType, first.Label, all.Any(field => field.IsReadOnly))
         {
-            sources = Array.AsReadOnly(all),
+            _sources = Array.AsReadOnly(all),
         };
     }
 

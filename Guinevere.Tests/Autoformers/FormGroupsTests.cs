@@ -199,7 +199,7 @@ public class FormGroupsTests
         var start = FrameHarness.Center(from);
         var end = FrameHarness.Center(to);
         harness.Input.MoveTo(start);
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(draw);
         for (var step = 1; step <= 6; step++)
         {
@@ -207,7 +207,7 @@ public class FormGroupsTests
             harness.Frame(draw);
         }
 
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         for (var i = 0; i < 3; i++) harness.Frame(draw);
     }
 

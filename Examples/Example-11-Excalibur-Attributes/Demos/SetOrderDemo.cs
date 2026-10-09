@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 // [SetOrder] sorts members: lower first, ties keep declaration order (default 0).
 public sealed class SetOrderDemo

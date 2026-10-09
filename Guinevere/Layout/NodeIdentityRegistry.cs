@@ -9,14 +9,14 @@ sealed class NodeIdentityRegistry
     readonly record struct ItemScope(int Parent, int Outer, int Item, int Data);
     readonly record struct DataScopeKey(int Outer, int ItemScope, int Key);
 
-    readonly Dictionary<CallSite, int> _sites = new();
+    readonly Dictionary<CallSite, int> _sites = [];
     readonly List<CallSite> _siteNames = [default];
-    readonly Dictionary<Occurrence, int> _occurrences = new();
-    readonly Dictionary<Identity, int> _identities = new();
+    readonly Dictionary<Occurrence, int> _occurrences = [];
+    readonly Dictionary<Identity, int> _identities = [];
     readonly List<Identity> _descriptors = [default];
     readonly List<string?> _names = [string.Empty];
-    readonly Dictionary<Type, object> _items = new();
-    readonly Dictionary<ItemScope, int> _scopes = new();
+    readonly Dictionary<Type, object> _items = [];
+    readonly Dictionary<ItemScope, int> _scopes = [];
     readonly HashSet<int> _visitedScopes = [];
     readonly Dictionary<DataScopeKey, int> _dataScopes = new();
     int _itemCount;

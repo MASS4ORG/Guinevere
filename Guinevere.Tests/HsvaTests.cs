@@ -54,7 +54,7 @@ public class HsvaTests
     [Fact]
     public void NormalizesComponents()
     {
-        Assert.Equal(new Hsva(340f, 1f, 0f, 1f), new Hsva(-20f, 2f, -1f, 5f).Normalized());
+        Assert.Equal(new Hsva(340f, 1f, 0f), new Hsva(-20f, 2f, -1f, 5f).Normalized());
         Assert.Equal(0f, new Hsva(float.NaN, 0f, 0f).Normalized().H);
         Assert.Equal(Color.Red, new Hsva(720f, 1f, 1f).ToColor());
         Assert.Equal(Color.Red, Hsva.FromRgb(2f, -1f, 0f).ToColor());

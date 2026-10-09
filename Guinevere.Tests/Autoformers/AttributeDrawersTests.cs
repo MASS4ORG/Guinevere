@@ -138,7 +138,7 @@ public class AttributeDrawersTests
 
         Assert.True(shortArea > row);
         Assert.True(longArea > shortArea);
-        Assert.Equal(BuiltinDrawers.TextAreaHeight(gui, target.Long, new TextAreaAttribute(3, 10)), longArea);
+        Assert.Equal(BuiltinDrawers.TextAreaHeight(gui, target.Long, new TextAreaAttribute()), longArea);
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class AttributeDrawersTests
         [GuiColor("#FF0000")] public int Tinted { get; set; }
         [HideLabel] public int Unlabelled { get; set; }
         [TextArea] public string Notes { get; set; } = "";
-        [TextArea(3, 10)] public string Long { get; set; } = "";
+        [TextArea()] public string Long { get; set; } = "";
         public Inner Inner { get; set; } = new();
     }
 

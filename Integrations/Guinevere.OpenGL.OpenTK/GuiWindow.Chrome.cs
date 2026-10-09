@@ -77,7 +77,8 @@ public unsafe partial class GuiWindow
         }
         set
         {
-            if (TryMoveX11(value)) return;
+            // The desktop hint alone is unreliable under XWayland, so the native move always runs too.
+            TryMoveX11(value);
             GLFW.SetWindowPos(WindowPtr, (int)value.X, (int)value.Y);
         }
     }
@@ -91,7 +92,7 @@ public unsafe partial class GuiWindow
     bool TryMoveOnX11(Vector2 position)
     {
         if (!CanMove) return false;
-        return X11WindowPosition.TrySet(GLFW.GetX11Display(), (nuint)GLFW.GetX11Window(WindowPtr), position);
+        return X11WindowPosition.TrySet(GLFW.GetX11Display(), GLFW.GetX11Window(WindowPtr), position);
     }
 
     /// <inheritdoc />

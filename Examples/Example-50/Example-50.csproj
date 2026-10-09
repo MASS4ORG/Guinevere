@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>$(MSBuildProjectName.Replace("-", "_"))</RootNamespace>
+        <IsPackable>false</IsPackable>
+        <Version>5.4.0</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
+        <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="../../Guinevere.Styling/Guinevere.Styling.csproj" />
+    </ItemGroup>
+
+</Project>

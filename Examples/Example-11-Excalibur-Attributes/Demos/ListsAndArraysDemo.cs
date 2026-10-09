@@ -1,4 +1,4 @@
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 public sealed class Waypoint
 {

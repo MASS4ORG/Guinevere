@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 // [Required] shows an error while the value is null, empty text or an empty collection.
 public sealed class RequiredDemo

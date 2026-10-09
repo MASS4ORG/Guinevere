@@ -170,7 +170,7 @@ public class SliderTests
         }
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(150, 20));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         Assert.Equal(0.75f, value);
         using var image = harness.Snapshot();
@@ -205,11 +205,11 @@ public class SliderTests
         }
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(100, 20));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         Assert.Equal(SKColors.Blue, Pixel(180));
         Assert.Equal(SKColors.Red, Pixel(20));
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         harness.Frame(Draw);
         harness.Frame(Draw);
         Assert.True(harness.Gui.HasFocus("volume"));
@@ -249,7 +249,7 @@ public class SliderTests
         void Draw(Gui g) => g.Slider(ref value, 0, 1, width: 200, height: 40, enabled: enabled, id: "volume");
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(100, 20));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         enabled = false;
         harness.Input.MoveTo(new Vector2(180, 20));

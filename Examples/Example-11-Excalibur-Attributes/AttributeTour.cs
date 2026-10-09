@@ -1,7 +1,7 @@
 using Autoformers;
 using Guinevere;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 /// <summary>
 /// The tour's window content: a grouped sidebar of pages and, for the selected page, its source beside the live

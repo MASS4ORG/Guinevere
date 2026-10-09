@@ -11,9 +11,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="../../Integrations/Guinevere.OpenGL.SilkNET/Guinevere.OpenGL.SilkNET.csproj" />
+        <ProjectReference Include="../Example-50/Example-50.csproj" />
         <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
-        <ProjectReference Include="../../Guinevere.Styling/Guinevere.Styling.csproj" />
-        <ProjectReference Include="../../Integrations/Guinevere.OpenGL.Raylib/Guinevere.OpenGL.Raylib.csproj" />
     </ItemGroup>
 
 </Project>

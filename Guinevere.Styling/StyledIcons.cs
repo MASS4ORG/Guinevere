@@ -9,7 +9,7 @@ namespace Guinevere;
 /// </summary>
 public static class StyledIcons
 {
-    static readonly ConditionalWeakTable<Gui, IconCache> States = new();
+    static readonly ConditionalWeakTable<Gui, IconCache> States = [];
 
     extension(Gui gui)
     {
@@ -57,7 +57,7 @@ public static class StyledIcons
     sealed class IconCache
     {
         public readonly List<IIconDecoder> Decoders = [];
-        readonly ConditionalWeakTable<ResolvedStyle, StrongBox<Icon?>> _icons = new();
+        readonly ConditionalWeakTable<ResolvedStyle, StrongBox<Icon?>> _icons = [];
         readonly Dictionary<Uri, Icon?> _files = [];
         int _version = -1;
         int _fontVersion = -1;

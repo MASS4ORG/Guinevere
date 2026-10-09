@@ -61,7 +61,8 @@ public partial class GuiWindow
         get => Raylib.GetWindowPosition();
         set
         {
-            if (_desktopPointer.TryMoveWindow((nuint)Raylib.GetWindowHandle(), value)) return;
+            // The desktop hint alone is unreliable under XWayland, so the native move always runs too.
+            _desktopPointer.TryMoveWindow((nuint)Raylib.GetWindowHandle(), value);
             Raylib.SetWindowPosition((int)value.X, (int)value.Y);
         }
     }

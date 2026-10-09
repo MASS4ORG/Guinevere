@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 /// <summary>One entry of the tour: a sidebar group, a title, a one-line summary and the demo class it shows.</summary>
 /// <param name="Group">The sidebar group.</param>

@@ -142,6 +142,6 @@ public class ProgressBarTests
         });
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);
-        Assert.NotEqual((SKColor)ExcaliburStyles.TokenColor(harness.Gui, "accent"), pixels.GetPixel(20, 3));
+        Assert.NotEqual(ExcaliburStyles.TokenColor(harness.Gui, "accent"), pixels.GetPixel(20, 3));
     }
 }

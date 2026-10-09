@@ -273,7 +273,7 @@ public sealed class MultiDropdownTests
     [Fact]
     public void PopupEscapesParentClippingAndOpensAboveAnchor()
     {
-        using var harness = new FrameHarness(300, 300);
+        using var harness = new FrameHarness(300);
         IReadOnlyList<string> selected = [];
         void Draw(Gui gui)
         {

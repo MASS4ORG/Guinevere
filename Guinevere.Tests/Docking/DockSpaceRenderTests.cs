@@ -22,7 +22,7 @@ public class DockSpaceRenderTests
         var source = h.Gui.RootNode!.FindChildById($"dock:root/tabs/{(reverse ? "output" : "scene")}")!;
         var target = h.Gui.RootNode.FindChildById($"dock:root/tabs/{(reverse ? "scene" : "output")}")!;
         h.Input.MoveTo(source.Center);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Draw);
         h.Input.MoveTo(target.Center);
         h.Frame(Draw);
@@ -30,9 +30,9 @@ public class DockSpaceRenderTests
         var markerX = reverse ? target.Rect.X : target.Rect.X + target.Rect.W - 2;
         using (var snapshot = h.Snapshot())
         using (var bitmap = SKBitmap.FromImage(snapshot))
-            Assert.Equal((SKColor)h.Gui.StyleSheets.GetTokenColor("accent")!.Value, bitmap.GetPixel((int)Math.Ceiling(markerX),
+            Assert.Equal(h.Gui.StyleSheets.GetTokenColor("accent")!.Value, bitmap.GetPixel((int)Math.Ceiling(markerX),
                 (int)target.Rect.Y + 4));
-        h.Input.ReleaseButton(MouseButton.Left);
+        h.Input.ReleaseButton();
         h.Frame(Draw);
         h.Frame(Draw);
         Assert.Equal(reverse ? ["output", "scene", "game"] : new[] { "game", "output", "scene" }, leaf.PanelIds);

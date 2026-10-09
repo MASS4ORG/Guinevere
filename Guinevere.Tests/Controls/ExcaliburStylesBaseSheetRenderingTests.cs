@@ -142,7 +142,7 @@ public class ExcaliburStylesBaseSheetRenderingTests
     [Fact]
     public void ReplacementDrawsAndHandlesInput()
     {
-        using var harness = new FrameHarness(400, 300);
+        using var harness = new FrameHarness();
         ExcaliburStyles.SetBaseSheet(harness.Gui, Base);
         harness.Input.MoveTo(new Vector2(350, 250));
         var clicked = false;

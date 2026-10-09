@@ -138,7 +138,7 @@ public class FormDrawersTests
     {
         var drawers = new FormDrawers();
 
-        Assert.Throws<ArgumentNullException>(() => drawers.Add((Type)null!, new Recording()));
+        Assert.Throws<ArgumentNullException>(() => drawers.Add(null!, new Recording()));
         Assert.Throws<ArgumentNullException>(() => drawers.Add(typeof(int), null!));
         Assert.Throws<ArgumentNullException>(() => drawers.Add((Func<FormField, bool>)null!, new Recording()));
         Assert.Throws<ArgumentNullException>(() => drawers.Add(_ => true, null!));

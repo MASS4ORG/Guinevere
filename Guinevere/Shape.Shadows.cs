@@ -153,7 +153,7 @@ public partial class Shape
         if (!frame.Op(hole, SKPathOp.Difference, ring)) ring = new SKPath(frame);
 
         canvas.Save();
-        canvas.ClipPath(path, SKClipOperation.Intersect, antialias: true);
+        canvas.ClipPath(path, antialias: true);
         canvas.DrawPath(ring, ShadowPaint(shadow));
         canvas.Restore();
     }

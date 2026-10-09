@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 // [Hide] keeps a public member out of the form.
 public sealed class HideDemo

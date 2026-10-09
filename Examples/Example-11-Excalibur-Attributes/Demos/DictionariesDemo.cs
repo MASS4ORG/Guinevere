@@ -1,4 +1,4 @@
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 // Entries are edited through their keys; "+" invents a key ("New Key", 0, 1, ...).
 public sealed class DictionariesDemo

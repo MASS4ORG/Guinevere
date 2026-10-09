@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>$(MSBuildProjectName.Replace("-", "_"))</RootNamespace>
+        <IsPackable>false</IsPackable>
+        <Version>5.4.0</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../Integrations/Guinevere.OpenGL.Raylib/Guinevere.OpenGL.Raylib.csproj" />
+        <ProjectReference Include="../Example-50/Example-50.csproj" />
+        <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+    </ItemGroup>
+
+</Project>

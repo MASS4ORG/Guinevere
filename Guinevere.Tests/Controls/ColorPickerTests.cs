@@ -95,7 +95,7 @@ public class ColorPickerTests
     [InlineData(HsvChannel.Alpha, false, 1f, 1f)]
     public void StripClickSetsItsChannel(HsvChannel channel, bool vertical, float fraction, float expected)
     {
-        using var harness = new FrameHarness(300, 300);
+        using var harness = new FrameHarness(300);
         var value = new Hsva(0f, 0f, 0f, 0f);
         void Draw(Gui g) => g.ColorStrip(ref value, channel, vertical, length: 202, thickness: 16);
         harness.Frame(Draw);
@@ -109,7 +109,7 @@ public class ColorPickerTests
     [Fact]
     public void ArrowsStepTheFocusedStrip()
     {
-        using var harness = new FrameHarness(300, 300);
+        using var harness = new FrameHarness(300);
         var value = new Hsva(0f, 0f, 0.5f);
         void Draw(Gui g) => g.ColorStrip(ref value, HsvChannel.Value, vertical: true, length: 202);
         harness.Frame(Draw);
@@ -356,7 +356,7 @@ public class ColorPickerTests
     [Fact]
     public void BodyReplacesTheDefaultLayout()
     {
-        using var harness = new FrameHarness(300, 300);
+        using var harness = new FrameHarness(300);
         var options = new ColorPickerOptions
         {
             Body = (Gui g, ref Hsva v, Color? _) => g.ColorStrip(ref v, HsvChannel.Hue, length: 202)

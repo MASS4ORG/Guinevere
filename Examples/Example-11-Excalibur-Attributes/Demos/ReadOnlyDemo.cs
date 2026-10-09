@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 // [ReadOnly] shows a value without letting it change; readonly fields are read-only already.
 public sealed class ReadOnlyDemo

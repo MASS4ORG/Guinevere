@@ -329,7 +329,7 @@ public class FormRendererTests
     [Fact]
     public void PopupAnchorStaysInsideTheWindow()
     {
-        using var harness = new FrameHarness(400, 300);
+        using var harness = new FrameHarness();
 
         Assert.Equal(new Vector2(10, 30), PopupAnchor.Below(harness.Gui, new Rect(10, 10, 50, 20), 100, 50));
         Assert.Equal(new Vector2(300, 220), PopupAnchor.Below(harness.Gui, new Rect(390, 290, 50, 20), 100, 50));
@@ -346,7 +346,7 @@ public class FormRendererTests
     static void Drag(FrameHarness harness, Action<Gui> draw, Vector2 from, float dx)
     {
         harness.Input.MoveTo(from);
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(draw);
         for (var i = 1; i <= 4; i++)
         {
@@ -354,7 +354,7 @@ public class FormRendererTests
             harness.Frame(draw);
         }
 
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         harness.Frame(draw);
     }
 

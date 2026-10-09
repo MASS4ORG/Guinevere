@@ -85,7 +85,7 @@ public class ButtonFamilyTests
             using var harness = new FrameHarness(80, 60);
             harness.Gui.StyleSheets.Add(StyleSheet.Parse("button.framed { border-color = #00ff00; border-width = 4; }"));
             harness.Input.MoveTo(Inside);
-            if (press) harness.Input.PressButton(MouseButton.Left);
+            if (press) harness.Input.PressButton();
             for (var i = 0; i < 3; i++) harness.Frame(g => g.ImageButton(normal, hover, pressed, classes: ["framed"]));
             using var snapshot = harness.Snapshot();
             using var bitmap = SKBitmap.FromImage(snapshot);

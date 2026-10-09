@@ -17,7 +17,7 @@ public class ControlTextAlignmentTests
     [InlineData("toast", true)]
     public void TextIsCenteredInItsBox(string control, bool horizontally)
     {
-        using var harness = new FrameHarness(400, 300);
+        using var harness = new FrameHarness();
         harness.Input.MoveTo(new Vector2(100, 100));
         void Draw(Gui gui)
         {

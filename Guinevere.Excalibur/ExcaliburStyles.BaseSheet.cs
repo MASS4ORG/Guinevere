@@ -4,7 +4,7 @@ namespace Guinevere;
 
 public static partial class ExcaliburStyles
 {
-    static readonly ConditionalWeakTable<Gui, StyleSheet> Bases = new();
+    static readonly ConditionalWeakTable<Gui, StyleSheet> Bases = [];
 
     static readonly string[] BaseColors =
     [

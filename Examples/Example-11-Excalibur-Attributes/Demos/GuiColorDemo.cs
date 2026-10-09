@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 // [GUIColor] tints a member's controls; nested content inherits the tint.
 public sealed class GuiColorDemo

@@ -87,7 +87,7 @@ public class WindowResizeTests
         Move(h, window, desktop);
         h.Frame(Draw);
         Assert.Equal(cursor, h.Input.Cursor);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Draw);
         Assert.True(h.Gui.IsPointerCaptured);
         desktop += new Vector2(40, 20);
@@ -101,7 +101,7 @@ public class WindowResizeTests
         Assert.Equal(1, window.SizeChanges);
         Assert.Equal(new Vector2(left, top), window.Position);
         Assert.Equal(cursor, h.Input.Cursor);
-        h.Input.ReleaseButton(MouseButton.Left);
+        h.Input.ReleaseButton();
         h.Frame(Draw);
         Move(h, window, desktop + new Vector2(20, 10));
         h.Frame(Draw);
@@ -126,7 +126,7 @@ public class WindowResizeTests
         h.Frame(Small);
         var desktop = window.Position + new Vector2(x, y);
         Move(h, window, desktop);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Small);
         Move(h, window, desktop + new Vector2(dx, dy));
         h.Frame(Small);
@@ -161,7 +161,7 @@ public class WindowResizeTests
         h.Frame(Disabled);
         Assert.Equal(4, h.Gui.RootNode!.Children[0].Children.Count);
         Move(h, window, new Vector2(498, 398));
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Disabled);
         Move(h, window, new Vector2(520, 430));
         h.Frame(Disabled);
@@ -183,7 +183,7 @@ public class WindowResizeTests
         }
         h.Frame(Content);
         Move(h, window, new Vector2(300, 250));
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Content);
         var owner = h.Gui.PointerCapture;
         Move(h, window, new Vector2(498, 398));
@@ -255,7 +255,7 @@ public class WindowResizeTests
         }
         h.Frame(Clipped);
         Move(h, window, new Vector2(498, 398));
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Clipped);
         Move(h, window, new Vector2(520, 430));
         h.Frame(Clipped);

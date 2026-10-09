@@ -1,4 +1,4 @@
-using Example_76_Odin_Attributes;
+using Example_11_Excalibur_Attributes;
 using Guinevere.Tests.Mocks;
 
 namespace Guinevere.Tests.Autoformers;

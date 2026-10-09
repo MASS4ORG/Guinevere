@@ -187,7 +187,7 @@ public class GuiIdentityTests
         }
         harness.Frame(Draw);
         harness.Input.MoveTo(FrameHarness.Center(harness.Gui.RootNode!.ChildNodes[0]));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         var captured = harness.Gui.PointerCapture;
         Assert.NotNull(captured);
@@ -198,7 +198,7 @@ public class GuiIdentityTests
         Assert.Equal(captured, harness.Gui.PointerCapture);
         Assert.Contains(1, dragged);
         Assert.DoesNotContain(2, dragged);
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         harness.Frame(Draw);
         Assert.False(harness.Gui.IsPointerCaptured);
     }

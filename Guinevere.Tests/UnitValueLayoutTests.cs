@@ -80,7 +80,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
         var gui = CreateTestGui(400, 100);
         SetGuiStage(gui, Pass.Pass1Build);
         gui.RootNode!.Style.Direction = Axis.Horizontal;
-        var first = CreateTestLayoutNode(gui, gui.RootNode).Width(UnitValue.Expand(1f)).Height(20f);
+        var first = CreateTestLayoutNode(gui, gui.RootNode).Width(UnitValue.Expand()).Height(20f);
         var second = CreateTestLayoutNode(gui, gui.RootNode).Width(UnitValue.Expand(3f)).Height(20f);
         gui.RootNode.AddChild(first);
         gui.RootNode.AddChild(second);

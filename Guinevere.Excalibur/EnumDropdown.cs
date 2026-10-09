@@ -14,8 +14,7 @@ public enum EnumPresentation
 }
 
 public static partial class ControlsExtensions
-{
-    static readonly ConditionalWeakTable<Type, EnumChoices> EnumChoicesByType = new();
+{    static readonly ConditionalWeakTable<Type, EnumChoices> EnumChoicesByType = [];
     static readonly string[] SegmentClass = ["segment"];
 
     sealed class EnumChoices
@@ -51,10 +50,10 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0) where T : struct, Enum
     {
         var next = gui.EnumDropdown(value, out var changes, presentation,
-            display is null ? null : option => display((T)(object)option),
+            display is null ? null : option => display((T)option),
             width, height, fontSize, maxVisibleItems, enabled, mixed, filePath: filePath, lineNumber: lineNumber);
         if (changes.Count == 0) return false;
-        value = (T)(object)next;
+        value = (T)next;
         return true;
     }
 

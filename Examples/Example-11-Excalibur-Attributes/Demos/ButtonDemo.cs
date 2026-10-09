@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 // [Button] turns a public parameterless method into a button under the members.
 public sealed class ButtonDemo

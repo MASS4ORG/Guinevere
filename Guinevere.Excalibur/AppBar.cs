@@ -157,12 +157,12 @@ public static partial class ControlsExtensions
                 gui.DrawLine(new Vector2(x, y + 5), new Vector2(x + 10, y + 5), color);
                 break;
             case 1:
-                gui.DrawRectBorder(new Rect(x, y, 10, 10), color, 1);
+                gui.DrawRectBorder(new Rect(x, y, 10, 10), color);
                 break;
             case 2:
-                gui.DrawRectBorder(new Rect(x + 2, y, 8, 8), color, 1);
+                gui.DrawRectBorder(new Rect(x + 2, y, 8, 8), color);
                 gui.DrawStyledBox(gui.ResolvePart("glyph-fill"), new Rect(x, y + 2, 8, 8));
-                gui.DrawRectBorder(new Rect(x, y + 2, 8, 8), color, 1);
+                gui.DrawRectBorder(new Rect(x, y + 2, 8, 8), color);
                 break;
             default:
                 gui.DrawLine(new Vector2(x, y), new Vector2(x + 10, y + 10), color);

@@ -84,7 +84,7 @@ public class AppBarTests
         h.Frame(Draw);
         var press = Content(h).Center;
         h.Input.MoveTo(press);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Draw);
         h.Input.MoveTo(press + new Vector2(40, 20));
         h.Frame(Draw);
@@ -93,7 +93,7 @@ public class AppBarTests
         h.Frame(Draw);
         h.Frame(Draw);
         Assert.Equal(new Vector2(140, 120), window.Position);
-        h.Input.ReleaseButton(MouseButton.Left);
+        h.Input.ReleaseButton();
         h.Frame(Draw);
         h.Input.MoveTo(press + new Vector2(30, 10));
         h.Frame(Draw);
@@ -113,7 +113,7 @@ public class AppBarTests
         h.Click(Draw, point);
         Assert.True(window.IsMaximized);
         h.Input.MoveTo(point);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Draw);
         h.Input.MoveTo(point + new Vector2(20, 10));
         h.Frame(Draw);
@@ -144,7 +144,7 @@ public class AppBarTests
         h.Frame(Gallery);
         Assert.NotNull(spacer);
         h.Input.MoveTo(spacer!.Center);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Gallery);
         h.Input.MoveTo(spacer.Center + new Vector2(40, 20));
         h.Frame(Gallery);
@@ -162,7 +162,7 @@ public class AppBarTests
         Assert.Equal([true], window.Decorations);
         Assert.Equal(4, Bar(h).Children.Count);
         h.Input.MoveTo(Content(h).Center);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Draw);
         h.Input.MoveTo(Content(h).Center + new Vector2(40, 10));
         h.Frame(Draw);
@@ -217,7 +217,7 @@ public class AppBarTests
         Assert.True(children[0].Rect.X + children[0].Rect.W < children[1].Rect.X);
         Assert.True(children[1].Rect.X + children[1].Rect.W < children[2].Rect.X);
         h.Input.MoveTo(children[1].Center);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Images);
         h.Input.MoveTo(children[1].Center + new Vector2(25, 10));
         h.Frame(Images);
@@ -249,15 +249,15 @@ public class AppBarTests
         h.Frame(Custom);
         var control = Content(h).Children[0].Center;
         h.Input.MoveTo(control);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Custom);
         h.Input.MoveTo(new Vector2(200, 18));
         h.Frame(Custom);
         Assert.Equal(1, clicked);
         Assert.Equal(new Vector2(100, 100), window.Position);
-        h.Input.ReleaseButton(MouseButton.Left);
+        h.Input.ReleaseButton();
         h.Frame(Custom);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Custom);
         h.Input.MoveTo(new Vector2(230, 28));
         h.Frame(Custom);
@@ -279,7 +279,7 @@ public class AppBarTests
         }
         h.Frame(Custom);
         h.Input.MoveTo(Content(h).Children[0].Center);
-        h.Input.PressButton(MouseButton.Left);
+        h.Input.PressButton();
         h.Frame(Custom);
         h.Input.MoveTo(new Vector2(200, 18));
         h.Frame(Custom);

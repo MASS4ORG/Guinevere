@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 /// <summary>
 /// An attribute-by-attribute tour of Autoformers in the style of a well-known inspector's attribute gallery: every

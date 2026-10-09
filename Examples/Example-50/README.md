@@ -1,8 +1,6 @@
 # Controls-01 — Excalibur control gallery on the docking system
 
-Merges `Example-50-Controls`, `Example-51-Buttons`, `Example-52-TextInput-MultiPlatform`, `Example-07-Scroll`
-and `Example-11-Styling`, plus the `Example-51-Docking` layout demo, into one docking workspace: each
-widget group is a dock panel you can split, tab, reorder, tear off or close.
+The gallery is a reusable content library (`Example-50`) hung on the docking system: each widget group is a dock panel you can split, tab, reorder, tear off or close. Four thin hosts open it on each windowing integration — `Example-50-OpenGL-Raylib`, `Example-50-OpenGL-OpenTK`, `Example-50-OpenGL-SilkNet`, `Example-50-Vulkan-SilkNet`.
 
 ## Features
 
@@ -15,24 +13,21 @@ floating window. Drag a splitter to resize, and use the **✕** on a tab to clos
 
 ### Panels
 
-- **Buttons**: every button style — filled, outline, text, rounded, icon, custom-size, with
+- **Buttons** (left dock): every button style — filled, outline, text, rounded, icon, custom-size, with
   hover/press visual feedback.
-- **Selection**: checkbox, toggle, dropdown, searchable multi-selection with removable chips, automatic enum flag checkboxes, enum buttons and previous/next enum paging, and two embedded file browsers.
-- **Text Inputs**: text fields, password fields, text areas, a right-aligned numeric field and
+- **Selection** (center): checkbox, toggle, dropdown, searchable multi-selection with removable chips, automatic enum flag checkboxes, enum buttons and previous/next enum paging, plus the color pickers and the system-appearance readout.
+- **Text Inputs** (right dock): text fields, password fields, text areas, a right-aligned numeric field and
   clicking-to-focus; shows both the ref-based and returning APIs for each.
-- **Navigation**: a breadcrumb trail, a closable tab bar (middle-click a tab or use its "×"), pill
+- **Navigation** (center): a breadcrumb trail, a closable tab bar (middle-click a tab or use its "×"), pill
   tabs, vertical tabs, a **menu bar** (dropdown menus with submenus, separators, disabled items,
   shortcut labels and checkable items), and a virtualised **tree view** with a selection-following
   breadcrumb.
-- **Focus**: Tab / Shift+Tab navigation and cascaded focus indicators.
-- **Feedback**: determinate and indeterminate progress bars, toasts (corner-pinned, re-triggered
+- **Feedback** (center): determinate and indeterminate progress bars, toasts (corner-pinned, re-triggered
   rather than stacked), and delayed tooltips.
-- **Scrolling**: turning a node into a scroll container, programmatic scroll
+- **Scrolling** (bottom dock): turning a node into a scroll container, programmatic scroll
   (`ScrollToTop` / `ScrollToBottom` / scroll-percentage) and nested scroll regions.
-- **Styling**: PSS-styled widgets via `gui.StyledNode`, plus a source view whose hovered element
+- **Styling** (center): PSS-styled widgets via `gui.StyledNode`, plus a source view whose hovered element
   highlights the rules it uses.
-- **Colors**: color fields, an inline picker with swappable shapes, a picker built from parts, and
-  the current system appearance.
 
 ### Layout toolbar
 

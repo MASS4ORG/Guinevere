@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_76_Odin_Attributes;
+namespace Example_11_Excalibur_Attributes;
 
 // [Tooltip] explains a member when its row is hovered.
 public sealed class TooltipDemo

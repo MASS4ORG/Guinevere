@@ -54,7 +54,7 @@ public class SplitterTests
         using (var image = harness.Snapshot())
         using (var pixels = SKBitmap.FromImage(image))
             Assert.Equal(SKColors.Red, pixels.GetPixel(3, 3));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         using (var image = harness.Snapshot())
         using (var pixels = SKBitmap.FromImage(image))
@@ -82,7 +82,7 @@ public class SplitterTests
         harness.Frame(Draw);
         Assert.False(changed);
         harness.Input.MoveTo(new Vector2(3, 3));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(-200, -100));
         harness.Frame(Draw);
@@ -91,7 +91,7 @@ public class SplitterTests
         changed = false;
         harness.Frame(Draw);
         Assert.False(changed);
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(150, 80));
         harness.Frame(Draw);
@@ -112,7 +112,7 @@ public class SplitterTests
         }
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(3, 3));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(100, 3));
         harness.Frame(Draw);

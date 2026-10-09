@@ -79,7 +79,8 @@ public unsafe partial class GuiWindow
         get => new(_window.Position.X, _window.Position.Y);
         set
         {
-            if (TryMoveX11(value)) return;
+            // The desktop hint alone is unreliable under XWayland, so the native move always runs too.
+            TryMoveX11(value);
             _window.Position = new Vector2D<int>((int)value.X, (int)value.Y);
         }
     }

@@ -362,7 +362,7 @@ public class FocusManager
             var closingScope = _scopes[ActiveScopeId];
             ActiveScopeId = closingScope.ParentId;
             if (closingScope.RestoreFocusId is { } opener && _focusableControls.ContainsKey(opener))
-                RequestFocus(opener, FocusReason.Programmatic);
+                RequestFocus(opener);
         }
 
         foreach (var id in _scopes.Keys.Where(id => !_frameScopeIds.Contains(id)).ToList()) _scopes.Remove(id);

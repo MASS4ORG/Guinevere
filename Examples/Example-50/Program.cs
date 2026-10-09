@@ -1,6 +1,5 @@
 using System.Numerics;
 using Guinevere;
-using GuinevereDemos;
 
 namespace Controls_01;
 
@@ -11,21 +10,15 @@ namespace Controls_01;
 public abstract partial class Program
 {
     static bool _nativeTitlebar;
-    static bool _followSystem = true;
 
     // Layout edits are deferred to the next frame's build pass so both passes of a frame see one tree.
     static Action? _pendingLayout;
 
-    static readonly DockTheme Theme = new();
+    static readonly DockTheme DockTheme = new();
+    static readonly string[] CenterPanels = ["navigation", "feedback", "styling", "dialog", "selection"];
     static DockLayout _layout = SeedLayout();
     static string? _saved;
     static string? _menuPanelId;
-
-    static readonly string[] PanelIds =
-    [
-        "buttons", "selection", "text-inputs", "navigation", "focus", "feedback", "scrolling", "styling",
-        "colors"
-    ];
 
     static readonly Dictionary<string, string> PanelTitles = new()
     {
@@ -33,11 +26,10 @@ public abstract partial class Program
         ["selection"] = "Selection",
         ["text-inputs"] = "Text Inputs",
         ["navigation"] = "Navigation",
-        ["focus"] = "Focus",
         ["feedback"] = "Feedback",
         ["scrolling"] = "Scrolling",
         ["styling"] = "Styling",
-        ["colors"] = "Colors"
+        ["dialog"] = "Dialog"
     };
 
     static readonly Dictionary<string, Action<Gui>> Panels = new()
@@ -46,55 +38,53 @@ public abstract partial class Program
         ["selection"] = SelectionContent,
         ["text-inputs"] = TextInputsContent,
         ["navigation"] = NavigationContent,
-        ["focus"] = FocusNavigationContent,
         ["feedback"] = FeedbackContent,
         ["scrolling"] = ScrollingContent,
         ["styling"] = StylingContent,
-        ["colors"] = ColorsContent
+        ["dialog"] = DialogContent
     };
-
-    // Bodies without their own scroll container get one; the rest manage scrolling themselves.
-    static readonly HashSet<string> ScrollPanels = ["buttons", "selection", "text-inputs", "feedback", "focus"];
 
     // Cached: the tab resolver runs once per tab per pass, so build the icon delegates once.
     static readonly Dictionary<string, Action<Gui>> PanelIcons = new()
     {
-        ["buttons"] = g => Dot(g, Color.FromArgb(255, 120, 170, 255)),
-        ["selection"] = g => Dot(g, Color.FromArgb(255, 120, 210, 150)),
-        ["text-inputs"] = g => Dot(g, Color.FromArgb(255, 235, 190, 110)),
-        ["navigation"] = g => Dot(g, Color.FromArgb(255, 220, 130, 200)),
-        ["focus"] = g => Dot(g, Color.FromArgb(255, 200, 200, 200)),
-        ["feedback"] = g => Dot(g, Color.FromArgb(255, 100, 200, 180)),
-        ["scrolling"] = g => Dot(g, Color.FromArgb(255, 180, 160, 255)),
-        ["styling"] = g => Dot(g, Color.FromArgb(255, 255, 160, 112)),
-        ["colors"] = g => Dot(g, Color.FromArgb(255, 160, 224, 255))
+        ["buttons"] = g => TabGlyph(g, TabGlyphKind.Button, Color.FromArgb(255, 120, 170, 255)),
+        ["selection"] = g => TabGlyph(g, TabGlyphKind.Check, Color.FromArgb(255, 120, 210, 150)),
+        ["text-inputs"] = g => TabGlyph(g, TabGlyphKind.Cursor, Color.FromArgb(255, 235, 190, 110)),
+        ["navigation"] = g => TabGlyph(g, TabGlyphKind.Menu, Color.FromArgb(255, 220, 130, 200)),
+        ["feedback"] = g => TabGlyph(g, TabGlyphKind.Toast, Color.FromArgb(255, 100, 200, 180)),
+        ["scrolling"] = g => TabGlyph(g, TabGlyphKind.Scroll, Color.FromArgb(255, 180, 160, 255)),
+        ["styling"] = g => TabGlyph(g, TabGlyphKind.Swatch, Color.FromArgb(255, 255, 160, 112)),
+        ["dialog"] = g => TabGlyph(g, TabGlyphKind.Button, Color.FromArgb(255, 255, 160, 112))
     };
 
-    /// <summary>Runs the control gallery.</summary>
-    public static void Main()
-    {
-        var gui = new Gui();
-        gui.StyleSheets.Add(StylingSheet);
-
-        Environment.SetEnvironmentVariable("OPENTK_4_USE_WAYLAND", "0");
-        Environment.SetEnvironmentVariable("SILKNET_USE_WAYLAND", "0");
-        using var win = new GuiWindow(gui, 1360, 900, "Guinevere Excalibur — Controls & Docking");
-        win.RunGui(() => Draw(gui));
-    }
+    /// <summary>Adds the gallery's styling sheet; hosts call this before the first frame.</summary>
+    public static void ApplyDefaultSheet(Gui gui) => gui.StyleSheets.Add(StylingSheet);
 
     static DockLayout SeedLayout()
     {
         var layout = new DockLayout();
-        foreach (var panelId in new[] { "buttons", "selection", "text-inputs", "colors", "focus" })
+        foreach (var panelId in CenterPanels)
             layout.DockAtEdge(panelId, DockZone.Center);
-        layout.DockAtEdge("navigation", DockZone.Left, 0.2f);
-        layout.DockAtEdge("styling", DockZone.Right, 0.24f);
+        layout.DockAtEdge("text-inputs", DockZone.Right, 0.24f);
         layout.DockAtEdge("scrolling", DockZone.Bottom, 0.3f);
-        layout.DockAtEdge("feedback", DockZone.Bottom, 0.3f);
+        layout.DockAtEdge("buttons", DockZone.Left, 0.2f);
         return layout;
     }
 
-    static void Draw(Gui gui)
+    static Bitmap LoadBadge()
+    {
+        // The badge sits at the repository root; walk up from the output directory to find it.
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            var file = Path.Combine(dir.FullName, "guinevere-badge.png");
+            if (File.Exists(file)) return Bitmap.FromFile(file);
+        }
+
+        return Bitmap.FromFile("guinevere-badge.png");
+    }
+
+    /// <summary>Draws the control gallery into the host's Gui.</summary>
+    public static void Draw(Gui gui)
     {
         if (gui.Pass == Pass.Pass1Build && _pendingLayout is { } pending)
         {
@@ -102,37 +92,39 @@ public abstract partial class Program
             pending();
         }
 
-        if (_followSystem) ExcaliburStyles.FollowSystemAppearance(gui);
-        else ExcaliburStyles.SetTheme(gui, SelectedTheme());
+        ExcaliburStyles.SetTheme(gui, SelectedTheme());
 
-        var chrome = gui.Platform.Require<IWindowChromeCapability>();
-        var nativeTitlebar = _nativeTitlebar || !chrome.CanMove;
         using (gui.AppBar(windowControls: !_nativeTitlebar, nativeTitlebar: _nativeTitlebar, resizable: true))
         {
             gui.MenuBar(menu => menu.Collapsible()
-                .Menu("File", file => file.Item("Close", () => gui.Platform.Require<IWindowChromeCapability>().RequestClose()))
-                .Menu("View", view => view
-                    .Item("Toggle theme", ToggleTheme)
-                    .CheckItem("Follow system theme", () => _followSystem, value => _followSystem = value)
-                    .CheckItem("Native title bar", () => nativeTitlebar, value => _nativeTitlebar = value,
-                        enabled: chrome.CanMove)));
-            DemoHeader.BadgeMini(gui);
-            gui.DrawText("Guinevere Excalibur");
+                .Menu("File", file => file
+                    .Item("Close", () => gui.Platform.Require<IWindowChromeCapability>().RequestClose())
+                )
+                .Menu("Layout", layout => layout
+                    .Item("Save", () => _saved = _layout.ToJson())
+                    .Item("Load", () => DeferLayout(() =>
+                    {
+                        if (_saved is not null) _layout = DockLayout.FromJson(_saved) ?? SeedLayout();
+                    }))
+                    .Item("Reset", () => DeferLayout(() => _layout = SeedLayout()))
+                )
+            );
+
+            gui.Image(LoadBadge(), width: 26, height: 26);
+            gui.DrawText("Guinevere Excalibur", 16, Color.White);
             gui.Node().ExpandWidth();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Token(gui, "text"));
             _nativeTitlebar = gui.Checkbox(_nativeTitlebar, "Native title bar");
-            if (gui.Button("◐", 36, 36)) ToggleTheme();
+            if (gui.Button("◐", width: 62, height: 28, fontSize: 12)) ToggleTheme();
         }
 
-        Toolbar(gui);
-        gui.DockSpace(_layout, PanelInfo, RenderPanel, Theme, TabStripActions);
+        gui.DockSpace(_layout, PanelInfo, RenderPanel, DockTheme, TabStripActions);
         gui.Toasts();
     }
 
     /// <summary>Switches between the light and dark themes, leaving follow-system mode.</summary>
     static void ToggleTheme()
     {
-        _followSystem = false;
         _radioChoice = _radioChoice == 0 ? 1 : 0;
     }
 
@@ -148,27 +140,8 @@ public abstract partial class Program
     /// <summary>Queues a layout edit to run at the start of the next frame's build pass.</summary>
     static void DeferLayout(Action action) => _pendingLayout = action;
 
-    static void Toolbar(Gui gui)
-    {
-        using (gui.Node(-1, 32).ExpandWidth().Direction(Axis.Horizontal).Padding(0, 6).Gap(6).Enter())
-        {
-            gui.DrawBackgroundRect(Token(gui, "base-background"));
-
-            if (ToolbarButton(gui, "Save layout")) _saved = _layout.ToJson();
-            if (ToolbarButton(gui, "Load layout") && _saved is not null)
-                DeferLayout(() => _layout = DockLayout.FromJson(_saved) ?? SeedLayout());
-            if (ToolbarButton(gui, "Reset")) DeferLayout(() => _layout = SeedLayout());
-
-            foreach (var panelId in PanelIds.Where(id => !_layout.Contains(id)))
-                if (ToolbarButton(gui, $"Reopen {PanelTitles[panelId]}"))
-                    DeferLayout(() => _layout.EnsurePanel(panelId));
-        }
-    }
-
     static bool ToolbarButton(Gui gui, string label)
     {
-        var activated = false;
-
         using (gui.Node(110, 22).Enter())
         {
             var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: label),
@@ -179,10 +152,8 @@ public abstract partial class Program
                         Token(gui, state.HasFlag(ControlVisualState.Hovered) ? "surface-hover" : "surface"), 3);
                     gui.DrawText(label, 10, Token(gui, "text"));
                 });
-            activated = result.Activated;
+            return result.Activated;
         }
-
-        return activated;
     }
 
     static DockPanelInfo? PanelInfo(string panelId) =>
@@ -192,7 +163,7 @@ public abstract partial class Program
 
     static void RenderPanel(string panelId, Gui gui)
     {
-        if (!ScrollPanels.Contains(panelId))
+        if (!CenterPanels.Contains(panelId))
         {
             Panels[panelId](gui);
             return;
@@ -213,7 +184,7 @@ public abstract partial class Program
     {
         if (strip.ActivePanelId is not { } panelId) return;
 
-        using (gui.Node(18, Theme.TabHeight, $"dock-actions/{panelId}").Enter())
+        using (gui.Node(18, DockTheme.TabHeight, $"dock-actions/{panelId}").Enter())
         {
             var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: "Panel actions"),
                 state =>
@@ -253,12 +224,63 @@ public abstract partial class Program
     }
 
     /// <summary>A stand-in for a real panel icon — any drawing works here.</summary>
-    static void Dot(Gui gui, Color color)
+    static void TabGlyph(Gui gui, TabGlyphKind kind, Color color)
     {
         if (gui.Pass != Pass.Pass2Render) return;
 
         var rect = gui.CurrentNode.Rect;
-        gui.DrawCircleFilled(new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f), rect.W * 0.32f, color);
+        var center = new Vector2(rect.X + rect.W / 2, rect.Y + rect.H / 2);
+        var size = MathF.Min(rect.W, rect.H) * 0.40f;
+        switch (kind)
+        {
+            case TabGlyphKind.Button:
+                gui.DrawRectBorder(new Rect(center.X - size, center.Y - size, size * 2f, size * 2f), color, 1.5f);
+                break;
+            case TabGlyphKind.Check:
+                gui.DrawLine(new Vector2(center.X - size, center.Y - size * 0.1f),
+                    new Vector2(center.X - 0.1f * size, center.Y + size), color);
+                gui.DrawLine(new Vector2(center.X + size, center.Y - size),
+                    new Vector2(center.X - size, center.Y + 0.9f * size), color);
+                break;
+            case TabGlyphKind.Cursor:
+                gui.DrawLine(new Vector2(center.X, center.Y - size), new Vector2(center.X, center.Y + size), color);
+                gui.DrawLine(new Vector2(center.X - size, center.Y + size),
+                    new Vector2(center.X + size, center.Y + size), color);
+                break;
+            case TabGlyphKind.Menu:
+                for (var i = -1; i <= 1; i++)
+                    gui.DrawLine(new Vector2(center.X - size, center.Y + i * size),
+                        new Vector2(center.X + size, center.Y + i * size), color);
+                break;
+            case TabGlyphKind.Toast:
+                gui.DrawCircleBorder(center, size, color, 1.5f);
+                gui.DrawCircleFilled(new Vector2(center.X + 0.6f * size, center.Y - 0.6f * size), 0.3f * size, color);
+                break;
+            case TabGlyphKind.Scroll:
+                gui.DrawLine(new Vector2(center.X, center.Y - size), new Vector2(center.X, center.Y + 0.4f * size),
+                    color);
+                gui.DrawLine(new Vector2(center.X - size, center.Y - 0.4f * size),
+                    new Vector2(center.X, center.Y + 0.4f * size), color);
+                gui.DrawLine(new Vector2(center.X + size, center.Y - 0.4f * size),
+                    new Vector2(center.X, center.Y + 0.4f * size), color);
+                break;
+            case TabGlyphKind.Swatch:
+                gui.DrawCircleFilled(center, 0.45f * size, color);
+                gui.DrawCircleBorder(center, size, color, 1.5f);
+                break;
+        }
+    }
+
+    /// <summary>The tab glyph shapes; keep them font-free so no glyph face is required on the tab bar.</summary>
+    enum TabGlyphKind
+    {
+        Button,
+        Check,
+        Cursor,
+        Menu,
+        Toast,
+        Scroll,
+        Swatch
     }
 
     /// <summary>Three stacked dots, drawn rather than typed: most system fonts have no U+22EE.</summary>
@@ -287,8 +309,8 @@ public abstract partial class Program
     {
         using (gui.Node().ExpandWidth().Margin(5).Padding(5).Enter())
         {
-            gui.DrawText(title, size: 18, color: Token(gui, "text")).MarginBottom(5);
             gui.DrawBackgroundRect(Token(gui, "surface-hover"), 5);
+            gui.DrawText(title, size: 18, color: Token(gui, "text")).MarginBottom(5);
             body();
         }
     }
