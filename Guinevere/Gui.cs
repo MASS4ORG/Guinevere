@@ -121,7 +121,7 @@ public partial class Gui
         }
         else
         {
-            RootNode.ClearRoot();
+            RootNode.BeginRootFrame();
             RegisterLayoutNodeScope(RootNode);
         }
 

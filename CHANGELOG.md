@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added: Font registry with runtime file/stream registration #161.
 - Added: Themeable font and SVG icons #162.
 - Added: System color scheme and accent color #163.
+- Added: Render on demand by default #186.
+- Changed: Silk.NET, OpenTK and Raylib windows draw with Skia on the GPU; CPU rasterization remains the fallback #186.
+- Changed: Render-pass node matching is linear #166.
+- Changed: Nodes are reused across frames by identity #168.
 
 ## v[5.9.0][] 2026-10-06
 

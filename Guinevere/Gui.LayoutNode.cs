@@ -125,13 +125,9 @@ public partial class Gui : ILayoutNodeEnterExit
         var identity = NodeIdentity(id, filePath, lineNumber, CurrentNode);
         if (id is null) CurrentNode.Pass2NodeCount++;
         SubmitIdentity(identity);
-        LayoutNode node;
         var nodeExist = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
-        if (Pass == Pass.Pass1Build || nodeExist is null)
-        {
-            node = new LayoutNode(identity, this, CurrentNode, width, height);
-            CurrentNode.AppendNewChild(node);
-        }
+        LayoutNode node;
+        if (nodeExist is null) node = BuildNode(identity, width, height);
         else
         {
             node = nodeExist;
@@ -162,12 +158,11 @@ public partial class Gui : ILayoutNodeEnterExit
         SubmitIdentity(identity);
         var nodeExist = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
         LayoutNode node;
-        if (Pass == Pass.Pass1Build || nodeExist is null)
+        if (nodeExist is null)
         {
-            node = new LayoutNode(identity, this, CurrentNode);
+            node = BuildNode(identity, null, null);
             node.ApplyWidth(width);
             node.ApplyHeight(height);
-            CurrentNode.AppendNewChild(node);
         }
         else
         {
@@ -178,6 +173,20 @@ public partial class Gui : ILayoutNodeEnterExit
         node.Scope.ResetDataScope(CurrentDataScope);
         node.DrawList.Clear();
         node.Pass2NodeCount = 0;
+        return node;
+    }
+
+    /// <summary>
+    /// Adds a child for this frame under the current node, reusing the previous frame's node with the same identity
+    /// (reset to a new node's state) or creating one.
+    /// </summary>
+    LayoutNode BuildNode(int identity, float? width, float? height)
+    {
+        var parent = CurrentNode;
+        var node = parent.TakePreviousChild(identity);
+        if (node is null) node = new LayoutNode(identity, this, parent, width, height);
+        else node.ResetForBuild(width, height);
+        parent.AppendNewChild(node);
         return node;
     }
 

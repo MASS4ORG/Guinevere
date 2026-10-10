@@ -63,6 +63,23 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     bool[]? _localRecords;
     bool _ownsRecords = node.Parent is null;
 
+    /// <summary>The array this scope copied its records into last time, reused when a retained node sets values.</summary>
+    object?[]? _ownedBuffer;
+
+    /// <summary>
+    /// Returns a retained node's scope to the state of a new one: every value inherited from the parent, none set
+    /// locally. Buffers keep their capacity.
+    /// </summary>
+    internal void ResetForBuild()
+    {
+        var parent = Node.Parent?.Scope;
+        if (parent is null) return;
+        _records = parent._records;
+        _ownsRecords = false;
+        if (_localRecords is not null) Array.Clear(_localRecords);
+        DataScope = InheritedDataScope = parent.DataScope;
+    }
+
     /// <summary>
     /// Stores a record of the specified generic type <typeparamref name="T"/> within the current layout node scope.
     /// </summary>
@@ -87,14 +104,13 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
 
     void Set(int slot, object record)
     {
-        if (!_ownsRecords)
-        {
-            _records = (object?[])_records.Clone();
-            _ownsRecords = true;
-        }
+        if (!_ownsRecords) TakeOwnership();
 
         if (slot >= _records.Length)
+        {
             Array.Resize(ref _records, Math.Max(slot + 1, Math.Max(8, _records.Length * 2)));
+            _ownedBuffer = _records;
+        }
         if (_localRecords is null || slot >= _localRecords.Length)
             Array.Resize(ref _localRecords, _records.Length);
 
@@ -118,6 +134,18 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
         if (_records.Length < inherited.Length) Array.Resize(ref _records, inherited.Length);
         for (var slot = 0; slot < _records.Length; slot++)
             if (!IsLocal(slot)) _records[slot] = slot < inherited.Length ? inherited[slot] : null;
+    }
+
+    /// <summary>Copies the inherited records into a buffer of this scope's own, reusing the previous one if it fits.</summary>
+    void TakeOwnership()
+    {
+        var inherited = _records;
+        if (_ownedBuffer is null || _ownedBuffer.Length < inherited.Length)
+            _ownedBuffer = new object?[inherited.Length];
+        Array.Copy(inherited, _ownedBuffer, inherited.Length);
+        Array.Clear(_ownedBuffer, inherited.Length, _ownedBuffer.Length - inherited.Length);
+        _records = _ownedBuffer;
+        _ownsRecords = true;
     }
 
     bool IsLocal(int slot) => _localRecords is not null && slot < _localRecords.Length && _localRecords[slot];

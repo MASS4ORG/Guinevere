@@ -136,7 +136,10 @@ public partial class LayoutNode : IDisposable
     /// <value>
     /// An <see cref="IReadOnlyList{T}"/> of <see cref="LayoutNode"/> objects representing the child nodes.
     /// </value>
-    public IReadOnlyList<LayoutNode> Children => ChildNodes.AsReadOnly();
+    public IReadOnlyList<LayoutNode> Children => _children ??= ChildNodes.AsReadOnly();
+
+    /// <summary>A live read-only view of <see cref="ChildNodes"/>, created once.</summary>
+    System.Collections.ObjectModel.ReadOnlyCollection<LayoutNode>? _children;
 
     /// <summary>
     /// Gets the parent node of this layout node, or null if this is a root node.
