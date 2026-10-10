@@ -1,22 +1,38 @@
+using System.Runtime.InteropServices;
 using Raylib_cs;
 using SkiaSharp;
 
 namespace Guinevere;
 
-/// <inheritdoc />
+/// <summary>
+/// Renders Guinevere frames into Raylib's window. Skia draws on the GPU into Raylib's OpenGL default framebuffer; when a
+/// Skia GL context cannot be created, or <c>GUINEVERE_RENDERER=raster</c> is set, Skia rasterizes on the CPU and the
+/// result is uploaded as a Raylib texture.
+/// </summary>
 public class CanvasRenderer : ICanvasRenderer
 {
     SKSurface? _surface;
     SKCanvas? _canvas;
+    SkiaGlTarget? _gpu;
     Texture2D _texture;
     bool _textureLoaded;
     int _width, _height;
+
+    /// <summary>Whether Skia draws on the GPU; false when it rasterizes on the CPU and the result is uploaded.</summary>
+    public bool IsGpuAccelerated => _gpu is not null;
 
     /// <inheritdoc />
     public void Initialize(int width, int height)
     {
         _width = width;
         _height = height;
+
+        _gpu = SkiaGlTarget.TryCreate(GetProcAddress);
+        if (_gpu is not null)
+        {
+            _gpu.Resize(width, height);
+            return;
+        }
 
         // Create CPU-based surface for Raylib integration
         var imageInfo = new SKImageInfo(_width, _height, SKColorType.Rgba8888, SKAlphaType.Premul);
@@ -33,6 +49,12 @@ public class CanvasRenderer : ICanvasRenderer
         _width = width;
         _height = height;
 
+        if (_gpu is not null)
+        {
+            _gpu.Resize(width, height);
+            return;
+        }
+
         // Dispose old surface and canvas
         _canvas = null;
         _surface?.Dispose();
@@ -47,6 +69,15 @@ public class CanvasRenderer : ICanvasRenderer
     /// <inheritdoc />
     public void Render(Action<SKCanvas> draw)
     {
+        if (_gpu is not null)
+        {
+            Raylib.BeginDrawing();
+            // Raylib changes GL state Skia does not track, so Skia re-sends its state every frame.
+            _gpu.Render(draw, SKColors.Black, resetState: true);
+            Raylib.EndDrawing();
+            return;
+        }
+
         if (_canvas == null || _surface == null)
             return;
 
@@ -54,8 +85,8 @@ public class CanvasRenderer : ICanvasRenderer
         draw(_canvas);
         _canvas.Flush();
 
-        using var image = _surface.Snapshot();
-        using var pixels = image.PeekPixels();
+        // The surface is read in place; it is not drawn again until the upload below has consumed it.
+        using var pixels = _surface.PeekPixels();
 
         if (pixels != null)
         {
@@ -98,6 +129,8 @@ public class CanvasRenderer : ICanvasRenderer
     {
         _canvas = null;
         _surface?.Dispose();
+        _gpu?.Dispose();
+        _gpu = null;
         ReleaseTexture();
     }
 
@@ -108,4 +141,8 @@ public class CanvasRenderer : ICanvasRenderer
         _textureLoaded = false;
         _texture = default;
     }
+
+    /// <summary>Raylib's GL loader; resolves entry points of its current context.</summary>
+    [DllImport("raylib", EntryPoint = "rlGetProcAddress")]
+    static extern IntPtr GetProcAddress([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
 }

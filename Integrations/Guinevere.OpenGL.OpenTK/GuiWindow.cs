@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
@@ -67,6 +68,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
 
         // Subscribe to text input events
         TextInput += OnTextInput;
+        HookPacingEvents();
     }
 
     float IDisplayCapability.ScaleFactor => Size.X > 0 ? (float)base.FramebufferSize.X / Size.X : 1f;
@@ -173,13 +175,64 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     }
 
     /// <summary>
-    /// Runs the GUI application with the specified draw callback.
+    /// When frames render. Set <see cref="FramePacer.OnDemand"/> to wait for input between frames instead of
+    /// rendering continuously; <c>GUINEVERE_PACING=on-demand</c> or <c>continuous</c> overrides it at run time.
+    /// </summary>
+    public FramePacer Pacing { get; } = new();
+
+    /// <summary>
+    /// Runs the GUI application with the specified draw callback until the window closes.
     /// </summary>
     /// <param name="draw">The callback method that defines the GUI layout and rendering.</param>
-    public void RunGui(Action draw)
+    public unsafe void RunGui(Action draw)
     {
         _guiCallback = draw;
-        Run();
+        Pacing.ApplyOverride(Environment.GetEnvironmentVariable("GUINEVERE_PACING"));
+        _gui.WakeHost = GLFW.PostEmptyEvent;
+        try
+        {
+            Context.MakeCurrent();
+            var clock = Stopwatch.StartNew();
+            while (!GLFW.WindowShouldClose(WindowPtr))
+            {
+                // Input edges compare against the state saved here, so it is saved before waiting for events.
+                NewInputFrame();
+                double wait;
+                while (!GLFW.WindowShouldClose(WindowPtr) && (wait = Pacing.WaitSeconds(_gui, InputHeld)) > 0)
+                    GLFW.WaitEventsTimeout(wait);
+                ProcessWindowEvents(false);
+                if (GLFW.WindowShouldClose(WindowPtr)) break;
+
+                var frame = new FrameEventArgs(clock.Elapsed.TotalSeconds);
+                clock.Restart();
+                OnUpdateFrame(frame);
+                OnRenderFrame(frame);
+                Pacing.FrameRendered();
+            }
+        }
+        finally
+        {
+            _gui.WakeHost = null;
+        }
+    }
+
+    bool InputHeld => MouseState.IsAnyButtonDown || KeyboardState.IsAnyKeyDown;
+
+    /// <summary>Input and window events that change what is shown count as input for pacing.</summary>
+    void HookPacingEvents()
+    {
+        KeyDown += _ => Pacing.NotifyInput();
+        KeyUp += _ => Pacing.NotifyInput();
+        MouseDown += _ => Pacing.NotifyInput();
+        MouseUp += _ => Pacing.NotifyInput();
+        MouseMove += _ => Pacing.NotifyInput();
+        MouseWheel += _ => Pacing.NotifyInput();
+        TextInput += _ => Pacing.NotifyInput();
+        Resize += _ => Pacing.NotifyInput();
+        FileDrop += _ => Pacing.NotifyInput();
+        FocusedChanged += _ => Pacing.NotifyInput();
+        Minimized += _ => Pacing.NotifyInput();
+        Maximized += _ => Pacing.NotifyInput();
     }
 
     /// <summary>

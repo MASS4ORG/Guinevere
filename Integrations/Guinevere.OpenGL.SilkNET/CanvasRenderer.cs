@@ -10,15 +10,10 @@ namespace Guinevere;
 /// </summary>
 public class CanvasRenderer : ICanvasRenderer
 {
-    const uint Rgba8 = 0x8058;
-    const GLEnum StencilAttachment = (GLEnum)0x1802;
-    const GLEnum StencilSize = (GLEnum)0x2217;
-
     SKSurface? _surface;
     SKCanvas? _canvas;
     GL _gl = null!;
-    GRContext? _grContext;
-    bool _resetGpuState;
+    SkiaGlTarget? _gpu;
     uint _texture;
     uint _shaderProgram;
     uint _vao, _vbo;
@@ -26,7 +21,7 @@ public class CanvasRenderer : ICanvasRenderer
     int _height;
 
     /// <summary>Whether Skia draws on the GPU; false when it rasterizes on the CPU and the result is uploaded.</summary>
-    public bool IsGpuAccelerated => _grContext is not null;
+    public bool IsGpuAccelerated => _gpu is not null;
 
     /// <summary>
     /// Configures and initializes the renderer with a specified width, height, and OpenGL (GL) context.
@@ -37,7 +32,7 @@ public class CanvasRenderer : ICanvasRenderer
     public void Initialize(int width, int height, GL gl)
     {
         _gl = gl;
-        if (Environment.GetEnvironmentVariable("GUINEVERE_RENDERER") != "raster") CreateGpuContext();
+        _gpu = SkiaGlTarget.TryCreate(name => _gl.Context.GetProcAddress(name));
 
         Initialize(width, height);
 
@@ -45,31 +40,6 @@ public class CanvasRenderer : ICanvasRenderer
         // Enable blending for transparency
         _gl.Enable(EnableCap.Blend);
         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-    }
-
-    void CreateGpuContext()
-    {
-        try
-        {
-            using var glInterface = GRGlInterface.Create(name => _gl.Context.GetProcAddress(name));
-            _grContext = glInterface is null ? null : GRContext.CreateGl(glInterface);
-        }
-        catch (Exception)
-        {
-            _grContext = null;
-        }
-    }
-
-    /// <summary>Wraps the default framebuffer, with the sample count and stencil depth the window was created with.</summary>
-    void CreateGpuSurface()
-    {
-        _gl.GetInteger(GetPName.Samples, out var samples);
-        _gl.GetFramebufferAttachmentParameter(FramebufferTarget.Framebuffer, StencilAttachment, StencilSize,
-            out var stencil);
-        using var target = new GRBackendRenderTarget(_width, _height, samples, stencil,
-            new GRGlFramebufferInfo(0, Rgba8));
-        _surface = SKSurface.Create(_grContext!, target, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
-        _canvas = _surface?.Canvas;
     }
 
     unsafe void SetupTexture()
@@ -174,19 +144,14 @@ public class CanvasRenderer : ICanvasRenderer
     /// <inheritdoc/>
     public unsafe void Render(Action<SKCanvas> draw)
     {
-        if (_canvas == null || _surface == null)
-            return;
-
-        if (_grContext is not null)
+        if (_gpu is not null)
         {
-            // The window changes GL state (viewport) on resize, outside Skia's tracking.
-            if (_resetGpuState) _grContext.ResetContext();
-            _resetGpuState = false;
-            _canvas.Clear(SKColors.Black);
-            draw(_canvas);
-            _grContext.Flush();
+            _gpu.Render(draw, SKColors.Black);
             return;
         }
+
+        if (_canvas == null || _surface == null)
+            return;
 
         // Clear canvas and draw using Skia
         _canvas.Clear(SKColors.Black);
@@ -226,14 +191,13 @@ public class CanvasRenderer : ICanvasRenderer
         _width = width;
         _height = height;
 
-        _surface?.Dispose();
-        if (_grContext is not null)
+        if (_gpu is not null)
         {
-            _resetGpuState = true;
-            CreateGpuSurface();
+            _gpu.Resize(width, height);
             return;
         }
 
+        _surface?.Dispose();
         _surface = SKSurface.Create(new SKImageInfo(width, height, SKColorType.Rgba8888));
         _canvas = _surface?.Canvas;
 
@@ -248,9 +212,9 @@ public class CanvasRenderer : ICanvasRenderer
         _width = width;
         _height = height;
 
-        if (_grContext is not null)
+        if (_gpu is not null)
         {
-            CreateGpuSurface();
+            _gpu.Resize(width, height);
             return;
         }
 
@@ -269,10 +233,10 @@ public class CanvasRenderer : ICanvasRenderer
     {
         _canvas = null;
         _surface?.Dispose();
-        if (_grContext is not null)
+        if (_gpu is not null)
         {
-            _grContext.Dispose();
-            _grContext = null;
+            _gpu.Dispose();
+            _gpu = null;
             return;
         }
 

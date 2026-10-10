@@ -24,6 +24,17 @@ public sealed class FramePacer
     /// <summary>The longest wait between frames, which keeps time-driven UI that never requests frames alive.</summary>
     public double MaxIdleSeconds { get; set; } = 0.5;
 
+    /// <summary>
+    /// Applies a run-time override of <see cref="OnDemand"/>: <c>GUINEVERE_PACING=on-demand</c> or <c>continuous</c>.
+    /// Window integrations call it when their run loop starts.
+    /// </summary>
+    /// <param name="value">The variable's value; null or anything else keeps the current setting.</param>
+    public void ApplyOverride(string? value)
+    {
+        if (value == "on-demand") OnDemand = true;
+        else if (value == "continuous") OnDemand = false;
+    }
+
     /// <summary>Records an input or window event, which renders the next <see cref="SettleFrames"/> frames.</summary>
     public void NotifyInput() => _settleFrames = SettleFrames;
 

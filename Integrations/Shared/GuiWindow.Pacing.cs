@@ -1,3 +1,5 @@
+using Silk.NET.Windowing;
+
 namespace Guinevere;
 
 public partial class GuiWindow
@@ -15,11 +17,7 @@ public partial class GuiWindow
     public void RunGui(Action draw)
     {
         _draw = draw;
-        switch (Environment.GetEnvironmentVariable("GUINEVERE_PACING"))
-        {
-            case "on-demand": Pacing.OnDemand = true; break;
-            case "continuous": Pacing.OnDemand = false; break;
-        }
+        Pacing.ApplyOverride(Environment.GetEnvironmentVariable("GUINEVERE_PACING"));
         _gui.WakeHost = _glfw.PostEmptyEvent;
         try
         {
@@ -34,11 +32,23 @@ public partial class GuiWindow
         }
     }
 
+    WindowState? _windowState;
+
+    /// <summary>
+    /// The window state, kept from state-change events: querying it asks the window system, which on X11 is a
+    /// server round-trip, and chrome controls read it several times a frame.
+    /// </summary>
+    WindowState CurrentWindowState => _windowState ??= _window.WindowState;
+
     /// <summary>Window events that change what is shown count as input for pacing.</summary>
     void HookPacingEvents()
     {
         _window.FocusChanged += _ => Pacing.NotifyInput();
-        _window.StateChanged += _ => Pacing.NotifyInput();
+        _window.StateChanged += state =>
+        {
+            _windowState = state;
+            Pacing.NotifyInput();
+        };
     }
 
     /// <summary>Waits for input when nothing needs a frame, then processes events and renders one frame.</summary>

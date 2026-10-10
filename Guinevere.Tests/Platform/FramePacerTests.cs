@@ -12,6 +12,19 @@ public class FramePacerTests
         Assert.Throws<ArgumentNullException>(() => pacer.WaitSeconds(null!, inputHeld: false));
     }
 
+    /// <summary>The run-time override switches pacing only for its two known values.</summary>
+    [Theory]
+    [InlineData("on-demand", false, true)]
+    [InlineData("continuous", true, false)]
+    [InlineData(null, true, true)]
+    [InlineData("bogus", false, false)]
+    public void ApplyOverride_SwitchesOnlyForKnownValues(string? value, bool before, bool after)
+    {
+        var pacer = new FramePacer { OnDemand = before };
+        pacer.ApplyOverride(value);
+        Assert.Equal(after, pacer.OnDemand);
+    }
+
     /// <summary>On demand waits up to the idle limit, and not at all while input is held or a frame is requested.</summary>
     [Fact]
     public void OnDemand_WaitsUntilSomethingNeedsAFrame()

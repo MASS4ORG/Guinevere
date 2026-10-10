@@ -173,6 +173,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         // Initialize input
         _inputContext = _window.CreateInput();
         _mouse = _inputContext.Mice[0];
+        _mousePosition = _prevMousePosition = _mouse.Position;
         Cursor = _cursor;
         ApplyCursorMode();
         _keyboard = _inputContext.Keyboards[0];
@@ -434,9 +435,10 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     public Vector2 MouseDelta => new(_mouseDelta.X, _mouseDelta.Y);
 
     /// <summary>
-    /// Gets the current mouse position.
+    /// Gets the current mouse position, as last reported by the platform. Reading it never queries the window
+    /// system, which on X11 costs a server round-trip per read.
     /// </summary>
-    public Vector2 MousePosition => new(_mouse.Position.X, _mouse.Position.Y);
+    public Vector2 MousePosition => _mousePosition;
 
     /// <summary>
     /// Gets the mouse wheel scroll delta.

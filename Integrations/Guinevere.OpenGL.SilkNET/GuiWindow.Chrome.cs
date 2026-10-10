@@ -47,7 +47,7 @@ public unsafe partial class GuiWindow
     }
 
     /// <inheritdoc />
-    public bool IsMaximized => _window.WindowState == WindowState.Maximized;
+    public bool IsMaximized => CurrentWindowState == WindowState.Maximized;
 
     /// <inheritdoc />
     public bool CanMove => _window.Native?.Wayland is null;

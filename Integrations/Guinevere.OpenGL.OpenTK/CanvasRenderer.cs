@@ -1,22 +1,38 @@
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
 namespace Guinevere;
 
-/// <inheritdoc />
+/// <summary>
+/// Renders Guinevere frames into the window's OpenGL default framebuffer. Skia draws on the GPU through a GL context;
+/// when one cannot be created, or <c>GUINEVERE_RENDERER=raster</c> is set, Skia rasterizes on the CPU and the result is
+/// uploaded as a texture and drawn as a full-screen quad.
+/// </summary>
 public class CanvasRenderer : ICanvasRenderer
 {
     SKSurface? _surface;
     SKCanvas? _canvas;
+    SkiaGlTarget? _gpu;
     uint _texture;
     int _vao, _vbo, _shaderProgram;
     int _width, _height;
+
+    /// <summary>Whether Skia draws on the GPU; false when it rasterizes on the CPU and the result is uploaded.</summary>
+    public bool IsGpuAccelerated => _gpu is not null;
 
     /// <inheritdoc />
     public void Initialize(int width, int height)
     {
         _width = width;
         _height = height;
+
+        _gpu = SkiaGlTarget.TryCreate(GLFW.GetProcAddress);
+        if (_gpu is not null)
+        {
+            _gpu.Resize(width, height);
+            return;
+        }
 
         // Init Skia
         _surface = SKSurface.Create(
@@ -36,6 +52,13 @@ public class CanvasRenderer : ICanvasRenderer
 
         _width = width;
         _height = height;
+
+        if (_gpu is not null)
+        {
+            GL.Viewport(0, 0, width, height);
+            _gpu.Resize(width, height);
+            return;
+        }
 
         // Dispose old surface and canvas
         _canvas = null;
@@ -126,6 +149,12 @@ public class CanvasRenderer : ICanvasRenderer
     /// <inheritdoc />
     public void Render(Action<SKCanvas> draw)
     {
+        if (_gpu is not null)
+        {
+            _gpu.Render(draw, SKColors.Black);
+            return;
+        }
+
         if (_canvas == null || _surface == null)
             return;
 
@@ -133,8 +162,8 @@ public class CanvasRenderer : ICanvasRenderer
         draw(_canvas!);
         _canvas?.Flush();
 
-        using var image = _surface?.Snapshot();
-        using var pixels = image?.PeekPixels();
+        // The surface is read in place; it is not drawn again until the upload below has consumed it.
+        using var pixels = _surface?.PeekPixels();
         if (pixels == null) return;
 
         GL.BindTexture(TextureTarget.Texture2D, _texture);
@@ -159,6 +188,13 @@ public class CanvasRenderer : ICanvasRenderer
     {
         _canvas = null;
         _surface?.Dispose();
+        if (_gpu is not null)
+        {
+            _gpu.Dispose();
+            _gpu = null;
+            return;
+        }
+
         GL.DeleteTexture(_texture);
         GL.DeleteBuffer(_vbo);
         GL.DeleteVertexArray(_vao);

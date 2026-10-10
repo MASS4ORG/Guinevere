@@ -118,13 +118,63 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     /// <param name="draw">The callback method that defines the GUI layout and rendering.</param>
     public void RunGui(Action draw)
     {
+        Pacing.ApplyOverride(Environment.GetEnvironmentVariable("GUINEVERE_PACING"));
         while (!_close.Approved)
         {
+            WaitForFrame();
             ObserveCloseRequest();
             if (_close.Approved) break;
 
             RenderFrame(draw);
+            Pacing.FrameRendered();
         }
+    }
+
+    /// <summary>
+    /// When frames render. Set <see cref="FramePacer.OnDemand"/> to wait for input between frames instead of
+    /// rendering continuously; <c>GUINEVERE_PACING=on-demand</c> or <c>continuous</c> overrides it at run time.
+    /// </summary>
+    public FramePacer Pacing { get; } = new();
+
+    /// <summary>Longest sleep between input polls while waiting; Raylib has no timed event wait.</summary>
+    const double PollInterval = 0.008;
+
+    /// <summary>
+    /// Sleeps in short slices and polls input until something needs a frame. Each poll moves Raylib's input edges, so
+    /// the frame renders right after the poll that saw input.
+    /// </summary>
+    void WaitForFrame()
+    {
+        double wait;
+        while ((wait = Pacing.WaitSeconds(_gui, InputHeld)) > 0)
+        {
+            // Raylib.WaitTime spins for part of every wait; a plain sleep keeps the idle loop off the CPU.
+            Thread.Sleep(TimeSpan.FromSeconds(Math.Min(wait, PollInterval)));
+            Raylib.PollInputEvents();
+            if (InputArrived()) Pacing.NotifyInput();
+            if (Raylib.WindowShouldClose()) return;
+        }
+    }
+
+    static bool InputHeld => Raylib.IsMouseButtonDown(Raylib_cs.MouseButton.Left)
+                             || Raylib.IsMouseButtonDown(Raylib_cs.MouseButton.Right)
+                             || Raylib.IsMouseButtonDown(Raylib_cs.MouseButton.Middle);
+
+    bool InputArrived()
+    {
+        var arrived = Raylib.GetMouseDelta() != Vector2.Zero || Raylib.GetMouseWheelMove() != 0
+                      || Raylib.IsWindowResized() || Raylib.IsFileDropped() || Raylib.GetKeyPressed() != 0
+                      || Raylib.IsMouseButtonPressed(Raylib_cs.MouseButton.Left)
+                      || Raylib.IsMouseButtonPressed(Raylib_cs.MouseButton.Right)
+                      || Raylib.IsMouseButtonReleased(Raylib_cs.MouseButton.Left)
+                      || Raylib.IsMouseButtonReleased(Raylib_cs.MouseButton.Right);
+        // Typed characters are queued until read; keep them for the frame instead of losing them to the next poll.
+        for (var c = Raylib.GetCharPressed(); c > 0; c = Raylib.GetCharPressed())
+        {
+            _typedCharacters.Append((char)c);
+            arrived = true;
+        }
+        return arrived;
     }
 
     /// <summary>

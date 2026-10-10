@@ -40,6 +40,7 @@
     <ItemGroup>
         <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
         <Compile Include="../Shared/X11WindowPosition.cs" Link="X11WindowPosition.cs" />
+        <Compile Include="../Shared/SkiaGlTarget.cs" Link="SkiaGlTarget.cs" />
     </ItemGroup>
 
     <ItemGroup>
