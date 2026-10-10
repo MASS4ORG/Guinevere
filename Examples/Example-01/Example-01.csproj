@@ -12,7 +12,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
-        <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="../../Guinevere.Styling/Guinevere.Styling.csproj" />
     </ItemGroup>
 
 </Project>
