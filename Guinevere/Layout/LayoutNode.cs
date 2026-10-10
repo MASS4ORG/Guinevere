@@ -11,6 +11,8 @@ namespace Guinevere;
 /// Layout nodes form the foundation of the GUI framework's layout system. Each node can contain
 /// child nodes, creating a hierarchical structure that enables complex UI layouts. Nodes handle
 /// both the layout calculation (sizing and positioning) and rendering phases of the GUI pipeline.
+/// A node reference is valid for the frame that built it; keep state in <see cref="Gui.GetData{T}"/> or ids, not in
+/// node references held across frames.
 /// </remarks>
 public partial class LayoutNode : IDisposable
 {

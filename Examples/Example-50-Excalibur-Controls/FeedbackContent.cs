@@ -17,6 +17,8 @@ public abstract partial class Program
                     gui.DrawText("Animated — sweeps from empty to full and back", size: 13,
                         color: Color.FromArgb(255, 102, 102, 102));
 
+                    // Both bars move with time alone, so the section keeps asking for frames.
+                    gui.RequestFrame();
                     gui.ProgressBar((MathF.Sin(gui.Time.Elapsed) + 1f) / 2f, height: 10);
 
                     gui.Node(0, 6);

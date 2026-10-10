@@ -46,6 +46,8 @@ public abstract class Program
             _gui.SetTextColor(Color.White);
             using (_gui.Node().Expand().AlignContent(0.5f).Enter())
             {
+                // Every slide animates with time alone, so the demo keeps asking for frames.
+                _gui.RequestFrame();
                 var slideIndex = (int)(_gui.Time.Elapsed / Speed / slides.Count);
                 slideIndex %= slides.Count;
                 slides[slideIndex]();

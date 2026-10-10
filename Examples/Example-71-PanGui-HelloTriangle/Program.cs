@@ -23,6 +23,8 @@ public abstract class Program
         {
             gui.DrawBackgroundRect(Color.Black, radius: 20);
 
+            // The triangle moves with time alone, so it keeps asking for frames.
+            gui.RequestFrame();
             var time = gui.Time.Elapsed * 2;
 
             var center = gui.Node(200, 200).Rect.Center;

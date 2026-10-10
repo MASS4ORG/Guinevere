@@ -3,17 +3,20 @@ using System.Diagnostics;
 namespace Guinevere;
 
 /// <summary>
-/// Decides when a windowed host renders. Continuous by default; with <see cref="OnDemand"/> the host waits for input
-/// between frames and renders only after input, while input is held, when the GUI requests a frame, and at least
-/// every <see cref="MaxIdleSeconds"/>.
+/// Decides when a windowed host renders. On demand by default: the host waits for input between frames and renders
+/// only after input, while input is held, when the GUI requests a frame, and at least every
+/// <see cref="MaxIdleSeconds"/>. Clearing <see cref="OnDemand"/> renders continuously.
 /// </summary>
 public sealed class FramePacer
 {
     int _settleFrames;
     long _lastFrame = Stopwatch.GetTimestamp();
 
-    /// <summary>Whether the host waits for input or a frame request instead of rendering continuously.</summary>
-    public bool OnDemand { get; set; }
+    /// <summary>
+    /// Whether the host waits for input or a frame request instead of rendering continuously. True by default;
+    /// content that changes without input calls <see cref="Gui.RequestFrame"/>.
+    /// </summary>
+    public bool OnDemand { get; set; } = true;
 
     /// <summary>
     /// Frames rendered after each input event: events dispatch one frame after they arrive and their effects show

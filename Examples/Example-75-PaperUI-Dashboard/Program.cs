@@ -38,6 +38,8 @@ public abstract class Program
 
         _win.RunGui(() =>
         {
+            // The dashboard's charts animate continuously.
+            _gui.RequestFrame();
             _time += _gui.Time.DeltaTime;
 
             // Main background

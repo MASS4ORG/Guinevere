@@ -175,8 +175,8 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     }
 
     /// <summary>
-    /// When frames render. Set <see cref="FramePacer.OnDemand"/> to wait for input between frames instead of
-    /// rendering continuously; <c>GUINEVERE_PACING=on-demand</c> or <c>continuous</c> overrides it at run time.
+    /// When frames render: on demand by default; clear <see cref="FramePacer.OnDemand"/> to render continuously.
+    /// <c>GUINEVERE_PACING=on-demand</c> or <c>continuous</c> overrides it at run time.
     /// </summary>
     public FramePacer Pacing { get; } = new();
 

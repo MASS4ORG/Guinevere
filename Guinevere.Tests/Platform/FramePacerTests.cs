@@ -3,11 +3,12 @@ namespace Guinevere.Tests.Platform;
 /// <summary>Checks when a windowed host waits or renders under each pacing mode.</summary>
 public class FramePacerTests
 {
-    /// <summary>Continuous pacing never waits.</summary>
+    /// <summary>Pacing is on demand by default; continuous pacing never waits.</summary>
     [Fact]
     public void Continuous_NeverWaits()
     {
-        var pacer = new FramePacer();
+        Assert.True(new FramePacer().OnDemand);
+        var pacer = new FramePacer { OnDemand = false };
         Assert.Equal(0, pacer.WaitSeconds(new Gui(), inputHeld: false));
         Assert.Throws<ArgumentNullException>(() => pacer.WaitSeconds(null!, inputHeld: false));
     }

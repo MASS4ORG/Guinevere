@@ -35,6 +35,7 @@ abstract class Program
             _gui.DrawRect(_gui.CurrentNode.Rect, Color.FromArgb(52, 58, 64), 8);
             _gui.DrawText("Composable layout: 120px ↔ 70%", 16, Color.White);
 
+            _gui.RequestFrame();
             var progress = (MathF.Sin(_gui.Time.Elapsed * 1.5f) + 1f) * 0.5f;
             var width = UnitValue.Lerp(UnitValue.Pixels(120f), UnitValue.Percentage(0.7f), progress);
             using (_gui.Node().Width(width).Height(44).Enter())
@@ -137,6 +138,7 @@ abstract class Program
             {
                 _gui.DrawText("Easing Functions Comparison", 18, Color.White);
 
+                _gui.RequestFrame();
                 var time = (_gui.Time.Elapsed % 3.0f) / 3.0f; // 3-second loop
 
                 var easingFunctions = new[]
