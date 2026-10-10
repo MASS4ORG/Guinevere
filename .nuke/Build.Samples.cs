@@ -14,11 +14,28 @@ partial class Build
     private AbsolutePath ExamplesOutput => ExamplesOutputDirectory ?? RootDirectory / "examples-output";
 
     /// <summary>
-    /// Gets the list of example projects to build
+    /// Examples that are not built or published.
     /// </summary>
-    private List<Project> ExampleProjects => [.. Solution.AllProjects
-        .Where(p => p.Directory.ToString().Contains("/Examples/") &&
-                   p.GetProperty("ExcludeFromBuild")?.Equals("true", StringComparison.OrdinalIgnoreCase) != true)];
+    private static readonly string[] ExcludedExamples = ["Example-73-PanGui-MusicApp"];
+
+    /// <summary>
+    /// Discovers example projects from <c>Examples/*/*.csproj</c>, so a new example needs no registration here
+    /// </summary>
+    private List<ExampleProject> ExampleProjects => [.. (RootDirectory / "Examples").GlobFiles("*/*.csproj")
+        .Select(path => new ExampleProject(path))
+        .Where(p => !ExcludedExamples.Contains(p.Name) && p.Property("ExcludeFromBuild") != "true")
+        .OrderBy(p => p.Name)];
+
+    /// <summary>An example project file found on disk.</summary>
+    private sealed record ExampleProject(AbsolutePath File)
+    {
+        public string Name => File.NameWithoutExtension;
+        public AbsolutePath Directory => File.Parent;
+
+        /// <summary>Reads a literal property from the project file; null when absent.</summary>
+        public string Property(string name) =>
+            System.Xml.Linq.XDocument.Load(File).Descendants(name).FirstOrDefault()?.Value.Trim();
+    }
 
     /// <summary>
     /// Builds all example applications
@@ -34,7 +51,7 @@ partial class Build
                 Log.Information("Building example: {Project}", project.Name);
 
                 _ = DotNetTasks.DotNetBuild(s => s
-                    .SetProjectFile(project)
+                    .SetProjectFile(project.File)
                     .SetConfiguration(ConfigurationSet)
                     .EnableNoRestore()
                 );
@@ -64,7 +81,7 @@ partial class Build
                 foreach (var project in ExampleProjects)
                 {
                     // Skip publishing if project is a library
-                    if (project.GetProperty("OutputType")?.Equals("Library", StringComparison.OrdinalIgnoreCase) == true)
+                    if (string.Equals(project.Property("OutputType"), "Library", StringComparison.OrdinalIgnoreCase))
                     {
                         Log.Information("Skipping publish for library project: {Project}", project.Name);
                         continue;
@@ -74,7 +91,7 @@ partial class Build
                     Log.Information("Publishing {Project} for {Runtime}", project.Name, runtime);
 
                     _ = DotNetTasks.DotNetPublish(s => s
-                        .SetProject(project)
+                        .SetProject(project.File)
                         .SetConfiguration(ConfigurationSet)
                         .SetOutput(projectOutput)
                         .SetRuntime(runtime)
@@ -192,41 +209,29 @@ MIT License - see the project repository for full license details.
     {
         var descriptions = ExampleProjects
             .OrderBy(p => p.Name)
-            .Select(project => $"- **{project.Name}**: {GetExampleDescription(project.Name)}")
+            .Select(project => $"- **{project.Name}**: {GetExampleDescription(project)}")
             .ToArray();
 
         return string.Join(Environment.NewLine, descriptions);
     }
 
     /// <summary>
-    /// Gets a description for an example project based on its name
+    /// Describes an example with the first prose line of its README. Platform hosts such as
+    /// <c>Example-01-OpenGL-SilkNet</c> have no README of their own and borrow the one of <c>Example-01</c>.
     /// </summary>
-    private static string GetExampleDescription(string projectName) =>
-        projectName switch
+    private string GetExampleDescription(ExampleProject project)
+    {
+        const string fallback = "Example application demonstrating Guinevere features";
+        var readme = project.Directory / "README.md";
+        if (!readme.FileExists())
         {
-            "Example-01" => "Basic Guinevere usage example",
-            "Example-01-OpenGL-OpenTK" => "OpenGL rendering with OpenTK integration",
-            "Example-01-OpenGL-Raylib" => "OpenGL rendering with Raylib integration",
-            "Example-01-OpenGL-SilkNet" => "OpenGL rendering with Silk.NET integration",
-            "Example-01-Vulkan-SilkNet" => "Vulkan rendering with Silk.NET integration",
-            "Example-02-SimpleLayout" => "Demonstrates simple layout system",
-            "Example-02-Layout" => "Shows nested layout with children",
-            "Example-03-Texts" => "Text rendering and typography examples",
-            "Example-05-SingleNodeExpandMargin" => "Layout margin and expansion demo",
-            "Example-41-AdvancedLayoutDemo" => "Advanced layout system features",
-            "Example-06-ResponsiveLayout" => "Responsive design examples",
-            "Example-43-AnimatedLayoutDemo" => "Layout animations and transitions",
-            "Example-50" => "Excalibur control gallery — content library",
-            "Example-50-OpenGL-OpenTK" => "Excalibur control gallery on OpenGL with OpenTK",
-            "Example-50-OpenGL-Raylib" => "Excalibur control gallery on OpenGL with Raylib",
-            "Example-50-OpenGL-SilkNet" => "Excalibur control gallery on OpenGL with Silk.NET",
-            "Example-50-Vulkan-SilkNet" => "Excalibur control gallery on Vulkan with Silk.NET",
-            "Example-75-PaperUI-Dashboard" => "Material Design style dashboard",
-            "Example-70-PanGui-HelloWorld" => "Pan GUI integration - Hello World",
-            "Example-71-PanGui-HelloTriangle" => "Pan GUI integration - Triangle rendering",
-            "Example-72-PanGui-AirbnbSlider" => "Pan GUI integration - Airbnb style slider",
-            "Example-73-PanGui-MusicApp" => "Pan GUI integration - Music player UI",
-            "Example-74-PanGui-Heart" => "Pan GUI integration - Heart animation",
-            _ => "Example application demonstrating Guinevere features"
-        };
+            var shared = project.Name.Split('-') is [var prefix, var number, ..] ? $"{prefix}-{number}" : null;
+            readme = shared is null ? readme : RootDirectory / "Examples" / shared / "README.md";
+        }
+
+        return readme.FileExists()
+            ? File.ReadLines(readme).Select(line => line.Trim())
+                .FirstOrDefault(line => line.Length > 0 && !line.StartsWith('#')) ?? fallback
+            : fallback;
+    }
 }

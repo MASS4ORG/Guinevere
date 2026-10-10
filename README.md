@@ -164,8 +164,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 
   Events for a frame's input run at the start of that frame, against the tree the previous frame laid out, so
   listeners change state before the new tree is built. `PreventDefault` hides the handled edge from
-  `gui.Input`, so polling controls do not react a second time. See
-  [Example 09](Examples/Example-09-EventsAndCursors/Program.cs).
+  `gui.Input`, so polling controls do not react a second time.
 
 ### Text & Styling
 
@@ -309,8 +308,7 @@ Drawing overloads with an explicit color record direct primitive commands. Geome
 Core provides visual-free `Pressable`, `Toggleable`, `Selectable`, `Draggable`, and `Repeatable`
 behaviors. Apply one inside any layout node and render from its stable `ControlVisualState`; activation
 is delivered in the next layout pass so application state cannot produce different trees in a frame's
-layout and render passes. See [Example 08](Examples/Example-08-HeadlessControls/Program.cs) for custom
-button and switch skins with no Excalibur reference. Platforms can optionally provide
+layout and render passes. Platforms can optionally provide
 `IControlActivationSource` for controller or command activation and `IControlSemanticsSink` for
 accessibility metadata.
 
@@ -328,8 +326,7 @@ dotnet add package MASS4.Guinevere.Excalibur
 
 Platform integrations publish input, clipboard, window, timing, renderer and DPI services through
 `gui.Platform`. Optional cursor, native-dialog, texture, GPU-effect and accessibility features use
-typed discovery with explicit fallback behavior. See the
-[platform integration guide](docs/platform-capabilities.md) for contracts and conformance checks.
+typed discovery with explicit fallback behavior.
 
 ### Autoformers
 

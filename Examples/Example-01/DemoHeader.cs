@@ -6,15 +6,16 @@ static class DemoHeader
 {
     static readonly Bitmap Badge = LoadBadge();
 
-    public static void Header(Gui gui, string title)
+    public static void Header(Gui gui, string title, Color? textColor = null)
     {
+        var color = textColor ?? Color.White;
         using (gui.Node().Height(40).Padding(15, 0).Direction(Axis.Horizontal)
                    .ContentAlignY(0.5f).Gap(8).Enter())
         {
             gui.Image(Badge, width: 26, height: 26);
-            gui.DrawText(title, 16, Color.White);
+            gui.DrawText(title, 16, color);
             gui.Node().Expand();
-            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Color.White);
+            gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, color);
         }
     }
 

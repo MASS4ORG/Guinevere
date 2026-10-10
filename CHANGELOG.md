@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed: Silk.NET, OpenTK and Raylib windows draw with Skia on the GPU; CPU rasterization remains the fallback #186.
 - Changed: Render-pass node matching is linear #166.
 - Changed: Nodes are reused across frames by identity #168.
+- Changed: Examples 02-09 are merged into Example 01.
 
 ## v[5.9.0][] 2026-10-06
 

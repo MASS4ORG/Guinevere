@@ -4,71 +4,81 @@ namespace Example_01;
 
 public partial class Shared
 {
-    readonly record struct Card(string Id, string Label);
-    static List<Card> cards =
+    sealed record WorkItem(string Id, string Title, bool NeedsReview);
+
+    static readonly string[] BoardColumns = ["Backlog", "Doing", "Done"];
+
+    static readonly WorkItem[] workItems =
     [
-        new("One", "Typed payload"),
-        new("Two", "Preview before drop"),
-        new("Three", "Keyboard accessible")
+        new("layout", "Design the layout", false),
+        new("tests", "Write tests", false),
+        new("review", "Security review", true),
+        new("docs", "Update the docs", false),
+        new("release", "Cut the release", true),
     ];
-    // static Color? Token(Gui gui, string name) => gui.StyleSheets.GetTokenColor(name);
 
-    static DragDropTag cardChannel = new("demo/cards");
-    static string? lastDrop = null;
+    static readonly Dictionary<string, int> placement = workItems.ToDictionary(item => item.Id, _ => 0);
+    static readonly DragDropTag boardTag = new("demo/board");
+    static string? boardMessage;
 
-    static void DragAndDrop(Gui gui)
+    /// <summary>A three-column board. Cards are typed payloads; "Done" refuses cards that still need review.</summary>
+    static void DragAndDrop(Gui gui, ColorPalette p)
     {
-        using (gui.Node().Expand().Direction(Axis.Horizontal).Padding(24).Gap(24).Enter())
+        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(12).Enter())
         {
-            using (gui.Node().Expand().Direction(Axis.Vertical).Gap(8).Enter())
-            {
-                gui.DrawText("Sources", 20, gui.StyleSheets.GetTokenColor("text"));
-                foreach (var card in cards)
+            Label(gui, p, boardMessage ?? "Drag a card to another column, or focus it and press Space/Enter. Escape cancels.");
+            using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(14).Enter())
+                for (var column = 0; column < BoardColumns.Length; column++)
                 {
-                    using (gui.Node(-1, 54, $"card/{card.Id}").ExpandWidth().Padding(10).Enter())
-                    {
-                        gui.DrawBackgroundRect(gui.StyleSheets.GetTokenColor("surface"), 5);
-                        gui.DrawText(card.Label, 14, gui.StyleSheets.GetTokenColor("text"));
-                        gui.DragSource($"card/{card.Id}", card, tag: cardChannel, ghost: g =>
-                        {
-                            using (g.Node(170, 36).Padding(8).Enter())
-                            {
-                                g.DrawBackgroundRect(gui.StyleSheets.GetTokenColor("selected"), 4);
-                                g.DrawText(card.Label, 13, gui.StyleSheets.GetTokenColor("text-on-accent"));
-                            }
-                        });
-                    }
+                    using var key = gui.ItemKey(column);
+                    BoardColumn(gui, p, column);
                 }
-            }
-
-            using (gui.Node().Expand().Direction(Axis.Vertical).Gap(12).Enter())
-            {
-                gui.DrawText("Targets", 20, gui.StyleSheets.GetTokenColor("text"));
-                Target(gui, "images", "Accepts cards One and Two", cardChannel,
-                    card => card.Id != "Three", card => lastDrop = $"{card.Label} → images");
-                Target(gui, "archive", "Accepts every card", cardChannel,
-                    _ => true, card => lastDrop = $"{card.Label} → archive");
-
-                if (lastDrop is not null) gui.DrawText(lastDrop, 14, gui.StyleSheets.GetTokenColor("positive"));
-            }
         }
 
         gui.DragGhost();
     }
 
-    static void Target(Gui gui, string id, string label, DragDropTag tag,
-        Func<Card, bool> accept, Action<Card> drop)
+    static void BoardColumn(Gui gui, ColorPalette p, int column)
     {
-        using (gui.Node(-1, 90, id).ExpandWidth().Padding(12).Enter())
+        var id = $"column/{column}";
+        var count = workItems.Count(item => placement[item.Id] == column);
+        using (gui.Node(-1, -1, id).Expand().Direction(Axis.Vertical).Padding(12).Gap(8).Enter())
         {
-            gui.DrawBackgroundRect(gui.StyleSheets.GetTokenColor("surface"), 6);
-            gui.DrawText(label, 14, gui.StyleSheets.GetTokenColor("text"));
-            var result = gui.DropTarget(id, tag, accept, drop);
-            gui.DrawDropIndicator(result.State, style: new(
-                    gui.StyleSheets.GetTokenColor("--positive"), gui.StyleSheets.GetTokenColor("--negative"))
-            );
-            if (result.Payload is { } card && result.State != DropTargetState.None)
-                gui.DrawText($"Preview: {card.Label} ({result.State})", 12, gui.StyleSheets.GetTokenColor("text-dim"));
+            gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+            gui.DrawText($"{BoardColumns[column]}  ({count})", 14, p.Text);
+            foreach (var item in workItems.Where(item => placement[item.Id] == column))
+                WorkCard(gui, p, item);
+
+            var result = gui.DropTarget<WorkItem>(id, boardTag,
+                item => placement[item.Id] != column && !(column == BoardColumns.Length - 1 && item.NeedsReview),
+                item => Later(() =>
+                {
+                    placement[item.Id] = column;
+                    boardMessage = $"{item.Title} → {BoardColumns[column]}";
+                }));
+            gui.DrawDropIndicator(result.State, style: new DropIndicatorStyle(p.Positive, p.Negative));
+            if (result.Payload is { } hovering && result.State == DropTargetState.HoverRejected)
+                gui.DrawText(hovering.NeedsReview ? "Needs review first" : "Already here", 12, p.Negative);
+        }
+    }
+
+    static void WorkCard(Gui gui, ColorPalette p, WorkItem item)
+    {
+        using (gui.Node(-1, 54, $"card/{item.Id}").ExpandWidth().Padding(12, 0).ContentAlignY(0.5f).Gap(2).Enter())
+        {
+            gui.DrawBackgroundRect(p.Surface, 8);
+            gui.DrawRectBorder(gui.CurrentNode.Rect, p.Border, 1f);
+            gui.DrawText(item.Title, 14, p.Text);
+            if (item.NeedsReview) gui.DrawText("needs review", 11, p.Warning);
+
+            gui.DragSource($"card/{item.Id}", item, tag: boardTag, ghost: ghost =>
+            {
+                using (ghost.Node(190, 38).Padding(10, 0).ContentAlignY(0.5f).Enter())
+                {
+                    ghost.DrawBackgroundRect(p.Accent, 8);
+                    ghost.DrawText(item.Title, 13, p.AccentText);
+                }
+            });
         }
     }
 }

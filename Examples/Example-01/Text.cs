@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Text;
 using Guinevere;
 
 namespace Example_01;
@@ -9,179 +8,155 @@ public partial class Shared
     const string TextShort = "Guinevere GUI çãóé⚙️☀️▶️❤️😀";
 
     const string TextLong =
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.";
 
-    static readonly Color Ink = Color.FromArgb(255, 245, 247, 250);
-    static readonly Color RowBg = Color.FromArgb(255, 40, 44, 56);
-    static readonly Color OutlineInk = Color.FromArgb(255, 16, 20, 30);
-    static readonly Color ShadowInk = Color.FromArgb(190, 0, 0, 0);
-    static readonly Color GradA = Color.FromArgb(255, 70, 130, 245);
-    static readonly Color GradB = Color.FromArgb(255, 235, 80, 130);
+    static readonly string[] ColorNames = ["Text", "Accent", "Positive", "Warning", "Negative"];
+    static int typeSize = 32;
+    static int typeColor;
 
-    static void BasicText(Gui gui)
+    static float wrapWidth = 360f;
+    static int effectSize = 24;
+
+    /// <summary>A live specimen: change the size and color, and see the same string next to a type ramp.</summary>
+    static void Typography(Gui gui, ColorPalette p)
     {
-        using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Enter())
+        var colors = new[] { p.Text, p.Accent, p.Positive, p.Warning, p.Negative };
+        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(14).Enter())
         {
-            gui.ScrollY(Color.Black, Color.Gray);
-
-            gui.DrawText("Single line text", 14);
-            gui.DrawText("Multi-line text:\nLine 1\nLine 2\nLine 3", 14);
-            gui.DrawText("Colored text", 14, Color.Red);
-            gui.DrawText("Large text", 20);
-            gui.DrawText("Small text", 10);
-
-            gui.Node(10, 20); // Spacer
-
-            gui.DrawText("Special Characters & Formatting:", 18);
-            gui.DrawText("Unicode: 🚩❓💣★ ♥ ♦ ♣ ♠ → ← ↑ ↓", 14);
-            gui.DrawText("Numbers: 0123456789", 14);
-            gui.DrawText("Symbols: !@#$%^&*()_+-=[]{}|;':\",./<>?", 14);
-            gui.DrawText("Non ASCII: çáããüaáéíóú! 🌟", 14);
-
-            gui.Node(10, 20); // Spacer
-
-            gui.DrawText("Multi-line alignment:", 18);
-            gui.DrawText("Line 1 - left aligned text runs from the node's start.", 12);
-            gui.DrawText("Line 2 - each line of a single DrawText call is centered together.", 12);
-            gui.DrawText("Line 3 - use separate calls to keep the text left aligned.", 12);
-        }
-    }
-
-    static void Wrapping(Gui gui)
-    {
-        using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Enter())
-        {
-            gui.ScrollY(Color.Black, Color.Gray);
-            gui.DrawText("Text Wrapping Examples:", 18);
-
-            gui.Node(10, 10); // Spacer
-
-            gui.DrawText("Unwrapped long text:", 14);
-            gui.DrawText(TextLong, 12);
-
-            gui.Node(10, 10); // Spacer
-
-            gui.DrawText("Wrapped text (600 px width):", 14);
-            gui.DrawText(TextLong, 12, wrapWidth: 600);
-
-            gui.Node(10, 10); // Spacer
-
-            gui.DrawText("Wrapped text (300 px width):", 14);
-            gui.DrawText(TextLong, 12, wrapWidth: 300);
-
-            gui.Node(10, 20); // Spacer
-
-            gui.DrawText("Mixed sizes & colors:", 16);
-            gui.DrawText(TextLong, 12, Color.DarkGreen);
-            gui.DrawText(TextLong, 13, Color.FromArgb(255, 100, 100, 240), wrapWidth: 450);
-
-            gui.Node(10, 20); // Spacer
-
-            for (var i = 0; i < 10; i++)
+            gui.ScrollY(p.Track, p.Border);
+            using (gui.Node().Direction(Axis.Horizontal).Gap(24).ContentAlignY(0.5f).Enter())
             {
-                gui.DrawText($"Extra text line {i + 1}: The quick brown fox jumps over the lazy dog", 12);
+                Stepper(gui, p, "type-size", "Size", typeSize, 10, 72, value => typeSize = value, step: 2);
+                Choice(gui, p, "type-color", ColorNames, typeColor, index => typeColor = index);
+            }
+
+            using (gui.Node().ExpandWidth().Padding(20).Enter())
+            {
+                gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+                gui.DrawText(TextShort, typeSize, colors[typeColor]);
+            }
+
+            Label(gui, p, "Type ramp");
+            using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(18).ContentAlignY(1f).Enter())
+                foreach (var size in new[] { 11, 13, 16, 20, 28, 40 })
+                    using (gui.Node().Direction(Axis.Vertical).ContentAlignX(0.5f).Enter())
+                    {
+                        gui.DrawText("Aa", size, p.Text);
+                        Label(gui, p, $"{size}");
+                    }
+
+            Label(gui, p, "Fallback and multi-line");
+            using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Gap(4).Padding(14).Enter())
+            {
+                gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+                gui.DrawText("Unicode: 🚩❓💣★ ♥ ♦ ♣ ♠ → ← ↑ ↓", 15, p.Text);
+                gui.DrawText("Non ASCII: çáããüaáéíóú! 🌟", 15, p.Text);
+                gui.DrawText("Symbols: !@#$%^&*()_+-=[]{}|;':\",./<>?", 15, p.TextDim);
+                gui.DrawText("One call,\nthree lines,\ncentered together.", 15, p.Series[1]);
             }
         }
     }
 
-    static void ColorDemo(Gui gui)
+    /// <summary>Drag the handle to change wrapWidth; both blocks reflow with their own size and color.</summary>
+    static void Wrapping(Gui gui, ColorPalette p)
     {
-        using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Enter())
+        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter())
         {
-            gui.ScrollY(Color.Black, Color.Gray);
-
-            for (var i = 0; i < 25; i++)
+            Label(gui, p, $"wrapWidth: {wrapWidth:0}px");
+            using (gui.Node().Expand().Direction(Axis.Horizontal).Enter())
             {
-                var hue = (i * 15) % 360;
-                var color = Color.FromArgb(255,
-                    (int)(Math.Sin(hue * Math.PI / 180) * 127 + 128),
-                    (int)(Math.Sin((hue + 120) * Math.PI / 180) * 127 + 128),
-                    (int)(Math.Sin((hue + 240) * Math.PI / 180) * 127 + 128));
-                gui.DrawText(
-                    $"Rainbow text line {i + 1} - The quick brown fox jumps over the lazy dog", 14, color);
-            }
-        }
-    }
-
-    static void TextEffects(Gui gui)
-    {
-        using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Gap(12).Enter())
-        {
-            gui.ScrollY(Color.Black, Color.Gray);
-
-            EffectRow(gui, "flat", null);
-            EffectRow(gui, "outline", new TextEffects { Outline = new TextEffects.TextOutline(OutlineInk, 2.5f), });
-            EffectRow(gui, "drop shadow",
-                new TextEffects { DropShadow = new TextEffects.TextShadow(ShadowInk, new Vector2(3, 5), 6f), });
-            EffectRow(gui, "inner shadow",
-                new TextEffects
+                using (gui.Node().Width(wrapWidth + 32).ExpandHeight().Direction(Axis.Vertical).Padding(16).Gap(14)
+                           .Enter())
                 {
-                    Gradient = new TextEffects.TextGradient(GradA, GradA),
-                    InnerShadow = new TextEffects.TextShadow(Color.FromArgb(220, 0, 0, 0), new Vector2(0, 4), 3f),
-                });
-            EffectRow(gui, "linear gradient",
-                new TextEffects { Gradient = new TextEffects.TextGradient(GradA, GradB, 25f), });
-            EffectRow(gui, "radial gradient",
-                new TextEffects { Gradient = new TextEffects.TextGradient(GradA, GradB, Radial: true), });
-            EffectRow(gui, "combined",
-                new TextEffects
-                {
-                    Outline = new TextEffects.TextOutline(OutlineInk, 2.5f),
-                    DropShadow = new TextEffects.TextShadow(ShadowInk, new Vector2(3, 5), 6f),
-                    Gradient = new TextEffects.TextGradient(GradA, GradB, 25f),
-                });
-        }
-    }
-
-    static void EffectRow(Gui gui, string label, TextEffects? effects)
-    {
-        using (gui.Node(height: 68).ExpandWidth().Direction(Axis.Horizontal).Gap(24).Padding(12, 14)
-                   .AlignContent(0f, 0.5f).Enter())
-        {
-            gui.DrawBackgroundRect(RowBg, radius: 8);
-
-            using (gui.Node(width: 160).Enter())
-                gui.DrawText(label, 15, Color.FromArgb(255, 150, 156, 170));
-
-            gui.DrawText(TextShort, 40, Ink, effects: effects);
-        }
-    }
-
-    static void LongContent(Gui gui)
-    {
-        using (gui.Node().Expand().Direction(Axis.Vertical).Padding(15).Enter())
-        {
-            gui.ScrollY(Color.Black, Color.Gray);
-            gui.DrawText("Long Content (Scroll to see more):", 18);
-
-            gui.Node(10, 15); // Spacer
-
-            StringBuilder text = new();
-            for (var i = 0; i < 40; i++)
-            {
-                text.AppendLine(
-                    $"Line {i + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
-            }
-
-            gui.DrawText(text.ToString(), 12, Color.DarkSlateGray);
-
-            gui.Node(10, 20); // Spacer
-
-            gui.DrawText("Mixed Size:", 16);
-
-            for (var i = 0; i < 30; i++)
-            {
-                var fontSize = 10 + (i % 4) * 2;
-                var color = Color.FromArgb(255,
-                    100 + (i * 15) % 155,
-                    150,
-                    200 - (i * 10) % 100);
-                gui.Node(10, 20);
-                {
-                    gui.DrawText(
-                        $"Mixed line {i + 1}: Various text sizes and colors to fill the scrollable area - this demonstrates the scrolling functionality",
-                        fontSize, color);
+                    gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+                    gui.ScrollY(p.Track, p.Border);
+                    gui.DrawText(TextLong, 14, p.Text, wrapWidth: wrapWidth, centerInRect: false);
+                    gui.DrawText(TextLong, 18, p.Accent, wrapWidth: wrapWidth, centerInRect: false);
+                    gui.DrawText(TextLong, 12, p.TextDim, wrapWidth: wrapWidth, centerInRect: false);
                 }
+
+                ResizeHandle(gui, p, "wrap/handle", () => wrapWidth, value => wrapWidth = value, 120f, 800f);
+            }
+        }
+    }
+
+    static void Effects(Gui gui, ColorPalette p)
+    {
+        var outline = p.Background;
+        var shadow = new Color(Color.Black, 0.75f);
+        var from = p.Pick(0);
+        var to = p.Pick(3);
+        var angle = gui.Time.Elapsed * 60f % 360f;
+        gui.RequestFrame();
+
+        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter())
+        {
+            Stepper(gui, p, "effect-size", "Size", effectSize, 20, 64, value => effectSize = value, step: 4);
+            using (gui.Node().Expand().Direction(Axis.Vertical).Gap(8).Enter())
+            {
+                gui.ScrollY(p.Track, p.Border);
+                EffectRow(gui, p, "flat", null);
+                EffectRow(gui, p, "outline", new TextEffects { Outline = new TextEffects.TextOutline(outline, 2.5f) });
+                EffectRow(gui, p, "drop shadow",
+                    new TextEffects { DropShadow = new TextEffects.TextShadow(shadow, new Vector2(3, 5), 6f) });
+                EffectRow(gui, p, "inner shadow", new TextEffects
+                {
+                    Gradient = new TextEffects.TextGradient(from, from),
+                    InnerShadow = new TextEffects.TextShadow(new Color(Color.Black, 0.85f), new Vector2(0, 4), 3f),
+                });
+                EffectRow(gui, p, "linear gradient", new TextEffects { Gradient = new TextEffects.TextGradient(from, to, 25f) });
+                EffectRow(gui, p, "radial gradient",
+                    new TextEffects { Gradient = new TextEffects.TextGradient(from, to, Radial: true) });
+                EffectRow(gui, p, "animated angle",
+                    new TextEffects { Gradient = new TextEffects.TextGradient(from, to, angle) });
+                EffectRow(gui, p, "combined", new TextEffects
+                {
+                    Outline = new TextEffects.TextOutline(outline, 2.5f),
+                    DropShadow = new TextEffects.TextShadow(shadow, new Vector2(3, 5), 6f),
+                    Gradient = new TextEffects.TextGradient(from, to, 25f),
+                });
+            }
+        }
+    }
+
+    static void EffectRow(Gui gui, ColorPalette p, string label, TextEffects? effects)
+    {
+        using var key = gui.ItemKey(label);
+        using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(24).Padding(14, 8).ContentAlignY(0.5f).Enter())
+        {
+            gui.DrawBackgroundRect(p.SurfaceRaised, 10);
+            using (gui.Node(width: 130).ContentAlignY(0.5f).Enter()) Label(gui, p, label);
+            gui.DrawText(TextShort, effectSize, p.Text, effects: effects);
+        }
+    }
+
+    /// <summary>Two independently scrolling columns: a color sweep and long, mixed-size lines.</summary>
+    static void Scrolling(Gui gui, ColorPalette p)
+    {
+        using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(16).Enter())
+        {
+            using (gui.Node().Expand().Direction(Axis.Vertical).Padding(14).Gap(2).Enter())
+            {
+                gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+                gui.ScrollY(p.Track, p.Border);
+                for (var i = 0; i < 36; i++)
+                {
+                    var hue = i * 10 * Math.PI / 180;
+                    var color = Color.FromArgb(255,
+                        (int)(Math.Sin(hue) * 127 + 128),
+                        (int)(Math.Sin(hue + 2.094) * 127 + 128),
+                        (int)(Math.Sin(hue + 4.189) * 127 + 128));
+                    gui.DrawText($"Color sweep {i + 1}: the quick brown fox", 14, color);
+                }
+            }
+
+            using (gui.Node().Expand().Direction(Axis.Vertical).Padding(14).Gap(2).Enter())
+            {
+                gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+                gui.ScrollY(p.Track, p.Border);
+                for (var i = 0; i < 40; i++)
+                    gui.DrawText($"Line {i + 1}: lorem ipsum dolor sit amet", 10 + i % 4 * 2,
+                        i % 5 == 0 ? p.Accent : p.Text);
             }
         }
     }

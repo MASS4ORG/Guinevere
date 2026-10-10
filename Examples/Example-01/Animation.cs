@@ -1,171 +1,189 @@
+using System.Numerics;
 using Guinevere;
-using GuinevereDemos;
 
 namespace Example_01;
 
 public partial class Shared
 {
-    static void Animation(Gui gui)
+    static readonly string[] EasingDurations = ["1s", "2s", "4s"];
+    static readonly float[] EasingSeconds = [1f, 2f, 4f];
+    static int easingDuration = 1;
+    static bool blendWide;
+    static bool springTarget;
+
+    /// <summary>A layout unit blended between pixels and a percentage, and six easing curves racing on a loop.</summary>
+    static void Easings(Gui gui, ColorPalette p)
     {
-        using (gui.Node().Expand().Gap(20).Enter())
+        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(16).Enter())
         {
-            DrawLayoutBlendingDemo(gui);
-            DrawSliderAnimationDemo(gui);
-            DrawEasingFunctionsDemo(gui);
+            LayoutBlend(gui, p);
+            EasingRace(gui, p);
         }
     }
 
-    static void DrawLayoutBlendingDemo(Gui gui)
+    static void LayoutBlend(Gui gui, ColorPalette p)
     {
-        using (gui.Node().Expand().Padding(20).Gap(10).Enter())
+        var progress = gui.AnimateFloat(blendWide ? 1f : 0f, 0.6f);
+        using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Padding(16).Gap(10).Enter())
         {
-            gui.DrawRect(gui.CurrentNode.Rect, Color.FromArgb(52, 58, 64), 8);
-            gui.DrawText("Composable layout: 120px ↔ 70%", 16, Color.White);
-
-            var progress = (MathF.Sin(gui.Time.Elapsed * 1.5f) + 1f) * 0.5f;
-            var width = UnitValue.Lerp(UnitValue.Pixels(120f), UnitValue.Percentage(0.7f), progress);
-            using (gui.Node().Width(width).Height(44).Enter())
+            gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+            using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
             {
-                gui.DrawRect(gui.CurrentNode.Rect, Color.FromArgb(114, 92, 214), 6);
-                gui.DrawText($"blend {progress:P0}", 12, Color.White);
+                if (Button(gui, p, blendWide ? "Shrink to 120px" : "Grow to 70%", id: "blend/toggle"))
+                    Later(() => blendWide = !blendWide);
+                Label(gui, p, "UnitValue.Lerp(Pixels(120), Percentage(0.7), t): layout units animate like numbers");
+            }
+
+            var width = UnitValue.Lerp(UnitValue.Pixels(120f), UnitValue.Percentage(0.7f), progress);
+            using (gui.Node().Width(width).Height(40).AlignContent(0.5f, 0.5f).Enter())
+            {
+                gui.DrawBackgroundRect(p.Accent, 8);
+                gui.DrawText($"{progress:P0}", 13, p.AccentText);
             }
         }
     }
 
-    static void DrawSliderAnimationDemo(Gui gui)
+    static void EasingRace(Gui gui, ColorPalette p)
     {
-        using (gui.Node().Expand().Enter())
+        Easing.TryParse("ease", out var cssEase);
+        (string Name, Func<float, float> Curve)[] curves =
+        [
+            ("Linear", Easing.Linear), ("EaseInOutSine", Easing.EaseInOutSine), ("CSS ease", cssEase),
+            ("SmoothStep", Easing.SmoothStep), ("EaseOutBack", Easing.EaseOutBack),
+            ("EaseOutElastic", Easing.EaseOutElastic),
+        ];
+
+        var seconds = EasingSeconds[easingDuration];
+        var time = gui.Time.Elapsed % seconds / seconds;
+        gui.RequestFrame();
+
+        using (gui.Node().Expand().Direction(Axis.Vertical).Padding(16).Gap(10).Enter())
         {
-            gui.DrawRect(gui.CurrentNode.Rect, Color.FromArgb(52, 58, 64), 8);
-
-            for (var i = 0; i < 5; i++)
+            gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+            using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
             {
-                var phase = gui.Time.Elapsed + (i * Math.PI / 3);
-                var x = (float)(Math.Sin(phase * 0.8) * 100);
-                var y = (float)(Math.Cos(phase * 0.6) * 50);
-                var scale = (float)(0.8 + 0.3 * Math.Sin(phase * 1.2));
+                Label(gui, p, "Loop duration");
+                Choice(gui, p, "easing-duration", EasingDurations, easingDuration, index => easingDuration = index);
+            }
 
-                var size = 80 * scale;
-
-                using (gui.Node(size, size)
-                           .AlignSelf(0.5f + x / 400f)
-                           .AlignContent(0.5f + y / 200f)
+            for (var i = 0; i < curves.Length; i++)
+            {
+                var (name, curve) = curves[i];
+                var eased = curve(time);
+                using var key = gui.ItemKey(name);
+                using (gui.Node().ExpandWidth().Height(26).Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f)
                            .Enter())
                 {
-                    var hue = (i * 60 + gui.Time.Elapsed * 30) % 360;
-                    var color = HsvToColor(hue, 0.7f, 0.9f);
-                    gui.DrawRect(gui.CurrentNode.Rect, color, size / 4);
-
-                    gui.DrawText($"Panel {i + 1}", 12, Color.White);
-                }
-            }
-        }
-    }
-
-    static Color HsvToColor(double hue, double saturation, double value)
-    {
-        // Simple HSV to RGB conversion
-        var c = value * saturation;
-        var x = c * (1 - Math.Abs((hue / 60) % 2 - 1));
-        var m = value - c;
-
-        double r, g, b;
-
-        if (hue < 60)
-        {
-            r = c;
-            g = x;
-            b = 0;
-        }
-        else if (hue < 120)
-        {
-            r = x;
-            g = c;
-            b = 0;
-        }
-        else if (hue < 180)
-        {
-            r = 0;
-            g = c;
-            b = x;
-        }
-        else if (hue < 240)
-        {
-            r = 0;
-            g = x;
-            b = c;
-        }
-        else if (hue < 300)
-        {
-            r = x;
-            g = 0;
-            b = c;
-        }
-        else
-        {
-            r = c;
-            g = 0;
-            b = x;
-        }
-
-        return Color.FromArgb(255,
-            (int)((r + m) * 255),
-            (int)((g + m) * 255),
-            (int)((b + m) * 255));
-    }
-
-    static void DrawEasingFunctionsDemo(Gui gui)
-    {
-        using (gui.Node().Expand().Enter())
-        {
-            gui.DrawRect(gui.CurrentNode.Rect, Color.FromArgb(52, 58, 64), 8);
-
-            using (gui.Node().Expand().Margin(20).Gap(10).Enter())
-            {
-                gui.DrawText("Easing Functions Comparison", 18, Color.White);
-
-                var time = (gui.Time.Elapsed % 3.0f) / 3.0f; // 3-second loop
-
-                var easingFunctions = new[]
-                {
-                    ("Linear", (Func<float, float>)Easing.Linear), ("EaseIn", Easing.EaseIn),
-                    ("EaseOut", Easing.EaseOut), ("SmoothStep", Easing.SmoothStep), ("BackOut", Easing.BackOut),
-                    ("ElasticOut", Easing.ElasticOut)
-                };
-
-                using (gui.Node().Expand().Gap(8).Enter())
-                {
-                    foreach (var (name, easingFunc) in easingFunctions)
+                    using (gui.Node(width: 120).Enter()) Label(gui, p, name);
+                    using (gui.Node(height: 10).Expand().Enter())
                     {
-                        using (gui.Node().Height(25).Direction(Axis.Horizontal).Gap(15).Enter())
-                        {
-                            // Label
-                            using (gui.Node(80, 25).AlignContent(0.0f).Enter())
-                            {
-                                gui.DrawText($"{name}:", 12, Color.FromArgb(200, 200, 200));
-                            }
-
-                            // Progress bar
-                            using (gui.Node(200, 15).AlignSelf(0.5f).Enter())
-                            {
-                                var barRect = gui.CurrentNode.Rect;
-                                var easedValue = easingFunc(time);
-                                var fillWidth = barRect.W * easedValue;
-
-                                // Background
-                                gui.DrawRect(barRect, Color.FromArgb(74, 85, 104), 3);
-
-                                // Fill
-                                if (fillWidth > 0)
-                                {
-                                    var fillRect = new Rect(barRect.X, barRect.Y, fillWidth, barRect.H);
-                                    gui.DrawRect(fillRect, Color.FromArgb(74, 144, 226), 3);
-                                }
-                            }
-                        }
+                        var track = gui.CurrentNode.Rect;
+                        gui.DrawBackgroundRect(p.Track, 5);
+                        gui.DrawRect(new Rect(track.X, track.Y, Math.Max(2, track.W * Math.Clamp(eased, 0f, 1f)), track.H),
+                            new Color(p.Pick(i), 0.45f), 5);
+                        gui.DrawCircle(new Vector2(track.X + 8 + (track.W - 16) * eased, track.Y + track.H * 0.5f), 8,
+                            p.Pick(i));
                     }
                 }
             }
+        }
+    }
+
+    /// <summary>Keyed springs and tweens chasing one target, a color/pointer follower and spinning transform cards.</summary>
+    static void Motion(Gui gui, ColorPalette p)
+    {
+        using (gui.Node().Expand().Direction(Axis.Vertical).Gap(16).Enter())
+        {
+            Springs(gui, p);
+            Cards(gui, p);
+        }
+    }
+
+    static void Springs(Gui gui, ColorPalette p)
+    {
+        using (gui.Node().ExpandWidth().Height(250).Direction(Axis.Vertical).Padding(16).Gap(10).Enter())
+        {
+            gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+            using (gui.Node().Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f).Enter())
+            {
+                if (Button(gui, p, "Flip target", id: "spring/flip")) Later(() => springTarget = !springTarget);
+                if (Button(gui, p, gui.ReduceMotion ? "Reduce motion: on" : "Reduce motion: off", gui.ReduceMotion,
+                        "spring/reduce"))
+                    Later(() => gui.ReduceMotion = !gui.ReduceMotion);
+            }
+
+            var target = springTarget ? 1f : 0f;
+            Follower(gui, p, "Smoothdamp", gui.Smoothdamp(target, 8f), 0);
+            Follower(gui, p, "AnimateSpring (bouncy)", gui.AnimateSpring(target, 14f, 0.25f), 1);
+            Follower(gui, p, "AnimateFloat (sine)", gui.AnimateFloat(target, 0.6f, Easing.EaseInOutSine), 2);
+
+            var color = gui.SmoothdampColor(springTarget ? p.Warning : p.Accent, 6f);
+            var pointer = gui.Smoothdamp(gui.LocalMousePosition, 10f);
+            using (gui.Node().Expand().Padding(8).Enter())
+            {
+                var area = gui.CurrentNode.Rect;
+                gui.DrawRect(area, p.Track, 8);
+                var dot = Vector2.Clamp(pointer, new Vector2(area.X + 12, area.Y + 12),
+                    new Vector2(area.X + area.W - 12, area.Y + area.H - 12));
+                gui.DrawCircle(dot, 10, color);
+                Label(gui, p, "Smoothdamp(Vector2) and SmoothdampColor follow the pointer");
+            }
+        }
+    }
+
+    static void Follower(Gui gui, ColorPalette p, string label, float value, int index)
+    {
+        using var key = gui.ItemKey(label);
+        using (gui.Node().ExpandWidth().Height(22).Direction(Axis.Horizontal).Gap(12).Enter())
+        {
+            using (gui.Node(190, 22).Enter()) Label(gui, p, label);
+            using (gui.Node().Expand().Enter())
+            {
+                if (gui.Pass != Pass.Pass2Render) return;
+                var bar = gui.CurrentNode.Rect;
+                gui.DrawRect(bar, p.Track, 4);
+                gui.DrawCircle(new Vector2(bar.X + 9 + (bar.W - 18) * value, bar.Y + bar.H * 0.5f), 8, p.Pick(index));
+            }
+        }
+    }
+
+    /// <summary>Hover grows a card, click spins it; hit testing follows the transformed shape.</summary>
+    static void Cards(Gui gui, ColorPalette p)
+    {
+        using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(24).Padding(12).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+        {
+            gui.DrawBackgroundRect(p.SurfaceRaised, 12);
+            for (var i = 0; i < 5; i++)
+            {
+                using var key = gui.ItemKey(i);
+                SpinCard(gui, p, i);
+            }
+        }
+    }
+
+    static void SpinCard(Gui gui, ColorPalette p, int index)
+    {
+        // Hover is known once the frame is laid out, so the render pass records it for the next frame's target.
+        ref var hovered = ref gui.GetData(false);
+        ref var spins = ref gui.GetData(0);
+        var scale = gui.AnimateFloat(hovered ? 1.25f : 1f, 0.25f, Easing.EaseOutBack);
+        // The idle tilt follows time alone, so the card keeps asking for frames.
+        gui.RequestFrame();
+        var tilt = hovered ? 0f : MathF.Sin(gui.Time.Elapsed * 1.3f + index) * 0.12f;
+        var angle = gui.AnimateSpring(spins * MathF.Tau + tilt, 9f, 0.45f);
+
+        var node = gui.Node(84, 84).AlignContent(0.5f, 0.5f);
+        using (node.Enter())
+        {
+            gui.SetTransform(Matrix3x2.CreateRotation(angle, node.Center) * Matrix3x2.CreateScale(scale, node.Center));
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                hovered = node.OnHover();
+                if (node.OnClick()) spins++;
+            }
+
+            gui.DrawRect(node.Rect, Color.Lerp(p.Pick(index), p.AccentText, hovered ? 0.2f : 0f), 18);
+            gui.DrawText($"Card {index + 1}", 13, p.AccentText);
         }
     }
 }

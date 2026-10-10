@@ -1,84 +1,41 @@
-# Example-01 (Merged Showcase)
+# Example-01 (Feature Tour)
 
-A consolidated example showcasing multiple Guinevere features in a single tabbed interface. This replaces the previous separate small examples for simplicity.
+A tour of Guinevere's core layout, text, motion, interaction and styling systems, one demo per page. It deliberately does not use Excalibur: every control is a plain node, drawn from a `ColorPalette`. See Example-50 for the Excalibur control gallery.
 
-## Features
+## Demos
 
-### 1. Basic Layout
-- Absolute positioning of shapes (`gui.DrawRect`, `gui.DrawCircle`)
-- Container nodes with `Axis.Horizontal` and `Axis.Vertical` directions
-- Margins and padding
-- Content alignment (`AlignContent`)
-- Conditional rendering based on keyboard input
-- Hover and click interactions
-- Z-Index control
+### Layout
+- **Alignment**: a 3x3 grid of `AlignContent` cells with live previews; the chosen cell drives a large container whose `Direction`, `Gap` and child count you can change. Alignment values animate.
+- **Sizing**: drag a container's edge to see `WidthPercent`, `ExpandWidth`, `MaxWidth`, fixed/expanding rows and `Wrap` react.
+- **Responsive**: mobile, tablet and desktop arrangements chosen from the width the stage has.
 
-### 2. Children Layout
-Advanced child alignment and distribution within nodes using `AlignContent` with separate horizontal and vertical controls:
-- `AlignContent(float alignHorizontal, float alignVertical)` for independent axis control
-- Support for both `Axis.Horizontal` and `Axis.Vertical` layouts
-- Nested layout structures with visualized alignment results
+### Text
+- **Typography**: size and color of a live specimen, a type ramp, Unicode and font fallback.
+- **Wrapping**: drag the handle to change `wrapWidth` of three blocks.
+- **Effects**: `TextEffects` (outline, drop and inner shadow, linear, radial and animated gradients).
+- **Scrolling**: two independent `ScrollY` columns.
 
-### 3. Text Rendering
-Organised with tabs showing:
-- **Basic Text**: Single line, multi-line, colored and sized text, special characters, Unicode, symbols and font fallback
-- **Wrapping**: Unwrapped vs. wrapped text at different `wrapWidth`s
-- **Color Demo**: Rainbow and colored text variations
-- **Effects**: `TextEffects` (flat, outline, drop shadow, inner shadow, linear/radial gradients, combined)
-- **Long Content**: Long text to demonstrate scrolling with `ScrollY`
+### Motion
+- **Easing & Blend**: `UnitValue.Lerp` between pixels and a percentage driven by `AnimateFloat`; six easing curves racing at a chosen duration.
+- **Springs**: `Smoothdamp`, `AnimateSpring`, `AnimateFloat`, color and pointer followers, a reduce-motion switch, and cards using `SetTransform` that grow on hover and spin on click.
 
-### 4. Animation
-- Composable layout blending with `UnitValue.Lerp`
-- Time-based animated elements with trigonometric movement
-- HSV color cycling
-- Easing function comparisons (Linear, EaseIn, EaseOut, SmoothStep, BackOut, ElasticOut)
+### Interaction
+- **Drag & Drop**: a three-column board with typed payloads, previews, accepted and rejected targets, and keyboard dragging.
+- **Events & Cursors**: bubbling clicks, scrubbing with `PointerMode.Wrapped`, orbiting with `PointerMode.Relative`, cursor shapes and a live event log.
+- **Headless Controls**: one `Pressable`/`Toggleable` behavior drawn by three skins, with the live `ControlVisualState`.
 
-### 5. Drag and Drop
-- Typed and tag-identified payloads
-- Non-consuming target previews with accepted/rejected indicators
-- Settled drop results with state tracking
-- Keyboard accessible (Space/Enter to drag/drop, Escape to cancel)
-- Custom drag ghosts
-
-### 6. Responsive Layout
-Adapts to different screen sizes:
-- **Mobile** (< 600px): Single column with bottom navigation
-- **Tablet** (600-900px): Two-column layout
-- **Desktop** (> 900px): Three-column layout with header navigation and sidebars
-
-### 7. Styling (PSS)
-- PanGui-compatible stylesheet syntax with constants and variables
-- Nested and direct-child selectors
-- `#inherit` inheritance
-- Built-in `:hover` and custom `:selected` modifiers
-- Immediate-mode variables
-- Theme tokens and atomic provider reloads
-- Light/dark theme switching
-
-### 8. Events and Cursors
-- DOM-style event bubbling (ancestor handles child clicks via `e.TargetId`)
-- App-wide shortcuts (Escape on root)
-- Pointer modes: `Wrapped` for scrubbing at window edges, `Relative` for orbit controls
-- Cursor requests (`PointerCursor.Hand`, `ResizeHorizontal`, `Crosshair`, `Text`)
-- Drag events with `e.TotalDelta` and `e.Delta`
-- Pointer lock for relative mouse movement
-
-### 9. Headless Controls
-- Custom-styled controls using `gui.Pressable()` and `gui.Toggleable()`
-- Headless control state tracking with `ControlBehaviorOptions`
-- Custom visual rendering in render pass
-- Game-style UI without Excalibur control styles
+### Style
+- **Stylesheets**: `.pss` selectors, `#inherit`, variables, `:hover`/`:active`/`:selected` transitions and the generated stylesheet source.
 
 ## Controls
-- **Shift (Left)**: Toggle conditional rendering in basic layout
-- **Mouse**: Hover/click interactions throughout
-- **Escape**: Clear event log / cancel drag operations
-- **Space/Enter**: Drag and drop (when focused)
-- **Arrow keys / Tab**: Navigate controls
+- **PageUp / PageDown**: previous / next demo.
+- **Mouse**: hover, click, drag and scroll as each demo describes.
+- **Escape**: clears the event log or cancels a drag.
+- **Space / Enter**: drag and drop, and activate focused controls.
 
 ## Running
 ```bash
 dotnet run --project Examples/Example-01-OpenGL-SilkNet/
 ```
 
-This example uses Silk.NET OpenGL integration and runs as an executable.
+`Example-01` is a library; the `Example-01-*` projects host it on each integration.
