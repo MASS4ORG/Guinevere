@@ -61,6 +61,9 @@ foreach (var raster in new[] { false, true })
     Console.WriteLine($"Styled/hard-coded {prefix} ratio: {styled / hardcoded:F2}x "
                       + $"(scoped variables: {scoped / hardcoded:F2}x, visuals: {visuals / hardcoded:F2}x)");
 }
+foreach (var diverged in new[] { false, true })
+    foreach (var count in new[] { 1_000, 10_000 })
+        RunNodeFrames(count, diverged);
 RunConstruction(10_000);
 
 static void Run(string name, Fixture fixture)
@@ -239,6 +242,54 @@ static double RunFrames(string name, int count, StyledFrames.Mode mode, bool ras
         if (raster) gui.Render();
         gui.EndFrame();
         input.NewFrame();
+    }
+}
+
+// Builds `count` empty sibling nodes through gui.Node in both passes plus layout, so node matching dominates.
+// Diverged builds the render pass from another call site, so no build node matches and every node is rebuilt.
+static void RunNodeFrames(int count, bool diverged)
+{
+    using var surface = SKSurface.Create(new SKImageInfo(1_000, 1_000));
+    var gui = new BenchmarkGui(1_000, 1_000) { Input = new ScriptedInputHandler() };
+    for (var i = 0; i < warmups; i++) Frame();
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
+
+    var iterations = 0;
+    var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+    var stopwatch = Stopwatch.StartNew();
+    do
+    {
+        Frame();
+        iterations++;
+    } while (stopwatch.Elapsed < TimeSpan.FromSeconds(1) || iterations < 20);
+    stopwatch.Stop();
+    var meanMs = stopwatch.Elapsed.TotalMilliseconds / iterations;
+    var name = diverged ? "node-frame-diverged" : "node-frame-wide";
+    Console.WriteLine($"| {name}-{count} | {count + 1} | {meanMs:F4} | {meanMs * 1_000_000d / (count + 1):F2} | "
+                      + $"{(GC.GetAllocatedBytesForCurrentThread() - allocatedBefore) / iterations} |");
+
+    void Frame()
+    {
+        gui.SetStage(Pass.Pass1Build);
+        gui.BeginFrame(surface.Canvas);
+        Nodes();
+        gui.CalculateLayout();
+        gui.SetStage(Pass.Pass2Render);
+        if (diverged) OtherNodes();
+        else Nodes();
+        gui.EndFrame();
+    }
+
+    void Nodes()
+    {
+        for (var i = 0; i < count; i++) gui.Node(4, 4);
+    }
+
+    void OtherNodes()
+    {
+        for (var i = 0; i < count; i++) gui.Node(4, 4);
     }
 }
 

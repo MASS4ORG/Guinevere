@@ -179,7 +179,10 @@ public partial class Gui
     {
         BeginIdentityPass();
         Pass = newPass;
-        if (RootNode is not null) RootNode!.Pass2NodeCount = 0;
+        _matchIndexes.Clear();
+        if (RootNode is null) return;
+        RootNode.Pass2NodeCount = 0;
+        RootNode.MatchCursor = 0;
     }
 
     /// <summary>

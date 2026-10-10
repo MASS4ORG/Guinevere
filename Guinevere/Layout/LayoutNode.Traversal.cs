@@ -22,6 +22,18 @@ public partial class LayoutNode
         return child;
     }
 
+    /// <summary>Adds a child created for this frame, which cannot already be listed.</summary>
+    internal void AppendNewChild(LayoutNode child)
+    {
+        ChildNodes.Add(child);
+        if (child.Style.IsAbsolute) _absoluteChildCount++;
+        _flowChildrenCache = null;
+        InvalidateLayout();
+    }
+
+    /// <summary>The position of the next child the render pass expects to revisit, in build order.</summary>
+    internal int MatchCursor;
+
     /// <summary>
     /// Removes a child node from this layout node
     /// </summary>
@@ -64,6 +76,7 @@ public partial class LayoutNode
         ChildNodes.Clear();
         _absoluteChildCount = 0;
         _flowChildrenCache = null;
+        MatchCursor = 0;
         DrawList.Clear();
         ResetInteraction();
         InvalidateLayout();
