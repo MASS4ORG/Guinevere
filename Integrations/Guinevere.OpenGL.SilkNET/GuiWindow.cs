@@ -16,8 +16,8 @@ namespace Guinevere;
 public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability, IWindowChromeCapability, IDisplayCapability, ICursorCapability,
     IPointerCapability, IWindowResizeCapability, IDisposable
 {
-    readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly FileDropQueue _fileDrops = new();
+    readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly Gui _gui;
     readonly IWindow _window;
     readonly CanvasRenderer _renderer;
@@ -60,8 +60,8 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
-        _gui.Platform.Register<IAppearanceCapability>(_appearance);
         _gui.Platform.Register<IFileDropCapability>(_fileDrops);
+        _gui.Platform.Register<IAppearanceCapability>(_appearance);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);
         fontStream = GetStreamResource("Guinevere.icons.ttf");

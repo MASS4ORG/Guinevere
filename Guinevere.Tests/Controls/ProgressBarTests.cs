@@ -61,8 +61,8 @@ public class ProgressBarTests
 
     /// <summary>The default width fills the parent while explicit dimensions override sheet dimensions.</summary>
     [Theory]
-    [InlineData(-1f, null, 200f, 6f)]
-    [InlineData(0f, null, 200f, 6f)]
+    [InlineData(-1f, null, 200f, 4f)]
+    [InlineData(0f, null, 200f, 4f)]
     [InlineData(120f, 12f, 120f, 12f)]
     public void DimensionsRespectTheParentAndArguments(float width, float? height, float expectedWidth,
         float expectedHeight)

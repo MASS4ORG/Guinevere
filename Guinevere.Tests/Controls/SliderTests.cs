@@ -176,7 +176,7 @@ public class SliderTests
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);
         Assert.Equal(SKColors.Red, pixels.GetPixel(130, 20));
-        Assert.Equal(SKColors.White, pixels.GetPixel(150, 20));
+        Assert.Equal(SKColor.Parse("#a8c7fa"), pixels.GetPixel(150, 20));
     }
 
     /// <summary>Hover, press, focus and disabled rules reach the root and its parts.</summary>

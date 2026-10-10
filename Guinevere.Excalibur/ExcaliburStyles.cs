@@ -13,6 +13,7 @@ public static partial class ExcaliburStyles
 
     static readonly Lazy<string> Text = new(() => LoadText("guinevere.default.pss"));
     static readonly Lazy<StyleSheet> Sheet = new(() => Parse("guinevere.default.pss", Text.Value));
+    static readonly Lazy<StyleSheet> ClassicSheet = new(() => Load("guinevere.classic.pss"));
     static readonly Lazy<StyleSheet> LightSheet = new(() => Load("guinevere.light.pss"));
     static readonly Lazy<StyleSheet> MonoLightSheet = new(() => Load("guinevere.mono-light.pss"));
     static readonly Lazy<StyleSheet> MonoDarkSheet = new(() => Load("guinevere.mono-dark.pss"));
@@ -26,6 +27,9 @@ public static partial class ExcaliburStyles
 
     /// <summary>The default dark look; the default sheet itself.</summary>
     public static StyleSheet Dark => Sheet.Value;
+
+    /// <summary>The neutral dark look the controls had before Material Design 3, for <see cref="SetBaseSheet"/>.</summary>
+    public static StyleSheet Classic => ClassicSheet.Value;
 
     /// <summary>A light color theme.</summary>
     public static StyleSheet Light => LightSheet.Value;
@@ -48,13 +52,20 @@ public static partial class ExcaliburStyles
 
     /// <summary>
     /// Layers a color theme right above the selected base, replacing the theme set before; <see cref="Dark"/> or
-    /// <c>null</c> removes the color overlay. Application sheets added after it still override it.
+    /// <c>null</c> removes the color overlay. Application sheets added after it still override it. It also applies the
+    /// sheets' control sizes (<see cref="ApplyMetrics"/>), so call it at the root every frame.
     /// </summary>
     /// <param name="gui">The GUI to theme.</param>
     /// <param name="theme">A token sheet such as <see cref="Light"/>, or any sheet of the application's own.</param>
     public static void SetTheme(Gui gui, StyleSheet? theme)
     {
         ArgumentNullException.ThrowIfNull(gui);
+        LayerTheme(gui, theme);
+        ApplyMetrics(gui);
+    }
+
+    static void LayerTheme(Gui gui, StyleSheet? theme)
+    {
         Ensure(gui);
         var sheets = gui.StyleSheets;
         if (Themes.TryGetValue(gui, out var current))
@@ -71,8 +82,8 @@ public static partial class ExcaliburStyles
     /// <summary>
     /// Follows <see cref="Gui.SystemAppearance"/>: applies <paramref name="light"/> or <paramref name="dark"/> with
     /// <see cref="SetTheme"/> (<paramref name="fallback"/> when the platform has no preference) and, with
-    /// <paramref name="accent"/>, sets the system accent as the <c>$accent</c>, <c>$accent-hover</c>, <c>$selected</c>
-    /// and <c>$focus-ring</c> tokens of the current scope. Call it every frame at the root, before building controls.
+    /// <paramref name="accent"/>, sets the system accent as the <c>$md-primary</c> role and its container and ink roles
+    /// in the current scope. Call it every frame at the root, before building controls.
     /// </summary>
     /// <param name="gui">The GUI to theme.</param>
     /// <param name="light">The light theme; <see cref="Light"/> by default.</param>
@@ -98,11 +109,17 @@ public static partial class ExcaliburStyles
 
     static void ApplyAccent(Gui gui, Color color)
     {
-        gui.SetStyleToken("accent", color);
-        gui.SetStyleToken("accent-hover", Color.Lerp(color, Color.White, 0.15f));
-        gui.SetStyleToken("selected", color);
-        gui.SetStyleToken("focus-ring", new Color(color, 0.6f));
+        var dark = Brightness(TokenColor(gui, "md-surface")) < 128;
+        gui.SetStyleToken("md-primary", color);
+        gui.SetStyleToken("md-on-primary", Ink(color));
+        gui.SetStyleToken("md-primary-container", Color.Lerp(TokenColor(gui, "md-surface"), color, dark ? 0.3f : 0.2f));
+        gui.SetStyleToken("md-on-primary-container", Color.Lerp(color, dark ? Color.White : Color.Black, 0.8f));
+        gui.SetStyleToken("md-secondary-container", Color.Lerp(TokenColor(gui, "md-secondary-container"), color, 0.2f));
     }
+
+    static float Brightness(Color color) => 0.299f * color.R + 0.587f * color.G + 0.114f * color.B;
+
+    static Color Ink(Color background) => Brightness(background) > 150 ? Color.Black : Color.White;
 
     /// <summary>
     /// A color token of the active sheets, such as <c>text</c> or <c>surface-hover</c>, for drawing that should follow

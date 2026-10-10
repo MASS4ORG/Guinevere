@@ -1,25 +1,37 @@
-// A monochrome dark color theme. Token-only: it layers over guinevere.default.pss.
+// A monochrome dark color theme: Material 3 roles with a neutral blue-grey primary. Token-only: it layers over
+// guinevere.default.pss, whose control slots follow these roles.
 @const theme-id = "org.mass4.guinevere.mono-dark";
-@const theme-name = "Guinevere Mono Dark";
+@const theme-name = "Material You Mono Dark";
 @const theme-kind = dark;
 
-$base-background = #181a1f;
-$surface = #1e222a;
-$surface-hover = #252b35;
-$surface-active = #2c323d;
-$popup = #252b35;
-$border = #2d333f;
-$border-active = #4c566a;
-$divider = #232731;
-$accent = #9da5b4;
-$accent-hover = #bbc3d2;
-$accent-subtle = #282e39;
-$text = #d7dae0;
-$text-dim = #6f788a;
-$text-disabled = #4b5263;
-$text-on-accent = #d7dae0;
-$selected = #282e39;
-$positive = #50a14f;
-$negative = #e06c75;
-$focus-ring = #9da5b496;
-$text-selection = #9da5b46e;
+$md-primary = #bbc3d2;
+$md-on-primary = #232731;
+$md-primary-container = #3a4150;
+$md-on-primary-container = #d7dae0;
+$md-secondary = #aab1bf;
+$md-on-secondary = #232731;
+$md-secondary-container = #323946;
+$md-on-secondary-container = #d7dae0;
+$md-tertiary = #b3b9c6;
+$md-on-tertiary = #232731;
+$md-tertiary-container = #3a4150;
+$md-on-tertiary-container = #d7dae0;
+$md-surface = #181a1f;
+$md-surface-dim = #181a1f;
+$md-surface-bright = #373c47;
+$md-surface-container-lowest = #13151a;
+$md-surface-container-low = #1e222a;
+$md-surface-container = #232731;
+$md-surface-container-high = #2c323d;
+$md-surface-container-highest = #363d49;
+$md-on-surface = #d7dae0;
+$md-on-surface-variant = #aab1bf;
+$md-surface-variant = #2d333f;
+$md-outline = #6f788a;
+$md-outline-variant = #2d333f;
+$md-inverse-surface = #d7dae0;
+$md-inverse-on-surface = #232731;
+$md-inverse-primary = #4c566a;
+
+$md-success = #50a14f;
+$md-info = #7fb3d5;

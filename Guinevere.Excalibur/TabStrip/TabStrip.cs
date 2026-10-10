@@ -10,7 +10,7 @@ public static partial class ControlsExtensions
     /// A row of tabs with an active one, optional icons, unsaved markers and close affordances. The
     /// dock space draws its panel tabs with this, so a host's own tabs match without copying the look. Styled by the
     /// <c>tabstrip</c> rules, <c>tab</c> (<c>:selected</c> for the active one, with its drawn <c>marker</c> part),
-    /// <c>tab-close</c> and <c>tab-nav</c>.
+    /// <c>tab-close</c> (its unsaved dot is the <c>dirty</c> part) and <c>tab-nav</c>.
     /// </summary>
     /// <param name="gui">The GUI instance.</param>
     /// <param name="items">The tabs, in order.</param>
@@ -159,7 +159,7 @@ public static partial class ControlsExtensions
                 {
                     var rect = gui.CurrentNode.Rect;
                     gui.DrawCircleFilled(new Vector2(rect.X + (rect.W / 2f), rect.Y + (rect.H / 2f)), 3.5f,
-                        PartColor(gui, "marker", "background-color"));
+                        PartColor(gui, "dirty", "background-color"));
                 }
             }
 

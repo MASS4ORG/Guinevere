@@ -24,8 +24,8 @@ public abstract partial class Program
                     for (var i = 0; i < ScrollDemoNames.Length; i++)
                     {
                         var isSelected = i == _scrollDemo;
-                        var bgColor = isSelected ? Color.FromArgb(255, 60, 120, 180) : Color.Transparent;
-                        var textColor = isSelected ? Color.White : Color.Gray;
+                        var bgColor = isSelected ? Token(gui, "selected") : Color.Transparent;
+                        var textColor = isSelected ? Token(gui, "md-on-secondary-container") : Token(gui, "text-dim");
 
                         using (gui.Node(190, 28).Margin(0, 0, 0, 4).Padding(8, 5).Enter())
                         {
@@ -42,7 +42,7 @@ public abstract partial class Program
                     if (_scrollDemo == 2)
                     {
                         gui.Node(0, 10);
-                        gui.DrawText("Jump to position:", size: 12, color: Color.Gray);
+                        gui.DrawText("Jump to position:", size: 12, color: Token(gui, "text-dim"));
                         if (ProgrammaticButton(gui, "Top", Color.Green))
                         {
                             gui.ScrollToTop(_scrollNodeId);
@@ -111,16 +111,16 @@ public abstract partial class Program
 
             using (gui.Node().Expand().Padding(10).Direction(Axis.Vertical).Gap(5).Margin(0, 15, 0, 0).Enter())
             {
-                gui.DrawBackgroundRect(Color.FromArgb(255, 30, 30, 30), 3);
+                gui.DrawBackgroundRect(Token(gui, "md-surface-container-low"), 3);
                 gui.ScrollContainer(scrollY: true);
 
                 for (var i = 0; i < 40; i++)
                 {
                     using (gui.Node(0, 40).Margin(0, 0, 0, 5).Padding(10).Enter())
                     {
-                        var color = i % 2 == 0 ? Color.FromArgb(255, 60, 60, 60) : Color.FromArgb(255, 70, 70, 70);
+                        var color = Token(gui, i % 2 == 0 ? "surface-hover" : "surface-active");
                         gui.DrawBackgroundRect(color, 2);
-                        gui.DrawText($"Item {i + 1} - a scrollable row; click me", color: Color.White);
+                        gui.DrawText($"Item {i + 1} - a scrollable row; click me", color: Token(gui, "text"));
 
                         if (gui.GetInteractable().OnClick())
                             gui.DrawText($"[CLICKED]", color: Color.Yellow);
@@ -141,7 +141,7 @@ public abstract partial class Program
             {
                 using (gui.Node().Expand().Padding(10).Enter())
                 {
-                    gui.DrawBackgroundRect(Color.FromArgb(255, 30, 30, 30), 3);
+                    gui.DrawBackgroundRect(Token(gui, "md-surface-container-low"), 3);
                     gui.DrawText("Left", size: 16);
                     gui.ScrollContainer(scrollY: true);
 
@@ -157,7 +157,7 @@ public abstract partial class Program
 
                 using (gui.Node().Expand().Padding(10).Enter())
                 {
-                    gui.DrawBackgroundRect(Color.FromArgb(255, 30, 30, 30), 3);
+                    gui.DrawBackgroundRect(Token(gui, "md-surface-container-low"), 3);
                     gui.DrawText("Right (H+V)", size: 16);
                     gui.ScrollContainer(scrollX: true, scrollY: true);
 
@@ -191,7 +191,7 @@ public abstract partial class Program
 
             using (gui.Node().Expand().Padding(10).Margin(0, 15, 0, 0).Enter())
             {
-                gui.DrawBackgroundRect(Color.FromArgb(255, 30, 30, 30), 3);
+                gui.DrawBackgroundRect(Token(gui, "md-surface-container-low"), 3);
 
                 gui.ScrollContainer(scrollY: true);
                 _scrollNodeId = gui.CurrentNode.Id;

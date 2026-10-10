@@ -1,25 +1,42 @@
-// A monochrome light color theme (GitHub Light style). Token-only: it layers over guinevere.default.pss.
+// A monochrome light color theme: Material 3 roles with a neutral grey primary. Token-only: it layers over
+// guinevere.default.pss, whose control slots follow these roles.
 @const theme-id = "org.mass4.guinevere.mono-light";
-@const theme-name = "Guinevere Mono Light";
+@const theme-name = "Material You Mono Light";
 @const theme-kind = light;
 
-$base-background = #f4f4f6;
-$surface = #ffffff;
-$surface-hover = #eaecef;
-$surface-active = #e1e4e8;
-$popup = #ffffff;
-$border = #d0d7de;
-$border-active = #8c959f;
-$divider = #ebefef;
-$accent = #24292f;
-$accent-hover = #32383e;
-$accent-subtle = #eaecef;
-$text = #1f2328;
-$text-dim = #656d76;
-$text-disabled = #8c959f;
-$text-on-accent = #ffffff;
-$selected = #e1e4e8;
-$positive = #1a7f37;
-$negative = #cf222e;
-$focus-ring = #24292f91;
-$text-selection = #24292f64;
+$md-primary = #4c566a;
+$md-on-primary = #ffffff;
+$md-primary-container = #dde1ea;
+$md-on-primary-container = #1b1f27;
+$md-secondary = #5d6575;
+$md-on-secondary = #ffffff;
+$md-secondary-container = #e3e6ed;
+$md-on-secondary-container = #1b1f27;
+$md-tertiary = #5d6575;
+$md-on-tertiary = #ffffff;
+$md-tertiary-container = #dde1ea;
+$md-on-tertiary-container = #1b1f27;
+$md-error = #b3261e;
+$md-on-error = #ffffff;
+$md-error-container = #f9dedc;
+$md-on-error-container = #410e0b;
+$md-surface = #f7f8fa;
+$md-surface-dim = #d9dbe0;
+$md-surface-bright = #f7f8fa;
+$md-surface-container-lowest = #ffffff;
+$md-surface-container-low = #f1f2f5;
+$md-surface-container = #ebedf1;
+$md-surface-container-high = #e5e7ec;
+$md-surface-container-highest = #dfe1e7;
+$md-on-surface = #1b1f27;
+$md-on-surface-variant = #454c5a;
+$md-surface-variant = #dfe1e7;
+$md-outline = #727a8a;
+$md-outline-variant = #c5c9d2;
+$md-inverse-surface = #2f343e;
+$md-inverse-on-surface = #eef0f4;
+$md-inverse-primary = #bbc3d2;
+
+$md-success = #2f7d3f;
+$md-warning = #8a5100;
+$md-info = #1f6f8b;

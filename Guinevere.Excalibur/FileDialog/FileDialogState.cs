@@ -98,6 +98,7 @@ public sealed class FileDialogState
 
         Browser.Search = "";
         Browser.Filter = request.Filters.Count > 0 ? request.Filters[0] : FileDialogFilter.All;
+        Browser.DirectoriesOnly = request.Mode is FileDialogMode.SelectFolder or FileDialogMode.CreateFolder;
 
         if (request.Places is null)
             Places = await Browser.FileSystem.GetPlacesAsync(cancellationToken).ConfigureAwait(false);

@@ -18,6 +18,7 @@ public sealed class FileBrowser
     bool _showHidden;
     string _search = "";
     FileDialogFilter _filter = FileDialogFilter.All;
+    bool _directoriesOnly;
 
     /// <summary>Creates a browser over the local filesystem.</summary>
     public FileBrowser() : this(PhysicalFileDialogFileSystem.Instance) { }
@@ -207,6 +208,18 @@ public sealed class FileBrowser
         }
     }
 
+    /// <summary>Whether only directories are listed, as when a folder is being picked.</summary>
+    public bool DirectoriesOnly
+    {
+        get => _directoriesOnly;
+        set
+        {
+            if (_directoriesOnly == value) return;
+            _directoriesOnly = value;
+            Rebuild();
+        }
+    }
+
     /// <summary>Moves to the previous history entry asynchronously.</summary>
     public async ValueTask GoBackAsync(CancellationToken cancellationToken = default)
     {
@@ -286,7 +299,7 @@ public sealed class FileBrowser
             var visible = _loaded.Where(entry =>
                 (_showHidden || !entry.IsHidden) &&
                 (_search.Length == 0 || entry.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)) &&
-                (entry.IsDirectory || _filter.Matches(entry.Name)));
+                (entry.IsDirectory || (!_directoriesOnly && _filter.Matches(entry.Name))));
 
             // Directories lead regardless of the column, which is what every file manager does.
             var ordered = visible.OrderBy(entry => entry.IsDirectory ? 0 : 1);

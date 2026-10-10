@@ -1,72 +1,201 @@
-// Guinevere's default look for the Excalibur controls. It sits under every application sheet, so a theme
-// overrides any token or rule below; `gui.SetStyleToken` and rule tokens re-theme a subtree.
+// Guinevere's default look for the Excalibur controls: Material Design 3 (dark scheme from the baseline purple seed).
+// It sits under every application sheet, so a theme overrides any token or rule below; `gui.SetStyleToken` and rule
+// tokens re-theme a subtree. The $md-* tokens are the Material color roles; the unprefixed tokens below them are the
+// slots the rules and host code read, each an alias of a role, so overriding either layer re-themes the controls.
 @const theme-id = "org.mass4.guinevere.default";
-@const theme-name = "Guinevere Dark";
+@const theme-name = "Material You Dark";
 @const theme-kind = dark;
 
-// Colors
-$base-background = #181b20;
-$surface = #1c1f25;
-$surface-hover = #262a32;
-$surface-active = #333842;
-$popup = #20242b;
-$border = #333842;
-$border-active = #4e5562;
-$divider = #3c424e;
-$accent = #548fe0;
-$accent-hover = #68a3f4;
-$accent-subtle = #262a32;
-$text = #d7dae0;
-$text-dim = #8b929c;
-$text-disabled = #606876;
-$text-on-accent = #ffffff;
-$selected = #548fe0;
-$positive = #58b074;
-$negative = #d06666;
-$warning = #f59e0b;
-$info = #0dcaf0;
-$focus-ring = #548fe096;
-$text-selection = #548fe078;
-$shadow = #00000064;
-$overlay = #0000008c;
+// Material color roles
+$md-primary = #a8c7fa;
+$md-on-primary = #062e6f;
+$md-primary-container = #0842a0;
+$md-on-primary-container = #d3e3fd;
+$md-secondary = #bec6dc;
+$md-on-secondary = #283141;
+$md-secondary-container = #3e4759;
+$md-on-secondary-container = #dae2f9;
+$md-tertiary = #efb8c8;
+$md-on-tertiary = #492532;
+$md-tertiary-container = #633b48;
+$md-on-tertiary-container = #ffd8e4;
+$md-error = #f2b8b5;
+$md-on-error = #601410;
+$md-error-container = #8c1d18;
+$md-on-error-container = #f9dedc;
+$md-surface = #1b1e24;
+$md-surface-dim = #1b1e24;
+$md-surface-bright = #3a3f49;
+$md-surface-container-lowest = #16181d;
+$md-surface-container-low = #20242a;
+$md-surface-container = #252930;
+$md-surface-container-high = #2d323b;
+$md-surface-container-highest = #383e49;
+$md-on-surface = #d7dae0;
+$md-on-surface-variant = #aab1bf;
+$md-surface-variant = #363c48;
+$md-outline = #7b8394;
+$md-outline-variant = #363c48;
+$md-inverse-surface = #d7dae0;
+$md-inverse-on-surface = #1b1e24;
+$md-inverse-primary = #0b57d0;
+$md-scrim = #000000;
+$md-shadow = #000000;
 
-// Metrics
-$radius = 4;
+// Statuses Material has no role for
+$md-success = #6dd58c;
+$md-warning = #f2b84b;
+$md-info = #7fcfff;
 
-// Button family: gui.Button, gui.IconButton (class "icon") and gui.ImageButton (class "image").
+// Material shape scale: corner radii, the full pill being half of the shorter side
+$md-shape-none = 0;
+$md-shape-extra-small = 4;
+$md-shape-small = 8;
+$md-shape-medium = 12;
+$md-shape-large = 16;
+$md-shape-extra-large = 28;
+$md-shape-full = 50%;
+
+// Material type scale: size, weight and line height of every role
+$md-display-large-size = 57;    $md-display-large-weight = 400;    $md-display-large-line = 64;
+$md-display-medium-size = 45;   $md-display-medium-weight = 400;   $md-display-medium-line = 52;
+$md-display-small-size = 36;    $md-display-small-weight = 400;    $md-display-small-line = 44;
+$md-headline-large-size = 32;   $md-headline-large-weight = 400;   $md-headline-large-line = 40;
+$md-headline-medium-size = 28;  $md-headline-medium-weight = 400;  $md-headline-medium-line = 36;
+$md-headline-small-size = 24;   $md-headline-small-weight = 400;   $md-headline-small-line = 32;
+$md-title-large-size = 22;      $md-title-large-weight = 400;      $md-title-large-line = 28;
+$md-title-medium-size = 16;     $md-title-medium-weight = 500;     $md-title-medium-line = 24;
+$md-title-small-size = 14;      $md-title-small-weight = 500;      $md-title-small-line = 20;
+$md-body-large-size = 16;       $md-body-large-weight = 400;       $md-body-large-line = 24;
+$md-body-medium-size = 14;      $md-body-medium-weight = 400;      $md-body-medium-line = 20;
+$md-body-small-size = 12;       $md-body-small-weight = 400;       $md-body-small-line = 16;
+$md-label-large-size = 14;      $md-label-large-weight = 500;      $md-label-large-line = 20;
+$md-label-medium-size = 12;     $md-label-medium-weight = 500;     $md-label-medium-line = 16;
+$md-label-small-size = 11;      $md-label-small-weight = 500;      $md-label-small-line = 16;
+
+// Control slots: aliases of the roles
+$base-background = $md-surface;
+$surface = $md-surface-container;
+$surface-hover = $md-surface-container-high;
+$surface-active = $md-surface-container-highest;
+$popup = $md-surface-container;
+$border = $md-outline-variant;
+$border-active = $md-outline;
+$divider = $md-outline-variant;
+$control-border = mix($md-outline-variant, $md-outline, 35%);
+$accent = $md-primary;
+$accent-hover = mix($md-primary, $md-on-primary, 8%);
+$accent-subtle = $md-secondary-container;
+$text = $md-on-surface;
+$text-dim = $md-on-surface-variant;
+$text-disabled = alpha($md-on-surface, 38%);
+$text-on-accent = $md-on-primary;
+$selected = $md-secondary-container;
+$positive = $md-success;
+$negative = $md-error;
+$warning = $md-warning;
+$info = $md-info;
+$focus-ring = $md-secondary;
+$text-selection = alpha($md-primary, 40%);
+$shadow = alpha($md-shadow, 39%);
+$overlay = alpha($md-scrim, 32%);
+
+// Metrics: radius, and the control sizes ExcaliburStyles.ApplyMetrics hands to the controls
+$radius = 8;
+$control-field-height = 28;
+$control-compact-height = 22;
+$control-indicator-size = 18;
+
+// Button family: gui.Button (filled tonal), gui.IconButton (class "icon") and gui.ImageButton (class "image"); the
+// classes "primary" (filled), "outlined", "text" and "elevated" pick the other Material variants.
 button {
-    padding = 8 16;
-    background-color = $surface;
-    border-radius = $radius;
-    color = $text;
+    padding = 4 14;
+    background-color = $md-secondary-container;
+    border-radius = $md-shape-full;
+    color = $md-on-secondary-container;
+    font-weight = $md-label-large-weight;
     cursor = pointer;
-    :hover { border-color = $border; border-width = 1; }
-    :active { border-color = $border-active; border-width = 1; }
-    :focus { border-color = $accent-hover; border-width = 2; outline = 4px $accent-subtle; outline-offset = 1; }
-    :disabled { color = $text-disabled; border-color = $border; border-width = 1; cursor = default; }
+    :hover(0.12 ease-out) { background-color = mix($md-secondary-container, $md-on-secondary-container, 8%); }
+    :active(0.08 ease-out) {
+        background-color = mix($md-secondary-container, $md-on-secondary-container, 10%);
+        ripple = alpha($md-on-secondary-container, 12%) 0.4;
+    }
+    :focus { background-color = mix($md-secondary-container, $md-on-secondary-container, 10%); outline = 3px $focus-ring; outline-offset = 2; }
+    :disabled { background-color = alpha($text, 12%); color = $text-disabled; cursor = default; }
 }
 
 button.primary {
     background-color = $accent;
     color = $text-on-accent;
-    :hover { background-color = $accent-hover; }
-    :disabled { background-color = $surface; color = $text-disabled; }
+    :hover(0.12 ease-out) { background-color = mix($accent, $text-on-accent, 8%); }
+    :active(0.08 ease-out) { background-color = mix($accent, $text-on-accent, 10%); ripple = alpha($text-on-accent, 12%) 0.4; }
+    :focus { background-color = mix($accent, $text-on-accent, 10%); }
+    :disabled { background-color = alpha($text, 12%); color = $text-disabled; }
+}
+
+button.outlined {
+    background-color = transparent;
+    border-color = $control-border;
+    border-width = 1;
+    color = $accent;
+    :hover(0.12 ease-out) { background-color = alpha($accent, 8%); }
+    :active(0.08 ease-out) { background-color = alpha($accent, 10%); ripple = alpha($accent, 12%) 0.4; }
+    :focus { background-color = alpha($accent, 10%); border-color = $accent; }
+    :disabled { background-color = transparent; border-color = alpha($text, 12%); color = $text-disabled; }
+}
+
+button.text {
+    padding = 4 8;
+    background-color = transparent;
+    color = $accent;
+    :hover(0.12 ease-out) { background-color = alpha($accent, 8%); }
+    :active(0.08 ease-out) { background-color = alpha($accent, 10%); ripple = alpha($accent, 12%) 0.4; }
+    :focus { background-color = alpha($accent, 10%); }
+    :disabled { background-color = transparent; color = $text-disabled; }
+}
+
+button.elevated {
+    background-color = $md-surface-container-low;
+    color = $accent;
+    box-shadow = 0 1 3 1 #00000026, 0 1 2 0 #0000004d;
+    :hover(0.12 ease-out) { background-color = mix($md-surface-container-low, $accent, 8%); }
+    :active(0.08 ease-out) { background-color = mix($md-surface-container-low, $accent, 10%); ripple = alpha($accent, 12%) 0.4; }
+    :focus { background-color = mix($md-surface-container-low, $accent, 10%); }
+    :disabled { background-color = alpha($text, 12%); color = $text-disabled; box-shadow = none; }
 }
 
 button.icon {
     padding = 0;
     background-color = transparent;
-    :hover { background-color = $surface; }
-    :active { background-color = $surface; }
-    :disabled { background-color = $surface; }
+    color = $text-dim;
+    :hover(0.12 ease-out) { background-color = alpha($text-dim, 8%); }
+    :active(0.08 ease-out) { background-color = alpha($text-dim, 10%); ripple = alpha($text-dim, 12%) 0.4; }
+    :focus { background-color = alpha($text-dim, 10%); }
+    :disabled { background-color = transparent; color = $text-disabled; }
     :checked { color = $accent; }
 }
 
 button.image {
     padding = 0;
     background-color = transparent;
-    :focus { border-width = 0; outline = 4px $focus-ring; outline-offset = 1; }
-    :disabled { border-width = 0; opacity = 0.6; }
+    border-radius = $md-shape-medium;
+    :focus { background-color = transparent; outline = 3px $focus-ring; outline-offset = 2; }
+    :disabled { background-color = transparent; opacity = 0.6; }
+}
+
+// Segmented buttons: gui.EnumDropdown as toggle buttons.
+button.segment {
+    padding = 0;
+    border-radius = $md-shape-small;
+    background-color = transparent;
+    border-color = $control-border;
+    border-width = 1;
+    color = $text;
+    :hover(0.12 ease-out) { background-color = alpha($text, 8%); }
+    :active(0.08 ease-out) { background-color = alpha($text, 10%); }
+    :focus { background-color = alpha($text, 10%); outline = 0px; }
+    :checked { background-color = $md-secondary-container; color = $md-on-secondary-container; }
+    :disabled { background-color = transparent; color = $text-disabled; }
 }
 
 // Choice family: gui.Checkbox, gui.RadioButton and gui.Toggle. The row holds the label; its indicator (checkbox,
@@ -78,50 +207,64 @@ checkbox, radio, toggle {
 }
 
 checkbox > indicator, radio > indicator {
-    background-color = $surface;
-    border-color = $border;
-    border-width = 1;
+    background-color = transparent;
+    border-color = $text-dim;
+    border-width = 1.5;
     color = $text-on-accent;
-    :checked { background-color = $selected; border-color = $selected; }
 }
-checkbox > indicator { border-radius = 2; :mixed { color = $text; } }
-radio > indicator { border-radius = 50%; }
-radio dot { border-radius = 50%; :checked { background-color = $text-on-accent; } }
+checkbox > indicator { border-radius = 2; :checked { background-color = $accent; border-color = $accent; } :mixed { background-color = $accent; border-color = $accent; } }
+radio > indicator { border-radius = 50%; :checked { border-color = $accent; } }
+radio dot { border-radius = 50%; :checked { background-color = $accent; } }
 
+checkbox:hover > indicator, radio:hover > indicator { border-color = $text; :checked { border-color = $accent; } }
 checkbox:focus > indicator, radio:focus > indicator, toggle:focus > track {
-    border-color = $accent;
-    border-width = 2;
-    outline = 4px $focus-ring;
-    outline-offset = 1;
+    outline = 3px $focus-ring;
+    outline-offset = 2;
 }
 checkbox:disabled > indicator, radio:disabled > indicator {
-    background-color = $surface;
-    border-color = $border;
-    color = $text-disabled;
+    background-color = transparent;
+    border-color = $text-disabled;
+    color = $base-background;
+    :checked { background-color = $text-disabled; border-color = $text-disabled; }
 }
+radio:disabled > indicator:checked { background-color = transparent; }
 radio:disabled dot { :checked { background-color = $text-disabled; } }
 
 toggle > track {
     border-radius = 50%;
-    background-color = $border;
-    :checked { background-color = $selected; }
+    background-color = $surface-active;
+    border-color = $control-border;
+    border-width = 1;
+    :checked { background-color = $accent; border-color = $accent; }
 }
-toggle:hover > track { background-color = lighten($border, 0.1); :checked { background-color = lighten($selected, 0.1); } }
-toggle:disabled > track { background-color = $border; }
-toggle thumb { border-radius = 50%; background-color = $text-on-accent; border-color = $shadow; border-width = 1; }
-toggle:disabled thumb { background-color = $text-disabled; }
+toggle:hover > track { background-color = mix($surface-active, $text, 8%); :checked { background-color = mix($accent, $text-on-accent, 8%); } }
+toggle:disabled > track { background-color = alpha($surface-active, 12%); border-color = alpha($text, 12%); :checked { background-color = alpha($text, 12%); border-color = transparent; } }
+toggle thumb { border-radius = 50%; background-color = $border-active; :checked { background-color = $text-on-accent; } }
+toggle:disabled thumb { background-color = alpha($text, 38%); :checked { background-color = $base-background; } }
 
 // Text fields: gui.TextInput, gui.PasswordInput (class "password"), gui.TextArea (class "area") and gui.NumberField
-// (class "number"). The caret uses the field's color; placeholders read the "placeholder" rule and the selection
-// the "selection" rule.
+// (class "number"), outlined; class "filled" gives the filled variant. The caret uses the field's color; placeholders
+// read the "placeholder" rule and the selection the "selection" rule.
 input {
-    background-color = $surface;
-    border-color = $border;
+    background-color = transparent;
+    border-color = $control-border;
     border-width = 1;
+    border-radius = $md-shape-extra-small;
     color = $text;
     cursor = text;
+    :hover { border-color = $border-active; }
     :focus { border-color = $accent; border-width = 2; }
-    :disabled { background-color = mix($surface, $base-background, 45%); border-color = $divider; color = $text-disabled; cursor = default; }
+    :disabled { border-color = alpha($text, 12%); color = $text-disabled; cursor = default; }
+}
+input.filled {
+    background-color = $surface-active;
+    border-width = 0;
+    border-bottom-color = $text-dim;
+    border-bottom-width = 1;
+    border-radius = 4 4 0 0;
+    :hover { border-bottom-color = $text; }
+    :focus { border-bottom-color = $accent; border-bottom-width = 2; }
+    :disabled { background-color = alpha($text, 4%); border-bottom-color = alpha($text, 38%); }
 }
 placeholder { color = $text-dim; :disabled { color = $text-disabled; } }
 selection { background-color = $text-selection; }
@@ -130,25 +273,31 @@ selection { background-color = $text-selection; }
 // shown; the list is a "listbox" of "option" rows (:selected, :highlighted for the keyboard row), and multi-select rows
 // hold an "indicator". Chips are the selected items shown in the button. Enum toggle buttons are "button.segment".
 dropdown {
-    background-color = $surface;
-    border-color = $border;
+    background-color = transparent;
+    border-color = $control-border;
     border-width = 1;
-    border-radius = $radius;
+    border-radius = $md-shape-extra-small;
     color = $text;
     cursor = pointer;
+    :hover { border-color = $border-active; }
     :open { border-color = $accent; border-width = 2; }
-    :disabled { color = $text-disabled; cursor = default; }
+    :disabled { border-color = alpha($text, 12%); color = $text-disabled; cursor = default; }
 }
-chip { background-color = $selected; border-radius = 3; color = $text; cursor = pointer; }
-listbox { background-color = $popup; border-color = $border; border-width = 1; border-radius = $radius; color = $text; }
+chip { background-color = $md-secondary-container; border-radius = $md-shape-small; color = $md-on-secondary-container; cursor = pointer; }
+listbox {
+    background-color = $popup;
+    border-radius = $md-shape-extra-small;
+    box-shadow = 0 2 6 2 #00000026, 0 1 2 0 #0000004d;
+    color = $text;
+}
 option {
-    border-radius = 2;
     cursor = pointer;
-    :hover { background-color = $surface-hover; }
-    :highlighted { background-color = $surface-hover; }
-    :selected { background-color = $selected; }
+    :hover(0.1 ease-out) { background-color = alpha($text, 8%); }
+    :highlighted { background-color = alpha($text, 10%); }
+    :selected { background-color = $selected; color = $md-on-secondary-container; }
 }
-option > indicator { border-color = $border; border-width = 1; border-radius = 2; color = $text; }
+option > indicator { border-color = $text-dim; border-width = 1.5; border-radius = 2; color = $text; }
+
 // Value controls: gui.Slider (drawn parts "track", "fill" and "thumb"; thumb :focus draws its outline-color ring),
 // gui.ProgressBar (part "fill") and gui.Splitter.
 slider {
@@ -156,14 +305,16 @@ slider {
     flex-direction = row; gap = 8; align-items = center;
     :disabled { color = $text-disabled; cursor = default; }
 }
-slider track { background-color = $border; height = 6; }
+slider track { background-color = $md-secondary-container; height = 6; }
 slider fill { background-color = $accent; }
 slider thumb {
-    width = 14; height = 14; max-width = 76%; max-height = 76%;
-    background-color = $text-on-accent; border-color = $shadow; border-width = 1; border-radius = 50%;
-    :focus { outline = 2px solid $accent; outline-offset = 2; }
+    width = 16; height = 16; max-width = 76%; max-height = 76%;
+    background-color = $accent; border-radius = 50%;
+    :focus { outline = 3px $focus-ring; outline-offset = 1; }
 }
+slider:disabled track { background-color = alpha($text, 12%); }
 slider:disabled fill, slider:disabled thumb { background-color = $text-disabled; }
+
 // Color picker: gui.ColorPicker (a "color-picker" column of "color-picker-row" rows) and its parts gui.ColorArea (drawn
 // "cursor"), gui.ColorStrip (drawn "thumb"; :vertical), gui.ColorSwatches ("swatches" of "swatch", :selected),
 // gui.ColorPreview, gui.ColorHex ("color-hex" with "input.hex") and gui.ColorChannels ("color-channels" of
@@ -172,7 +323,7 @@ slider:disabled fill, slider:disabled thumb { background-color = $text-disabled;
 color-picker { flex-direction = column; gap = 8; color = $text; :disabled { opacity = 0.5; } }
 color-picker-row { flex-direction = row; gap = 8; align-items = center; }
 color-area, color-strip { padding = 1; border-color = $border; border-width = 1; cursor = crosshair; }
-color-area { border-radius = 2; }
+color-area { border-radius = $md-shape-extra-small; }
 color-area cursor {
     width = 12; height = 12; border-radius = 50%; border-color = #ffffff; border-width = 2; outline = 1px #00000080;
     :focus { outline = 2px solid $accent; outline-offset = 1; }
@@ -185,108 +336,122 @@ color-strip thumb {
 checker { background-color = #f2f2f2; color = #c4c4c4; }
 swatches { flex-direction = row; flex-wrap = wrap; gap = 4; }
 swatch {
-    padding = 2; border-color = $border; border-width = 1; border-radius = 3; cursor = pointer;
-    :hover { border-color = $text-dim; }
+    padding = 2; border-color = $border; border-width = 1; border-radius = $md-shape-small; cursor = pointer;
+    :hover { border-color = $control-border; }
     :selected { border-color = $accent; border-width = 2; }
     :open { border-color = $accent; border-width = 2; }
-    :focus { outline = 2px $focus-ring; outline-offset = 1; }
+    :focus { outline = 3px $focus-ring; outline-offset = 1; }
     :disabled { cursor = default; opacity = 0.5; }
 }
-color-preview { padding = 1; border-color = $border; border-width = 1; border-radius = 3; cursor = pointer; }
+color-preview { padding = 1; border-color = $border; border-width = 1; border-radius = $md-shape-small; cursor = pointer; }
 color-hex, color-channels, color-field { flex-direction = row; gap = 4; align-items = center; }
 color-channel { flex-direction = row; gap = 4; align-items = center; }
 color-channel > label { color = $text-dim; font-size = 12; }
-button.color-mode { padding = 2 10; font-size = 12; :checked { background-color = $selected; color = $text-on-accent; } }
-progress { width = expand; height = 6; background-color = $divider; border-radius = 50%; }
+button.color-mode { padding = 2 10; font-size = 12; :checked { background-color = $accent; color = $text-on-accent; } }
+progress { width = expand; height = 4; background-color = $md-secondary-container; border-radius = 50%; }
 progress fill { background-color = $accent; border-radius = 50%; }
 splitter {
     background-color = $border;
     :horizontal { width = 6; height = 100%; cursor = ew-resize; }
     :vertical { width = 100%; height = 6; cursor = ns-resize; }
-    :hover { background-color = $surface-hover; }
-    :active { background-color = $surface-hover; }
+    :hover(0.12 ease-out) { background-color = $border-active; }
+    :active { background-color = $accent; }
 }
 
 // Tabs and docking: gui.TabStrip (also the dock space's tab groups) and gui.DockSpace. The active tab is :selected
 // and draws its "marker" part (also the unsaved dot); drop-indicator and drop-preview are drawn while a tab is dragged.
-tabstrip { background-color = $base-background; }
+tabstrip { background-color = $md-surface-container-low; }
 tabstrip > tab {
-    background-color = $surface;
+    background-color = transparent;
+    border-radius = $md-shape-small;
     color = $text-dim;
     cursor = pointer;
-    :hover { background-color = $surface-hover; }
-    :selected { background-color = $surface-active; color = $text; }
+    :hover(0.1 ease-out) { background-color = alpha($text, 8%); color = $text; }
+    :selected { background-color = $selected; color = $md-on-secondary-container; }
 }
-tab marker { background-color = $accent; }
-tab-close { border-radius = 2; :hover { background-color = $surface-hover; } }
+tab marker { background-color = transparent; }
+tab dirty { background-color = $accent; }
+tab-close { border-radius = 50%; :hover { background-color = alpha($text, 12%); } }
 
 // gui.Tabs, gui.VerticalTabs (class "vertical") and gui.PillTabs (class "pill"); "plain" drops the boxes. The
 // content sits in a "tabpanel".
-tabbar { background-color = $surface-hover; border-color = $border; border-width = 1; border-radius = $radius; }
-tabbar.plain, tabbar.pill { background-color = transparent; border-width = 0; }
+tabbar { background-color = $md-surface-container-low; border-radius = $md-shape-medium; }
+tabbar.plain, tabbar.pill { background-color = transparent; }
 tabbar > tab {
     color = $text-dim;
-    border-radius = $radius;
+    border-radius = $md-shape-full;
     cursor = pointer;
-    :hover { background-color = $surface-hover; }
-    :selected { background-color = $surface; color = $text; }
-    :focus { outline = 2px $accent; }
-    :disabled { color = $text-dim; cursor = default; }
+    :hover(0.1 ease-out) { background-color = alpha($text, 8%); color = $text; }
+    :selected { background-color = $selected; color = $md-on-secondary-container; }
+    :focus { outline = 2px $focus-ring; outline-offset = -2; }
+    :disabled { color = $text-disabled; cursor = default; }
 }
 tabbar.pill > tab {
-    border-radius = 50%;
-    :hover { background-color = alpha($selected, 0.4); }
-    :selected { background-color = $selected; }
+    :selected { background-color = $accent; color = $text-on-accent; }
 }
 tabbar tab-close { border-radius = 50%; color = $text-dim; :hover { color = $text; } }
-tabpanel { background-color = $popup; border-color = $border; border-width = 1; border-radius = $radius; }
-tabpanel.plain { background-color = transparent; border-width = 0; }
-tab-nav { color = $text; :hover { background-color = $surface-hover; } :disabled { color = $text-dim; } }
-dock-panel { background-color = $surface-active; }
-dock-window { background-color = $surface-active; border-color = $border; border-width = 1; border-radius = 3; }
-dock-grip { background-color = $base-background; cursor = move; }
-dock-empty { background-color = $base-background; color = $text-dim; align-items = center; justify-content = center; }
-dock-ghost { background-color = $accent; border-radius = 3; color = $text-on-accent; align-items = center; justify-content = center; }
-drop-indicator { background-color = $accent; }
-drop-preview { background-color = alpha($accent, 0.27); border-color = $accent; border-width = 2; border-radius = 2; }
-
-button.segment {
-    padding = 0;
-    border-radius = 3;
-    :checked { background-color = $selected; }
+tabpanel { background-color = $md-surface-container-low; border-radius = $md-shape-medium; }
+tabpanel.plain { background-color = transparent; }
+tab-nav { color = $text; :hover { background-color = alpha($text, 8%); } :disabled { color = $text-disabled; } }
+dock-panel { background-color = $base-background; }
+dock-window {
+    background-color = $surface;
+    border-radius = $md-shape-medium;
+    box-shadow = 0 2 6 2 #00000026, 0 1 2 0 #0000004d;
 }
+dock-grip { background-color = $md-surface-container-low; cursor = move; }
+dock-empty { background-color = $base-background; color = $text-dim; align-items = center; justify-content = center; }
+dock-ghost { background-color = $accent; border-radius = $md-shape-small; color = $text-on-accent; align-items = center; justify-content = center; }
+drop-indicator { background-color = $accent; }
+drop-preview { background-color = alpha($accent, 27%); border-color = $accent; border-width = 2; border-radius = $md-shape-small; }
 
 // Menu roots and rows share selectors across menu bars, flyouts and cascading context menus.
-menubar { background-color = $surface; border-bottom-color = $border; border-bottom-width = 1; color = $text; }
-menu { background-color = $popup; border-color = $border; border-width = 1; border-radius = $radius; color = $text; }
-menu-title, menu-item {
-    border-radius = 2; cursor = pointer;
-    :hover { background-color = $surface-hover; }
-    :focus { outline = 1px $accent; }
-    :open { background-color = $surface-hover; }
-    :highlighted { background-color = $surface-hover; }
-    :disabled { color = $text-dim; cursor = default; background-color = transparent; }
+menubar { background-color = transparent; color = $text; }
+menu {
+    background-color = $popup;
+    border-radius = $md-shape-extra-small;
+    box-shadow = 0 2 6 2 #00000026, 0 1 2 0 #0000004d;
+    color = $text;
 }
+menu-title, menu-item {
+    cursor = pointer;
+    :hover(0.1 ease-out) { background-color = alpha($text, 8%); }
+    :focus { background-color = alpha($text, 10%); }
+    :open { background-color = alpha($text, 10%); }
+    :highlighted { background-color = alpha($text, 10%); }
+    :disabled { color = $text-disabled; cursor = default; background-color = transparent; }
+}
+menu-title { border-radius = $md-shape-small; }
 menu-shortcut { color = $text-dim; }
 menu-separator { color = $border; }
 
 treeview { color = $text; }
 tree-row {
-    border-radius = 2;
-    :hover { background-color = $accent-subtle; }
-    :selected { background-color = $selected; }
+    border-radius = $md-shape-extra-small;
+    :hover(0.1 ease-out) { background-color = alpha($text, 8%); }
+    :selected { background-color = $selected; color = $md-on-secondary-container; }
 }
-tree-expander { color = $text-disabled; :hover { color = $text; } }
-tree-ghost { background-color = $selected; border-radius = 3; color = $text; }
+tree-expander { color = $text-dim; :hover { color = $text; } }
+tree-ghost { background-color = $md-secondary-container; border-radius = $md-shape-small; color = $md-on-secondary-container; }
 
-popup, dialog, toast { background-color = $popup; border-color = $border; border-width = 1; color = $text; }
-popup, toast { border-radius = 6; }
-dialog { border-radius = 8; }
+popup, dialog, toast { color = $text; }
+popup { background-color = $popup; border-radius = $md-shape-medium; box-shadow = 0 2 6 2 #00000026, 0 1 2 0 #0000004d; }
+dialog {
+    background-color = $surface-hover;
+    border-radius = $md-shape-extra-large;
+    box-shadow = 0 4 8 3 #00000026, 0 1 3 0 #0000004d;
+}
+toast {
+    background-color = $md-inverse-surface;
+    border-radius = $md-shape-extra-small;
+    box-shadow = 0 4 8 3 #00000026, 0 1 3 0 #0000004d;
+    color = $md-inverse-on-surface;
+}
 popup-title { background-color = $surface-hover; color = $text; }
-dialog-title { background-color = $popup; color = $text; border-radius = 8 8 0 0; }
+dialog-title { background-color = transparent; color = $text; border-radius = 28 28 0 0; }
 dialog-footer { border-top-color = $border; border-top-width = 1; }
-dialog-close { border-radius = 50%; color = $text-dim; :hover { background-color = $surface-hover; color = $text; } }
-tooltip { background-color = $surface; border-color = $border; border-width = 1; border-radius = $radius; color = $text; }
+dialog-close { border-radius = 50%; color = $text-dim; :hover { background-color = alpha($text-dim, 8%); color = $text; } }
+tooltip { background-color = $md-inverse-surface; border-radius = $md-shape-extra-small; color = $md-inverse-on-surface; }
 overlay { background-color = $overlay; }
 popup:closed, dialog:closed, tooltip:closed, overlay:closed { opacity = 0; }
 toast > accent { width = 4; }
@@ -295,21 +460,21 @@ toast.positive > accent { background-color = $positive; }
 toast.warning > accent { background-color = $warning; }
 toast.negative > accent { background-color = $negative; }
 appbar { background-color = $surface; color = $text; }
-window-button { :hover { background-color = $surface-hover; } }
+window-button { :hover { background-color = alpha($text, 8%); } }
 window-button > glyph-fill { background-color = $surface; }
 breadcrumb, label, wrapped-label { color = $text; }
-label { font-size = 14; }
+label { font-size = $md-body-medium-size; }
 crumb { color = $text; :link { color = $accent; cursor = pointer; } }
-crumb:link:hover, crumb:link:active { color = $selected; }
+crumb:link:hover, crumb:link:active { color = mix($accent, $text-on-accent, 20%); }
 crumb > underline { background-color = $accent; }
-crumb:hover > underline { background-color = $selected; }
+crumb:hover > underline { background-color = mix($accent, $text-on-accent, 20%); }
 crumb-separator { color = $text-dim; :hover { color = $accent; } :open { color = $accent; } }
 file-label { color = $text-dim; }
 file-status { color = $negative; }
-scrollbar { background-color = $base-background; }
+scrollbar { background-color = transparent; }
 scrollbar > thumb {
-    background-color = $border; border-radius = 3;
-    :hover { background-color = $border-active; }
+    background-color = alpha($text-dim, 40%); border-radius = 50%;
+    :hover { background-color = alpha($text-dim, 60%); }
     :active { background-color = $text-dim; }
 }
 form {
@@ -318,22 +483,23 @@ form {
     base-background = $base-background; border-radius = $radius;
 }
 object-field {
-    background-color = $surface; border-color = $border; border-width = 1; border-radius = 3; color = $text;
-    :hover { background-color = $surface-hover; }
+    background-color = $md-surface-container-low; border-color = $border; border-width = 1;
+    border-radius = $md-shape-small; color = $text;
+    :hover { background-color = $surface; }
     :empty { color = $text-dim; }
     :accepting { border-color = $positive; border-width = 2; }
     :rejecting { border-color = $negative; border-width = 2; }
 }
-object-field > drop-outline:accepted { border-color = $positive; border-width = 2.5; border-radius = 3; }
+object-field > drop-outline:accepted { border-color = $positive; border-width = 2.5; border-radius = $md-shape-small; }
 object-pick, object-clear { color = $text-dim; :hover { color = $text; } }
-file-sidebar, file-list { background-color = $surface; border-radius = 4; }
+file-sidebar, file-list { background-color = $md-surface-container-low; border-radius = $md-shape-medium; }
 file-list { border-color = $border; border-width = 1; }
 file-header { border-bottom-color = $border; border-bottom-width = 1; }
 file-row, file-place {
-    color = $text; border-radius = 3;
-    :hover { background-color = $surface-hover; }
-    :selected { background-color = $selected; }
+    color = $text; border-radius = $md-shape-small;
+    :hover(0.1 ease-out) { background-color = alpha($text, 8%); }
+    :selected { background-color = $selected; color = $md-on-secondary-container; }
 }
-file-place { color = $text-dim; :selected { color = $text; } }
+file-place { color = $text-dim; :selected { color = $md-on-secondary-container; } }
 file-column { color = $text-dim; :hover { color = $text; } :selected { color = $text; } }
 file-detail { color = $text-dim; }

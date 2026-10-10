@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Changed (breaking): Excalibur defaults to Material Design 3. The previous look ships as `ExcaliburStyles.Classic` (`SetBaseSheet`).
 - Changed (breaking): Node ids are automatic and numeric #167.
 - Changed (breaking): GUI data has scopes and animations are keyed and sampled once per frame #174.
 - Changed (breaking): Mutable fluent effects use `Draw…` shapes #20.

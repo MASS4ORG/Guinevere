@@ -111,7 +111,7 @@ public abstract partial class Program
             );
 
             gui.Image(LoadBadge(), width: 26, height: 26);
-            gui.DrawText("Guinevere Excalibur", 16, Color.White);
+            gui.DrawText("Guinevere Excalibur", 16, Token(gui, "text"));
             gui.Node().ExpandWidth();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Token(gui, "text"));
             _nativeTitlebar = gui.Checkbox(_nativeTitlebar, "Native title bar");
@@ -309,7 +309,7 @@ public abstract partial class Program
     {
         using (gui.Node().ExpandWidth().Margin(5).Padding(5).Enter())
         {
-            gui.DrawBackgroundRect(Token(gui, "surface-hover"), 5);
+            gui.DrawBackgroundRect(Token(gui, "md-surface-container-low"), 12);
             gui.DrawText(title, size: 18, color: Token(gui, "text")).MarginBottom(5);
             body();
         }

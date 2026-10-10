@@ -11,7 +11,7 @@ public abstract partial class Program
                          $btn       = #ff0000;
                          $btn-hover = #00ff00;
                          $btn-down  = #0000ff;
-                         $border    = #556080;
+                         $tile-edge = #556080;
 
                          #primary { background-color = $btn-hover; border-width = 0; }
 

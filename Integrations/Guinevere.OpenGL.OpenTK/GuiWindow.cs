@@ -18,8 +18,8 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     IDisplayCapability, ICursorCapability,
     IPointerCapability, IWindowResizeCapability, IDisposable
 {
-    readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly FileDropQueue _fileDrops = new();
+    readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly Gui _gui;
     readonly ICanvasRenderer _canvasRenderer;
     Action _guiCallback = null!;
@@ -52,8 +52,8 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
-        _gui.Platform.Register<IAppearanceCapability>(_appearance);
         _gui.Platform.Register<IFileDropCapability>(_fileDrops);
+        _gui.Platform.Register<IAppearanceCapability>(_appearance);
         FileDrop += drop => _fileDrops.Enqueue(drop.FileNames, MousePosition);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
         _fontText = Font.FromStream(fontStream);

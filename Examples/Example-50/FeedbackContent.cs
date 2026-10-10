@@ -11,7 +11,7 @@ public abstract partial class Program
         {
             Section(gui, "Toasts ", () => ToastContent(gui));
             Section(gui, "Tooltips", () => TooltipContent(gui));
-            Section(gui, "Progress bar", () => { ProgressBarContent(gui); });
+            Section(gui, "Progress bar", () => ProgressBarContent(gui));
         }
     }
 
@@ -19,7 +19,7 @@ public abstract partial class Program
     {
         using (gui.Node().Direction(Axis.Vertical).Gap(10).Enter())
         {
-            using (gui.Node().Direction(Axis.Horizontal).Gap(8).Enter())
+            using (gui.Node().Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
             {
                 if (gui.Button("Info BottomRight", classes: ["accent"]))
                     gui.Toast("Here is some information", new ToastOptions
@@ -82,7 +82,7 @@ public abstract partial class Program
             {
                 gui.ProgressBar(fraction, height: 12);
 
-                gui.DrawText($"{fraction:P0}", size: 12, color: Color.FromArgb(255, 63, 81, 181),
+                gui.DrawText($"{fraction:P0}", size: 12, color: Token(gui, "accent"),
                     centerInRect: false);
             }
 

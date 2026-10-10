@@ -43,11 +43,11 @@ public abstract partial class Program
                 gui.PillTabs(ref _pillTab, tabs =>
                 {
                     tabs.Tab("Overview", () => gui.DrawText("Overview content", size: 12,
-                        color: Color.FromArgb(255, 102, 102, 102)));
+                        color: Token(gui, "text-dim")));
                     tabs.Tab("Details", () => gui.DrawText("Details content", size: 12,
-                        color: Color.FromArgb(255, 102, 102, 102)));
+                        color: Token(gui, "text-dim")));
                     tabs.Tab("History", () => gui.DrawText("History content", size: 12,
-                        color: Color.FromArgb(255, 102, 102, 102)));
+                        color: Token(gui, "text-dim")));
                 });
             });
 
@@ -58,11 +58,11 @@ public abstract partial class Program
                     gui.VerticalTabs(ref _verticalTab, tabs =>
                     {
                         tabs.Tab("Overview", () => gui.DrawText("Overview content", size: 12,
-                            color: Color.FromArgb(255, 102, 102, 102)));
+                            color: Token(gui, "text-dim")));
                         tabs.Tab("Details", () => gui.DrawText("Details content", size: 12,
-                            color: Color.FromArgb(255, 102, 102, 102)));
+                            color: Token(gui, "text-dim")));
                         tabs.Tab("History", () => gui.DrawText("History content", size: 12,
-                            color: Color.FromArgb(255, 102, 102, 102)));
+                            color: Token(gui, "text-dim")));
                     });
                 }
             });
@@ -122,7 +122,7 @@ public abstract partial class Program
             });
         });
 
-        gui.DrawText(_menuStatus, size: 12, color: Color.FromArgb(255, 102, 102, 102), wrapWidth: 560);
+        gui.DrawText(_menuStatus, size: 12, color: Token(gui, "text-dim"), wrapWidth: 560);
     }
 
     static void TreeViewBreadcrumb(Gui gui)
@@ -141,22 +141,22 @@ public abstract partial class Program
 
                 using (gui.Node().Expand().Padding(8).Direction(Axis.Vertical).Gap(10).Enter())
                 {
-                    gui.DrawText("Project Explorer", size: 14, color: Color.FromArgb(255, 51, 51, 51));
-                    gui.DrawText(_treeStatus, size: 12, color: Color.FromArgb(255, 102, 102, 102),
+                    gui.DrawText("Project Explorer", size: 14, color: Token(gui, "text"));
+                    gui.DrawText(_treeStatus, size: 12, color: Token(gui, "text-dim"),
                         wrapWidth: 420);
-                    gui.DrawText(_treeCrumbStatus, size: 12, color: Color.FromArgb(255, 102, 102, 102),
+                    gui.DrawText(_treeCrumbStatus, size: 12, color: Token(gui, "text-dim"),
                         wrapWidth: 420);
 
                     using (gui.Node().Margin(0, 10, 0, 0).Direction(Axis.Vertical).Gap(4).Enter())
                     {
                         gui.DrawText("Arrow keys navigate, Enter activates", size: 11,
-                            color: Color.FromArgb(255, 153, 153, 153));
+                            color: Token(gui, "text-dim"));
                         gui.DrawText("Click a folder's arrow, double-click the row", size: 11,
-                            color: Color.FromArgb(255, 153, 153, 153));
+                            color: Token(gui, "text-dim"));
                         gui.DrawText("The breadcrumb above follows the selection", size: 11,
-                            color: Color.FromArgb(255, 153, 153, 153));
+                            color: Token(gui, "text-dim"));
                         gui.DrawText("Right / middle click are reported too", size: 11,
-                            color: Color.FromArgb(255, 153, 153, 153));
+                            color: Token(gui, "text-dim"));
                     }
                 }
             }
@@ -194,13 +194,13 @@ public abstract partial class Program
         {
             foreach (var title in NestedTabTitles)
                 tabs.Tab(title, () => gui.DrawText($"{title} content", size: 12,
-                    color: Color.FromArgb(255, 102, 102, 102)), closable: true);
+                    color: Token(gui, "text-dim")), closable: true);
         }, id: HorizontalTabsId);
 
         using (gui.Node().Margin(0, 6, 0, 0).Direction(Axis.Horizontal).Gap(8).Enter())
         {
             gui.DrawText("Middle-click a tab to close it", size: 11,
-                color: Color.FromArgb(255, 153, 153, 153));
+                color: Token(gui, "text-dim"));
 
             if (gui.Button("Restore", width: 72, height: 24, fontSize: 12))
             {

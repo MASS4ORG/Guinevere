@@ -10,7 +10,7 @@ public class ExcaliburStylesTests
     public void DefaultSheet_Loads()
     {
         Assert.Contains("button", ExcaliburStyles.DefaultSheetText);
-        Assert.Equal("\"Guinevere Dark\"", ExcaliburStyles.DefaultSheet.Constants["theme-name"]);
+        Assert.Equal("\"Material You Dark\"", ExcaliburStyles.DefaultSheet.Constants["theme-name"]);
         Assert.Same(ExcaliburStyles.DefaultSheet, ExcaliburStyles.Dark);
         Assert.Equal("dark", ExcaliburStyles.DefaultSheet.Constants["theme-kind"]);
     }
@@ -35,9 +35,9 @@ public class ExcaliburStylesTests
 
     /// <summary>Each built-in theme is a token sheet with its kind and the colors it was designed with.</summary>
     [Theory]
-    [InlineData("light", "light", "#ffffff", "#000000")]
-    [InlineData("mono-light", "light", "#ffffff", "#1f2328")]
-    [InlineData("mono-dark", "dark", "#1e222a", "#d7dae0")]
+    [InlineData("light", "light", "#edeef4", "#20242a")]
+    [InlineData("mono-light", "light", "#ebedf1", "#1b1f27")]
+    [InlineData("mono-dark", "dark", "#232731", "#d7dae0")]
     public void Themes_DefineTheirTokens(string name, string kind, string surface, string text)
     {
         var sheet = name switch
@@ -93,8 +93,90 @@ public class ExcaliburStylesTests
 
         Assert.Equal(Color.Transparent, ExcaliburStyles.TokenColor(gui, "no-such-token"));
         var style = ExcaliburStyles.DroppableArea(gui);
-        Assert.Equal(Parse("#58b074"), style.Accepted);
-        Assert.Equal(Parse("#d06666"), style.Rejected);
+        Assert.Equal(Parse("#6dd58c"), style.Accepted);
+        Assert.Equal(Parse("#f2b8b5"), style.Rejected);
+    }
+
+    /// <summary>The Material default is a complete base sheet.</summary>
+    [Fact]
+    public void DefaultSheet_IsAValidBase() => Assert.Empty(ExcaliburStyles.ValidateBaseSheet(ExcaliburStyles.DefaultSheet));
+
+    /// <summary>Setting a theme hands the sheets' control sizes to the controls; sheets without them keep the defaults.</summary>
+    [Fact]
+    public void ApplyMetrics_ReadsTheSheetTokens()
+    {
+        using var harness = new FrameHarness(200, 80);
+        float field = 0, compact = 0, indicator = 0, classicField = 0;
+        harness.Frame(g =>
+        {
+            ExcaliburStyles.SetTheme(g, ExcaliburStyles.Light);
+            (field, compact, indicator) = (g.ControlStyle.FieldHeight, g.ControlStyle.CompactHeight,
+                g.ControlStyle.IndicatorSize);
+        });
+        Assert.Equal((28f, 22f, 18f), (field, compact, indicator));
+
+        using var classic = new FrameHarness(200, 80);
+        ExcaliburStyles.SetBaseSheet(classic.Gui, ExcaliburStyles.Classic);
+        classic.Frame(g =>
+        {
+            ExcaliburStyles.SetTheme(g, null);
+            classicField = g.ControlStyle.FieldHeight;
+        });
+        Assert.Equal(ControlMetrics.FieldHeight, classicField);
+
+        harness.Gui.StyleSheets.Add(StyleSheet.Parse("$control-field-height = 40;"));
+        harness.Frame(g =>
+        {
+            ExcaliburStyles.SetTheme(g, ExcaliburStyles.Light);
+            field = g.ControlStyle.FieldHeight;
+        });
+        Assert.Equal(40f, field);
+    }
+
+    /// <summary>The classic look is selectable as a complete base and keeps the pre-Material palette.</summary>
+    [Fact]
+    public void Classic_IsASelectableBase()
+    {
+        var gui = new Gui();
+        ExcaliburStyles.SetBaseSheet(gui, ExcaliburStyles.Classic);
+
+        Assert.Equal([ExcaliburStyles.Classic], gui.StyleSheets);
+        Assert.Equal(Parse("#548fe0"), ExcaliburStyles.TokenColor(gui, "accent"));
+    }
+
+    /// <summary>A theme that overrides only a Material role recolors the slots and the controls aliased to it.</summary>
+    [Fact]
+    public void RoleOverrides_ReachSlotsAndControls()
+    {
+        using var harness = new FrameHarness(200, 80);
+        harness.Gui.StyleSheets.Add(StyleSheet.Parse("$md-primary = #123456; $md-on-surface = #fedcba;"));
+
+        var primary = PrimaryButtonBackground(harness);
+
+        Assert.Equal(Parse("#123456"), primary);
+        Assert.Equal(Parse("#123456"), ExcaliburStyles.TokenColor(harness.Gui, "accent"));
+        Assert.Equal(Parse("#fedcba"), ExcaliburStyles.TokenColor(harness.Gui, "text"));
+    }
+
+    /// <summary>A theme written with the slot names alone still recolors the controls.</summary>
+    [Fact]
+    public void SlotOverrides_StillRecolorControls()
+    {
+        using var harness = new FrameHarness(200, 80);
+        harness.Gui.StyleSheets.Add(StyleSheet.Parse("$accent = #abcdef;"));
+
+        Assert.Equal(Parse("#abcdef"), PrimaryButtonBackground(harness));
+    }
+
+    static Color PrimaryButtonBackground(FrameHarness harness)
+    {
+        Color color = default;
+        harness.Frame(g =>
+        {
+            ExcaliburStyles.Ensure(g);
+            color = g.ResolveStyle("button", ["primary"]).GetColor("background-color") ?? default;
+        });
+        return color;
     }
 
     static Color Parse(string hex) => StyleValue.TryColor(hex, out var color) ? color : throw new ArgumentException(hex);

@@ -47,6 +47,17 @@ public sealed class FileDialogConfirmationTests : IDisposable
     }
 
     [Fact]
+    public async Task FolderModesListOnlyDirectories()
+    {
+        Directory.CreateDirectory(Path.Combine(_root, "sub"));
+        var folder = await Open(FileDialogMode.SelectFolder, _ => { });
+        Assert.Equal(["sub"], folder.Browser.Entries.Select(entry => entry.Name));
+
+        var file = await Open(FileDialogMode.OpenFile, _ => { });
+        Assert.Equal(["sub", "existing.txt"], file.Browser.Entries.Select(entry => entry.Name));
+    }
+
+    [Fact]
     public async Task OpenFileCompletesWithTheSelectedPath()
     {
         string? completed = null;

@@ -189,4 +189,23 @@ public class SystemAppearanceTests
         harness.Frame(g => ExcaliburStyles.FollowSystemAppearance(g));
         Assert.DoesNotContain(ExcaliburStyles.Light, harness.Gui.StyleSheets);
     }
+
+    /// <summary>The accent's ink flips to dark on bright accents and the primary container follows the scheme.</summary>
+    [Fact]
+    public void ExcaliburDerivesTheAccentRoles()
+    {
+        using var harness = new FrameHarness();
+        var current = new SystemAppearance(ColorScheme.Dark, Color.ParseHex("#ffeb3b"));
+        using var monitor = new SystemAppearanceMonitor(() => current);
+        harness.Gui.Platform.Register<IAppearanceCapability>(monitor);
+        ResolvedStyle style = default!;
+        harness.Frame(g =>
+        {
+            ExcaliburStyles.FollowSystemAppearance(g);
+            style = g.ResolveStyle("button", ["primary"]);
+        });
+
+        Assert.Equal(Color.ParseHex("#ffeb3b"), style.GetColor("background-color"));
+        Assert.Equal(Color.Black, style.GetColor("color"));
+    }
 }
