@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased][]
 
+- Added: the `test` build target also emits a TRX report.
+
 ## v[6.0.0][] 2026-10-10
 
 - Changed (breaking): Excalibur defaults to Material Design 3. The previous look ships as `ExcaliburStyles.Classic` (`SetBaseSheet`).

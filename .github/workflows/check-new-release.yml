@@ -27,10 +27,13 @@ jobs:
                       .nuke/temp
                       ~/.nuget/packages
                   key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
-            - name: "Run: Test, GitHubCreateRelease"
-              run: ./build.cmd Test GitHubCreateRelease
-              env:
-                  GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+            - name: "Run: Test, GitHubCreateTag"
+              run: |
+                  echo "HEAD_BEFORE=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+                  ./build.cmd Test GitHubCreateTag \
+                    --github-repository "${{ github.repository }}" \
+                    --github-token "${{ secrets.GITHUB_TOKEN }}" \
+                    --release-branch "${{ github.event.repository.default_branch }}"
             - name: "Publish: coverage.xml"
               uses: actions/upload-artifact@v7
               with:
@@ -43,9 +46,8 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  tag="$(git tag --points-at HEAD | head -n1)"
-                  if [ -n "$tag" ]; then
-                    gh workflow run publish-on-tag.yml --ref "$tag"
+                  if [ "$(git rev-parse HEAD)" != "$HEAD_BEFORE" ]; then
+                    gh workflow run publish-on-tag.yml --ref "$(git tag --points-at HEAD | head -n1)"
                   fi
         permissions:
             contents: write

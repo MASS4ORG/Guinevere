@@ -2,148 +2,106 @@ namespace Build;
 
 /// <summary>
 /// This is the main build file for the project.
-/// This partial is responsible for creating and publishing NuGet packages.
+/// This partial is responsible for packing and pushing the NuGet libraries.
 /// </summary>
-partial class Build
+sealed partial class Build
 {
-    [Parameter("NuGet API Key for publishing packages")] public readonly string NuGetApiKey;
+    [Parameter("NuGet API key used by PushNuGet. Absent = pack only.")]
+    [Secret]
+    readonly string NuGetApiKey;
 
-    [Parameter("NuGet source URL (default: nuget.org)")]
-    public readonly string NuGetSource = "https://api.nuget.org/v3/index.json";
+    [Parameter("NuGet feed to push to (default: nuget.org)")]
+    readonly string NuGetSource = "https://api.nuget.org/v3/index.json";
 
-    [Parameter("Skip NuGet symbol packages")] public readonly bool SkipSymbols;
+    static AbsolutePath PackagesDirectory => ArtifactsDirectory / "packages";
 
-    private static AbsolutePath PackagesDirectory => RootDirectory / "packages";
+    /// <summary>Every project declaring a PackageId. The rest of the solution is apps, tests and tooling.</summary>
+    IEnumerable<Project> PackableProjects =>
+        Solution.AllProjects.Where(project =>
+            project.Path.FileExists() && project.Path.ReadAllText().Contains("<PackageId>", StringComparison.Ordinal));
 
-    /// <summary>
-    /// Gets the list of projects that should be packaged as NuGet packages
-    /// </summary>
-    private List<Project> PackageableProjects => [.. Solution.AllProjects.Where(ShouldCreateNuGetPackage)];
-
-    /// <summary>
-    /// Determines if a project should be packaged as a NuGet package
-    /// </summary>
-    private static bool ShouldCreateNuGetPackage(Project project)
-    {
-        try
-        {
-            var projectFile = project.Path;
-            if (!projectFile.Exists()) return false;
-
-            var content = projectFile.ReadAllText();
-
-            // Check for explicit packaging properties
-            if (content.Contains("<IsPackable>true</IsPackable>", StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            if (content.Contains("<IsPackable>false</IsPackable>", StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            // Check for library projects (exclude executables, tests, etc.)
-            var isLibrary = content.Contains("<OutputType>Library</OutputType>", StringComparison.OrdinalIgnoreCase) ||
-                            (!content.Contains("<OutputType>", StringComparison.OrdinalIgnoreCase) &&
-                             !project.Name.Contains("Test", StringComparison.OrdinalIgnoreCase) &&
-                             !project.Name.Contains("Example", StringComparison.OrdinalIgnoreCase) &&
-                             !project.Name.Contains("Example", StringComparison.OrdinalIgnoreCase));
-
-            return isLibrary;
-        }
-        catch (Exception ex)
-        {
-            Log.Warning("Failed to analyze project {Project}: {Error}", project.Name, ex.Message);
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Creates NuGet packages for all library projects
-    /// </summary>
-    private Target PackNuGet => td => td
-        .DependsOn(Restore, Compile)
-        .After(Publish)
-        .Produces(PackagesDirectory / "*.nupkg")
-        .Executes(() =>
-        {
-            PackagesDirectory.CreateDirectory();
-
-            foreach (var project in PackageableProjects)
+    public Target PackNuGet => td =>
+        td
+            .DependsOn(Compile)
+            .After(Publish)
+            .Executes(() =>
             {
-                Log.Information("Creating NuGet package for {Project}", project.Name);
+                PackagesDirectory.CreateOrCleanDirectory();
 
-                _ = DotNetTasks.DotNetPack(s => s
-                    .SetProject(project)
-                    .SetConfiguration(ConfigurationSet)
-                    .SetOutputDirectory(PackagesDirectory)
-                    .SetVersion(VersionFull)
-                    .SetAssemblyVersion(VersionFull)
-                    .SetFileVersion(VersionFull)
-                    .SetInformationalVersion(VersionFull)
-                    .SetTitle(GetPackageTitle(project))
-                    .SetAuthors("Bruno Massa")
-                    .SetCopyright($"Copyright © Bruno Massa {DateTime.UtcNow.Year}")
-                    .SetPackageProjectUrl("https://mass4.org/guinevere")
-                    .SetRepositoryUrl("https://github.com/mass4org/guinevere.git")
-                    .SetRepositoryType("git")
-                    .SetPackageRequireLicenseAcceptance(false)
-                    .SetPackageTags("gui imgui graphics opengl vulkan skia gamedev opentk raylib silk.net")
-                    .SetPackageIconUrl("icon.png")
-                    .EnableNoBuild()
-                );
-            }
+                foreach (var project in PackableProjects)
+                {
+                    Log.Information("Packing {Project}", project.Name);
 
-            Log.Information("Successfully created {Count} NuGet packages in {Directory}",
-                PackageableProjects.Count, PackagesDirectory);
-        });
+                    _ = DotNetPack(settings =>
+                    {
+                        var configured = WithMsBuildProperties(settings
+                            .SetProject(project)
+                            .SetNoLogo(true)
+                            .SetConfiguration(Config)
+                            .SetOutputDirectory(PackagesDirectory)
+                            .EnableNoBuild()
+                            .SetVersion(Version)
+                            .SetAssemblyVersion(Version)
+                            .SetInformationalVersion(Version));
+                        return ConfigurePackageMetadata(configured);
+                    });
+                }
+
+                Log.Information("Packed {Count} packages into {Directory}",
+                    PackagesDirectory.GlobFiles("*.nupkg").Count, PackagesDirectory);
+            });
+
+    /// <summary>Applies the repository's shared package metadata.</summary>
+    DotNetPackSettings ConfigurePackageMetadata(DotNetPackSettings settings) =>
+        settings
+            .SetFileVersion(Version)
+            .SetAuthors(PackageAuthors)
+            .SetCopyright($"Copyright © {PackageCopyrightOwner} {DateTime.UtcNow.Year}")
+            .SetPackageProjectUrl(PackageProjectUrl)
+            .SetRepositoryUrl(PackageRepositoryUrl)
+            .SetRepositoryType("git")
+            .SetPackageRequireLicenseAcceptance(false)
+            .SetPackageTags(PackageTags);
 
     /// <summary>
-    /// Publishes NuGet packages to the configured source.
-    /// Runs whenever an API key is present. The tag/release flow supplies a short-lived
-    /// Trusted Publishing key through the NuGet/login action, so no long-lived secret is
-    /// needed. This is deliberately NOT gated on <see cref="HasNewCommits"/>: publishing for
-    /// an existing tag must republish that exact version. Pushes use --skip-duplicate, so a
-    /// version already on the feed is a no-op instead of an error.
+    /// Pushes with --skip-duplicate, so re-running a release for an existing version is a no-op
+    /// rather than an error. Runs only when an API key is present and not gated on new commits: publishing
+    /// for an existing tag must republish that exact version.
     /// </summary>
-    private Target PushNuGet => td => td
-        .DependsOn(PackNuGet)
-        .OnlyWhenStatic(() => !string.IsNullOrEmpty(NuGetApiKey))
-        .Executes(() =>
-        {
-            var packages = PackagesDirectory.GlobFiles("*.nupkg")
-                .Where(p => !p.Name.Contains("symbols", StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            if (!packages.Any())
+    public Target PushNuGet => td =>
+        td
+            .DependsOn(PackNuGet)
+            .OnlyWhenStatic(() => !string.IsNullOrEmpty(NuGetApiKey))
+            .Executes(() =>
             {
-                Log.Warning("No packages found to publish in {Directory}", PackagesDirectory);
-                return;
-            }
+                var packages = PackagesDirectory.GlobFiles("*.nupkg")
+                    .Where(package => !package.Name.Contains("symbols", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (packages.Count == 0)
+                {
+                    Log.Warning("No packages found to publish in {Directory}", PackagesDirectory);
+                    return;
+                }
 
-            EnsurePublishable(packages);
+                EnsurePublishable(packages);
 
-            foreach (var package in packages)
-            {
-                Log.Information("Publishing package {Package} to {Source}", package.Name, NuGetSource);
-
-                _ = DotNetTasks.DotNetNuGetPush(s => s
-                    .SetTargetPath(package)
-                    .SetSource(NuGetSource)
-                    .SetApiKey(NuGetApiKey)
-                    .SetSkipDuplicate(true)
-                );
-            }
-
-            Log.Information("Successfully published {Count} packages to {Source}", packages.Count, NuGetSource);
-        });
-
-    [Parameter("Package ID prefix every published package must carry (default: MASS4.)")]
-    public readonly string NuGetPackagePrefix = "MASS4.";
+                foreach (var package in packages)
+                {
+                    Log.Information("Pushing {Package} to {Source}", package.Name, NuGetSource);
+                    _ = DotNetNuGetPush(settings => settings
+                        .SetTargetPath(package)
+                        .SetSource(NuGetSource)
+                        .SetApiKey(NuGetApiKey)
+                        .EnableSkipDuplicate());
+                }
+            });
 
     /// <summary>
     /// Fails before the first push when any package could not be published, since nuget.org versions
-    /// cannot be deleted: every ID must carry the prefix the Trusted Publishing policy covers, and CI
-    /// must build a release tag so the package version is the tagged one.
+    /// cannot be deleted: every ID must carry <see cref="NuGetPackagePrefix"/> and CI must build a release tag so
+    /// the package version is the tagged one.
     /// </summary>
-    private void EnsurePublishable(IEnumerable<AbsolutePath> packages)
+    void EnsurePublishable(IEnumerable<AbsolutePath> packages)
     {
         var unprefixed = packages
             .Select(package => package.Name)
@@ -161,40 +119,4 @@ partial class Build
             throw new InvalidOperationException($"Publishing must run on a release tag, not '{gitHubRef}'.");
         }
     }
-
-    /// <summary>
-    /// Gets the NuGet package title for a project
-    /// </summary>
-    private static string GetPackageTitle(Project project) =>
-        project.Name switch
-        {
-            "Guinevere" => "Guinevere - GPU Accelerated IM GUI System",
-            "Guinevere.Excalibur" => "Guinevere Excalibur - Standard Control Set",
-            "Guinevere.OpenGL.OpenTK" => "Guinevere OpenGL Integration for OpenTK",
-            "Guinevere.OpenGL.Raylib" => "Guinevere OpenGL Integration for Raylib",
-            "Guinevere.OpenGL.SilkNET" => "Guinevere OpenGL Integration for Silk.NET",
-            "Guinevere.Vulkan.SilkNET" => "Guinevere Vulkan Integration for Silk.NET",
-            _ => $"Guinevere - {project.Name}"
-        };
-
-    /// <summary>
-    /// Gets the NuGet package description for a project
-    /// </summary>
-    private static string GetPackageDescription(Project project) =>
-        project.Name switch
-        {
-            "Guinevere" =>
-                "A GPU accelerated immediate mode GUI system built on SkiaSharp. Provides high-performance rendering with modern graphics APIs support.",
-            "Guinevere.Excalibur" =>
-                "A ready-to-use set of default Guinevere controls built on the Guinevere core engine: buttons, inputs, tabs, tree view, menu bar, flyouts, popups, tooltips and docking.",
-            "Guinevere.OpenGL.OpenTK" =>
-                "OpenGL integration package for Guinevere GUI system using OpenTK. Enables GPU-accelerated rendering through OpenGL.",
-            "Guinevere.OpenGL.Raylib" =>
-                "OpenGL integration package for Guinevere GUI system using Raylib. Provides easy integration with Raylib-based applications.",
-            "Guinevere.OpenGL.SilkNET" =>
-                "OpenGL integration package for Guinevere GUI system using Silk.NET. Modern OpenGL bindings for high-performance applications.",
-            "Guinevere.Vulkan.SilkNET" =>
-                "Vulkan integration package for Guinevere GUI system using Silk.NET. Next-generation graphics API support for maximum performance.",
-            _ => $"Integration package for Guinevere GUI system - {project.Name}"
-        };
 }

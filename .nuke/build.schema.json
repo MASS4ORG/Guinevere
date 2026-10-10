@@ -24,26 +24,24 @@
     "ExecutableTarget": {
       "type": "string",
       "enum": [
-        "BuildAll",
         "BuildExamples",
         "CheckNewCommits",
-        "Ci",
         "Clean",
         "CleanExamples",
         "Compile",
         "CreateExamplesReadme",
         "CreateReleaseCommit",
-        "ExtractChangelogUnreleased",
+        "CreateReleaseTag",
         "GitHubCreateRelease",
         "GitHubCreateTag",
+        "GitLabCreateRelease",
+        "GitLabCreateTag",
+        "Pack",
         "PackageExamples",
         "PackNuGet",
         "Publish",
         "PublishExamples",
-        "PublishIntegrations",
-        "PublishLibrary",
         "PushNuGet",
-        "Release",
         "Restore",
         "ShowCurrentVersion",
         "Test",
@@ -123,18 +121,9 @@
   "allOf": [
     {
       "properties": {
-        "ChangelogFile": {
-          "type": "string",
-          "description": "Changelog file"
-        },
         "Configuration": {
           "type": "string",
-          "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)"
-        },
-        "CoverageThreshold": {
-          "type": "integer",
-          "description": "Minimum coverage threshold (default: 80)",
-          "format": "int32"
+          "description": "Config to build - Default is 'Debug' (local) or 'Release' (server)"
         },
         "ExampleRuntimes": {
           "type": "array",
@@ -147,65 +136,60 @@
           "type": "string",
           "description": "Examples output directory (default: ./examples-output)"
         },
-        "GitHubApiBaseUrl": {
+        "GithubRepository": {
           "type": "string",
-          "description": "GitHub API URL"
+          "description": "GitHub owner/repo path (default: MASS4ORG/Guinevere)"
         },
-        "GitHubRepository": {
+        "GithubToken": {
           "type": "string",
-          "description": "GitHub repository"
+          "description": "GitHub token (repo scope, or the Actions-provided GITHUB_TOKEN) with contents:write. Omit to skip pushing/releasing to GitHub",
+          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
         },
-        "GitHubToken": {
+        "GitlabProjectPath": {
           "type": "string",
-          "description": "GitHub token for creating releases"
+          "description": "GitLab group/project path (default: MASS4ORG/guinevere)"
+        },
+        "GitlabToken": {
+          "type": "string",
+          "description": "GitLab personal/project access token with api + write_repository scope. Omit to skip pushing/releasing to GitLab",
+          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
         },
         "NuGetApiKey": {
           "type": "string",
-          "description": "NuGet API Key for publishing packages"
-        },
-        "NuGetPackagePrefix": {
-          "type": "string",
-          "description": "Package ID prefix every published package must carry (default: MASS4.)"
+          "description": "NuGet API key used by PushNuGet. Absent = pack only",
+          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
         },
         "NuGetSource": {
           "type": "string",
-          "description": "NuGet source URL (default: nuget.org)"
+          "description": "NuGet feed to push to (default: nuget.org)"
         },
         "PublishDirectory": {
           "type": "string",
-          "description": "publish-directory (default: ./publish/{runtimeIdentifier})"
+          "description": "publish-directory (default: ./.publish/{runtimeIdentifier})"
         },
         "PublishReadyToRun": {
           "type": "boolean",
-          "description": "publish-ready-to-run (default: false - not applicable for libraries)"
+          "description": "publish-ready-to-run (default: false)"
         },
         "PublishSelfContained": {
           "type": "boolean",
-          "description": "publish-self-contained (default: true)"
+          "description": "publish-self-contained (default: set by the project)"
         },
         "PublishSingleFile": {
           "type": "boolean",
-          "description": "publish-single-file (default: false - only for executables)"
+          "description": "publish-single-file (default: set by the project)"
         },
         "PublishTrimmed": {
           "type": "boolean",
-          "description": "publish-trimmed (default: false - libraries should not be trimmed)"
+          "description": "publish-trimmed (default: set by the project)"
         },
-        "RepositoryCompareLink": {
+        "ReleaseBranch": {
           "type": "string",
-          "description": "Repository compare link"
+          "description": "Branch the release commit is pushed to (default: main)"
         },
         "RuntimeIdentifier": {
           "type": "string",
           "description": "Runtime identifier for the build (e.g., win-x64, linux-x64, osx-x64) (default: linux-x64)"
-        },
-        "SkipGitHubRelease": {
-          "type": "boolean",
-          "description": "Skip GitHub release creation"
-        },
-        "SkipSymbols": {
-          "type": "boolean",
-          "description": "Skip NuGet symbol packages"
         },
         "Solution": {
           "type": "string",

@@ -2,48 +2,68 @@ namespace Build;
 
 /// <summary>
 /// This is the main build file for the project.
-/// This partial is responsible for the build process for libraries and integrations.
+/// This partial is responsible for the build process.
 /// </summary>
-partial class Build
+sealed partial class Build
 {
-    private Target Clean => s => s
+    Target Clean => td => td
         .Executes(() =>
         {
-            var nukeBuildDir = Solution.Build.Directory;
-
-            Solution.Directory.GlobDirectories("**/bin", "**/obj", "**/output")
-                .Where(path => !path.ToString().StartsWith(nukeBuildDir))
+            Solution.AllProjects
+                .Where(project => project.Path != BuildProjectDirectory / "Build.csproj")
+                .SelectMany(project => new[]
+                {
+                    project.Directory / "bin",
+                    project.Directory / "obj",
+                    project.Directory / "output",
+                })
+                .Distinct()
+                .Where(path => path.DirectoryExists())
                 .ForEach(path => path.DeleteDirectory());
-
             PublishDir.DeleteDirectory();
             CoverageDirectory.DeleteDirectory();
         });
 
-    private Target Restore => td => td
-        .After(Clean)
+    Target Restore => td => td
         .Executes(() =>
         {
-            _ = DotNetTasks.DotNetRestore(s => s
-                .SetProjectFile(Solution));
+            _ = DotNetRestore(s => WithMsBuildProperties(s.SetProjectFile(Solution)));
         });
 
-    private Target Compile => td => td
-        .After(Restore)
+    Target Compile => td => td
+        .DependsOn(Restore)
         .Executes(() =>
         {
-            Log.Debug("Configuration {Configuration}", ConfigurationSet);
-            Log.Debug("configuration {configuration}", Configuration);
+            Log.Debug("Config {Config}", Config);
 
-            var projectsToBuild = Solution.AllProjects
-                .Where(p => p.GetProperty("ExcludeFromBuild")?.Equals("true", StringComparison.OrdinalIgnoreCase) != true);
-
-            foreach (var project in projectsToBuild)
+            // A project opts out with <ExcludeFromBuild>true</ExcludeFromBuild>; then the projects are built one by one.
+            var excluded = Solution.AllProjects
+                .Where(project => project.Path.FileExists()
+                                  && project.Path.ReadAllText().Contains("<ExcludeFromBuild>true", StringComparison.Ordinal))
+                .ToList();
+            if (excluded.Count == 0)
             {
-                _ = DotNetTasks.DotNetBuild(s => s
-                    .SetProjectFile(project)
-                    .SetConfiguration(ConfigurationSet)
-                    .EnableNoRestore()
-                );
+                _ = DotNetBuild(settings => WithMsBuildProperties(settings
+                    .SetNoLogo(true)
+                    .SetProjectFile(Solution)
+                    .SetConfiguration(Config)
+                    .EnableNoRestore()));
             }
+            else
+            {
+                foreach (var project in Solution.AllProjects.Except(excluded))
+                {
+                    _ = DotNetBuild(settings => WithMsBuildProperties(settings
+                        .SetNoLogo(true)
+                        .SetProjectFile(project)
+                        .SetConfiguration(Config)
+                        .EnableNoRestore()));
+                }
+            }
+
+            OnCompiled();
         });
+
+    /// <summary>Runs after a successful build, for project specific follow-up steps.</summary>
+    partial void OnCompiled();
 }

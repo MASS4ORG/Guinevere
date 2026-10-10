@@ -21,7 +21,7 @@ on:
     workflow_dispatch:
 
 permissions:
-    contents: read
+    contents: write # the GitHub release is created from the changelog section of the tag
     id-token: write # required for the OIDC token exchange with nuget.org
 
 jobs:
@@ -48,16 +48,18 @@ jobs:
               id: nuget-login
               with:
                   user: ${{ secrets.NUGET_USER }}
-            - name: "Run: Release (build, test, pack, publish, examples)"
-              run: ./build.cmd Release
+            - name: "Run: Release, GitHubCreateRelease (pack, publish, GitHub release)"
+              run: |
+                  ./build.cmd Release GitHubCreateRelease \
+                    --github-repository "${{ github.repository }}" \
+                    --github-token "${{ secrets.GITHUB_TOKEN }}"
               env:
                   NuGetApiKey: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
-                  GitHubToken: ${{ secrets.GITHUB_TOKEN }}
             - name: "Publish: packages"
               uses: actions/upload-artifact@v7
               with:
                   name: packages
-                  path: packages
+                  path: artifacts/packages
             - name: "Publish: examples-output"
               uses: actions/upload-artifact@v7
               with:

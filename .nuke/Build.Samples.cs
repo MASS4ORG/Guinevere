@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Build;
 
 /// <summary>
@@ -14,16 +16,11 @@ partial class Build
     private AbsolutePath ExamplesOutput => ExamplesOutputDirectory ?? RootDirectory / "examples-output";
 
     /// <summary>
-    /// Examples that are not built or published.
-    /// </summary>
-    private static readonly string[] ExcludedExamples = ["Example-73-PanGui-MusicApp"];
-
-    /// <summary>
     /// Discovers example projects from <c>Examples/*/*.csproj</c>, so a new example needs no registration here
     /// </summary>
     private List<ExampleProject> ExampleProjects => [.. (RootDirectory / "Examples").GlobFiles("*/*.csproj")
         .Select(path => new ExampleProject(path))
-        .Where(p => !ExcludedExamples.Contains(p.Name) && p.Property("ExcludeFromBuild") != "true")
+        .Where(p => p.Property("ExcludeFromBuild") != "true" && p.IsEnabledInSolution(Solution.Path))
         .OrderBy(p => p.Name)];
 
     /// <summary>An example project file found on disk.</summary>
@@ -31,6 +28,16 @@ partial class Build
     {
         public string Name => File.NameWithoutExtension;
         public AbsolutePath Directory => File.Parent;
+
+        public bool IsEnabledInSolution(AbsolutePath solutionFile)
+        {
+            var solutionDirectory = solutionFile.Parent;
+            return !System.Xml.Linq.XDocument.Load(solutionFile).Descendants("Project")
+                .Where(project => project.Attribute("Path")?.Value is { } path
+                                  && Path.GetFullPath(Path.Combine(solutionDirectory, path)) == File)
+                .SelectMany(project => project.Descendants("Build"))
+                .Any(build => string.Equals(build.Attribute("Project")?.Value, "false", StringComparison.OrdinalIgnoreCase));
+        }
 
         /// <summary>Reads a literal property from the project file; null when absent.</summary>
         public string Property(string name) =>
@@ -52,7 +59,7 @@ partial class Build
 
                 _ = DotNetTasks.DotNetBuild(s => s
                     .SetProjectFile(project.File)
-                    .SetConfiguration(ConfigurationSet)
+                    .SetConfiguration(Config)
                     .EnableNoRestore()
                 );
             }
@@ -92,15 +99,15 @@ partial class Build
 
                     _ = DotNetTasks.DotNetPublish(s => s
                         .SetProject(project.File)
-                        .SetConfiguration(ConfigurationSet)
+                        .SetConfiguration(Config)
                         .SetOutput(projectOutput)
                         .SetRuntime(runtime)
                         .SetSelfContained(true)
                         .SetPublishSingleFile(true)
                         .SetPublishReadyToRun(true)
-                        .SetVersion(VersionFull)
-                        .SetAssemblyVersion(VersionFull)
-                        .SetInformationalVersion(VersionFull)
+                        .SetVersion(Version)
+                        .SetAssemblyVersion(Version)
+                        .SetInformationalVersion(Version)
                     );
                 }
             }
@@ -119,7 +126,7 @@ partial class Build
             foreach (var runtime in ExampleRuntimes)
             {
                 var runtimeOutput = ExamplesOutput / runtime;
-                var archiveName = $"Guinevere-Examples-{VersionFull}-{runtime}.zip";
+                var archiveName = $"{ProductName}-Examples-{Version}-{runtime}.zip";
                 var archivePath = ExamplesOutput / archiveName;
 
                 Log.Information("Creating examples archive: {Archive}", archiveName);
@@ -160,9 +167,9 @@ partial class Build
                 var runtimeOutput = ExamplesOutput / runtime;
                 var readmePath = runtimeOutput / "README.md";
 
-                var readmeContent = $@"# Guinevere Examples v{VersionFull}
+                var readmeContent = $@"# {ProductName} Examples v{Version}
 
-This package contains example applications demonstrating the Guinevere GUI system.
+This package contains example applications demonstrating the {ProductName} GUI system.
 
 ## Runtime: {runtime}
 
@@ -182,13 +189,13 @@ Each example is provided as a self-contained executable:
 - Make executable: `chmod +x ExampleName`
 - Run from command line: `./ExampleName`
 
-## About Guinevere
+## About {ProductName}
 
-Guinevere is a GPU accelerated immediate mode GUI system built on SkiaSharp.
+{ProductName} is a GPU accelerated immediate mode GUI system built on SkiaSharp.
 It provides high-performance rendering with modern graphics APIs support.
 
 - **Website**: https://mass4.org
-- **Source Code**: https://github.com/brmassa/guinevere
+- **Source Code**: https://github.com/{DefaultGithubRepository}
 - **Author**: Bruno Massa (massa@brunomassa.com)
 
 ## License
@@ -221,7 +228,7 @@ MIT License - see the project repository for full license details.
     /// </summary>
     private string GetExampleDescription(ExampleProject project)
     {
-        const string fallback = "Example application demonstrating Guinevere features";
+        const string fallback = $"Example application demonstrating {ProductName} features";
         var readme = project.Directory / "README.md";
         if (!readme.FileExists())
         {
