@@ -16,10 +16,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.9.0"/>
         <PackageReference Include="Microsoft.Build" Version="18.9.6"/>
-        <PackageReference Include="Microsoft.Build.Framework" Version="18.9.6"/>
+        <PackageReference Include="Microsoft.Build.Framework" Version="18.10.1"/>
         <PackageReference Include="NSubstitute" Version="6.2.0"/>
         <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
         <PackageReference Include="Serilog.Sinks.InMemory" Version="2.0.0"/>
