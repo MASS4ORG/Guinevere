@@ -137,6 +137,7 @@ public static partial class ControlsExtensions
             usedHeight[opts.Corner] = cornerOffset + height + ToastSpacing;
 
             var alpha = ToastAlpha(now, entry, opts);
+            RequestFadeFrame(gui, now, entry, opts);
 
             using (gui.StyledNode("toast", opts.Classes).Width(width).Height(height)
                        .AbsoluteScreen(position.X, position.Y).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
@@ -190,6 +191,14 @@ public static partial class ControlsExtensions
         if (remaining < opts.FadeOutSeconds) alpha = Math.Min(alpha, remaining / opts.FadeOutSeconds);
 
         return Math.Max(0, Math.Min(255, (int)(alpha * 255)));
+    }
+
+    /// <summary>Asks for frames while the toast fades, and for one when its fade-out starts.</summary>
+    static void RequestFadeFrame(Gui gui, float now, ToastEntry entry, ToastOptions opts)
+    {
+        var remaining = entry.ExpiresAt - now;
+        if (now - entry.SpawnedAt < opts.FadeInSeconds || remaining < opts.FadeOutSeconds) gui.RequestFrame();
+        else gui.RequestFrameIn(remaining - opts.FadeOutSeconds);
     }
 
 }

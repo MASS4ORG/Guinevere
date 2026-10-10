@@ -21,6 +21,7 @@ resharper_built_in_type_reference_style_for_member_access_highlighting = hint
 csharp_style_namespace_declarations = file_scoped:warning
 csharp_style_prefer_utf8_string_literals = true:warning
 csharp_prefer_simple_default_expression = true:error
+dotnet_style_namespace_match_folder = false
 
 ## Implicit Typing (var)
 csharp_style_var_for_built_in_types = true:warning

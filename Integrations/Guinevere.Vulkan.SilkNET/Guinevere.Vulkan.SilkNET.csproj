@@ -46,6 +46,7 @@
     <ItemGroup>
         <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
         <Compile Include="../Shared/X11WindowPosition.cs" Link="X11WindowPosition.cs" />
+        <Compile Include="../Shared/GuiWindow.Pacing.cs" Link="GuiWindow.Pacing.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -54,7 +55,5 @@
         <EmbeddedResource Include="../Resources/Fonts/widget-icons.ttf" />
         <None Include="../Resources/Fonts/OFL-1.1.txt" Pack="true" PackagePath="licenses/" />
         <None Include="../Resources/Fonts/Apache-2.0.txt" Pack="true" PackagePath="licenses/" />
-        <None Include="../Resources/Fonts/FONT-NOTICES.md" Pack="true" PackagePath="licenses/" />
-        <EmbeddedResource Include="../Resources/Shaders/Vulkan/*.spv" />
-    </ItemGroup>
+        <None Include="../Resources/Fonts/FONT-NOTICES.md" Pack="true" PackagePath="licenses/" />    </ItemGroup>
 </Project>

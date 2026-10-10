@@ -61,6 +61,7 @@ public class MenuNavigationTests
         h.Input.MoveTo(Group(h, 0).Children[1].Center);
         h.Frame(Draw);
         Assert.Equal(3, Groups(h.Gui.RootNode!).Count());
+        Assert.InRange(h.Gui.FrameWaitSeconds, 0, 0.3);
         h.Input.MoveTo(leaf);
         h.Frame(Draw);
         Assert.Equal(3, Groups(h.Gui.RootNode!).Count());

@@ -25,6 +25,19 @@ public abstract class Program
 }
 ```
 
+## Rendering and frame pacing
+
+Skia draws on the GPU into the window's default framebuffer. When a Skia GL context cannot be created, Skia rasterizes on the CPU and the frame is uploaded as a texture; `GUINEVERE_RENDERER=raster` forces that path. `CanvasRenderer.IsGpuAccelerated` reports which one runs.
+
+The window renders continuously by default. Editors and tools that are mostly idle should render on demand:
+
+```csharp
+using var win = new GuiWindow(gui);
+win.Pacing.OnDemand = true;
+```
+
+On demand, the window waits for input between frames. It renders a few frames after each input event, continuously while a button or key is held, whenever keyed animations, style transitions and timed controls (tooltips, toasts, caret blink, indeterminate progress) are moving, and at least every `Pacing.MaxIdleSeconds` (0.5 s). Content that changes without input, such as a playing game viewport or progress from a background task, calls `gui.RequestFrame()` (safe from any thread) or `gui.RequestFrameIn(seconds)` for a timer. `GUINEVERE_PACING=on-demand` or `continuous` overrides the setting at run time.
+
 ## Linux window selection
 
 To use X11/XWayland for a custom application bar, set this preference before creating the first GLFW window:

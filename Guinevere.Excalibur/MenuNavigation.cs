@@ -2,6 +2,9 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
+    /// <summary>Seconds an open submenu survives while the pointer crosses other rows toward it.</summary>
+    const float SwitchDelay = 0.3f;
+
     sealed record MenuAppearance(float ItemHeight = 26, float SeparatorHeight = 9, float MinWidth = 160);
 
     sealed class MenuBranch
@@ -68,8 +71,10 @@ public static partial class ControlsExtensions
             return true;
         }
         // Delay switching as the pointer crosses neighboring rows on its way to the child panel.
-        return !gui.Input.IsMouseButtonPressed(MouseButton.Left)
-            && gui.Clock.Elapsed - branch.LastInside < 0.3f;
+        var outside = gui.Clock.Elapsed - branch.LastInside;
+        if (gui.Input.IsMouseButtonPressed(MouseButton.Left) || outside >= SwitchDelay) return false;
+        gui.RequestFrameIn(SwitchDelay - outside);
+        return true;
     }
 
     static void ChangeMenuBranch(MenuBarState state, string id, MenuBranch branch, int candidate)

@@ -90,6 +90,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _window.FramebufferResize += OnResize;
         _window.Closing += OnClosing;
         _window.Update += OnUpdate;
+        HookPacingEvents();
     }
 
     /// <inheritdoc />
@@ -225,6 +226,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
 
         // Update renderer size
         _renderer.Resize(newSize.X, newSize.Y);
+        Pacing.NotifyInput();
     }
 
     /// <summary>
@@ -246,48 +248,45 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _prevMousePosition = _mousePosition;
         _mousePosition = position;
         _mouseDelta = _mousePosition - _prevMousePosition;
+        Pacing.NotifyInput();
     }
 
     void OnMouseScroll(IMouse mouse, ScrollWheel scrollWheel)
     {
         _mouseWheelDelta = scrollWheel.Y;
+        Pacing.NotifyInput();
     }
 
     void OnMouseDown(IMouse mouse, Silk.NET.Input.MouseButton button)
     {
         _pressedButtons.Add(button);
         _heldButtons.Add(button);
+        Pacing.NotifyInput();
     }
 
     void OnMouseUp(IMouse mouse, Silk.NET.Input.MouseButton button)
     {
         _heldButtons.Remove(button);
+        Pacing.NotifyInput();
     }
 
     void OnKeyDown(IKeyboard keyboard, Key key, int scanCode)
     {
         _pressedKeys.Add(key);
         _heldKeys.Add(key);
+        Pacing.NotifyInput();
     }
 
     void OnKeyUp(IKeyboard keyboard, Key key, int scanCode)
     {
         _heldKeys.Remove(key);
+        Pacing.NotifyInput();
     }
 
     void OnKeyChar(IKeyboard keyboard, char c)
     {
         _typedCharacters.Append(c);
-    }
-
-    /// <summary>
-    /// Runs the GUI application with the specified draw callback.
-    /// </summary>
-    /// <param name="draw">The callback method that defines the GUI layout and rendering.</param>
-    public void RunGui(Action draw)
-    {
-        _draw = draw;
-        _window.Run();
+        Pacing.NotifyInput();
     }
 
     /// <summary>

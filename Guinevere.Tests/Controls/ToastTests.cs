@@ -148,6 +148,20 @@ public class ToastTests
     }
 
     [Fact]
+    public void FadingToastsRequestFramesAndSteadyOnesRequestTheFadeOut()
+    {
+        var gui = CreateGui();
+        Frame(gui, g => g.Toast("Hello", BottomRight));
+        Assert.Equal(0, gui.FrameWaitSeconds);
+
+        for (var i = 0; i < 20; i++) Frame(gui);
+        Assert.InRange(gui.FrameWaitSeconds, 8, BottomRight.Duration - BottomRight.FadeOutSeconds);
+
+        for (var i = 0; i < 700; i++) Frame(gui);
+        Assert.Equal(double.PositiveInfinity, gui.FrameWaitSeconds);
+    }
+
+    [Fact]
     public void ClearToastsAnnulsTheQueue()
     {
         var gui = CreateGui();

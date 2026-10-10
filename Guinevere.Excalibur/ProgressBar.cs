@@ -43,6 +43,7 @@ public static partial class ControlsExtensions
             var rect = gui.CurrentNode.InnerRect;
             if (rect.W <= 0) return;
 
+            if (fraction is null) gui.RequestFrame();
             var filled = FillRect(rect, fraction, gui.Clock.Elapsed);
             gui.DrawStyledBox(gui.ResolvePart("fill"), filled);
         }

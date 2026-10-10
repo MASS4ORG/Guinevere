@@ -117,6 +117,17 @@ public class ProgressBarTests
         Assert.Equal(SKColors.Blue, pixels.GetPixel(180, 3));
     }
 
+    /// <summary>Only an indeterminate bar keeps requesting frames, since only it moves without input.</summary>
+    [Fact]
+    public void OnlyIndeterminateProgressRequestsFrames()
+    {
+        using var harness = new FrameHarness(200, 40);
+        harness.Frame(g => g.ProgressBar(0.5f, width: 200));
+        Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
+        harness.Frame(g => g.ProgressBar(null, width: 200));
+        Assert.Equal(0, harness.Gui.FrameWaitSeconds);
+    }
+
     /// <summary>Empty tracks and zero fractions queue no fill.</summary>
     [Theory]
     [InlineData(0f, 200f)]

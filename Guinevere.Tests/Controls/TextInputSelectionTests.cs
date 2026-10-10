@@ -34,6 +34,8 @@ public class TextInputSelectionTests
 
         public string Text { get; private set; }
 
+        public Gui Gui => _gui;
+
         /// <summary>Replaces the value the caller passes in, as a host rebinding the field would.</summary>
         public void SetExternal(string value) => Text = value;
 
@@ -94,6 +96,24 @@ public class TextInputSelectionTests
         field.Type("HELLO");
 
         Assert.Equal("HELLO world", field.Text);
+    }
+
+    [Fact]
+    public void FocusedFieldRequestsAFrameForTheNextCaretBlink()
+    {
+        var field = new Field("hello");
+        for (var i = 0; i < 30; i++) field.Frame();
+
+        Assert.InRange(field.Gui.FrameWaitSeconds, 0.001, 0.5);
+    }
+
+    [Fact]
+    public void SingleLineFieldDropsControlCharactersAndNewlines()
+    {
+        var field = new Field("");
+        field.Type("a\u0001\n\rb\u007f");
+
+        Assert.Equal("ab", field.Text);
     }
 
     [Fact]

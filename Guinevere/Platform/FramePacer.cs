@@ -1,0 +1,50 @@
+using System.Diagnostics;
+
+namespace Guinevere;
+
+/// <summary>
+/// Decides when a windowed host renders. Continuous by default; with <see cref="OnDemand"/> the host waits for input
+/// between frames and renders only after input, while input is held, when the GUI requests a frame, and at least
+/// every <see cref="MaxIdleSeconds"/>.
+/// </summary>
+public sealed class FramePacer
+{
+    int _settleFrames;
+    long _lastFrame = Stopwatch.GetTimestamp();
+
+    /// <summary>Whether the host waits for input or a frame request instead of rendering continuously.</summary>
+    public bool OnDemand { get; set; }
+
+    /// <summary>
+    /// Frames rendered after each input event: events dispatch one frame after they arrive and their effects show
+    /// one frame later.
+    /// </summary>
+    public int SettleFrames { get; set; } = 3;
+
+    /// <summary>The longest wait between frames, which keeps time-driven UI that never requests frames alive.</summary>
+    public double MaxIdleSeconds { get; set; } = 0.5;
+
+    /// <summary>Records an input or window event, which renders the next <see cref="SettleFrames"/> frames.</summary>
+    public void NotifyInput() => _settleFrames = SettleFrames;
+
+    /// <summary>
+    /// Seconds to keep waiting for events before the next frame; zero renders it now. Hosts call it again after every
+    /// wake-up, since platform events that are not input must not render a frame on their own.
+    /// </summary>
+    /// <param name="gui">The GUI whose frame requests are honored.</param>
+    /// <param name="inputHeld">Whether a pointer button or key is held, which renders continuously.</param>
+    public double WaitSeconds(Gui gui, bool inputHeld)
+    {
+        ArgumentNullException.ThrowIfNull(gui);
+        if (!OnDemand || inputHeld || _settleFrames > 0) return 0;
+        var idle = MaxIdleSeconds - Stopwatch.GetElapsedTime(_lastFrame).TotalSeconds;
+        return Math.Max(0, Math.Min(gui.FrameWaitSeconds, idle));
+    }
+
+    /// <summary>Records a rendered frame and counts it against the pending settle frames.</summary>
+    public void FrameRendered()
+    {
+        _lastFrame = Stopwatch.GetTimestamp();
+        if (_settleFrames > 0) _settleFrames--;
+    }
+}

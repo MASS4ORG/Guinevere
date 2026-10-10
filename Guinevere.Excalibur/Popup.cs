@@ -196,7 +196,9 @@ public static partial class ControlsExtensions
         var hovering = anchorRect.W > 0 && IsMouseInRect(gui.Input.MousePosition, anchorRect);
         if (hovering && !state.WasHovering) state.EnteredAt = now;
         state.WasHovering = hovering;
-        return hovering && now - state.EnteredAt >= delay;
+        var waited = now - state.EnteredAt;
+        if (hovering && waited < delay) gui.RequestFrameIn(delay - waited);
+        return hovering && waited >= delay;
     }
 
     // Core implementation helpers

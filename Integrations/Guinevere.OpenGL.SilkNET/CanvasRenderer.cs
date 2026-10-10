@@ -3,17 +3,30 @@ using SkiaSharp;
 
 namespace Guinevere;
 
-/// <inheritdoc />
+/// <summary>
+/// Renders Guinevere frames into the window's OpenGL default framebuffer. Skia draws on the GPU through a GL context;
+/// when one cannot be created, or <c>GUINEVERE_RENDERER=raster</c> is set, Skia rasterizes on the CPU and the result is
+/// uploaded as a texture and drawn as a full-screen quad.
+/// </summary>
 public class CanvasRenderer : ICanvasRenderer
 {
+    const uint Rgba8 = 0x8058;
+    const GLEnum StencilAttachment = (GLEnum)0x1802;
+    const GLEnum StencilSize = (GLEnum)0x2217;
+
     SKSurface? _surface;
     SKCanvas? _canvas;
     GL _gl = null!;
+    GRContext? _grContext;
+    bool _resetGpuState;
     uint _texture;
     uint _shaderProgram;
     uint _vao, _vbo;
     int _width;
     int _height;
+
+    /// <summary>Whether Skia draws on the GPU; false when it rasterizes on the CPU and the result is uploaded.</summary>
+    public bool IsGpuAccelerated => _grContext is not null;
 
     /// <summary>
     /// Configures and initializes the renderer with a specified width, height, and OpenGL (GL) context.
@@ -24,12 +37,39 @@ public class CanvasRenderer : ICanvasRenderer
     public void Initialize(int width, int height, GL gl)
     {
         _gl = gl;
+        if (Environment.GetEnvironmentVariable("GUINEVERE_RENDERER") != "raster") CreateGpuContext();
 
         Initialize(width, height);
 
+        if (IsGpuAccelerated) return;
         // Enable blending for transparency
         _gl.Enable(EnableCap.Blend);
         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+    }
+
+    void CreateGpuContext()
+    {
+        try
+        {
+            using var glInterface = GRGlInterface.Create(name => _gl.Context.GetProcAddress(name));
+            _grContext = glInterface is null ? null : GRContext.CreateGl(glInterface);
+        }
+        catch (Exception)
+        {
+            _grContext = null;
+        }
+    }
+
+    /// <summary>Wraps the default framebuffer, with the sample count and stencil depth the window was created with.</summary>
+    void CreateGpuSurface()
+    {
+        _gl.GetInteger(GetPName.Samples, out var samples);
+        _gl.GetFramebufferAttachmentParameter(FramebufferTarget.Framebuffer, StencilAttachment, StencilSize,
+            out var stencil);
+        using var target = new GRBackendRenderTarget(_width, _height, samples, stencil,
+            new GRGlFramebufferInfo(0, Rgba8));
+        _surface = SKSurface.Create(_grContext!, target, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
+        _canvas = _surface?.Canvas;
     }
 
     unsafe void SetupTexture()
@@ -137,14 +177,24 @@ public class CanvasRenderer : ICanvasRenderer
         if (_canvas == null || _surface == null)
             return;
 
+        if (_grContext is not null)
+        {
+            // The window changes GL state (viewport) on resize, outside Skia's tracking.
+            if (_resetGpuState) _grContext.ResetContext();
+            _resetGpuState = false;
+            _canvas.Clear(SKColors.Black);
+            draw(_canvas);
+            _grContext.Flush();
+            return;
+        }
+
         // Clear canvas and draw using Skia
         _canvas.Clear(SKColors.Black);
         draw(_canvas);
         _canvas.Flush();
 
-        // Get the pixel data from Skia
-        using var image = _surface?.Snapshot();
-        using var pixels = image?.PeekPixels();
+        // The surface is read in place; it is not drawn again until the upload below has consumed it.
+        using var pixels = _surface.PeekPixels();
         if (pixels == null) return;
 
         _gl.BindTexture(TextureTarget.Texture2D, _texture);
@@ -165,11 +215,6 @@ public class CanvasRenderer : ICanvasRenderer
         _gl.BindTexture(TextureTarget.Texture2D, _texture);
         _gl.DrawElements(PrimitiveType.Triangles,
             6, DrawElementsType.UnsignedInt, null);
-
-        // Unbind
-        // _gl.BindVertexArray(0);
-        // _gl.UseProgram(0);
-        // _gl.BindTexture(TextureTarget.Texture2D, 0);
     }
 
     /// <inheritdoc/>
@@ -182,6 +227,13 @@ public class CanvasRenderer : ICanvasRenderer
         _height = height;
 
         _surface?.Dispose();
+        if (_grContext is not null)
+        {
+            _resetGpuState = true;
+            CreateGpuSurface();
+            return;
+        }
+
         _surface = SKSurface.Create(new SKImageInfo(width, height, SKColorType.Rgba8888));
         _canvas = _surface?.Canvas;
 
@@ -195,6 +247,12 @@ public class CanvasRenderer : ICanvasRenderer
     {
         _width = width;
         _height = height;
+
+        if (_grContext is not null)
+        {
+            CreateGpuSurface();
+            return;
+        }
 
         _surface = SKSurface.Create(
             new SKImageInfo(width, height, SKColorType.Rgba8888));
@@ -211,6 +269,12 @@ public class CanvasRenderer : ICanvasRenderer
     {
         _canvas = null;
         _surface?.Dispose();
+        if (_grContext is not null)
+        {
+            _grContext.Dispose();
+            _grContext = null;
+            return;
+        }
 
         // Clean up OpenGL resources
         _gl.DeleteTexture(_texture);

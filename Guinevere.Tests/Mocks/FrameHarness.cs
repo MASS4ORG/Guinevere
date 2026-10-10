@@ -18,9 +18,9 @@ public sealed class FrameHarness : IDisposable
     /// <summary>Captures the rendered pixels for clipping and feedback assertions.</summary>
     public SKImage Snapshot() => _surface.Snapshot();
 
-    public void Frame(Action<Gui> draw)
+    public void Frame(Action<Gui> draw, double deltaTime = 0.016)
     {
-        Gui.Time.Update(0.016);
+        Gui.Time.Update(deltaTime);
         Gui.SetStage(Pass.Pass1Build);
         Gui.BeginFrame(_surface.Canvas);
         draw(Gui);

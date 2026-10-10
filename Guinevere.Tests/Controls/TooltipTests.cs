@@ -139,6 +139,20 @@ public class TooltipTests
     }
 
     [Fact]
+    public void HoveringRequestsAFrameWhenTheDelayEnds()
+    {
+        using var surface = SKSurface.Create(new SKImageInfo(SurfaceWidth, SurfaceHeight));
+        var gui = CreateGui();
+        gui.Input = At(PointerOutside);
+        Frame(gui, surface.Canvas, "Some tooltip text");
+        Assert.Equal(double.PositiveInfinity, gui.FrameWaitSeconds);
+
+        gui.Input = At(PointerInsideAnchor);
+        Frame(gui, surface.Canvas, "Some tooltip text");
+        Assert.InRange(gui.FrameWaitSeconds, 0.1, Delay);
+    }
+
+    [Fact]
     public void TooltipNeverShowsWithoutHover()
     {
         using var surface = SKSurface.Create(new SKImageInfo(SurfaceWidth, SurfaceHeight));

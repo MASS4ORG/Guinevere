@@ -97,6 +97,7 @@ public partial class Gui
     public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null, Font? fontWidgetIcon = null)
     {
         BeginIdentityPass();
+        BeginFrameRequests();
         _dataFrame++;
         Canvas = canvas;
         if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.BeginFrame();

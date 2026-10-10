@@ -16,7 +16,7 @@ public static class ExcaliburStyles
     static readonly Lazy<StyleSheet> LightSheet = new(() => Load("guinevere.light.pss"));
     static readonly Lazy<StyleSheet> MonoLightSheet = new(() => Load("guinevere.mono-light.pss"));
     static readonly Lazy<StyleSheet> MonoDarkSheet = new(() => Load("guinevere.mono-dark.pss"));
-    static readonly ConditionalWeakTable<Gui, StyleSheet> Themes = new();
+    static readonly ConditionalWeakTable<Gui, StyleSheet> Themes = [];
 
     /// <summary>The default sheet's source, for applications that copy it as the start of their own theme.</summary>
     public static string DefaultSheetText => Text.Value;

@@ -42,6 +42,7 @@
     <ItemGroup>
         <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
         <Compile Include="../Shared/X11WindowPosition.cs" Link="X11WindowPosition.cs" />
+        <Compile Include="../Shared/GuiWindow.Pacing.cs" Link="GuiWindow.Pacing.cs" />
     </ItemGroup>
 
     <ItemGroup>

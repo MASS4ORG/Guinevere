@@ -145,7 +145,13 @@ public static class TextEditor
         if (!state.IsFocused) return;
 
         Blink(state, gui.Clock.DeltaTime);
+        gui.RequestFrameIn(BlinkInterval - state.BlinkTimer);
+        InsertTypedCharacters(gui, state, multiline);
+        HandleSpecialKeys(gui, state);
+    }
 
+    static void InsertTypedCharacters(Gui gui, TextEditState state, bool multiline)
+    {
         foreach (var c in gui.Input.GetTypedCharacters())
         {
             if (c >= 32 && c != 127) state.Insert(c.ToString());
@@ -155,8 +161,6 @@ public static class TextEditor
             state.ShowCursor = true;
             state.BlinkTimer = 0f;
         }
-
-        HandleSpecialKeys(gui, state);
     }
 
     /// <summary>Advances the caret blink.</summary>

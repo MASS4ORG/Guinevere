@@ -5,7 +5,7 @@ namespace Guinevere;
 public partial class Gui
 {
     AnimationManager? _animationManager;
-    readonly Dictionary<int, ScopedBoolAnimation> _scopedAnimations = new();
+    readonly Dictionary<int, ScopedBoolAnimation> _scopedAnimations = [];
 
     AnimationManager AnimationManager => _animationManager ??= new AnimationManager(Time);
 
@@ -54,14 +54,17 @@ public partial class Gui
         ArgumentNullException.ThrowIfNull(easing);
         if (!_scopedAnimations.TryGetValue(identity, out var state))
             _scopedAnimations.Add(identity, state = new ScopedBoolAnimation(new AnimationFloat(target ? 1f : 0f, Time)));
-        if (state.Frame != _dataFrame)
-        {
-            if (state.Animation.TargetValue != (target ? 1f : 0f))
-                state.Animation.AnimateTo(target ? 1f : 0f, duration, easing);
-            state.Value = state.Animation.GetValue();
-            state.Frame = _dataFrame;
-        }
+        if (state.Frame != _dataFrame) SampleScopedBool(state, target, duration, easing);
         return state.Value;
+    }
+
+    void SampleScopedBool(ScopedBoolAnimation state, bool target, float duration, Func<float, float> easing)
+    {
+        if (state.Animation.TargetValue != (target ? 1f : 0f))
+            state.Animation.AnimateTo(target ? 1f : 0f, duration, easing);
+        state.Value = state.Animation.GetValue();
+        state.Frame = _dataFrame;
+        if (state.Animation.IsAnimating) RequestFrame();
     }
 
     sealed class ScopedBoolAnimation(AnimationFloat animation)
