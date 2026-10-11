@@ -25,10 +25,9 @@ permissions:
     id-token: write # required for the OIDC token exchange with nuget.org
 
 jobs:
-    ubuntu-latest:
-        name: ubuntu-latest
+    release:
         if: ${{ vars.RELEASE_REPOSITORY != '' }}
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-26.04
         steps:
             - uses: actions/checkout@v7
               with:
@@ -36,23 +35,17 @@ jobs:
             - uses: actions/setup-dotnet@v6
               with:
                   dotnet-version: "10.0.x"
-            - name: "Cache: .nuke/temp, ~/.nuget/packages"
-              uses: actions/cache@v6
-              with:
-                  path: |
-                      .nuke/temp
-                      ~/.nuget/packages
-                  key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
             - name: "NuGet login (OIDC -> short-lived API key)"
               uses: NuGet/login@v1
               id: nuget-login
               with:
                   user: ${{ secrets.NUGET_USER }}
-            - name: "Run: Release, GitHubCreateRelease (pack, publish, GitHub release)"
+            - name: "Run: PushNuGet, GitHubCreateRelease"
               run: |
-                  ./build.cmd Release GitHubCreateRelease \
+                  ./build.sh PushNuGet GitHubCreateRelease \
                     --github-repository "${{ github.repository }}" \
-                    --github-token "${{ secrets.GITHUB_TOKEN }}"
+                    --github-token "${{ secrets.GITHUB_TOKEN }}" \
+                    --verbosity minimal
               env:
                   NuGetApiKey: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
             - name: "Publish: packages"
@@ -60,8 +53,3 @@ jobs:
               with:
                   name: packages
                   path: artifacts/packages
-            - name: "Publish: examples-output"
-              uses: actions/upload-artifact@v7
-              with:
-                  name: examples-output
-                  path: examples-output

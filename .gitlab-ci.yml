@@ -1,0 +1,100 @@
+stages:
+    - test
+    - package-check
+    - release-check
+    - build
+    - publish
+
+variables:
+    NUKE_TELEMETRY_OPTOUT: "1"
+    IGNORE_NORMALISATION_GIT_HEAD_MOVE: "1"
+    DOTNET_VERSION: "10.0"
+    GITLAB_REPOSITORY_PATH: "$CI_PROJECT_PATH"
+
+cache:
+    key: "${CI_COMMIT_REF_SLUG}"
+    paths:
+        - .nuget/
+
+.build_job_template: &build_job_template
+    image: mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+    artifacts:
+        expire_in: 1 week
+
+.dotnet_nuke_template: &dotnet_nuke_template
+    before_script:
+        - chmod +x ./build.sh
+
+test:
+    <<: *build_job_template
+    stage: test
+    rules:
+        - if: '$CI_COMMIT_TAG'
+          when: never
+        - if: '$CI_PIPELINE_SOURCE != "schedule" && $CI_PIPELINE_SOURCE != "web"'
+    before_script:
+        - !reference [.dotnet_nuke_template, before_script]
+    script:
+        - ./build.sh Restore Compile TestReport --configuration "Debug" --verbosity minimal
+    coverage: '/^  Line coverage: (\d*.\d*)%/'
+    artifacts:
+        reports:
+            coverage_report:
+                coverage_format: cobertura
+                path: coverage/coverage.xml
+
+package-check:
+    <<: *build_job_template
+    stage: package-check
+    rules:
+        - if: '$CI_COMMIT_TAG'
+          when: never
+        - if: '$CI_PIPELINE_SOURCE != "schedule" && $CI_PIPELINE_SOURCE != "web"'
+    before_script:
+        - !reference [.dotnet_nuke_template, before_script]
+    script:
+        - ./build.sh PackNuGet --configuration "Release" --verbosity minimal
+
+release-check:
+    <<: *build_job_template
+    stage: release-check
+    rules:
+        - if: '$RELEASE_REPOSITORY != "" && ($CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "web")'
+    before_script:
+        - !reference [.dotnet_nuke_template, before_script]
+    script:
+        - |
+            ./build.sh GitLabCreateTag \
+              --gitlab-project-path "$GITLAB_REPOSITORY_PATH" \
+              --gitlab-token "$GITLAB_RELEASE_TOKEN" \
+              --release-branch "$CI_DEFAULT_BRANCH" \
+              --verbosity minimal
+
+build:
+    <<: *build_job_template
+    stage: build
+    rules:
+        - if: '$CI_COMMIT_TAG'
+    before_script:
+        - !reference [.dotnet_nuke_template, before_script]
+    script:
+        - ./build.sh PackNuGet --configuration "Release" --verbosity minimal
+    artifacts:
+        paths:
+            - artifacts/*
+
+gitlab-release:
+    <<: *build_job_template
+    stage: publish
+    rules:
+        - if: '$CI_COMMIT_TAG'
+    needs:
+        - build
+    before_script:
+        - !reference [.dotnet_nuke_template, before_script]
+    script:
+        - |
+            ./build.sh GitLabCreateRelease \
+              --gitlab-project-path "$GITLAB_REPOSITORY_PATH" \
+              --gitlab-token "$GITLAB_RELEASE_TOKEN" \
+              --verbosity minimal

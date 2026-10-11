@@ -1,35 +1,48 @@
 name: Build and test
 
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore:
+      - "renovate/**"
+    tags-ignore:
+      - "v*"
+  pull_request:
+
+env:
+  NUKE_TELEMETRY_OPTOUT: "1"
+  IGNORE_NORMALISATION_GIT_HEAD_MOVE: "1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-and-test-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    ubuntu-latest:
-        name: ubuntu-latest
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v7
-              with:
-                  fetch-depth: 0
-                  token: ${{ secrets.GITHUB_TOKEN }}
-            - uses: actions/setup-dotnet@v6
-              with:
-                  dotnet-version: "10.0.x"
-            - name: "Cache: .nuke/temp, ~/.nuget/packages"
-              uses: actions/cache@v6
-              with:
-                  path: |
-                      .nuke/temp
-                      ~/.nuget/packages
-                  key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
-            - name: "Run: TestReport, Compile, Restore, Publish"
-              run: ./build.cmd TestReport Compile Restore Publish
-            - name: "Publish: coverage.xml"
-              uses: actions/upload-artifact@v7
-              with:
-                  name: coverage.xml
-                  path: coverage/coverage.xml
-            - name: "Publish: report"
-              uses: actions/upload-artifact@v7
-              with:
-                  name: report
-                  path: coverage/report
+  test:
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore, compile and test
+        run: ./build.sh Restore Compile TestReport --configuration "Debug" --verbosity minimal
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
