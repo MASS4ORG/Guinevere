@@ -7,6 +7,9 @@ namespace Guinevere;
 public unsafe partial class GuiWindow
 {
     Vector2? _pendingClientSize;
+    bool _nativeMove;
+    bool _nativeMovePress;
+    bool _nativeX11Move;
 
     void PlaceInitialWindow()
     {
@@ -93,6 +96,33 @@ public unsafe partial class GuiWindow
     {
         if (!CanMove) return false;
         return X11WindowPosition.TrySet(GLFW.GetX11Display(), GLFW.GetX11Window(WindowPtr), position);
+    }
+
+    /// <inheritdoc />
+    public bool TryBeginMove()
+    {
+        if (!BeginNativeMove()) return false;
+        _nativeMove = true;
+        _nativeX11Move = OperatingSystem.IsLinux();
+        return true;
+    }
+
+    bool BeginNativeMove()
+    {
+        if (OperatingSystem.IsWindows()) return WindowsWindowMove.TryBegin(GLFW.GetWin32Window(WindowPtr));
+        return BeginLinuxMove();
+    }
+
+    bool BeginLinuxMove()
+    {
+        if (!OperatingSystem.IsLinux()) return false;
+        return BeginX11Move();
+    }
+
+    bool BeginX11Move()
+    {
+        if (!CanMove) return false;
+        return X11WindowPosition.TryBeginMove(GLFW.GetX11Display(), GLFW.GetX11Window(WindowPtr), PointerPosition);
     }
 
     /// <inheritdoc />

@@ -11,6 +11,7 @@ public static partial class ControlsExtensions
         internal bool? NativeTitlebar;
         internal bool Maximized;
         internal Vector2 DragOffset;
+        internal bool NativeMove;
         internal bool PressedOverControl;
         internal IWindowResizeCapability? ResizeWindow;
         internal bool ResizeEnabled;
@@ -114,9 +115,14 @@ public static partial class ControlsExtensions
     static void MoveAppBarWindow(Gui gui, AppBarState state, IWindowChromeCapability window,
         InteractableElement interaction)
     {
-        if (!window.CanMove || window.IsMaximized || !interaction.OnDrag(out _)) return;
+        if (!interaction.OnDrag(out _)) return;
+        if (gui.Input.IsMouseButtonPressed(MouseButton.Left))
+        {
+            state.NativeMove = window.TryBeginMove();
+            if (!state.NativeMove && window.CanMove) state.DragOffset = window.PointerPosition - window.Position;
+        }
+        if (state.NativeMove || !window.CanMove || window.IsMaximized) return;
         var pointer = window.PointerPosition;
-        if (gui.Input.IsMouseButtonPressed(MouseButton.Left)) state.DragOffset = pointer - window.Position;
         window.Position = pointer - state.DragOffset;
     }
 

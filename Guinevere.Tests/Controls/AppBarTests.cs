@@ -25,6 +25,16 @@ public class AppBarTests
         public bool AllowClose { get; set; }
         /// <summary>Reports whether the guard allowed the last close request.</summary>
         public bool Closed { get; private set; }
+        /// <summary>Enables the simulated desktop move operation.</summary>
+        public bool NativeMoveSupported { get; set; }
+        /// <summary>Counts attempts to hand a gesture to the desktop.</summary>
+        public int BeginMoveCalls { get; private set; }
+        /// <inheritdoc />
+        public bool TryBeginMove()
+        {
+            BeginMoveCalls++;
+            return NativeMoveSupported;
+        }
         /// <inheritdoc />
         public void DrawWindowTitlebar(bool show) => Decorations.Add(show);
         /// <inheritdoc />
@@ -47,6 +57,55 @@ public class AppBarTests
     static void Draw(Gui gui)
     {
         using (gui.AppBar()) gui.DrawText("Studio");
+    }
+
+    /// <summary>Hands each background press to the desktop once and leaves subsequent movement to the OS.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void NativeMoveOwnsTheGestureIncludingMaximizedWindows(bool maximized)
+    {
+        using var h = new FrameHarness();
+        var window = new Window(h) { NativeMoveSupported = true };
+        if (maximized) window.Maximize();
+        h.Gui.Platform.Register<IWindowChromeCapability>(window);
+        h.Frame(Draw);
+        var point = Content(h).Center;
+        h.Input.MoveTo(point);
+        h.Input.PressButton();
+        h.Frame(Draw);
+        h.Input.MoveTo(point + new Vector2(40, 20));
+        h.Frame(Draw);
+        h.Frame(Draw);
+        Assert.Equal(1, window.BeginMoveCalls);
+        Assert.Equal(new Vector2(100, 100), window.Position);
+        h.Input.ReleaseButton();
+        h.Frame(Draw, 0.5);
+        h.Input.MoveTo(point + new Vector2(40, 0));
+        h.Input.PressButton();
+        h.Frame(Draw);
+        Assert.Equal(2, window.BeginMoveCalls);
+    }
+
+    /// <summary>Interactive children never start an OS move gesture.</summary>
+    [Fact]
+    public void NativeMovementDoesNotStealControlPresses()
+    {
+        using var h = new FrameHarness();
+        var window = new Window(h) { NativeMoveSupported = true };
+        h.Gui.Platform.Register<IWindowChromeCapability>(window);
+        void Custom(Gui gui)
+        {
+            using var bar = gui.AppBar();
+            gui.Button("Search", 100, 36);
+        }
+        h.Frame(Custom);
+        h.Input.MoveTo(Content(h).Children[0].Center);
+        h.Input.PressButton();
+        h.Frame(Custom);
+        h.Input.MoveTo(new Vector2(200, 18));
+        h.Frame(Custom);
+        Assert.Equal(0, window.BeginMoveCalls);
     }
 
     /// <summary>Checks window commands and the unsaved-work close guard.</summary>

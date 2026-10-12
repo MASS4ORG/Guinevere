@@ -95,6 +95,27 @@ public unsafe partial class GuiWindow
     }
 
     /// <inheritdoc />
+    public bool TryBeginMove()
+    {
+        if (!BeginNativeMove()) return false;
+        _nativeX11Move = !OperatingSystem.IsWindows();
+        _heldButtons.Remove(Silk.NET.Input.MouseButton.Left);
+        return true;
+    }
+
+    bool BeginNativeMove()
+    {
+        if (OperatingSystem.IsWindows()) return WindowsWindowMove.TryBegin(_window.Native?.Win32?.Hwnd ?? 0);
+        return BeginX11Move();
+    }
+
+    bool BeginX11Move()
+    {
+        if (NativeX11 is not { } x11) return false;
+        return X11WindowPosition.TryBeginMove(x11.Display, x11.Window, PointerPosition);
+    }
+
+    /// <inheritdoc />
     public Vector2 PointerPosition => Position + _mouse.Position;
 
     /// <inheritdoc />

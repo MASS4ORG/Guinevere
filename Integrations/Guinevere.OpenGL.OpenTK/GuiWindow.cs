@@ -174,6 +174,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         });
 
         SwapBuffers();
+        _nativeMovePress = false;
         ApplyPendingResize();
     }
 
@@ -219,15 +220,44 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         }
     }
 
-    bool InputHeld => MouseState.IsAnyButtonDown || KeyboardState.IsAnyKeyDown;
+    bool InputHeld => (_nativeMove ? OtherMouseButtonHeld : MouseState.IsAnyButtonDown)
+                      || KeyboardState.IsAnyKeyDown;
+
+    bool OtherMouseButtonHeld
+    {
+        get
+        {
+            for (var button = 1; button < 8; button++)
+                if (MouseState.IsButtonDown((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)button))
+                    return true;
+            return false;
+        }
+    }
 
     /// <summary>Input and window events that change what is shown count as input for pacing.</summary>
-    void HookPacingEvents()
+    unsafe void HookPacingEvents()
     {
         KeyDown += _ => Pacing.NotifyInput();
         KeyUp += _ => Pacing.NotifyInput();
-        MouseDown += _ => Pacing.NotifyInput();
-        MouseUp += _ => Pacing.NotifyInput();
+        MouseDown += args =>
+        {
+            if (args.Button == global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton.Left)
+            {
+                _nativeMovePress = _nativeMove;
+                _nativeMove = false;
+                _nativeX11Move = false;
+            }
+            Pacing.NotifyInput();
+        };
+        MouseUp += args =>
+        {
+            if (args.Button == global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton.Left && _nativeX11Move)
+            {
+                _nativeX11Move = false;
+                X11WindowPosition.CancelMove(GLFW.GetX11Display(), GLFW.GetX11Window(WindowPtr));
+            }
+            Pacing.NotifyInput();
+        };
         MouseMove += _ => Pacing.NotifyInput();
         MouseWheel += _ => Pacing.NotifyInput();
         TextInput += _ => Pacing.NotifyInput();
@@ -410,7 +440,8 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// <param name="button">The mouse button to check.</param>
     /// <returns>True if the button was just pressed; otherwise, false.</returns>
     public bool IsMouseButtonPressed(MouseButton button) =>
-        IsMouseButtonPressed((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
+        (button == MouseButton.Left && _nativeMovePress)
+        || IsMouseButtonPressed((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
 
     /// <summary>
     /// Determines whether the specified mouse button is currently held down.
@@ -418,7 +449,8 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// <param name="button">The mouse button to check.</param>
     /// <returns>True if the button is held down; otherwise, false.</returns>
     public bool IsMouseButtonDown(MouseButton button) =>
-        IsMouseButtonDown((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
+        !(button == MouseButton.Left && _nativeMove)
+        && IsMouseButtonDown((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
 
     /// <summary>
     /// Determines whether the specified mouse button is currently up (not pressed).
@@ -426,7 +458,8 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// <param name="button">The mouse button to check.</param>
     /// <returns>True if the button is up; otherwise, false.</returns>
     public bool IsMouseButtonUp(MouseButton button) =>
-        IsMouseButtonReleased((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
+        (button == MouseButton.Left && _nativeMove)
+        || IsMouseButtonReleased((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
 
     /// <summary>
     /// Gets all characters typed since the last call to this method.

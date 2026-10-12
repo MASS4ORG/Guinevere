@@ -15,6 +15,10 @@ public interface IWindowChromeCapability : IWindowHandler
     /// <summary>The pointer in desktop coordinates; requires <see cref="CanMove"/>.</summary>
     Vector2 PointerPosition { get; }
 
+    /// <summary>Hands the current left-button gesture to the desktop for interactive movement and snapping.
+    /// Returns false when native movement is unavailable, allowing callers to use position updates.</summary>
+    bool TryBeginMove() => false;
+
     /// <summary>Minimizes the window.</summary>
     void Minimize();
 

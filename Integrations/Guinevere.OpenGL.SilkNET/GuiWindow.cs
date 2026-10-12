@@ -32,6 +32,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     Vector2 _prevMousePosition;
     Vector2 _mouseDelta;
     float _mouseWheelDelta;
+    bool _nativeX11Move;
     readonly HashSet<Silk.NET.Input.MouseButton> _pressedButtons = [];
     readonly HashSet<Silk.NET.Input.MouseButton> _heldButtons = [];
     readonly HashSet<Key> _pressedKeys = [];
@@ -266,6 +267,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
 
     void OnMouseDown(IMouse mouse, Silk.NET.Input.MouseButton button)
     {
+        if (button == Silk.NET.Input.MouseButton.Left) _nativeX11Move = false;
         _pressedButtons.Add(button);
         _heldButtons.Add(button);
         Pacing.NotifyInput();
@@ -274,7 +276,20 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     void OnMouseUp(IMouse mouse, Silk.NET.Input.MouseButton button)
     {
         _heldButtons.Remove(button);
+        if (button == Silk.NET.Input.MouseButton.Left) CancelNativeMove();
         Pacing.NotifyInput();
+    }
+
+    void CancelNativeMove()
+    {
+        if (!_nativeX11Move) return;
+        _nativeX11Move = false;
+        CancelX11Move();
+    }
+
+    void CancelX11Move()
+    {
+        if (NativeX11 is { } x11) X11WindowPosition.CancelMove(x11.Display, x11.Window);
     }
 
     void OnKeyDown(IKeyboard keyboard, Key key, int scanCode)

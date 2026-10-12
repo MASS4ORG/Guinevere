@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased][]
 
+- Fixed: AppBar delegates dragging to the desktop for snapping on X11/XWayland with Silk.NET and OpenTK, and on Windows with all four integrations; unsupported native operations retain position-based movement.
 - Added: the `test` build target also emits a TRX report.
 
 ## v[6.0.0][] 2026-10-10

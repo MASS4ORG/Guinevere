@@ -68,6 +68,9 @@ public partial class GuiWindow
     }
 
     /// <inheritdoc />
+    public unsafe bool TryBeginMove() => WindowsWindowMove.TryBegin((nint)Raylib.GetWindowHandle());
+
+    /// <inheritdoc />
     public Vector2 PointerPosition => _desktopPointer.Position;
 
     /// <inheritdoc />
