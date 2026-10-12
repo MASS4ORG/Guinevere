@@ -6,7 +6,7 @@ namespace Build;
 /// </summary>
 sealed partial class Build
 {
-    static AbsolutePath ChangelogFile => RootDirectory / "CHANGELOG.md";
+    static AbsolutePath ChangelogFile => RootDirectory / "docs" / "CHANGELOG.md";
 
     const string UnreleasedHeader = "## [Unreleased]";
 

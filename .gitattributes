@@ -1,2 +1,14 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Normalize text files to LF.
+* text=auto eol=lf
+
+# Keep binary assets byte-for-byte.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.zip binary
+*.nupkg binary
+*.dll binary
+*.exe binary

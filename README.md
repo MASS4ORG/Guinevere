@@ -49,6 +49,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   - [Layering & Transforms](#layering--transforms)
   - [Performance](#performance)
 - [Examples](#examples)
+- [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
@@ -381,9 +382,13 @@ dotnet add package MASS4.Autoformers.Excalibur
 
 The repository includes comprehensive [Examples](/Examples) demonstrating various features.
 
+## Contributing
+
+Read the [contribution guide](docs/CONTRIBUTING.md) before opening an issue or pull request.
+
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](docs/LICENSE.md) file for details.
 
 ## Acknowledgments
 
