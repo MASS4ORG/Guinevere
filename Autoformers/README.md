@@ -2,6 +2,8 @@
 
 A GUI-free form model. `FormBuilder.Build(target, options)` reflects a plain C# object into a `FormModel`: sections of `FormField`s, `CollectionField` views over lists, arrays and dictionaries, and `[Button]` actions. Member visibility, order, read-only state, ranges and tooltips come from `MASS4.Attributes`.
 
+![Guinevere Excalibur controls](../docs/guinevere-autoformers-examples.webp)
+
 The model never saves, validates or logs on its own. `FormOptions` supplies the consumer's policy:
 
 - `MutationNotifier`: called with the mutated object after each write, for dirty tracking, undo or autosave.

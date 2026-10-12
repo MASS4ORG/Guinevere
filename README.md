@@ -9,7 +9,9 @@
 
 A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for high-performance applications with modern graphics APIs support. You can use it to create rich and beautiful apps.
 
-![Guinevere overview](docs/guinevere-core-overview.png)
+![Guinevere overview](docs/guinevere-examples.webp)
+![Guinevere overview](docs/guinevere-excalibur-examples.webp)
+![Guinevere overview](docs/guinevere-autoformers-examples.webp)
 
 > **Important**
 >

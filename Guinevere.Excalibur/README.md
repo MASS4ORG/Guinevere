@@ -4,7 +4,7 @@ A ready-to-use set of default controls for the [Guinevere](https://github.com/MA
 immediate-mode GUI library. Everything here is an extension method on `Gui` living in the `Guinevere`
 namespace, so it drops into an existing Guinevere app with a single package reference and no setup.
 
-![Guinevere Excalibur controls](../docs/excalibur-controls-overview.png)
+![Guinevere Excalibur controls](../docs/guinevere-excalibur-examples.webp)
 
 ## Install
 

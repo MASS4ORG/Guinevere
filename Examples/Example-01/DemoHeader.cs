@@ -2,10 +2,12 @@ using Guinevere;
 
 namespace GuinevereDemos;
 
+/// <summary>Draws the shared demo header with the badge embedded in the example assembly.</summary>
 static class DemoHeader
 {
     static readonly Bitmap Badge = LoadBadge();
 
+    /// <summary>Draws the cached badge, demo title and frame rate.</summary>
     public static void Header(Gui gui, string title, Color? textColor = null)
     {
         var color = textColor ?? Color.White;
@@ -21,13 +23,8 @@ static class DemoHeader
 
     static Bitmap LoadBadge()
     {
-        // The badge sits at the repository root; walk up from the output directory to find it.
-        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-        {
-            var file = Path.Combine(dir.FullName, "guinevere-badge.png");
-            if (File.Exists(file)) return Bitmap.FromFile(file);
-        }
-
-        return Bitmap.FromFile("guinevere-badge.png");
+        using var stream = typeof(DemoHeader).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png")
+                           ?? throw new InvalidOperationException("The embedded demo badge is missing.");
+        return Bitmap.FromStream(stream);
     }
 }

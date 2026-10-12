@@ -6,7 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased][]
 
-- Fixed: Example 50 hosts load and cache the embedded badge without relying on the working directory.
 - Added: `.pss` text shadows and ordered glow #190.
 - Fixed: AppBar delegates dragging to OS.
 - Added: the `test` build target also emits a TRX report.

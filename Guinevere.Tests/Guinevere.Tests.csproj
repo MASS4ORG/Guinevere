@@ -36,6 +36,7 @@
         <ProjectReference Include="../Guinevere.Svg/Guinevere.Svg.csproj"/>
         <ProjectReference Include="../Examples/Example-11-Excalibur-Attributes/Example-11-Excalibur-Attributes.csproj"/>
         <ProjectReference Include="../Examples/Example-50/Example-50.csproj"/>
+        <ProjectReference Include="../Examples/Example-01/Example-01.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
