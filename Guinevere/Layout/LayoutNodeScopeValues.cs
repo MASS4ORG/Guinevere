@@ -42,6 +42,16 @@ public class LayoutNodeScopeTextLayout : ILayoutNodeScopeValue<LayoutNodeScopeTe
     public required TextLayoutOptions Value { get; init; }
 }
 
+/// <summary>Inherited text rendering effects for a layout scope.</summary>
+public class LayoutNodeScopeTextEffects : ILayoutNodeScopeValue<LayoutNodeScopeTextEffects>
+{
+    /// <summary>Gets or sets the text effects used by descendants unless explicitly overridden.</summary>
+    public TextEffects Value { get; set; }
+
+    /// <inheritdoc/>
+    public static LayoutNodeScopeTextEffects Default { get; } = new();
+}
+
 /// <summary>
 /// Represents the text font value for layout node scopes.
 /// </summary>

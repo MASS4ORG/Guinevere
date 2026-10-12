@@ -12,6 +12,7 @@ public abstract partial class Program
                          $btn-hover = #00ff00;
                          $btn-down  = #0000ff;
                          $tile-edge = #556080;
+                         $phosphor  = #a8ffd0;
 
                          #primary { background-color = $btn-hover; border-width = 0; }
 
@@ -31,6 +32,21 @@ public abstract partial class Program
                          #shadow       { box-shadow = 0 6px 14px #000000aa, inset 0 1px 0 #ffffff33; }
                          #faded        { opacity = 0.5; }
                          #bold         { font-weight = bold; font-style = italic; color = #ebcb8b; font-size = 16; }
+                         #phosphor {
+                             color = $phosphor;
+                             font-family = monospace;
+                             font-size = 14;
+                             text-shadow = 0 0 2px #a8ffd0, 0 0 7px #32e878, 0 0 14px #08783d;
+                         }
+                         button.phosphor-button {
+                             color = $phosphor;
+                             font-family = monospace;
+                             font-size = 14;
+                             background-color = #10251a;
+                             border-width = 1;
+                             border-color = #32e878;
+                             text-shadow = 0 0 2px #a8ffd0, 0 0 7px #32e878, 0 0 14px #08783d;
+                         }
 
                          #root {
                              flex-direction = column;
@@ -77,6 +93,8 @@ public abstract partial class Program
                     StyledTile(gui, "shadow", "Shadows");
                     StyledTile(gui, "faded", "Opacity 50%");
                     StyledTile(gui, "bold", "Bold italic");
+                    StyledTile(gui, "phosphor", "PHOSPHOR");
+                    _ = gui.Button("GLOW", classes: ["phosphor-button"]);
                 }
 
                 using (gui.StyledNode("VisualElement", ["card"]).Expand().Enter())

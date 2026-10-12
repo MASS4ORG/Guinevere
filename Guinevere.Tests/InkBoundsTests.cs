@@ -22,6 +22,52 @@ public class InkBoundsTests
         Assert.Null(Bounds(new Text("Hi", paint: new SKPaint { ImageFilter = SKImageFilter.CreateBlur(2, 2) })));
     }
 
+    /// <summary>Text ink bounds include outline width and each outer shadow's blur and offset.</summary>
+    [Fact]
+    public void TextEffects_ExpandInkBounds()
+    {
+        var font = new SKFont(SKTypeface.Default, 20);
+        var plain = Bounds(new Text("Hi", new Vector2(10, 50), font))!.Value;
+        var effected = Bounds(new Text("Hi", new Vector2(10, 50), font,
+            new SKPaint { ImageFilter = SKImageFilter.CreateDropShadowOnly(12, -4, 2, 2, SKColors.Black) },
+            new TextEffects
+            {
+                Outline = new TextEffects.TextOutline(Color.Black, 3),
+                DropShadows = [new TextEffects.TextShadow(Color.Black, new Vector2(12, -4), 2)],
+            }))!.Value;
+
+        Assert.True(effected.Left < plain.Left - 2);
+        Assert.True(effected.Right > plain.Right + 10);
+        Assert.True(effected.Top < plain.Top - 8);
+
+        var stroked = Bounds(new Text("Hi", new Vector2(10, 50), font,
+            new SKPaint { Style = SKPaintStyle.Stroke, StrokeWidth = 8 }, new TextEffects()))!.Value;
+        Assert.True(stroked.Left <= plain.Left - 4);
+        Assert.True(stroked.Right >= plain.Right + 4);
+    }
+
+    /// <summary>Effect metadata bounds legacy and inner shadows even without a filtered paint instance.</summary>
+    [Fact]
+    public void TextEffects_IncludeLegacyAndInnerShadowBounds()
+    {
+        var font = new SKFont(SKTypeface.Default, 20);
+        var plain = Bounds(new Text("Hi", new Vector2(10, 50), font))!.Value;
+        var effected = Bounds(new Text("Hi", new Vector2(10, 50), font, null, new TextEffects
+        {
+            DropShadow = new TextEffects.TextShadow(Color.Black, new Vector2(-12, 0), 1),
+            InnerShadow = new TextEffects.TextShadow(Color.Black, new Vector2(10, 8), 2),
+        }))!.Value;
+
+        Assert.True(effected.Left < plain.Left - 10);
+        Assert.True(effected.Right > plain.Right + 8);
+        Assert.True(effected.Top < plain.Top - 2);
+        Assert.True(effected.Bottom > plain.Bottom + 12);
+        Assert.Null(Bounds(new Text("Hi", null, null, new SKPaint
+        {
+            MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 2),
+        }, new TextEffects())));
+    }
+
     /// <summary>Images, nine-slices and deferred rects cover their destination; strokes add half their width.</summary>
     [Fact]
     public void Rectangles_CoverTheirDestination()

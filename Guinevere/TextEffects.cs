@@ -2,8 +2,8 @@ namespace Guinevere;
 
 /// <summary>
 /// Optional visual effects for <c>Gui.DrawText</c>:
-/// an outline, a drop shadow, an inner shadow and a gradient fill. Any combination may be set;
-/// they are drawn shadow → outline → fill → inner-shadow.
+/// an outline, outer shadows, an inner shadow and a gradient fill. Any combination may be set;
+/// they are drawn outer shadows → outline → fill → inner-shadow.
 /// </summary>
 public readonly record struct TextEffects
 {
@@ -12,6 +12,9 @@ public readonly record struct TextEffects
 
     /// <summary>Blurred, offset copy drawn behind everything.</summary>
     public TextShadow? DropShadow { get; init; }
+
+    /// <summary>Outer shadows drawn behind the fill in order; the first is topmost.</summary>
+    public IReadOnlyList<TextShadow>? DropShadows { get; init; }
 
     /// <summary>Blurred, offset copy clipped to the glyphs and drawn on top of the fill.</summary>
     public TextShadow? InnerShadow { get; init; }

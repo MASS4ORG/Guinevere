@@ -10,6 +10,7 @@ namespace Controls_01;
 public abstract partial class Program
 {
     static bool _nativeTitlebar;
+    static readonly Lazy<Bitmap> Badge = new(DecodeBadge);
 
     // Layout edits are deferred to the next frame's build pass so both passes of a frame see one tree.
     static Action? _pendingLayout;
@@ -71,16 +72,14 @@ public abstract partial class Program
         return layout;
     }
 
-    static Bitmap LoadBadge()
-    {
-        // The badge sits at the repository root; walk up from the output directory to find it.
-        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-        {
-            var file = Path.Combine(dir.FullName, "guinevere-badge.png");
-            if (File.Exists(file)) return Bitmap.FromFile(file);
-        }
+    /// <summary>Returns the shared badge decoded once from the gallery's embedded resource.</summary>
+    internal static Bitmap LoadBadge() => Badge.Value;
 
-        return Bitmap.FromFile("guinevere-badge.png");
+    static Bitmap DecodeBadge()
+    {
+        using var stream = typeof(Program).Assembly.GetManifestResourceStream("Controls_01.guinevere-badge.png")
+                           ?? throw new InvalidOperationException("The embedded gallery badge is missing.");
+        return Bitmap.FromStream(stream);
     }
 
     /// <summary>Draws the control gallery into the host's Gui.</summary>

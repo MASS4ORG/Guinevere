@@ -69,7 +69,8 @@ public static class StylingExtensions
         /// declarations apply in the build pass. The box (<c>background</c>, <c>box-shadow</c>, <c>border-*</c>,
         /// per-corner <c>border-radius</c>, <c>outline</c>) is drawn behind the node's children in the render pass,
         /// re-resolved for <c>:hover</c>, <c>:active</c> and <c>:focus</c>, as is <c>cursor</c>. Text properties
-        /// (<c>color</c>, <c>font-*</c>) and <c>opacity</c> apply to the node's scope, so its children inherit them.
+        /// (<c>color</c>, <c>font-*</c>, <c>text-shadow</c>) and <c>opacity</c> apply to the node's scope,
+        /// so its children inherit them.
         /// <c>:disabled</c> applies in both passes, so it may change layout, and suppresses hover and press. In the
         /// render pass, styled descendants see this node's live state, so <c>checkbox:hover &gt; indicator</c> matches.
         /// Values set under a transition annotation such as <c>:hover(0.15 ease-out)</c> interpolate on the GUI clock,
@@ -216,8 +217,8 @@ public static class StylingExtensions
 
     /// <summary>
     /// Sets the text <c>color</c>, <c>font-size</c>, <c>font-family</c>/<c>font-weight</c>/<c>font-style</c> and
-    /// <c>opacity</c> on the node's scope, and the node's <c>cursor</c>. A weight or style without a family restyles
-    /// the inherited font.
+    /// <c>text-shadow</c> and <c>opacity</c> on the node's scope, and the node's <c>cursor</c>.
+    /// A weight or style without a family restyles the inherited font.
     /// </summary>
     static void ApplyInherited(Gui gui, LayoutNode node, ResolvedStyle style, GuiStyling styling,
         StyleTokens inherited)
@@ -228,7 +229,17 @@ public static class StylingExtensions
         if (style.GetLength("font-size") is > 0f and var size && !style.Get("font-size")!.EndsWith('%'))
             gui.SetTextSize(size, node.Scope);
         if (StyleBoxValues.Opacity(style.Get("opacity")) is { } opacity) gui.SetOpacity(opacity, node.Scope);
+        ApplyTextShadows(gui, node, style);
         ApplyFont(gui, node, style, styling);
+    }
+
+    static void ApplyTextShadows(Gui gui, LayoutNode node, ResolvedStyle style)
+    {
+        var inherited = node.Parent?.Scope.Get<LayoutNodeScopeTextEffects>().Value ?? default;
+        if (style.GetTextShadows(node.Scope.Get<LayoutNodeScopeTextColor>().Value) is { } shadows)
+            gui.SetTextEffects(inherited with { DropShadow = null, DropShadows = shadows }, node.Scope);
+        else if (node.Scope.HasLocal<LayoutNodeScopeTextEffects>())
+            gui.SetTextEffects(inherited, node.Scope);
     }
 
     /// <summary>

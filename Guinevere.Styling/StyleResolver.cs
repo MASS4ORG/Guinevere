@@ -10,6 +10,9 @@ public sealed class ResolvedStyle
     public static readonly ResolvedStyle Empty = new(new Dictionary<string, string>(StringComparer.Ordinal));
 
     readonly Dictionary<string, string> _declarations;
+    IReadOnlyList<TextEffects.TextShadow>? _textShadows;
+    Color? _textShadowColor;
+    bool _textShadowsParsed;
 
     internal ResolvedStyle(Dictionary<string, string> declarations, Dictionary<string, Uri>? bases = null)
     {
@@ -51,6 +54,17 @@ public sealed class ResolvedStyle
     /// <param name="property">The property name.</param>
     public float? GetLength(string property) =>
         _declarations.TryGetValue(property, out var v) && StyleValue.TryLength(v, out var f, out _) ? f : null;
+
+    /// <summary>Returns ordered <c>text-shadow</c> layers, empty for <c>none</c>, or null if absent or malformed.</summary>
+    /// <param name="defaultColor">Inherited text color used for layers without a color; defaults to black.</param>
+    public IReadOnlyList<TextEffects.TextShadow>? GetTextShadows(Color? defaultColor = null)
+    {
+        var color = GetColor("color") ?? defaultColor ?? Color.Black;
+        if (_textShadowsParsed && _textShadowColor == color) return _textShadows;
+        _textShadowColor = color;
+        _textShadowsParsed = true;
+        return _textShadows = StyleTextValues.Shadows(Get("text-shadow"), color);
+    }
 
     /// <summary>
     /// The value of a property parsed as <c>url()</c>, resolved against the base of the sheet that declared it,

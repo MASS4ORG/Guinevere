@@ -34,7 +34,8 @@ public partial class Gui
         return DrawTextOrGlyph(new DrawConfig(
             text,
             font ?? CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value,
-            size, color, centerInRect, clip, wrapWidth, effects, layout, selectable));
+            size, color, centerInRect, clip, wrapWidth,
+            ResolveTextEffects(effects, CurrentNodeScope), layout, selectable));
     }
 
     /// <summary>
@@ -53,7 +54,15 @@ public partial class Gui
         return DrawTextOrGlyph(new DrawConfig(
             iconCode.ToString(),
             font ?? CurrentNodeScope.Get<LayoutNodeScopeWidgetIconFont>().Value,
-            size, color, centerInRect, clip, 0, effects));
+            size, color, centerInRect, clip, 0,
+            ResolveTextEffects(effects, CurrentNodeScope)));
+    }
+
+    static TextEffects? ResolveTextEffects(TextEffects? explicitEffects, LayoutNodeScope scope)
+    {
+        if (explicitEffects is { } explicitValue) return explicitValue;
+        var inherited = scope.Get<LayoutNodeScopeTextEffects>().Value;
+        return inherited == default ? null : inherited;
     }
 
     /// <summary>
@@ -139,7 +148,7 @@ public partial class Gui
             if (selection is not null)
                 DrawTextSelection(node, selection, wrappedLines[i], mainFont, iconFont,
                     new Rect(pos.X, node.InnerRect.Y + i * lineHeight, lineWidth, lineHeight));
-            DrawLineWithFallback(line, pos, mainFont, iconFont, layers, cfg.Clip, node);
+            DrawLineWithFallback(line, pos, mainFont, iconFont, layers, cfg.Effects, cfg.Clip, node);
         }
 
     }
@@ -155,51 +164,66 @@ public partial class Gui
             return [(new SKPaint { IsAntialias = true, Color = color }, Vector2.Zero)];
 
         var effect = effects.Value;
-        var layers = new List<(SKPaint, Vector2)>(4);
-
-        if (effect.DropShadow is { } drop)
-        {
-            layers.Add((new SKPaint
-            {
-                IsAntialias = true,
-                Color = drop.Color,
-                ImageFilter = SKImageFilter.CreateDropShadowOnly(
-                    drop.Offset.X, drop.Offset.Y, drop.Blur, drop.Blur, drop.Color),
-            }, Vector2.Zero));
-        }
-
-        if (effect.Outline is { } outline && outline.Width > 0f)
-        {
-            layers.Add((new SKPaint
-            {
-                IsAntialias = true,
-                Color = outline.Color,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = outline.Width * 2f, // half is hidden behind the fill
-                StrokeJoin = SKStrokeJoin.Round,
-            }, Vector2.Zero));
-        }
-
-        var fill = new SKPaint { IsAntialias = true, Color = color };
-        if (effect.Gradient is { } gradient)
-            fill.Shader = BuildGradientShader(gradient, bounds);
-        layers.Add((fill, Vector2.Zero));
-
-        if (effect.InnerShadow is { } inner)
-        {
-            // The offset, blurred copy in shadow color, kept only where the fill already painted:
-            // a soft dark band along the offset edge, inside the glyphs.
-            layers.Add((new SKPaint
-            {
-                IsAntialias = true,
-                Color = inner.Color,
-                BlendMode = SKBlendMode.SrcATop,
-                ImageFilter = inner.Blur > 0f ? SKImageFilter.CreateBlur(inner.Blur, inner.Blur) : null,
-            }, inner.Offset));
-        }
-
+        var layers = new List<(SKPaint, Vector2)>(4 + (effect.DropShadows?.Count ?? 0));
+        AddLegacyDropShadow(layers, effect.DropShadow);
+        AddDropShadows(layers, effect.DropShadows);
+        AddOutline(layers, effect.Outline);
+        layers.Add((BuildFillPaint(color, effect.Gradient, bounds), Vector2.Zero));
+        AddInnerShadow(layers, effect.InnerShadow);
         return layers;
     }
+
+    static void AddLegacyDropShadow(List<(SKPaint, Vector2)> layers, TextEffects.TextShadow? shadow)
+    {
+        if (shadow is { } value) layers.Add((BuildOuterShadowPaint(value), Vector2.Zero));
+    }
+
+    static void AddDropShadows(List<(SKPaint, Vector2)> layers, IReadOnlyList<TextEffects.TextShadow>? shadows)
+    {
+        if (shadows is null) return;
+        for (var i = shadows.Count - 1; i >= 0; i--)
+            layers.Add((BuildOuterShadowPaint(shadows[i]), Vector2.Zero));
+    }
+
+    static void AddOutline(List<(SKPaint, Vector2)> layers, TextEffects.TextOutline? outline)
+    {
+        if (outline is not { Width: > 0 } value) return;
+        layers.Add((new SKPaint
+        {
+            IsAntialias = true,
+            Color = value.Color,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = value.Width * 2f, // half is hidden behind the fill
+            StrokeJoin = SKStrokeJoin.Round,
+        }, Vector2.Zero));
+    }
+
+    static SKPaint BuildFillPaint(Color color, TextEffects.TextGradient? gradient, Rect bounds)
+    {
+        var fill = new SKPaint { IsAntialias = true, Color = color };
+        if (gradient is { } value) fill.Shader = BuildGradientShader(value, bounds);
+        return fill;
+    }
+
+    static void AddInnerShadow(List<(SKPaint, Vector2)> layers, TextEffects.TextShadow? shadow)
+    {
+        if (shadow is not { } inner) return;
+        layers.Add((new SKPaint
+        {
+            IsAntialias = true,
+            Color = inner.Color,
+            BlendMode = SKBlendMode.SrcATop,
+            ImageFilter = inner.Blur > 0f ? SKImageFilter.CreateBlur(inner.Blur, inner.Blur) : null,
+        }, inner.Offset));
+    }
+
+    static SKPaint BuildOuterShadowPaint(TextEffects.TextShadow shadow) => new()
+    {
+        IsAntialias = true,
+        Color = shadow.Color,
+        ImageFilter = SKImageFilter.CreateDropShadowOnly(
+            shadow.Offset.X, shadow.Offset.Y, shadow.Blur, shadow.Blur, shadow.Color),
+    };
 
     static SKShader BuildGradientShader(TextEffects.TextGradient gradient, Rect bounds)
     {
@@ -246,7 +270,7 @@ public partial class Gui
     /// Draws a line of text with font fallback support.
     /// </summary>
     void DrawLineWithFallback(string line, Vector2 startPos, Font mainFont, Font iconFont,
-        IReadOnlyList<(SKPaint Paint, Vector2 Offset)> layers, bool clip, LayoutNode node)
+        IReadOnlyList<(SKPaint Paint, Vector2 Offset)> layers, TextEffects? effects, bool clip, LayoutNode node)
     {
         var runs = CreateFontRuns(line, mainFont, iconFont);
 
@@ -263,7 +287,7 @@ public partial class Gui
         foreach (var (paint, offset) in layers)
         {
             for (var i = 0; i < runs.Count; i++)
-                AddDraw(new Text(runs[i].Text, positions[i] + offset, runs[i].Font.SkFont, paint), clip, node);
+                AddDraw(new Text(runs[i].Text, positions[i] + offset, runs[i].Font.SkFont, paint, effects), clip, node);
         }
     }
 

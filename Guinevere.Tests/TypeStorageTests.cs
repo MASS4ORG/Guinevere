@@ -1,14 +1,26 @@
-using System.Runtime.CompilerServices;
-
 namespace Guinevere.Tests;
 
 public class TypeStorageTests
 {
+    /// <summary>Confirms default and singular TextEffects values need no heap allocation.</summary>
     [Fact]
-    public void TextEffectsIsAnAllocationFreeValue()
+    public void TextEffectsDefaultAndSingleShadowConstructionDoNotAllocate()
     {
         Assert.True(typeof(TextEffects).IsValueType);
-        Assert.False(RuntimeHelpers.IsReferenceOrContainsReferences<TextEffects>());
+
+        _ = CreateEffects();
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        _ = CreateEffects();
+        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+
+        static TextEffects CreateEffects()
+        {
+            _ = new TextEffects();
+            return new TextEffects
+            {
+                DropShadow = new TextEffects.TextShadow(Color.Black, Vector2.Zero, 1f),
+            };
+        }
     }
 
     [Fact]

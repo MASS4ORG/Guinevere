@@ -102,6 +102,64 @@ public class TextEffectsTests
         Assert.True(newInk, "the shadow should paint pixels the plain text does not");
     }
 
+    /// <summary>An inner shadow changes glyph pixels while remaining clipped to their coverage.</summary>
+    [Fact]
+    public void InnerShadow_ChangesGlyphPixels()
+    {
+        var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
+        var inner = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White,
+            effects: new TextEffects
+            {
+                InnerShadow = new TextEffects.TextShadow(
+                    Color.FromArgb(255, 255, 0, 0), new Vector2(4, 2), 2f),
+            }));
+
+        Assert.False(plain.SequenceEqual(inner), "the inner shadow should alter covered text pixels");
+        Assert.Equal(OpaqueCount(plain), OpaqueCount(inner));
+    }
+
+    /// <summary>An explicit empty effect value suppresses effects inherited from the current scope.</summary>
+    [Fact]
+    public void ExplicitEmptyEffects_OverrideInheritedEffects()
+    {
+        var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
+        var inherited = new TextEffects
+        {
+            DropShadow = new TextEffects.TextShadow(
+                Color.FromArgb(255, 255, 0, 0), new Vector2(20, 12), 3f),
+        };
+        var overridden = RenderFrame(gui =>
+        {
+            gui.SetTextEffects(inherited);
+            gui.DrawText("Ag", size: Size, color: Color.White, effects: new TextEffects());
+        });
+
+        Assert.Equal(plain, overridden);
+    }
+
+    /// <summary>Glyphs inherit text effects from their current scope.</summary>
+    [Fact]
+    public void DrawGlyph_InheritsTextEffects()
+    {
+        var effects = new TextEffects
+        {
+            DropShadow = new TextEffects.TextShadow(
+                Color.FromArgb(255, 255, 0, 0), new Vector2(12, 8), 2f),
+        };
+        var glyph = RenderFrame(gui =>
+        {
+            gui.SetTextEffects(effects);
+            gui.DrawGlyph('A', size: Size, color: Color.White, font: Face, centerInRect: false);
+        });
+        var text = RenderFrame(gui =>
+        {
+            gui.SetTextEffects(effects);
+            gui.DrawText("A", size: Size, color: Color.White, font: Face, centerInRect: false);
+        });
+
+        Assert.Equal(text, glyph);
+    }
+
     /// <summary>A horizontal gradient makes the left and right of the text different colors.</summary>
     [Fact]
     public void Gradient_VariesColorAcrossText()

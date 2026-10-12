@@ -40,6 +40,13 @@ public partial class Gui
         scope.Set(new LayoutNodeScopeTextLayout { Value = layout });
     }
 
+    /// <summary>Sets text effects inherited by text drawn in this scope and its descendants.</summary>
+    public void SetTextEffects(TextEffects effects, LayoutNodeScope? scope = null)
+    {
+        scope ??= CurrentNodeScope;
+        scope.Set(new LayoutNodeScopeTextEffects { Value = effects });
+    }
+
     /// <summary>
     /// Sets the legacy icon font for explicit glyphs and text fallback in this scope.
     /// The font is automatically restored when exiting the node scope.

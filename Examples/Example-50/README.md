@@ -26,8 +26,9 @@ floating window. Drag a splitter to resize, and use the **✕** on a tab to clos
   rather than stacked), and delayed tooltips.
 - **Scrolling** (bottom dock): turning a node into a scroll container, programmatic scroll
   (`ScrollToTop` / `ScrollToBottom` / scroll-percentage) and nested scroll regions.
-- **Styling** (center): PSS-styled widgets via `gui.StyledNode`, plus a source view whose hovered element
-  highlights the rules it uses.
+- **Styling** (center): PSS-styled widgets via `gui.StyledNode`, including layered text shadows for a
+  phosphor glow on inherited text and a real button, plus a source view whose hovered element highlights
+  the rules it uses.
 
 ### Layout toolbar
 
