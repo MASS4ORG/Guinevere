@@ -19,7 +19,6 @@ global using Nuke.Common.IO;
 global using Nuke.Common.ProjectModel;
 global using Nuke.Common.Tooling;
 global using Nuke.Common.Tools.DotNet;
-global using Nuke.Common.Tools.GitVersion;
 global using Nuke.Common.Tools.ReportGenerator;
 global using Nuke.Common.Utilities.Collections;
 global using Serilog;

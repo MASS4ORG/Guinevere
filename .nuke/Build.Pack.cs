@@ -11,9 +11,6 @@ sealed partial class Build
     AbsolutePath PackedArchive =>
         ArtifactsDirectory / $"{ProductName}-{Version}-{RuntimeIdentifier}.zip";
 
-    // Not declared via .Produces(PackedArchive): that evaluates its argument eagerly while Nuke
-    // builds the target graph, before GitVersion's [GitVersion] field injection has run, and
-    // PackedArchive depends on Version (=> gitVersion.MajorMinorPatch), which would NRE.
     public Target Pack => td =>
         td
             .DependsOn(PackDependencies)

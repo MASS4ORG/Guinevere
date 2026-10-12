@@ -20,7 +20,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageDownload Include="GitVersion.Tool" Version="[6.8.2]" />
         <PackageDownload Include="ReportGenerator" Version="[5.5.11]" />
     </ItemGroup>
 
