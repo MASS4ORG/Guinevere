@@ -1,5 +1,7 @@
 # Example-73-PanGui-MusicApp
 
+This port is incomplete, does not compile, and is excluded from the solution build. The sections below describe the intended interface and preserve the original PanGui code.
+
 This is a comprehensive "real-world" style application demonstration. It showcases a complex Music Production interface with multiple sections, custom styling, and advanced layout techniques.
 
 ## Features

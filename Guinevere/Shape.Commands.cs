@@ -80,45 +80,26 @@ public partial class Shape
     public static Shape operator -(Shape shape, int amount) => shape.Expand(-amount);
 
     /// <summary>
-    ///
+    /// Offsets the filled boundary by the specified distance using rounded joins and caps.
     /// </summary>
-    /// <param name="amount"></param>
-    /// <returns></returns>
+    /// <param name="amount">The outward distance; a negative value contracts the filled shape.</param>
+    /// <returns>A new shape with the offset fill and the current paint.</returns>
     public Shape Expand(float amount)
     {
+        if (amount == 0) return Copy();
         var expandedPath = new SKPath();
-
-        if (amount > 0)
+        if (amount < 0 && -amount * 2 >= Math.Min(Path.Bounds.Width, Path.Bounds.Height))
+            return new Shape(expandedPath, Paint);
+        using var strokePaint = new SKPaint
         {
-            // Expand outward by creating a stroke and then filling it
-            var strokePaint = new SKPaint
-            {
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = amount * 2,
-                StrokeJoin = SKStrokeJoin.Round,
-                StrokeCap = SKStrokeCap.Round
-            };
-
-            var strokePath = strokePaint.GetFillPath(Path);
-
-            // Union the original path with the stroke to create a filled expanded shape
-            Path.Op(strokePath, SKPathOp.Union, expandedPath);
-        }
-        else
-        {
-            // Contract inward by scaling down
-            var scaleFactor = 1 + amount / Math.Max(Path.Bounds.Width, Path.Bounds.Height);
-            scaleFactor = Math.Max(0.1f, scaleFactor); // Prevent negative scaling
-
-            var bounds = Path.Bounds;
-            var centerX = bounds.MidX;
-            var centerY = bounds.MidY;
-
-            var transform = SKMatrix.CreateScale(scaleFactor, scaleFactor, centerX, centerY);
-            Path.Transform(transform, expandedPath);
-        }
-
-        return new Shape(expandedPath) { Paint = Paint };
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = Math.Abs(amount) * 2,
+            StrokeJoin = SKStrokeJoin.Round,
+            StrokeCap = SKStrokeCap.Round
+        };
+        using var strokePath = strokePaint.GetFillPath(Path);
+        Path.Op(strokePath, amount > 0 ? SKPathOp.Union : SKPathOp.Difference, expandedPath);
+        return new Shape(expandedPath, Paint);
     }
 
     /// <summary>
@@ -166,67 +147,26 @@ public partial class Shape
     }
 
     /// <summary>
-    /// Combines two shapes into a single shape using a union operation, allowing customization
-    /// of the result's smoothness.
+    /// Combines filled shapes using a polynomial smooth minimum of their signed distances.
+    /// Positive smoothness samples a bounded grid and can lose details smaller than one grid cell.
     /// </summary>
     /// <param name="shape1">The first shape to include in the union.</param>
     /// <param name="shape2">The second shape to include in the union.</param>
-    /// <param name="smoothness">The level of smoothness for the union operation. A higher value results in smoother transitions.</param>
+    /// <param name="smoothness">The blending radius in shape units; zero preserves the exact path union.</param>
     /// <returns>A new <see cref="Shape"/> representing the union of the two input shapes.</returns>
     public static Shape Union(Shape shape1, Shape shape2, int smoothness)
     {
-        if (smoothness <= 0) return shape1 + shape2;
-
-        // First create a basic union
-        var unionPath = new SKPath();
-        shape1.Path.Op(shape2.Path, SKPathOp.Union, unionPath);
-
-        // Apply morphological operations to smooth the union
-        var smoothedPath = SmoothUnion(unionPath, smoothness);
-
-        var result = new Shape(smoothedPath);
-        result.Paint = shape1.Paint ?? shape2.Paint;
-
-        return result;
-    }
-
-    /// <summary>
-    /// Smooths a union by applying morphological operations to create organic blending.
-    /// </summary>
-    /// <param name="unionPath">The path representing the union of two shapes.</param>
-    /// <param name="smoothness">The amount of smoothing to apply.</param>
-    /// <returns>A smoothed path with organic transitions.</returns>
-    static SKPath SmoothUnion(SKPath unionPath, float smoothness)
-    {
-        // Step 1: Dilate (expand) the union to fill gaps and smooth concave areas
-        var dilatePaint = new SKPaint
+        if (shape1.Path.IsEmpty) return shape2.Copy();
+        if (shape2.Path.IsEmpty) return shape1.Copy();
+        if (smoothness <= 0)
         {
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = smoothness,
-            StrokeJoin = SKStrokeJoin.Round,
-            StrokeCap = SKStrokeCap.Round
-        };
-        var dilatedPath = dilatePaint.GetFillPath(unionPath);
+            var union = new SKPath();
+            shape1.Path.Op(shape2.Path, SKPathOp.Union, union);
+            return new Shape(union, shape1.Paint);
+        }
 
-        // Step 2: Unite the original with the dilated version
-        var expandedPath = new SKPath();
-        unionPath.Op(dilatedPath, SKPathOp.Union, expandedPath);
-
-        // Step 3: Erode (contract) back to approximate original size but with smoothed transitions
-        var erodedPath = new SKPath();
-
-        // Create an inward stroke by scaling down
-        var bounds = expandedPath.Bounds;
-        var centerX = bounds.MidX;
-        var centerY = bounds.MidY;
-        var maxDim = Math.Max(bounds.Width, bounds.Height);
-        var scaleFactor = (maxDim - smoothness * 0.8f) / maxDim;
-        scaleFactor = Math.Max(0.1f, scaleFactor);
-
-        var scaleMatrix = SKMatrix.CreateScale(scaleFactor, scaleFactor, centerX, centerY);
-        expandedPath.Transform(scaleMatrix, erodedPath);
-
-        return erodedPath;
+        var path = ShapeDistanceField.Blend(shape1.Path, shape2.Path, 0, smoothness);
+        return new Shape(path, shape1.Paint);
     }
 
     /// <summary>
@@ -268,11 +208,11 @@ public partial class Shape
         var scaleMatrix = SKMatrix.CreateScale(scaleX, scaleY, centerX, centerY);
         shape.Path.Transform(scaleMatrix);
 
-        // Transform all layers
         foreach (var (_, layerList) in shape.Layers)
             for (var i = 0; i < layerList.Count; i++)
             {
                 var (layerPath, layerPaint) = layerList[i];
+                if (ReferenceEquals(layerPath, shape.Path)) continue;
                 layerPath.Transform(scaleMatrix);
                 layerList[i] = (layerPath, layerPaint);
             }
@@ -292,50 +232,32 @@ public partial class Shape
     }
 
     /// <summary>
-    /// Creates a morphed shape by blending this shape with another shape based on the specified amount.
-    /// This method performs shape interpolation by creating a weighted union of the two shapes.
-    /// At amount=0, returns this shape; at amount=1, returns the other shape;
-    /// values in between create a morphed blend that gradually transitions from one shape to the other.
+    /// Interpolates the filled shapes' signed distances and paint, returning a copy at each endpoint.
+    /// Geometry is sampled on a bounded grid, so details smaller than one grid cell may disappear.
     /// </summary>
-    /// <param name="other">The other shape to blend with this shape.</param>
-    /// <param name="amount">The blending amount. 0.0 returns this shape, 1.0 returns the other shape, values in between create a blend.</param>
-    /// <returns>A new <see cref="Shape"/> representing the blended result.</returns>
+    /// <param name="other">The shape to blend toward.</param>
+    /// <param name="amount">The blending amount, clamped to the range zero through one.</param>
+    /// <returns>A new shape representing the blend.</returns>
     public Shape Mix(Shape other, float amount)
     {
-        amount = Math.Clamp(amount, 0.0f, 1.0f);
+        amount = Math.Clamp(amount, 0, 1);
+        if (amount == 0) return Copy();
+        if (amount == 1) return other.Copy();
+        var path = Path.IsEmpty || other.Path.IsEmpty
+            ? new SKPath()
+            : ShapeDistanceField.Blend(Path, other.Path, amount);
+        var paint = MixPaint(other, amount);
+        return new Shape(path, paint);
+    }
 
-        if (amount == 0.0f) return Copy();
-        if (Math.Abs(amount - 1.0f) < float.Epsilon) return other.Copy();
-
-        // Create a smooth interpolation between the two shapes
-        // We use a combination of scaling and union operations to create the morph effect
-        var thisContribution = Expand(-amount * 5); // Contract this shape as amount increases
-        var otherContribution = other.Expand(-(1 - amount) * 5); // Contract other shape as amount decreases
-
-        // Create the morphed shape by blending the contributions
-        var morphedPath = new SKPath();
-        thisContribution.Path.Op(otherContribution.Path, SKPathOp.Union, morphedPath);
-
-        var result = new Shape(morphedPath);
-
-        // Blend paint properties if both shapes have paint
-        if (Paint != null && other.Paint != null)
-        {
-            var blendedPaint = new SKPaint
-            {
-                Color = BlendColors(Paint.Color, other.Paint.Color, amount),
-                Style = amount < 0.5f ? Paint.Style : other.Paint.Style,
-                IsAntialias = Paint.IsAntialias || other.Paint.IsAntialias,
-                StrokeWidth = Paint.StrokeWidth * (1 - amount) + other.Paint.StrokeWidth * amount
-            };
-            result.Paint = blendedPaint;
-        }
-        else
-        {
-            result.Paint = amount < 0.5f ? Paint : other.Paint;
-        }
-
-        return result;
+    SKPaint MixPaint(Shape other, float amount)
+    {
+        var paint = (amount < 0.5f ? Paint : other.Paint)?.Clone() ?? new SKPaint();
+        if (Paint == null || other.Paint == null) return paint;
+        paint.Color = BlendColors(Paint.Color, other.Paint.Color, amount);
+        paint.IsAntialias = Paint.IsAntialias || other.Paint.IsAntialias;
+        paint.StrokeWidth = Paint.StrokeWidth * (1 - amount) + other.Paint.StrokeWidth * amount;
+        return paint;
     }
 
     /// <summary>

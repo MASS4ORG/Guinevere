@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased][]
 
+- Improved: PanGui Airbnb slider dragging and shading, heart stage morphs and distance-based shape blending; refreshed the MusicApp gap plan.
 - Added: `.pss` text shadows and ordered glow #190.
 - Fixed: AppBar delegates dragging to OS.
 - Added: the `test` build target also emits a TRX report.

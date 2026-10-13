@@ -195,6 +195,8 @@ public partial class Shape : IDrawable, IInkBounds
         if (sweepAngle.Degree <= 0) sweepAngle += Angle.FullCircle;
         if (sweepAngle.Degree > 360) sweepAngle -= Angle.FullCircle;
 
+        if (sweepAngle.Degree == 360) return Circle(outerRadius) - Circle(innerRadius);
+
         // Create the main arc body
         var arc = new SKPathBuilder();
         var outerStart = new SKPoint(
@@ -205,9 +207,9 @@ public partial class Shape : IDrawable, IInkBounds
             MathF.Sin(endDeg.Radian) * innerRadius);
 
         arc.MoveTo(outerStart);
-        arc.AddArc(outerRect, startDeg.Degree, sweepAngle.Degree);
+        arc.ArcTo(outerRect, startDeg.Degree, sweepAngle.Degree, false);
         arc.LineTo(innerEnd);
-        arc.AddArc(innerRect, endDeg.Degree, -sweepAngle.Degree);
+        arc.ArcTo(innerRect, endDeg.Degree, -sweepAngle.Degree, false);
         arc.LineTo(outerStart);
         arc.Close();
 
@@ -219,7 +221,8 @@ public partial class Shape : IDrawable, IInkBounds
 
         arc.AddCircle(startCenterX, startCenterY, halfThickness);
         arc.AddCircle(endCenterX, endCenterY, halfThickness);
-        return new Shape(arc.Detach());
+        using var path = arc.Detach();
+        return new Shape(path.Simplify());
     }
 
     /// <summary>

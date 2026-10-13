@@ -98,7 +98,6 @@ public partial class Program
                 DrawSnapshotButton(_snapshots[4], default);
                 DrawSnapshotButton(_snapshots[5], default);
             }
-            ...
 
                 using (_gui.Node().ExpandWidth().Enter())
             {
@@ -107,7 +106,6 @@ public partial class Program
         }
 
         return;
-    });
     }
 
     LayoutNode DrawSnapshotButton(Snapshot snapshot, ShapePos mask)

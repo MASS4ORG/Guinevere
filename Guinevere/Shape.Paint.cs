@@ -60,7 +60,8 @@ public partial class Shape
         OuterShadow(color, Vector2.Zero, blurRadius, spread);
 
     /// <summary>
-    /// Applies a radial gradient color effect to the shape using the specified colors, radii, and offsets.
+    /// Applies a radial gradient that holds the first color through the inner radius and blends outward to the second.
+    /// The radii must satisfy 0 ≤ innerRadius &lt; outerRadius; later gradients blend over earlier fills.
     /// </summary>
     /// <param name="colorA">The color at the inner radius of the gradient.</param>
     /// <param name="colorB">The color at the outer radius of the gradient.</param>
@@ -73,6 +74,9 @@ public partial class Shape
         float innerRadius, float outerRadius,
         float offsetX = 0, float offsetY = 0)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(innerRadius);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(outerRadius);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(innerRadius, outerRadius);
         var centerX = Node is not null ? Node.Rect.Center.X : Path.Bounds.MidX;
         var centerY = Node is not null ? Node.Rect.Center.Y : Path.Bounds.MidY;
 
@@ -84,20 +88,16 @@ public partial class Shape
             center,
             outerRadius,
             [colorA, colorB],
-            null,
+            [innerRadius / outerRadius, 1f],
             SKShaderTileMode.Clamp
         );
 
-        // Preserve existing paint properties
         Paint ??= new SKPaint();
 
-        // Create a new paint if one doesn't exist, or copy existing properties
         if (Paint.Shader != null)
         {
-            // For multiple gradients, we need to create a layered effect
-            // Create a copy of the current paint for layering
             var existingShader = Paint.Shader;
-            Paint.Shader = SKShader.CreateCompose(existingShader, radialShader);
+            Paint.Shader = SKShader.CreateCompose(existingShader, radialShader, SKBlendMode.SrcOver);
         }
         else
         {

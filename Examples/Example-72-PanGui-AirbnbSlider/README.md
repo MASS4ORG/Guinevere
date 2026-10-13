@@ -4,7 +4,7 @@ This example demonstrates advanced shape composition, custom interactions, and h
 
 ## Features
 - **Complex Shapes**: Creating a circular lane and an arc handle using SkiaSharp-powered CSG (Constructive Solid Geometry) operations.
-- **Custom Interaction**: A polar-coordinate based slider handle that can be dragged in a circular motion.
+- **Custom Interaction**: Continuous circular dragging with pointer capture, including when the pointer leaves the handle or ring.
 - **Advanced Rendering**:
     - Multi-layered linear and radial gradients.
     - Inner and outer shadows with custom offsets and blurs.
@@ -14,6 +14,8 @@ This example demonstrates advanced shape composition, custom interactions, and h
 ## Interaction
 - Drag the circular handle along the arc to select the number of months.
 - Watch the smooth transition as you release the mouse button.
+- The month label rounds to a whole month while the handle follows the fractional angle. Releasing the handle eases it toward the selected month; reduced motion settles immediately.
+- The pink glow is clipped to the lane, preserving the white center and the handle's bright bevel.
 
 ## Original Code
 
