@@ -88,6 +88,21 @@ public class ShapeMixTests
         Assert.True(large.Mix(large, 0.7f).Path.Contains(4000, 0));
     }
 
+    /// <summary>Verifies that a sampled blend stays within a fraction of a cell of the exact boundary with bounded detail.</summary>
+    [Fact]
+    public void MixOfIdenticalCirclesStaysAccurateAndBounded()
+    {
+        var circle = Shape.Circle(100);
+
+        var mixed = circle.Mix(circle.Copy(), 0.3f);
+
+        Assert.InRange(mixed.Path.Bounds.Width, 199, 201);
+        Assert.InRange(mixed.Path.Bounds.Height, 199, 201);
+        Assert.True(mixed.Path.Contains(98, 0));
+        Assert.False(mixed.Path.Contains(102, 0));
+        Assert.InRange(mixed.Path.PointCount, 8, 2000);
+    }
+
     /// <summary>Verifies that a distance blend of separated fills can vanish when neither field reaches zero.</summary>
     [Fact]
     public void MixOfDisjointFillsDoesNotRetainTheirUnion()

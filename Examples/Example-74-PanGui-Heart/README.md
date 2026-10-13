@@ -4,7 +4,7 @@ The original PanGui demonstration of signed distance field based shapes. It comb
 
 Stages morph over 0.65 seconds and hold for the rest of each 3.5-second interval. The final stage blends the heart with an orbiting circle, changing its contour without accumulating rotations. Hover smoothly enlarges the shape; captions remain outside its clipping area.
 
-Guinevere reconstructs Skia paths from sampled signed distances for `Mix` and smooth `Union`. This preserves the demo's expressions and supports ordinary path rendering and shadows, but it is an approximation: details smaller than a sampling cell can disappear, and large shapes use a coarser grid. Stable stage geometry is cached, and animated geometry is calculated once for both GUI passes.
+In our demo, Guinevere reconstructs Skia paths from sampled signed distances for `Mix` and smooth `Union`. This preserves the demo's expressions and supports ordinary path rendering and shadows, but it is an approximation.
 
 ## Original Code
 

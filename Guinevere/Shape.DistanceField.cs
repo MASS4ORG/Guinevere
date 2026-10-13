@@ -1,26 +1,54 @@
-using System.Runtime.InteropServices;
+using System.Buffers;
 
 namespace Guinevere;
 
+/// <summary>Combines filled paths through their signed distance fields, which path operations cannot express.</summary>
 static class ShapeDistanceField
 {
-    // Filled paths are sampled at up to 512 points per axis; smaller details than a grid cell can disappear.
+    const int MaxCells = 192;
+    const float Far = 1e12f;
+
+    /// <summary>
+    /// Blends two filled paths by interpolating their distances, or by a smooth minimum when smoothness is positive.
+    /// </summary>
+    /// <remarks>
+    /// Fields are sampled on at most about 192 cells per axis; anti-aliased edge coverage keeps the contour accurate to
+    /// a fraction of a cell, but features thinner than one cell can still disappear.
+    /// </remarks>
     internal static SKPath Blend(SKPath first, SKPath second, float amount, float smoothness = 0)
     {
         var bounds = SKRect.Union(first.Bounds, second.Bounds);
         var longest = Math.Max(bounds.Width, bounds.Height);
         if (longest <= 0) return new SKPath();
-        var step = Math.Max(longest / 480, Math.Min(1, longest / 64));
+        var step = Math.Max(longest / MaxCells, Math.Min(1, longest / 64));
         var padding = Math.Max(step * 3, smoothness / 4 + step * 2);
         bounds.Inflate(padding, padding);
-        step = Math.Max(step, Math.Max(bounds.Width, bounds.Height) / 510);
+        step = Math.Max(step, Math.Max(bounds.Width, bounds.Height) / MaxCells);
         var width = (int)Math.Ceiling(bounds.Width / step) + 1;
         var height = (int)Math.Ceiling(bounds.Height / step) + 1;
-        var a = Sample(first, bounds, step, width, height);
-        var b = Sample(second, bounds, step, width, height);
-        for (var i = 0; i < a.Length; i++)
-            a[i] = smoothness > 0 ? SmoothMinimum(a[i], b[i], smoothness) : a[i] * (1 - amount) + b[i] * amount;
-        return Trace(a, bounds, step, width, height);
+        var size = width * height;
+
+        var pool = ArrayPool<float>.Shared;
+        var a = pool.Rent(size);
+        var b = pool.Rent(size);
+        var outer = pool.Rent(size);
+        var inner = pool.Rent(size);
+        try
+        {
+            var scratch = new Scratch(Math.Max(width, height));
+            Sample(first, bounds, step, width, height, a, outer, inner, scratch);
+            Sample(second, bounds, step, width, height, b, outer, inner, scratch);
+            for (var i = 0; i < size; i++)
+                a[i] = smoothness > 0 ? SmoothMinimum(a[i], b[i], smoothness) : a[i] * (1 - amount) + b[i] * amount;
+            return Trace(a, bounds, step, width, height);
+        }
+        finally
+        {
+            pool.Return(a);
+            pool.Return(b);
+            pool.Return(outer);
+            pool.Return(inner);
+        }
     }
 
     static float SmoothMinimum(float a, float b, float radius)
@@ -29,57 +57,71 @@ static class ShapeDistanceField
         return Math.Min(a, b) - h * h * radius / 4;
     }
 
-    static float[] Sample(SKPath path, SKRect bounds, float step, int width, int height)
+    // Edge pixels start at their sub-cell offset from the contour, so a coarse grid still locates the boundary closely.
+    static void Sample(SKPath path, SKRect bounds, float step, int width, int height,
+        float[] field, float[] outer, float[] inner, Scratch scratch)
     {
         using var bitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Alpha8, SKAlphaType.Premul));
-        using var canvas = new SKCanvas(bitmap);
-        using var paint = new SKPaint { Color = SKColors.White, IsAntialias = false };
-        canvas.Clear(SKColors.Transparent);
-        canvas.Scale(1 / step);
-        canvas.Translate(-bounds.Left + step / 2, -bounds.Top + step / 2);
-        canvas.DrawPath(path, paint);
-        var pixels = new byte[bitmap.ByteCount];
-        Marshal.Copy(bitmap.GetPixels(), pixels, 0, pixels.Length);
-        var inside = new bool[width * height];
+        using (var canvas = new SKCanvas(bitmap))
+        using (var paint = new SKPaint { Color = SKColors.White, IsAntialias = true })
+        {
+            canvas.Clear(SKColors.Transparent);
+            canvas.Scale(1 / step);
+            canvas.Translate(-bounds.Left + step / 2, -bounds.Top + step / 2);
+            canvas.DrawPath(path, paint);
+        }
+        var pixels = bitmap.GetPixelSpan();
+        var rowBytes = bitmap.RowBytes;
         for (var y = 0; y < height; y++)
             for (var x = 0; x < width; x++)
-                inside[y * width + x] = pixels[y * bitmap.RowBytes + x] != 0;
-        var toInside = Distance(inside, true, width, height);
-        var toOutside = Distance(inside, false, width, height);
-        for (var i = 0; i < inside.Length; i++)
-            toInside[i] = inside[i]
-                ? -(MathF.Sqrt(toOutside[i]) - 0.5f) * step
-                : (MathF.Sqrt(toInside[i]) - 0.5f) * step;
-        return toInside;
+            {
+                var i = y * width + x;
+                var coverage = pixels[y * rowBytes + x] / 255f;
+                if (coverage >= 1)
+                {
+                    outer[i] = 0;
+                    inner[i] = Far;
+                }
+                else if (coverage <= 0)
+                {
+                    outer[i] = Far;
+                    inner[i] = 0;
+                }
+                else
+                {
+                    var offset = 0.5f - coverage;
+                    outer[i] = offset > 0 ? offset * offset : 0;
+                    inner[i] = offset < 0 ? offset * offset : 0;
+                }
+            }
+        Distance(outer, width, height, scratch);
+        Distance(inner, width, height, scratch);
+        for (var i = 0; i < width * height; i++)
+            field[i] = (MathF.Sqrt(outer[i]) - MathF.Sqrt(inner[i])) * step;
     }
 
-    static float[] Distance(bool[] mask, bool target, int width, int height)
+    static void Distance(float[] values, int width, int height, Scratch scratch)
     {
-        var values = new float[mask.Length];
-        for (var i = 0; i < mask.Length; i++) values[i] = mask[i] == target ? 0 : 1e12f;
-        var size = Math.Max(width, height);
-        var input = new float[size];
-        var output = new float[size];
-        var sites = new int[size];
-        var boundaries = new double[size + 1];
         for (var y = 0; y < height; y++)
         {
-            Array.Copy(values, y * width, input, 0, width);
-            Transform(input, output, sites, boundaries, width);
-            Array.Copy(output, 0, values, y * width, width);
+            Array.Copy(values, y * width, scratch.Input, 0, width);
+            Transform(scratch, width);
+            Array.Copy(scratch.Output, 0, values, y * width, width);
         }
         for (var x = 0; x < width; x++)
         {
-            for (var y = 0; y < height; y++) input[y] = values[y * width + x];
-            Transform(input, output, sites, boundaries, height);
-            for (var y = 0; y < height; y++) values[y * width + x] = output[y];
+            for (var y = 0; y < height; y++) scratch.Input[y] = values[y * width + x];
+            Transform(scratch, height);
+            for (var y = 0; y < height; y++) values[y * width + x] = scratch.Output[y];
         }
-        return values;
     }
 
     // The lower envelope of squared-distance parabolas gives an exact Euclidean transform in linear time.
-    static void Transform(float[] input, float[] output, int[] sites, double[] boundaries, int count)
+    static void Transform(Scratch s, int count)
     {
+        var input = s.Input;
+        var sites = s.Sites;
+        var boundaries = s.Boundaries;
         var last = 0;
         sites[0] = 0;
         boundaries[0] = double.NegativeInfinity;
@@ -101,95 +143,118 @@ static class ShapeDistanceField
         {
             while (boundaries[last + 1] < q) last++;
             var delta = q - sites[last];
-            output[q] = delta * delta + input[sites[last]];
+            s.Output[q] = delta * delta + input[sites[last]];
         }
     }
 
     static double Intersection(float[] input, int q, int site) =>
         ((double)input[q] + q * q - input[site] - site * site) / (2 * (q - site));
 
+    // Marching squares keyed by grid edge: horizontal edges use the index of their left sample, vertical edges
+    // offset the index of their top sample by the sample count. Segments run from the edge where the walk enters the
+    // fill to the edge where it leaves, so every crossed edge has exactly one successor.
     static SKPath Trace(float[] field, SKRect bounds, float step, int width, int height)
     {
-        var vertices = new Dictionary<long, Vertex>();
+        var size = width * height;
+        var edges = size * 2;
+        var next = ArrayPool<int>.Shared.Rent(edges);
+        try
+        {
+            Array.Fill(next, -1, 0, edges);
+            LinkSegments(field, next, width, height);
+            var builder = new SKPathBuilder { FillType = SKPathFillType.EvenOdd };
+            var points = new List<SKPoint>();
+            for (var start = 0; start < edges; start++)
+            {
+                if (next[start] < 0) continue;
+                points.Clear();
+                var current = start;
+                while (current >= 0)
+                {
+                    points.Add(EdgePoint(current, field, bounds, step, width, size));
+                    var following = next[current];
+                    next[current] = -1;
+                    current = following == start ? -1 : following;
+                }
+                AddContour(builder, points);
+            }
+            return builder.Detach();
+        }
+        finally
+        {
+            ArrayPool<int>.Shared.Return(next);
+        }
+    }
+
+    static void LinkSegments(float[] field, int[] next, int width, int height)
+    {
+        var size = width * height;
+        Span<int> ids = stackalloc int[4];
+        Span<bool> enters = stackalloc bool[4];
         for (var y = 0; y < height - 1; y++)
             for (var x = 0; x < width - 1; x++)
             {
-                var top = y * width + x;
-                AddTriangle(vertices, field, top, top + 1, top + width + 1);
-                AddTriangle(vertices, field, top, top + width + 1, top + width);
+                var i = y * width + x;
+                var tl = field[i] < 0;
+                var tr = field[i + 1] < 0;
+                var br = field[i + width + 1] < 0;
+                var bl = field[i + width] < 0;
+                if (tl == tr && tr == br && br == bl) continue;
+
+                var count = 0;
+                AddCrossing(tl, tr, i, ids, enters, ref count);
+                AddCrossing(tr, br, size + i + 1, ids, enters, ref count);
+                AddCrossing(br, bl, i + width, ids, enters, ref count);
+                AddCrossing(bl, tl, size + i, ids, enters, ref count);
+                if (count == 2)
+                {
+                    if (enters[0]) next[ids[0]] = ids[1];
+                    else next[ids[1]] = ids[0];
+                    continue;
+                }
+                var joined = field[i] + field[i + 1] + field[i + width + 1] + field[i + width] < 0;
+                for (var j = 0; j < 4; j++)
+                    if (enters[j]) next[ids[j]] = ids[joined ? (j + 3) & 3 : (j + 1) & 3];
             }
-        var builder = new SKPathBuilder { FillType = SKPathFillType.EvenOdd };
-        foreach (var (key, vertex) in vertices)
-        {
-            if (vertex.Visited) continue;
-            var point = Point(key, field, bounds, step, width);
-            builder.MoveTo(point);
-            Walk(builder, vertices, field, bounds, step, width, key);
-            builder.Close();
-        }
-        return builder.Detach();
     }
 
-    static void AddTriangle(Dictionary<long, Vertex> vertices, float[] field, int a, int b, int c)
+    static void AddCrossing(bool from, bool to, int edge, Span<int> ids, Span<bool> enters, ref int count)
     {
-        Span<long> crossings = stackalloc long[3];
-        var count = 0;
-        AddCrossing(field, a, b, crossings, ref count);
-        AddCrossing(field, b, c, crossings, ref count);
-        AddCrossing(field, c, a, crossings, ref count);
-        if (count != 2) return;
-        Connect(vertices, crossings[0], crossings[1]);
-        Connect(vertices, crossings[1], crossings[0]);
+        if (from == to) return;
+        ids[count] = edge;
+        enters[count++] = to;
     }
 
-    static void AddCrossing(float[] field, int a, int b, Span<long> crossings, ref int count)
+    static SKPoint EdgePoint(int edge, float[] field, SKRect bounds, float step, int width, int size)
     {
-        if ((field[a] < 0) == (field[b] < 0)) return;
-        crossings[count++] = ((long)Math.Min(a, b) << 32) | (uint)Math.Max(a, b);
-    }
-
-    static void Connect(Dictionary<long, Vertex> vertices, long key, long neighbor)
-    {
-        if (!vertices.TryGetValue(key, out var vertex))
-        {
-            vertex = new Vertex();
-            vertices.Add(key, vertex);
-        }
-        if (vertex.First == -1) vertex.First = neighbor;
-        else vertex.Second = neighbor;
-    }
-
-    static void Walk(SKPathBuilder builder, Dictionary<long, Vertex> vertices, float[] field,
-        SKRect bounds, float step, int width, long start)
-    {
-        var current = start;
-        var previous = -1L;
-        do
-        {
-            var vertex = vertices[current];
-            vertex.Visited = true;
-            var next = vertex.First == previous ? vertex.Second : vertex.First;
-            if (next == -1 || next == start) return;
-            builder.LineTo(Point(next, field, bounds, step, width));
-            previous = current;
-            current = next;
-        } while (!vertices[current].Visited);
-    }
-
-    static SKPoint Point(long key, float[] field, SKRect bounds, float step, int width)
-    {
-        var a = (int)(key >> 32);
-        var b = (int)key;
+        var vertical = edge >= size;
+        var a = vertical ? edge - size : edge;
+        var b = vertical ? a + width : a + 1;
         var t = field[a] / (field[a] - field[b]);
-        var x = a % width + (b % width - a % width) * t;
-        var y = a / width + (b / width - a / width) * t;
+        float x = a % width, y = a / width;
+        if (vertical) y += t;
+        else x += t;
         return new SKPoint(bounds.Left + x * step, bounds.Top + y * step);
     }
 
-    sealed class Vertex
+    // Quadratic curves through the segment midpoints turn the sampled contour into a smooth closed outline.
+    static void AddContour(SKPathBuilder builder, List<SKPoint> points)
     {
-        internal long First = -1;
-        internal long Second = -1;
-        internal bool Visited;
+        var count = points.Count;
+        if (count < 3) return;
+        builder.MoveTo(Midpoint(points[count - 1], points[0]));
+        for (var i = 0; i < count; i++)
+            builder.QuadTo(points[i], Midpoint(points[i], points[(i + 1) % count]));
+        builder.Close();
+    }
+
+    static SKPoint Midpoint(SKPoint a, SKPoint b) => new((a.X + b.X) / 2, (a.Y + b.Y) / 2);
+
+    sealed class Scratch(int size)
+    {
+        internal readonly float[] Input = new float[size];
+        internal readonly float[] Output = new float[size];
+        internal readonly int[] Sites = new int[size];
+        internal readonly double[] Boundaries = new double[size + 1];
     }
 }
