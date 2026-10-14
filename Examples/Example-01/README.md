@@ -24,6 +24,10 @@ A tour of Guinevere's core layout, text, motion, interaction and styling systems
 - **Events & Cursors**: bubbling clicks, scrubbing with `PointerMode.Wrapped`, orbiting with `PointerMode.Relative`, cursor shapes and a live event log.
 - **Headless Controls**: one `Pressable`/`Toggleable` behavior drawn by three skins, with the live `ControlVisualState`.
 
+### Game UI
+
+- **HUD**: health/shield and damage trails, radial ability cooldown, segmented cast progress, texture-masked charge, reticle spread and a directional warning. [HUD API guide](../../docs/Fill-primitives.md).
+
 ### Style
 - **Stylesheets**: `.pss` selectors, `#inherit`, variables, `:hover`/`:active`/`:selected` transitions and the generated stylesheet source.
 

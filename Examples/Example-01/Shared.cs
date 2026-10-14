@@ -26,6 +26,7 @@ public partial class Shared(Gui gui)
         new("Text", "Scrolling", "ScrollY over long and mixed-size content.", Scrolling),
         new("Motion", "Easing & Blend", "Composable layout units and easing curves racing on a loop.", Easings),
         new("Motion", "Springs", "Keyed springs and tweens, plus transform cards that grow, tilt and spin.", Motion),
+        new("Game UI", "HUD", "Health, shield, cooldown, masked charge and targeting primitives.", Hud),
         new("Interaction", "Drag & Drop", "Typed payloads, previews, accepted and rejected targets.", DragAndDrop),
         new("Interaction", "Events & Cursors", "Bubbling events, cursor shapes and pointer modes.", EventsAndCursors),
         new("Interaction", "Headless Controls", "Your own skin on Pressable and Toggleable behaviors.", HeadlessControls),

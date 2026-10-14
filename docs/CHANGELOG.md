@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: game HUD primitives #100.
+
 ## [6.2.0] - 2026-10-14
 
 - Added: gamepad focus navigation #115.
