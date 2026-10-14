@@ -64,7 +64,7 @@ public sealed class FileDialogState
     /// <param name="request">What to ask for.</param>
     public void Open(FileDialogRequest request)
     {
-        _ = OpenSafelyAsync(request);
+        _ = OpenSafelyAsync(request).AsTask();
     }
 
     async ValueTask OpenSafelyAsync(FileDialogRequest request)

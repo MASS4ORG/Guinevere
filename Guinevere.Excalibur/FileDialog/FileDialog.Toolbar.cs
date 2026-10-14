@@ -25,14 +25,14 @@ public static partial class ControlsExtensions
             if (gui.IconButton("⬆", size: height, fontSize: fontSize, enabled: browser.CanGoUp))
                 Move(async () => await browser.GoUpAsync());
 
-            if (gui.IconButton("🔄", size: height, fontSize: fontSize)) _ = browser.RefreshAsync();
+            if (gui.IconButton("🔄", size: height, fontSize: fontSize)) _ = browser.RefreshAsync().AsTask();
 
             PathBar(gui, state, height, fontSize);
 
             if (gui.IconButton(state.EditingPath is null ? "✏" : "✔", size: height, fontSize: fontSize))
                 TogglePathEditing(state);
 
-            if (gui.IconButton("➕", size: height, fontSize: fontSize)) _ = NewFolderAsync(state);
+            if (gui.IconButton("➕", size: height, fontSize: fontSize)) _ = NewFolderAsync(state).AsTask();
 
             if (gui.IconButton("👁", size: height, fontSize: fontSize,
                     classes: browser.ShowHidden ? CheckedClass : null))
@@ -54,7 +54,7 @@ public static partial class ControlsExtensions
 
         void Move(Func<ValueTask> navigate)
         {
-            _ = navigate();
+            _ = navigate().AsTask();
             state.Selected = null;
             state.Message = null;
         }
@@ -80,7 +80,7 @@ public static partial class ControlsExtensions
 
         void Open(string path)
         {
-            _ = state.Browser.NavigateAsync(path);
+            _ = state.Browser.NavigateAsync(path).AsTask();
             state.Selected = null;
             state.Message = null;
         }
@@ -128,7 +128,7 @@ public static partial class ControlsExtensions
         state.Message = null;
         if (typed.Trim().Length == 0) return;
 
-        _ = NavigateTypedAsync(state, typed.Trim());
+        _ = NavigateTypedAsync(state, typed.Trim()).AsTask();
     }
 
     /// <summary>

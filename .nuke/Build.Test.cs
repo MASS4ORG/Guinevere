@@ -18,17 +18,25 @@ sealed partial class Build
             .Produces(CoverageResultFile)
             .Executes(() =>
             {
-                DotNetRun(settings => WithMsBuildProperties(settings
+                // Every test project writes its own uniquely named report; a shared --coverage-output would let the
+                // parallel test hosts overwrite each other.
+                CoverageDirectory.GlobFiles("*.cobertura.xml").ForEach(report => report.DeleteFile());
+                DotNetTest(settings => WithMsBuildProperties(settings
                     .SetConfiguration(Config)
-                    .SetProjectFile(TestProject.Path)
-                    .SetApplicationArguments(
+                    .AddProcessAdditionalArguments(
                         "--coverage",
                         "--coverage-settings", CoverageSettingsFile, // Excludes source generated files
                         "--coverage-output-format", "cobertura",
-                        "--coverage-output", CoverageResultFile,
                         "--report-xunit-trx", // Consumed by tools/slow-tests.cs
-                        "--results-directory", CoverageDirectory)
-                ));
+                        "--results-directory", CoverageDirectory)));
+
+                var merged = CoverageDirectory / "merged";
+                _ = ReportGenerator(s => s
+                    .SetTargetDirectory(merged)
+                    .SetReportTypes(ReportTypes.Cobertura)
+                    .SetReports(CoverageDirectory.GlobFiles("*.cobertura.xml").Select(static report => report.ToString())));
+                (merged / "Cobertura.xml").Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
+                merged.DeleteDirectory();
             });
 
     public Target TestReport => td =>

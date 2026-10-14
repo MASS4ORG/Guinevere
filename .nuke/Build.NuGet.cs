@@ -22,7 +22,7 @@ sealed partial class Build
 
     public Target PackNuGet => td =>
         td
-            .DependsOn(Compile)
+            .DependsOn(Restore, Compile) // Compile builds with --no-restore and no longer pulls in Restore itself
             .After(Publish)
             .Executes(() =>
             {

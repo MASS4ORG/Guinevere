@@ -20,6 +20,9 @@ sealed partial class Build
     DotNetBuildSettings WithMsBuildProperties(DotNetBuildSettings settings) =>
         MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
 
+    DotNetTestSettings WithMsBuildProperties(DotNetTestSettings settings) =>
+        MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
+
     DotNetRunSettings WithMsBuildProperties(DotNetRunSettings settings) =>
         MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
 

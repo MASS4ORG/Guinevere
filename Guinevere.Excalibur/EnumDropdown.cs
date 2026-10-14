@@ -14,7 +14,8 @@ public enum EnumPresentation
 }
 
 public static partial class ControlsExtensions
-{    static readonly ConditionalWeakTable<Type, EnumChoices> EnumChoicesByType = [];
+{
+    static readonly ConditionalWeakTable<Type, EnumChoices> EnumChoicesByType = [];
     static readonly string[] SegmentClass = ["segment"];
 
     sealed class EnumChoices

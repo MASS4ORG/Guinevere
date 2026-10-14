@@ -21,7 +21,6 @@ sealed partial class Build
     const bool DefaultPublishSingleFile = false;
     const bool DefaultPublishTrimmed = false;
 
-    Project TestProject => Solution.Guinevere_Tests;
     IEnumerable<Project> ReleaseProjects => PackableProjects;
     IEnumerable<Project> VersionedProjects => PackableProjects;
 

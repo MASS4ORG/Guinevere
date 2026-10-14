@@ -25,13 +25,14 @@ sealed partial class Build
         });
 
     Target Restore => td => td
+        .After(Clean)
         .Executes(() =>
         {
             _ = DotNetRestore(s => WithMsBuildProperties(s.SetProjectFile(Solution)));
         });
 
     Target Compile => td => td
-        .DependsOn(Restore)
+        .After(Restore)
         .Executes(() =>
         {
             Log.Debug("Config {Config}", Config);

@@ -70,7 +70,7 @@ public static partial class ControlsExtensions
             Status(gui, state, fontSize);
 
             if (gui.Pass == Pass.Pass2Render && gui.Input.IsKeyPressed(KeyboardKey.Enter))
-                _ = ConfirmAsync(state);
+                _ = ConfirmAsync(state).AsTask();
         }
     }
 
@@ -133,7 +133,7 @@ public static partial class ControlsExtensions
         var choice = state.Choice();
         if (gui.Button(state.ConfirmLabel(), width: 120f, height: 28f, fontSize: fontSize,
                 enabled: choice is not null, classes: PrimaryClass))
-            _ = ConfirmAsync(state);
+            _ = ConfirmAsync(state).AsTask();
     }
 
     /// <summary>
@@ -197,14 +197,14 @@ public static partial class ControlsExtensions
     {
         if (entry.IsDirectory)
         {
-            _ = state.Browser.NavigateAsync(entry.FullPath);
+            _ = state.Browser.NavigateAsync(entry.FullPath).AsTask();
             state.Selected = null;
             state.Message = null;
             return;
         }
 
         state.Selected = entry;
-        _ = ConfirmAsync(state);
+        _ = ConfirmAsync(state).AsTask();
     }
 
     /// <summary>Draws the same browser inline in normal layout flow.</summary>
