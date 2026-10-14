@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: gamepad focus navigation #115.
+- Added: multi touch events and optional gestures #134.
+- Added: semantic controller actions #103.
 - Added: 9-slice editor and preview controls #98.
 - Added: bitmap backgrounds via .pss #187.
 - Added: safe and responsive viewports #105.

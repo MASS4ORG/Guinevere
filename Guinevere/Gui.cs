@@ -106,6 +106,7 @@ public partial class Gui
         // Events run against the previous frame's tree, before it is cleared, so listeners see what the user saw.
         DispatchFileDrops();
         DispatchInputEvents();
+        DispatchTouchEvents();
         _listenerCount = 0;
         _cursorNodeCount = 0;
 
@@ -165,6 +166,7 @@ public partial class Gui
         EndFrameFocus();
 
         ReleaseFinishedCapture();
+        ReleaseRemovedTouchCaptures();
         ClearCompletedDrags();
         ResolveDrag();
         ApplyCursorAndPointerMode();

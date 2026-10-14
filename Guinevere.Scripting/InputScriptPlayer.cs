@@ -33,6 +33,8 @@ public sealed class InputScriptPlayer(
         ArgumentNullException.ThrowIfNull(draw);
 
         Failures = 0;
+        gui.Platform.Register<IGameInputCapability>(input);
+        gui.Platform.Register<ITouchCapability>(input);
         font ??= Font.FromFamilyName("sans-serif", 14);
 
         using var surface = SKSurface.Create(
@@ -45,54 +47,20 @@ public sealed class InputScriptPlayer(
 
     void Execute(InputScriptStep step, Gui gui, Action<Gui> draw, SKSurface surface, Font font)
     {
+        if (ExecuteDeviceStep(step) || ExecutePointerStep(step, gui, draw, surface, font)
+            || ExecuteKeyboardStep(step, gui, draw, surface, font))
+        {
+            Frame(gui, draw, surface, font);
+            return;
+        }
         switch (step.Action)
         {
-            case InputAction.Move:
-                input.MoveTo(step.X, step.Y);
-                break;
-
-            case InputAction.Press:
-                input.PressButton(step.Button);
-                break;
-
-            case InputAction.Release:
-                input.ReleaseButton(step.Button);
-                break;
-
-            case InputAction.Click:
-                input.PressButton(step.Button);
-                Frame(gui, draw, surface, font);
-                input.ReleaseButton(step.Button);
-                break;
-
-            case InputAction.Scroll:
-                input.Scroll(step.Delta);
-                break;
-
-            case InputAction.Key:
-                input.PressKey(step.Key);
-                Frame(gui, draw, surface, font);
-                input.ReleaseKey(step.Key);
-                break;
-
-            case InputAction.Hold:
-                input.PressKey(step.Key);
-                break;
-
-            case InputAction.Unhold:
-                input.ReleaseKey(step.Key);
-                break;
-
-            case InputAction.Type:
-                input.TypeText(step.Text ?? string.Empty);
-                break;
-
             case InputAction.Reset:
                 input.Reset();
                 break;
 
             case InputAction.Frames:
-                for (var i = 0; i < Math.Max(1, step.Count); i++) Frame(gui, draw, surface, font);
+                AdvanceFrames(step.Count, gui, draw, surface, font);
                 return;
 
             case InputAction.Dump:
@@ -124,9 +92,105 @@ public sealed class InputScriptPlayer(
         Frame(gui, draw, surface, font);
     }
 
+    static void AdvanceFrames(int count, Gui gui, Action<Gui> draw, SKSurface surface, Font font)
+    {
+        for (var i = 0; i < Math.Max(1, count); i++) Frame(gui, draw, surface, font);
+    }
+
+    bool ExecuteDeviceStep(InputScriptStep step)
+    {
+        switch (step.Action)
+        {
+            case InputAction.ControllerConnect:
+                input.ConnectController(step.DeviceId, step.Text ?? "Scripted controller");
+                break;
+            case InputAction.ControllerDisconnect:
+                input.DisconnectController(step.DeviceId);
+                break;
+            case InputAction.ControllerButton:
+                input.SetControllerButton(step.DeviceId, step.GameButton, step.Down);
+                break;
+            case InputAction.ControllerAxis:
+                input.SetControllerAxis(step.DeviceId, step.Axis, step.AxisValue);
+                break;
+            case InputAction.Touch:
+                input.Touch(new TouchContact(step.ContactId, new System.Numerics.Vector2(step.X, step.Y),
+                    step.Pressure, step.Phase));
+                break;
+            case InputAction.Gesture:
+                input.Gesture(new TouchGesture(step.GestureKind, step.ContactId,
+                    new System.Numerics.Vector2(step.X, step.Y), Scale: step.Scale, Rotation: step.Rotation));
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+    bool ExecutePointerStep(InputScriptStep step, Gui gui, Action<Gui> draw, SKSurface surface, Font font)
+    {
+        switch (step.Action)
+        {
+            case InputAction.Move:
+                input.MoveTo(step.X, step.Y);
+                break;
+
+            case InputAction.Press:
+                input.PressButton(step.Button);
+                break;
+
+            case InputAction.Release:
+                input.ReleaseButton(step.Button);
+                break;
+
+            case InputAction.Click:
+                input.PressButton(step.Button);
+                Frame(gui, draw, surface, font);
+                input.ReleaseButton(step.Button);
+                break;
+
+            case InputAction.Scroll:
+                input.Scroll(step.Delta);
+                break;
+
+            default:
+                return false;
+        }
+        return true;
+    }
+
+    bool ExecuteKeyboardStep(InputScriptStep step, Gui gui, Action<Gui> draw, SKSurface surface, Font font)
+    {
+        switch (step.Action)
+        {
+            case InputAction.Key:
+                input.PressKey(step.Key);
+                Frame(gui, draw, surface, font);
+                input.ReleaseKey(step.Key);
+                break;
+
+            case InputAction.Hold:
+                input.PressKey(step.Key);
+                break;
+
+            case InputAction.Unhold:
+                input.ReleaseKey(step.Key);
+                break;
+
+            case InputAction.Type:
+                input.TypeText(step.Text ?? string.Empty);
+                break;
+
+            default:
+                return false;
+        }
+        return true;
+    }
+
     static void Frame(Gui gui, Action<Gui> draw, SKSurface surface, Font font)
     {
         var canvas = surface.Canvas;
+        gui.Time.Update(1d / 60);
         canvas.Clear(SKColors.Black);
 
         gui.SetStage(Pass.Pass1Build);

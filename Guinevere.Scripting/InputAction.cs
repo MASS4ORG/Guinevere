@@ -52,5 +52,18 @@ public enum InputAction
     ExpectNode,
 
     /// <summary>Checks that no node whose id contains <see cref="InputScriptStep.Value"/> exists.</summary>
-    ExpectNoNode
+    ExpectNoNode,
+
+    /// <summary>Connects a controller identified by the step's device id.</summary>
+    ControllerConnect,
+    /// <summary>Disconnects a controller.</summary>
+    ControllerDisconnect,
+    /// <summary>Presses or releases a mapped controller button.</summary>
+    ControllerButton,
+    /// <summary>Sets a controller axis.</summary>
+    ControllerAxis,
+    /// <summary>Queues a raw touch or pen contact.</summary>
+    Touch,
+    /// <summary>Queues a high-level host gesture.</summary>
+    Gesture
 }

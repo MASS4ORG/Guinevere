@@ -96,8 +96,8 @@ public static partial class ControlsExtensions
     /// <summary>Clicked this frame, or Space/Enter pressed while focused; a click also takes keyboard focus.</summary>
     static bool Activated(Gui gui)
     {
-        var activated = gui.HasFocus()
-                        && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter));
+        var activated = gui.HasFocus() && (gui.IsAcceptPressed
+            || gui.ControlActivation?.IsActivated(gui.CurrentNode.Id) == true);
         var clicked = gui.GetInteractable().OnClick();
         if (clicked) gui.RequestFocus(FocusReason.Mouse);
         return clicked || activated;

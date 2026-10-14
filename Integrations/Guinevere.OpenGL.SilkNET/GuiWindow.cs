@@ -61,6 +61,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
+        _gui.Platform.Register<IGameInputCapability>(_gameInput);
         _gui.Platform.Register<IFileDropCapability>(_fileDrops);
         _gui.Platform.Register<IAppearanceCapability>(_appearance);
         var fontStream = GetStreamResource("Guinevere.font.ttf");

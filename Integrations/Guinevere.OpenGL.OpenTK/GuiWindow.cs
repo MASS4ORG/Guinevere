@@ -52,6 +52,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
+        _gui.Platform.Register<IGameInputCapability>(_gameInput);
         _gui.Platform.Register<IFileDropCapability>(_fileDrops);
         _gui.Platform.Register<IAppearanceCapability>(_appearance);
         FileDrop += drop => _fileDrops.Enqueue(drop.FileNames, MousePosition);
@@ -201,9 +202,13 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
             {
                 // Input edges compare against the state saved here, so it is saved before waiting for events.
                 NewInputFrame();
+                PollGameInput();
                 double wait;
                 while (!GLFW.WindowShouldClose(WindowPtr) && (wait = Pacing.WaitSeconds(_gui, InputHeld)) > 0)
-                    GLFW.WaitEventsTimeout(wait);
+                {
+                    GLFW.WaitEventsTimeout(Math.Min(wait, 0.008));
+                    PollGameInput();
+                }
                 ProcessWindowEvents(false);
                 if (GLFW.WindowShouldClose(WindowPtr)) break;
 
@@ -211,6 +216,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
                 clock.Restart();
                 OnUpdateFrame(frame);
                 OnRenderFrame(frame);
+                _gameInput.NewFrame();
                 Pacing.FrameRendered();
             }
         }
@@ -221,7 +227,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     }
 
     bool InputHeld => (_nativeMove ? OtherMouseButtonHeld : MouseState.IsAnyButtonDown)
-                      || KeyboardState.IsAnyKeyDown;
+                      || KeyboardState.IsAnyKeyDown || _gameInput.AnyButtonDown || _gui.ControllerNavigation.HasPendingRepeat;
 
     bool OtherMouseButtonHeld
     {

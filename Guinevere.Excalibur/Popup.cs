@@ -223,7 +223,7 @@ public static partial class ControlsExtensions
         if (gui.Pass != Pass.Pass2Render) return;
 
         // Handle escape key
-        if (state.CloseOnEscape && gui.Input.IsKeyPressed(KeyboardKey.Escape)) state.IsOpen = false;
+        if (state.CloseOnEscape && gui.IsCancelPressed) state.IsOpen = false;
     }
 
     static void RenderPopup(Gui gui, PopupState state, Action content, float width, float height,

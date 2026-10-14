@@ -54,14 +54,28 @@ public partial class GuiWindow
     /// <summary>Waits for input when nothing needs a frame, then processes events and renders one frame.</summary>
     void RunFrame()
     {
-        double wait;
-        while (!_window.IsClosing && (wait = Pacing.WaitSeconds(_gui, _heldButtons.Count > 0 || _heldKeys.Count > 0)) > 0)
-            _glfw.WaitEventsTimeout(wait);
+        PollGameInput();
+        GameInputState.WaitForInput(InputWaitSeconds, _glfw.WaitEventsTimeout, PollGameInput);
         _window.DoEvents();
+        UpdateOpenFrame();
+    }
+
+    bool HasControllerInput => _gameInput.AnyButtonDown || _gui.ControllerNavigation.HasPendingRepeat;
+    bool HasHeldInput => _heldButtons.Count + _heldKeys.Count > 0 || HasControllerInput;
+    double InputWaitSeconds() => _window.IsClosing ? 0 : Pacing.WaitSeconds(_gui, HasHeldInput);
+
+    void UpdateOpenFrame()
+    {
         if (_window.IsClosing) return;
         _window.DoUpdate();
+        RenderOpenFrame();
+    }
+
+    void RenderOpenFrame()
+    {
         if (_window.IsClosing) return;
         _window.DoRender();
+        _gameInput.NewFrame();
         Pacing.FrameRendered();
     }
 }

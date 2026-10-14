@@ -29,6 +29,7 @@ public partial class Shared(Gui gui)
         new("Interaction", "Drag & Drop", "Typed payloads, previews, accepted and rejected targets.", DragAndDrop),
         new("Interaction", "Events & Cursors", "Bubbling events, cursor shapes and pointer modes.", EventsAndCursors),
         new("Interaction", "Headless Controls", "Your own skin on Pressable and Toggleable behaviors.", HeadlessControls),
+        new("Interaction", "Input Devices", "Controller buttons, axes and touch gestures.", InputDevices),
         new("Style", "Stylesheets", "PSS selectors, inheritance, variables and transitions.", Styling),
     ];
 
@@ -133,11 +134,11 @@ public partial class Shared(Gui gui)
         }
     }
 
-    static bool NavItem(Gui gui, ColorPalette p, string title, bool active, bool compact)
+    internal static bool NavItem(Gui gui, ColorPalette p, string title, bool active, bool compact)
     {
         using var key = gui.ItemKey(title);
         ref var hovered = ref gui.GetData(false);
-        var fill = gui.AnimateColor(active ? p.Accent : hovered ? p.SurfaceHover : new Color(p.SurfaceHover, 0f), 0.12f);
+        var fill = gui.AnimateColor(NavItemFill(p, active, hovered), 0.12f);
         var node = gui.Node().Height(compact ? 30 : 34).Padding(compact ? 12 : 14, 0).ContentAlignY(0.5f)
             .Cursor(PointerCursor.Hand);
         if (!compact) node.ExpandWidth();
@@ -146,8 +147,12 @@ public partial class Shared(Gui gui)
             gui.DrawBackgroundRect(fill, 8);
             gui.DrawText(title, 14, active ? p.AccentText : p.Text);
             if (gui.Pass != Pass.Pass2Render) return false;
+            gui.RegisterFocusable();
             hovered = node.OnHover();
-            return node.OnClick();
+            return node.OnClick() || gui.HasFocus() && gui.IsAcceptPressed;
         }
     }
+
+    static Color NavItemFill(ColorPalette p, bool active, bool hovered) =>
+        active ? p.Accent : hovered ? p.SurfaceHover : new Color(p.SurfaceHover, 0f);
 }

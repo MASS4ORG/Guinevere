@@ -174,7 +174,7 @@ public static partial class ControlsExtensions
 
     static void DismissChoices<T>(Gui gui, string id, ChoiceState<T> state)
     {
-        if (gui.Focus.ActiveScopeId == $"{id}/focus" && gui.Input.IsKeyPressed(KeyboardKey.Escape))
+        if (gui.Focus.ActiveScopeId == $"{id}/focus" && gui.IsCancelPressed)
         {
             state.RequestedOpen = false;
             gui.RequestFocus($"{id}/button");

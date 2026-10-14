@@ -198,7 +198,7 @@ public static partial class ControlsExtensions
     }
 
     static bool MenuKeyboardActivated(Gui gui) => gui.HasFocus()
-        && (gui.Input.IsKeyPressed(KeyboardKey.Space) || gui.Input.IsKeyPressed(KeyboardKey.Enter));
+        && (gui.IsAcceptPressed);
 
     static void UpdateMenuBarTitle(MenuBarState state, int index, bool hovered, bool activated)
     {
@@ -315,12 +315,16 @@ public static partial class ControlsExtensions
 
     static void HandleMenuRow(Gui gui, MenuBarState state, FlyoutItem item, int index, int depth)
     {
-        gui.RegisterFocusable(canReceiveFocus: item.Enabled, isInteractable: true);
+        gui.RegisterFocusable(canReceiveFocus: item.Enabled, isInteractable: true, claimsArrowKeys: true);
+        if (IsKeyboardMenuTarget(state, index, depth)) gui.RequestFocus(FocusReason.Keyboard);
         var interaction = gui.GetInteractable();
         var hovered = interaction.OnHover();
         if (hovered) PreviewMenuRow(item);
         if (interaction.OnClick()) ActivateMenuRow(state, item, depth, index);
     }
+
+    static bool IsKeyboardMenuTarget(MenuBarState state, int index, int depth) =>
+        state.KeyboardActive && state.KeyboardPath.Count == depth + 1 && state.KeyboardPath[depth] == index;
 
     static void PreviewMenuRow(FlyoutItem item)
     {
@@ -362,7 +366,7 @@ public static partial class ControlsExtensions
 
     static void HandleMenuKeyboard(Gui gui, MenuBarState state, List<FlyoutItem> root)
     {
-        if (gui.Input.IsKeyPressed(KeyboardKey.Escape))
+        if (gui.IsCancelPressed)
         {
             ResetMenuState(state);
             return;
@@ -378,8 +382,8 @@ public static partial class ControlsExtensions
 
     static void StepMenuKeyboard(Gui gui, MenuBarState state, List<FlyoutItem> items)
     {
-        var down = gui.Input.IsKeyPressed(KeyboardKey.Down);
-        var up = gui.Input.IsKeyPressed(KeyboardKey.Up);
+        var down = gui.IsNavigationPressed(FocusDirection.Down);
+        var up = gui.IsNavigationPressed(FocusDirection.Up);
         if (down || up)
         {
             state.KeyboardActive = true;
@@ -390,15 +394,15 @@ public static partial class ControlsExtensions
 
     static void HandleMenuKeyboardBranch(Gui gui, MenuBarState state, List<FlyoutItem> items, int index)
     {
-        if (gui.Input.IsKeyPressed(KeyboardKey.Right) && items[index].HasSubmenu)
+        if (gui.IsNavigationPressed(FocusDirection.Right) && items[index].HasSubmenu)
         {
             state.KeyboardActive = true;
             state.KeyboardPath.Add(NextSelectableIndex(items[index].Submenu!, -1, 1));
         }
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Left) && state.KeyboardPath.Count > 1)
+        else if (gui.IsNavigationPressed(FocusDirection.Left) && state.KeyboardPath.Count > 1)
             state.KeyboardPath.RemoveAt(state.KeyboardPath.Count - 1);
         else if (state.KeyboardActive
-                 && (gui.Input.IsKeyPressed(KeyboardKey.Enter) || gui.Input.IsKeyPressed(KeyboardKey.Space)))
+                 && (gui.IsAcceptPressed))
             ActivateMenuRow(state, items[index], state.KeyboardPath.Count - 1, index);
     }
 

@@ -253,7 +253,7 @@ public static partial class ControlsExtensions
             return;
         }
 
-        if (gui.Input.IsKeyPressed(KeyboardKey.Escape)) state.RequestedOpen = false;
+        if (gui.IsCancelPressed) state.RequestedOpen = false;
 
         // A press that reached neither the button nor the list dismisses it. The list blocks input, so
         // a press inside it never gets here.

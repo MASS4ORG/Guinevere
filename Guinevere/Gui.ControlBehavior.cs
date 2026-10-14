@@ -95,42 +95,61 @@ public partial class Gui
 
         if (Pass != Pass.Pass2Render) return result;
 
+        UpdateBehavior(behavior, options, kind, repeatDelay, repeatInterval);
+        return result;
+    }
+
+    void UpdateBehavior(HeadlessBehaviorState behavior, ControlBehaviorOptions options, BehaviorKind kind,
+        float repeatDelay, float repeatInterval)
+    {
         if (options.Focusable) RegisterFocusable(options.Enabled, options.Enabled);
-
-        var interactable = GetInteractable();
-        var hovered = options.Enabled && interactable.OnHover();
-        var pressed = options.Enabled && interactable.OnHold();
-        var focused = options.Focusable && HasFocus();
-        var pointerActivated = options.Enabled && interactable.OnClick();
-        var keyActivated = options.Enabled && focused &&
-                           (Input.IsKeyPressed(options.ActivationKey) ||
-                            options.ActivationKey != KeyboardKey.Enter && Input.IsKeyPressed(KeyboardKey.Enter));
-        var commandActivated = options.Enabled && focused && ControlActivation?.IsActivated(id) == true;
-
-        if (pointerActivated) RequestFocus(FocusReason.Mouse);
-        if (pointerActivated || keyActivated || commandActivated) behavior.PendingActivated = true;
-
-        behavior.Hovered = hovered;
-        behavior.Pressed = pressed;
-        behavior.Focused = focused || pointerActivated;
+        var interaction = ReadBehaviorInteraction(options);
+        if (interaction.Activated) behavior.PendingActivated = true;
+        behavior.Hovered = interaction.Hovered;
+        behavior.Pressed = interaction.Pressed;
+        behavior.Focused = interaction.Focused;
         behavior.Dragging = false;
+        UpdateBehaviorDrag(behavior, options, kind);
+        if (kind == BehaviorKind.Repeat) UpdateRepeat(behavior, interaction.Pressed, repeatDelay, repeatInterval);
+        PublishBehaviorSemantics(behavior, options);
+    }
 
-        if (kind == BehaviorKind.Drag && options.Enabled && interactable.OnDrag(out var drag))
+    BehaviorInteraction ReadBehaviorInteraction(ControlBehaviorOptions options)
+    {
+        var focused = options.Focusable && HasFocus();
+        if (!options.Enabled) return new BehaviorInteraction(false, false, focused, false);
+        var interactable = GetInteractable();
+        var hovered = interactable.OnHover();
+        var pressed = interactable.OnHold();
+        var pointerActivated = interactable.OnClick();
+        var activated = pointerActivated || focused && IsBehaviorActivationPressed(options);
+        if (pointerActivated) RequestFocus(FocusReason.Mouse);
+        return new BehaviorInteraction(hovered, pressed, focused || pointerActivated, activated);
+    }
+
+    bool IsBehaviorActivationPressed(ControlBehaviorOptions options) =>
+        Input.IsKeyPressed(options.ActivationKey) || Input.IsKeyPressed(KeyboardKey.Enter)
+        || ControlActivation?.IsActivated(CurrentNode.Id) == true || IsSemanticActionPressed(SemanticAction.Accept);
+
+    void UpdateBehaviorDrag(HeadlessBehaviorState behavior, ControlBehaviorOptions options, BehaviorKind kind)
+    {
+        if (kind == BehaviorKind.Drag && options.Enabled && GetInteractable().OnDrag(out var drag))
         {
             behavior.Dragging = true;
             behavior.PendingDrag = drag;
         }
 
-        if (kind == BehaviorKind.Repeat)
-            UpdateRepeat(behavior, pressed, repeatDelay, repeatInterval);
+    }
 
-        var semantics = new ControlSemantics(id, options.Role, options.Label, options.Value,
-            CurrentNode.Rect, ComposeState(options, hovered, pressed, behavior.Focused, behavior.Dragging));
+    void PublishBehaviorSemantics(HeadlessBehaviorState behavior, ControlBehaviorOptions options)
+    {
+        var semantics = new ControlSemantics(CurrentNode.Id, options.Role, options.Label, options.Value,
+            CurrentNode.Rect, ComposeState(options, behavior.Hovered, behavior.Pressed, behavior.Focused, behavior.Dragging));
         if (ControlSemantics is { } sink) sink.Publish(semantics);
         else if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.Publish(semantics);
-
-        return result;
     }
+
+    readonly record struct BehaviorInteraction(bool Hovered, bool Pressed, bool Focused, bool Activated);
 
     void UpdateRepeat(HeadlessBehaviorState behavior, bool pressed, float delay, float interval)
     {

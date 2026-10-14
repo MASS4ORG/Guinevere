@@ -8,6 +8,9 @@ sealed partial class Build
 {
     static AbsolutePath CoverageDirectory => RootDirectory / "coverage";
     static AbsolutePath CoverageResultFile => CoverageDirectory / "coverage.xml";
+
+    // Where dotnet test writes the cobertura report it merges from all test projects.
+    static AbsolutePath CoverageMergedDirectory => CoverageDirectory / "merged";
     static AbsolutePath CoverageReportDirectory => CoverageDirectory / "report";
     static AbsolutePath CoverageReportSummaryDirectory => CoverageReportDirectory / "Summary.txt";
     static AbsolutePath CoverageSettingsFile => RootDirectory / "CodeCoverage.runsettings";
@@ -21,6 +24,7 @@ sealed partial class Build
                 // Every test project writes its own uniquely named report; a shared --coverage-output would let the
                 // parallel test hosts overwrite each other.
                 CoverageDirectory.GlobFiles("*.cobertura.xml").ForEach(report => report.DeleteFile());
+                CoverageMergedDirectory.DeleteDirectory();
                 DotNetTest(settings => WithMsBuildProperties(settings
                     .SetConfiguration(Config)
                     .AddProcessAdditionalArguments(
@@ -30,13 +34,10 @@ sealed partial class Build
                         "--report-xunit-trx", // Consumed by tools/slow-tests.cs
                         "--results-directory", CoverageDirectory)));
 
-                var merged = CoverageDirectory / "merged";
-                _ = ReportGenerator(s => s
-                    .SetTargetDirectory(merged)
-                    .SetReportTypes(ReportTypes.Cobertura)
-                    .SetReports(CoverageDirectory.GlobFiles("*.cobertura.xml").Select(static report => report.ToString())));
-                (merged / "Cobertura.xml").Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
-                merged.DeleteDirectory();
+                // dotnet test only merges when several test projects ran; a lone project leaves its own report.
+                var reportDirectory = CoverageMergedDirectory.DirectoryExists() ? CoverageMergedDirectory : CoverageDirectory;
+                reportDirectory.GlobFiles("*.cobertura.xml").Single().Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
+                CoverageMergedDirectory.DeleteDirectory();
             });
 
     public Target TestReport => td =>

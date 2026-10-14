@@ -47,6 +47,10 @@ public partial class Gui
     public void SetFocusNavigationLinks(string? nextId = null, string? previousId = null) =>
         Focus.SetNavigationLinks(CurrentNode.Id, nextId, previousId);
 
+    /// <summary>Sets an explicit directional neighbor for the current focusable control.</summary>
+    public void SetFocusDirectionalNeighbor(FocusDirection direction, string? targetId) =>
+        Focus.SetDirectionalNeighbor(CurrentNode.Id, direction, targetId);
+
     /// <summary>
     /// Checks if the current layout node has focus.
     /// </summary>
@@ -138,6 +142,7 @@ public partial class Gui
     internal void ProcessFocusManagement()
     {
         Focus.HandleKeyboardNavigation(Input);
+        NavigateSemanticInput();
     }
 
     /// <summary>
@@ -147,6 +152,7 @@ public partial class Gui
     internal void BeginFrameFocus()
     {
         Focus.BeginFrame();
+        BeginSemanticInput();
     }
 
     /// <summary>

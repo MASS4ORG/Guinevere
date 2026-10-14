@@ -4,7 +4,7 @@ namespace Guinevere;
 /// Manages focus state and navigation for GUI controls, providing Tab/Shift+Tab navigation
 /// and cascaded focus behavior similar to Dear ImGui and other IM GUI libraries.
 /// </summary>
-public class FocusManager
+public partial class FocusManager
 {
     readonly Dictionary<string, FocusableControl> _focusableControls = new();
     readonly List<string> _frameControlOrder = [];
@@ -41,6 +41,8 @@ public class FocusManager
     bool FocusedClaimsArrowKeys =>
         _currentFocusedId is not null && _focusableControls.TryGetValue(_currentFocusedId, out var control)
         && control.ClaimsArrowKeys;
+
+    internal bool CanNavigateDirectionally => !IsTextInputFocused && !FocusedClaimsArrowKeys;
 
     /// <summary>Marks a focusable control as a text editor.</summary>
     public void RegisterTextInput(string controlId) => _textInputIds.Add(controlId);
@@ -186,32 +188,44 @@ public class FocusManager
         var candidates = GetNavigableIds();
         if (candidates.Count == 0) return;
 
-        if (_currentFocusedId is null || !_focusableControls.TryGetValue(_currentFocusedId, out var current))
+        if (_currentFocusedId is null || !candidates.Contains(_currentFocusedId))
         {
             RequestFocus(candidates[0], FocusReason.Keyboard);
             return;
         }
 
+        var current = _focusableControls[_currentFocusedId];
+        if (TryLinkedNavigation(current, direction, candidates)) return;
+        if (direction <= FocusDirection.Previous) NavigateSequential(direction, candidates);
+        else NavigateSpatial(current, direction, candidates);
+    }
+
+    bool TryLinkedNavigation(FocusableControl current, FocusDirection direction, List<string> candidates)
+    {
         var linked = direction switch
         {
             FocusDirection.Next => current.NextId,
             FocusDirection.Previous => current.PreviousId,
-            _ => null
+            _ => _directionalNeighbors.TryGetValue(_currentFocusedId!, out var neighbors)
+                && neighbors.TryGetValue(direction, out var neighbor) ? neighbor : null
         };
         if (linked is not null && candidates.Contains(linked))
         {
             RequestFocus(linked, FocusReason.Keyboard);
-            return;
+            return true;
         }
+        return false;
+    }
 
-        if (direction is FocusDirection.Next or FocusDirection.Previous)
-        {
-            var index = candidates.IndexOf(_currentFocusedId);
-            RequestFocus(candidates[(index + (direction == FocusDirection.Next ? 1 : candidates.Count - 1)) % candidates.Count],
-                FocusReason.Keyboard);
-            return;
-        }
+    void NavigateSequential(FocusDirection direction, List<string> candidates)
+    {
+        var index = candidates.IndexOf(_currentFocusedId!);
+        RequestFocus(candidates[(index + (direction == FocusDirection.Next ? 1 : candidates.Count - 1)) % candidates.Count],
+            FocusReason.Keyboard);
+    }
 
+    void NavigateSpatial(FocusableControl current, FocusDirection direction, List<string> candidates)
+    {
         if (current.NavigationPosition is not { } origin) return;
         var target = candidates
             .Where(id => id != _currentFocusedId && _focusableControls[id].NavigationPosition is not null)
@@ -321,6 +335,8 @@ public class FocusManager
     /// </summary>
     public void BeginFrame()
     {
+        RememberFocus();
+        _directionalNeighbors.Clear();
         _frameControlOrder.Clear();
         _frameScopeIds.Clear();
         _scopeStack.Clear();
@@ -357,13 +373,7 @@ public class FocusManager
             }
         }
 
-        if (ActiveScopeId is not null && !_frameScopeIds.Contains(ActiveScopeId))
-        {
-            var closingScope = _scopes[ActiveScopeId];
-            ActiveScopeId = closingScope.ParentId;
-            if (closingScope.RestoreFocusId is { } opener && _focusableControls.ContainsKey(opener))
-                RequestFocus(opener);
-        }
+        RestoreActiveScope();
 
         foreach (var id in _scopes.Keys.Where(id => !_frameScopeIds.Contains(id)).ToList()) _scopes.Remove(id);
     }

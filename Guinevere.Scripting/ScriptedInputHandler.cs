@@ -7,7 +7,7 @@ namespace Guinevere;
 /// It also records cursor and pointer-mode changes when registered as <see cref="ICursorCapability"/> and
 /// <see cref="IPointerCapability"/>.
 /// </summary>
-public sealed class ScriptedInputHandler : IInputHandler, ICursorCapability, IPointerCapability
+public sealed partial class ScriptedInputHandler : IInputHandler, ICursorCapability, IPointerCapability
 {
     readonly HashSet<MouseButton> _buttonsDown = [];
     readonly HashSet<MouseButton> _buttonsPressed = [];
@@ -96,6 +96,7 @@ public sealed class ScriptedInputHandler : IInputHandler, ICursorCapability, IPo
         _buttonsDown.Clear();
         _keysDown.Clear();
         NewFrame();
+        ResetDevices();
         _previous = _position;
     }
 
@@ -105,6 +106,7 @@ public sealed class ScriptedInputHandler : IInputHandler, ICursorCapability, IPo
     /// </summary>
     public void NewFrame()
     {
+        AdvanceDevices();
         _previous = _position;
         _buttonsPressed.Clear();
         _keysPressed.Clear();

@@ -104,7 +104,7 @@ public static partial class ControlsExtensions
         state.WasOpen = isOpen;
         if (state.JustOpened) state.DragOffset = Vector2.Zero;
         if (!isOpen) state.IsDragging = false;
-        if (closeOnEscape && isOpen && gui.Input.IsKeyPressed(KeyboardKey.Escape)) isOpen = false;
+        if (closeOnEscape && isOpen && gui.IsCancelPressed) isOpen = false;
     }
 
     static void DialogContent(Gui gui, bool isOpen, Action content, float width, float height,

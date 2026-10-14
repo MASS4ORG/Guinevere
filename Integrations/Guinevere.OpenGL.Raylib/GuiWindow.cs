@@ -48,6 +48,8 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _gui.Platform.Register<IDisplayCapability>(this);
         _gui.Platform.Register<ICursorCapability>(this);
         _gui.Platform.Register<IPointerCapability>(this);
+        _gui.Platform.Register<IGameInputCapability>(_gameInput);
+        _gui.Platform.Register<ITouchCapability>(_touchInput);
         _gui.Platform.Register<IFileDropCapability>(_fileDrops);
         _gui.Platform.Register<IAppearanceCapability>(_appearance);
         var fontStream = GetStreamResource("Guinevere.font.ttf");
@@ -147,18 +149,21 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     /// </summary>
     void WaitForFrame()
     {
+        PollGameInput();
         double wait;
         while ((wait = Pacing.WaitSeconds(_gui, InputHeld)) > 0)
         {
             // Raylib.WaitTime spins for part of every wait; a plain sleep keeps the idle loop off the CPU.
             Thread.Sleep(TimeSpan.FromSeconds(Math.Min(wait, PollInterval)));
             Raylib.PollInputEvents();
+            PollGameInput();
             if (InputArrived()) Pacing.NotifyInput();
             if (Raylib.WindowShouldClose()) return;
         }
     }
 
-    static bool InputHeld => Raylib.IsMouseButtonDown(Raylib_cs.MouseButton.Left)
+    bool InputHeld => _gameInput.AnyButtonDown || _gui.ControllerNavigation.HasPendingRepeat || _touchInput.HasActiveContacts
+                             || Raylib.IsMouseButtonDown(Raylib_cs.MouseButton.Left)
                              || Raylib.IsMouseButtonDown(Raylib_cs.MouseButton.Right)
                              || Raylib.IsMouseButtonDown(Raylib_cs.MouseButton.Middle);
 
@@ -204,6 +209,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         }
 
         _gui.Time.Update(Raylib.GetFrameTime());
+        PollGameInput();
 
         // Update mouse position tracking
         _prevMousePosition = _currentMousePosition;
@@ -234,6 +240,8 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
             _gui.EndFrame();
         });
         ApplyPendingResize();
+        _gameInput.NewFrame();
+        _touchInput.NewFrame();
     }
 
     /// <summary>

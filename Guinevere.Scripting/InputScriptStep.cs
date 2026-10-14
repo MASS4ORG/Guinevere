@@ -3,6 +3,28 @@ namespace Guinevere;
 /// <summary>One action in an <see cref="InputScript"/>. Only the fields an action uses are read.</summary>
 public sealed record InputScriptStep
 {
+    /// <summary>Controller identity for device actions.</summary>
+    public string DeviceId { get; init; } = "controller-0";
+    /// <summary>Mapped controller button.</summary>
+    public GameButton GameButton { get; init; }
+    /// <summary>Whether a controller button is held.</summary>
+    public bool Down { get; init; }
+    /// <summary>Controller axis index.</summary>
+    public int Axis { get; init; }
+    /// <summary>Controller axis value.</summary>
+    public float AxisValue { get; init; }
+    /// <summary>Touch contact identity.</summary>
+    public long ContactId { get; init; }
+    /// <summary>Touch lifecycle phase.</summary>
+    public TouchPhase Phase { get; init; }
+    /// <summary>Touch pressure, when available.</summary>
+    public float? Pressure { get; init; }
+    /// <summary>High-level gesture kind.</summary>
+    public TouchGestureKind GestureKind { get; init; }
+    /// <summary>Gesture scale ratio.</summary>
+    public float Scale { get; init; } = 1;
+    /// <summary>Gesture rotation delta in radians.</summary>
+    public float Rotation { get; init; }
     /// <summary>What this step does.</summary>
     public InputAction Action { get; init; }
 
