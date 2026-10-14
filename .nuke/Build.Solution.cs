@@ -15,20 +15,20 @@ sealed partial class Build
     private readonly Solution Solution;
 
     DotNetRestoreSettings WithMsBuildProperties(DotNetRestoreSettings settings) =>
-        MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
+        MsBuildProperties.Aggregate(settings, static (current, property) => current.SetProperty(property.Key, property.Value));
 
     DotNetBuildSettings WithMsBuildProperties(DotNetBuildSettings settings) =>
-        MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
+        MsBuildProperties.Aggregate(settings, static (current, property) => current.SetProperty(property.Key, property.Value));
 
     DotNetTestSettings WithMsBuildProperties(DotNetTestSettings settings) =>
-        MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
+        MsBuildProperties.Aggregate(settings, static (current, property) => current.SetProperty(property.Key, property.Value));
 
     DotNetRunSettings WithMsBuildProperties(DotNetRunSettings settings) =>
-        MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
+        MsBuildProperties.Aggregate(settings, static (current, property) => current.SetProperty(property.Key, property.Value));
 
     DotNetPackSettings WithMsBuildProperties(DotNetPackSettings settings) =>
-        MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
+        MsBuildProperties.Aggregate(settings, static (current, property) => current.SetProperty(property.Key, property.Value));
 
     DotNetPublishSettings WithMsBuildProperties(DotNetPublishSettings settings) =>
-        MsBuildProperties.Aggregate(settings, (current, property) => current.SetProperty(property.Key, property.Value));
+        MsBuildProperties.Aggregate(settings, static (current, property) => current.SetProperty(property.Key, property.Value));
 }

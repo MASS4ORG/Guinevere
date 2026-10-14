@@ -22,7 +22,7 @@ sealed partial class Build
                 // Debug symbols and the XML documentation file stay out of the release archive.
                 PublishDir.ZipTo(
                     PackedArchive,
-                    filter: file => !file.HasExtension("pdb", "xml"),
+                    filter: static file => !file.HasExtension("pdb", "xml"),
                     compressionLevel: CompressionLevel.Optimal,
                     fileMode: FileMode.Create);
                 Log.Information("Packed {PublishDir} into {PackedArchive}", PublishDir, PackedArchive);

@@ -35,7 +35,7 @@ sealed partial class Build
             .Executes(() =>
             {
                 var projects = ReleaseProjects.ToList();
-                projects.Select(PublishOutput).Distinct().ForEach(directory => directory.CreateOrCleanDirectory());
+                projects.Select(PublishOutput).Distinct().ForEach(static directory => directory.CreateOrCleanDirectory());
 
                 foreach (var project in projects)
                 {

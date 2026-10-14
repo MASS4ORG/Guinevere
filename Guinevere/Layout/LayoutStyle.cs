@@ -206,7 +206,9 @@ public struct LayoutStyle
     public UnitValue? MinWidthExpression
     {
         readonly get => _constraints?.MinWidth;
-        set { if (value is not null || _constraints is not null)
+        set
+        {
+            if (value is not null || _constraints is not null)
             {
                 _constraints = (_constraints ?? new()) with { MinWidth = value };
             }
@@ -216,7 +218,9 @@ public struct LayoutStyle
     public UnitValue? MaxWidthExpression
     {
         readonly get => _constraints?.MaxWidth;
-        set { if (value is not null || _constraints is not null)
+        set
+        {
+            if (value is not null || _constraints is not null)
             {
                 _constraints = (_constraints ?? new()) with { MaxWidth = value };
             }
@@ -226,7 +230,9 @@ public struct LayoutStyle
     public UnitValue? MinHeightExpression
     {
         readonly get => _constraints?.MinHeight;
-        set { if (value is not null || _constraints is not null)
+        set
+        {
+            if (value is not null || _constraints is not null)
             {
                 _constraints = (_constraints ?? new()) with { MinHeight = value };
             }
@@ -236,7 +242,9 @@ public struct LayoutStyle
     public UnitValue? MaxHeightExpression
     {
         readonly get => _constraints?.MaxHeight;
-        set { if (value is not null || _constraints is not null)
+        set
+        {
+            if (value is not null || _constraints is not null)
             {
                 _constraints = (_constraints ?? new()) with { MaxHeight = value };
             }

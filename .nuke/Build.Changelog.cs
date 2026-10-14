@@ -48,8 +48,8 @@ sealed partial class Build
     {
         var range = HasAnyTags ? $"{CurrentTag}..HEAD" : "HEAD";
         var subjects = Git($"log {range} --no-merges --pretty=format:%s")
-            .Select(output => output.Text)
-            .Where(subject => !string.IsNullOrWhiteSpace(subject));
+            .Select(static output => output.Text)
+            .Where(static subject => !string.IsNullOrWhiteSpace(subject));
 
         var grouped = new Dictionary<string, List<string>>();
         foreach (var subject in subjects)
@@ -113,7 +113,7 @@ sealed partial class Build
         }
 
         // One line per change, "- Added: ...", grouped in the order sections are declared above.
-        var orderedSections = ChangelogSections.Select(entry => entry.Section).Distinct();
+        var orderedSections = ChangelogSections.Select(static entry => entry.Section).Distinct();
         foreach (var section in orderedSections)
         {
             if (!grouped.TryGetValue(section, out var entries))
@@ -138,7 +138,7 @@ sealed partial class Build
         // swallow them, then written back with the new version's diff link on top.
         var links = LinkDefinition().Matches(content)
             .Where(link => link.Groups["label"].Value is var label && label != "Unreleased" && label != Version)
-            .Select(link => link.Value.Trim())
+            .Select(static link => link.Value.Trim())
             .ToList();
         content = LinkDefinition().Replace(content, string.Empty).TrimEnd();
 

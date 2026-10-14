@@ -1,0 +1,5 @@
+<Project>
+    <PropertyGroup Condition="'$(IsTestProject)' == 'true' And '$(CI)' == 'true'">
+        <WarningsAsErrors>$(WarningsAsErrors.Replace(';CA1707', ''))</WarningsAsErrors>
+    </PropertyGroup>
+</Project>

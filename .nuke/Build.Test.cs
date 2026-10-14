@@ -23,7 +23,7 @@ sealed partial class Build
             {
                 // Every test project writes its own uniquely named report; a shared --coverage-output would let the
                 // parallel test hosts overwrite each other.
-                CoverageDirectory.GlobFiles("*.cobertura.xml").ForEach(report => report.DeleteFile());
+                CoverageDirectory.GlobFiles("*.cobertura.xml").ForEach(static report => report.DeleteFile());
                 CoverageMergedDirectory.DeleteDirectory();
                 DotNetTest(settings => WithMsBuildProperties(settings
                     .SetConfiguration(Config)
@@ -34,12 +34,24 @@ sealed partial class Build
                         "--report-xunit-trx", // Consumed by tools/slow-tests.cs
                         "--results-directory", CoverageDirectory)));
 
-                // dotnet test only merges when several test projects ran; a lone project leaves its own report.
                 var reportDirectory = CoverageMergedDirectory.DirectoryExists() ? CoverageMergedDirectory : CoverageDirectory;
-                reportDirectory.GlobFiles("*.cobertura.xml").Single().Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
+                var reports = reportDirectory.GlobFiles("*.cobertura.xml").ToArray();
+                if (reports.Length == 1)
+                {
+                    reports[0].Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
+                }
+                else
+                {
+                    _ = ReportGenerator(settings => settings
+                        .SetReports(reports.Select(static report => report.ToString()))
+                        .SetTargetDirectory(CoverageMergedDirectory)
+                        .SetReportTypes([ReportTypes.Cobertura]));
+                    (CoverageMergedDirectory / "Cobertura.xml").Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
+                }
                 CoverageMergedDirectory.DeleteDirectory();
             });
 
+    /// <summary>Generates coverage reports and publishes their summary to CI.</summary>
     public Target TestReport => td =>
         td
             .DependsOn(Test)

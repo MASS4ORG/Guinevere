@@ -55,6 +55,18 @@ dotnet_naming_symbols.members.applicable_accessibilities = public, internal, pro
 dotnet_naming_rule.members.symbols = members
 dotnet_naming_rule.members.style = pascal_case
 dotnet_naming_rule.members.severity = warning
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.applicable_accessibilities = *
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_rule.constants.symbols = constants
+dotnet_naming_rule.constants.style = pascal_case
+dotnet_naming_rule.constants.severity = none
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.applicable_accessibilities = *
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+dotnet_naming_rule.static_readonly_fields.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_fields.style = pascal_case
+dotnet_naming_rule.static_readonly_fields.severity = none
 
 # Optional syntax and API design preferences.
 dotnet_diagnostic.IDE0021.severity = suggestion

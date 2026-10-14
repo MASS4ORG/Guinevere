@@ -44,7 +44,7 @@ public record struct Rect
     /// Gets the absolute center of the rectangle by adding its local center to its position.
     /// The center is calculated as the midpoint of width (W) and height (H) relative to the rectangle's position (X, Y).
     /// </summary>
-    public Vector2 Center => LocalCenter + Position;
+    public readonly Vector2 Center => LocalCenter + Position;
 
     /// <summary>
     /// Gets the position of the rectangle's bottom-right corner.

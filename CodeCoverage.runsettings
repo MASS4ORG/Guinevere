@@ -10,6 +10,8 @@
       <DataCollector friendlyName="Code Coverage">
         <Configuration>
           <CodeCoverage>
+            <EnableStaticManagedInstrumentation>True</EnableStaticManagedInstrumentation>
+            <EnableDynamicManagedInstrumentation>False</EnableDynamicManagedInstrumentation>
             <Sources>
               <Exclude>
                 <Source>.*\.g\.cs$</Source>

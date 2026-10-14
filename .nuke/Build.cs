@@ -7,5 +7,5 @@ namespace Build;
 [ShutdownDotNetAfterServerBuild]
 sealed partial class Build : NukeBuild
 {
-    static int Main() => Execute<Build>(x => x.Compile);
+    static int Main() => Execute<Build>(static x => x.Compile);
 }
