@@ -46,8 +46,14 @@ public static partial class ControlsExtensions
             // and tears the panel off: overlapping targets resolve last-declared-wins.
             TearOffTarget(context, gui.CurrentNode.Rect);
 
-            if (layout.Root is null) EmptyDockSpace(context);
-            else RenderNode(context, layout.Root, "dock:root");
+            if (layout.Root is null)
+            {
+                EmptyDockSpace(context);
+            }
+            else
+            {
+                RenderNode(context, layout.Root, "dock:root");
+            }
 
             RenderFloating(context);
             gui.DragGhost();
@@ -57,9 +63,15 @@ public static partial class ControlsExtensions
             // change to the next frame's build pass. A tab activation is deferred the same way: the
             // strip reports it during the render pass, and switching the body mid-frame would render
             // the new panel in one pass only, wiping its controls' build-pass state.
-            if (gui.Pass == Pass.Pass2Render && context.Closing is { } closing) layout.Remove(closing);
+            if (gui.Pass == Pass.Pass2Render && context.Closing is { } closing)
+            {
+                layout.Remove(closing);
+            }
+
             if (gui.Pass == Pass.Pass2Render && context.Activating is { } activating)
+            {
                 Activate(context, activating.Leaf, activating.Item);
+            }
         }
     }
 
@@ -84,10 +96,19 @@ public static partial class ControlsExtensions
         using (gui.Node(-1, -1, path).Expand().Direction(split.Axis).Enter())
         {
             var first = gui.Node(-1, -1, $"{path}/a");
-            if (horizontal) first.ExpandWidth(split.Fraction).ExpandHeight();
-            else first.ExpandHeight(split.Fraction).ExpandWidth();
+            if (horizontal)
+            {
+                first.ExpandWidth(split.Fraction).ExpandHeight();
+            }
+            else
+            {
+                first.ExpandHeight(split.Fraction).ExpandWidth();
+            }
 
-            using (first.Enter()) RenderNode(context, split.First, $"{path}/a");
+            using (first.Enter())
+            {
+                RenderNode(context, split.First, $"{path}/a");
+            }
 
             var fraction = split.Fraction;
             if (gui.Splitter(ref fraction, split.Axis, context.Theme.SplitterThickness, classes: DockClass))
@@ -97,10 +118,19 @@ public static partial class ControlsExtensions
             }
 
             var second = gui.Node(-1, -1, $"{path}/b");
-            if (horizontal) second.ExpandWidth(1f - split.Fraction).ExpandHeight();
-            else second.ExpandHeight(1f - split.Fraction).ExpandWidth();
+            if (horizontal)
+            {
+                second.ExpandWidth(1f - split.Fraction).ExpandHeight();
+            }
+            else
+            {
+                second.ExpandHeight(1f - split.Fraction).ExpandWidth();
+            }
 
-            using (second.Enter()) RenderNode(context, split.Second, $"{path}/b");
+            using (second.Enter())
+            {
+                RenderNode(context, split.Second, $"{path}/b");
+            }
         }
     }
 
@@ -123,15 +153,24 @@ public static partial class ControlsExtensions
                     new DockTabStrip(leaf, leaf.ActivePanelId, g.CurrentNode.Rect), g),
                 (item, id) => DragTab(context, leaf, item, id));
 
-            if (outcome.Activated is { } activated) context.Activating = (leaf, activated);
-            if (outcome.Closed is { } closed) context.Closing = closed.Id;
+            if (outcome.Activated is { } activated)
+            {
+                context.Activating = (leaf, activated);
+            }
+
+            if (outcome.Closed is { } closed)
+            {
+                context.Closing = closed.Id;
+            }
 
             using (gui.StyledNode("dock-panel", id: $"{path}/body").Expand().Enter())
             {
                 gui.ClipContent();
 
                 if (leaf.ActivePanelId is { } activeId && context.PanelInfo(activeId) is not null)
+                {
                     context.RenderPanel(activeId, gui);
+                }
             }
 
             DropZones(context, leaf, new Rect(leafRect.X, leafRect.Y + theme.TabHeight,
@@ -148,7 +187,10 @@ public static partial class ControlsExtensions
     static void Activate(DockContext context, DockLeaf leaf, TabStripItem item)
     {
         var index = leaf.PanelIds.IndexOf(item.Id);
-        if (index < 0 || index == leaf.ActiveIndex) return;
+        if (index < 0 || index == leaf.ActiveIndex)
+        {
+            return;
+        }
 
         leaf.ActiveIndex = index;
         context.Layout.MarkChanged();
@@ -162,7 +204,9 @@ public static partial class ControlsExtensions
         var dragging = gui.DragSource(id, new DockTabPayload(item.Id, leaf), ghost: g =>
         {
             using (g.StyledNode("dock-ghost").Width(120).Height(context.Theme.TabHeight).Enter())
+            {
                 g.DrawText(item.Label, context.Theme.FontSize);
+            }
         });
 
         var index = leaf.PanelIds.IndexOf(item.Id);
@@ -201,14 +245,24 @@ public static partial class ControlsExtensions
     static void DropZones(DockContext context, DockLeaf leaf, Rect rect)
     {
         var gui = context.Gui;
-        if (!gui.IsDragging) return;
+        if (!gui.IsDragging)
+        {
+            return;
+        }
 
         using (gui.Node(-1, -1, $"__dropZones_{leaf.GetHashCode()}").AbsoluteScreen(rect.X, rect.Y).Enter())
         {
             gui.SetZIndex(Gui.DragGhostZIndex - 1);
 
-            if (gui.Pass != Pass.Pass2Render) return;
-            if (rect is { W: <= 0 } or { H: <= 0 }) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
+            if (rect is { W: <= 0 } or { H: <= 0 })
+            {
+                return;
+            }
 
             var zone = ZoneAt(rect, gui.LocalMousePosition, context.Theme.DropZoneFraction);
 
@@ -216,7 +270,10 @@ public static partial class ControlsExtensions
                 canAccept: payload => !IsNoOpDrop(payload, leaf, zone),
                 onDrop: payload => context.Layout.DockInto(payload.PanelId, leaf, zone));
 
-            if (!drop.IsAccepted) return;
+            if (!drop.IsAccepted)
+            {
+                return;
+            }
 
             var preview = ZoneRect(rect, zone, zone == DockZone.Center ? 1f : 0.5f);
             var style = gui.ResolvePart("drop-preview");
@@ -228,8 +285,12 @@ public static partial class ControlsExtensions
     static DockZone ZoneAt(Rect rect, Vector2 point, float fraction)
     {
         foreach (var zone in EdgeZones)
+        {
             if (ZoneRect(rect, zone, fraction).Contains(point))
+            {
                 return zone;
+            }
+        }
 
         return DockZone.Center;
     }
@@ -259,7 +320,10 @@ public static partial class ControlsExtensions
     static void TearOffTarget(DockContext context, Rect rect)
     {
         var gui = context.Gui;
-        if (gui.Pass != Pass.Pass2Render || !gui.IsDragging) return;
+        if (gui.Pass != Pass.Pass2Render || !gui.IsDragging)
+        {
+            return;
+        }
 
         gui.DropTarget<DockTabPayload>(rect, "__dockTearOff",
             onDrop: payload =>
@@ -298,7 +362,10 @@ public static partial class ControlsExtensions
 
                         if (gui.GetInteractable().OnDrag(out var drag))
                         {
-                            if (float.IsNaN(anchor.X)) anchor = new Vector2(bounds.X, bounds.Y);
+                            if (float.IsNaN(anchor.X))
+                            {
+                                anchor = new Vector2(bounds.X, bounds.Y);
+                            }
 
                             var moved = anchor + drag.TotalDelta;
                             if (moved.X != bounds.X || moved.Y != bounds.Y)
@@ -315,7 +382,9 @@ public static partial class ControlsExtensions
                 }
 
                 using (gui.Node(-1, -1, $"dock:float/{i}/body").Expand().Enter())
+                {
                     RenderNode(context, window.Root, $"dock:float/{i}/root");
+                }
             }
         }
     }
@@ -325,7 +394,9 @@ public static partial class ControlsExtensions
         var gui = context.Gui;
 
         using (gui.StyledNode("dock-empty", id: "dock:empty").Expand().Enter())
+        {
             gui.DrawText("No panels open", context.Theme.FontSize);
+        }
     }
 
     /// <summary>

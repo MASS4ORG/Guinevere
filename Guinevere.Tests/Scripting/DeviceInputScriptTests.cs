@@ -11,7 +11,7 @@ public class DeviceInputScriptTests
         var gui = new TestableGui { Input = input };
         gui.SetScreenRect(100, 100);
         var messages = new List<string>();
-        var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"guinevere-{Guid.NewGuid():N}.png");
+        var path = Path.Combine(Path.GetTempPath(), $"guinevere-{Guid.NewGuid():N}.png");
         try
         {
             var script = new InputScript
@@ -54,7 +54,9 @@ public class DeviceInputScriptTests
         Assert.True(new InputScriptPlayer(input).Play(script, gui, target =>
         {
             if (target.Pass == Pass.Pass1Build)
+            {
                 frames.Add((input.IsKeyPressed(KeyboardKey.A), input.IsKeyDown(KeyboardKey.A), input.GetTypedCharacters()));
+            }
         }));
         Assert.Equal([(true, true, ""), (false, false, ""), (true, true, ""), (false, false, ""),
             (false, false, "hello")], frames);
@@ -71,8 +73,14 @@ public class DeviceInputScriptTests
         void Draw(Gui target)
         {
             using (target.Node(300, 300, "surface").Enter())
+            {
                 target.On<TouchGestureEvent>(e => gestures.Add(e.Gesture));
-            if (target.Pass == Pass.Pass1Build) samples.AddRange(input.Devices);
+            }
+
+            if (target.Pass == Pass.Pass1Build)
+            {
+                samples.AddRange(input.Devices);
+            }
         }
         var script = InputScript.FromJson("""
             { "width": 300, "height": 300, "steps": [

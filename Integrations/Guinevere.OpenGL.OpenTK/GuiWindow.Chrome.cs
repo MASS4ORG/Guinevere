@@ -13,7 +13,11 @@ public unsafe partial class GuiWindow
 
     void PlaceInitialWindow()
     {
-        if (!CanMove) return;
+        if (!CanMove)
+        {
+            return;
+        }
+
         PlaceInitialWindow(GetMonitorWorkAreas());
     }
 
@@ -33,7 +37,11 @@ public unsafe partial class GuiWindow
     {
         var size = ((IWindowResizeCapability)this).ClientSize;
         var selected = WindowPlacement.SelectMonitor(new Rect(Position.X, Position.Y, size.X, size.Y), areas);
-        if (selected < 0) return;
+        if (selected < 0)
+        {
+            return;
+        }
+
         var placement = WindowPlacement.Center(size, areas[selected]);
         ((IWindowResizeCapability)this).ClientSize = placement.Size;
         Position = placement.Position;
@@ -43,7 +51,7 @@ public unsafe partial class GuiWindow
     public bool IsMaximized => WindowState == WindowState.Maximized;
 
     /// <inheritdoc />
-    public bool CanMove => GLFW.GetPlatform() != global::OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland;
+    public bool CanMove => GLFW.GetPlatform() != Platform.Wayland;
 
     /// <inheritdoc />
     public bool CanResize => true;
@@ -58,14 +66,24 @@ public unsafe partial class GuiWindow
         }
         set
         {
-            if (_gui.Canvas is not null) _pendingClientSize = value;
-            else GLFW.SetWindowSize(WindowPtr, (int)value.X, (int)value.Y);
+            if (_gui.Canvas is not null)
+            {
+                _pendingClientSize = value;
+            }
+            else
+            {
+                GLFW.SetWindowSize(WindowPtr, (int)value.X, (int)value.Y);
+            }
         }
     }
 
     void ApplyPendingResize()
     {
-        if (_pendingClientSize is not { } size) return;
+        if (_pendingClientSize is not { } size)
+        {
+            return;
+        }
+
         _pendingClientSize = null;
         ((IWindowResizeCapability)this).ClientSize = size;
     }
@@ -88,20 +106,32 @@ public unsafe partial class GuiWindow
 
     bool TryMoveX11(Vector2 position)
     {
-        if (!OperatingSystem.IsLinux()) return false;
+        if (!OperatingSystem.IsLinux())
+        {
+            return false;
+        }
+
         return TryMoveOnX11(position);
     }
 
     bool TryMoveOnX11(Vector2 position)
     {
-        if (!CanMove) return false;
+        if (!CanMove)
+        {
+            return false;
+        }
+
         return X11WindowPosition.TrySet(GLFW.GetX11Display(), GLFW.GetX11Window(WindowPtr), position);
     }
 
     /// <inheritdoc />
     public bool TryBeginMove()
     {
-        if (!BeginNativeMove()) return false;
+        if (!BeginNativeMove())
+        {
+            return false;
+        }
+
         _nativeMove = true;
         _nativeX11Move = OperatingSystem.IsLinux();
         return true;
@@ -109,19 +139,31 @@ public unsafe partial class GuiWindow
 
     bool BeginNativeMove()
     {
-        if (OperatingSystem.IsWindows()) return WindowsWindowMove.TryBegin(GLFW.GetWin32Window(WindowPtr));
+        if (OperatingSystem.IsWindows())
+        {
+            return WindowsWindowMove.TryBegin(GLFW.GetWin32Window(WindowPtr));
+        }
+
         return BeginLinuxMove();
     }
 
     bool BeginLinuxMove()
     {
-        if (!OperatingSystem.IsLinux()) return false;
+        if (!OperatingSystem.IsLinux())
+        {
+            return false;
+        }
+
         return BeginX11Move();
     }
 
     bool BeginX11Move()
     {
-        if (!CanMove) return false;
+        if (!CanMove)
+        {
+            return false;
+        }
+
         return X11WindowPosition.TryBeginMove(GLFW.GetX11Display(), GLFW.GetX11Window(WindowPtr), PointerPosition);
     }
 
@@ -147,6 +189,9 @@ public unsafe partial class GuiWindow
     /// <inheritdoc />
     public void RequestClose()
     {
-        if (_close.MayClose()) Close();
+        if (_close.MayClose())
+        {
+            Close();
+        }
     }
 }

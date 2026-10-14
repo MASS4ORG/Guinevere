@@ -18,8 +18,16 @@ static class Ink
     /// <c>null</c> when an image or mask filter makes it unbounded.</summary>
     public static SKRect? Painted(SKRect bounds, SKPaint? paint)
     {
-        if (paint is null) return bounds;
-        if (paint.ImageFilter is not null || paint.MaskFilter is not null) return null;
+        if (paint is null)
+        {
+            return bounds;
+        }
+
+        if (paint.ImageFilter is not null || paint.MaskFilter is not null)
+        {
+            return null;
+        }
+
         var half = paint.Style == SKPaintStyle.Fill ? 0f : paint.StrokeWidth * 0.5f + 1f;
         return SKRect.Inflate(bounds, half, half);
     }

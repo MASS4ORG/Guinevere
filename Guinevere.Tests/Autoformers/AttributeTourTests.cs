@@ -1,4 +1,4 @@
-using Example_11_Excalibur_Attributes;
+using Example11ExcaliburAttributes;
 using Guinevere.Tests.Mocks;
 
 namespace Guinevere.Tests.Autoformers;

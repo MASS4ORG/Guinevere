@@ -4,7 +4,7 @@ namespace Guinevere.Tests;
 public class LayoutDirtyTrackingTests : LayoutNodeTestBase
 {
     [Fact]
-    public void CalculateLayout_UnchangedTree_ReusesPreviousLayout()
+    public void CalculateLayoutUnchangedTreeReusesPreviousLayout()
     {
         var gui = CreateTestGui(400, 200);
         var child = CreateTestLayoutNode(gui, gui.RootNode, 100f, 20f);
@@ -18,7 +18,7 @@ public class LayoutDirtyTrackingTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void FluentSizeChange_InvalidatesRetainedTree()
+    public void FluentSizeChangeInvalidatesRetainedTree()
     {
         var gui = CreateTestGui(400, 200);
         SetGuiStage(gui, Pass.Pass1Build);
@@ -35,7 +35,7 @@ public class LayoutDirtyTrackingTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void DirectStyleChange_RecalculatesAfterExplicitInvalidation()
+    public void DirectStyleChangeRecalculatesAfterExplicitInvalidation()
     {
         var gui = CreateTestGui(400, 200);
         var child = CreateTestLayoutNode(gui, gui.RootNode, 100f, 20f);

@@ -11,7 +11,10 @@ static class MemberWriter
     internal static bool TrySet(MemberMetadata metadata, object target, object? value, FormOptions options)
     {
         var name = metadata.Member.Name;
-        if (value is null && !options.CanAssignNull(metadata.ValueType)) return false;
+        if (value is null && !options.CanAssignNull(metadata.ValueType))
+        {
+            return false;
+        }
 
         object? current;
         try { current = metadata.GetValue(target); }
@@ -21,7 +24,10 @@ static class MemberWriter
             return false;
         }
 
-        if (Equals(current, value)) return false;
+        if (Equals(current, value))
+        {
+            return false;
+        }
 
         try
         {

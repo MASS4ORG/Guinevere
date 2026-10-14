@@ -35,7 +35,10 @@ public class GuiDrawShapesTests
         {
             gui.DrawRect(new Rect(20, 20, 20, 20), Color.Blue);
             gui.DrawBackgroundRect(new Color(0xff000080));
-            if (gui.Pass == Pass.Pass2Render) Assert.Equal(2, gui.RootNode!.DrawList.Count);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                Assert.Equal(2, gui.RootNode!.DrawList.Count);
+            }
         });
         Assert.Equal(128, pixels.GetPixel(10, 10).Alpha);
         Assert.Equal(SKColors.Blue, pixels.GetPixel(30, 30));
@@ -82,7 +85,9 @@ public class GuiDrawShapesTests
                 gui.DrawRect(new Rect(0, 0, 80, 80), Color.Blue);
             }
             using (gui.Node(80, 80, "bottom").Absolute(0, 0).Enter())
+            {
                 gui.DrawBackgroundRect(Color.Red);
+            }
         });
         var overlap = pixels.GetPixel(20, 20);
         Assert.InRange(overlap.Blue, 120, 135);
@@ -111,7 +116,10 @@ public class GuiDrawShapesTests
         {
             gui.DrawRect(new Rect(5, 5, 20, 20)).SolidColor(Color.Blue);
             gui.DrawRect(new Rect(35, 5, 20, 20), radius: 3).SolidColor(Color.Lime);
-            if (gui.Pass == Pass.Pass2Render) Assert.Equal(0, gui.RootNode!.DrawList.PrimitiveCount);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                Assert.Equal(0, gui.RootNode!.DrawList.PrimitiveCount);
+            }
         });
         Assert.Equal(SKColors.Blue, pixels.GetPixel(15, 15));
         Assert.Equal(SKColors.Lime, pixels.GetPixel(45, 15));
@@ -131,7 +139,10 @@ public class GuiDrawShapesTests
                 Assert.Equal(SKColors.White, background.Paint!.Color);
             }
             else
-                gui.DrawBackgroundRect((Color?)null);
+            {
+                gui.DrawBackgroundRect(null);
+            }
+
             if (gui.Pass == Pass.Pass2Render)
             {
                 Assert.Equal(1, gui.RootNode!.DrawList.Count);
@@ -145,7 +156,7 @@ public class GuiDrawShapesTests
     {
         gui.DrawRect(new Rect(10, 10, 20, 20), Color.Red);
         gui.DrawRect(new Vector2(10, 10), new Vector2(20, 20), Color.Red);
-        gui.DrawRect(new Rect(10, 10, 20, 20), (Color?)null);
+        gui.DrawRect(new Rect(10, 10, 20, 20), null);
         gui.DrawRectFilled(10, 10, 30, 30, Color.Red);
         gui.DrawRectBorder(new Rect(10, 10, 20, 20), Color.Blue, 2);
         gui.DrawRectBorder(new Vector2(10, 10), new Vector2(20, 20), Color.Blue, 2);
@@ -154,7 +165,7 @@ public class GuiDrawShapesTests
         gui.DrawCircleBorder(new Vector2(40, 40), 10, Color.Blue, 2);
         gui.DrawTriangle(new Vector2(1, 1), new Vector2(20, 1), new Vector2(1, 20), Color.Red);
         gui.DrawLine(new Vector2(5, 5), new Vector2(50, 50), Color.White, 0);
-        gui.DrawBackgroundRect((Color?)null);
+        gui.DrawBackgroundRect(null);
     }
 
     /// <summary>Warmed direct commands allocate no managed memory in either pass.</summary>
@@ -165,7 +176,11 @@ public class GuiDrawShapesTests
         var gui = Begin(surface.Canvas);
         var list = gui.RootNode!.DrawList;
         list.EnsureCapacity(12);
-        for (var i = 0; i < 100; i++) DirectCalls(gui);
+        for (var i = 0; i < 100; i++)
+        {
+            DirectCalls(gui);
+        }
+
         var before = GC.GetAllocatedBytesForCurrentThread();
         DirectCalls(gui);
         Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);

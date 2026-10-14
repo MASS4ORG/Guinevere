@@ -10,9 +10,17 @@ public partial class GuiWindow
 
     void PlaceInitialWindow()
     {
-        if (!CanMove) return;
+        if (!CanMove)
+        {
+            return;
+        }
+
         var count = Raylib.GetMonitorCount();
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
+
         var areas = new Rect[count];
         for (var i = 0; i < count; i++)
         {
@@ -22,7 +30,11 @@ public partial class GuiWindow
         var size = ClientSize;
         var posCur = Position;
         var selected = WindowPlacement.SelectMonitor(new Rect(posCur.X, posCur.Y, size.X, size.Y), areas);
-        if (selected < 0) return;
+        if (selected < 0)
+        {
+            return;
+        }
+
         var placement = WindowPlacement.Center(size, areas[selected]);
         ClientSize = placement.Size;
         Position = placement.Position;
@@ -43,14 +55,24 @@ public partial class GuiWindow
         get => new(Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
         set
         {
-            if (_gui.Canvas is not null) _pendingClientSize = value;
-            else Raylib.SetWindowSize((int)value.X, (int)value.Y);
+            if (_gui.Canvas is not null)
+            {
+                _pendingClientSize = value;
+            }
+            else
+            {
+                Raylib.SetWindowSize((int)value.X, (int)value.Y);
+            }
         }
     }
 
     void ApplyPendingResize()
     {
-        if (_pendingClientSize is not { } size) return;
+        if (_pendingClientSize is not { } size)
+        {
+            return;
+        }
+
         _pendingClientSize = null;
         ClientSize = size;
     }
@@ -85,6 +107,9 @@ public partial class GuiWindow
     /// <inheritdoc />
     public void RequestClose()
     {
-        if (_close.MayClose()) Close();
+        if (_close.MayClose())
+        {
+            Close();
+        }
     }
 }

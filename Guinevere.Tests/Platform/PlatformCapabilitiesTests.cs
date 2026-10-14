@@ -36,7 +36,7 @@ public class PlatformCapabilitiesTests
         var first = Substitute.For<ICursorCapability>();
         var second = Substitute.For<ICursorCapability>();
 
-        platform.Register<ICursorCapability>(first);
+        platform.Register(first);
         platform.Register(second);
 
         Assert.Same(second, platform.Require<ICursorCapability>());
@@ -55,7 +55,7 @@ public class PlatformCapabilitiesTests
         display.LogicalSize.Returns(new Vector2(800, 600));
         display.FramebufferSize.Returns(new Vector2(1600, 1200));
 
-        platform.Register<IInputHandler>(host)
+        platform.Register(host)
             .Register<IClipboard>(host)
             .Register((IWindowHandler)host)
             .Register<ITimeCapability>(new Time())
@@ -72,7 +72,7 @@ public class PlatformCapabilitiesTests
         display.ScaleFactor.Returns(0f);
         display.LogicalSize.Returns(new Vector2(-1, 600));
         display.FramebufferSize.Returns(new Vector2(float.NaN, 1200));
-        platform.Register<IDisplayCapability>(display);
+        platform.Register(display);
 
         var failures = PlatformConformance.Validate(platform);
 

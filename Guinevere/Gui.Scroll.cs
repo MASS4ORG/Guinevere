@@ -53,11 +53,17 @@ public partial class Gui
             // Mark that this node needs clipping, but don't apply it yet
             var buildScrollState = GetScrollState(CurrentNode.Id);
             if (buildScrollState != null && (buildScrollState.IsScrollingX || buildScrollState.IsScrollingY))
+            {
                 SetClipped(true, CurrentNode.Scope);
+            }
+
             return;
         }
 
-        if (Pass != Pass.Pass2Render) return;
+        if (Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         // For scrollable containers, we need to clip to the viewport bounds
         // not the scrolled content bounds
@@ -101,8 +107,15 @@ public partial class Gui
         var node = CurrentNode;
         var scrollState = GetOrCreateScrollState(node.Id);
 
-        if (scrollX) scrollState.IsScrollingX = true;
-        if (scrollY) scrollState.IsScrollingY = true;
+        if (scrollX)
+        {
+            scrollState.IsScrollingX = true;
+        }
+
+        if (scrollY)
+        {
+            scrollState.IsScrollingY = true;
+        }
 
         // Mark this node as a scroll container
         SetIsScrollContainer(true);
@@ -112,9 +125,14 @@ public partial class Gui
         if (Pass == Pass.Pass1Build)
         {
             if (scrollY && scrollState.ShowScrollbarY)
+            {
                 node.PaddingRight(node.Style.PaddingRight + scrollState.ScrollbarThickness);
+            }
+
             if (scrollX && scrollState.ShowScrollbarX)
+            {
                 node.PaddingBottom(node.Style.PaddingBottom + scrollState.ScrollbarThickness);
+            }
         }
 
         // Update local scroll offset in node scope
@@ -178,10 +196,17 @@ public partial class Gui
         // Handle mouse wheel scrolling only when the mouse is over the node and nothing with a
         // higher z-index -- a modal dialog's dimmed overlay, say -- is blocking it from here.
         var screenRect = new Rect(nodeRect.X, nodeRect.Y, nodeRect.W, nodeRect.H);
-        if (screenRect.Contains(mousePos) && !IsHoverBlocked(node)) ApplyWheelScroll(node, scrollState);
+        if (screenRect.Contains(mousePos) && !IsHoverBlocked(node))
+        {
+            ApplyWheelScroll(node, scrollState);
+        }
 
         // Handle scrollbar dragging
-        if (!float.IsNaN(mousePos.X)) HandleScrollbarDragging(node, scrollState, mousePos);
+        if (!float.IsNaN(mousePos.X))
+        {
+            HandleScrollbarDragging(node, scrollState, mousePos);
+        }
+
         RequestScrollbarCursor(node, scrollState);
     }
 
@@ -189,12 +214,19 @@ public partial class Gui
     void ApplyWheelScroll(LayoutNode node, ScrollState scrollState)
     {
         var wheelDelta = Input.MouseWheelDelta;
-        if (Math.Abs(wheelDelta) <= 0.01f) return;
+        if (Math.Abs(wheelDelta) <= 0.01f)
+        {
+            return;
+        }
 
         if (Input.IsKeyDown(KeyboardKey.LeftShift) || Input.IsKeyDown(KeyboardKey.RightShift))
         {
             // Horizontal scroll with shift
-            if (!scrollState.IsScrollingX) return;
+            if (!scrollState.IsScrollingX)
+            {
+                return;
+            }
+
             scrollState.ScrollOffset = new Vector2(
                 scrollState.ScrollOffset.X - wheelDelta * 50f,
                 scrollState.ScrollOffset.Y);
@@ -202,7 +234,11 @@ public partial class Gui
         else
         {
             // Vertical scroll
-            if (!scrollState.IsScrollingY) return;
+            if (!scrollState.IsScrollingY)
+            {
+                return;
+            }
+
             scrollState.ScrollOffset = new Vector2(
                 scrollState.ScrollOffset.X,
                 scrollState.ScrollOffset.Y - wheelDelta * 50f);
@@ -221,7 +257,9 @@ public partial class Gui
         var dragging = scrollState.IsDraggingScrollbarX || scrollState.IsDraggingScrollbarY;
         var hovered = scrollState.IsVerticalScrollbarHovered || scrollState.IsHorizontalScrollbarHovered;
         if (dragging || (hovered && !IsPointerCaptured && !IsHoverBlocked(node)))
+        {
             RequestCursor(PointerCursor.Default);
+        }
     }
 
     void UpdateContentSize(LayoutNode node, ScrollState scrollState)
@@ -329,16 +367,24 @@ public partial class Gui
     void DrawScrollbars(LayoutNode node, ScrollState scrollState, bool scrollX, bool scrollY,
         Color? foregroundColor, Color? backgroundColor)
     {
-        if (!(scrollX && scrollState.ShowScrollbarX) && !(scrollY && scrollState.ShowScrollbarY)) return;
+        if (!(scrollX && scrollState.ShowScrollbarX) && !(scrollY && scrollState.ShowScrollbarY))
+        {
+            return;
+        }
 
         using (Node(-1, -1, $"{node.Id}/scrollbars").AbsoluteScreen(0, 0).Enter())
         {
             SetZIndex(ScrollbarZIndex);
 
             if (scrollX && scrollState.ShowScrollbarX)
+            {
                 DrawScrollbar(node, scrollState, Axis.Horizontal, foregroundColor, backgroundColor);
+            }
+
             if (scrollY && scrollState.ShowScrollbarY)
+            {
                 DrawScrollbar(node, scrollState, Axis.Vertical, foregroundColor, backgroundColor);
+            }
         }
     }
 
@@ -352,14 +398,20 @@ public partial class Gui
         Color? backgroundColor)
     {
         var shouldShow = axis == Axis.Vertical ? scrollState.ShowScrollbarY : scrollState.ShowScrollbarX;
-        if (!shouldShow) return;
+        if (!shouldShow)
+        {
+            return;
+        }
 
         // The container's own rect, not its content box: a scrollbar belongs on the border, and the
         // padding then applies to what is left.
         var (track, thumb, state) = ScrollbarParts(scrollState, axis, node.Rect);
 
         if (ScrollbarRenderer is { } renderer && foregroundColor is null && backgroundColor is null
-            && renderer.Draw(this, node, axis, track, thumb, state)) return;
+            && renderer.Draw(this, node, axis, track, thumb, state))
+        {
+            return;
+        }
 
         DrawPlainScrollbar(track, thumb, state, foregroundColor, backgroundColor);
     }
@@ -417,7 +469,10 @@ public partial class Gui
         if (RootNode != null)
         {
             var node = FindNodeById(RootNode, nodeId);
-            if (node?.Scope != null) SetLocalScrollOffset(scrollState.ScrollOffset, node.Scope);
+            if (node?.Scope != null)
+            {
+                SetLocalScrollOffset(scrollState.ScrollOffset, node.Scope);
+            }
         }
     }
 
@@ -487,7 +542,10 @@ public partial class Gui
     public bool CanScroll(string nodeId, Axis axis)
     {
         var scrollState = GetScrollState(nodeId);
-        if (scrollState == null) return false;
+        if (scrollState == null)
+        {
+            return false;
+        }
 
         return axis == Axis.Horizontal
             ? scrollState.NeedsHorizontalScroll
@@ -503,7 +561,10 @@ public partial class Gui
     public float GetScrollPercentage(string nodeId, Axis axis)
     {
         var scrollState = GetScrollState(nodeId);
-        if (scrollState == null) return 0f;
+        if (scrollState == null)
+        {
+            return 0f;
+        }
 
         if (axis == Axis.Horizontal)
         {
@@ -526,7 +587,10 @@ public partial class Gui
     public void SetScrollPercentage(string nodeId, Axis axis, float percentage)
     {
         var scrollState = GetScrollState(nodeId);
-        if (scrollState == null) return;
+        if (scrollState == null)
+        {
+            return;
+        }
 
         percentage = Math.Clamp(percentage, 0f, 1f);
 
@@ -552,12 +616,18 @@ public partial class Gui
     /// <returns>The node if found, null otherwise</returns>
     LayoutNode? FindNodeById(LayoutNode root, string nodeId)
     {
-        if (root.Id == nodeId) return root;
+        if (root.Id == nodeId)
+        {
+            return root;
+        }
 
         foreach (var child in root.Children)
         {
             var found = FindNodeById(child, nodeId);
-            if (found != null) return found;
+            if (found != null)
+            {
+                return found;
+            }
         }
 
         return null;

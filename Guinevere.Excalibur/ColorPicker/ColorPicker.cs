@@ -90,8 +90,14 @@ public static partial class ControlsExtensions
             filePath: filePath, lineNumber: lineNumber), options.Width, -1);
         using (node.Enter())
         {
-            if (options.Body is { } body) body(gui, ref value, original);
-            else DefaultPickerBody(gui, ref value, options, original, enabled, node.Id);
+            if (options.Body is { } body)
+            {
+                body(gui, ref value, original);
+            }
+            else
+            {
+                DefaultPickerBody(gui, ref value, options, original, enabled, node.Id);
+            }
         }
         return gui.Pass == Pass.Pass2Render && value != before;
     }
@@ -112,7 +118,10 @@ public static partial class ControlsExtensions
         {
             gui.ColorArea(ref value, options.Shape, width: 0, height: 0, enabled: enabled);
             gui.ColorStrip(ref value, options.Shape.Companion, vertical: true, length: 0, enabled: enabled);
-            if (options.Alpha) gui.ColorStrip(ref value, HsvChannel.Alpha, vertical: true, length: 0, enabled: enabled);
+            if (options.Alpha)
+            {
+                gui.ColorStrip(ref value, HsvChannel.Alpha, vertical: true, length: 0, enabled: enabled);
+            }
         }
     }
 
@@ -120,8 +129,16 @@ public static partial class ControlsExtensions
         string pickerId)
     {
         var modes = options.Modes;
-        if (modes.Count == 0) return;
-        if (modes.Count > 1) ColorModeSwitch(gui, state, modes, enabled, pickerId);
+        if (modes.Count == 0)
+        {
+            return;
+        }
+
+        if (modes.Count > 1)
+        {
+            ColorModeSwitch(gui, state, modes, enabled, pickerId);
+        }
+
         gui.ColorChannels(ref value, modes[Math.Clamp(state.Mode, 0, modes.Count - 1)], options.Alpha,
             enabled: enabled);
     }
@@ -132,19 +149,34 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("color-picker-row").ExpandWidth().Height(ControlMetrics.CompactHeight).Enter())
         {
             if (gui.ColorPreview(value.ToColor(), original) && enabled && original is { } restore)
+            {
                 value = Hsva.Sync(value, restore);
-            if (options.Hex) gui.ColorHex(ref value, options.Alpha, options.Clipboard, enabled: enabled);
+            }
+
+            if (options.Hex)
+            {
+                gui.ColorHex(ref value, options.Alpha, options.Clipboard, enabled: enabled);
+            }
+
             if (gui.Platform.TryGet<IColorSamplerCapability>(out var sampler))
+            {
                 value = Eyedropper(gui, state, sampler!, value, pickerId, enabled);
+            }
         }
     }
 
     static void SwatchRows(Gui gui, ref Hsva value, ColorPickerOptions options, bool enabled)
     {
-        if (options.Swatches.Count > 0) gui.ColorSwatches(ref value, options.Swatches, SwatchSize, enabled);
+        if (options.Swatches.Count > 0)
+        {
+            gui.ColorSwatches(ref value, options.Swatches, SwatchSize, enabled);
+        }
+
         var recent = ColorRecents.For(gui).Items;
         if (options.ShowRecent && recent.Count > 0)
+        {
             gui.ColorSwatches(ref value, recent, SwatchSize, enabled, RecentClass);
+        }
     }
 
     static void ColorModeSwitch(Gui gui, ColorPickerState state, IReadOnlyList<IColorPickerMode> modes, bool enabled,
@@ -153,9 +185,13 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("color-picker-row").ExpandWidth().Height(ControlMetrics.CompactHeight).Enter())
         {
             for (var i = 0; i < modes.Count; i++)
+            {
                 if (gui.Button(modes[i].Name, height: ControlMetrics.CompactHeight, enabled: enabled,
                         classes: i == state.Mode ? ColorModeCheckedClass : ColorModeClass, id: $"{pickerId}/mode/{i}"))
+                {
                     state.Mode = i;
+                }
+            }
         }
     }
 
@@ -166,8 +202,15 @@ public static partial class ControlsExtensions
         var idle = state.Sample is null;
         if (GlyphButton(gui, WidgetIcons.Eyedropper, ControlMetrics.CompactHeight, pickerId + "/eyedropper",
                 enabled && idle))
+        {
             state.Sample = sampler.SampleAsync().AsTask();
-        if (gui.Pass != Pass.Pass2Render || state.Sample is not { IsCompleted: true } sample) return value;
+        }
+
+        if (gui.Pass != Pass.Pass2Render || state.Sample is not { IsCompleted: true } sample)
+        {
+            return value;
+        }
+
         state.Sample = null;
         return SampledColor(sample) is { } picked ? Hsva.Sync(value, picked) : value;
     }
@@ -212,7 +255,11 @@ public static partial class ControlsExtensions
         var before = state.Value;
         using (node.Enter())
         {
-            if (gui.Pass == Pass.Pass2Render) state.Anchor = node.Rect;
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                state.Anchor = node.Rect;
+            }
+
             ColorFieldSwatch(gui, state, color, height, enabled);
             gui.ColorHex(ref state.Value, options.Alpha, clipboard: false, width: 0, height: height, enabled: enabled,
                 id: node.Id + "/hex");
@@ -227,13 +274,28 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("swatch", modifiers: state.Open ? OpenModifier : null, disabled: !enabled)
                    .Width(height * 1.5f).Height(height).Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             DrawColorSample(gui, gui.CurrentNode.InnerRect, color);
-            if (!enabled) return;
+            if (!enabled)
+            {
+                return;
+            }
+
             gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-            if (!Activated(gui)) return;
+            if (!Activated(gui))
+            {
+                return;
+            }
+
             state.PendingOpen = !state.Open;
-            if (!state.Open) state.Original = color;
+            if (!state.Open)
+            {
+                state.Original = color;
+            }
         }
     }
 
@@ -248,27 +310,50 @@ public static partial class ControlsExtensions
                 id: fieldId + "/picker"),
             popupWidth, popupHeight, position: ConstrainToScreen(gui, below, popupWidth, popupHeight),
             classes: ColorPopupClass, id: fieldId + "/popup");
-        if (gui.Pass != Pass.Pass2Render || open == state.Open) return;
+        if (gui.Pass != Pass.Pass2Render || open == state.Open)
+        {
+            return;
+        }
+
         state.Open = open;
-        if (!open && state.Value.ToColor() != state.Original) ColorRecents.For(gui).Add(state.Value.ToColor());
+        if (!open && state.Value.ToColor() != state.Original)
+        {
+            ColorRecents.For(gui).Add(state.Value.ToColor());
+        }
     }
 
     /// <summary>The default layout's height, from the default sheet's gaps and the options' rows.</summary>
     internal static float EstimatePickerHeight(ColorPickerOptions options, int recentCount)
     {
         var height = options.AreaHeight;
-        if (options.Modes.Count > 1) height += ColorRowGap + ControlMetrics.CompactHeight;
-        if (options.Modes.Count > 0) height += ColorRowGap + ControlMetrics.CompactHeight;
+        if (options.Modes.Count > 1)
+        {
+            height += ColorRowGap + ControlMetrics.CompactHeight;
+        }
+
+        if (options.Modes.Count > 0)
+        {
+            height += ColorRowGap + ControlMetrics.CompactHeight;
+        }
+
         height += ColorRowGap + ControlMetrics.CompactHeight;
         var width = options.Width > 0 ? options.Width : ControlMetrics.FieldWidth;
         height += SwatchRowsHeight(options.Swatches.Count, width);
-        if (options.ShowRecent) height += SwatchRowsHeight(recentCount, width);
+        if (options.ShowRecent)
+        {
+            height += SwatchRowsHeight(recentCount, width);
+        }
+
         return height;
     }
 
     static float SwatchRowsHeight(int count, float width)
     {
-        if (count == 0) return 0f;
+        if (count == 0)
+        {
+            return 0f;
+        }
+
         var perRow = Math.Max(1, (int)((width + SwatchGap) / (SwatchSize + SwatchGap)));
         var rows = (count + perRow - 1) / perRow;
         return ColorRowGap + rows * SwatchSize + (rows - 1) * SwatchGap;

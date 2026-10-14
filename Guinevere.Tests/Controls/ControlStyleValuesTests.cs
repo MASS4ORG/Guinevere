@@ -5,7 +5,7 @@ public class ControlStyleValuesTests
 {
     /// <summary>The root scope carries the default metrics, and a nested scope overrides one without the others.</summary>
     [Fact]
-    public void ControlStyle_CascadesIndependentOverrides()
+    public void ControlStyleCascadesIndependentOverrides()
     {
         using var surface = SKSurface.Create(new SKImageInfo(100, 100));
         var gui = new Gui();

@@ -12,8 +12,91 @@ max_line_length = 120
 
 [*.cs]
 
-# Pooled gameplay waits require single consumption.
-dotnet_diagnostic.CA2012.severity = warning
+# Correctness and deterministic identity hashing.
+dotnet_diagnostic.CA2012.severity = error
+dotnet_diagnostic.CA5350.severity = error
+dotnet_diagnostic.CA5351.severity = error
+
+# Mechanical cleanup and explicit captures.
+csharp_prefer_braces = true
+csharp_prefer_static_anonymous_function = true
+dotnet_diagnostic.IDE0011.severity = warning
+dotnet_diagnostic.IDE0001.severity = warning
+dotnet_diagnostic.IDE0002.severity = warning
+dotnet_diagnostic.IDE0004.severity = warning
+dotnet_diagnostic.IDE0005.severity = warning
+dotnet_diagnostic.IDE0018.severity = warning
+dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.IDE0062.severity = warning
+dotnet_diagnostic.IDE0250.severity = warning
+dotnet_diagnostic.IDE0251.severity = warning
+dotnet_diagnostic.IDE0320.severity = warning
+dotnet_diagnostic.IDE0370.severity = warning
+dotnet_diagnostic.IDE0380.severity = warning
+
+# Production naming; test method underscores are allowed below.
+dotnet_diagnostic.CA1707.severity = warning
+dotnet_diagnostic.IDE1006.severity = warning
+dotnet_naming_symbols.types.applicable_kinds = class, struct, enum, delegate
+dotnet_naming_symbols.types.applicable_accessibilities = *
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_rule.types.symbols = types
+dotnet_naming_rule.types.style = pascal_case
+dotnet_naming_rule.types.severity = warning
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+dotnet_naming_style.interfaces.capitalization = pascal_case
+dotnet_naming_style.interfaces.required_prefix = I
+dotnet_naming_rule.interfaces.symbols = interfaces
+dotnet_naming_rule.interfaces.style = interfaces
+dotnet_naming_rule.interfaces.severity = warning
+dotnet_naming_symbols.members.applicable_kinds = property, method, event
+dotnet_naming_symbols.members.applicable_accessibilities = public, internal, protected, protected_internal
+dotnet_naming_rule.members.symbols = members
+dotnet_naming_rule.members.style = pascal_case
+dotnet_naming_rule.members.severity = warning
+
+# Optional syntax and API design preferences.
+dotnet_diagnostic.IDE0021.severity = suggestion
+dotnet_diagnostic.IDE0022.severity = suggestion
+dotnet_diagnostic.IDE0061.severity = suggestion
+dotnet_diagnostic.IDE0045.severity = suggestion
+dotnet_diagnostic.IDE0046.severity = suggestion
+dotnet_diagnostic.IDE0031.severity = suggestion
+dotnet_diagnostic.IDE0078.severity = suggestion
+dotnet_diagnostic.IDE0270.severity = suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
+dotnet_diagnostic.IDE0028.severity = suggestion
+dotnet_diagnostic.IDE0042.severity = suggestion
+dotnet_diagnostic.IDE0032.severity = suggestion
+dotnet_diagnostic.IDE0360.severity = suggestion
+dotnet_diagnostic.IDE0290.severity = suggestion
+dotnet_diagnostic.IDE0010.severity = suggestion
+dotnet_diagnostic.IDE0072.severity = suggestion
+dotnet_diagnostic.IDE0200.severity = suggestion
+dotnet_diagnostic.IDE0039.severity = suggestion
+dotnet_diagnostic.IDE0057.severity = suggestion
+dotnet_diagnostic.IDE0063.severity = suggestion
+dotnet_diagnostic.IDE0340.severity = suggestion
+dotnet_diagnostic.IDE0330.severity = suggestion
+dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.CA1852.severity = suggestion
+dotnet_diagnostic.CA1859.severity = suggestion
+dotnet_diagnostic.CA1861.severity = suggestion
+dotnet_diagnostic.CA1805.severity = suggestion
+dotnet_diagnostic.CA1000.severity = suggestion
+dotnet_diagnostic.CA2231.severity = suggestion
+dotnet_diagnostic.CA1848.severity = suggestion
+dotnet_diagnostic.SYSLIB1045.severity = suggestion
+dotnet_diagnostic.xUnit2032.severity = suggestion
+
+# Return-value discards and broad naming heuristics are not quality gates.
+dotnet_diagnostic.IDE0058.severity = none
+dotnet_diagnostic.CA1711.severity = none
+dotnet_diagnostic.CA1716.severity = none
+dotnet_diagnostic.CA1720.severity = none
+dotnet_diagnostic.IDE3000.severity = none
+dotnet_diagnostic.JSON002.severity = silent
 
 # Language & Standard Typing Rules
 dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
@@ -100,3 +183,12 @@ generated_code = true
 
 [**/*.g.cs]
 generated_code = true
+
+[**/*.Tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
+
+[Turian.Tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
+
+[Gaya/Gaya.Tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none

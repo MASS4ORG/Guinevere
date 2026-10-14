@@ -41,14 +41,17 @@ public class StyleTokensTests
 
     /// <summary>A rule's token reaches every styled descendant, but not siblings outside the subtree.</summary>
     [Fact]
-    public void RuleTokens_InheritToDescendants()
+    public void RuleTokensInheritToDescendants()
     {
         Color? inside = null, outside = null;
         Frame(gui =>
         {
             using (gui.StyledNode("panel", ["danger"]).Enter())
             using (gui.Node(10, 10).Enter())
+            {
                 inside = BoxColor(gui);
+            }
+
             outside = BoxColor(gui);
             return null;
         });
@@ -58,7 +61,7 @@ public class StyleTokensTests
 
     /// <summary>Code sets a token for a subtree; nested tokens override outer ones.</summary>
     [Fact]
-    public void SetStyleToken_ThemesASubtree()
+    public void SetStyleTokenThemesASubtree()
     {
         var color = Frame(gui =>
         {
@@ -66,7 +69,10 @@ public class StyleTokensTests
             using (gui.Node(10, 10).Enter())
             {
                 gui.SetStyleToken("$accent", Green);
-                using (gui.Node(5, 5).Enter()) return BoxColor(gui);
+                using (gui.Node(5, 5).Enter())
+                {
+                    return BoxColor(gui);
+                }
             }
         });
 
@@ -77,7 +83,7 @@ public class StyleTokensTests
     /// The element's own rule tokens and call-site variables beat inherited ones; inherited ones beat host tokens.
     /// </summary>
     [Fact]
-    public void Precedence_OwnAndCallSiteBeatInherited_InheritedBeatsHost()
+    public void PrecedenceOwnAndCallSiteBeatInheritedInheritedBeatsHost()
     {
         Color? own = null, callSite = null, overHost = null;
         Frame(gui =>
@@ -97,13 +103,15 @@ public class StyleTokensTests
 
     /// <summary>A token a rule sets only under <c>:hover</c> reaches the subtree while the parent is hovered.</summary>
     [Fact]
-    public void HoverTokens_PassDownInTheRenderPass()
+    public void HoverTokensPassDownInTheRenderPass()
     {
-        Color? Probe(Gui gui)
+        static Color? Probe(Gui gui)
         {
             using (gui.StyledNode("panel", ["hot"]).Width(50).Height(50).Enter())
             using (gui.Node(10, 10).Enter())
+            {
                 return BoxColor(gui);
+            }
         }
 
         Assert.Equal(Green, Frame(Probe, new Vector2(20, 20)));
@@ -112,7 +120,7 @@ public class StyleTokensTests
 
     /// <summary>A node whose rules stop setting tokens in the render pass falls back to the inherited tokens.</summary>
     [Fact]
-    public void RenderPass_DropsTokensTheBuildPassSet()
+    public void RenderPassDropsTokensTheBuildPassSet()
     {
         var pass = 0;
         var color = Frame(gui =>
@@ -120,7 +128,9 @@ public class StyleTokensTests
             pass++;
             using (gui.StyledNode("panel", pass == 1 ? ["danger"] : []).Enter())
             using (gui.Node(10, 10).Enter())
+            {
                 return BoxColor(gui);
+            }
         });
 
         Assert.Equal(Blue, color);
@@ -128,7 +138,7 @@ public class StyleTokensTests
 
     /// <summary>Outside a frame, resolution simply has no inherited tokens; names are validated.</summary>
     [Fact]
-    public void OutsideAFrame_AndValidation()
+    public void OutsideAFrameAndValidation()
     {
         var gui = new Gui();
         gui.StyleSheets.Add(StyleSheet.Parse(Sheet));

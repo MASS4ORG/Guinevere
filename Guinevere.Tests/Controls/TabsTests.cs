@@ -46,7 +46,9 @@ public class TabsTests
         gui.Tabs(ref activeTab, tabs =>
         {
             foreach (var (title, closable) in specs)
+            {
                 tabs.Tab(title, closable: closable);
+            }
         }, onTabClosed: (index, title) => closed.Add((index, title)));
     }
 
@@ -90,9 +92,14 @@ public class TabsTests
             if (found == null && node.Children.Count == tabCount &&
                 node.Children.All(child =>
                     MathF.Abs(child.Rect.H - 32f) < 0.05f && child.Rect.W < 80f))
+            {
                 found = node;
+            }
 
-            foreach (var child in node.Children) Visit(child);
+            foreach (var child in node.Children)
+            {
+                Visit(child);
+            }
         }
     }
 
@@ -117,7 +124,7 @@ public class TabsTests
     }
 
     [Fact]
-    public void TabsAreNotClosableByDefault_SoMiddleClickSurvives()
+    public void TabsAreNotClosableByDefaultSoMiddleClickSurvives()
     {
         var gui = CreateGui();
         var closed = new List<(int, string)>();

@@ -29,17 +29,26 @@ public class InputArbitrationTests
         {
             using (gui.Node(200, 200, "under").Enter())
             {
-                if (gui.Pass == Pass.Pass2Render) under = gui.GetInteractable().OnHover();
+                if (gui.Pass == Pass.Pass2Render)
+                {
+                    under = gui.GetInteractable().OnHover();
+                }
             }
 
             using (gui.Node(100, 100, "overlay").AbsoluteScreen(0, 0).BlockInput(block).Enter())
             {
                 gui.SetZIndex(100);
-                if (gui.Pass == Pass.Pass2Render) overlay = gui.GetInteractable().OnHover();
+                if (gui.Pass == Pass.Pass2Render)
+                {
+                    overlay = gui.GetInteractable().OnHover();
+                }
 
                 using (gui.Node(50, 50, "overlayChild").Enter())
                 {
-                    if (gui.Pass == Pass.Pass2Render) overlayChild = gui.GetInteractable().OnHover();
+                    if (gui.Pass == Pass.Pass2Render)
+                    {
+                        overlayChild = gui.GetInteractable().OnHover();
+                    }
                 }
             }
         }
@@ -93,7 +102,10 @@ public class InputArbitrationTests
         {
             using (gui.Node(200, 200, "under").Enter())
             {
-                if (gui.Pass == Pass.Pass2Render) under = gui.GetInteractable().OnHover();
+                if (gui.Pass == Pass.Pass2Render)
+                {
+                    under = gui.GetInteractable().OnHover();
+                }
             }
 
             using (gui.Node(100, 100, "overlay").AbsoluteScreen(0, 0).BlockInput().Enter())
@@ -101,7 +113,10 @@ public class InputArbitrationTests
                 gui.SetZIndex(100);
                 using (gui.Node(50, 50, "dock:panel/inspector").Enter())
                 {
-                    if (gui.Pass == Pass.Pass2Render) named = gui.GetInteractable().OnHover();
+                    if (gui.Pass == Pass.Pass2Render)
+                    {
+                        named = gui.GetInteractable().OnHover();
+                    }
                 }
             }
         }
@@ -139,7 +154,10 @@ public class InputArbitrationTests
             {
                 using (gui.Node(200, 200, "surface").Enter())
                 {
-                    if (gui.Pass == Pass.Pass2Render) gui.GetInteractable().OnDrag(out args);
+                    if (gui.Pass == Pass.Pass2Render)
+                    {
+                        gui.GetInteractable().OnDrag(out args);
+                    }
                 }
             }
 
@@ -175,11 +193,17 @@ public class InputArbitrationTests
         {
             using (gui.Node(200, 200, "row").Enter())
             {
-                if (gui.Pass == Pass.Pass2Render) parent = gui.GetInteractable().OnHover();
+                if (gui.Pass == Pass.Pass2Render)
+                {
+                    parent = gui.GetInteractable().OnHover();
+                }
 
                 using (gui.Node(20, 20, "row/expander").BlockInput(childBlocks).Enter())
                 {
-                    if (gui.Pass == Pass.Pass2Render) child = gui.GetInteractable().OnHover();
+                    if (gui.Pass == Pass.Pass2Render)
+                    {
+                        child = gui.GetInteractable().OnHover();
+                    }
                 }
             }
         }

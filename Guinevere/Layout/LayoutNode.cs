@@ -60,10 +60,16 @@ public partial class LayoutNode : IDisposable
     internal void MarkAbsolute(AbsoluteOrigin origin)
     {
         Style.AbsoluteOrigin = origin;
-        if (Style.IsAbsolute) return;
+        if (Style.IsAbsolute)
+        {
+            return;
+        }
 
         Style.IsAbsolute = true;
-        if (_parent is null) return;
+        if (_parent is null)
+        {
+            return;
+        }
 
         _parent._absoluteChildCount++;
         _parent._flowChildrenCache = null;
@@ -168,7 +174,9 @@ public partial class LayoutNode : IDisposable
     public void InvalidateLayout()
     {
         for (var node = this; node is not null; node = node._parent)
+        {
             node._layoutDirty = true;
+        }
     }
 
     /// <summary>
@@ -230,12 +238,27 @@ public partial class LayoutNode : IDisposable
         _gui = gui;
         _parent = parent;
         Style = LayoutStyle.Default;
-        if (width.HasValue) Style.Width = width.Value;
-        if (height.HasValue) Style.Height = height.Value;
+        if (width.HasValue)
+        {
+            Style.Width = width.Value;
+        }
+
+        if (height.HasValue)
+        {
+            Style.Height = height.Value;
+        }
+
         Identity = identity;
         Scope = new LayoutNodeScope(gui, this);
-        if (width == 0) ExpandWidth();
-        if (height == 0) ExpandHeight();
+        if (width == 0)
+        {
+            ExpandWidth();
+        }
+
+        if (height == 0)
+        {
+            ExpandHeight();
+        }
     }
 
     /// <summary>
@@ -310,8 +333,16 @@ public partial class LayoutNode : IDisposable
         [CallerLineNumber] int lineNumber = 0)
     {
         var node = new LayoutNode(_gui.NodeIdentity(null, filePath, lineNumber, this), _gui, this);
-        if (sizeX.HasValue) node.ApplyWidth(sizeX.Value);
-        if (sizeY.HasValue) node.ApplyHeight(sizeY.Value);
+        if (sizeX.HasValue)
+        {
+            node.ApplyWidth(sizeX.Value);
+        }
+
+        if (sizeY.HasValue)
+        {
+            node.ApplyHeight(sizeY.Value);
+        }
+
         return node;
     }
 

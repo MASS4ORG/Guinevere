@@ -47,7 +47,7 @@ public class ImmediateModeSiblingTests
     /// outside the scroll container's bounds and must still paint.
     /// </summary>
     [Fact]
-    public void RowAfterScrollContainer_StillRenders()
+    public void RowAfterScrollContainerStillRenders()
     {
         var px = RenderFrame(g =>
         {
@@ -57,12 +57,18 @@ public class ImmediateModeSiblingTests
                 {
                     g.ScrollY();
                     for (var i = 0; i < 8; i++)
+                    {
                         using (g.Node(-1, 12).ExpandWidth().Enter())
+                        {
                             g.DrawRect(g.CurrentNode.Rect, Color.FromArgb(255, 40, 40, 40));
+                        }
+                    }
                 }
 
                 using (g.Node(-1, 40).ExpandWidth().Enter())
+                {
                     g.DrawRect(g.CurrentNode.Rect, Color.FromArgb(255, 0, 200, 0)); // footer
+                }
             }
         });
 
@@ -77,7 +83,7 @@ public class ImmediateModeSiblingTests
 
     /// <summary>The scroll container itself still clips its overflowing children.</summary>
     [Fact]
-    public void ScrollContainer_StillClipsItsOwnContent()
+    public void ScrollContainerStillClipsItsOwnContent()
     {
         var px = RenderFrame(g =>
         {
@@ -87,8 +93,12 @@ public class ImmediateModeSiblingTests
                 {
                     g.ScrollY();
                     for (var i = 0; i < 30; i++)
+                    {
                         using (g.Node(-1, 12).ExpandWidth().Enter())
+                        {
                             g.DrawRect(g.CurrentNode.Rect, Color.FromArgb(255, 200, 0, 0));
+                        }
+                    }
                 }
             }
         });
@@ -99,14 +109,16 @@ public class ImmediateModeSiblingTests
 
     /// <summary>Equal-z nodes retain immediate-mode submission order after the render list is sorted.</summary>
     [Fact]
-    public void EqualZIndexSiblings_RenderInSubmissionOrder()
+    public void EqualZIndexSiblingsRenderInSubmissionOrder()
     {
         var px = RenderFrame(g =>
         {
             for (var i = 0; i < 32; i++)
             {
                 using (g.Node(80, 80).Absolute(10, 10).Enter())
+                {
                     g.DrawRect(g.CurrentNode.Rect, i == 31 ? Color.Lime : Color.Red);
+                }
             }
         });
 

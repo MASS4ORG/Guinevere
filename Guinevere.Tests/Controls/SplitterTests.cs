@@ -16,7 +16,9 @@ public class SplitterTests
         harness.Frame(g =>
         {
             using (g.Node(200, 100).Direction(axis).Enter())
+            {
                 g.Splitter(ref fraction, axis, id: "divider");
+            }
         });
         var node = Assert.Single(Assert.Single(harness.Gui.RootNode!.Children).Children);
         Assert.Equal(width, node.Rect.W);
@@ -43,7 +45,9 @@ public class SplitterTests
         {
             g.DrawBackgroundRect(Color.White);
             using (g.Node(200, 100).Direction(axis).Enter())
+            {
                 g.Splitter(ref fraction, axis, thickness: 8, classes: ["custom"], id: "divider");
+            }
         }
         harness.Frame(Draw);
         var node = Assert.Single(Assert.Single(harness.Gui.RootNode!.Children).Children);
@@ -53,12 +57,18 @@ public class SplitterTests
         Assert.Equal(PointerCursor.Hand, harness.Input.Cursor);
         using (var image = harness.Snapshot())
         using (var pixels = SKBitmap.FromImage(image))
+        {
             Assert.Equal(SKColors.Red, pixels.GetPixel(3, 3));
+        }
+
         harness.Input.PressButton();
         harness.Frame(Draw);
         using (var image = harness.Snapshot())
         using (var pixels = SKBitmap.FromImage(image))
+        {
             Assert.Equal(SKColors.Blue, pixels.GetPixel(3, 3));
+        }
+
         harness.Input.MoveTo(new Vector2(300, 200));
         harness.Frame(Draw);
         Assert.Equal(PointerCursor.Hand, harness.Input.Cursor);
@@ -77,7 +87,9 @@ public class SplitterTests
         void Draw(Gui g)
         {
             using (g.Node(200, 100).Direction(axis).Enter())
+            {
                 changed |= g.Splitter(ref fraction, axis, id: "divider");
+            }
         }
         harness.Frame(Draw);
         Assert.False(changed);
@@ -108,7 +120,9 @@ public class SplitterTests
         void Draw(Gui g)
         {
             using (g.Node().Width(UnitValue.Pixels(0)).Height(100).Direction(Axis.Horizontal).Enter())
+            {
                 g.Splitter(ref fraction, Axis.Horizontal, id: "divider");
+            }
         }
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(3, 3));

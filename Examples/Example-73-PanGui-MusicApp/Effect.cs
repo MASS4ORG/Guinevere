@@ -1,4 +1,4 @@
-namespace Example_73_PanGui_MusicApp;
+namespace Example73PanGuiMusicApp;
 
 struct Effect
 {

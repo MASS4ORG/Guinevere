@@ -67,7 +67,10 @@ public partial class Gui
     {
         ArgumentNullException.ThrowIfNull(sourceId);
         ArgumentNullException.ThrowIfNull(payload);
-        if (_drag is not null) return _drag.SourceId == sourceId;
+        if (_drag is not null)
+        {
+            return _drag.SourceId == sourceId;
+        }
 
         // Activation waits for the frame boundary so layout and render see the same drag state.
         _pendingDrag ??= new DragSession(sourceId, payload, payloadType, tag, ghost, keyboard);
@@ -102,7 +105,10 @@ public partial class Gui
     bool DragSourceCore(string sourceId, object payload, Type payloadType, DragDropTag tag,
         Action<Gui>? ghost, float threshold, bool keyboard)
     {
-        if (Pass != Pass.Pass2Render) return false;
+        if (Pass != Pass.Pass2Render)
+        {
+            return false;
+        }
 
         if (keyboard)
         {
@@ -111,15 +117,24 @@ public partial class Gui
                     CurrentNode.Rect.Y + CurrentNode.Rect.H * 0.5f));
         }
 
-        if (_drag is not null) return _drag.SourceId == sourceId;
+        if (_drag is not null)
+        {
+            return _drag.SourceId == sourceId;
+        }
 
         if (keyboard)
         {
             if (HasFocus(sourceId) && (Input.IsKeyPressed(KeyboardKey.Space) || Input.IsKeyPressed(KeyboardKey.Enter)))
+            {
                 return BeginDragCore(sourceId, payload, payloadType, tag, ghost, true);
+            }
         }
 
-        if (!GetInteractable().OnDrag(out var args) || args.TotalDelta.Length() < threshold) return false;
+        if (!GetInteractable().OnDrag(out var args) || args.TotalDelta.Length() < threshold)
+        {
+            return false;
+        }
+
         return BeginDragCore(sourceId, payload, payloadType, tag, ghost, false);
     }
 
@@ -150,20 +165,41 @@ public partial class Gui
     public DropTargetResult<T> DropTarget<T>(Rect rect, string id, DragDropTag tag = default,
         Func<T, bool>? canAccept = null, Action<T>? onDrop = null, bool keyboard = true)
     {
-        if (Pass != Pass.Pass2Render) return default;
-        if (TryTakeCompletedDrop<T>(id, tag, out var dropped)) return new(DropTargetState.Dropped, dropped);
+        if (Pass != Pass.Pass2Render)
+        {
+            return default;
+        }
 
-        if (_drag is null) return default;
+        if (TryTakeCompletedDrop<T>(id, tag, out var dropped))
+        {
+            return new(DropTargetState.Dropped, dropped);
+        }
+
+        if (_drag is null)
+        {
+            return default;
+        }
+
         if (keyboard)
+        {
             Focus.RegisterFocusableControl(id,
                 new Vector2(rect.X + rect.W * 0.5f, rect.Y + rect.H * 0.5f));
+        }
 
-        if (!IsDropPreview(_drag, rect, id, keyboard)) return default;
+        if (!IsDropPreview(_drag, rect, id, keyboard))
+        {
+            return default;
+        }
 
-        if (!TryAcceptPayload(tag, canAccept, out var payload)) return new(DropTargetState.HoverRejected, payload);
+        if (!TryAcceptPayload(tag, canAccept, out var payload))
+        {
+            return new(DropTargetState.HoverRejected, payload);
+        }
 
         if (IsDropConfirmed(_drag))
+        {
             _pendingDrop = new(id, _drag.Payload, _drag.Tag, value => onDrop?.Invoke((T)value));
+        }
 
         return new(DropTargetState.HoverAccepted, payload);
     }
@@ -174,7 +210,10 @@ public partial class Gui
         dropped = default!;
         if (_completedDrop is not { } completed || completed.TargetId != id || completed.Tag != tag
             || completed.Payload is not T value)
+        {
             return false;
+        }
+
         _completedDrop = null;
         dropped = value;
         return true;
@@ -197,11 +236,18 @@ public partial class Gui
     /// <summary>Draws standard accepted or rejected feedback over a drop target.</summary>
     public void DrawDropIndicator(DropTargetState state, Rect? rect = null, DropIndicatorStyle style = default)
     {
-        if (Pass != Pass.Pass2Render || state is DropTargetState.None or DropTargetState.Dropped) return;
+        if (Pass != Pass.Pass2Render || state is DropTargetState.None or DropTargetState.Dropped)
+        {
+            return;
+        }
+
         var color = DropIndicatorColor(state, style);
         var area = rect ?? CurrentNode.Rect;
         if (style.FillAlpha > 0)
+        {
             DrawRect(area, Color.FromArgb(style.FillAlpha, color.R, color.G, color.B), style.Radius);
+        }
+
         DrawRectBorder(area, color, style.Thickness, style.Radius);
     }
 
@@ -214,7 +260,11 @@ public partial class Gui
     /// <summary>Draws the active drag's ghost under the cursor.</summary>
     public void DragGhost()
     {
-        if (_drag?.Ghost is null) return;
+        if (_drag?.Ghost is null)
+        {
+            return;
+        }
+
         var pos = Input.MousePosition + new Vector2(12, 12);
         using (Node(-1, -1, $"__dragGhost_{_drag.SourceId}").AbsoluteScreen(pos.X, pos.Y).BlockInput().Enter())
         {
@@ -249,14 +299,23 @@ public partial class Gui
 
         if (_drag.Keyboard)
         {
-            if (_pendingDrop is null) return;
+            if (_pendingDrop is null)
+            {
+                return;
+            }
         }
-        else if (Input.IsMouseButtonDown(MouseButton.Left)) return;
+        else if (Input.IsMouseButtonDown(MouseButton.Left))
+        {
+            return;
+        }
 
         var drop = _pendingDrop;
         _drag = null;
         _pendingDrop = null;
-        if (drop is null) return;
+        if (drop is null)
+        {
+            return;
+        }
 
         drop.OnDrop(drop.Payload);
         _completedDrop = new(drop.Id, drop.Payload, drop.Tag);

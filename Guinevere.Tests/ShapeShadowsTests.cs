@@ -25,7 +25,7 @@ public class ShapeShadowsTests
 
     /// <summary>An inset offset of (0, 10) shades the top edge, like CSS <c>inset 0 10px</c>, not the rest.</summary>
     [Fact]
-    public void InnerShadow_ShadesTheEdgeAwayFromTheOffset()
+    public void InnerShadowShadesTheEdgeAwayFromTheOffset()
     {
         var px = Render(Box(Color.White).InnerShadow(Color.Black, new Vector2(0, 10)));
 
@@ -36,7 +36,7 @@ public class ShapeShadowsTests
 
     /// <summary>A positive inset spread grows the shadow inward on every side.</summary>
     [Fact]
-    public void InnerShadow_SpreadGrowsInward()
+    public void InnerShadowSpreadGrowsInward()
     {
         var px = Render(Box(Color.White).InnerShadow(Color.Black, 0, 6));
 
@@ -47,7 +47,7 @@ public class ShapeShadowsTests
 
     /// <summary>Outer shadows are cast by the shifted, spread shape and never paint under the shape.</summary>
     [Fact]
-    public void OuterShadow_StaysOutsideTheShape()
+    public void OuterShadowStaysOutsideTheShape()
     {
         var shifted = Render(Box().OuterShadow(Color.Black, new Vector2(8, 8)));
         var spread = Render(Box().OuterShadow(Color.Black, Vector2.Zero, 0, 6));
@@ -63,7 +63,7 @@ public class ShapeShadowsTests
 
     /// <summary>Blur softens the edge; the first shadow added is drawn on top.</summary>
     [Fact]
-    public void Shadows_BlurAndStackFirstOnTop()
+    public void ShadowsBlurAndStackFirstOnTop()
     {
         var blurred = Render(Box().OuterShadow(Color.Black, Vector2.Zero, 10, 2));
         var stacked = Render(Box()
@@ -76,7 +76,7 @@ public class ShapeShadowsTests
 
     /// <summary>Copies and moves keep their shadows, which follow the moved path.</summary>
     [Fact]
-    public void CopyAndMove_KeepShadows()
+    public void CopyAndMoveKeepShadows()
     {
         var shape = Box().OuterShadow(Color.Black, new Vector2(8, 8));
 
@@ -88,7 +88,7 @@ public class ShapeShadowsTests
 
     /// <summary>An L-shaped path takes the general path-operation route with the same semantics.</summary>
     [Fact]
-    public void GeneralPaths_FollowTheSameSemantics()
+    public void GeneralPathsFollowTheSameSemantics()
     {
         static Shape L(Color fill) => (Shape.Rect(20, 20, 60, 40) + Shape.Rect(20, 20, 40, 60)).SolidColor(fill);
 
@@ -105,7 +105,7 @@ public class ShapeShadowsTests
 
     /// <summary>Ovals and rounded rectangles take the fast path and keep their curved shadow edge.</summary>
     [Fact]
-    public void OvalsAndRoundRects_UseTheBoxPath()
+    public void OvalsAndRoundRectsUseTheBoxPath()
     {
         var oval = Render(Shape.Circle(20, new Vector2(40, 40)).SolidColor(Color.Transparent)
             .OuterShadow(Color.Black, Vector2.Zero, 0, 4));
@@ -120,7 +120,7 @@ public class ShapeShadowsTests
 
     /// <summary>Under an opaque fill the outer shadow skips its clip, with the same visible result.</summary>
     [Fact]
-    public void OuterShadow_UnderOpaqueFill()
+    public void OuterShadowUnderOpaqueFill()
     {
         var solid = Render(Box(Color.White).OuterShadow(Color.Black, new Vector2(8, 8)));
         var gradient = Box(Color.Black);
@@ -136,6 +136,6 @@ public class ShapeShadowsTests
 
     /// <summary>A spread that swallows the whole hole shades the full shape.</summary>
     [Fact]
-    public void InnerShadow_HugeSpreadFillsTheShape() =>
+    public void InnerShadowHugeSpreadFillsTheShape() =>
         Assert.Equal((0, 0, 0, 255), At(Render(Box(Color.White).InnerShadow(Color.Black, 0, 40)), 40, 40));
 }

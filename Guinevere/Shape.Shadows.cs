@@ -15,7 +15,10 @@ public partial class Shape
     /// <summary>Copies another shape's shadows, which follow this shape's own path.</summary>
     internal void CopyShadows(Shape source)
     {
-        if (source._shadows is not null) (_shadows ??= []).AddRange(source._shadows);
+        if (source._shadows is not null)
+        {
+            (_shadows ??= []).AddRange(source._shadows);
+        }
     }
 
     /// <inheritdoc cref="IInkBounds.InkBounds"/>
@@ -23,11 +26,18 @@ public partial class Shape
     {
         var ink = SKRect.Empty;
         foreach (var (_, layerList) in Layers)
+        {
             foreach (var (path, paint) in layerList)
             {
-                if (Guinevere.Ink.Painted(path.Bounds, paint) is not { } painted) return null;
-                ink = Guinevere.Ink.Join(ink, painted);
+                if (Ink.Painted(path.Bounds, paint) is not { } painted)
+                {
+                    return null;
+                }
+
+                ink = Ink.Join(ink, painted);
             }
+        }
+
         return ShadowBounds(ink);
     }
 
@@ -36,11 +46,19 @@ public partial class Shape
     /// <summary>How far outer shadows reach beyond the path bounds; a blur fades out within about 1.5 radii.</summary>
     internal SKRect ShadowBounds(SKRect bounds)
     {
-        if (_shadows is null) return bounds;
+        if (_shadows is null)
+        {
+            return bounds;
+        }
+
         var ink = bounds;
         foreach (var shadow in _shadows)
         {
-            if (shadow.Inset) continue;
+            if (shadow.Inset)
+            {
+                continue;
+            }
+
             var reach = Math.Max(0f, shadow.Spread) + shadow.Blur * 1.5f;
             var cast = SKRect.Inflate(bounds, reach, reach);
             cast.Offset(shadow.Offset.X, shadow.Offset.Y);
@@ -52,18 +70,36 @@ public partial class Shape
     /// <summary>Draws the outer or inset shadows bottom-up, so the first one added ends on top like CSS.</summary>
     void DrawShadows(SKCanvas canvas, bool inset)
     {
-        if (_shadows is null) return;
+        if (_shadows is null)
+        {
+            return;
+        }
+
         var box = AsRoundRect(Path);
         var covered = CoversShadows();
         for (var i = _shadows.Count - 1; i >= 0; i--)
-            if (_shadows[i].Inset == inset) DrawShadow(canvas, box, _shadows[i], covered);
+        {
+            if (_shadows[i].Inset == inset)
+            {
+                DrawShadow(canvas, box, _shadows[i], covered);
+            }
+        }
     }
 
     void DrawShadow(SKCanvas canvas, SKRoundRect? box, ShapeShadow shadow, bool covered)
     {
-        if (box is not null) DrawBoxShadow(canvas, box, shadow, covered);
-        else if (shadow.Inset) DrawInsetShadow(canvas, Path, shadow);
-        else DrawOuterShadow(canvas, Path, shadow);
+        if (box is not null)
+        {
+            DrawBoxShadow(canvas, box, shadow, covered);
+        }
+        else if (shadow.Inset)
+        {
+            DrawInsetShadow(canvas, Path, shadow);
+        }
+        else
+        {
+            DrawOuterShadow(canvas, Path, shadow);
+        }
     }
 
     bool CoversShadows() => OpaqueFill ?? Paint is { Shader: null, Style: SKPaintStyle.Fill, Color.Alpha: 255 };
@@ -77,9 +113,21 @@ public partial class Shape
     /// <summary>The path as a rounded rectangle (plain rectangles and ovals included), or <c>null</c>.</summary>
     static SKRoundRect? AsRoundRect(SKPath path)
     {
-        if (path.IsRoundRect) return path.GetRoundRect();
-        if (path.IsRect) return new SKRoundRect(path.GetRect(), 0f, 0f);
-        if (!path.IsOval) return null;
+        if (path.IsRoundRect)
+        {
+            return path.GetRoundRect();
+        }
+
+        if (path.IsRect)
+        {
+            return new SKRoundRect(path.GetRect(), 0f, 0f);
+        }
+
+        if (!path.IsOval)
+        {
+            return null;
+        }
+
         var oval = path.GetOvalBounds();
         return new SKRoundRect(oval, oval.Width * 0.5f, oval.Height * 0.5f);
     }
@@ -95,12 +143,22 @@ public partial class Shape
         var grow = shadow.Inset ? -shadow.Spread : shadow.Spread;
         cast.Inflate(grow, grow);
 
-        if (TryDrawUnclipped(canvas, box, cast, shadow, covered)) return;
+        if (TryDrawUnclipped(canvas, box, cast, shadow, covered))
+        {
+            return;
+        }
 
         canvas.Save();
         canvas.ClipRoundRect(box, shadow.Inset ? SKClipOperation.Intersect : SKClipOperation.Difference, true);
-        if (!shadow.Inset) canvas.DrawRoundRect(cast, ShadowPaint(shadow));
-        else DrawAround(canvas, box, cast, shadow);
+        if (!shadow.Inset)
+        {
+            canvas.DrawRoundRect(cast, ShadowPaint(shadow));
+        }
+        else
+        {
+            DrawAround(canvas, box, cast, shadow);
+        }
+
         canvas.Restore();
     }
 
@@ -110,9 +168,19 @@ public partial class Shape
     /// </summary>
     static bool TryDrawUnclipped(SKCanvas canvas, SKRoundRect box, SKRoundRect cast, ShapeShadow shadow, bool covered)
     {
-        if (!shadow.Inset && covered) canvas.DrawRoundRect(cast, ShadowPaint(shadow));
-        else if (IsSharpRing(box, cast, shadow)) canvas.DrawRoundRectDifference(box, cast, ShadowPaint(shadow));
-        else return false;
+        if (!shadow.Inset && covered)
+        {
+            canvas.DrawRoundRect(cast, ShadowPaint(shadow));
+        }
+        else if (IsSharpRing(box, cast, shadow))
+        {
+            canvas.DrawRoundRectDifference(box, cast, ShadowPaint(shadow));
+        }
+        else
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -124,8 +192,14 @@ public partial class Shape
     {
         var pad = shadow.Blur + Math.Abs(shadow.Offset.X) + Math.Abs(shadow.Offset.Y) + Math.Abs(shadow.Spread) + 1f;
         var frame = new SKRoundRect(SKRect.Inflate(box.Rect, pad, pad), 0f, 0f);
-        if (hole.Rect.IsEmpty) canvas.DrawRoundRect(frame, ShadowPaint(shadow));
-        else canvas.DrawRoundRectDifference(frame, hole, ShadowPaint(shadow));
+        if (hole.Rect.IsEmpty)
+        {
+            canvas.DrawRoundRect(frame, ShadowPaint(shadow));
+        }
+        else
+        {
+            canvas.DrawRoundRectDifference(frame, hole, ShadowPaint(shadow));
+        }
     }
 
     /// <summary>The path shifted by the offset and grown by the spread, blurred and kept outside the path.</summary>
@@ -150,7 +224,10 @@ public partial class Shape
         builder.AddRect(SKRect.Inflate(path.Bounds, pad, pad));
         using var frame = builder.Detach();
         var ring = new SKPath();
-        if (!frame.Op(hole, SKPathOp.Difference, ring)) ring = new SKPath(frame);
+        if (!frame.Op(hole, SKPathOp.Difference, ring))
+        {
+            ring = new SKPath(frame);
+        }
 
         canvas.Save();
         canvas.ClipPath(path, antialias: true);
@@ -161,14 +238,22 @@ public partial class Shape
     static SKPath Shifted(SKPath path, Vector2 offset)
     {
         var shifted = new SKPath(path);
-        if (offset != Vector2.Zero) shifted.Transform(SKMatrix.CreateTranslation(offset.X, offset.Y));
+        if (offset != Vector2.Zero)
+        {
+            shifted.Transform(SKMatrix.CreateTranslation(offset.X, offset.Y));
+        }
+
         return shifted;
     }
 
     /// <summary>Grows (positive) or shrinks (negative) a path by a round-joined band of <paramref name="amount"/>.</summary>
     static SKPath Spread(SKPath path, float amount)
     {
-        if (amount == 0f) return path;
+        if (amount == 0f)
+        {
+            return path;
+        }
+
         using var band = new SKPaint
         {
             Style = SKPaintStyle.Stroke,

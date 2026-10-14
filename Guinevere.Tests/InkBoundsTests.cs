@@ -10,7 +10,7 @@ public class InkBoundsTests
 
     /// <summary>Text covers its measured glyphs; empty text covers nothing; filtered paints are unbounded.</summary>
     [Fact]
-    public void Text_CoversItsGlyphs()
+    public void TextCoversItsGlyphs()
     {
         var glyphs = Bounds(new Text("Hi", new Vector2(10, 50), new SKFont(SKTypeface.Default, 20)))!.Value;
 
@@ -24,7 +24,7 @@ public class InkBoundsTests
 
     /// <summary>Text ink bounds include outline width and each outer shadow's blur and offset.</summary>
     [Fact]
-    public void TextEffects_ExpandInkBounds()
+    public void TextEffectsExpandInkBounds()
     {
         var font = new SKFont(SKTypeface.Default, 20);
         var plain = Bounds(new Text("Hi", new Vector2(10, 50), font))!.Value;
@@ -48,7 +48,7 @@ public class InkBoundsTests
 
     /// <summary>Effect metadata bounds legacy and inner shadows even without a filtered paint instance.</summary>
     [Fact]
-    public void TextEffects_IncludeLegacyAndInnerShadowBounds()
+    public void TextEffectsIncludeLegacyAndInnerShadowBounds()
     {
         var font = new SKFont(SKTypeface.Default, 20);
         var plain = Bounds(new Text("Hi", new Vector2(10, 50), font))!.Value;
@@ -70,7 +70,7 @@ public class InkBoundsTests
 
     /// <summary>Images, nine-slices and deferred rects cover their destination; strokes add half their width.</summary>
     [Fact]
-    public void Rectangles_CoverTheirDestination()
+    public void RectanglesCoverTheirDestination()
     {
         using var bitmap = new SKBitmap(4, 4);
         using var image = SKImage.FromBitmap(bitmap);
@@ -86,7 +86,7 @@ public class InkBoundsTests
 
     /// <summary>Shapes add their outer shadows' reach; inset shadows stay inside.</summary>
     [Fact]
-    public void Shape_IncludesOuterShadows()
+    public void ShapeIncludesOuterShadows()
     {
         var shape = Shape.Rect(10, 10, 20, 20).OuterShadow(Color.Black, 4, 2).InnerShadow(Color.Black, 30);
 
@@ -99,7 +99,7 @@ public class InkBoundsTests
     /// can be, and anything unknown makes the whole list unbounded.
     /// </summary>
     [Fact]
-    public void DrawList_UnionsAndFallsBack()
+    public void DrawListUnionsAndFallsBack()
     {
         var list = new DrawList();
         list.Add(Shape.Rect(0, 0, 10, 10));
@@ -113,7 +113,7 @@ public class InkBoundsTests
 
     /// <summary>A picture icon covers its destination square.</summary>
     [Fact]
-    public void PictureIcon_CoversItsSquare()
+    public void PictureIconCoversItsSquare()
     {
         using var recorder = new SKPictureRecorder();
         recorder.BeginRecording(new SKRect(0, 0, 10, 10)).DrawRect(0, 0, 10, 10, new SKPaint());

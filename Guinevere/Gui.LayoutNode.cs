@@ -91,7 +91,10 @@ public partial class Gui : ILayoutNodeEnterExit
     /// <returns>The layout node associated with the exited scope.</returns>
     public LayoutNode Exit()
     {
-        if (LayoutNodeScopeStack.Count == 1) return CurrentNodeScope.Node;
+        if (LayoutNodeScopeStack.Count == 1)
+        {
+            return CurrentNodeScope.Node;
+        }
 
         var scope = LayoutNodeScopeStack.Pop();
 
@@ -123,11 +126,18 @@ public partial class Gui : ILayoutNodeEnterExit
         [CallerLineNumber] int lineNumber = 0)
     {
         var identity = NodeIdentity(id, filePath, lineNumber, CurrentNode);
-        if (id is null) CurrentNode.Pass2NodeCount++;
+        if (id is null)
+        {
+            CurrentNode.Pass2NodeCount++;
+        }
+
         SubmitIdentity(identity);
         var nodeExist = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
         LayoutNode node;
-        if (nodeExist is null) node = BuildNode(identity, width, height);
+        if (nodeExist is null)
+        {
+            node = BuildNode(identity, width, height);
+        }
         else
         {
             node = nodeExist;
@@ -154,7 +164,11 @@ public partial class Gui : ILayoutNodeEnterExit
         [CallerLineNumber] int lineNumber = 0)
     {
         var identity = NodeIdentity(id, filePath, lineNumber, CurrentNode);
-        if (id is null) CurrentNode.Pass2NodeCount++;
+        if (id is null)
+        {
+            CurrentNode.Pass2NodeCount++;
+        }
+
         SubmitIdentity(identity);
         var nodeExist = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
         LayoutNode node;
@@ -184,8 +198,15 @@ public partial class Gui : ILayoutNodeEnterExit
     {
         var parent = CurrentNode;
         var node = parent.TakePreviousChild(identity);
-        if (node is null) node = new LayoutNode(identity, this, parent, width, height);
-        else node.ResetForBuild(width, height);
+        if (node is null)
+        {
+            node = new LayoutNode(identity, this, parent, width, height);
+        }
+        else
+        {
+            node.ResetForBuild(width, height);
+        }
+
         parent.AppendNewChild(node);
         return node;
     }
@@ -214,9 +235,16 @@ public partial class Gui : ILayoutNodeEnterExit
         if (!_matchIndexes.TryGetValue(parent, out var index))
         {
             _matchIndexes.Add(parent, index = new Dictionary<int, int>(children.Count));
-            for (var i = 0; i < children.Count; i++) index.TryAdd(children[i].Identity, i);
+            for (var i = 0; i < children.Count; i++)
+            {
+                index.TryAdd(children[i].Identity, i);
+            }
         }
-        if (!index.TryGetValue(identity, out var position)) return null;
+        if (!index.TryGetValue(identity, out var position))
+        {
+            return null;
+        }
+
         parent.MatchCursor = position + 1;
         return children[position];
     }

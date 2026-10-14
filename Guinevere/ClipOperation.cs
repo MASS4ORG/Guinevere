@@ -42,7 +42,10 @@ public class ClipOperation : IDrawListEntry
 
         if (_rect is { } clipRect)
         {
-            if (ClipRectFor(gui, node, clipRect) is { } rect) canvas.ClipRect(rect);
+            if (ClipRectFor(gui, node, clipRect) is { } rect)
+            {
+                canvas.ClipRect(rect);
+            }
         }
         else if (_shape is not null && _position is { } position)
         {
@@ -56,10 +59,16 @@ public class ClipOperation : IDrawListEntry
     /// </summary>
     static Rect? ClipRectFor(Gui gui, LayoutNode node, Rect clipRect)
     {
-        if (clipRect.W <= 0 || clipRect.H <= 0) return null;
+        if (clipRect.W <= 0 || clipRect.H <= 0)
+        {
+            return null;
+        }
 
         var scrolling = gui.GetScrollState(node.Id) is { } scroll && (scroll.IsScrollingX || scroll.IsScrollingY);
-        if (!scrolling) return clipRect;
+        if (!scrolling)
+        {
+            return clipRect;
+        }
 
         var viewport = node.Rect;
         return viewport.W > 0 && viewport.H > 0 ? viewport : null;

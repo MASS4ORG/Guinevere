@@ -41,22 +41,37 @@ public sealed class Selector
             if (token == ">")
             {
                 if (parts.Count == 0 || relation == Combinator.Child)
+                {
                     throw new FormatException($"Malformed child combinator in '{text}'");
+                }
+
                 relation = Combinator.Child;
                 continue;
             }
-            if (parts.Count > 0 && relation == Combinator.None) relation = Combinator.Descendant;
+            if (parts.Count > 0 && relation == Combinator.None)
+            {
+                relation = Combinator.Descendant;
+            }
+
             parts.Add(ParsePart(token, relation, text));
             relation = Combinator.None;
         }
-        if (parts.Count == 0 || relation != Combinator.None) throw new FormatException($"Malformed selector '{text}'");
+        if (parts.Count == 0 || relation != Combinator.None)
+        {
+            throw new FormatException($"Malformed selector '{text}'");
+        }
+
         return new Selector([.. parts]);
     }
 
     /// <summary>Whether this selector matches the target and its nearest-first ancestor list.</summary>
     public bool Matches(in StyleTarget target)
     {
-        if (!MatchesPart(_parts[^1], target)) return false;
+        if (!MatchesPart(_parts[^1], target))
+        {
+            return false;
+        }
+
         var ancestors = target.Ancestors ?? [];
         var ancestorIndex = 0;
         for (var partIndex = _parts.Length - 2; partIndex >= 0; partIndex--)
@@ -65,13 +80,23 @@ public sealed class Selector
             if (relation == Combinator.Child)
             {
                 if (ancestorIndex >= ancestors.Count || !MatchesPart(_parts[partIndex], ancestors[ancestorIndex]))
+                {
                     return false;
+                }
+
                 ancestorIndex++;
                 continue;
             }
             while (ancestorIndex < ancestors.Count && !MatchesPart(_parts[partIndex], ancestors[ancestorIndex]))
+            {
                 ancestorIndex++;
-            if (ancestorIndex >= ancestors.Count) return false;
+            }
+
+            if (ancestorIndex >= ancestors.Count)
+            {
+                return false;
+            }
+
             ancestorIndex++;
         }
         return true;
@@ -85,7 +110,11 @@ public sealed class Selector
         while (i < text.Length)
         {
             var prefix = text[i];
-            if (prefix is '.' or '#' or ':') i++;
+            if (prefix is '.' or '#' or ':')
+            {
+                i++;
+            }
+
             part.Add(prefix, ReadName(text, ref i, whole));
         }
         return part.Build(relation, transition);
@@ -96,7 +125,11 @@ public sealed class Selector
     {
         transition = null;
         var open = text.IndexOf('(');
-        if (open < 0) return text;
+        if (open < 0)
+        {
+            return text;
+        }
+
         var names = new System.Text.StringBuilder(text.Length);
         var start = 0;
         while (open >= 0)
@@ -116,8 +149,14 @@ public sealed class Selector
         var depth = 0;
         for (var i = open; i < text.Length; i++)
         {
-            if (text[i] == '(') depth++;
-            else if (text[i] == ')' && --depth == 0) return i;
+            if (text[i] == '(')
+            {
+                depth++;
+            }
+            else if (text[i] == ')' && --depth == 0)
+            {
+                return i;
+            }
         }
         return text.Length - 1;
     }
@@ -152,8 +191,14 @@ public sealed class Selector
         void AddState(string value)
         {
             var builtIn = BuiltInState(value);
-            if (builtIn == StyleState.None) _modifiers.Add(value);
-            else _state |= builtIn;
+            if (builtIn == StyleState.None)
+            {
+                _modifiers.Add(value);
+            }
+            else
+            {
+                _state |= builtIn;
+            }
         }
     }
 
@@ -161,7 +206,11 @@ public sealed class Selector
     static string ReadName(string text, ref int i, string whole)
     {
         var start = i;
-        while (i < text.Length && text[i] is not ('.' or '#' or ':')) i += text[i] == '\\' ? 2 : 1;
+        while (i < text.Length && text[i] is not ('.' or '#' or ':'))
+        {
+            i += text[i] == '\\' ? 2 : 1;
+        }
+
         var value = StyleValue.Unescape(text[start..Math.Min(i, text.Length)]);
         return value.Length > 0 ? value : throw new FormatException($"Malformed selector '{whole}'");
     }
@@ -177,12 +226,37 @@ public sealed class Selector
 
     static bool MatchesPart(Part part, in StyleTarget target)
     {
-        if ((target.State & part.State) != part.State) return false;
-        if (part.Type is not (null or "*") && !string.Equals(part.Type, target.Type, StringComparison.Ordinal)) return false;
-        if (part.Id is not null && !string.Equals(part.Id, target.Id, StringComparison.Ordinal)) return false;
-        foreach (var cls in part.Classes) if (!target.Classes.Contains(cls, StringComparer.Ordinal)) return false;
+        if ((target.State & part.State) != part.State)
+        {
+            return false;
+        }
+
+        if (part.Type is not (null or "*") && !string.Equals(part.Type, target.Type, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (part.Id is not null && !string.Equals(part.Id, target.Id, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        foreach (var cls in part.Classes)
+        {
+            if (!target.Classes.Contains(cls, StringComparer.Ordinal))
+            {
+                return false;
+            }
+        }
+
         foreach (var modifier in part.Modifiers)
-            if (target.Modifiers is null || !target.Modifiers.Contains(modifier, StringComparer.Ordinal)) return false;
+        {
+            if (target.Modifiers is null || !target.Modifiers.Contains(modifier, StringComparer.Ordinal))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -193,19 +267,45 @@ public sealed class Selector
         var parentheses = 0;
         for (var i = 0; i < text.Length; i++)
         {
-            if (text[i] == '(') parentheses++;
-            else if (text[i] == ')') parentheses--;
-            if (parentheses < 0) throw new FormatException($"Unbalanced transition annotation in '{text}'");
+            if (text[i] == '(')
+            {
+                parentheses++;
+            }
+            else if (text[i] == ')')
+            {
+                parentheses--;
+            }
+
+            if (parentheses < 0)
+            {
+                throw new FormatException($"Unbalanced transition annotation in '{text}'");
+            }
+
             if ((parentheses > 0 || !char.IsWhiteSpace(text[i])) && (parentheses > 0 || text[i] != '>'))
             {
-                if (start < 0) start = i;
+                if (start < 0)
+                {
+                    start = i;
+                }
+
                 continue;
             }
             if (start >= 0) { tokens.Add(text[start..i]); start = -1; }
-            if (text[i] == '>') tokens.Add(">");
+            if (text[i] == '>')
+            {
+                tokens.Add(">");
+            }
         }
-        if (parentheses != 0) throw new FormatException($"Unbalanced transition annotation in '{text}'");
-        if (start >= 0) tokens.Add(text[start..]);
+        if (parentheses != 0)
+        {
+            throw new FormatException($"Unbalanced transition annotation in '{text}'");
+        }
+
+        if (start >= 0)
+        {
+            tokens.Add(text[start..]);
+        }
+
         return tokens;
     }
 

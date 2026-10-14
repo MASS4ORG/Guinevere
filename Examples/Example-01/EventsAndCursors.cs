@@ -1,7 +1,7 @@
 using System.Numerics;
 using Guinevere;
 
-namespace Example_01;
+namespace Example01;
 
 public partial class Shared
 {
@@ -26,13 +26,24 @@ public partial class Shared
         // Nothing has focus, so keys target the root: app-wide shortcuts listen there.
         gui.On<KeyDownEvent>(e =>
         {
-            if (e.Key != KeyboardKey.Escape) return;
+            if (e.Key != KeyboardKey.Escape)
+            {
+                return;
+            }
+
             Log.Clear();
             e.PreventDefault();
         });
 
-        if (_scrubbing) gui.RequestPointerMode(PointerMode.Wrapped);
-        if (_orbiting) gui.RequestPointerMode(PointerMode.Relative);
+        if (_scrubbing)
+        {
+            gui.RequestPointerMode(PointerMode.Wrapped);
+        }
+
+        if (_orbiting)
+        {
+            gui.RequestPointerMode(PointerMode.Relative);
+        }
 
         using (gui.Node().Expand().Gap(16).Direction(Axis.Horizontal).Enter())
         {
@@ -56,7 +67,11 @@ public partial class Shared
             gui.On<ClickEvent>(e =>
             {
                 var fruit = e.TargetId.StartsWith("fruit/", StringComparison.Ordinal) ? e.TargetId[6..] : null;
-                if (fruit is null) return;
+                if (fruit is null)
+                {
+                    return;
+                }
+
                 _selected = fruit;
                 Record($"list handled click on {fruit} (x{e.ClickCount})");
             });
@@ -71,7 +86,10 @@ public partial class Shared
                     var hovered = gui.Pass == Pass.Pass2Render && node.OnHover();
                     gui.DrawBackgroundRect(_selected == fruit ? p.Accent : hovered ? p.SurfaceHover : p.SurfaceRaised, 8);
                     using (gui.Node(12, 12).Enter())
+                    {
                         gui.DrawBackgroundRect(_selected == fruit ? p.AccentText : p.Pick(i), 6);
+                    }
+
                     gui.DrawText(fruit, 15, _selected == fruit ? p.AccentText : p.Text);
                 }
             }
@@ -109,18 +127,29 @@ public partial class Shared
         {
             gui.On<PointerDownEvent>(e =>
             {
-                if (e.Button != MouseButton.Right) return;
+                if (e.Button != MouseButton.Right)
+                {
+                    return;
+                }
+
                 _orbiting = true;
                 Record("orbit: pointer locked");
                 e.PreventDefault();
             });
             gui.On<PointerMoveEvent>(e =>
             {
-                if (_orbiting) _orbit += e.Delta;
+                if (_orbiting)
+                {
+                    _orbit += e.Delta;
+                }
             });
             gui.On<PointerUpEvent>(e =>
             {
-                if (e.Button != MouseButton.Right || !_orbiting) return;
+                if (e.Button != MouseButton.Right || !_orbiting)
+                {
+                    return;
+                }
+
                 _orbiting = false;
                 Record("orbit: pointer released");
             });
@@ -133,12 +162,16 @@ public partial class Shared
     static void CursorGallery(Gui gui, ColorPalette p)
     {
         using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Enter())
+        {
             foreach (var (name, cursor) in CursorShelf)
+            {
                 using (gui.Node(-1, 40, $"cursor/{name}").ExpandWidth().AlignContent(0.5f, 0.5f).Cursor(cursor).Enter())
                 {
                     gui.DrawBackgroundRect(p.SurfaceRaised, 8);
                     gui.DrawText(name, 13, p.TextDim);
                 }
+            }
+        }
     }
 
     static void EventLog(Gui gui, ColorPalette p)
@@ -147,7 +180,10 @@ public partial class Shared
         {
             gui.DrawBackgroundRect(p.Track, 8);
             gui.DrawText("Events (Escape clears)", 12, p.TextDim);
-            foreach (var line in Log.TakeLast(8)) gui.DrawText(line, 13, p.Text);
+            foreach (var line in Log.TakeLast(8))
+            {
+                gui.DrawText(line, 13, p.Text);
+            }
         }
     }
 

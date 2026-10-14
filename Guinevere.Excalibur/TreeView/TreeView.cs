@@ -58,7 +58,9 @@ public static partial class ControlsExtensions
             gui.ScrollY();
 
             if (gui.Pass == Pass.Pass2Render)
+            {
                 gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true, claimsArrowKeys: true);
+            }
 
             // Both passes must pick the same rows, and a node's rect is only resolved in the render
             // pass — so the window comes from what the previous frame measured.
@@ -75,11 +77,16 @@ public static partial class ControlsExtensions
             Spacer(gui, "treeview/padTop", first * theme.RowHeight);
 
             for (var i = first; i < last; i++)
+            {
                 RenderRow(gui, state, theme, visible[i], i, RowClick, dragPayload, dropAccept, onDrop, onRename);
+            }
 
             Spacer(gui, "treeview/padBottom", (visible.Count - last) * theme.RowHeight);
 
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
 
             ProcessTreeInput(gui, state, theme, visible, rowClicked, onClick, onEmptyClick);
         }
@@ -94,7 +101,9 @@ public static partial class ControlsExtensions
         {
             var tree = gui.GetInteractable();
             if (tree.OnClick(MouseButton.Right))
+            {
                 onEmptyClick?.Invoke(MouseButton.Right);
+            }
         }
 
         if (state.WantsReveal)
@@ -112,7 +121,10 @@ public static partial class ControlsExtensions
         }
 
         // Several trees can be on screen at once; only the focused one answers the arrow keys.
-        if (gui.HasFocus()) Navigate(gui, state, theme, visible, onClick);
+        if (gui.HasFocus())
+        {
+            Navigate(gui, state, theme, visible, onClick);
+        }
     }
 
     /// <summary>
@@ -126,12 +138,18 @@ public static partial class ControlsExtensions
 
         foreach (var item in items)
         {
-            if (item.Depth > hiddenBelow) continue;
+            if (item.Depth > hiddenBelow)
+            {
+                continue;
+            }
 
             hiddenBelow = int.MaxValue;
             visible.Add(item);
 
-            if (item.HasChildren && state.IsCollapsed(item.Id, item.Depth)) hiddenBelow = item.Depth;
+            if (item.HasChildren && state.IsCollapsed(item.Id, item.Depth))
+            {
+                hiddenBelow = item.Depth;
+            }
         }
 
         return visible;
@@ -144,7 +162,10 @@ public static partial class ControlsExtensions
     static void Navigate(Gui gui, TreeViewState state, TreeViewTheme theme,
         List<TreeItem> visible, Action<TreeViewEvent>? onClick)
     {
-        if (visible.Count == 0) return;
+        if (visible.Count == 0)
+        {
+            return;
+        }
 
         var index = state.SelectedId is null
             ? -1
@@ -158,7 +179,10 @@ public static partial class ControlsExtensions
             state.SetSelection(state.VisibleIds, previous);
             return;
         }
-        if (!NavigateKeys(gui, state, visible, index, onClick)) return;
+        if (!NavigateKeys(gui, state, visible, index, onClick))
+        {
+            return;
+        }
 
         ExtendKeyboardSelection(gui, state, previous, previousIds, previousAnchor);
         ScrollToSelection(gui, state, theme, visible);
@@ -167,22 +191,54 @@ public static partial class ControlsExtensions
     static bool NavigateKeys(Gui gui, TreeViewState state, List<TreeItem> visible, int index,
         Action<TreeViewEvent>? onClick)
     {
-        if (NavigateVertical(gui, state, visible, index)) return true;
-        if (gui.Input.IsKeyPressed(KeyboardKey.Right)) Open(state, visible, index);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Left)) Close(state, visible, index);
+        if (NavigateVertical(gui, state, visible, index))
+        {
+            return true;
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Right))
+        {
+            Open(state, visible, index);
+        }
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Left))
+        {
+            Close(state, visible, index);
+        }
         else if (gui.Input.IsKeyPressed(KeyboardKey.Enter) && index >= 0)
+        {
             onClick?.Invoke(new TreeViewEvent(visible[index], MouseButton.Left, 2));
-        else return false;
+        }
+        else
+        {
+            return false;
+        }
+
         return true;
     }
 
     static bool NavigateVertical(Gui gui, TreeViewState state, List<TreeItem> visible, int index)
     {
-        if (gui.Input.IsKeyPressed(KeyboardKey.Down)) Select(state, visible, Math.Min(index + 1, visible.Count - 1));
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Up)) Select(state, visible, Math.Max(index - 1, 0));
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Home)) Select(state, visible, 0);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.End)) Select(state, visible, visible.Count - 1);
-        else return false;
+        if (gui.Input.IsKeyPressed(KeyboardKey.Down))
+        {
+            Select(state, visible, Math.Min(index + 1, visible.Count - 1));
+        }
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Up))
+        {
+            Select(state, visible, Math.Max(index - 1, 0));
+        }
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Home))
+        {
+            Select(state, visible, 0);
+        }
+        else if (gui.Input.IsKeyPressed(KeyboardKey.End))
+        {
+            Select(state, visible, visible.Count - 1);
+        }
+        else
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -206,23 +262,38 @@ public static partial class ControlsExtensions
 
     static void Select(TreeViewState state, List<TreeItem> visible, int index)
     {
-        if (index < 0 || index >= visible.Count) return;
+        if (index < 0 || index >= visible.Count)
+        {
+            return;
+        }
 
         state.SelectedId = visible[index].Id;
     }
 
     static void Open(TreeViewState state, List<TreeItem> visible, int index)
     {
-        if (index < 0) return;
+        if (index < 0)
+        {
+            return;
+        }
 
         var item = visible[index];
-        if (item.HasChildren && state.IsCollapsed(item.Id, item.Depth)) state.SetExpanded(item.Id, true);
-        else Select(state, visible, index + 1);
+        if (item.HasChildren && state.IsCollapsed(item.Id, item.Depth))
+        {
+            state.SetExpanded(item.Id, true);
+        }
+        else
+        {
+            Select(state, visible, index + 1);
+        }
     }
 
     static void Close(TreeViewState state, List<TreeItem> visible, int index)
     {
-        if (index < 0) return;
+        if (index < 0)
+        {
+            return;
+        }
 
         var item = visible[index];
         if (item.HasChildren && !state.IsCollapsed(item.Id, item.Depth))
@@ -233,27 +304,41 @@ public static partial class ControlsExtensions
 
         // Otherwise step out to the nearest shallower row, which is the parent.
         for (var i = index - 1; i >= 0; i--)
+        {
             if (visible[i].Depth < item.Depth)
             {
                 state.SelectedId = visible[i].Id;
                 return;
             }
+        }
     }
 
     /// <summary>Keeps the selected row inside the viewport after a keyboard move.</summary>
     static void ScrollToSelection(Gui gui, TreeViewState state, TreeViewTheme theme, List<TreeItem> visible)
     {
         var index = visible.FindIndex(item => item.Id == state.SelectedId);
-        if (index < 0) return;
+        if (index < 0)
+        {
+            return;
+        }
 
         var top = index * theme.RowHeight;
         var bottom = top + theme.RowHeight;
 
         var target = state.FrameScrollY;
-        if (top < target) target = top;
-        else if (bottom > target + state.FrameViewportHeight) target = bottom - state.FrameViewportHeight;
+        if (top < target)
+        {
+            target = top;
+        }
+        else if (bottom > target + state.FrameViewportHeight)
+        {
+            target = bottom - state.FrameViewportHeight;
+        }
 
-        if (Math.Abs(target - state.FrameScrollY) < 0.5f) return;
+        if (Math.Abs(target - state.FrameScrollY) < 0.5f)
+        {
+            return;
+        }
 
         gui.SetScrollPercentage(gui.CurrentNode.Id, Axis.Vertical,
             Math.Clamp(target / Math.Max(1f, (visible.Count * theme.RowHeight) - state.FrameViewportHeight), 0f, 1f));
@@ -266,14 +351,20 @@ public static partial class ControlsExtensions
     static void Measure(Gui gui, TreeViewState state)
     {
         var rect = gui.CurrentNode.Rect;
-        if (rect.H > 0) state.FrameViewportHeight = rect.H;
+        if (rect.H > 0)
+        {
+            state.FrameViewportHeight = rect.H;
+        }
 
         state.FrameScrollY = gui.GetScrollState(gui.CurrentNode.Id) is { } scroll ? scroll.ScrollOffset.Y : 0f;
     }
 
     static void Spacer(Gui gui, string id, float height)
     {
-        if (height <= 0) return;
+        if (height <= 0)
+        {
+            return;
+        }
 
         using (gui.Node(-1, height, id).ExpandWidth().Enter())
         {
@@ -297,21 +388,29 @@ public static partial class ControlsExtensions
                    .Enter())
         {
             if (!isEditing && dragPayload?.Invoke(item) is { } payload)
+            {
                 // `object` on purpose: this control only ever sees the payload untyped, and the source
                 // resolves that to the payload's own type, so a typed target elsewhere in the frame —
                 // an inspector field, say — can accept a row.
                 gui.DragSource<object>($"treeview/row/{item.Id}", payload,
                     ghost: g => DragGhost(g, theme, item));
+            }
 
             if (gui.Pass == Pass.Pass2Render)
+            {
                 RenderRowInput(gui, state, theme, item, isSelected, isEditing, onClick, dropAccept, onDrop);
+            }
 
             Expander(gui, state, theme, item, row);
 
             if (item.Icon is { } icon)
+            {
                 using (gui.Node(theme.IconSize, theme.RowHeight, $"treeview/row{row}/icon").ContentAlignX(0.5f)
                            .ContentAlignY(0.5f).Enter())
+                {
                     icon(gui);
+                }
+            }
 
             RenderRowLabel(gui, state, theme, item, isEditing, isSelected, onRename);
         }
@@ -320,11 +419,16 @@ public static partial class ControlsExtensions
     static void RenderRowLabel(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
         bool isEditing, bool isSelected, Action<TreeItem, string>? onRename)
     {
-        if (isEditing) RenameBox(gui, state, theme, item, onRename!);
+        if (isEditing)
+        {
+            RenameBox(gui, state, theme, item, onRename!);
+        }
         else
+        {
             // A tint may match the selection fill, so a selected row always reads in the text color.
             gui.DrawText(item.Label, theme.FontSize, isSelected ? null : item.Tint,
                 centerInRect: false);
+        }
     }
 
     /// <summary>
@@ -339,7 +443,10 @@ public static partial class ControlsExtensions
             padding: 3f, id: $"treeview/rename/{item.Id}", grabFocus: true);
         state.EditingText = text;
 
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var clickedAway = gui.Input.IsMouseButtonPressed(MouseButton.Left)
                           && !gui.IsPointerIn(gui.CurrentNode.Rect);
@@ -350,7 +457,10 @@ public static partial class ControlsExtensions
             return;
         }
 
-        if (!gui.Input.IsKeyPressed(KeyboardKey.Enter) && !clickedAway) return;
+        if (!gui.Input.IsKeyPressed(KeyboardKey.Enter) && !clickedAway)
+        {
+            return;
+        }
 
         var committed = state.EditingText;
         state.CancelRename();
@@ -395,11 +505,13 @@ public static partial class ControlsExtensions
     static void Report(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
         InteractableElement interactable, MouseButton button, Action<TreeViewEvent>? onClick)
     {
-        int clicks;
         var clicked = button == MouseButton.Left
-            ? interactable.OnClickCompleted(out clicks, button, theme.DragThreshold)
+            ? interactable.OnClickCompleted(out var clicks, button, theme.DragThreshold)
             : interactable.OnClick(out clicks, button);
-        if (!clicked) return;
+        if (!clicked)
+        {
+            return;
+        }
 
         if (button == MouseButton.Left)
         {
@@ -407,7 +519,10 @@ public static partial class ControlsExtensions
             state.WantsFocus = true;
 
             // Single click selects, double click folds — the arrow is the one-click shortcut.
-            if (clicks >= 2 && item.HasChildren) state.Toggle(item.Id, item.Depth);
+            if (clicks >= 2 && item.HasChildren)
+            {
+                state.Toggle(item.Id, item.Depth);
+            }
         }
 
         onClick?.Invoke(new TreeViewEvent(item, button, clicks));
@@ -423,13 +538,19 @@ public static partial class ControlsExtensions
                    .ContentAlignX(0.5f).ContentAlignY(0.5f)
                    .Enter())
         {
-            if (!item.HasChildren) return;
+            if (!item.HasChildren)
+            {
+                return;
+            }
 
             var interactable = gui.GetInteractable();
             gui.DrawText(state.IsCollapsed(item.Id, item.Depth) ? WidgetIcons.ChevronRight : WidgetIcons.ChevronDown,
                 theme.FontSize * 0.7f);
 
-            if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) state.Toggle(item.Id, item.Depth);
+            if (gui.Pass == Pass.Pass2Render && interactable.OnClick())
+            {
+                state.Toggle(item.Id, item.Depth);
+            }
         }
     }
 }

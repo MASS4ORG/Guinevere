@@ -43,7 +43,9 @@ public sealed class DockSplit(Axis axis, DockNode first, DockNode second, float 
     DockNode Guard(DockNode child)
     {
         if (ReferenceEquals(child, this))
+        {
             throw new ArgumentException("A DockSplit cannot be its own child.", nameof(child));
+        }
 
         return child;
     }

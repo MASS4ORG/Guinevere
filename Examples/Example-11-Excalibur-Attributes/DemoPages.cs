@@ -1,4 +1,4 @@
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 /// <summary>Every page of the tour, in sidebar order.</summary>
 public static class DemoPages

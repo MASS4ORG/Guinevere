@@ -21,7 +21,10 @@ static class DrawScenes
     /// <summary>Builds a list whose drawing cost is dominated by text.</summary>
     public static void TextHeavy(Gui gui)
     {
-        for (var i = 0; i < 30; i++) gui.DrawText("Text-heavy drawing: measured glyphs, layout and dispatch.");
+        for (var i = 0; i < 30; i++)
+        {
+            gui.DrawText("Text-heavy drawing: measured glyphs, layout and dispatch.");
+        }
     }
 
     /// <summary>Draws nested clipped primitive panels.</summary>
@@ -51,7 +54,7 @@ static class DrawScenes
     /// <summary>Invokes the actual dashboard sample without creating a window or graphics context.</summary>
     public static Action<Gui> Dashboard(Gui gui)
     {
-        var type = typeof(Example_75_PaperUI_Dashboard.Program);
+        var type = typeof(Example75PaperUIDashboard.Program);
         const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic;
         type.GetField("_gui", flags)!.SetValue(null, gui);
         var initialize = type.GetMethod("InitializeTheme", flags)!.CreateDelegate<Action>();

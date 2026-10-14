@@ -34,16 +34,34 @@ public static partial class ControlsExtensions
         var node = gui.StyledNode("progress", classes, id,
             modifiers: fraction is null ? IndeterminateModifier : NoModifiers,
             filePath: filePath, lineNumber: lineNumber);
-        if (width > 0) node.Width(UnitValue.Pixels(width));
-        if (height is { } size) node.Height(UnitValue.Pixels(size));
+        if (width > 0)
+        {
+            node.Width(UnitValue.Pixels(width));
+        }
+
+        if (height is { } size)
+        {
+            node.Height(UnitValue.Pixels(size));
+        }
+
         using (node.Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
 
             var rect = gui.CurrentNode.InnerRect;
-            if (rect.W <= 0) return;
+            if (rect.W <= 0)
+            {
+                return;
+            }
 
-            if (fraction is null) gui.RequestFrame();
+            if (fraction is null)
+            {
+                gui.RequestFrame();
+            }
+
             var filled = FillRect(rect, fraction, gui.Clock.Elapsed);
             gui.DrawStyledBox(gui.ResolvePart("fill"), filled);
         }
@@ -56,7 +74,9 @@ public static partial class ControlsExtensions
     internal static Rect FillRect(Rect track, float? fraction, float elapsed)
     {
         if (fraction is { } value)
+        {
             return new Rect(track.X, track.Y, track.W * Math.Clamp(value, 0, 1), track.H);
+        }
 
         var span = 1f + IndeterminateChunk;
         var head = elapsed * IndeterminateSpeed % span - IndeterminateChunk;

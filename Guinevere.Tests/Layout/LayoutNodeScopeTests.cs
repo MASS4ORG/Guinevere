@@ -26,7 +26,7 @@ public class LayoutNodeScopeTests
     /// its own, while the child's own value is kept.
     /// </summary>
     [Fact]
-    public void RenderPassParentValue_ReachesChildrenThatSetOtherValues()
+    public void RenderPassParentValueReachesChildrenThatSetOtherValues()
     {
         var scope = Frame((gui, render) =>
         {
@@ -36,7 +36,10 @@ public class LayoutNodeScopeTests
                 using (gui.Node(10, 10).Enter())
                 {
                     gui.SetTextSize(20);
-                    using (gui.Node(5, 5).Enter()) return gui.CurrentNodeScope;
+                    using (gui.Node(5, 5).Enter())
+                    {
+                        return gui.CurrentNodeScope;
+                    }
                 }
             }
         });
@@ -47,7 +50,7 @@ public class LayoutNodeScopeTests
 
     /// <summary>Nodes created from <see cref="UnitValue"/> sizes re-inherit in the render pass too.</summary>
     [Fact]
-    public void UnitValueNodes_ReinheritInTheRenderPass()
+    public void UnitValueNodesReinheritInTheRenderPass()
     {
         var scope = Frame((gui, render) =>
         {
@@ -67,7 +70,7 @@ public class LayoutNodeScopeTests
 
     /// <summary>A child's own value still wins over the parent's, in both passes.</summary>
     [Fact]
-    public void ChildValue_WinsOverParent()
+    public void ChildValueWinsOverParent()
     {
         var scope = Frame((gui, render) =>
         {

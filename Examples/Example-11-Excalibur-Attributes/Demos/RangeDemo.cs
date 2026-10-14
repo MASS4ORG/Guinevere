@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 // [Range] clamps typing and label scrubbing (drag the label) between two bounds.
 public sealed class RangeDemo

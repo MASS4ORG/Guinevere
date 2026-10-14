@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Example_01;
+namespace Example01;
 
 /// <summary>
 /// The colors every demo draws with. Demos receive the active palette as an argument, so switching

@@ -7,7 +7,7 @@ public class GuiMotionTests
 {
     /// <summary>Smoothdamp starts at its target, follows changes, gives both passes one value and exposes a writable ref.</summary>
     [Fact]
-    public void Smoothdamp_FollowsOncePerFrame()
+    public void SmoothdampFollowsOncePerFrame()
     {
         using var harness = new FrameHarness();
         var target = 0f;
@@ -16,8 +16,15 @@ public class GuiMotionTests
         void Draw(Gui gui)
         {
             ref var smoothed = ref gui.Smoothdamp(target);
-            if (gui.Pass == Pass.Pass1Build) build = smoothed;
-            else Assert.Equal(build, smoothed);
+            if (gui.Pass == Pass.Pass1Build)
+            {
+                build = smoothed;
+            }
+            else
+            {
+                Assert.Equal(build, smoothed);
+            }
+
             value = smoothed;
         }
 
@@ -33,14 +40,20 @@ public class GuiMotionTests
         harness.Frame(gui =>
         {
             ref var smoothed = ref gui.Smoothdamp(target, id: "shared");
-            if (gui.Pass == Pass.Pass1Build) smoothed = 3f;
-            else Assert.Equal(3f, gui.Smoothdamp(0f, id: "shared"));
+            if (gui.Pass == Pass.Pass1Build)
+            {
+                smoothed = 3f;
+            }
+            else
+            {
+                Assert.Equal(3f, gui.Smoothdamp(0f, id: "shared"));
+            }
         });
     }
 
     /// <summary>Loop items keep separate springs; vectors, colors and angles follow per channel.</summary>
     [Fact]
-    public void Smoothdamp_TypedOverloadsAndItemKeys()
+    public void SmoothdampTypedOverloadsAndItemKeys()
     {
         using var harness = new FrameHarness();
         var targets = new Dictionary<int, float> { [1] = 0f, [2] = 100f };
@@ -66,13 +79,21 @@ public class GuiMotionTests
         Assert.Equal((0f, 100f), (values[1], values[2]));
         far = true;
         angleTarget = MathF.Tau - 0.1f;
-        for (var i = 0; i < 3; i++) harness.Frame(Draw);
+        for (var i = 0; i < 3; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         Assert.Equal(100f, values[2]);
         Assert.InRange(vector.X, 0.1f, 9.9f);
         Assert.InRange(vector.Y, vector.X, 19.9f);
         Assert.InRange(color.R, (byte)1, (byte)254);
         Assert.InRange(angle, -0.1f, 0.1f);
-        for (var i = 0; i < 200; i++) harness.Frame(Draw);
+        for (var i = 0; i < 200; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         Assert.Equal(new Vector2(10, 20), vector);
         Assert.Equal(Color.White.R, color.R);
         Assert.Equal(-0.1f, angle, 3);
@@ -80,7 +101,7 @@ public class GuiMotionTests
 
     /// <summary>An under-damped keyed spring overshoots before settling.</summary>
     [Fact]
-    public void AnimateSpring_Overshoots()
+    public void AnimateSpringOvershoots()
     {
         using var harness = new FrameHarness();
         var target = 0f;
@@ -99,7 +120,7 @@ public class GuiMotionTests
 
     /// <summary>Tweens restart from the value shown when interrupted and reach the new target on time.</summary>
     [Fact]
-    public void AnimateFloat_InterruptsContinuously()
+    public void AnimateFloatInterruptsContinuously()
     {
         using var harness = new FrameHarness();
         var target = 0f;
@@ -122,14 +143,18 @@ public class GuiMotionTests
         Assert.Equal(10f, value, 1);
         harness.Frame(Draw);
         Assert.Equal(9f, value, 1);
-        for (var i = 0; i < 10; i++) harness.Frame(Draw);
+        for (var i = 0; i < 10; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         Assert.Equal(0f, value);
         Assert.Equal(Color.Black, color);
     }
 
     /// <summary>Reduced motion makes every keyed animation jump; clearing forgets their state.</summary>
     [Fact]
-    public void ReduceMotion_JumpsAndClearForgets()
+    public void ReduceMotionJumpsAndClearForgets()
     {
         using var harness = new FrameHarness();
         var target = 0f;

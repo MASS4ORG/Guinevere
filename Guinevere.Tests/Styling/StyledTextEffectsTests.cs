@@ -17,7 +17,7 @@ public class StyledTextEffectsTests
 
     /// <summary>Text shadows parse offsets, optional blur and color while preserving CSS paint order.</summary>
     [Fact]
-    public void GetTextShadows_ParsesLayersAndDefaults()
+    public void GetTextShadowsParsesLayersAndDefaults()
     {
         var defaultColor = Color.FromArgb(255, 12, 34, 56);
         var shadows = Style("color = #0c2238; text-shadow = 1px 2px, -3 4 6px #ff000080")
@@ -41,12 +41,12 @@ public class StyledTextEffectsTests
     [InlineData("1 2, , 3 4")]
     [InlineData("1 2 -3px")]
     [InlineData("1 2 nonsense")]
-    public void GetTextShadows_RejectsMalformedDeclarations(string value) =>
+    public void GetTextShadowsRejectsMalformedDeclarations(string value) =>
         Assert.Null(Style($"text-shadow = {value}").GetTextShadows());
 
     /// <summary>Parsed shadow lists are reused until the effective default color changes.</summary>
     [Fact]
-    public void GetTextShadows_CachesByEffectiveDefaultColor()
+    public void GetTextShadowsCachesByEffectiveDefaultColor()
     {
         var style = Style("text-shadow = 1 2;");
         var first = style.GetTextShadows(Color.Red);
@@ -64,7 +64,7 @@ public class StyledTextEffectsTests
 
     /// <summary>Inherited effects flow into children and a local declaration replaces them.</summary>
     [Fact]
-    public void StyledScopes_InheritAndReplaceTextShadows()
+    public void StyledScopesInheritAndReplaceTextShadows()
     {
         using var harness = new FrameHarness();
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
@@ -80,29 +80,36 @@ public class StyledTextEffectsTests
                 var inherited = gui.CurrentNodeScope.Get<LayoutNodeScopeTextEffects>().Value.DropShadows;
                 Assert.Equal(new Vector2(1, 2), Assert.Single(inherited!).Offset);
                 using (gui.StyledNode("plain").Enter())
+                {
                     Assert.Same(inherited, gui.CurrentNodeScope.Get<LayoutNodeScopeTextEffects>().Value.DropShadows);
+                }
+
                 using (gui.StyledNode("child").Enter())
                 {
                     var replaced = gui.CurrentNodeScope.Get<LayoutNodeScopeTextEffects>().Value.DropShadows;
                     Assert.Equal(new Vector2(3, 4), Assert.Single(replaced!).Offset);
                 }
                 using (gui.StyledNode("none").Enter())
+                {
                     Assert.Empty(gui.CurrentNodeScope.Get<LayoutNodeScopeTextEffects>().Value.DropShadows!);
+                }
             }
         });
     }
 
     /// <summary>Token changes and sheet removal update resolved text effects in subsequent frames.</summary>
     [Fact]
-    public void StyledScopes_RefreshAfterTokenAndSheetChanges()
+    public void StyledScopesRefreshAfterTokenAndSheetChanges()
     {
         using var harness = new FrameHarness();
         var sheet = StyleSheet.Parse("$shadow = #ff0000; box { text-shadow = 1 2 3px $shadow; }");
         harness.Gui.StyleSheets.Add(sheet);
-        void Draw(Gui gui)
+        static void Draw(Gui gui)
         {
             using (gui.StyledNode("box").Enter())
+            {
                 Assert.Single(gui.CurrentNodeScope.Get<LayoutNodeScopeTextEffects>().Value.DropShadows!);
+            }
         }
 
         harness.Frame(Draw);
@@ -110,20 +117,24 @@ public class StyledTextEffectsTests
         harness.Frame(gui =>
         {
             using (gui.StyledNode("box").Enter())
+            {
                 Assert.Equal(Color.FromArgb(255, 0, 255, 0), Assert.Single(gui.CurrentNodeScope.Get<LayoutNodeScopeTextEffects>()
                     .Value.DropShadows!).Color);
+            }
         });
         harness.Gui.StyleSheets.Remove(sheet);
         harness.Frame(gui =>
         {
             using (gui.StyledNode("box").Enter())
+            {
                 Assert.Null(gui.CurrentNodeScope.Get<LayoutNodeScopeTextEffects>().Value.DropShadows);
+            }
         });
     }
 
     /// <summary>A real label control draws stylesheet shadows with its text.</summary>
     [Fact]
-    public void Label_DrawsItsStyledTextShadow()
+    public void LabelDrawsItsStyledTextShadow()
     {
         using var harness = new FrameHarness(240, 80);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse(
@@ -135,12 +146,21 @@ public class StyledTextEffectsTests
         var redPixels = 0;
         var bluePixels = 0;
         for (var y = 0; y < pixels.Height; y++)
+        {
             for (var x = 0; x < pixels.Width; x++)
             {
                 var color = pixels.GetPixel(x, y);
-                if (color.Red > 150 && color.Green < 80 && color.Blue < 80) redPixels++;
-                if (color.Blue > 150 && color.Red < 80 && color.Green < 80) bluePixels++;
+                if (color.Red > 150 && color.Green < 80 && color.Blue < 80)
+                {
+                    redPixels++;
+                }
+
+                if (color.Blue > 150 && color.Red < 80 && color.Green < 80)
+                {
+                    bluePixels++;
+                }
             }
+        }
 
         Assert.True(redPixels > 10, $"expected visible red shadow pixels, got {redPixels}");
         Assert.Equal(0, bluePixels);
@@ -148,16 +168,19 @@ public class StyledTextEffectsTests
 
     /// <summary>Changing a host token updates the color of rendered text shadows on the next frame.</summary>
     [Fact]
-    public void TokenChanges_RefreshRenderedTextShadowPixels()
+    public void TokenChangesRefreshRenderedTextShadowPixels()
     {
         using var harness = new FrameHarness(200, 80);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
             $shade = #ff0000;
             box { width = expand; height = expand; color = #000000; text-shadow = 16 0 $shade; }
             """));
-        void Draw(Gui gui)
+        static void Draw(Gui gui)
         {
-            using (gui.StyledNode("box").Enter()) gui.DrawText("A", size: 28);
+            using (gui.StyledNode("box").Enter())
+            {
+                gui.DrawText("A", size: 28);
+            }
         }
 
         harness.Frame(Draw);
@@ -175,7 +198,7 @@ public class StyledTextEffectsTests
 
     /// <summary>Styled opacity composites the text and its shadow together.</summary>
     [Fact]
-    public void Opacity_CompositesTextShadowAsOneGroup()
+    public void OpacityCompositesTextShadowAsOneGroup()
     {
         using var harness = new FrameHarness(160, 60);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
@@ -183,7 +206,10 @@ public class StyledTextEffectsTests
             """));
         harness.Frame(gui =>
         {
-            using (gui.StyledNode("box").Enter()) gui.DrawText("A", size: 28);
+            using (gui.StyledNode("box").Enter())
+            {
+                gui.DrawText("A", size: 28);
+            }
         });
 
         using var image = harness.Snapshot();
@@ -193,7 +219,7 @@ public class StyledTextEffectsTests
 
     /// <summary>An ancestor clip bounds the ink from a text shadow that extends past its edge.</summary>
     [Fact]
-    public void AncestorClip_ClipsTextShadowInk()
+    public void AncestorClipClipsTextShadowInk()
     {
         using var harness = new FrameHarness(120, 80);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
@@ -205,7 +231,9 @@ public class StyledTextEffectsTests
             {
                 gui.ClipContent();
                 using (gui.Node(30, 40).Absolute(30, 0).Enter())
+                {
                     gui.DrawText("A", size: 24);
+                }
             }
         });
 
@@ -223,13 +251,18 @@ public class StyledTextEffectsTests
     {
         var count = 0;
         for (var y = 0; y < pixels.Height; y++)
+        {
             for (var x = xStart; x < xEnd; x++)
             {
                 var color = pixels.GetPixel(x, y);
                 if (red ? color.Red > 150 && color.Green < 80 && color.Blue < 80
                         : color.Blue > 150 && color.Red < 80 && color.Green < 80)
+                {
                     count++;
+                }
             }
+        }
+
         return count;
     }
 
@@ -237,18 +270,23 @@ public class StyledTextEffectsTests
     {
         var max = 0;
         for (var y = 0; y < pixels.Height; y++)
+        {
             for (var x = 0; x < pixels.Width; x++)
             {
                 var color = pixels.GetPixel(x, y);
                 if (color.Red > 80 && color.Green < 80 && color.Blue < 80)
+                {
                     max = Math.Max(max, color.Alpha);
+                }
             }
+        }
+
         return max;
     }
 
     /// <summary>A hover rule can clear a shadow applied by the base rule.</summary>
     [Fact]
-    public void StyledScopes_HoverNoneClearsTheBaseShadow()
+    public void StyledScopesHoverNoneClearsTheBaseShadow()
     {
         using var harness = new FrameHarness(160, 80);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
@@ -260,7 +298,9 @@ public class StyledTextEffectsTests
         harness.Frame(gui =>
         {
             using (gui.StyledNode("label", ["label"]).Enter())
+            {
                 gui.DrawText("Hover", size: 20);
+            }
         });
 
         var label = Assert.Single(harness.Gui.RootNode!.Children);

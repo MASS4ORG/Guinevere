@@ -45,14 +45,22 @@ public static class StyledBackgrounds
 
         internal void Synchronize(int version)
         {
-            if (_version == version) return;
+            if (_version == version)
+            {
+                return;
+            }
+
             Clear();
             _version = version;
         }
 
         internal void Clear()
         {
-            foreach (var image in _images.Values) image?.Dispose();
+            foreach (var image in _images.Values)
+            {
+                image?.Dispose();
+            }
+
             _images.Clear();
             _styles.Clear();
             _reported.Clear();
@@ -66,11 +74,18 @@ public static class StyledBackgrounds
         {
             var property = style.Has("background-image") ? "background-image" : "background";
             var raw = style.Get(property);
-            if (!IsBitmap(raw)) return null;
+            if (!IsBitmap(raw))
+            {
+                return null;
+            }
+
             try
             {
                 if (!BitmapUrl.IsMatch(raw!.Trim()))
+                {
                     throw new FormatException("Expected a single url() bitmap background.");
+                }
+
                 var uri = style.GetUrl(property) ?? throw new FormatException("Expected a single url() bitmap background.");
                 var repeat = StyleBitmapBackground.Repeat(style.Get("background-repeat"));
                 var size = StyleBitmapBackground.Size(style.Get("background-size"));
@@ -94,7 +109,11 @@ public static class StyledBackgrounds
         {
             var resolver = style.Sources?.GetValueOrDefault(property)?.Options.ResourceResolver;
             var key = (uri, resolver);
-            if (!_images.TryGetValue(key, out var image)) _images[key] = image = Load(uri, resolver);
+            if (!_images.TryGetValue(key, out var image))
+            {
+                _images[key] = image = Load(uri, resolver);
+            }
+
             return image ?? throw new IOException($"Cannot load bitmap background '{uri}'.");
         }
 
@@ -125,7 +144,10 @@ public static class StyledBackgrounds
             var column = source?.Column ?? 0;
             var diagnostic = new StyleDiagnostic($"{name ?? "<inline>"}:{line}:{column}: {message}", name,
                 Line: line, Column: column);
-            if (_reported.Add(diagnostic)) Diagnostics.Add(diagnostic);
+            if (_reported.Add(diagnostic))
+            {
+                Diagnostics.Add(diagnostic);
+            }
         }
     }
 }

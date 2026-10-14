@@ -54,7 +54,11 @@ static class ResizeGeometry
     static (float Origin, float Size) ResizeAxis(float origin, float size, float delta,
         bool leading, bool trailing, float minimum)
     {
-        if (!leading && !trailing) return (origin, size);
+        if (!leading && !trailing)
+        {
+            return (origin, size);
+        }
+
         var resized = MathF.Max(minimum, MathF.Round(size + (leading ? -delta : delta)));
         return (leading ? origin + size - resized : origin, resized);
     }

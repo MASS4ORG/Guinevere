@@ -14,9 +14,18 @@ public class SemanticInputTests
         var activated = 0;
         void Draw(Gui gui)
         {
-            using (gui.Node(80, 30, "first").Enter()) gui.Pressable();
+            using (gui.Node(80, 30, "first").Enter())
+            {
+                gui.Pressable();
+            }
+
             using (gui.Node(80, 30, "second").Enter())
-                if (gui.Pressable().Activated) activated++;
+            {
+                if (gui.Pressable().Activated)
+                {
+                    activated++;
+                }
+            }
         }
         harness.Frame(Draw);
         harness.Gui.RequestFocus("first");
@@ -135,7 +144,10 @@ public class SemanticInputTests
             using var scope = focus.EnterScope("screen");
             scope.SetActive();
             focus.RegisterFocusableControl("first");
-            if (second) focus.RegisterFocusableControl("second");
+            if (second)
+            {
+                focus.RegisterFocusableControl("second");
+            }
         }
         focus.BeginFrame();
         Register();

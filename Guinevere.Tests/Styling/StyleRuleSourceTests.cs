@@ -5,7 +5,7 @@ public class StyleRuleSourceTests
 {
     /// <summary>A rule records its selector line and its own declaration lines, not those of nested rules.</summary>
     [Fact]
-    public void Lines_CoverSelectorAndOwnDeclarations()
+    public void LinesCoverSelectorAndOwnDeclarations()
     {
         var sheet = StyleSheet.Parse("""
             // comment
@@ -28,7 +28,7 @@ public class StyleRuleSourceTests
 
     /// <summary>Imported rules keep the lines of their own source text.</summary>
     [Fact]
-    public void Lines_SurviveImports()
+    public void LinesSurviveImports()
     {
         var options = new StyleSheetOptions
         {
@@ -42,7 +42,7 @@ public class StyleRuleSourceTests
 
     /// <summary>Matched rules come with their sheet, in cascade order (specificity, then sheet, then rule order).</summary>
     [Fact]
-    public void MatchedRules_ListSheetsInCascadeOrder()
+    public void MatchedRulesListSheetsInCascadeOrder()
     {
         var low = StyleSheet.Parse("button.primary { color = #ff0000; } button { color = #00ff00; } label { color = #000000; }");
         var high = StyleSheet.Parse("button { color = #0000ff; }");
@@ -64,7 +64,7 @@ public class StyleRuleSourceTests
 
     /// <summary>Line lookup stays linear on large sheets (a binary search over line starts).</summary>
     [Fact]
-    public void Lines_ScaleToLargeSheets()
+    public void LinesScaleToLargeSheets()
     {
         var text = string.Join('\n', Enumerable.Range(0, 5000).Select(i => $"r{i} {{ width = {i}; }}"));
         var watch = System.Diagnostics.Stopwatch.StartNew();

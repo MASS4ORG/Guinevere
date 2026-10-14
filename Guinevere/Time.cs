@@ -48,7 +48,11 @@ public class Time : ITimeCapability
         Frames++;
         _framesSinceLastSmooth++;
         _smoothingTimer += DeltaTime;
-        if (!(_smoothingTimer >= SmoothingInterval)) return;
+        if (!(_smoothingTimer >= SmoothingInterval))
+        {
+            return;
+        }
+
         SmoothFps = _framesSinceLastSmooth / _smoothingTimer;
         _framesSinceLastSmooth = 0;
         _smoothingTimer = 0f;

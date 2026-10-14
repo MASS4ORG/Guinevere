@@ -39,11 +39,21 @@ public static partial class ControlsExtensions
         var before = value;
         using (node.Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return false;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return false;
+            }
+
             var rect = node.InnerRect;
             var drag = gui.ControlState(node.Id, () => new ColorDragState());
-            if (enabled) value = EditArea(gui, drag, shape, rect, value);
-            else drag.Dragging = false;
+            if (enabled)
+            {
+                value = EditArea(gui, drag, shape, rect, value);
+            }
+            else
+            {
+                drag.Dragging = false;
+            }
 
             shape.Draw(gui, rect, value);
             DrawPartCentered(gui, "cursor", shape.Cursor(rect, value), 12f);
@@ -81,11 +91,21 @@ public static partial class ControlsExtensions
         var before = value;
         using (node.Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return false;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return false;
+            }
+
             var rect = node.InnerRect;
             var drag = gui.ControlState(node.Id, () => new ColorDragState());
-            if (enabled) value = EditStrip(gui, drag, rect, value, channel, vertical);
-            else drag.Dragging = false;
+            if (enabled)
+            {
+                value = EditStrip(gui, drag, rect, value, channel, vertical);
+            }
+            else
+            {
+                drag.Dragging = false;
+            }
 
             DrawChannelGradient(gui, rect, value, channel, vertical);
             DrawStripThumb(gui, rect, ChannelFraction(value, channel), vertical);
@@ -125,11 +145,23 @@ public static partial class ControlsExtensions
                 using (gui.StyledNode("swatch", modifiers: color == current ? SelectedModifier : null,
                            disabled: !enabled).Width(size).Height(size).Enter())
                 {
-                    if (gui.Pass != Pass.Pass2Render) continue;
+                    if (gui.Pass != Pass.Pass2Render)
+                    {
+                        continue;
+                    }
+
                     DrawColorSample(gui, gui.CurrentNode.InnerRect, color);
-                    if (!enabled) continue;
+                    if (!enabled)
+                    {
+                        continue;
+                    }
+
                     gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-                    if (!Activated(gui)) continue;
+                    if (!Activated(gui))
+                    {
+                        continue;
+                    }
+
                     value = Hsva.FromColor(color, value.H, value.S);
                     picked = true;
                 }
@@ -162,7 +194,11 @@ public static partial class ControlsExtensions
             width, height);
         using (node.Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return false;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return false;
+            }
+
             var rect = node.InnerRect;
             if (before is not { } old)
             {
@@ -179,7 +215,11 @@ public static partial class ControlsExtensions
     /// <summary>Draws a color over the checkerboard when it is translucent.</summary>
     static void DrawColorSample(Gui gui, Rect rect, Color color)
     {
-        if (color.A < 255) ColorPaint.FillChecker(gui, rect);
+        if (color.A < 255)
+        {
+            ColorPaint.FillChecker(gui, rect);
+        }
+
         gui.DrawRect(rect, color);
     }
 
@@ -187,8 +227,16 @@ public static partial class ControlsExtensions
     static Hsva EditArea(Gui gui, ColorDragState drag, IColorPickerShape shape, Rect rect, Hsva value)
     {
         gui.RegisterFocusable(claimsArrowKeys: true);
-        if (Dragged(gui, drag)) value = shape.Pick(rect, gui.LocalMousePosition, value);
-        if (ArrowDirection(gui) is not { } direction) return value;
+        if (Dragged(gui, drag))
+        {
+            value = shape.Pick(rect, gui.LocalMousePosition, value);
+        }
+
+        if (ArrowDirection(gui) is not { } direction)
+        {
+            return value;
+        }
+
         return shape.Pick(rect, shape.Cursor(rect, value) + direction * new Vector2(rect.W, rect.H) / 100f, value);
     }
 
@@ -196,8 +244,16 @@ public static partial class ControlsExtensions
     static Hsva EditStrip(Gui gui, ColorDragState drag, Rect rect, Hsva value, HsvChannel channel, bool vertical)
     {
         gui.RegisterFocusable(claimsArrowKeys: true);
-        if (Dragged(gui, drag)) value = WithChannel(value, channel, StripFraction(rect, gui.LocalMousePosition, vertical));
-        if (ArrowDirection(gui) is not { } direction) return value;
+        if (Dragged(gui, drag))
+        {
+            value = WithChannel(value, channel, StripFraction(rect, gui.LocalMousePosition, vertical));
+        }
+
+        if (ArrowDirection(gui) is not { } direction)
+        {
+            return value;
+        }
+
         var step = (vertical ? -direction.Y : direction.X) / 100f;
         return WithChannel(value, channel, ChannelFraction(value, channel) + step);
     }
@@ -210,18 +266,42 @@ public static partial class ControlsExtensions
             gui.RequestFocus(FocusReason.Mouse);
             drag.Dragging = true;
         }
-        if (!gui.Input.IsMouseButtonDown(MouseButton.Left)) drag.Dragging = false;
+        if (!gui.Input.IsMouseButtonDown(MouseButton.Left))
+        {
+            drag.Dragging = false;
+        }
+
         return drag.Dragging;
     }
 
     /// <summary>The arrow pressed this frame while the current node has focus, as a unit step (down is +Y).</summary>
     static Vector2? ArrowDirection(Gui gui)
     {
-        if (!gui.HasFocus()) return null;
-        if (gui.Input.IsKeyPressed(KeyboardKey.Left)) return new Vector2(-1, 0);
-        if (gui.Input.IsKeyPressed(KeyboardKey.Right)) return new Vector2(1, 0);
-        if (gui.Input.IsKeyPressed(KeyboardKey.Up)) return new Vector2(0, -1);
-        if (gui.Input.IsKeyPressed(KeyboardKey.Down)) return new Vector2(0, 1);
+        if (!gui.HasFocus())
+        {
+            return null;
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Left))
+        {
+            return new Vector2(-1, 0);
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Right))
+        {
+            return new Vector2(1, 0);
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Up))
+        {
+            return new Vector2(0, -1);
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Down))
+        {
+            return new Vector2(0, 1);
+        }
+
         return null;
     }
 

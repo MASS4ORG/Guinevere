@@ -32,7 +32,9 @@ public class DropIndicatorTests
         void Draw()
         {
             using (gui.Node(50, 50).Enter())
+            {
                 gui.DrawDropIndicator(state, style: style);
+            }
         }
     }
 }

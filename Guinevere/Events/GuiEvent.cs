@@ -54,7 +54,10 @@ public abstract class GuiEvent
     /// </summary>
     public void PreventDefault()
     {
-        if (Cancelable) DefaultPrevented = true;
+        if (Cancelable)
+        {
+            DefaultPrevented = true;
+        }
     }
 }
 

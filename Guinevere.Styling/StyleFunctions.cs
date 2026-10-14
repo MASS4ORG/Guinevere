@@ -39,9 +39,18 @@ static class StyleFunctions
     {
         var (min, max, body) = Functions[name];
         if (args.Count < min || args.Count > max)
+        {
             throw new StyleExpressionException($"{name}() expects {Arity(min, max)} arguments", position);
+        }
+
         foreach (var arg in args)
-            if (arg.Kind == StyleValueKind.Unknown) return StyleExprValue.Unknown;
+        {
+            if (arg.Kind == StyleValueKind.Unknown)
+            {
+                return StyleExprValue.Unknown;
+            }
+        }
+
         return body(args, contrast, position);
     }
 
@@ -51,7 +60,11 @@ static class StyleFunctions
     /// </summary>
     public static StyleExprValue Arithmetic(char op, StyleExprValue left, StyleExprValue right, int position)
     {
-        if (left.Kind != StyleValueKind.Number || right.Kind != StyleValueKind.Number) return StyleExprValue.Unknown;
+        if (left.Kind != StyleValueKind.Number || right.Kind != StyleValueKind.Number)
+        {
+            return StyleExprValue.Unknown;
+        }
+
         return op switch
         {
             '+' or '-' => Sum(op, left, right),
@@ -73,8 +86,16 @@ static class StyleFunctions
 
     static StyleExprValue Quotient(StyleExprValue left, StyleExprValue right, int position)
     {
-        if (right.Unit == StyleNumberUnit.Percent) return StyleExprValue.Unknown;
-        if (right.Number == 0d) throw new StyleExpressionException("Division by zero", position);
+        if (right.Unit == StyleNumberUnit.Percent)
+        {
+            return StyleExprValue.Unknown;
+        }
+
+        if (right.Number == 0d)
+        {
+            throw new StyleExpressionException("Division by zero", position);
+        }
+
         return StyleExprValue.Of(left.Number / right.Number, left.Unit);
     }
 
@@ -84,8 +105,15 @@ static class StyleFunctions
         for (var i = 1; i < args.Count; i++)
         {
             var next = NumberArg(args[i], position);
-            if (next.Unit != best.Unit) return StyleExprValue.Unknown;
-            if (max ? next.Number > best.Number : next.Number < best.Number) best = next;
+            if (next.Unit != best.Unit)
+            {
+                return StyleExprValue.Unknown;
+            }
+
+            if (max ? next.Number > best.Number : next.Number < best.Number)
+            {
+                best = next;
+            }
         }
         return StyleExprValue.Of(best.Number, best.Unit);
     }
@@ -119,7 +147,11 @@ static class StyleFunctions
     /// <summary>The ink (default black or white) with the higher WCAG contrast against the background.</summary>
     static StyleExprValue ContrastInk(List<StyleExprValue> args, int position)
     {
-        if (args.Count == 2) throw new StyleExpressionException("contrast-ink() expects 1 or 3 arguments", position);
+        if (args.Count == 2)
+        {
+            throw new StyleExpressionException("contrast-ink() expects 1 or 3 arguments", position);
+        }
+
         var background = ColorArg(args[0], position).Luminance();
         var dark = args.Count == 3 ? ColorArg(args[1], position) : new StyleColor(0d, 0d, 0d, 1d);
         var light = args.Count == 3 ? ColorArg(args[2], position) : new StyleColor(1d, 1d, 1d, 1d);
@@ -138,7 +170,11 @@ static class StyleFunctions
         var offset = NumberArg(args[1], position).Number;
         var saturation = args.Count > 2 ? NumberArg(args[2], position).Number : 1d;
         var contrast = args.Count > 3 ? NumberArg(args[3], position).Number : contrastToken();
-        if (offset < 0d) contrast = Math.Clamp(contrast, -0.1, 0.5);
+        if (offset < 0d)
+        {
+            contrast = Math.Clamp(contrast, -0.1, 0.5);
+        }
+
         var (h, s, v) = color.ToHsv();
         var value = Math.Clamp(v + (0d - v) * contrast * offset, 0d, 1d);
         return StyleExprValue.Of(StyleColor.FromHsv(h, Math.Clamp(s * saturation, 0d, 1d), value, color.A));
@@ -146,8 +182,16 @@ static class StyleFunctions
 
     static StyleColor ColorArg(StyleExprValue arg, int position)
     {
-        if (arg.Kind == StyleValueKind.Color) return arg.Color;
-        if (arg.Kind == StyleValueKind.Text && StyleValue.TryColor(arg.Text, out var color)) return StyleColor.From(color);
+        if (arg.Kind == StyleValueKind.Color)
+        {
+            return arg.Color;
+        }
+
+        if (arg.Kind == StyleValueKind.Text && StyleValue.TryColor(arg.Text, out var color))
+        {
+            return StyleColor.From(color);
+        }
+
         throw new StyleExpressionException($"Expected a color, got '{arg.Canonical()}'", position);
     }
 

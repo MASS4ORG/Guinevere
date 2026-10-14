@@ -24,7 +24,11 @@ readonly record struct PrimitiveCommand(
             _ => Rect
         };
         var padding = Stroke ? MathF.Abs(Thickness) * 0.5f + 1f : 0f;
-        if (Kind == PrimitiveKind.Line) padding = MathF.Max(1f, Thickness) * 0.5f + 1f;
+        if (Kind == PrimitiveKind.Line)
+        {
+            padding = MathF.Max(1f, Thickness) * 0.5f + 1f;
+        }
+
         bounds.Inflate(padding, padding);
         return bounds;
     }

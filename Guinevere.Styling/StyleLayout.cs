@@ -21,10 +21,17 @@ public static class StyleLayout
 
         foreach (var (prop, raw) in style.DeclarationMap)
         {
-            if (prop.Length == 0) continue;
+            if (prop.Length == 0)
+            {
+                continue;
+            }
+
             ApplyDeclaration(node, prop, raw.Trim(), ref text);
         }
-        if (text.Changed) node.Scope.Set(new LayoutNodeScopeTextLayout { Value = text.Build() });
+        if (text.Changed)
+        {
+            node.Scope.Set(new LayoutNodeScopeTextLayout { Value = text.Build() });
+        }
     }
 
     static void ApplyDeclaration(LayoutNode node, string prop, string value, ref TextStyle text)
@@ -48,10 +55,18 @@ public static class StyleLayout
                     ? Axis.Horizontal : Axis.Vertical);
                 break;
             case "flex-wrap":
-                if (value is "wrap" or "wrap-reverse") node.Wrap(0);
+                if (value is "wrap" or "wrap-reverse")
+                {
+                    node.Wrap(0);
+                }
+
                 break;
             case "flex-grow":
-                if (StyleValue.TryFloat(value, out var grow) && grow > 0f) node.Expand();
+                if (StyleValue.TryFloat(value, out var grow) && grow > 0f)
+                {
+                    node.Expand();
+                }
+
                 break;
             case "align-self": node.AlignSelf(AlignFraction(value)); break;
             case "align-items": node.ContentAlignX(AlignFraction(value)); break;
@@ -76,16 +91,32 @@ public static class StyleLayout
         {
             case "margin": ApplyBox(node, value, padding: false); break;
             case "min-width":
-                if (StyleValue.TryLength(value, out var minWidth, out _)) node.MinWidth(minWidth);
+                if (StyleValue.TryLength(value, out var minWidth, out _))
+                {
+                    node.MinWidth(minWidth);
+                }
+
                 break;
             case "max-width":
-                if (StyleValue.TryLength(value, out var maxWidth, out _)) node.MaxWidth(maxWidth);
+                if (StyleValue.TryLength(value, out var maxWidth, out _))
+                {
+                    node.MaxWidth(maxWidth);
+                }
+
                 break;
             case "min-height":
-                if (StyleValue.TryLength(value, out var minHeight, out _)) node.MinHeight(minHeight);
+                if (StyleValue.TryLength(value, out var minHeight, out _))
+                {
+                    node.MinHeight(minHeight);
+                }
+
                 break;
             case "max-height":
-                if (StyleValue.TryLength(value, out var maxHeight, out _)) node.MaxHeight(maxHeight);
+                if (StyleValue.TryLength(value, out var maxHeight, out _))
+                {
+                    node.MaxHeight(maxHeight);
+                }
+
                 break;
             case "max-lines" when int.TryParse(value, out var maxLines) && maxLines >= 0:
                 text.SetMaxLines(maxLines);
@@ -104,14 +135,22 @@ public static class StyleLayout
 
         public void SetLineHeight(float value)
         {
-            if (_lineHeight == value) return;
+            if (_lineHeight == value)
+            {
+                return;
+            }
+
             _lineHeight = value;
             Changed = true;
         }
 
         public void SetMaxLines(int value)
         {
-            if (_maxLines == value) return;
+            if (_maxLines == value)
+            {
+                return;
+            }
+
             _maxLines = value;
             Changed = true;
         }
@@ -122,13 +161,21 @@ public static class StyleLayout
             {
                 case "text-wrap" when Enum.TryParse<TextWrapMode>(
                     value.Replace("-", "", StringComparison.Ordinal), true, out var mode):
-                    if (_wrapMode == mode) break;
+                    if (_wrapMode == mode)
+                    {
+                        break;
+                    }
+
                     _wrapMode = mode;
                     Changed = true;
                     break;
                 case "text-ellipsis":
                     var ellipsis = value.Trim('"', '\'');
-                    if (_ellipsis == ellipsis) break;
+                    if (_ellipsis == ellipsis)
+                    {
+                        break;
+                    }
+
                     _ellipsis = ellipsis;
                     Changed = true;
                     break;
@@ -138,7 +185,7 @@ public static class StyleLayout
             }
         }
 
-        public TextLayoutOptions Build() => new()
+        public readonly TextLayoutOptions Build() => new()
         {
             WrapMode = _wrapMode,
             LineHeight = _lineHeight,
@@ -149,23 +196,46 @@ public static class StyleLayout
 
     static void ApplyLength(LayoutNode node, string value, bool width)
     {
-        if (!TryParseDimension(value, out var dimension)) return;
+        if (!TryParseDimension(value, out var dimension))
+        {
+            return;
+        }
+
         if (dimension.Unit == DimensionUnit.Expression)
         {
-            if (width) node.Width(dimension.Expression);
-            else node.Height(dimension.Expression);
+            if (width)
+            {
+                node.Width(dimension.Expression);
+            }
+            else
+            {
+                node.Height(dimension.Expression);
+            }
+
             return;
         }
 
         if (width)
         {
-            if (dimension.Unit == DimensionUnit.Percent) node.WidthPercent(dimension.Length);
-            else node.Width(dimension.Length);
+            if (dimension.Unit == DimensionUnit.Percent)
+            {
+                node.WidthPercent(dimension.Length);
+            }
+            else
+            {
+                node.Width(dimension.Length);
+            }
         }
         else
         {
-            if (dimension.Unit == DimensionUnit.Percent) node.HeightPercent(dimension.Length);
-            else node.Height(dimension.Length);
+            if (dimension.Unit == DimensionUnit.Percent)
+            {
+                node.HeightPercent(dimension.Length);
+            }
+            else
+            {
+                node.Height(dimension.Length);
+            }
         }
     }
 
@@ -175,13 +245,23 @@ public static class StyleLayout
 
     static bool TryParseDimension(string value, out DimensionValue dimension)
     {
-        if (value == "expand") dimension = new(DimensionUnit.Expression, Expression: UnitValue.Expand());
-        else if (value is "fit" or "auto") dimension = new(DimensionUnit.Expression, Expression: UnitValue.Fit);
+        if (value == "expand")
+        {
+            dimension = new(DimensionUnit.Expression, Expression: UnitValue.Expand());
+        }
+        else if (value is "fit" or "auto")
+        {
+            dimension = new(DimensionUnit.Expression, Expression: UnitValue.Fit);
+        }
         else if (value.StartsWith("ratio(", StringComparison.Ordinal) && value.EndsWith(')')
                  && StyleValue.TryFloat(value.AsSpan(6, value.Length - 7), out var ratio))
+        {
             dimension = new(DimensionUnit.Expression, Expression: UnitValue.Ratio(ratio));
+        }
         else if (StyleValue.TryLength(value, out var length, out var isPercent))
+        {
             dimension = new(isPercent ? DimensionUnit.Percent : DimensionUnit.Pixel, length);
+        }
         else
         {
             dimension = default;
@@ -221,11 +301,23 @@ public static class StyleLayout
         while (!parts.IsEmpty)
         {
             parts = parts.TrimStart();
-            if (parts.IsEmpty) break;
-            if (count == lengths.Length) return 0;
+            if (parts.IsEmpty)
+            {
+                break;
+            }
+
+            if (count == lengths.Length)
+            {
+                return 0;
+            }
+
             var end = parts.IndexOf(' ');
             var token = end < 0 ? parts : parts[..end];
-            if (!StyleValue.TryLength(token, out lengths[count++], out _)) return 0;
+            if (!StyleValue.TryLength(token, out lengths[count++], out _))
+            {
+                return 0;
+            }
+
             parts = end < 0 ? [] : parts[(end + 1)..];
         }
         return count;

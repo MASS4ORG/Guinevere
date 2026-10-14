@@ -103,7 +103,10 @@ public class PopupTests
         void Draw(Gui gui)
         {
             using (gui.Node(300, 200, "destination").Enter())
+            {
                 gui.On<FileDropEvent>(_ => deliveries++);
+            }
+
             gui.Popup(ref open, () => { }, 150, 100, title: "Hidden", position: Vector2.Zero);
         }
         harness.Frame(Draw);
@@ -132,7 +135,10 @@ public class PopupTests
         void Draw(Gui gui)
         {
             using (gui.Node(300, 200, "destination").Enter())
+            {
                 gui.On<FileDropEvent>(_ => deliveries++);
+            }
+
             gui.Tooltip("Tip", show, offset: new Vector2(20, 20));
         }
         harness.Frame(Draw);

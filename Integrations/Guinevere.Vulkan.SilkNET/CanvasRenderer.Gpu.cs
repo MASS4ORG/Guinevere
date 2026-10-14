@@ -36,7 +36,10 @@ public unsafe partial class CanvasRenderer
             _grContext = null;
         }
 
-        if (_grContext is null) DisposeGpuContext();
+        if (_grContext is null)
+        {
+            DisposeGpuContext();
+        }
     }
 
     IntPtr GetProcedureAddress(string name, IntPtr instance, IntPtr device) => device != IntPtr.Zero

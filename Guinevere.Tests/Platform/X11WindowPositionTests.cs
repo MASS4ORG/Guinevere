@@ -36,7 +36,10 @@ public sealed class X11WindowPositionTests
         Assert.Equal(8, message[9]);
         Assert.Equal(1, message[10]);
         Assert.Equal(1, message[11]);
-        for (var i = 12; i < 24; i++) Assert.Equal(nint.Zero, message[i]);
+        for (var i = 12; i < 24; i++)
+        {
+            Assert.Equal(nint.Zero, message[i]);
+        }
     }
 
     /// <summary>Moves carry signed virtual-desktop coordinates without resizing or primary-monitor clamping.</summary>
@@ -55,7 +58,11 @@ public sealed class X11WindowPositionTests
         Assert.Equal(0x1300, message[7]);
         Assert.Equal(x, message[8]);
         Assert.Equal(y, message[9]);
-        for (var i = 10; i < 24; i++) Assert.Equal(nint.Zero, message[i]);
+        for (var i = 10; i < 24; i++)
+        {
+            Assert.Equal(nint.Zero, message[i]);
+        }
+
         Assert.Equal(24 * IntPtr.Size,
             System.Runtime.CompilerServices.Unsafe.SizeOf<X11WindowPosition.ClientMessage>());
     }

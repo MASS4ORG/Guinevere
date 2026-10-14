@@ -64,7 +64,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _title = title;
         PlaceInitialWindow();
         _canvasRenderer = new CanvasRenderer();
-        _gui.Platform.Register<ICanvasRenderer>(_canvasRenderer);
+        _gui.Platform.Register(_canvasRenderer);
         _canvasRenderer.Initialize(_width, _height);
     }
 
@@ -112,7 +112,11 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     {
         var assembly = Assembly.GetExecutingAssembly();
         var stream = assembly.GetManifestResourceStream(resource);
-        if (stream == null) throw new Exception($"Could not load resource: `{resource}`");
+        if (stream == null)
+        {
+            throw new Exception($"Could not load resource: `{resource}`");
+        }
+
         return stream;
     }
 
@@ -127,7 +131,10 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         {
             WaitForFrame();
             ObserveCloseRequest();
-            if (_close.Approved) break;
+            if (_close.Approved)
+            {
+                break;
+            }
 
             RenderFrame(draw);
             Pacing.FrameRendered();
@@ -157,8 +164,15 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
             Thread.Sleep(TimeSpan.FromSeconds(Math.Min(wait, PollInterval)));
             Raylib.PollInputEvents();
             PollGameInput();
-            if (InputArrived()) Pacing.NotifyInput();
-            if (Raylib.WindowShouldClose()) return;
+            if (InputArrived())
+            {
+                Pacing.NotifyInput();
+            }
+
+            if (Raylib.WindowShouldClose())
+            {
+                return;
+            }
         }
     }
 
@@ -191,10 +205,16 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     /// </summary>
     void ObserveCloseRequest()
     {
-        if (_closeSeen || !Raylib.WindowShouldClose()) return;
+        if (_closeSeen || !Raylib.WindowShouldClose())
+        {
+            return;
+        }
 
         _closeSeen = true;
-        if (_close.MayClose()) _close.Approve();
+        if (_close.MayClose())
+        {
+            _close.Approve();
+        }
     }
 
     /// <summary>Advances the window by one frame.</summary>
@@ -226,7 +246,11 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _canvasRenderer.Render(canvas =>
         {
             _gui.SetStage(Pass.Pass1Build);
-            if (Raylib.IsFileDropped()) _fileDrops.Enqueue(Raylib.GetDroppedFiles(), MousePosition);
+            if (Raylib.IsFileDropped())
+            {
+                _fileDrops.Enqueue(Raylib.GetDroppedFiles(), MousePosition);
+            }
+
             _gui.BeginFrame(canvas);
             draw();
 
@@ -327,8 +351,14 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         }
 
         Raylib.EnableCursor();
-        if (_pointerVisible) Raylib.ShowCursor();
-        else Raylib.HideCursor();
+        if (_pointerVisible)
+        {
+            Raylib.ShowCursor();
+        }
+        else
+        {
+            Raylib.HideCursor();
+        }
     }
 
     #endregion Cursor and pointer
@@ -463,8 +493,14 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     public void DrawWindowTitlebar(bool show)
     {
         Raylib.SetWindowState(ConfigFlags.ResizableWindow);
-        if (show) Raylib.ClearWindowState(ConfigFlags.UndecoratedWindow);
-        else Raylib.SetWindowState(ConfigFlags.UndecoratedWindow);
+        if (show)
+        {
+            Raylib.ClearWindowState(ConfigFlags.UndecoratedWindow);
+        }
+        else
+        {
+            Raylib.SetWindowState(ConfigFlags.UndecoratedWindow);
+        }
     }
 
     #endregion IWindowHandler

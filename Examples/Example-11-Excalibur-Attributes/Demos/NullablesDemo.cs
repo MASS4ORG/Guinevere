@@ -1,4 +1,4 @@
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 // Nullable values edit like their underlying type.
 public sealed class NullablesDemo

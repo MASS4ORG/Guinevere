@@ -10,7 +10,11 @@ public readonly record struct ViewportLayout(
         ValidateAnchor(min);
         ValidateAnchor(max);
         ValidateAnchor(pivot);
-        if (max.X < min.X || max.Y < min.Y) throw new ArgumentOutOfRangeException(nameof(max));
+        if (max.X < min.X || max.Y < min.Y)
+        {
+            throw new ArgumentOutOfRangeException(nameof(max));
+        }
+
         ValidateSize(size);
         var available = offsets.Apply(ContentBounds);
         var span = new Vector2(available.W, available.H);
@@ -27,14 +31,18 @@ public readonly record struct ViewportLayout(
     static void ValidateSize(Vector2 size)
     {
         if (!float.IsFinite(size.X) || !float.IsFinite(size.Y) || size.X < 0 || size.Y < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(size));
+        }
     }
 
     static void ValidateAnchor(Vector2 value)
     {
         if (!float.IsFinite(value.X) || !float.IsFinite(value.Y)
             || value.X < 0 || value.X > 1 || value.Y < 0 || value.Y > 1)
+        {
             throw new ArgumentOutOfRangeException(nameof(value));
+        }
     }
 }
 

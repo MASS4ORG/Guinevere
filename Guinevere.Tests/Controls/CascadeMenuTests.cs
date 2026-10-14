@@ -44,7 +44,10 @@ public class CascadeMenuTests
 
             void Draw()
             {
-                if (openDuringRender && _gui.Pass == Pass.Pass2Render) IsOpen = true;
+                if (openDuringRender && _gui.Pass == Pass.Pass2Render)
+                {
+                    IsOpen = true;
+                }
 
                 var open = IsOpen;
                 // ReSharper disable once ExplicitCallerInfoArgument - one stable id across frames.
@@ -70,11 +73,18 @@ public class CascadeMenuTests
 
         static IEnumerable<LayoutNode> Walk(LayoutNode node)
         {
-            if (node.Id.StartsWith("/menubar/", StringComparison.Ordinal)) yield return node;
+            if (node.Id.StartsWith("/menubar/", StringComparison.Ordinal))
+            {
+                yield return node;
+            }
 
             foreach (var child in node.Children)
+            {
                 foreach (var descendant in Walk(child))
+                {
                     yield return descendant;
+                }
+            }
         }
     }
 

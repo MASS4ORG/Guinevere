@@ -8,9 +8,17 @@ public class MenuNavigationTests
     static IEnumerable<LayoutNode> Groups(LayoutNode node)
     {
         if (node.Id.StartsWith("/menubar/", StringComparison.Ordinal) && node.Id.Split('/')[^1].StartsWith('v'))
+        {
             yield return node;
+        }
+
         foreach (var child in node.Children)
-            foreach (var group in Groups(child)) yield return group;
+        {
+            foreach (var group in Groups(child))
+            {
+                yield return group;
+            }
+        }
     }
 
     static LayoutNode Group(FrameHarness h, int depth) =>
@@ -20,7 +28,12 @@ public class MenuNavigationTests
     {
         Assert.True(node.Rect.W > 0 && node.Rect.H > 0, node.Id);
         foreach (var child in node.Children)
-            if (!child.Id.Contains("/node_", StringComparison.Ordinal)) AssertMeasured(child);
+        {
+            if (!child.Id.Contains("/node_", StringComparison.Ordinal))
+            {
+                AssertMeasured(child);
+            }
+        }
     }
 
     /// <summary>Closes an empty cascade instead of leaving an invisible open menu.</summary>
@@ -47,8 +60,14 @@ public class MenuNavigationTests
             .Item("Neighbor");
         void Draw(Gui gui)
         {
-            if (flyout) gui.Flyout(ref open, new Vector2(20, 20), Build);
-            else gui.CascadeMenu(ref open, new Vector2(20, 20), Build);
+            if (flyout)
+            {
+                gui.Flyout(ref open, new Vector2(20, 20), Build);
+            }
+            else
+            {
+                gui.CascadeMenu(ref open, new Vector2(20, 20), Build);
+            }
         }
         h.Frame(Draw);
         h.Input.MoveTo(Group(h, 0).Children[0].Center);
@@ -66,7 +85,11 @@ public class MenuNavigationTests
         h.Frame(Draw);
         Assert.Equal(3, Groups(h.Gui.RootNode!).Count());
         h.Input.MoveTo(Group(h, 0).Children[1].Center);
-        for (var i = 0; i < 22; i++) h.Frame(Draw);
+        for (var i = 0; i < 22; i++)
+        {
+            h.Frame(Draw);
+        }
+
         Assert.Single(Groups(h.Gui.RootNode!));
         Assert.True(open);
     }
@@ -153,7 +176,7 @@ public class MenuNavigationTests
     public void ExpandedCompactMenuAnchorsUnderTheSelectedTitle()
     {
         using var h = new FrameHarness(width: 600);
-        void Draw(Gui gui) => gui.MenuBar(bar => bar.Collapsible()
+        static void Draw(Gui gui) => gui.MenuBar(bar => bar.Collapsible()
             .Menu("File", menu => menu.Item("Open"))
             .Menu("Edit", menu => menu.Item("Copy"))
             .Menu("Help", menu => menu.Item("About")));
@@ -202,8 +225,14 @@ public class MenuNavigationTests
             gui.CascadeMenu(ref open, new Vector2(20, 20),
                 menu => menu.Submenu("More", child => child.Item("Nested")));
             var ids = Groups(gui.RootNode!).Select(node => node.Id).ToArray();
-            if (gui.Pass == Pass.Pass1Build) built = ids;
-            else Assert.Equal(built, ids);
+            if (gui.Pass == Pass.Pass1Build)
+            {
+                built = ids;
+            }
+            else
+            {
+                Assert.Equal(built, ids);
+            }
         }
         h.Frame(Draw);
         h.Input.MoveTo(Group(h, 0).Children[0].Center);
@@ -225,15 +254,26 @@ public class MenuNavigationTests
         {
             yield return node.Id;
             foreach (var child in node.Children)
-                foreach (var id in Ids(child)) yield return id;
+            {
+                foreach (var id in Ids(child))
+                {
+                    yield return id;
+                }
+            }
         }
         void Draw(Gui gui)
         {
             gui.CascadeMenu(ref open, new Vector2(20, 20),
                 menu => menu.CheckItem("Mode", () => value, next => value = next));
             var ids = Ids(gui.RootNode!).ToArray();
-            if (gui.Pass == Pass.Pass1Build) built = ids;
-            else Assert.Equal(built, ids);
+            if (gui.Pass == Pass.Pass1Build)
+            {
+                built = ids;
+            }
+            else
+            {
+                Assert.Equal(built, ids);
+            }
         }
         h.Frame(Draw);
         h.Click(Draw, Group(h, 0).Children[0].Center);

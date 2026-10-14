@@ -1,11 +1,11 @@
 using MASS4.Attributes;
 
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 // [Show] reveals private members; a shown get-only property is read-only.
 public sealed class ShowDemo
 {
-    [Show] int _secretLevel = 7;
+    [Show] readonly int _secretLevel = 7;
 
     [Show] public int Doubled => _secretLevel * 2;
 

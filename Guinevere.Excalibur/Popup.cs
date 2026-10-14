@@ -60,7 +60,10 @@ public static partial class ControlsExtensions
         {
             state.IsOpen = isOpen;
             state.JustOpened = isOpen;
-            if (isOpen && position.HasValue) state.Position = position.Value;
+            if (isOpen && position.HasValue)
+            {
+                state.Position = position.Value;
+            }
         }
         else if (isOpen && position.HasValue)
         {
@@ -69,7 +72,11 @@ public static partial class ControlsExtensions
 
         // Always create popup structure for consistency
         HandlePopupInteraction(gui, state);
-        if (modal) RenderOverlay(gui, state.IsOpen, PopupZIndex - 1, id + "/overlay");
+        if (modal)
+        {
+            RenderOverlay(gui, state.IsOpen, PopupZIndex - 1, id + "/overlay");
+        }
+
         RenderPopup(gui, state, content, width, height, title, titleBarHeight, classes, id);
 
         isOpen = state.IsOpen;
@@ -201,10 +208,18 @@ public static partial class ControlsExtensions
     {
         var now = gui.Clock.Elapsed;
         var hovering = anchorRect.W > 0 && IsMouseInRect(gui.Input.MousePosition, anchorRect);
-        if (hovering && !state.WasHovering) state.EnteredAt = now;
+        if (hovering && !state.WasHovering)
+        {
+            state.EnteredAt = now;
+        }
+
         state.WasHovering = hovering;
         var waited = now - state.EnteredAt;
-        if (hovering && waited < delay) gui.RequestFrameIn(delay - waited);
+        if (hovering && waited < delay)
+        {
+            gui.RequestFrameIn(delay - waited);
+        }
+
         return hovering && waited >= delay;
     }
 
@@ -220,10 +235,16 @@ public static partial class ControlsExtensions
 
     static void HandlePopupInteraction(Gui gui, PopupState state)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         // Handle escape key
-        if (state.CloseOnEscape && gui.IsCancelPressed) state.IsOpen = false;
+        if (state.CloseOnEscape && gui.IsCancelPressed)
+        {
+            state.IsOpen = false;
+        }
     }
 
     static void RenderPopup(Gui gui, PopupState state, Action content, float width, float height,
@@ -233,7 +254,10 @@ public static partial class ControlsExtensions
 
         var popupNode = gui.StyledNode("popup", classes, id, modifiers: state.IsOpen ? [] : ["closed"]).Width(width).Height(totalHeight)
             .AbsoluteScreen(state.Position.X, state.Position.Y).HitTestVisible(state.IsOpen);
-        if (state.IsOpen) popupNode.BlockInput();
+        if (state.IsOpen)
+        {
+            popupNode.BlockInput();
+        }
 
         using (popupNode.Enter())
         {
@@ -242,7 +266,9 @@ public static partial class ControlsExtensions
 
             // Always create title bar node for consistency
             if (!string.IsNullOrEmpty(title))
+            {
                 RenderPopupTitleBar(gui, title, width, titleBarHeight, state.IsOpen);
+            }
 
             // Always create content area node for consistency
             var contentY = string.IsNullOrEmpty(title) ? 0 : titleBarHeight;
@@ -266,7 +292,10 @@ public static partial class ControlsExtensions
 
     static void DismissPopupOutside(Gui gui, PopupState state, LayoutNode popupNode)
     {
-        if (gui.Pass != Pass.Pass2Render || state is not { IsOpen: true, CloseOnClickOutside: true }) return;
+        if (gui.Pass != Pass.Pass2Render || state is not { IsOpen: true, CloseOnClickOutside: true })
+        {
+            return;
+        }
 
         if (state.JustOpened)
         {
@@ -274,9 +303,15 @@ public static partial class ControlsExtensions
             return;
         }
 
-        if (!gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
+        if (!gui.Input.IsMouseButtonPressed(MouseButton.Left))
+        {
+            return;
+        }
 
-        if (PointerOutsidePopup(popupNode, gui.Input.MousePosition)) state.IsOpen = false;
+        if (PointerOutsidePopup(popupNode, gui.Input.MousePosition))
+        {
+            state.IsOpen = false;
+        }
     }
 
     static bool PointerOutsidePopup(LayoutNode popupNode, Vector2 pointer) =>
@@ -285,8 +320,13 @@ public static partial class ControlsExtensions
     static bool PointerInChildOverlay(LayoutNode node, Vector2 pointer)
     {
         foreach (var child in node.Children)
+        {
             if (child.Style.BlocksInput && child.ContainsScreenPoint(pointer) || PointerInChildOverlay(child, pointer))
+            {
                 return true;
+            }
+        }
+
         return false;
     }
 

@@ -1,7 +1,7 @@
 using System.Numerics;
 using Guinevere;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {
@@ -193,8 +193,10 @@ public abstract partial class Program
         gui.Tabs(ref _nestedTab, tabs =>
         {
             foreach (var title in NestedTabTitles)
+            {
                 tabs.Tab(title, () => gui.DrawText($"{title} content", size: 12,
                     color: Token(gui, "text-dim")), closable: true);
+            }
         }, id: HorizontalTabsId);
 
         using (gui.Node().Margin(0, 6, 0, 0).Direction(Axis.Horizontal).Gap(8).Enter())
@@ -283,12 +285,17 @@ public abstract partial class Program
         };
 
         if (evt.Button == MouseButton.Left && !string.IsNullOrEmpty(evt.Item.Id))
+        {
             _treeCrumbStatus = $"The trail now shows the path to {evt.Item.Label}.";
+        }
     }
 
     static void FolderIcon(Gui gui)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var rect = gui.CurrentNode.Rect;
         var center = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);
@@ -297,7 +304,10 @@ public abstract partial class Program
 
     static void FileIcon(Gui gui)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var rect = gui.CurrentNode.Rect;
         var center = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);

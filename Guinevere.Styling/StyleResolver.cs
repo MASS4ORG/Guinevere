@@ -62,7 +62,11 @@ public sealed class ResolvedStyle
     public IReadOnlyList<TextEffects.TextShadow>? GetTextShadows(Color? defaultColor = null)
     {
         var color = GetColor("color") ?? defaultColor ?? Color.Black;
-        if (_textShadowsParsed && _textShadowColor == color) return _textShadows;
+        if (_textShadowsParsed && _textShadowColor == color)
+        {
+            return _textShadows;
+        }
+
         _textShadowColor = color;
         _textShadowsParsed = true;
         return _textShadows = StyleTextValues.Shadows(Get("text-shadow"), color);
@@ -109,8 +113,16 @@ public static class StyleResolver
     public static ResolvedStyle Resolve(IReadOnlyList<StyleSheet> sheets, in StyleTarget target,
         IReadOnlyList<StyleVariable>? scopedVariables = null)
     {
-        if (sheets is StyleSheetCollection collection) return collection.Resolve(target, scopedVariables);
-        if (sheets.Count == 0) return ResolvedStyle.Empty;
+        if (sheets is StyleSheetCollection collection)
+        {
+            return collection.Resolve(target, scopedVariables);
+        }
+
+        if (sheets.Count == 0)
+        {
+            return ResolvedStyle.Empty;
+        }
+
         var globals = LayerVariables(sheets, null);
         return ApplyScoped(ResolveEntry(sheets, target, globals), scopedVariables, globals);
     }
@@ -131,9 +143,21 @@ public static class StyleResolver
     {
         var layered = new Dictionary<string, string>(StringComparer.Ordinal);
         for (var s = 0; s < sheets.Count; s++)
-            foreach (var (name, value) in sheets[s].Variables) layered[name] = value;
+        {
+            foreach (var (name, value) in sheets[s].Variables)
+            {
+                layered[name] = value;
+            }
+        }
+
         if (hostTokens is not null)
-            foreach (var (name, value) in hostTokens) layered[name] = value;
+        {
+            foreach (var (name, value) in hostTokens)
+            {
+                layered[name] = value;
+            }
+        }
+
         return layered;
     }
 
@@ -142,7 +166,11 @@ public static class StyleResolver
         IReadOnlyDictionary<string, string> globals)
     {
         var matches = Match(sheets, target);
-        if (matches.Count == 0) return StyleCacheEntry.Empty;
+        if (matches.Count == 0)
+        {
+            return StyleCacheEntry.Empty;
+        }
+
         var (raw, locals) = Merge(matches);
         return Expand(raw, locals, globals);
     }
@@ -158,9 +186,20 @@ public static class StyleResolver
             (string Value, Uri? Base, StyleTransition? Transition, StylePropertySource? Source)>(StringComparer.Ordinal);
         Dictionary<string, string>? locals = null;
         foreach (var (_, _, _, rule, transition) in matches)
+        {
             foreach (var (prop, value) in rule.Declarations)
-                if (prop.StartsWith("--", StringComparison.Ordinal)) (locals ??= new(StringComparer.Ordinal))[prop] = value;
-                else raw[prop] = (value, rule.BaseUri, transition, rule.Sources.GetValueOrDefault(prop));
+            {
+                if (prop.StartsWith("--", StringComparison.Ordinal))
+                {
+                    (locals ??= new(StringComparer.Ordinal))[prop] = value;
+                }
+                else
+                {
+                    raw[prop] = (value, rule.BaseUri, transition, rule.Sources.GetValueOrDefault(prop));
+                }
+            }
+        }
+
         return (raw, locals);
     }
 
@@ -178,9 +217,20 @@ public static class StyleResolver
         {
             merged[prop] = StyleSheet.Compute(value, lookup);
             RecordSource(prop, source, ref sources);
-            if (baseUri is not null) (bases ??= new(StringComparer.Ordinal))[prop] = baseUri;
-            if (transition is not null) (transitions ??= new(StringComparer.Ordinal))[prop] = transition;
-            if (StyleSheet.References(value)) (referencing ??= new(StringComparer.Ordinal))[prop] = value;
+            if (baseUri is not null)
+            {
+                (bases ??= new(StringComparer.Ordinal))[prop] = baseUri;
+            }
+
+            if (transition is not null)
+            {
+                (transitions ??= new(StringComparer.Ordinal))[prop] = transition;
+            }
+
+            if (StyleSheet.References(value))
+            {
+                (referencing ??= new(StringComparer.Ordinal))[prop] = value;
+            }
         }
         var style = new ResolvedStyle(merged, bases) { Locals = locals, Transitions = transitions, Sources = sources };
         return new StyleCacheEntry(style, referencing, locals);
@@ -189,7 +239,10 @@ public static class StyleResolver
     static void RecordSource(string property, StylePropertySource? source,
         ref Dictionary<string, StylePropertySource>? sources)
     {
-        if (source is not null) (sources ??= new(StringComparer.Ordinal))[property] = source;
+        if (source is not null)
+        {
+            (sources ??= new(StringComparer.Ordinal))[property] = source;
+        }
     }
 
     /// <summary>
@@ -215,7 +268,11 @@ public static class StyleResolver
         Func<string, string?> lookup = name => caller?.GetValueOrDefault(name) ?? locals?.GetValueOrDefault(name)
             ?? inherited?.GetValueOrDefault(name) ?? globals.GetValueOrDefault(name);
         var merged = new Dictionary<string, string>(entry.Style.DeclarationMap, StringComparer.Ordinal);
-        foreach (var (prop, value) in referencing) merged[prop] = StyleSheet.Compute(value, lookup);
+        foreach (var (prop, value) in referencing)
+        {
+            merged[prop] = StyleSheet.Compute(value, lookup);
+        }
+
         return new ResolvedStyle(merged, entry.Style.Bases)
         {
             Locals = locals,
@@ -226,7 +283,11 @@ public static class StyleResolver
 
     static Dictionary<string, string>? CallerTokens(IReadOnlyList<StyleVariable>? scoped)
     {
-        if (scoped is not { Count: > 0 }) return null;
+        if (scoped is not { Count: > 0 })
+        {
+            return null;
+        }
+
         var caller = new Dictionary<string, string>(scoped.Count, StringComparer.Ordinal);
         for (var i = 0; i < scoped.Count; i++)
         {
@@ -250,14 +311,20 @@ public static class StyleResolver
             {
                 var rule = sheet.Rules[r];
                 if (BestSelector(rule, target, sheet) is { } best)
+                {
                     matches.Add(new RuleMatch(best.Specificity, s, rule.Order, rule, best.Transition));
+                }
             }
         }
 
         matches.Sort(static (a, b) =>
         {
             var c = a.Specificity.CompareTo(b.Specificity);
-            if (c != 0) return c;
+            if (c != 0)
+            {
+                return c;
+            }
+
             c = a.Sheet.CompareTo(b.Sheet);
             return c != 0 ? c : a.Order.CompareTo(b.Order);
         });
@@ -271,15 +338,26 @@ public static class StyleResolver
         for (var k = 0; k < rule.Selectors.Count; k++)
         {
             var selector = rule.Selectors[k];
-            if (selector.Specificity > (best?.Specificity ?? -1) && Matches(selector, target, sheet)) best = selector;
+            if (selector.Specificity > (best?.Specificity ?? -1) && Matches(selector, target, sheet))
+            {
+                best = selector;
+            }
         }
         return best;
     }
 
     static bool Matches(Selector selector, in StyleTarget target, StyleSheet sheet)
     {
-        if (selector.Matches(target)) return true;
-        if (!sheet.HasInheritance) return false;
+        if (selector.Matches(target))
+        {
+            return true;
+        }
+
+        if (!sheet.HasInheritance)
+        {
+            return false;
+        }
+
         return MatchesSubjectAlias(selector, target, sheet)
                || selector.HasCombinator && MatchesAncestorAlias(selector, target, sheet);
     }
@@ -288,20 +366,36 @@ public static class StyleResolver
     {
         var use = selector.HasCombinator ? AliasUse.Selector : AliasUse.Properties;
         foreach (var alias in InheritedNames(target.Type, sheet, use))
-            if (selector.Matches(target with { Type = alias })) return true;
+        {
+            if (selector.Matches(target with { Type = alias }))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
     static bool MatchesAncestorAlias(Selector selector, in StyleTarget target, StyleSheet sheet)
     {
-        if (target.Ancestors is not { } source) return false;
+        if (target.Ancestors is not { } source)
+        {
+            return false;
+        }
+
         for (var i = 0; i < source.Count; i++)
+        {
             foreach (var alias in InheritedNames(source[i].Type, sheet, AliasUse.Selector))
             {
                 var ancestors = source.ToArray();
                 ancestors[i] = ancestors[i] with { Type = alias };
-                if (selector.Matches(target with { Ancestors = ancestors })) return true;
+                if (selector.Matches(target with { Ancestors = ancestors }))
+                {
+                    return true;
+                }
             }
+        }
+
         return false;
     }
 
@@ -312,7 +406,11 @@ public static class StyleResolver
     /// </summary>
     static IEnumerable<string> InheritedNames(string? type, StyleSheet sheet, AliasUse use)
     {
-        if (type is null) yield break;
+        if (type is null)
+        {
+            yield break;
+        }
+
         var extra = use == AliasUse.Properties ? sheet.PropertyInheritance : sheet.SelectorInheritance;
         var pending = new Stack<string>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -323,7 +421,9 @@ public static class StyleResolver
             sheet.Inheritance.TryGetValue(current, out var shared);
             extra.TryGetValue(current, out var specific);
             foreach (var parent in (shared ?? []).Concat(specific ?? []))
+            {
                 if (seen.Add(parent)) { yield return parent; pending.Push(parent); }
+            }
         }
     }
 }

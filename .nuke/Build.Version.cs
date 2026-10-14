@@ -157,7 +157,10 @@ sealed partial class Build
                     var path = project.Path;
                     var text = File.ReadAllText(path);
                     var stamped = ProjectVersionRegex().Replace(text, $"<Version>{Version}</Version>", 1);
-                    if (stamped == text) continue;
+                    if (stamped == text)
+                    {
+                        continue;
+                    }
 
                     var bom = File.ReadAllBytes(path) is [0xEF, 0xBB, 0xBF, ..];
                     File.WriteAllText(path, stamped, new UTF8Encoding(bom));

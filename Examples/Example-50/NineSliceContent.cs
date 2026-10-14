@@ -2,7 +2,7 @@ using System.Globalization;
 using Guinevere;
 using SkiaSharp;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {
@@ -31,7 +31,11 @@ public abstract partial class Program
                 _sliceGuides = gui.Checkbox(_sliceGuides, "Show destination guides");
                 // Destination dimensions stay identical in both passes when a numeric field commits during rendering.
                 ref var size = ref gui.GetData((Width: 0f, Height: 0f), id: "slice-preview-size");
-                if (gui.Pass == Pass.Pass1Build) (size.Width, size.Height) = ((float)_sliceWidth, (float)_sliceHeight);
+                if (gui.Pass == Pass.Pass1Build)
+                {
+                    (size.Width, size.Height) = ((float)_sliceWidth, (float)_sliceHeight);
+                }
+
                 gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, size.Width, size.Height, _sliceGuides,
                     id: "slice-live");
                 gui.DrawText("Wide, tall and smaller than the corner sum", 14, Token(gui, "text"));
@@ -64,7 +68,13 @@ public abstract partial class Program
         paint.Style = SKPaintStyle.Fill;
         paint.Color = new SKColor(235, 185, 90);
         foreach (var x in new[] { 5, 27 })
-            foreach (var y in new[] { 5, 27 }) canvas.DrawCircle(x, y, 2, paint);
+        {
+            foreach (var y in new[] { 5, 27 })
+            {
+                canvas.DrawCircle(x, y, 2, paint);
+            }
+        }
+
         return SKImage.FromBitmap(bitmap);
     }
 }

@@ -16,18 +16,30 @@ public class Text(string label, Vector2? position = null, SKFont? font = null, S
     /// <inheritdoc/>
     SKRect? IInkBounds.InkBounds(LayoutNode node)
     {
-        if (string.IsNullOrEmpty(Label)) return SKRect.Empty;
+        if (string.IsNullOrEmpty(Label))
+        {
+            return SKRect.Empty;
+        }
+
         var measured = Font ?? new SKFont();
         measured.MeasureText(Label, out var glyphs);
         glyphs.Offset(Position.X, Position.Y);
         var ink = SKRect.Inflate(glyphs, 1f, 1f);
-        if (Effects is not { } value) return Ink.Painted(ink, Paint);
+        if (Effects is not { } value)
+        {
+            return Ink.Painted(ink, Paint);
+        }
+
         return WithTextEffects(ink, glyphs, Paint, value);
     }
 
     static SKRect? WithTextEffects(SKRect ink, SKRect glyphs, SKPaint? paint, TextEffects effects)
     {
-        if (paint?.MaskFilter is not null) return null;
+        if (paint?.MaskFilter is not null)
+        {
+            return null;
+        }
+
         ink = AddStrokeBounds(ink, paint);
         ink = AddOutlineBounds(ink, effects.Outline);
         return AddShadowBounds(ink, glyphs, effects);
@@ -35,32 +47,53 @@ public class Text(string label, Vector2? position = null, SKFont? font = null, S
 
     static SKRect AddStrokeBounds(SKRect ink, SKPaint? paint)
     {
-        if (paint is not { Style: not SKPaintStyle.Fill }) return ink;
+        if (paint is not { Style: not SKPaintStyle.Fill })
+        {
+            return ink;
+        }
+
         var stroke = paint.StrokeWidth * 0.5f + 1f;
         return SKRect.Inflate(ink, stroke, stroke);
     }
 
     static SKRect AddOutlineBounds(SKRect ink, TextEffects.TextOutline? outline)
     {
-        if (outline is not { Width: > 0 } value) return ink;
+        if (outline is not { Width: > 0 } value)
+        {
+            return ink;
+        }
+
         return SKRect.Inflate(ink, value.Width, value.Width);
     }
 
     static SKRect AddShadowBounds(SKRect ink, SKRect glyphs, TextEffects effects)
     {
         if (effects.DropShadow is { } drop)
+        {
             ink = JoinShadow(ink, glyphs, drop);
+        }
+
         ink = AddDropShadows(ink, glyphs, effects.DropShadows);
         if (effects.InnerShadow is { } inner)
+        {
             ink = JoinShadow(ink, glyphs, inner);
+        }
+
         return ink;
     }
 
     static SKRect AddDropShadows(SKRect ink, SKRect glyphs, IReadOnlyList<TextEffects.TextShadow>? shadows)
     {
-        if (shadows is null) return ink;
+        if (shadows is null)
+        {
+            return ink;
+        }
+
         for (var i = 0; i < shadows.Count; i++)
+        {
             ink = JoinShadow(ink, glyphs, shadows[i]);
+        }
+
         return ink;
     }
 

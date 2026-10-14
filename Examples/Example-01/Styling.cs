@@ -1,20 +1,20 @@
 using Guinevere;
 
-namespace Example_01;
+namespace Example01;
 
 public partial class Shared
 {
-    static readonly StyleSheetSource stylesheet = StyleSheetSource.FromProvider(Theme);
+    static readonly StyleSheetSource Stylesheet = StyleSheetSource.FromProvider(Theme);
     static readonly string[] StyleChips = ["Layout", "Text", "Motion", "Style"];
     const float SourcePaneMinWidth = 1050f;
-    static bool styleSelected = true;
-    static int styleChip = 3;
-    static float styleProgress = 0.65f;
+    static bool _styleSelected = true;
+    static int _styleChip = 3;
+    static float _styleProgress = 0.65f;
 
     /// <summary>The stylesheet follows the active palette; the Theme switch reloads it atomically.</summary>
     static string Theme()
     {
-        var p = palette;
+        var p = _palette;
         var hover = ColorPalette.Hex(Color.Lerp(p.SurfaceHover, p.Accent, 0.3f));
         return $$"""
             @const radius = 12;
@@ -95,7 +95,10 @@ public partial class Shared
         using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(16).Enter())
         {
             StyledColumn(gui, p);
-            if (gui.ScreenRect.W >= SourcePaneMinWidth) SourcePane(gui, p);
+            if (gui.ScreenRect.W >= SourcePaneMinWidth)
+            {
+                SourcePane(gui, p);
+            }
         }
     }
 
@@ -106,13 +109,13 @@ public partial class Shared
             gui.ScrollY(p.Track, p.Border);
             using (gui.StyledNode("toolbar").Enter())
             {
-                StyledButton(gui, p, styleSelected ? "Selected" : "Select me", () => styleSelected = !styleSelected,
-                    styleSelected);
+                StyledButton(gui, p, _styleSelected ? "Selected" : "Select me", () => _styleSelected = !_styleSelected,
+                    _styleSelected);
                 StyledButton(gui, p, "Reset", () =>
                 {
-                    styleSelected = true;
-                    styleProgress = 0.65f;
-                    styleChip = 3;
+                    _styleSelected = true;
+                    _styleProgress = 0.65f;
+                    _styleChip = 3;
                 });
             }
 
@@ -123,12 +126,12 @@ public partial class Shared
 
                 using (gui.StyledNode("progress-track").Enter())
                 using (gui.StyledNode("progress-fill",
-                           variables: [new StyleVariable("progress", $"{styleProgress * 100}%")]).Enter()) { }
+                           variables: [new StyleVariable("progress", $"{_styleProgress * 100}%")]).Enter()) { }
 
                 using (gui.StyledNode("toolbar").Enter())
                 {
-                    StyledButton(gui, p, "Less", () => styleProgress = Math.Max(0.1f, styleProgress - 0.1f));
-                    StyledButton(gui, p, "More", () => styleProgress = Math.Min(1f, styleProgress + 0.1f));
+                    StyledButton(gui, p, "Less", () => _styleProgress = Math.Max(0.1f, _styleProgress - 0.1f));
+                    StyledButton(gui, p, "More", () => _styleProgress = Math.Min(1f, _styleProgress + 0.1f));
                 }
             }
 
@@ -136,15 +139,23 @@ public partial class Shared
             {
                 gui.DrawText("Modifiers: one :selected chip at a time", 16, p.Text);
                 using (gui.Node().Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
+                {
                     for (var i = 0; i < StyleChips.Length; i++)
                     {
                         using var key = gui.ItemKey(i);
                         var index = i;
-                        var chip = gui.StyledNode("chip", i == styleChip ? ["selected"] : []);
-                        if (chip.OnClick()) Later(() => styleChip = index);
+                        var chip = gui.StyledNode("chip", i == _styleChip ? ["selected"] : []);
+                        if (chip.OnClick())
+                        {
+                            Later(() => _styleChip = index);
+                        }
+
                         using (chip.Enter())
-                            gui.DrawText(StyleChips[i], 14, i == styleChip ? p.AccentText : p.Text);
+                        {
+                            gui.DrawText(StyleChips[i], 14, i == _styleChip ? p.AccentText : p.Text);
+                        }
                     }
+                }
             }
         }
     }
@@ -157,14 +168,23 @@ public partial class Shared
             gui.ScrollY(p.Track, p.Border);
             gui.DrawText("Stylesheet source", 12, p.TextDim);
             foreach (var line in Theme().Split('\n'))
+            {
                 gui.DrawText(line.Length == 0 ? " " : line, 11, p.TextDim);
+            }
         }
     }
 
     static void StyledButton(Gui gui, ColorPalette p, string label, Action clicked, bool selected = false)
     {
         var node = gui.StyledNode("button", selected ? ["selected"] : []);
-        if (node.OnClick()) Later(clicked);
-        using (node.Enter()) gui.DrawText(label, 15, selected ? p.AccentText : p.Text);
+        if (node.OnClick())
+        {
+            Later(clicked);
+        }
+
+        using (node.Enter())
+        {
+            gui.DrawText(label, 15, selected ? p.AccentText : p.Text);
+        }
     }
 }

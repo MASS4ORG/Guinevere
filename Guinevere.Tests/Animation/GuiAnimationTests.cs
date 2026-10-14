@@ -15,7 +15,7 @@ public class GuiAnimationTests
     /// Verifies that GetAnimationFloat returns a new instance each time.
     /// </summary>
     [Fact]
-    public void GetAnimationFloat_ReturnsNewInstance()
+    public void GetAnimationFloatReturnsNewInstance()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -35,7 +35,7 @@ public class GuiAnimationTests
     /// Verifies that GetAnimationFloat with no arguments returns a zero initial value.
     /// </summary>
     [Fact]
-    public void GetAnimationFloat_DefaultValue_ReturnsZero()
+    public void GetAnimationFloatDefaultValueReturnsZero()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -51,7 +51,7 @@ public class GuiAnimationTests
     /// Verifies that AnimateBool01 from the same location returns the same animation.
     /// </summary>
     [Fact]
-    public void AnimateBool01_SameLocation_ReturnsSameAnimation()
+    public void AnimateBool01SameLocationReturnsSameAnimation()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -72,7 +72,7 @@ public class GuiAnimationTests
     /// Verifies that the initial state call returns the target value directly.
     /// </summary>
     [Fact]
-    public void AnimateBool01_InitialState_ReturnsTargetValue()
+    public void AnimateBool01InitialStateReturnsTargetValue()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -91,7 +91,7 @@ public class GuiAnimationTests
     /// Verifies that a state change triggers an animation on the Gui class.
     /// </summary>
     [Fact]
-    public void AnimateBool01_StateChange_TriggersAnimation()
+    public void AnimateBool01StateChangeTriggersAnimation()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -118,7 +118,7 @@ public class GuiAnimationTests
     /// Verifies that ActiveAnimationCount reflects the total number of managed animations.
     /// </summary>
     [Fact]
-    public void ActiveAnimationCount_ReflectsNumberOfManagedAnimations()
+    public void ActiveAnimationCountReflectsNumberOfManagedAnimations()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -137,7 +137,7 @@ public class GuiAnimationTests
     /// Verifies that RunningAnimationCount reflects only actively animating entries.
     /// </summary>
     [Fact]
-    public void RunningAnimationCount_ReflectsActivelyAnimatingCount()
+    public void RunningAnimationCountReflectsActivelyAnimatingCount()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -170,7 +170,7 @@ public class GuiAnimationTests
     /// Verifies that ClearAnimations removes all animations from the Gui.
     /// </summary>
     [Fact]
-    public void ClearAnimations_RemovesAllAnimations()
+    public void ClearAnimationsRemovesAllAnimations()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -193,7 +193,7 @@ public class GuiAnimationTests
     /// Verifies that different easing functions work correctly with AnimateBool01.
     /// </summary>
     [Fact]
-    public void AnimateBool01_DifferentEasingFunctions_WorkCorrectly()
+    public void AnimateBool01DifferentEasingFunctionsWorkCorrectly()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -238,7 +238,7 @@ public class GuiAnimationTests
     /// Verifies that a zero-duration animation sets the value immediately without animating.
     /// </summary>
     [Fact]
-    public void AnimateBool01_ZeroDuration_NoAnimation()
+    public void AnimateBool01ZeroDurationNoAnimation()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -258,7 +258,7 @@ public class GuiAnimationTests
     /// Verifies that calls from different caller locations create separate animations.
     /// </summary>
     [Fact]
-    public void AnimateBool01_CallsFromDifferentLocations_CreateSeparateAnimations()
+    public void AnimateBool01CallsFromDifferentLocationsCreateSeparateAnimations()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -280,7 +280,7 @@ public class GuiAnimationTests
     /// Verifies that the animation system works correctly with multiple time updates.
     /// </summary>
     [Fact]
-    public void AnimationSystem_IntegrationWithTimeUpdates_WorksCorrectly()
+    public void AnimationSystemIntegrationWithTimeUpdatesWorksCorrectly()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -320,7 +320,7 @@ public class GuiAnimationTests
     /// Verifies that the Gui returns zero counts when no animations have been created.
     /// </summary>
     [Fact]
-    public void AnimationSystem_NoAnimationManager_ReturnsZeroCounts()
+    public void AnimationSystemNoAnimationManagerReturnsZeroCounts()
     {
         // Arrange
         var gui = CreateTestGui();

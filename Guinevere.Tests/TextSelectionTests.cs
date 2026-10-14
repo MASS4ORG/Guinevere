@@ -43,7 +43,7 @@ public sealed class TextSelectionTests
     public void ShortcutsBelongToTheFocusedLabel()
     {
         using var h = new FrameHarness();
-        void Two(Gui gui)
+        static void Two(Gui gui)
         {
             gui.DrawText(Text, selectable: true);
             gui.DrawText("second label", selectable: true);
@@ -130,7 +130,10 @@ public sealed class TextSelectionTests
         h.Input.MoveTo(300, 40);
         h.Frame(Lines);
         Assert.Equal(text, State(h).Text);
-        if (text.Length > 0) Assert.Equal(text, State(h).SelectedText);
+        if (text.Length > 0)
+        {
+            Assert.Equal(text, State(h).SelectedText);
+        }
     }
 
     /// <summary>Repeated clicks select a word and then the whole label.</summary>

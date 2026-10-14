@@ -23,7 +23,11 @@ sealed class StyleCache
     /// <summary>Stores an entry under a snapshot of <paramref name="target"/>, so later list reuse is safe.</summary>
     public void Add(in StyleTarget target, StyleCacheEntry entry)
     {
-        if (_entries.Count >= Capacity) _entries.Clear();
+        if (_entries.Count >= Capacity)
+        {
+            _entries.Clear();
+        }
+
         _entries[new StyleCacheKey(Snapshot(target, includeAncestors: true))] = entry;
     }
 
@@ -36,7 +40,10 @@ sealed class StyleCache
         if (includeAncestors && target.Ancestors is { Count: > 0 } source)
         {
             ancestors = new StyleTarget[source.Count];
-            for (var i = 0; i < ancestors.Length; i++) ancestors[i] = Snapshot(source[i], includeAncestors: false);
+            for (var i = 0; i < ancestors.Length; i++)
+            {
+                ancestors[i] = Snapshot(source[i], includeAncestors: false);
+            }
         }
         return new StyleTarget(target.Type, target.Id, Copy(target.Classes) ?? [], target.State,
             Copy(target.Modifiers), ancestors);
@@ -44,9 +51,17 @@ sealed class StyleCache
 
     static string[]? Copy(IReadOnlyList<string>? list)
     {
-        if (list is null) return null;
+        if (list is null)
+        {
+            return null;
+        }
+
         var copy = new string[list.Count];
-        for (var i = 0; i < copy.Length; i++) copy[i] = list[i];
+        for (var i = 0; i < copy.Length; i++)
+        {
+            copy[i] = list[i];
+        }
+
         return copy;
     }
 }
@@ -67,13 +82,27 @@ sealed class StyleCacheKeyComparer : IEqualityComparer<StyleCacheKey>
 
     public bool Equals(StyleCacheKey x, StyleCacheKey y)
     {
-        if (!SameElement(x.Target, y.Target)) return false;
+        if (!SameElement(x.Target, y.Target))
+        {
+            return false;
+        }
+
         var a = x.Target.Ancestors;
         var b = y.Target.Ancestors;
         var count = a?.Count ?? 0;
-        if (count != (b?.Count ?? 0)) return false;
+        if (count != (b?.Count ?? 0))
+        {
+            return false;
+        }
+
         for (var i = 0; i < count; i++)
-            if (!SameElement(a![i], b![i])) return false;
+        {
+            if (!SameElement(a![i], b![i]))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -84,7 +113,11 @@ sealed class StyleCacheKeyComparer : IEqualityComparer<StyleCacheKey>
         var ancestors = key.Target.Ancestors;
         var count = ancestors?.Count ?? 0;
         hash.Add(count);
-        for (var i = 0; i < count; i++) AddElement(ref hash, ancestors![i]);
+        for (var i = 0; i < count; i++)
+        {
+            AddElement(ref hash, ancestors![i]);
+        }
+
         return hash.ToHashCode();
     }
 
@@ -97,11 +130,25 @@ sealed class StyleCacheKeyComparer : IEqualityComparer<StyleCacheKey>
 
     static bool SameList(IReadOnlyList<string>? a, IReadOnlyList<string>? b)
     {
-        if (ReferenceEquals(a, b)) return true;
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
         var count = a?.Count ?? 0;
-        if (count != (b?.Count ?? 0)) return false;
+        if (count != (b?.Count ?? 0))
+        {
+            return false;
+        }
+
         for (var i = 0; i < count; i++)
-            if (!string.Equals(a![i], b![i], StringComparison.Ordinal)) return false;
+        {
+            if (!string.Equals(a![i], b![i], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -118,6 +165,9 @@ sealed class StyleCacheKeyComparer : IEqualityComparer<StyleCacheKey>
     {
         var count = list?.Count ?? 0;
         hash.Add(count);
-        for (var i = 0; i < count; i++) hash.Add(list![i]);
+        for (var i = 0; i < count; i++)
+        {
+            hash.Add(list![i]);
+        }
     }
 }

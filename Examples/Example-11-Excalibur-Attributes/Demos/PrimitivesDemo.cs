@@ -1,4 +1,4 @@
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 public enum Difficulty { Easy, Normal, Hard }
 

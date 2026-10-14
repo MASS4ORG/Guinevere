@@ -17,13 +17,17 @@ public class StyleCacheTests
     static StyleSheetCollection Collection(params string[] sheets)
     {
         var collection = new StyleSheetCollection();
-        foreach (var sheet in sheets) collection.Add(StyleSheet.Parse(sheet));
+        foreach (var sheet in sheets)
+        {
+            collection.Add(StyleSheet.Parse(sheet));
+        }
+
         return collection;
     }
 
     /// <summary>A repeated target returns the cached instance.</summary>
     [Fact]
-    public void Hit_ReturnsSameInstance()
+    public void HitReturnsSameInstance()
     {
         var sheets = Collection(Widths);
         var target = new StyleTarget("button", null, ["big"]);
@@ -37,7 +41,7 @@ public class StyleCacheTests
 
     /// <summary>Cache hits, including those with ancestors and through <c>gui.ResolveStyle</c>, allocate nothing.</summary>
     [Fact]
-    public void Hit_AllocatesNothing()
+    public void HitAllocatesNothing()
     {
         var gui = new Gui();
         gui.StyleSheets.Add(StyleSheet.Parse(Widths));
@@ -62,7 +66,7 @@ public class StyleCacheTests
 
     /// <summary>Every element of the key selects its own entry.</summary>
     [Fact]
-    public void Key_DistinguishesStateModifiersAncestorsClassesAndId()
+    public void KeyDistinguishesStateModifiersAncestorsClassesAndId()
     {
         var sheets = Collection(Widths);
         var plain = new StyleTarget("button", null, []);
@@ -80,7 +84,7 @@ public class StyleCacheTests
 
     /// <summary>Inserted keys are snapshots: reusing the caller's lists later cannot corrupt the cache.</summary>
     [Fact]
-    public void Insert_SnapshotsCallerLists()
+    public void InsertSnapshotsCallerLists()
     {
         var sheets = Collection(Widths);
         var ancestors = new List<StyleTarget> { new("Panel", null, []) };
@@ -101,7 +105,7 @@ public class StyleCacheTests
 
     /// <summary>Adding, inserting, replacing, removing and clearing sheets bump the version and invalidate.</summary>
     [Fact]
-    public void SheetChanges_Invalidate()
+    public void SheetChangesInvalidate()
     {
         var sheets = Collection("box { width = 1; }");
         var target = new StyleTarget("box", null, []);
@@ -125,7 +129,7 @@ public class StyleCacheTests
 
     /// <summary>Host token overrides sit above every sheet and invalidate the cache.</summary>
     [Fact]
-    public void TokenOverrides_InvalidateAndLayerAboveSheets()
+    public void TokenOverridesInvalidateAndLayerAboveSheets()
     {
         var sheets = Collection("$accent = red; box { color = $accent; }", "$accent = blue;");
         var target = new StyleTarget("box", null, []);
@@ -147,7 +151,7 @@ public class StyleCacheTests
 
     /// <summary>Call-site variables re-expand only referencing declarations and never pollute the cache.</summary>
     [Fact]
-    public void ScopedVariables_ReexpandWithoutPollutingCache()
+    public void ScopedVariablesReexpandWithoutPollutingCache()
     {
         var sheets = Collection("$progress = 0; progress { width = $progress; height = 5; } bar { height = 5; }");
         var target = new StyleTarget("progress", null, []);
@@ -165,10 +169,13 @@ public class StyleCacheTests
 
     /// <summary>Reaching the capacity clears the cache instead of growing without bound.</summary>
     [Fact]
-    public void Capacity_BoundsEntries()
+    public void CapacityBoundsEntries()
     {
         var sheets = Collection(Widths);
-        for (var i = 0; i <= StyleCache.Capacity; i++) sheets.Resolve(new StyleTarget("button", $"id{i}", []));
+        for (var i = 0; i <= StyleCache.Capacity; i++)
+        {
+            sheets.Resolve(new StyleTarget("button", $"id{i}", []));
+        }
 
         Assert.Equal(1, sheets.CachedCount);
         Assert.Equal("6", sheets.Resolve(new StyleTarget("button", "ok", [])).Get("width"));
@@ -176,7 +183,7 @@ public class StyleCacheTests
 
     /// <summary>A source reload invalidates the cache and the next frame draws the new style.</summary>
     [Fact]
-    public void Reload_IsVisibleInNextFrame()
+    public void ReloadIsVisibleInNextFrame()
     {
         using var harness = new FrameHarness(40, 40);
         var color = "#ff0000";

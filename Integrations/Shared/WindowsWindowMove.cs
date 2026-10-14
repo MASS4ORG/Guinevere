@@ -7,7 +7,11 @@ static partial class WindowsWindowMove
 {
     internal static bool TryBegin(nint window)
     {
-        if (!OperatingSystem.IsWindows() || window == 0) return false;
+        if (!OperatingSystem.IsWindows() || window == 0)
+        {
+            return false;
+        }
+
         ReleaseCapture();
         // GLFW must see a release because the system move loop consumes the physical mouse-up event.
         SendMessageW(window, 0x0202, 0, 0);

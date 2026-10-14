@@ -110,7 +110,11 @@ public class ProgressBarTests
             progress:indeterminate { background-color = #0000ff; }
             progress:indeterminate > fill { background-color = #ff0000; }
             """));
-        for (var i = 0; i < 30; i++) harness.Frame(g => g.ProgressBar(null, width: 200));
+        for (var i = 0; i < 30; i++)
+        {
+            harness.Frame(g => g.ProgressBar(null, width: 200));
+        }
+
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);
         Assert.Equal(SKColors.Red, pixels.GetPixel(40, 3));
@@ -138,7 +142,10 @@ public class ProgressBarTests
         harness.Frame(g =>
         {
             g.DrawBackgroundRect(Color.White);
-            using (g.Node().Width(UnitValue.Pixels(parentWidth)).Height(20).Enter()) g.ProgressBar(fraction, width: -1);
+            using (g.Node().Width(UnitValue.Pixels(parentWidth)).Height(20).Enter())
+            {
+                g.ProgressBar(fraction, width: -1);
+            }
         });
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);

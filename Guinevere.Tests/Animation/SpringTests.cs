@@ -6,7 +6,11 @@ public class SpringTests
     static (float Value, float Velocity) Run(float dampingRatio, float total, int steps)
     {
         var (value, velocity) = (0f, 0f);
-        for (var i = 0; i < steps; i++) Spring.Step(ref value, ref velocity, 1f, total / steps, 12f, dampingRatio);
+        for (var i = 0; i < steps; i++)
+        {
+            Spring.Step(ref value, ref velocity, 1f, total / steps, 12f, dampingRatio);
+        }
+
         return (value, velocity);
     }
 
@@ -15,7 +19,7 @@ public class SpringTests
     [InlineData(1f)]
     [InlineData(0.3f)]
     [InlineData(2.5f)]
-    public void Step_IsFrameRateIndependent(float dampingRatio)
+    public void StepIsFrameRateIndependent(float dampingRatio)
     {
         var coarse = Run(dampingRatio, 0.12f, 1);
         var fine = Run(dampingRatio, 0.12f, 12);
@@ -26,9 +30,9 @@ public class SpringTests
 
     /// <summary>Under-damped springs overshoot; critically and over-damped ones do not.</summary>
     [Fact]
-    public void Step_OvershootsOnlyWhenUnderDamped()
+    public void StepOvershootsOnlyWhenUnderDamped()
     {
-        float Peak(float zeta)
+        static float Peak(float zeta)
         {
             var (value, velocity, peak) = (0f, 0f, 0f);
             for (var i = 0; i < 200; i++)
@@ -46,7 +50,7 @@ public class SpringTests
 
     /// <summary>A settled spring holds its target exactly; zero time and zero frequency change nothing.</summary>
     [Fact]
-    public void Step_SettlesExactlyAndIgnoresEmptySteps()
+    public void StepSettlesExactlyAndIgnoresEmptySteps()
     {
         var (value, velocity) = (0.25f, 2f);
         Assert.False(Spring.Step(ref value, ref velocity, 1f, 0f, 12f));
@@ -55,7 +59,11 @@ public class SpringTests
         Assert.Equal((0.25f, 2f), (value, velocity));
 
         var settled = false;
-        for (var i = 0; i < 500 && !settled; i++) settled = Spring.Step(ref value, ref velocity, 1f, 0.016f, 12f);
+        for (var i = 0; i < 500 && !settled; i++)
+        {
+            settled = Spring.Step(ref value, ref velocity, 1f, 0.016f, 12f);
+        }
+
         Assert.True(settled);
         Assert.Equal((1f, 0f), (value, velocity));
     }

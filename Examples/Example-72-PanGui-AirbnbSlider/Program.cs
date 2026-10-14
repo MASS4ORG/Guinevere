@@ -1,7 +1,7 @@
 using System.Numerics;
 using Guinevere;
 
-namespace Example_72_PanGui_AirbnbSlider;
+namespace Example72PanGuiAirbnbSlider;
 
 /// <summary>Shows a circular month slider with continuous dragging and layered shape effects.</summary>
 public abstract class Program
@@ -36,7 +36,11 @@ public abstract class Program
         {
             // Build-pass nodes have no layout yet; dragging uses the last rendered center.
             ref var center = ref gui.GetValue(Vector2.Zero, "airbnb-slider-center");
-            if (gui.Pass == Pass.Pass2Render) center = gui.CurrentNode.Rect.Center;
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                center = gui.CurrentNode.Rect.Center;
+            }
+
             float halfThickness = (outerRadius - innerRadius) * 0.5f;
             Vector2 handlePos = center +
                                 Angle.Turns(t - 0.25f).GetDirectionVector() * (innerRadius + halfThickness);
@@ -64,8 +68,10 @@ public abstract class Program
                 .OuterShadow(new Color(0x00000044), new Vector2(0, -3), 6);
 
             for (int i = 0; i < 12; i++)
+            {
                 gui.DrawCircle(center + Angle.Turns(i / 12.0f).GetDirectionVector() * (innerRadius + halfThickness), 2,
                     new Color(0x00000099));
+            }
 
             gui.SetClipArea(gui.CurrentNode, arcLaneShape);
 
@@ -90,7 +96,11 @@ public abstract class Program
 
     static void UpdateMonth(Gui gui, bool held, Vector2 center, ref float t, ref int month)
     {
-        if (gui.Pass != Pass.Pass1Build) return;
+        if (gui.Pass != Pass.Pass1Build)
+        {
+            return;
+        }
+
         if (held)
         {
             Vector2 delta = center - gui.LocalMousePosition;
@@ -101,7 +111,13 @@ public abstract class Program
 
         var target = month / 12.0f;
         t = gui.ReduceMotion ? target : ImMath.Lerp(t, target, Math.Clamp(gui.Time.DeltaTime * 10, 0, 1));
-        if (MathF.Abs(t - target) > 0.0001f) gui.RequestFrame();
-        else t = target;
+        if (MathF.Abs(t - target) > 0.0001f)
+        {
+            gui.RequestFrame();
+        }
+        else
+        {
+            t = target;
+        }
     }
 }

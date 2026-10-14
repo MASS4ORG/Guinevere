@@ -18,7 +18,10 @@ public readonly record struct ViewportInsets(float Left, float Top, float Right,
 
     static void Validate(float value)
     {
-        if (!float.IsFinite(value) || value < 0) throw new ArgumentOutOfRangeException(nameof(value));
+        if (!float.IsFinite(value) || value < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value));
+        }
     }
 }
 
@@ -81,8 +84,16 @@ public sealed record ViewportOptions
         Positive(UiScale);
         Positive(TextScale);
         Positive(DisplayScale);
-        if (MaxScale < MinScale) throw new ArgumentOutOfRangeException(nameof(MaxScale));
-        if (!Enum.IsDefined(AspectPolicy)) throw new ArgumentOutOfRangeException(nameof(AspectPolicy));
+        if (MaxScale < MinScale)
+        {
+            throw new ArgumentOutOfRangeException(nameof(MaxScale));
+        }
+
+        if (!Enum.IsDefined(AspectPolicy))
+        {
+            throw new ArgumentOutOfRangeException(nameof(AspectPolicy));
+        }
+
         var safe = Insets.Apply(Bounds);
         var widthScale = safe.W / ReferenceResolution.X;
         var heightScale = safe.H / ReferenceResolution.Y;
@@ -108,11 +119,16 @@ public sealed record ViewportOptions
     {
         if (!float.IsFinite(Bounds.X) || !float.IsFinite(Bounds.Y)
             || !float.IsFinite(Bounds.W) || !float.IsFinite(Bounds.H) || Bounds.W < 0 || Bounds.H < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(Bounds));
+        }
     }
 
     static void Positive(float value)
     {
-        if (!float.IsFinite(value) || value <= 0) throw new ArgumentOutOfRangeException(nameof(value));
+        if (!float.IsFinite(value) || value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value));
+        }
     }
 }

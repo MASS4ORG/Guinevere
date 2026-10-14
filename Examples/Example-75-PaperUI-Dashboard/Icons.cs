@@ -2,7 +2,7 @@
 // from https://github.com/FortAwesome/Font-Awesome/raw/6.x/metadata/icons.yml
 // for use with https://github.com/FortAwesome/Font-Awesome/blob/6.x/webfonts/fa-regular-400.ttf, https://github.com/FortAwesome/Font-Awesome/blob/6.x/webfonts/fa-solid-900.ttf
 
-namespace Example_75_PaperUI_Dashboard;
+namespace Example75PaperUIDashboard;
 
 public abstract class Icons
 {
@@ -723,9 +723,7 @@ public abstract class Icons
     public const string Cursor = "\uf246";
     public const string IceCream = "\uf810";
     public const string Icicles = "\uf7ad";
-
-    // ReSharper disable once InconsistentNaming
-    public const string _Icons = "\uf86d";
+    public const string IIcons = "\uf86d";
     public const string IdBadge = "\uf2c1";
     public const string IdCard = "\uf2c2";
     public const string IdCardClip = "\uf47f";

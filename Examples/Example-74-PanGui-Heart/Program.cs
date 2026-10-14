@@ -1,7 +1,7 @@
 using System.Numerics;
 using Guinevere;
 
-namespace Example_74_PanGui_Heart;
+namespace Example74PanGuiHeart;
 
 /// <summary>Demonstrates shape operations through an animated, shaded heart.</summary>
 public abstract class Program
@@ -75,8 +75,16 @@ public abstract class Program
     public static Shape CreateStage(int stage, float elapsed)
     {
         stage = Math.Clamp(stage, 0, Stages.Length - 1);
-        if (stage == 14) return Heart.Scale(1 + MathF.Sin(elapsed + MathF.PI) * 0.2f);
-        if (stage == 15) return Heart.Mix(B.Copy().Rotate(elapsed * 4), 0.1f);
+        if (stage == 14)
+        {
+            return Heart.Scale(1 + MathF.Sin(elapsed + MathF.PI) * 0.2f);
+        }
+
+        if (stage == 15)
+        {
+            return Heart.Mix(B.Copy().Rotate(elapsed * 4), 0.1f);
+        }
+
         return Stages[stage].Shape.Copy();
     }
 
@@ -87,7 +95,9 @@ public abstract class Program
         var target = CreateStage(stage, elapsed);
         var phase = elapsed % StageDuration;
         if (reduceMotion || elapsed < StageDuration || phase >= TransitionDuration)
+        {
             return (target, Stages[stage].Text);
+        }
 
         var previous = (stage + Stages.Length - 1) % Stages.Length;
         var t = phase / TransitionDuration;

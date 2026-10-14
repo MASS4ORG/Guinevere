@@ -7,7 +7,7 @@ public class StyleSheetPssTests
 
     /// <summary>Comment markers inside strings and <c>url()</c> are part of the value.</summary>
     [Fact]
-    public void CommentMarkers_InsideStringsAndUrls_Survive()
+    public void CommentMarkersInsideStringsAndUrlsSurvive()
     {
         var sheet = StyleSheet.Parse("""
             box {
@@ -27,7 +27,7 @@ public class StyleSheetPssTests
 
     /// <summary><c>@const</c> values are readable by the host and substituted into declarations.</summary>
     [Fact]
-    public void Constants_AreExposedAndSubstituted()
+    public void ConstantsAreExposedAndSubstituted()
     {
         var sheet = StyleSheet.Parse("""
             @const theme-name = "Night";
@@ -46,7 +46,7 @@ public class StyleSheetPssTests
 
     /// <summary>Errors report <c>source:line:column</c> of the original text after comments and constants.</summary>
     [Fact]
-    public void Errors_ReportSourceLineAndColumn()
+    public void ErrorsReportSourceLineAndColumn()
     {
         const string text = "/* header\n   comment */\n@const pad = 4;\n// note\nbox {\n    padding = @pad;\n    oops;\n}\n";
 
@@ -59,7 +59,7 @@ public class StyleSheetPssTests
 
     /// <summary>Selector failures carry the rule position.</summary>
     [Fact]
-    public void SelectorErrors_ReportRulePosition()
+    public void SelectorErrorsReportRulePosition()
     {
         var error = Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("\n  Panel >> Button { width = 1; }"));
 
@@ -74,7 +74,7 @@ public class StyleSheetPssTests
     [InlineData("--accent: red;", "AllowCssSyntax")]
     [InlineData("box { --accent = red; }", "AllowCssSyntax")]
     [InlineData("$accent = red; box { color = var(--accent); }", "AllowCssSyntax")]
-    public void CssSyntax_IsRejectedWithoutFlag(string text, string hint)
+    public void CssSyntaxIsRejectedWithoutFlag(string text, string hint)
     {
         var error = Assert.Throws<StyleSheetException>(() => StyleSheet.Parse(text));
         Assert.Contains(hint, error.Message, StringComparison.Ordinal);
@@ -82,7 +82,7 @@ public class StyleSheetPssTests
 
     /// <summary>The migration flag accepts colon declarations, custom properties and <c>var()</c>.</summary>
     [Fact]
-    public void CssSyntax_IsAcceptedWithFlag()
+    public void CssSyntaxIsAcceptedWithFlag()
     {
         var sheet = StyleSheet.Parse("--accent: red; box { color: var(--accent); --pad: 3; padding: var(--pad); }",
             new StyleSheetOptions { AllowCssSyntax = true });
@@ -93,7 +93,7 @@ public class StyleSheetPssTests
 
     /// <summary><c>@font-face</c> and <c>url()</c> resolve relative to a file source.</summary>
     [Fact]
-    public void FontFaceAndUrls_ResolveRelativeToFileSource()
+    public void FontFaceAndUrlsResolveRelativeToFileSource()
     {
         var directory = Directory.CreateTempSubdirectory("pss-");
         try
@@ -122,7 +122,7 @@ public class StyleSheetPssTests
 
     /// <summary>Without a base, relative URLs stay relative; malformed font faces fail.</summary>
     [Fact]
-    public void FontFace_WithoutBase_StaysRelative_AndRequiresFamilyAndSource()
+    public void FontFaceWithoutBaseStaysRelativeAndRequiresFamilyAndSource()
     {
         var sheet = StyleSheet.Parse("@font-face { font-family = Mono; src = 'fonts/mono.ttf'; }");
 
@@ -134,7 +134,7 @@ public class StyleSheetPssTests
 
     /// <summary>Imported rules, tokens and constants come first; the importing sheet overrides them.</summary>
     [Fact]
-    public void Import_LayersImportedSheetBelowImporter()
+    public void ImportLayersImportedSheetBelowImporter()
     {
         var sheets = new Dictionary<string, string>
         {
@@ -160,7 +160,7 @@ public class StyleSheetPssTests
 
     /// <summary>Imports fail clearly without a resolver, for unknown ids, and for cycles.</summary>
     [Fact]
-    public void Import_Failures_AreReported()
+    public void ImportFailuresAreReported()
     {
         var noResolver = Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("@import \"base\";"));
         Assert.Contains("ImportResolver", noResolver.Message, StringComparison.Ordinal);
@@ -181,7 +181,7 @@ public class StyleSheetPssTests
 
     /// <summary>PanGui shapes, effects, mixins and macro calls are kept verbatim and not applied.</summary>
     [Fact]
-    public void PanGuiConstructs_AreDeferred()
+    public void PanGuiConstructsAreDeferred()
     {
         var sheet = StyleSheet.Parse("""
             @mixin glow() { effect bg-shape { solidColor(#fff); } }
@@ -225,7 +225,7 @@ public class StyleSheetPssTests
     [InlineData("box")]
     [InlineData(" { width = 1; }")]
     [InlineData("box { width = 1")]
-    public void MalformedStatements_Throw(string text) =>
+    public void MalformedStatementsThrow(string text) =>
         Assert.Throws<StyleSheetException>(() => StyleSheet.Parse(text));
 
     /// <summary>
@@ -233,7 +233,7 @@ public class StyleSheetPssTests
     /// relationships only.
     /// </summary>
     [Fact]
-    public void InheritVariants_SplitPropertiesFromSelectors()
+    public void InheritVariantsSplitPropertiesFromSelectors()
     {
         var sheet = StyleSheet.Parse("""
             box { padding = 20; }
@@ -245,11 +245,11 @@ public class StyleSheetPssTests
         var sidebar = new StyleTarget("sidebar", null, []);
 
         var looks = StyleResolver.Resolve([sheet], new StyleTarget("looks-like-box", null, [], Ancestors: [sidebar]));
-        Assert.Equal<(string?, string?)>(("20", null), (looks.Get("padding"), looks.Get("margin")));
+        Assert.Equal(("20", null), (looks.Get("padding"), looks.Get("margin")));
         var acts = StyleResolver.Resolve([sheet], new StyleTarget("acts-like-box", null, [], Ancestors: [sidebar]));
-        Assert.Equal<(string?, string?)>((null, "5"), (acts.Get("padding"), acts.Get("margin")));
+        Assert.Equal((null, "5"), (acts.Get("padding"), acts.Get("margin")));
 
-        StyleTarget ButtonIn(string type) => new("button", null, [], Ancestors: [new StyleTarget(type, null, [])]);
+        static StyleTarget ButtonIn(string type) => new("button", null, [], Ancestors: [new StyleTarget(type, null, [])]);
         Assert.Null(StyleResolver.Resolve([sheet], ButtonIn("looks-like-box")).Get("width"));
         Assert.Equal("80", StyleResolver.Resolve([sheet], ButtonIn("acts-like-box")).Get("width"));
         Assert.Equal(new[] { "box" }, sheet.PropertyInheritance["looks-like-box"]);
@@ -258,7 +258,7 @@ public class StyleSheetPssTests
 
     /// <summary>Cycles across inheritance kinds are rejected at the declaring rule.</summary>
     [Fact]
-    public void InheritVariants_RejectCycles()
+    public void InheritVariantsRejectCycles()
     {
         var error = Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("""
             a #inherit-properties(b) { width = 1; }

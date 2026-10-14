@@ -8,12 +8,16 @@ public class HsvaTests
     public void RoundTripsEveryChannelLevel()
     {
         for (var level = 0; level < 256; level += 5)
+        {
             foreach (var color in new[]
                      {
                          Color.FromArgb(level, level, 255 - level, 0), Color.FromArgb(255, 0, level, 255),
                          Color.FromArgb(128, 255, 0, level), Color.FromArgb(255, level, level, level)
                      })
+            {
                 Assert.Equal(color, Hsva.FromColor(color).ToColor());
+            }
+        }
     }
 
     /// <summary>Primary and secondary hues land on their sectors.</summary>

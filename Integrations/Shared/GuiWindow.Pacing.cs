@@ -21,7 +21,11 @@ public partial class GuiWindow
         _gui.WakeHost = _glfw.PostEmptyEvent;
         try
         {
-            if (!_window.IsInitialized) _window.Initialize();
+            if (!_window.IsInitialized)
+            {
+                _window.Initialize();
+            }
+
             _window.Run(RunFrame);
             _window.DoEvents();
             _window.Reset();
@@ -66,14 +70,22 @@ public partial class GuiWindow
 
     void UpdateOpenFrame()
     {
-        if (_window.IsClosing) return;
+        if (_window.IsClosing)
+        {
+            return;
+        }
+
         _window.DoUpdate();
         RenderOpenFrame();
     }
 
     void RenderOpenFrame()
     {
-        if (_window.IsClosing) return;
+        if (_window.IsClosing)
+        {
+            return;
+        }
+
         _window.DoRender();
         _gameInput.NewFrame();
         Pacing.FrameRendered();

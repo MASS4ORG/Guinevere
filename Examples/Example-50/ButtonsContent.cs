@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {
@@ -21,22 +21,39 @@ public abstract partial class Program
     static void ButtonsContent(Gui gui)
     {
         gui.ScrollY();
-        if (!gui.StyleSheets.Contains(ButtonsSheet)) gui.StyleSheets.Add(ButtonsSheet);
+        if (!gui.StyleSheets.Contains(ButtonsSheet))
+        {
+            gui.StyleSheets.Add(ButtonsSheet);
+        }
 
         Section(gui, "Basic Buttons", () =>
         {
             using (gui.Node().Gap(10).Direction(Axis.Horizontal).Wrap(1).Enter())
             {
                 if (gui.Button("Auto-sized"))
+                {
                     Clicked("Auto-sized");
+                }
+
                 if (gui.Button("120x40", 120, 40))
+                {
                     Clicked("120x40");
+                }
+
                 if (gui.Button("font 12", fontSize: 12))
+                {
                     Clicked("60x40 font 12");
+                }
+
                 if (gui.Button("*x50 font 18", height: 50, fontSize: 18))
+                {
                     Clicked("120x40 font 18");
+                }
+
                 if (gui.Button("Disabled", enabled: false))
+                {
                     Clicked("Disabled");
+                }
             }
         });
 
@@ -45,13 +62,24 @@ public abstract partial class Program
             using (gui.Node().Direction(Axis.Horizontal).Wrap(1).Gap(10).Enter())
             {
                 if (gui.Button("primary", classes: ["primary"]))
+                {
                     Clicked("primary");
+                }
+
                 if (gui.Button("success", classes: ["success"]))
+                {
                     Clicked("success");
+                }
+
                 if (gui.Button("warning", classes: ["warning"]))
+                {
                     Clicked("warning");
+                }
+
                 if (gui.Button("danger", classes: ["danger"]))
+                {
                     Clicked("danger");
+                }
             }
         });
 
@@ -60,13 +88,24 @@ public abstract partial class Program
             using (gui.Node().Direction(Axis.Horizontal).Wrap(1).Gap(10).Enter())
             {
                 if (gui.Button("rounded", classes: ["rounded"]))
+                {
                     Clicked("rounded");
+                }
+
                 if (gui.Button("shadow", classes: ["shadow"]))
+                {
                     Clicked("shadow");
+                }
+
                 if (gui.Button("outline", classes: ["outline"]))
+                {
                     Clicked("outline");
+                }
+
                 if (gui.Button("muted", classes: ["muted"]))
+                {
                     Clicked("muted");
+                }
             }
         });
 
@@ -75,9 +114,14 @@ public abstract partial class Program
             using (gui.Node().Direction(Axis.Horizontal).Wrap(1).Gap(10).Enter())
             {
                 if (gui.Button("⚙️"))
+                {
                     Clicked("Settings Icon");
+                }
+
                 if (gui.Button("➕ Create"))
+                {
                     Clicked("➕ Create");
+                }
             }
         });
 
@@ -106,7 +150,9 @@ public abstract partial class Program
     {
         var showLabel = label ?? text;
         if (gui.Button(text, width: width, height: height, fontSize: fontSize, enabled: enabled, classes: classes))
+        {
             Clicked(showLabel);
+        }
     }
 
     static void Clicked(string name)

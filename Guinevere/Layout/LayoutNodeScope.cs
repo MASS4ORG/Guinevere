@@ -73,10 +73,18 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     internal void ResetForBuild()
     {
         var parent = Node.Parent?.Scope;
-        if (parent is null) return;
+        if (parent is null)
+        {
+            return;
+        }
+
         _records = parent._records;
         _ownsRecords = false;
-        if (_localRecords is not null) Array.Clear(_localRecords);
+        if (_localRecords is not null)
+        {
+            Array.Clear(_localRecords);
+        }
+
         DataScope = InheritedDataScope = parent.DataScope;
     }
 
@@ -88,7 +96,9 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     public LayoutNodeScope Set<T>(T record) where T : class
     {
         if (record is IEnumerable<ILayoutNodeScopeValue> records)
+        {
             return Set(records);
+        }
 
         Set(LayoutNodeScopeValueSlot<T>.Index, record);
         return this;
@@ -98,13 +108,20 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     public LayoutNodeScope Set(IEnumerable<ILayoutNodeScopeValue> records)
     {
         ArgumentNullException.ThrowIfNull(records);
-        foreach (var record in records) Set(record.Slot, record);
+        foreach (var record in records)
+        {
+            Set(record.Slot, record);
+        }
+
         return this;
     }
 
     void Set(int slot, object record)
     {
-        if (!_ownsRecords) TakeOwnership();
+        if (!_ownsRecords)
+        {
+            TakeOwnership();
+        }
 
         if (slot >= _records.Length)
         {
@@ -112,7 +129,9 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
             _ownedBuffer = _records;
         }
         if (_localRecords is null || slot >= _localRecords.Length)
+        {
             Array.Resize(ref _localRecords, _records.Length);
+        }
 
         _records[slot] = record;
         _localRecords[slot] = true;
@@ -124,16 +143,29 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     /// </summary>
     internal void Rebase()
     {
-        if (Node.Parent?.Scope._records is not { } inherited) return;
+        if (Node.Parent?.Scope._records is not { } inherited)
+        {
+            return;
+        }
+
         if (!_ownsRecords)
         {
             _records = inherited;
             return;
         }
 
-        if (_records.Length < inherited.Length) Array.Resize(ref _records, inherited.Length);
+        if (_records.Length < inherited.Length)
+        {
+            Array.Resize(ref _records, inherited.Length);
+        }
+
         for (var slot = 0; slot < _records.Length; slot++)
-            if (!IsLocal(slot)) _records[slot] = slot < inherited.Length ? inherited[slot] : null;
+        {
+            if (!IsLocal(slot))
+            {
+                _records[slot] = slot < inherited.Length ? inherited[slot] : null;
+            }
+        }
     }
 
     /// <summary>Copies the inherited records into a buffer of this scope's own, reusing the previous one if it fits.</summary>
@@ -141,7 +173,10 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     {
         var inherited = _records;
         if (_ownedBuffer is null || _ownedBuffer.Length < inherited.Length)
+        {
             _ownedBuffer = new object?[inherited.Length];
+        }
+
         Array.Copy(inherited, _ownedBuffer, inherited.Length);
         Array.Clear(_ownedBuffer, inherited.Length, _ownedBuffer.Length - inherited.Length);
         _records = _ownedBuffer;
@@ -162,7 +197,9 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     {
         var slot = LayoutNodeScopeValueSlot<TValue>.Index;
         if (slot < _records.Length && _records[slot] is { } val)
+        {
             return (TValue)val;
+        }
 
         return TValue.Default;
     }

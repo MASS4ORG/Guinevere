@@ -93,7 +93,12 @@ public sealed record Icon
     {
         ArgumentNullException.ThrowIfNull(stream);
         foreach (var decoder in decoders ?? [])
-            if (decoder.CanDecode(extension)) return decoder.Decode(stream);
+        {
+            if (decoder.CanDecode(extension))
+            {
+                return decoder.Decode(stream);
+            }
+        }
 
         using var data = SKData.Create(stream);
         var image = data is null ? null : SKImage.FromEncodedData(data);

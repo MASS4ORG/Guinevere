@@ -1,7 +1,7 @@
 using Autoformers;
 using Guinevere;
 
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 /// <summary>
 /// The tour's window content: a grouped sidebar of pages and, for the selected page, its source beside the live
@@ -64,7 +64,10 @@ public sealed class AttributeTour
             for (var i = 0; i < DemoPages.All.Count; i++)
             {
                 var page = DemoPages.All[i];
-                if (!page.IsAvailable) continue;
+                if (!page.IsAvailable)
+                {
+                    continue;
+                }
 
                 if (page.Group != group)
                 {
@@ -84,13 +87,18 @@ public sealed class AttributeTour
             var interactable = gui.GetInteractable();
             var selected = index == Selected;
             if (gui.Pass == Pass.Pass2Render && (selected || interactable.OnHover()))
+            {
                 gui.DrawBackgroundRect(selected ? Token(gui, "selected") : Token(gui, "surface-hover"), 4);
+            }
 
             var color = selected ? Token(gui, "text-on-accent")
                 : page.IsAvailable ? Token(gui, "text") : Token(gui, "text-disabled");
             gui.DrawText(page.Title, 13, color, centerInRect: false);
 
-            if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) Selected = index;
+            if (gui.Pass == Pass.Pass2Render && interactable.OnClick())
+            {
+                Selected = index;
+            }
         }
     }
 
@@ -145,7 +153,11 @@ public sealed class AttributeTour
 
             using (gui.Node().Expand().Margin(8).Padding(12).Enter())
             {
-                if (pan) gui.ScrollContainer(scrollX: true, scrollY: false);
+                if (pan)
+                {
+                    gui.ScrollContainer(scrollX: true, scrollY: false);
+                }
+
                 body();
             }
         }
@@ -161,7 +173,9 @@ public sealed class AttributeTour
         {
             using var typeface = SkiaSharp.SKTypeface.FromFamilyName(family);
             if (string.Equals(typeface?.FamilyName, family, StringComparison.OrdinalIgnoreCase))
+            {
                 return Font.FromFamilyName(family);
+            }
         }
 
         return Font.FromFamilyName("monospace");
@@ -172,7 +186,10 @@ public sealed class AttributeTour
 
     (object Target, FormRenderContext Context, string Source) Live(DemoPage page)
     {
-        if (_live.TryGetValue(page, out var entry)) return entry;
+        if (_live.TryGetValue(page, out var entry))
+        {
+            return entry;
+        }
 
         entry = (Activator.CreateInstance(page.Demo!)!, new FormRenderContext(), page.Source());
         _live[page] = entry;

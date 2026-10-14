@@ -10,10 +10,19 @@ public class ColorPickerTests
 {
     static LayoutNode? Find(LayoutNode node, string type)
     {
-        if (node.StyleTarget?.Type == type) return node;
+        if (node.StyleTarget?.Type == type)
+        {
+            return node;
+        }
+
         foreach (var child in node.Children)
+        {
             if (Find(child, type) is { } found)
+            {
                 return found;
+            }
+        }
+
         return null;
     }
 
@@ -213,7 +222,10 @@ public class ColorPickerTests
     {
         var parsed = ControlsExtensions.TryParseColorText(text, out var color);
         Assert.Equal(expected is not null, parsed);
-        if (expected is not null) Assert.Equal(expected, color.ToHex());
+        if (expected is not null)
+        {
+            Assert.Equal(expected, color.ToHex());
+        }
     }
 
     /// <summary>A committed channel edit rebuilds the color through the mode.</summary>

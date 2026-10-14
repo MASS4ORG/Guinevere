@@ -47,14 +47,19 @@ public static class FormControls
             {
                 var interactive = labelInteraction is not null && gui.Pass == Pass.Pass2Render;
                 var hot = interactive && gui.GetInteractable().OnHover();
-                if (interactive) labelInteraction!();
+                if (interactive)
+                {
+                    labelInteraction!();
+                }
 
                 var color = hot ? style.Accent : style.Ink;
                 gui.DrawText(label, style.FontSize, color, centerInRect: false, effects: Emphasis(modified, color));
             }
 
             using (gui.Node(-1, rowHeight, $"{id}/editor").Expand().Direction(Axis.Horizontal).Gap(4f).Enter())
+            {
                 editor();
+            }
         }
     }
 
@@ -73,7 +78,10 @@ public static class FormControls
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(field);
-        if (!gui.GetInteractable().OnDrag(out var drag)) return;
+        if (!gui.GetInteractable().OnDrag(out var drag))
+        {
+            return;
+        }
 
         var delta = (drag.FrameDelta.X - drag.FrameDelta.Y) * (IsIntegral(type) ? 1 : 0.01);
         var (min, max) = field.Range ?? TypeRange(type);
@@ -137,7 +145,11 @@ public static class FormControls
             var interactable = gui.GetInteractable();
             var hot = enabled && interactable.OnHover();
 
-            if (gui.Pass == Pass.Pass2Render) gui.DrawBackgroundRect(hot ? style.Border : style.Field, 3f);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                gui.DrawBackgroundRect(hot ? style.Border : style.Field, 3f);
+            }
+
             gui.DrawText(label, style.FontSize, enabled ? style.Ink : style.InkDim);
 
             return gui.Pass == Pass.Pass2Render && hot && interactable.OnClick();
@@ -157,7 +169,11 @@ public static class FormControls
             var interactable = gui.GetInteractable();
             var hot = interactable.OnHover();
 
-            if (gui.Pass == Pass.Pass2Render && hot) gui.DrawBackgroundRect(style.Border, 3f);
+            if (gui.Pass == Pass.Pass2Render && hot)
+            {
+                gui.DrawBackgroundRect(style.Border, 3f);
+            }
+
             gui.DrawText(glyph, style.FontSize + 1f, hot ? style.Ink : style.InkDim);
 
             return gui.Pass == Pass.Pass2Render && hot && interactable.OnClick();
@@ -175,7 +191,10 @@ public static class FormControls
     /// <summary>Draws the modified bar in the left margin of the current row.</summary>
     internal static void MarkModified(Gui gui, bool modified)
     {
-        if (!modified || gui.Pass != Pass.Pass2Render) return;
+        if (!modified || gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var rect = gui.CurrentNode.Rect;
         gui.DrawRect(new Rect(rect.X - 6f, rect.Y + 1f, 2f, rect.H - 2f), new FormStyle(gui).Accent);
@@ -192,7 +211,9 @@ public static class FormControls
             var render = gui.Pass == Pass.Pass2Render;
             var hot = render && gui.GetInteractable().OnHover();
             if (render && gui.GetInteractable().OnDrag(out var drag))
+            {
                 value += (drag.FrameDelta.X - drag.FrameDelta.Y) * 0.01;
+            }
 
             gui.DrawText(Axes[Math.Min(index, Axes.Length - 1)], style.FontSize - 1f, hot ? style.Ink : style.InkDim,
                 centerInRect: false);
@@ -208,7 +229,10 @@ public static class FormControls
         var changed = false;
         for (var i = 0; i < values.Length; i++)
         {
-            if (!AxisField(gui, i, values[i], $"{id}/a{i}", out var next)) continue;
+            if (!AxisField(gui, i, values[i], $"{id}/a{i}", out var next))
+            {
+                continue;
+            }
 
             values[i] = next;
             changed = true;
@@ -249,7 +273,10 @@ public static class FormControls
 
         Row(gui, label, id, () =>
         {
-            if (!EditAxes(gui, id, parts)) return;
+            if (!EditAxes(gui, id, parts))
+            {
+                return;
+            }
 
             set(Array.ConvertAll(parts, part => (float)part));
             owner.Touch();

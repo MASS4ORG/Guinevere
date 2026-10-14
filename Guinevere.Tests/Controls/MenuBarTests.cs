@@ -15,7 +15,7 @@ public class MenuBarTests
     {
         using var h = new FrameHarness();
         h.Gui.StyleSheets.Add(StyleSheet.Parse("menubar { background-color = red; } menu-title:hover { background-color = blue; }"));
-        void Draw(Gui gui) => gui.MenuBar(bar =>
+        static void Draw(Gui gui) => gui.MenuBar(bar =>
         {
             bar.Collapsible();
             bar.Menu("File", menu => menu.Item("Open", () => { }));
@@ -115,7 +115,11 @@ public class MenuBarTests
             using var parent = gui.Node().ExpandWidth().Padding(20).Enter();
             gui.MenuBar(bar =>
             {
-                if (compact) bar.Collapsible();
+                if (compact)
+                {
+                    bar.Collapsible();
+                }
+
                 for (var index = 0; index < 5; index++)
                 {
                     var item = index;
@@ -177,7 +181,10 @@ public class MenuBarTests
             {
                 edit.Item("Copy", () => log.Add("copy"), "Ctrl+C");
                 if (toggle is not null)
+                {
                     edit.CheckItem("Mode", () => toggle[0], value => toggle[0] = value);
+                }
+
                 edit.Separator();
                 edit.Item("Bold", () => log.Add("bold"), enabled: false);
                 edit.Submenu("Zoom", zoom => zoom.Item("Zoom In", () => log.Add("zoom-in")));
@@ -204,7 +211,11 @@ public class MenuBarTests
         var input = NoInput();
         input.MousePosition.Returns(position);
         input.PrevMousePosition.Returns(position);
-        if (pressed) input.IsMouseButtonPressed(MouseButton.Left).Returns(true);
+        if (pressed)
+        {
+            input.IsMouseButtonPressed(MouseButton.Left).Returns(true);
+        }
+
         return input;
     }
 
@@ -219,19 +230,31 @@ public class MenuBarTests
         {
             if (found == null && node.Children.Count == 2 &&
                 node.Children.All(child => MathF.Abs(child.Rect.H - BarHeight) < 0.05f && child.Rect.W < 100f))
+            {
                 found = node;
+            }
 
-            foreach (var child in node.Children) Visit(child);
+            foreach (var child in node.Children)
+            {
+                Visit(child);
+            }
         }
     }
 
     static IEnumerable<LayoutNode> MenuNodes(LayoutNode node)
     {
-        if (node.Id.StartsWith("/menubar/", StringComparison.Ordinal)) yield return node;
+        if (node.Id.StartsWith("/menubar/", StringComparison.Ordinal))
+        {
+            yield return node;
+        }
 
         foreach (var child in node.Children)
+        {
             foreach (var descendant in MenuNodes(child))
+            {
                 yield return descendant;
+            }
+        }
     }
 
     /// <summary>
@@ -251,8 +274,10 @@ public class MenuBarTests
         // The frame the click lands on: whatever exists must already have a rect.
         Frame(gui, log, input: At(new Vector2(title.X + 5, title.Y + 5)));
         foreach (var node in MenuNodes(gui.RootNode!))
+        {
             Assert.True(node.Rect is { W: > 0, H: > 0 },
                 $"{node.Id} was created after layout and would draw at the origin.");
+        }
 
         // And by the next frame the menu is there, under its title.
         Frame(gui, log);
@@ -260,8 +285,10 @@ public class MenuBarTests
 
         Assert.NotEmpty(rows);
         foreach (var row in rows)
+        {
             Assert.True(row.Rect.Y >= title.Y + BarHeight - 0.5f,
                 $"Menu row {row.Id} drew at {row.Rect}, above the bar it drops from.");
+        }
     }
 
     [Fact]

@@ -16,7 +16,7 @@ public class ButtonFamilyTests
 
     /// <summary>A click reports once, through each button kind.</summary>
     [Fact]
-    public void Click_ReportsActivation()
+    public void ClickReportsActivation()
     {
         using var harness = new FrameHarness(200, 100);
         using var image = Solid(SKColors.Red);
@@ -37,7 +37,7 @@ public class ButtonFamilyTests
 
     /// <summary>Disabled buttons never report, whatever the pointer does; a null icon draws an empty square.</summary>
     [Fact]
-    public void Disabled_NeverActivates()
+    public void DisabledNeverActivates()
     {
         using var harness = new FrameHarness(200, 100);
         using var image = Solid(SKColors.Red);
@@ -57,7 +57,7 @@ public class ButtonFamilyTests
 
     /// <summary>A clicked button takes focus, and Space then activates it from the keyboard.</summary>
     [Fact]
-    public void Focused_ActivatesWithSpace()
+    public void FocusedActivatesWithSpace()
     {
         using var harness = new FrameHarness(200, 100);
         harness.Click(g => g.Button("Go", 60, 30), Inside);
@@ -74,7 +74,7 @@ public class ButtonFamilyTests
     /// An image button shows the image for the pointer state, under the sheet's border; caller classes reach the sheet.
     /// </summary>
     [Fact]
-    public void ImageButton_ShowsStateImageUnderTheBorder()
+    public void ImageButtonShowsStateImageUnderTheBorder()
     {
         using var normal = Solid(SKColors.Red);
         using var hover = Solid(SKColors.Yellow);
@@ -85,8 +85,16 @@ public class ButtonFamilyTests
             using var harness = new FrameHarness(80, 60);
             harness.Gui.StyleSheets.Add(StyleSheet.Parse("button.framed { border-color = #00ff00; border-width = 4; }"));
             harness.Input.MoveTo(Inside);
-            if (press) harness.Input.PressButton();
-            for (var i = 0; i < 3; i++) harness.Frame(g => g.ImageButton(normal, hover, pressed, classes: ["framed"]));
+            if (press)
+            {
+                harness.Input.PressButton();
+            }
+
+            for (var i = 0; i < 3; i++)
+            {
+                harness.Frame(g => g.ImageButton(normal, hover, pressed, classes: ["framed"]));
+            }
+
             using var snapshot = harness.Snapshot();
             using var bitmap = SKBitmap.FromImage(snapshot);
             return bitmap.GetPixel(x, 15);

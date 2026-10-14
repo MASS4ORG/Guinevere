@@ -9,7 +9,7 @@ public class TransformedControlsTests
 
     /// <summary>A slider scaled twice as wide maps the pointer back onto its track.</summary>
     [Fact]
-    public void Slider_MapsThePointerThroughTheTransform()
+    public void SliderMapsThePointerThroughTheTransform()
     {
         using var harness = new FrameHarness(800, 200);
         harness.Gui.ConfigureFonts(TestFont);
@@ -31,7 +31,7 @@ public class TransformedControlsTests
 
     /// <summary>A click on a scaled popup's drawn area keeps it open; a click beyond it dismisses it.</summary>
     [Fact]
-    public void Popup_DismissesOutsideWhereItIsDrawn()
+    public void PopupDismissesOutsideWhereItIsDrawn()
     {
         using var harness = new FrameHarness(800, 600);
         harness.Gui.ConfigureFonts(TestFont);
@@ -56,7 +56,7 @@ public class TransformedControlsTests
 
     /// <summary>The pointer helpers use the current node's layout coordinates and never return NaN.</summary>
     [Fact]
-    public void PointerHelpers_UseLayoutCoordinates()
+    public void PointerHelpersUseLayoutCoordinates()
     {
         using var harness = new FrameHarness();
         harness.Input.MoveTo(new Vector2(40, 40));
@@ -65,7 +65,11 @@ public class TransformedControlsTests
             using (gui.Node(100, 100).Enter())
             {
                 gui.SetTransform(Matrix3x2.CreateScale(2f));
-                if (gui.Pass != Pass.Pass2Render) return;
+                if (gui.Pass != Pass.Pass2Render)
+                {
+                    return;
+                }
+
                 Assert.Equal(new Vector2(20, 20), gui.LocalMousePosition);
                 Assert.True(gui.IsPointerIn(new Rect(10, 10, 20, 20)));
                 Assert.False(gui.IsPointerIn(new Rect(30, 30, 20, 20)));

@@ -28,9 +28,11 @@ public static partial class ControlsExtensions
                 if (state.Browser.Entries.Count == 0)
                 {
                     using (gui.StyledNode("file-label").Height(RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
+                    {
                         gui.DrawText(state.Browser.IsLoading ? "Loading…" :
                                 state.Browser.Error is null ? "Nothing here" : "Cannot read this folder",
                             fontSize, gui.ResolvePart("file-detail").GetColor("color"), centerInRect: false);
+                    }
 
                     return;
                 }
@@ -41,7 +43,11 @@ public static partial class ControlsExtensions
                 var last = Math.Min(entries.Count, first + take);
 
                 ListingSpacer(gui, state.ControlId("pad-top"), first * (RowHeight + 1f));
-                for (var i = first; i < last; i++) Row(gui, state, entries[i], fontSize);
+                for (var i = first; i < last; i++)
+                {
+                    Row(gui, state, entries[i], fontSize);
+                }
+
                 ListingSpacer(gui, state.ControlId("pad-bottom"), (entries.Count - last) * (RowHeight + 1f));
 
                 if (gui.Pass == Pass.Pass2Render)
@@ -55,7 +61,11 @@ public static partial class ControlsExtensions
 
     static void ListingSpacer(Gui gui, string id, float height)
     {
-        if (height <= 0f) return;
+        if (height <= 0f)
+        {
+            return;
+        }
+
         using (gui.Node(-1, height, id).ExpandWidth().Enter()) { }
     }
 
@@ -79,8 +89,14 @@ public static partial class ControlsExtensions
         var active = state.Browser.Sort == column;
         var node = gui.StyledNode("file-column", id: state.ControlId($"column/{column}"),
             modifiers: active ? ["selected"] : []).Height(RowHeight);
-        if (width > 0f) node.Width(width);
-        else node.Expand();
+        if (width > 0f)
+        {
+            node.Width(width);
+        }
+        else
+        {
+            node.Expand();
+        }
 
         using (node.ContentAlignY(0.5f).Enter())
         {
@@ -90,7 +106,10 @@ public static partial class ControlsExtensions
             gui.DrawText(label + marker, fontSize - 1f,
                 centerInRect: false);
 
-            if (gui.Pass == Pass.Pass2Render && interactable.OnClick()) state.Browser.SortBy(column);
+            if (gui.Pass == Pass.Pass2Render && interactable.OnClick())
+            {
+                state.Browser.SortBy(column);
+            }
         }
     }
 
@@ -114,16 +133,26 @@ public static partial class ControlsExtensions
             }
 
             using (gui.Node(SizeWidth, RowHeight).ContentAlignY(0.5f).Enter())
+            {
                 gui.DrawText(Guinevere.FileBrowser.FormatSize(entry.Size), fontSize - 1f, gui.ResolvePart("file-detail").GetColor("color"),
                     centerInRect: false);
+            }
 
             using (gui.Node(ModifiedWidth, RowHeight).ContentAlignY(0.5f).Enter())
+            {
                 gui.DrawText(Modified(entry), fontSize - 1f, gui.ResolvePart("file-detail").GetColor("color"), centerInRect: false);
+            }
 
-            if (gui.Pass != Pass.Pass2Render || !interactable.OnClick(out var clicks)) return;
+            if (gui.Pass != Pass.Pass2Render || !interactable.OnClick(out var clicks))
+            {
+                return;
+            }
 
             Select(state, entry);
-            if (clicks >= 2) Activate(state, entry);
+            if (clicks >= 2)
+            {
+                Activate(state, entry);
+            }
         }
     }
 
@@ -136,7 +165,10 @@ public static partial class ControlsExtensions
         state.Selected = entry;
         state.Message = null;
 
-        if (!entry.IsDirectory && state.Request?.Mode == FileDialogMode.SaveFile) state.Name = entry.Name;
+        if (!entry.IsDirectory && state.Request?.Mode == FileDialogMode.SaveFile)
+        {
+            state.Name = entry.Name;
+        }
     }
 
     /// <summary>The last write time, short enough for the column and unambiguous between locales.</summary>

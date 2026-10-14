@@ -27,7 +27,10 @@ public static partial class ControlsExtensions
         display ??= static item => item?.ToString() ?? string.Empty;
 
         if (gui.Pass == Pass.Pass1Build)
+        {
             state.Selection = ApplyChoices(options, selected, changes, comparer);
+        }
+
         var membership = new HashSet<T>(state.Selection, comparer);
         DrawChoices(gui, id, state, options, display, membership.Contains, isMixed, comparer,
             ChoiceSummary(state.Selection, display, placeholder, mixed), true, chips,
@@ -41,22 +44,48 @@ public static partial class ControlsExtensions
         var membership = new HashSet<T>(selected, comparer);
         foreach (var change in changes)
         {
-            if (change.Selected) membership.Add(change.Item);
-            else membership.Remove(change.Item);
+            if (change.Selected)
+            {
+                membership.Add(change.Item);
+            }
+            else
+            {
+                membership.Remove(change.Item);
+            }
         }
         var ordered = new List<T>(membership.Count);
         foreach (var item in options)
-            if (membership.Remove(item)) ordered.Add(item);
+        {
+            if (membership.Remove(item))
+            {
+                ordered.Add(item);
+            }
+        }
+
         foreach (var item in selected)
-            if (membership.Remove(item)) ordered.Add(item);
+        {
+            if (membership.Remove(item))
+            {
+                ordered.Add(item);
+            }
+        }
+
         return ordered.AsReadOnly();
     }
 
     static string ChoiceSummary<T>(IReadOnlyList<T> selected, Func<T, string> display,
         string placeholder, bool mixed)
     {
-        if (mixed) return "—";
-        if (selected.Count == 0) return placeholder;
+        if (mixed)
+        {
+            return "—";
+        }
+
+        if (selected.Count == 0)
+        {
+            return placeholder;
+        }
+
         return selected.Count <= 2 ? string.Join(", ", selected.Select(display)) : $"{selected.Count} selected";
     }
 
@@ -86,12 +115,24 @@ public static partial class ControlsExtensions
 
     static IReadOnlyList<SelectionChange<T>> BeginChoices<T>(Gui gui, ChoiceState<T> state, bool enabled)
     {
-        if (gui.Pass != Pass.Pass1Build) return [];
+        if (gui.Pass != Pass.Pass1Build)
+        {
+            return [];
+        }
+
         state.Anchor = state.ButtonRect;
         state.JustOpened = state.RequestedOpen == true && !state.Open;
-        if (state.RequestedOpen is { } open) state.Open = open;
+        if (state.RequestedOpen is { } open)
+        {
+            state.Open = open;
+        }
+
         state.RequestedOpen = null;
-        if (!enabled) state.Open = false;
+        if (!enabled)
+        {
+            state.Open = false;
+        }
+
         if (state.JustOpened)
         {
             state.Query = "";
@@ -118,7 +159,9 @@ public static partial class ControlsExtensions
         }
         ChoiceTrigger(gui, id, state, state.FrameSummary, chips, display, width, height, fontSize, enabled);
         if (state.Open && state.Anchor.W > 0)
+        {
             ChoicePopup(gui, id, state, options, multiple, height, fontSize, maxVisibleItems);
+        }
     }
 
     static void FilterChoices<T>(ChoiceState<T> state, IReadOnlyList<T> options, Func<T, string> display,
@@ -141,7 +184,9 @@ public static partial class ControlsExtensions
             state.Mixed[i] = mixed?.Invoke(options[i]) == true;
             if (unique.Add(options[i])
                 && state.Labels[i].Contains(state.FrameQuery, StringComparison.OrdinalIgnoreCase))
+            {
                 state.Filtered.Add(i);
+            }
         }
         state.Active = Math.Clamp(state.Active, 0, Math.Max(0, state.Filtered.Count - 1));
         if (queryChanged) { state.ScrollY = 0; state.Active = 0; state.Reveal = true; }
@@ -174,8 +219,13 @@ public static partial class ControlsExtensions
                 }
             }
             if (chips && state.Selection.Count > 0)
+            {
                 ChoiceChips(gui, id, state, display, height, fontSize, enabled);
-            else gui.DrawText(summary, fontSize, centerInRect: false);
+            }
+            else
+            {
+                gui.DrawText(summary, fontSize, centerInRect: false);
+            }
         }
     }
 
@@ -189,14 +239,22 @@ public static partial class ControlsExtensions
                        .BlockInput().ContentAlignY(0.5f).Enter())
             {
                 gui.DrawText(display(state.Selection[i]) + " ×", fontSize, centerInRect: false);
-                if (gui.Pass != Pass.Pass2Render) continue;
+                if (gui.Pass != Pass.Pass2Render)
+                {
+                    continue;
+                }
+
                 gui.RegisterFocusable(enabled, enabled);
                 if (ChoicePressed(gui, enabled))
+                {
                     state.Pending.Add(new SelectionChange<T>(state.Selection[i], false));
+                }
             }
         }
         if (state.Selection.Count > count)
+        {
             gui.DrawText($"+{state.Selection.Count - count}", fontSize, PlaceholderColor(gui, enabled));
+        }
     }
 
     static bool ChoiceActivateKey(Gui gui) =>

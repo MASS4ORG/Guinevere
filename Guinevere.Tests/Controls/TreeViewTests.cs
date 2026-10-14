@@ -63,7 +63,9 @@ public class TreeViewTests
         {
             items.Add(new TreeItem($"root{r}", $"Root {r}", 0, childrenPerRoot > 0));
             for (var c = 0; c < childrenPerRoot; c++)
+            {
                 items.Add(new TreeItem($"root{r}/child{c}", $"Child {c}", 1));
+            }
         }
 
         return items;
@@ -78,7 +80,10 @@ public class TreeViewTests
         input ??= OffscreenInput();
         var gui = reuse ?? new TestableGui { Input = input };
         gui.Input = input;
-        if (gui is TestableGui testable) testable.SetScreenRect(Width, Height);
+        if (gui is TestableGui testable)
+        {
+            testable.SetScreenRect(Width, Height);
+        }
 
         for (var frame = 0; frame < frames; frame++)
         {
@@ -96,7 +101,10 @@ public class TreeViewTests
 
             // A scripted handler rolls its own edges once the frame is over, so whatever the caller
             // sets between calls is what the next frame sees.
-            if (input is ScriptedInputHandler scripted) scripted.NewFrame();
+            if (input is ScriptedInputHandler scripted)
+            {
+                scripted.NewFrame();
+            }
         }
 
         return gui;
@@ -139,9 +147,15 @@ public class TreeViewTests
         void Visit(LayoutNode node)
         {
             var match = System.Text.RegularExpressions.Regex.Match(node.Id, @"^treeview/row(\d+)$");
-            if (match.Success) indices.Add(int.Parse(match.Groups[1].Value));
+            if (match.Success)
+            {
+                indices.Add(int.Parse(match.Groups[1].Value));
+            }
 
-            foreach (var child in node.Children) Visit(child);
+            foreach (var child in node.Children)
+            {
+                Visit(child);
+            }
         }
     }
 
@@ -154,9 +168,15 @@ public class TreeViewTests
         void Visit(LayoutNode node)
         {
             // Exactly the row nodes: a row's children inherit its id as a prefix.
-            if (System.Text.RegularExpressions.Regex.IsMatch(node.Id, @"^treeview/row\d+$")) count++;
+            if (System.Text.RegularExpressions.Regex.IsMatch(node.Id, @"^treeview/row\d+$"))
+            {
+                count++;
+            }
 
-            foreach (var child in node.Children) Visit(child);
+            foreach (var child in node.Children)
+            {
+                Visit(child);
+            }
         }
     }
 

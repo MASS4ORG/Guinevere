@@ -116,7 +116,9 @@ public abstract class LayoutNodeTestBase
     {
         var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         if (field == null)
+        {
             throw new ArgumentException($"Field '{fieldName}' not found on type '{obj.GetType().Name}'");
+        }
 
         var value = field.GetValue(obj);
         return value == null ? default! : (T)value;
@@ -129,15 +131,21 @@ public abstract class LayoutNodeTestBase
     {
         var styleField = node.GetType().GetField("Style", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
         if (styleField == null)
+        {
             throw new ArgumentException("_style field not found on LayoutNode");
+        }
 
         var style = styleField.GetValue(node);
         if (style == null)
+        {
             throw new ArgumentException("_style is null");
+        }
 
         var property = style.GetType().GetProperty(propertyName);
         if (property == null)
+        {
             throw new ArgumentException($"Property '{propertyName}' not found on LayoutStyle");
+        }
 
         var value = property.GetValue(style);
 

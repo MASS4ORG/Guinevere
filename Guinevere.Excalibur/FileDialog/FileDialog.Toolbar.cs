@@ -17,26 +17,42 @@ public static partial class ControlsExtensions
                    .ContentAlignY(0.5f).Enter())
         {
             if (gui.IconButton("⬅", size: height, fontSize: fontSize, enabled: browser.CanGoBack))
+            {
                 Move(() => browser.GoBackAsync());
+            }
 
             if (gui.IconButton("➡", size: height, fontSize: fontSize, enabled: browser.CanGoForward))
+            {
                 Move(() => browser.GoForwardAsync());
+            }
 
             if (gui.IconButton("⬆", size: height, fontSize: fontSize, enabled: browser.CanGoUp))
+            {
                 Move(async () => await browser.GoUpAsync());
+            }
 
-            if (gui.IconButton("🔄", size: height, fontSize: fontSize)) _ = browser.RefreshAsync().AsTask();
+            if (gui.IconButton("🔄", size: height, fontSize: fontSize))
+            {
+                _ = browser.RefreshAsync().AsTask();
+            }
 
             PathBar(gui, state, height, fontSize);
 
             if (gui.IconButton(state.EditingPath is null ? "✏" : "✔", size: height, fontSize: fontSize))
+            {
                 TogglePathEditing(state);
+            }
 
-            if (gui.IconButton("➕", size: height, fontSize: fontSize)) _ = NewFolderAsync(state).AsTask();
+            if (gui.IconButton("➕", size: height, fontSize: fontSize))
+            {
+                _ = NewFolderAsync(state).AsTask();
+            }
 
             if (gui.IconButton("👁", size: height, fontSize: fontSize,
                     classes: browser.ShowHidden ? CheckedClass : null))
+            {
                 browser.ShowHidden = !browser.ShowHidden;
+            }
 
             using (gui.Node(190f, height).Enter())
             {
@@ -106,8 +122,10 @@ public static partial class ControlsExtensions
         }
 
         foreach (var crumb in crumbs.TakeLast(VisibleCrumbs))
+        {
             items.Add(new BreadcrumbItem(crumb.Label, () => open(crumb.Path),
                 IsCurrent: crumb.Path == state.Browser.CurrentPath));
+        }
 
         return items;
     }
@@ -126,7 +144,10 @@ public static partial class ControlsExtensions
 
         state.EditingPath = null;
         state.Message = null;
-        if (typed.Trim().Length == 0) return;
+        if (typed.Trim().Length == 0)
+        {
+            return;
+        }
 
         _ = NavigateTypedAsync(state, typed.Trim()).AsTask();
     }
@@ -138,8 +159,13 @@ public static partial class ControlsExtensions
     static async ValueTask NavigateTypedAsync(FileDialogState state, string path)
     {
         if (!await state.Browser.NavigateAsync(path).ConfigureAwait(false))
+        {
             state.Message = $"'{path}' is not a folder.";
-        else state.Selected = null;
+        }
+        else
+        {
+            state.Selected = null;
+        }
     }
 
     static async ValueTask NewFolderAsync(FileDialogState state)
@@ -149,7 +175,9 @@ public static partial class ControlsExtensions
         for (var suffix = 2;
              await browser.FileSystem.DirectoryExistsAsync(Path.Combine(browser.CurrentPath, name)).ConfigureAwait(false);
              suffix++)
+        {
             name = $"New Folder {suffix}";
+        }
 
         state.Message = null;
         if (await browser.CreateFolderAsync(name).ConfigureAwait(false) is not { } created)
@@ -162,6 +190,8 @@ public static partial class ControlsExtensions
             string.Equals(entry.FullPath, created, StringComparison.Ordinal));
 
         if (state.Request?.Mode is FileDialogMode.SaveFile or FileDialogMode.CreateFolder)
+        {
             state.Name = name;
+        }
     }
 }

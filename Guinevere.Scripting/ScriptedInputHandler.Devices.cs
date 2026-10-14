@@ -19,7 +19,11 @@ public sealed partial class ScriptedInputHandler : IGameInputCapability, ITouchC
     /// <summary>Connects a mapped controller with a stable script-owned identifier.</summary>
     public void ConnectController(string id, string name = "Scripted controller")
     {
-        if (_controllers.ContainsKey(id)) return;
+        if (_controllers.ContainsKey(id))
+        {
+            return;
+        }
+
         _controllers[id] = new ScriptedController(name);
         PublishController(id);
     }
@@ -48,8 +52,15 @@ public sealed partial class ScriptedInputHandler : IGameInputCapability, ITouchC
     /// <summary>Queues a raw contact update for the next frame.</summary>
     public void Touch(TouchContact contact)
     {
-        if (contact.Phase is TouchPhase.Ended or TouchPhase.Canceled) _contacts.Remove(contact.Id);
-        else _contacts[contact.Id] = contact;
+        if (contact.Phase is TouchPhase.Ended or TouchPhase.Canceled)
+        {
+            _contacts.Remove(contact.Id);
+        }
+        else
+        {
+            _contacts[contact.Id] = contact;
+        }
+
         _touchInput.AddContact(contact);
     }
 
@@ -66,15 +77,25 @@ public sealed partial class ScriptedInputHandler : IGameInputCapability, ITouchC
     {
         _deviceElapsed += 1d / 60;
         _gameInput.NewFrame();
-        foreach (var id in _controllers.Keys) PublishController(id);
+        foreach (var id in _controllers.Keys)
+        {
+            PublishController(id);
+        }
+
         _touchInput.NewFrame();
     }
 
     void ResetDevices()
     {
-        foreach (var id in _controllers.Keys.ToArray()) DisconnectController(id);
+        foreach (var id in _controllers.Keys.ToArray())
+        {
+            DisconnectController(id);
+        }
+
         foreach (var contact in _contacts.Values.ToArray())
+        {
             Touch(contact with { Phase = TouchPhase.Canceled });
+        }
     }
 
     sealed class ScriptedController(string name)

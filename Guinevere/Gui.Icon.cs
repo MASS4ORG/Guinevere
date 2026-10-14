@@ -16,7 +16,11 @@ public partial class Gui
     {
         var side = size > 0 ? size : CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value;
         var node = Node(side, side);
-        if (icon is not null) DrawIcon(icon, node.Rect, tint, opacity, node);
+        if (icon is not null)
+        {
+            DrawIcon(icon, node.Rect, tint, opacity, node);
+        }
+
         return node;
     }
 
@@ -32,7 +36,11 @@ public partial class Gui
     internal void DrawIcon(Icon icon, Rect destination, Color? tint, float opacity, LayoutNode? node)
     {
         ArgumentNullException.ThrowIfNull(icon);
-        if (Pass != Pass.Pass2Render || destination.W <= 0f || destination.H <= 0f) return;
+        if (Pass != Pass.Pass2Render || destination.W <= 0f || destination.H <= 0f)
+        {
+            return;
+        }
+
         var color = tint ?? icon.Color;
         switch (icon.Kind)
         {
@@ -73,7 +81,11 @@ public partial class Gui
         }
         var codePoint = char.ConvertToUtf32(glyph, 0);
         var text = CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.SkFont;
-        if (text.GetGlyph(codePoint) != 0) return text.Typeface;
+        if (text.GetGlyph(codePoint) != 0)
+        {
+            return text.Typeface;
+        }
+
         var widget = CurrentNodeScope.Get<LayoutNodeScopeWidgetIconFont>().Value.SkFont;
         return widget.GetGlyph(codePoint) != 0
             ? widget.Typeface
@@ -85,10 +97,17 @@ public partial class Gui
     {
         var alpha = (byte)(Opacity(opacity) * 255f + 0.5f);
         var recolor = icon.Tintable && tint is not null;
-        if (!recolor && alpha == 255) return null;
+        if (!recolor && alpha == 255)
+        {
+            return null;
+        }
 
         var paint = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, alpha) };
-        if (recolor) paint.ColorFilter = SKColorFilter.CreateBlendMode(tint!.Value, SKBlendMode.SrcIn);
+        if (recolor)
+        {
+            paint.ColorFilter = SKColorFilter.CreateBlendMode(tint!.Value, SKBlendMode.SrcIn);
+        }
+
         return paint;
     }
 
@@ -97,7 +116,11 @@ public partial class Gui
     /// <summary>The largest rectangle with the source aspect ratio centred in <paramref name="bounds"/>.</summary>
     internal static Rect Fit(Rect bounds, float width, float height)
     {
-        if (width <= 0f || height <= 0f) return bounds;
+        if (width <= 0f || height <= 0f)
+        {
+            return bounds;
+        }
+
         var scale = Math.Min(bounds.W / width, bounds.H / height);
         var w = width * scale;
         var h = height * scale;

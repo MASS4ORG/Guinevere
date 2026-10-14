@@ -11,15 +11,27 @@ static partial class X11WindowPosition
 {
     internal static bool TryBeginMove(nint display, nuint window, Vector2 pointer)
     {
-        if (display == 0) return false;
-        if (window == 0) return false;
+        if (display == 0)
+        {
+            return false;
+        }
+
+        if (window == 0)
+        {
+            return false;
+        }
+
         return BeginMove(display, window, pointer);
     }
 
     static bool BeginMove(nint display, nuint window, Vector2 pointer)
     {
         var atom = XInternAtom(display, "_NET_WM_MOVERESIZE", 1);
-        if (atom == 0) return false;
+        if (atom == 0)
+        {
+            return false;
+        }
+
         var message = CreateMoveMessage(display, window, atom, pointer);
         // The window manager needs ownership of the pointer to run its interactive move operation.
         XUngrabPointer(display, 0);
@@ -31,7 +43,11 @@ static partial class X11WindowPosition
     internal static void CancelMove(nint display, nuint window)
     {
         var atom = XInternAtom(display, "_NET_WM_MOVERESIZE", 1);
-        if (atom == 0) return;
+        if (atom == 0)
+        {
+            return;
+        }
+
         var message = CreateCancelMoveMessage(display, window, atom);
         XSendEvent(display, XDefaultRootWindow(display), 0, (1 << 19) | (1 << 20), ref message);
         XFlush(display);
@@ -64,7 +80,11 @@ static partial class X11WindowPosition
     internal static bool TrySet(nint display, nuint window, Vector2 position)
     {
         var atom = XInternAtom(display, "_NET_MOVERESIZE_WINDOW", 1);
-        if (atom == 0) return false;
+        if (atom == 0)
+        {
+            return false;
+        }
+
         var message = CreateMessage(display, window, atom, position);
         var result = XSendEvent(display, XDefaultRootWindow(display), 0, (1 << 19) | (1 << 20), ref message);
         XFlush(display);

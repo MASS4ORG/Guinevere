@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 // [TextArea] grows between its minimum and maximum lines, then scrolls.
 public sealed class TextAreaDemo

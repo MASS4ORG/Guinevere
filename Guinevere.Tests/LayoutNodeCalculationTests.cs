@@ -14,7 +14,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     [InlineData(800f, 600f)]
     [InlineData(1024f, 768f)]
     [InlineData(400f, 300f)]
-    public void RootNode_CalculateLayout_UsesScreenRect(float screenWidth, float screenHeight)
+    public void RootNodeCalculateLayoutUsesScreenRect(float screenWidth, float screenHeight)
     {
         // Arrange
         var gui = CreateTestGui((int)screenWidth, (int)screenHeight);
@@ -34,7 +34,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     [InlineData(100f, 80f)]
     [InlineData(200f, 150f)]
     [InlineData(50f, 40f)]
-    public void SingleChildNode_WithExplicitSize_CalculatesCorrectly(float width, float height)
+    public void SingleChildNodeWithExplicitSizeCalculatesCorrectly(float width, float height)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -53,7 +53,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a child node with full expansion fills its parent's entire bounds.
     /// </summary>
     [Fact]
-    public void SingleChildNode_WithExpansion_FillsParent()
+    public void SingleChildNodeWithExpansionFillsParent()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -75,7 +75,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     [InlineData(0.5f, 0.7f)]
     [InlineData(0.3f, 0.8f)]
     [InlineData(1.0f, 1.0f)]
-    public void SingleChildNode_WithPartialExpansion_CalculatesCorrectly(float widthPercent, float heightPercent)
+    public void SingleChildNodeWithPartialExpansionCalculatesCorrectly(float widthPercent, float heightPercent)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -103,7 +103,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     [InlineData(10f)]
     [InlineData(20f)]
     [InlineData(5f)]
-    public void SingleChildNode_WithUniformMargin_CalculatesCorrectLayout(float margin)
+    public void SingleChildNodeWithUniformMarginCalculatesCorrectLayout(float margin)
     {
         // Arrange
         var gui = CreateTestGui(200, 200);
@@ -130,7 +130,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     [Theory]
     [InlineData(5f, 10f, 15f, 20f)]
     [InlineData(2f, 4f, 6f, 8f)]
-    public void SingleChildNode_WithAsymmetricMargin_CalculatesCorrectLayout(float top, float right, float bottom,
+    public void SingleChildNodeWithAsymmetricMarginCalculatesCorrectLayout(float top, float right, float bottom,
         float left)
     {
         // Arrange
@@ -160,7 +160,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     [InlineData(8f)]
     [InlineData(12f)]
     [InlineData(4f)]
-    public void ParentWithPadding_AffectsChildLayout(float padding)
+    public void ParentWithPaddingAffectsChildLayout(float padding)
     {
         // Arrange
         var gui = CreateTestGui(200, 200);
@@ -188,7 +188,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a vertical layout with two equal-height children divides the space evenly.
     /// </summary>
     [Fact]
-    public void VerticalLayout_WithTwoEqualChildren_DividesSpaceEvenly()
+    public void VerticalLayoutWithTwoEqualChildrenDividesSpaceEvenly()
     {
         // Arrange
         var gui = CreateTestGui(200, 200);
@@ -210,7 +210,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a vertical layout with a fixed-height child and an expanding child calculates dimensions correctly.
     /// </summary>
     [Fact]
-    public void VerticalLayout_WithFixedAndExpandingChild_CalculatesCorrectly()
+    public void VerticalLayoutWithFixedAndExpandingChildCalculatesCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(200, 200);
@@ -235,7 +235,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     [InlineData(5f)]
     [InlineData(10f)]
     [InlineData(15f)]
-    public void VerticalLayout_WithGap_AddsSpaceBetweenChildren(float gap)
+    public void VerticalLayoutWithGapAddsSpaceBetweenChildren(float gap)
     {
         // Arrange
         var gui = CreateTestGui(200, 200);
@@ -257,7 +257,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that child margins are applied correctly in a vertical layout affecting position and size.
     /// </summary>
     [Fact]
-    public void VerticalLayout_WithChildMargins_CalculatesCorrectly()
+    public void VerticalLayoutWithChildMarginsCalculatesCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(200, 300);
@@ -285,7 +285,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a vertical layout with three children distributes height based on different expansion ratios.
     /// </summary>
     [Fact]
-    public void VerticalLayout_WithThreeChildren_DifferentExpansionRatios()
+    public void VerticalLayoutWithThreeChildrenDifferentExpansionRatios()
     {
         // Arrange
         var gui = CreateTestGui(200, 300);
@@ -319,7 +319,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a horizontal layout with two equal-width children divides the space evenly.
     /// </summary>
     [Fact]
-    public void HorizontalLayout_WithTwoEqualChildren_DividesSpaceEvenly()
+    public void HorizontalLayoutWithTwoEqualChildrenDividesSpaceEvenly()
     {
         // Arrange
         var gui = CreateTestGui(200, 200);
@@ -341,7 +341,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a horizontal layout with a fixed-width child and an expanding child calculates dimensions correctly.
     /// </summary>
     [Fact]
-    public void HorizontalLayout_WithFixedAndExpandingChild_CalculatesCorrectly()
+    public void HorizontalLayoutWithFixedAndExpandingChildCalculatesCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(300, 100);
@@ -366,7 +366,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     [InlineData(8f)]
     [InlineData(12f)]
     [InlineData(20f)]
-    public void HorizontalLayout_WithGap_AddsSpaceBetweenChildren(float gap)
+    public void HorizontalLayoutWithGapAddsSpaceBetweenChildren(float gap)
     {
         // Arrange
         var gui = CreateTestGui(300, 100);
@@ -388,7 +388,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that child margins are applied correctly in a horizontal layout affecting position and size.
     /// </summary>
     [Fact]
-    public void HorizontalLayout_WithChildMargins_CalculatesCorrectly()
+    public void HorizontalLayoutWithChildMarginsCalculatesCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(400, 100);
@@ -419,7 +419,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a nested vertical-in-horizontal layout calculates positions and sizes correctly across both axes.
     /// </summary>
     [Fact]
-    public void NestedLayout_VerticalInHorizontal_CalculatesCorrectly()
+    public void NestedLayoutVerticalInHorizontalCalculatesCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(400, 200);
@@ -460,7 +460,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that nested margins and padding compound correctly through multiple layout levels.
     /// </summary>
     [Fact]
-    public void NestedLayout_WithMarginsAndPadding_CalculatesCorrectly()
+    public void NestedLayoutWithMarginsAndPaddingCalculatesCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(300, 200);
@@ -500,7 +500,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a three-level nested layout calculates all node positions and sizes correctly.
     /// </summary>
     [Fact]
-    public void NestedLayout_ThreeLevelsDeep_CalculatesCorrectly()
+    public void NestedLayoutThreeLevelsDeepCalculatesCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(400, 300);
@@ -541,7 +541,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a zero-sized parent handles layout gracefully without errors.
     /// </summary>
     [Fact]
-    public void Layout_WithZeroSizedParent_HandlesGracefully()
+    public void LayoutWithZeroSizedParentHandlesGracefully()
     {
         // Arrange
         var gui = CreateTestGui(0, 0);
@@ -561,7 +561,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that negative margins cause the child to extend beyond the parent bounds correctly.
     /// </summary>
     [Fact]
-    public void Layout_WithNegativeMargins_CalculatesCorrectly()
+    public void LayoutWithNegativeMarginsCalculatesCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(200, 200);
@@ -582,7 +582,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that excessive margins clamp the child size to a minimum viable dimension.
     /// </summary>
     [Fact]
-    public void Layout_WithExcessiveMargins_ClampsToMinimumSize()
+    public void LayoutWithExcessiveMarginsClampsToMinimumSize()
     {
         // Arrange
         var gui = CreateTestGui(100, 100);
@@ -604,7 +604,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     /// Verifies that a mix of fixed and expanding children distributes remaining space correctly after fixed sizes are allocated.
     /// </summary>
     [Fact]
-    public void Layout_MixedFixedAndExpandingChildren_DistributesSpaceCorrectly()
+    public void LayoutMixedFixedAndExpandingChildrenDistributesSpaceCorrectly()
     {
         // Arrange
         var gui = CreateTestGui(400, 300);

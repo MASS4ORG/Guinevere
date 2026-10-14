@@ -8,7 +8,7 @@ public class DemoHeaderTests
 {
     /// <summary>Building and rendering successive headers succeeds without a badge file beside the executable.</summary>
     [Fact]
-    public void Header_RendersWithEmbeddedBadge()
+    public void HeaderRendersWithEmbeddedBadge()
     {
         using var resource = typeof(DemoHeader).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png");
         Assert.NotNull(resource);

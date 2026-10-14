@@ -34,8 +34,16 @@ public sealed class WindowCloseGate
     /// </summary>
     public bool MayClose()
     {
-        if (_approved) return true;
-        if (CloseRequested?.Invoke() != false) return true;
+        if (_approved)
+        {
+            return true;
+        }
+
+        if (CloseRequested?.Invoke() != false)
+        {
+            return true;
+        }
+
         return _approved;
     }
 }

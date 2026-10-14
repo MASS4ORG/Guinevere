@@ -25,7 +25,10 @@ public sealed class SystemAppearanceMonitor : IAppearanceCapability, IDisposable
         ArgumentNullException.ThrowIfNull(read);
         _read = read;
         _appearance = SafeRead();
-        if (pollInterval is { } interval) _poll = new Timer(_ => Refresh(), null, interval, interval);
+        if (pollInterval is { } interval)
+        {
+            _poll = new Timer(_ => Refresh(), null, interval, interval);
+        }
     }
 
     /// <summary>Creates the monitor for the current operating system.</summary>
@@ -33,7 +36,11 @@ public sealed class SystemAppearanceMonitor : IAppearanceCapability, IDisposable
     {
         var poll = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS();
         var monitor = new SystemAppearanceMonitor(SystemAppearanceReaders.ReadCurrent, poll ? DefaultPollInterval : null);
-        if (SystemAppearanceReaders.UsesPortal) monitor.WatchPortal();
+        if (SystemAppearanceReaders.UsesPortal)
+        {
+            monitor.WatchPortal();
+        }
+
         return monitor;
     }
 
@@ -42,7 +49,10 @@ public sealed class SystemAppearanceMonitor : IAppearanceCapability, IDisposable
     {
         get
         {
-            lock (_gate) return _appearance;
+            lock (_gate)
+            {
+                return _appearance;
+            }
         }
     }
 
@@ -55,7 +65,11 @@ public sealed class SystemAppearanceMonitor : IAppearanceCapability, IDisposable
         var next = SafeRead();
         lock (_gate)
         {
-            if (next == _appearance) return;
+            if (next == _appearance)
+            {
+                return;
+            }
+
             _appearance = next;
         }
         Changed?.Invoke(next);
@@ -71,7 +85,10 @@ public sealed class SystemAppearanceMonitor : IAppearanceCapability, IDisposable
             _watch = null;
             try
             {
-                if (!watch.HasExited) watch.Kill();
+                if (!watch.HasExited)
+                {
+                    watch.Kill();
+                }
             }
             catch (InvalidOperationException)
             {
@@ -101,7 +118,10 @@ public sealed class SystemAppearanceMonitor : IAppearanceCapability, IDisposable
         };
         watch.OutputDataReceived += (_, line) =>
         {
-            if (SystemAppearanceReaders.IsPortalAppearanceSignal(line.Data)) Refresh();
+            if (SystemAppearanceReaders.IsPortalAppearanceSignal(line.Data))
+            {
+                Refresh();
+            }
         };
         watch.ErrorDataReceived += (_, _) => { };
         try

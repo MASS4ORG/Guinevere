@@ -75,14 +75,21 @@ public static partial class ControlsExtensions
         DrawButton(gui, id, options, selectedIndex, width, height, placeholder, fontSize, padding, state, enabled,
             classes);
 
-        if (!enabled || !state.IsOpen || state.Anchor.W <= 0) return;
+        if (!enabled || !state.IsOpen || state.Anchor.W <= 0)
+        {
+            return;
+        }
 
         DrawList(gui, id, options, ref selectedIndex, state.Anchor, height, fontSize, padding, maxVisibleItems, state);
     }
 
     static void ApplyDropdownRequests(Gui gui, DropdownState state, ref int selectedIndex, bool enabled)
     {
-        if (gui.Pass != Pass.Pass1Build) return;
+        if (gui.Pass != Pass.Pass1Build)
+        {
+            return;
+        }
+
         state.Anchor = state.ButtonRect;
         if (state.RequestedOpen is { } requestedOpen)
         {
@@ -95,7 +102,10 @@ public static partial class ControlsExtensions
             state.SelectedIndex = requestedSelection;
             state.RequestedSelection = null;
         }
-        if (!enabled) state.IsOpen = false;
+        if (!enabled)
+        {
+            state.IsOpen = false;
+        }
     }
 
     /// <summary>
@@ -156,7 +166,10 @@ public static partial class ControlsExtensions
             {
                 var rect = gui.CurrentNode.Rect;
                 state.ButtonRect = rect;
-                if (state.Anchor.W <= 0) state.Anchor = rect;
+                if (state.Anchor.W <= 0)
+                {
+                    state.Anchor = rect;
+                }
 
                 gui.RegisterFocusable();
                 var interactable = gui.GetInteractable();
@@ -200,7 +213,10 @@ public static partial class ControlsExtensions
         var listHeight = visible * rowHeight;
         var top = buttonRect.Y + buttonRect.H + 2;
 
-        if (top + listHeight > gui.LayoutBounds.H) top = Math.Max(0, buttonRect.Y - listHeight - 2);
+        if (top + listHeight > gui.LayoutBounds.H)
+        {
+            top = Math.Max(0, buttonRect.Y - listHeight - 2);
+        }
 
         var chosen = -1;
 
@@ -222,7 +238,10 @@ public static partial class ControlsExtensions
                 using (gui.StyledNode("option", id: $"{id}/list/{i}", modifiers: modifiers).Height(rowHeight)
                            .ExpandWidth().Padding(padding, 0).ContentAlignY(0.5f).Enter())
                 {
-                    if (DropdownOptionInput(gui, id)) chosen = i;
+                    if (DropdownOptionInput(gui, id))
+                    {
+                        chosen = i;
+                    }
 
                     gui.DrawText(options[i], fontSize, centerInRect: false);
                 }
@@ -234,17 +253,28 @@ public static partial class ControlsExtensions
 
     static bool DropdownOptionInput(Gui gui, string id)
     {
-        if (gui.Pass != Pass.Pass2Render) return false;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return false;
+        }
+
         gui.RegisterFocusable(parentId: $"{id}/button");
         var interactable = gui.GetInteractable();
-        if (!interactable.OnClick()) return false;
+        if (!interactable.OnClick())
+        {
+            return false;
+        }
+
         gui.RequestFocus(FocusReason.Mouse);
         return true;
     }
 
     static void CompleteDropdownSelection(Gui gui, DropdownState state, int chosen, Rect buttonRect)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         if (chosen >= 0)
         {
@@ -253,14 +283,19 @@ public static partial class ControlsExtensions
             return;
         }
 
-        if (gui.IsCancelPressed) state.RequestedOpen = false;
+        if (gui.IsCancelPressed)
+        {
+            state.RequestedOpen = false;
+        }
 
         // A press that reached neither the button nor the list dismisses it. The list blocks input, so
         // a press inside it never gets here.
         if (gui.Input.IsMouseButtonPressed(MouseButton.Left)
             && !gui.IsPointerIn(buttonRect)
             && !gui.IsPointerOverBlocker)
+        {
             state.RequestedOpen = false;
+        }
     }
 
     /// <summary>Where an open option list draws, above ordinary content but below a drag ghost.</summary>

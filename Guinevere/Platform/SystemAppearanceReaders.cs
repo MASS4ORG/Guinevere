@@ -62,7 +62,11 @@ static partial class SystemAppearanceReaders
     /// </summary>
     internal static SystemAppearance ParsePortal(string? output)
     {
-        if (string.IsNullOrEmpty(output)) return SystemAppearance.NoPreference;
+        if (string.IsNullOrEmpty(output))
+        {
+            return SystemAppearance.NoPreference;
+        }
+
         var contrast = PortalUint(PortalContrast(), output) == "1"
             ? ContrastPreference.More
             : ContrastPreference.NoPreference;
@@ -82,13 +86,20 @@ static partial class SystemAppearanceReaders
     static Color? ParsePortalAccent(string output)
     {
         var match = PortalAccent().Match(output);
-        if (!match.Success) return null;
+        if (!match.Success)
+        {
+            return null;
+        }
+
         Span<byte> channels = stackalloc byte[3];
         for (var i = 0; i < 3; i++)
         {
             if (!double.TryParse(match.Groups[i + 1].Value, NumberStyles.Float, CultureInfo.InvariantCulture,
                     out var value) || value is < 0 or > 1)
+            {
                 return null;
+            }
+
             channels[i] = (byte)Math.Round(value * 255);
         }
         return Color.FromArgb(255, channels[0], channels[1], channels[2]);
@@ -168,7 +179,11 @@ static partial class SystemAppearanceReaders
         try
         {
             using var process = Process.Start(Command(fileName, arguments));
-            if (process is null) return null;
+            if (process is null)
+            {
+                return null;
+            }
+
             var output = process.StandardOutput.ReadToEndAsync();
             _ = process.StandardError.ReadToEndAsync();
             if (!process.WaitForExit(CommandTimeout))
@@ -194,7 +209,11 @@ static partial class SystemAppearanceReaders
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        foreach (var argument in arguments) info.ArgumentList.Add(argument);
+        foreach (var argument in arguments)
+        {
+            info.ArgumentList.Add(argument);
+        }
+
         return info;
     }
 }

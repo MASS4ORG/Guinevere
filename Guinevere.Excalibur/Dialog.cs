@@ -78,18 +78,27 @@ public static partial class ControlsExtensions
         var position = ConstrainToScreen(gui, centered + state.DragOffset, width, totalHeight);
 
         if (gui.Pass == Pass.Pass2Render && isOpen && draggable)
+        {
             HandleTitleBarDrag(gui, state, position, width, titleBarHeight, showCloseButton);
+        }
 
         var dialogNode = gui.StyledNode("dialog", classes, id, modifiers: isOpen ? [] : ["closed"])
             .Width(width).Height(totalHeight).AbsoluteScreen(position.X, position.Y).HitTestVisible(isOpen);
-        if (isOpen) dialogNode.BlockInput();
+        if (isOpen)
+        {
+            dialogNode.BlockInput();
+        }
 
         using (dialogNode.Enter())
         {
             gui.SetZIndex(DialogZIndex + 1);
             gui.SetEscapesAncestorClips();
 
-            if (TitleBar(gui, title, width, titleBarHeight, showCloseButton, isOpen)) isOpen = false;
+            if (TitleBar(gui, title, width, titleBarHeight, showCloseButton, isOpen))
+            {
+                isOpen = false;
+            }
+
             DialogContent(gui, isOpen, content, width, height, titleBarHeight, id);
             DialogFooter(gui, isOpen, footer, width, footerHeight, titleBarHeight + height, id);
         }
@@ -99,12 +108,27 @@ public static partial class ControlsExtensions
 
     static void UpdateDialogState(Gui gui, DialogState state, ref bool isOpen, bool closeOnEscape)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         state.JustOpened = isOpen && !state.WasOpen;
         state.WasOpen = isOpen;
-        if (state.JustOpened) state.DragOffset = Vector2.Zero;
-        if (!isOpen) state.IsDragging = false;
-        if (closeOnEscape && isOpen && gui.IsCancelPressed) isOpen = false;
+        if (state.JustOpened)
+        {
+            state.DragOffset = Vector2.Zero;
+        }
+
+        if (!isOpen)
+        {
+            state.IsDragging = false;
+        }
+
+        if (closeOnEscape && isOpen && gui.IsCancelPressed)
+        {
+            isOpen = false;
+        }
     }
 
     static void DialogContent(Gui gui, bool isOpen, Action content, float width, float height,
@@ -112,34 +136,53 @@ public static partial class ControlsExtensions
     {
         using (gui.StyledNode("dialog-content").Width(width).Height(height)
                    .Top(titleBarHeight).Padding(16).HitTestVisible(isOpen).Enter())
+        {
             if (isOpen)
             {
                 using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
                 focusScope.SetActive();
                 content.Invoke();
             }
+        }
     }
 
     static void DialogFooter(Gui gui, bool isOpen, Action? footer, float width, float height, float top, string id)
     {
-        if (footer is null) return;
+        if (footer is null)
+        {
+            return;
+        }
+
         using (gui.StyledNode("dialog-footer").Width(width).Height(height).Top(top)
                    .Direction(Axis.Horizontal).Padding(16, 8).Gap(8).ContentAlignX(1f)
                    .ContentAlignY(0.5f).Enter())
+        {
             if (isOpen)
             {
                 using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
                 focusScope.SetActive();
                 footer.Invoke();
             }
+        }
     }
 
     static void DismissDialogOutside(Gui gui, DialogState state, ref bool isOpen, bool closeOnClickOutside,
         LayoutNode dialogNode)
     {
-        if (gui.Pass != Pass.Pass2Render || !isOpen || !closeOnClickOutside || state.JustOpened) return;
-        if (!gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
-        if (!dialogNode.ContainsScreenPoint(gui.Input.MousePosition)) isOpen = false;
+        if (gui.Pass != Pass.Pass2Render || !isOpen || !closeOnClickOutside || state.JustOpened)
+        {
+            return;
+        }
+
+        if (!gui.Input.IsMouseButtonPressed(MouseButton.Left))
+        {
+            return;
+        }
+
+        if (!dialogNode.ContainsScreenPoint(gui.Input.MousePosition))
+        {
+            isOpen = false;
+        }
     }
 
     /// <summary>
@@ -156,24 +199,37 @@ public static partial class ControlsExtensions
         if (state.IsDragging)
         {
             if (gui.Input.IsMouseButtonDown(MouseButton.Left))
+            {
                 state.DragOffset = state.DragStartOffset + (mouse - state.DragStartMouse);
+            }
             else
+            {
                 state.IsDragging = false;
+            }
 
             return;
         }
 
         // The click that just opened the dialog is not also the click that starts dragging it.
-        if (state.JustOpened || !gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
+        if (state.JustOpened || !gui.Input.IsMouseButtonPressed(MouseButton.Left))
+        {
+            return;
+        }
 
         var titleBarRect = new Rect(position.X, position.Y, width, titleBarHeight);
-        if (!IsMouseInRect(mouse, titleBarRect)) return;
+        if (!IsMouseInRect(mouse, titleBarRect))
+        {
+            return;
+        }
 
         if (showCloseButton)
         {
             var closeZone = new Rect(position.X + width - titleBarHeight, position.Y,
                 titleBarHeight, titleBarHeight);
-            if (IsMouseInRect(mouse, closeZone)) return;
+            if (IsMouseInRect(mouse, closeZone))
+            {
+                return;
+            }
         }
 
         state.IsDragging = true;
@@ -189,7 +245,9 @@ public static partial class ControlsExtensions
             using (gui.Node().Expand().Direction(Axis.Horizontal).Padding(16, 0).ContentAlignY(0.5f).Enter())
             {
                 using (gui.Node().Expand().ContentAlignY(0.5f).Enter())
+                {
                     gui.DrawText(title, centerInRect: false);
+                }
 
                 return showCloseButton && CloseButton(gui, height * 0.6f, isOpen);
             }
@@ -203,7 +261,10 @@ public static partial class ControlsExtensions
                    .ContentAlignX(0.5f).ContentAlignY(0.5f).HitTestVisible(isOpen).Enter())
         {
             gui.DrawText(WidgetIcons.Xmark);
-            if (gui.Pass != Pass.Pass2Render || !isOpen) return false;
+            if (gui.Pass != Pass.Pass2Render || !isOpen)
+            {
+                return false;
+            }
 
             var interactable = gui.GetInteractable();
             var hot = interactable.OnHover();

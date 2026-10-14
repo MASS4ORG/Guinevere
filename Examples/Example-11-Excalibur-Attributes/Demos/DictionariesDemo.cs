@@ -1,4 +1,4 @@
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 // Entries are edited through their keys; "+" invents a key ("New Key", 0, 1, ...).
 public sealed class DictionariesDemo

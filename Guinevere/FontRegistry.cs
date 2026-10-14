@@ -67,7 +67,11 @@ public sealed class FontRegistry : IDisposable
         ArgumentNullException.ThrowIfNull(font);
         Register(font.FamilyName, font);
         _roleFamilies.Remove(role);
-        if (_roleFonts.GetValueOrDefault(role) == font) return;
+        if (_roleFonts.GetValueOrDefault(role) == font)
+        {
+            return;
+        }
+
         _roleFonts[role] = font;
         Invalidate();
     }
@@ -78,7 +82,11 @@ public sealed class FontRegistry : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(families);
         _roleFonts.Remove(role);
-        if (_roleFamilies.GetValueOrDefault(role) == families) return;
+        if (_roleFamilies.GetValueOrDefault(role) == families)
+        {
+            return;
+        }
+
         _roleFamilies[role] = families;
         Invalidate();
     }
@@ -89,7 +97,10 @@ public sealed class FontRegistry : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         var removed = _roleFonts.Remove(role);
         removed |= _roleFamilies.Remove(role);
-        if (removed) Invalidate();
+        if (removed)
+        {
+            Invalidate();
+        }
     }
 
     /// <summary>Resolves a role, or returns null when it has no available face.</summary>
@@ -97,14 +108,21 @@ public sealed class FontRegistry : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (_roleFamilies.TryGetValue(role, out var families))
+        {
             return Resolve(families, size ?? 12f, weight ?? 400, italic ?? false);
+        }
+
         var font = _roleFonts.GetValueOrDefault(role);
         return font is null ? null : ResolveAssignedRole(font, size, weight, italic);
     }
 
     Font ResolveAssignedRole(Font font, float? size, int? weight, bool? italic)
     {
-        if (size is null && weight is null && italic is null) return font;
+        if (size is null && weight is null && italic is null)
+        {
+            return font;
+        }
+
         return Resolve(font.Families ?? $"\"{font.FamilyName}\"", size ?? font.Size,
             weight ?? font.Weight, italic ?? font.Italic)!;
     }
@@ -116,13 +134,26 @@ public sealed class FontRegistry : IDisposable
         ArgumentNullException.ThrowIfNull(families);
         ArgumentOutOfRangeException.ThrowIfLessThan(weight, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(weight, 1000);
-        if (!float.IsFinite(size) || size <= 0f) throw new ArgumentOutOfRangeException(nameof(size));
+        if (!float.IsFinite(size) || size <= 0f)
+        {
+            throw new ArgumentOutOfRangeException(nameof(size));
+        }
+
         var key = (families, size, weight, italic);
-        if (_resolved.TryGetValue(key, out var cached)) return cached;
+        if (_resolved.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
         var fonts = new List<Font>();
         foreach (var family in ParseFamilies(families))
+        {
             if (Find(family, weight, italic) is { } face)
+            {
                 fonts.Add(Own(Styled(face, size, weight, italic)));
+            }
+        }
+
         var font = fonts.Count == 0 ? null : fonts[0];
         if (font is not null)
         {
@@ -145,15 +176,26 @@ public sealed class FontRegistry : IDisposable
         var index = _faces.FindIndex(f => f.Family.Equals(family, StringComparison.OrdinalIgnoreCase)
             && f.Weight == weight && f.Italic == italic && ReferenceEquals(f.Owner, owner));
         var entry = new Face(family, font, weight, italic, owner);
-        if (index >= 0 && _faces[index] == entry) return;
-        if (index >= 0) _faces.RemoveAt(index);
+        if (index >= 0 && _faces[index] == entry)
+        {
+            return;
+        }
+
+        if (index >= 0)
+        {
+            _faces.RemoveAt(index);
+        }
+
         _faces.Add(entry);
         Invalidate();
     }
 
     internal void RemoveSource(object owner)
     {
-        if (_faces.RemoveAll(face => ReferenceEquals(face.Owner, owner)) > 0) Invalidate();
+        if (_faces.RemoveAll(face => ReferenceEquals(face.Owner, owner)) > 0)
+        {
+            Invalidate();
+        }
     }
 
     SKTypeface? Find(string family, int weight, bool italic)
@@ -168,9 +210,17 @@ public sealed class FontRegistry : IDisposable
         for (var i = _faces.Count - 1; i >= 0; i--)
         {
             var candidate = _faces[i];
-            if (!candidate.Family.Equals(family, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!candidate.Family.Equals(family, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             var rank = (candidate.Italic == italic ? 0 : 10000) + WeightRank(candidate.Weight, weight);
-            if (rank >= bestRank) continue;
+            if (rank >= bestRank)
+            {
+                continue;
+            }
+
             best = candidate;
             bestRank = rank;
         }
@@ -182,7 +232,11 @@ public sealed class FontRegistry : IDisposable
         using var style = new SKFontStyle(weight, (int)SKFontStyleWidth.Normal,
             italic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
         var face = SKFontManager.Default.MatchFamily(family, style);
-        if (face is null) return null;
+        if (face is null)
+        {
+            return null;
+        }
+
         if (GenericFamilies.Contains(family)
             || string.Equals(face.FamilyName, family, StringComparison.OrdinalIgnoreCase))
         {
@@ -195,16 +249,27 @@ public sealed class FontRegistry : IDisposable
 
     static int WeightRank(int available, int requested)
     {
-        if (available == requested) return 0;
+        if (available == requested)
+        {
+            return 0;
+        }
+
         if (requested is >= 400 and <= 500)
+        {
             return RegularWeightRank(available, requested);
+        }
+
         var preferred = requested < 400 ? available < requested : available > requested;
         return Math.Abs(available - requested) + (preferred ? 0 : 1000);
     }
 
     static int RegularWeightRank(int available, int requested)
     {
-        if (available >= requested && available <= 500) return available - requested;
+        if (available >= requested && available <= 500)
+        {
+            return available - requested;
+        }
+
         return available < requested ? 500 - available : available;
     }
 
@@ -220,17 +285,33 @@ public sealed class FontRegistry : IDisposable
         var quote = '\0';
         for (var i = 0; i <= families.Length; i++)
         {
-            if (i < families.Length) quote = FamilyQuote(families[i], quote);
-            if (i < families.Length && (families[i] != ',' || quote != '\0')) continue;
+            if (i < families.Length)
+            {
+                quote = FamilyQuote(families[i], quote);
+            }
+
+            if (i < families.Length && (families[i] != ',' || quote != '\0'))
+            {
+                continue;
+            }
+
             var family = families[start..i].Trim().Trim('\'', '"');
-            if (family.Length > 0) yield return family;
+            if (family.Length > 0)
+            {
+                yield return family;
+            }
+
             start = i + 1;
         }
     }
 
     static char FamilyQuote(char character, char quote)
     {
-        if (character is not ('\'' or '"')) return quote;
+        if (character is not ('\'' or '"'))
+        {
+            return quote;
+        }
+
         return quote == '\0' ? character : quote == character ? '\0' : quote;
     }
 
@@ -252,7 +333,11 @@ public sealed class FontRegistry : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         var typeface = SKTypeface.FromFile(path);
-        if (typeface is null) return;
+        if (typeface is null)
+        {
+            return;
+        }
+
         _ownedFaces.Add(new WeakReference<SKTypeface>(typeface));
         Register(family, Own(new Font(new SKFont(typeface))), weight, italic, owner);
     }
@@ -260,12 +345,28 @@ public sealed class FontRegistry : IDisposable
     /// <summary>Releases loaded and resolved fonts; caller-supplied fonts remain owned by their callers.</summary>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         foreach (var reference in _ownedFonts)
-            if (reference.TryGetTarget(out var font)) font.Dispose();
+        {
+            if (reference.TryGetTarget(out var font))
+            {
+                font.Dispose();
+            }
+        }
+
         foreach (var reference in _ownedFaces)
-            if (reference.TryGetTarget(out var face)) face.Dispose();
+        {
+            if (reference.TryGetTarget(out var face))
+            {
+                face.Dispose();
+            }
+        }
+
         _ownedFonts.Clear();
         _ownedFaces.Clear();
         _faces.Clear();

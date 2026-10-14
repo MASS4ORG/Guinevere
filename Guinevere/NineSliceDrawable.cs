@@ -39,13 +39,19 @@ public sealed class NineSliceDrawable(SKImage image, Rect destination, Insets bo
     {
         var grid = new NineSliceLayout(image.Width, image.Height, destination, border);
         for (var row = 0; row < 3; row++)
+        {
             for (var column = 0; column < 3; column++)
             {
                 var (source, target) = grid.Patch(row, column);
-                if (source.W <= 0 || source.H <= 0 || target.W <= 0 || target.H <= 0) continue;
+                if (source.W <= 0 || source.H <= 0 || target.W <= 0 || target.H <= 0)
+                {
+                    continue;
+                }
+
                 canvas.DrawImage(image,
                     new SKRect(source.X, source.Y, source.X + source.W, source.Y + source.H),
                     new SKRect(target.X, target.Y, target.X + target.W, target.Y + target.H), Sampling, paint);
             }
+        }
     }
 }

@@ -34,16 +34,27 @@ sealed unsafe class SkiaGlTarget : IDisposable
     /// <param name="getProcAddress">Looks up a GL entry point of the current context by name.</param>
     public static SkiaGlTarget? TryCreate(Func<string, IntPtr> getProcAddress)
     {
-        if (Environment.GetEnvironmentVariable("GUINEVERE_RENDERER") == "raster") return null;
+        if (Environment.GetEnvironmentVariable("GUINEVERE_RENDERER") == "raster")
+        {
+            return null;
+        }
+
         try
         {
             var getIntegerv = getProcAddress("glGetIntegerv");
             var getAttachment = getProcAddress("glGetFramebufferAttachmentParameteriv");
-            if (getIntegerv == IntPtr.Zero || getAttachment == IntPtr.Zero) return null;
+            if (getIntegerv == IntPtr.Zero || getAttachment == IntPtr.Zero)
+            {
+                return null;
+            }
             // GLX-based lookups return a stub for any name; a fake EGL query crashes Skia, which needs no EGL here.
             using var glInterface = GRGlInterface.Create(name =>
                 name.StartsWith("egl", StringComparison.Ordinal) ? IntPtr.Zero : getProcAddress(name));
-            if (glInterface is null) return null;
+            if (glInterface is null)
+            {
+                return null;
+            }
+
             var context = GRContext.CreateGl(glInterface);
             return context is null ? null : new SkiaGlTarget(context, getIntegerv, getAttachment);
         }
@@ -73,8 +84,16 @@ sealed unsafe class SkiaGlTarget : IDisposable
     /// <param name="resetState">Whether other code touched GL state since the last frame.</param>
     public void Render(Action<SKCanvas> draw, SKColor clear, bool resetState = false)
     {
-        if (_surface is null) return;
-        if (resetState || _resetState) _context.ResetContext();
+        if (_surface is null)
+        {
+            return;
+        }
+
+        if (resetState || _resetState)
+        {
+            _context.ResetContext();
+        }
+
         _resetState = false;
         var canvas = _surface.Canvas;
         canvas.Clear(clear);

@@ -17,7 +17,11 @@ public partial class Gui
 
     internal void ExitItemKey(int current, int previous)
     {
-        if (_itemKey != current) throw new InvalidOperationException("Item scopes must be disposed in reverse order.");
+        if (_itemKey != current)
+        {
+            throw new InvalidOperationException("Item scopes must be disposed in reverse order.");
+        }
+
         _itemKey = previous;
     }
 
@@ -37,13 +41,19 @@ public partial class Gui
     void SubmitIdentity(int identity)
     {
         if (!_submittedNodes.Add(identity))
+        {
             throw new InvalidOperationException(
                 "An explicit node ID must be unique within its parent, item and data scope.");
+        }
     }
 
     void BeginIdentityPass()
     {
-        if (_itemKey != 0) throw new InvalidOperationException("Item scopes must end before changing passes.");
+        if (_itemKey != 0)
+        {
+            throw new InvalidOperationException("Item scopes must end before changing passes.");
+        }
+
         BeginDataPass();
         _nodeIdentities.BeginPass();
         _submittedNodes.Clear();

@@ -2,7 +2,7 @@ using System.Numerics;
 using Guinevere;
 using Math = System.Math;
 
-namespace Example_73_PanGui_MusicApp;
+namespace Example73PanGuiMusicApp;
 
 public partial class Program
 {
@@ -99,7 +99,7 @@ public partial class Program
                 DrawSnapshotButton(_snapshots[5], default);
             }
 
-                using (_gui.Node().ExpandWidth().Enter())
+            using (_gui.Node().ExpandWidth().Enter())
             {
                 DrawPianoSection(pianoButtonsLayoutNode, pianoBgShape);
             }
@@ -117,14 +117,18 @@ public partial class Program
             ShapePos bgShape = ShapePos.RectangleRounded(_gui.CurrentNode.Rect.Expand(-3), _borderRadius);
 
             if (mask != default)
+            {
                 bgShape = bgShape - mask;
+            }
 
             StyleButton(isSelected, bgShape);
 
             _gui.DrawText(snapshot.Name);
 
             if (_gui.CurrentNode.OnClick())
+            {
                 selectedSnapshot = snapshot;
+            }
 
             return _gui.CurrentNode;
         }
@@ -284,7 +288,9 @@ public partial class Program
                         _gui.SetTextSize(13);
                         _gui.SetTextColor(new Color(0xffffff55u));
                         for (int i = 0; i < rulerLineCount; i++)
+                        {
                             _gui.DrawText((i + 1) + "");
+                        }
                     }
 
                     _gui.DrawRect(volumnBarNode, 6).SolidColor(new Color(0x00000088u)).InnerShadow(new Color(0x00000099u), 4);
@@ -428,24 +434,47 @@ public partial class Program
         var decayHandle = _gui.GetInteractable(points[2], Shape.Circle(20));
         var releaseHandle = _gui.GetInteractable(points[4], Shape.Circle(20));
 
-        if (attackHandle.OnHover() || attackHandle.OnHold()) _gui.DrawCircle(points[1], 15, new Color(0xffffff22u));
-        if (decayHandle.OnHover() || decayHandle.OnHold()) _gui.DrawCircle(points[2], 15, new Color(0xffffff22u));
-        if (sustainHandle.OnHover() || sustainHandle.OnHold()) _gui.DrawRect(sustainDragRect, 15, new Color(0xffffff22u));
-        if (releaseHandle.OnHover() || releaseHandle.OnHold()) _gui.DrawCircle(points[4], 15, new Color(0xffffff22u));
+        if (attackHandle.OnHover() || attackHandle.OnHold())
+        {
+            _gui.DrawCircle(points[1], 15, new Color(0xffffff22u));
+        }
+
+        if (decayHandle.OnHover() || decayHandle.OnHold())
+        {
+            _gui.DrawCircle(points[2], 15, new Color(0xffffff22u));
+        }
+
+        if (sustainHandle.OnHover() || sustainHandle.OnHold())
+        {
+            _gui.DrawRect(sustainDragRect, 15, new Color(0xffffff22u));
+        }
+
+        if (releaseHandle.OnHover() || releaseHandle.OnHold())
+        {
+            _gui.DrawCircle(points[4], 15, new Color(0xffffff22u));
+        }
 
         var mouseDelta = _gui.Input.MouseDelta / graphRect.Size;
 
         if (attackHandle.OnHold())
+        {
             adsr.Attack = Math.Clamp(adsr.Attack + mouseDelta.X, 0, 1);
+        }
 
         if (decayHandle.OnHold())
+        {
             adsr.Decay = Math.Clamp(adsr.Decay + mouseDelta.X, 0, 1);
+        }
 
         if (sustainHandle.OnHold())
+        {
             adsr.Sustain = 1 - Math.Clamp((1 - adsr.Sustain) + mouseDelta.Y, 0, 1);
+        }
 
         if (releaseHandle.OnHold())
+        {
             adsr.Release = Math.Clamp(adsr.Release + mouseDelta.X, 0, 1);
+        }
 
         using (_gui.Node().ExpandWidth().Spacing(Spacing.SpaceEvenly).Direction(Axis.Horizontal).Enter())
         {
@@ -853,24 +882,53 @@ public partial class Program
             {
                 DrawToolbarButtonTemplate(out LayoutNodeScope title, out LayoutNodeScope subTitle,
                     out LayoutNodeScope btn);
-                using (title.Enter()) _gui.DrawText("Play in");
-                using (subTitle.Enter()) _gui.DrawText("per patch");
-                using (btn.Enter()) _gui.DrawText("C");
+                using (title.Enter())
+                {
+                    _gui.DrawText("Play in");
+                }
+
+                using (subTitle.Enter())
+                {
+                    _gui.DrawText("per patch");
+                }
+
+                using (btn.Enter())
+                {
+                    _gui.DrawText("C");
+                }
             }
 
             {
                 DrawToolbarButtonTemplate(out LayoutNodeScope title, out LayoutNodeScope subTitle,
                     out LayoutNodeScope btn);
-                using (title.Enter()) _gui.DrawText("Hear in");
-                using (subTitle.Enter()) _gui.DrawText("per patch");
-                using (btn.Enter()) _gui.DrawText("D");
+                using (title.Enter())
+                {
+                    _gui.DrawText("Hear in");
+                }
+
+                using (subTitle.Enter())
+                {
+                    _gui.DrawText("per patch");
+                }
+
+                using (btn.Enter())
+                {
+                    _gui.DrawText("D");
+                }
             }
 
             {
                 DrawToolbarButtonTemplate(out LayoutNodeScope title, out LayoutNodeScope subTitle,
                     out LayoutNodeScope btn);
-                using (title.Enter()) _gui.DrawText("Tempo");
-                using (btn.Enter()) _gui.DrawText("122.00 BPM");
+                using (title.Enter())
+                {
+                    _gui.DrawText("Tempo");
+                }
+
+                using (btn.Enter())
+                {
+                    _gui.DrawText("122.00 BPM");
+                }
             }
 
             // Spacer
@@ -1181,7 +1239,9 @@ public partial class Program
             // Simulate key release
             pressure = ImMath.Lerp(pressure, 0, _gui.Time.DeltaTime * 5);
             if (_gui.GetInteractable(majorKeyRect).OnHover() && isPressingPiano)
+            {
                 pressure = 1;
+            }
 
             majorKeyRect.X += majorKeyRect.W;
         }
@@ -1199,11 +1259,15 @@ public partial class Program
             // Simulate key release
             pressure = ImMath.Lerp(pressure, 0, _gui.Time.DeltaTime * 5);
             if (_gui.GetInteractable(minorKeyRect).OnHover() && isPressingPiano)
+            {
                 pressure = 1;
+            }
 
             minorKeyRect.X += majorKeyRect.Width;
             if (i % 5 == 1 || i % 5 == 4)
+            {
                 minorKeyRect.X += majorKeyRect.Width;
+            }
         }
     }
 
@@ -1251,7 +1315,9 @@ public partial class Program
                 _gui.DrawRect(_gui.ScreenRect, new Color(0, 0, 0, 0.8f * tVisibility01));
                 // Allow popup to be closed by clicking outside its area
                 if (_gui.CurrentNode.OnClick())
+                {
                     popup.Hide();
+                }
                 // The default size for a layout node is "Fit", so the inner popup container will be the size of its content
                 using (_gui.Node().Enter())
                 {
@@ -1370,7 +1436,9 @@ public partial class Program
                 StyleButton(false);
                 _gui.DrawText("Cancel");
                 if (_gui.CurrentNode.OnClick())
+                {
                     popup.Hide();
+                }
             }
 
             using (_gui.Node().Enter())
@@ -1378,7 +1446,9 @@ public partial class Program
                 StyleButton(false);
                 _gui.DrawText("Confirm");
                 if (_gui.CurrentNode.OnClick())
+                {
                     popup.Hide();
+                }
             }
         }
     }

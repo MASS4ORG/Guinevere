@@ -16,13 +16,17 @@ public class TouchEventTests
         {
             gui.On<TouchEvent>(e => phases.Add(e.Phase), capture: true);
             foreach (var id in new[] { "top", "bottom" })
+            {
                 using (gui.Node(100, 50, id).Enter())
+                {
                     gui.On<TouchEvent>(e =>
                     {
                         events.Add((e.Contact.Id, e.TargetId, e.Contact.Phase));
                         e.PreventDefault();
                         e.CapturePointer();
                     });
+                }
+            }
         }
         harness.Frame(Draw);
         harness.Input.Touch(new TouchContact(1, new Vector2(5, 5), 0.3f, TouchPhase.Began));

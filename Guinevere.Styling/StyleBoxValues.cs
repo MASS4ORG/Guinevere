@@ -74,9 +74,20 @@ static class StyleBoxValues
         var start = 0;
         for (var i = 0; i < text.Length; i++)
         {
-            if (text[i] is '"' or '\'') i = SkipQuoted(text, i);
-            else depth += Nesting(text[i]);
-            if (depth != 0 || !IsSeparator(text[i], separator)) continue;
+            if (text[i] is '"' or '\'')
+            {
+                i = SkipQuoted(text, i);
+            }
+            else
+            {
+                depth += Nesting(text[i]);
+            }
+
+            if (depth != 0 || !IsSeparator(text[i], separator))
+            {
+                continue;
+            }
+
             Add(parts, text[start..i]);
             start = i + 1;
         }
@@ -90,7 +101,10 @@ static class StyleBoxValues
 
     static void Add(List<string> parts, string part)
     {
-        if (!string.IsNullOrWhiteSpace(part)) parts.Add(part.Trim());
+        if (!string.IsNullOrWhiteSpace(part))
+        {
+            parts.Add(part.Trim());
+        }
     }
 
     static int SkipQuoted(string text, int start)
@@ -103,9 +117,19 @@ static class StyleBoxValues
     public static List<BoxShadow> Shadows(string? value)
     {
         var shadows = new List<BoxShadow>();
-        if (string.IsNullOrWhiteSpace(value) || IsNone(value)) return shadows;
+        if (string.IsNullOrWhiteSpace(value) || IsNone(value))
+        {
+            return shadows;
+        }
+
         foreach (var layer in Split(value, ','))
-            if (TryShadow(layer) is { } shadow) shadows.Add(shadow);
+        {
+            if (TryShadow(layer) is { } shadow)
+            {
+                shadows.Add(shadow);
+            }
+        }
+
         return shadows;
     }
 
@@ -118,12 +142,25 @@ static class StyleBoxValues
         Color? color = null;
         foreach (var token in tokens)
         {
-            if (lengths.Count < 4 && TryPixels(token, out var length)) lengths.Add(length);
-            else if (StyleValue.TryColor(token, out var parsed)) color = parsed;
-            else return null;
+            if (lengths.Count < 4 && TryPixels(token, out var length))
+            {
+                lengths.Add(length);
+            }
+            else if (StyleValue.TryColor(token, out var parsed))
+            {
+                color = parsed;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        if (lengths.Count < 2) return null;
+        if (lengths.Count < 2)
+        {
+            return null;
+        }
+
         return new BoxShadow(inset, lengths[0], lengths[1], Math.Max(0f, lengths.ElementAtOrDefault(2)),
             lengths.ElementAtOrDefault(3), color ?? Color.Black);
     }
@@ -138,11 +175,18 @@ static class StyleBoxValues
     public static SKPoint[] Radii(string? value, Rect box)
     {
         var radii = new SKPoint[4];
-        if (Corners(value, Math.Min(box.W, box.H)) is not { } corners) return radii;
+        if (Corners(value, Math.Min(box.W, box.H)) is not { } corners)
+        {
+            return radii;
+        }
 
         // CSS fills missing corners from their opposite: 1 → all, 2 → (TL/BR, TR/BL), 3 → (TL, TR/BL, BR).
         int[] source = corners.Length switch { 1 => [0, 0, 0, 0], 2 => [0, 1, 0, 1], 3 => [0, 1, 2, 1], _ => [0, 1, 2, 3] };
-        for (var i = 0; i < 4; i++) radii[i] = new SKPoint(corners[source[i]], corners[source[i]]);
+        for (var i = 0; i < 4; i++)
+        {
+            radii[i] = new SKPoint(corners[source[i]], corners[source[i]]);
+        }
+
         return radii;
     }
 
@@ -150,11 +194,20 @@ static class StyleBoxValues
     static float[]? Corners(string? value, float shorter)
     {
         var tokens = string.IsNullOrWhiteSpace(value) ? [] : Split(value.Split('/')[0], ' ');
-        if (tokens.Count is 0 or > 4) return null;
+        if (tokens.Count is 0 or > 4)
+        {
+            return null;
+        }
 
         var corners = new float[tokens.Count];
         for (var i = 0; i < tokens.Count; i++)
-            if (!TryCorner(tokens[i], shorter, out corners[i])) return null;
+        {
+            if (!TryCorner(tokens[i], shorter, out corners[i]))
+            {
+                return null;
+            }
+        }
+
         return corners;
     }
 
@@ -202,11 +255,21 @@ static class StyleBoxValues
     {
         float? width = null;
         Color? color = null;
-        if (value is null || IsNone(value)) return (width, color);
+        if (value is null || IsNone(value))
+        {
+            return (width, color);
+        }
+
         foreach (var token in Split(value, ' '))
         {
-            if (TryPixels(token, out var length)) width = length;
-            else if (StyleValue.TryColor(token, out var parsed)) color = parsed;
+            if (TryPixels(token, out var length))
+            {
+                width = length;
+            }
+            else if (StyleValue.TryColor(token, out var parsed))
+            {
+                color = parsed;
+            }
         }
         return (width, color);
     }
@@ -224,11 +287,19 @@ static class StyleBoxValues
     public static SKShader? Gradient(string? value, SKRect box, out bool opaque)
     {
         opaque = false;
-        if (GradientArguments(value) is not { } args) return null;
+        if (GradientArguments(value) is not { } args)
+        {
+            return null;
+        }
+
         var angle = 0f;
         var hasAngle = args.Count > 0 && TryAngle(args[0], out angle);
         var degrees = hasAngle ? angle : 180f;
-        if (!TryStops([.. args.Skip(hasAngle ? 1 : 0)], out var colors, out var positions)) return null;
+        if (!TryStops([.. args.Skip(hasAngle ? 1 : 0)], out var colors, out var positions))
+        {
+            return null;
+        }
+
         opaque = Array.TrueForAll(colors, static c => c.Alpha == 255);
 
         var (start, end) = GradientLine(box, degrees);
@@ -259,9 +330,19 @@ static class StyleBoxValues
     {
         colors = new SKColor[stops.Count];
         positions = new float[stops.Count];
-        if (stops.Count < 2) return false;
+        if (stops.Count < 2)
+        {
+            return false;
+        }
+
         for (var i = 0; i < stops.Count; i++)
-            if (!TryStop(stops[i], i / (float)(stops.Count - 1), out colors[i], out positions[i])) return false;
+        {
+            if (!TryStop(stops[i], i / (float)(stops.Count - 1), out colors[i], out positions[i]))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -279,7 +360,10 @@ static class StyleBoxValues
         degrees = 0f;
         if (!text.EndsWith(unit, StringComparison.OrdinalIgnoreCase)
             || !float.TryParse(text[..^unit.Length], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+        {
             return false;
+        }
+
         degrees = value * scale;
         return true;
     }
@@ -291,10 +375,19 @@ static class StyleBoxValues
         position = fallback;
         var parts = Split(stop, ' ');
         if (parts.Count == 2 && StyleValue.TryLength(parts[1], out var at, out var percent) && percent)
+        {
             position = Math.Clamp(at, 0f, 1f);
-        else if (parts.Count != 1) return false;
+        }
+        else if (parts.Count != 1)
+        {
+            return false;
+        }
 
-        if (!StyleValue.TryColor(StyleExpression.Evaluate(parts[0], static _ => null), out var parsed)) return false;
+        if (!StyleValue.TryColor(StyleExpression.Evaluate(parts[0], static _ => null), out var parsed))
+        {
+            return false;
+        }
+
         color = parsed;
         return true;
     }

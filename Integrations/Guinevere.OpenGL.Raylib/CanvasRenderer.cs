@@ -44,7 +44,9 @@ public class CanvasRenderer : ICanvasRenderer
     public void Resize(int width, int height)
     {
         if (_width == width && _height == height)
+        {
             return;
+        }
 
         _width = width;
         _height = height;
@@ -79,7 +81,9 @@ public class CanvasRenderer : ICanvasRenderer
         }
 
         if (_canvas == null || _surface == null)
+        {
             return;
+        }
 
         _canvas.Clear(SKColors.Black);
         draw(_canvas);
@@ -98,7 +102,9 @@ public class CanvasRenderer : ICanvasRenderer
                 var width = pixels.Width;
                 var height = pixels.Height;
                 if (pixels.RowBytes != width * 4)
+                {
                     throw new InvalidOperationException("Raylib requires tightly packed RGBA pixels.");
+                }
 
                 var rlImg = new Image
                 {
@@ -110,7 +116,9 @@ public class CanvasRenderer : ICanvasRenderer
                 };
 
                 if (_textureLoaded)
+                {
                     Raylib.UpdateTexture(_texture, pixelData);
+                }
                 else
                 {
                     _texture = Raylib.LoadTextureFromImage(rlImg);
@@ -136,7 +144,11 @@ public class CanvasRenderer : ICanvasRenderer
 
     void ReleaseTexture()
     {
-        if (!_textureLoaded) return;
+        if (!_textureLoaded)
+        {
+            return;
+        }
+
         Raylib.UnloadTexture(_texture);
         _textureLoaded = false;
         _texture = default;

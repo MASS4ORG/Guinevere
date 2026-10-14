@@ -47,14 +47,22 @@ using (var scene = new DrawScene(1100, 850))
 
 static void Measure(string name, int iterations, Action action)
 {
-    for (var i = 0; i < 5; i++) action();
+    for (var i = 0; i < 5; i++)
+    {
+        action();
+    }
+
     GC.Collect();
     GC.WaitForPendingFinalizers();
     GC.Collect();
     var watch = new Stopwatch();
     var before = GC.GetAllocatedBytesForCurrentThread();
     watch.Start();
-    for (var i = 0; i < iterations; i++) action();
+    for (var i = 0; i < iterations; i++)
+    {
+        action();
+    }
+
     watch.Stop();
     var bytes = (GC.GetAllocatedBytesForCurrentThread() - before) / iterations;
     Console.WriteLine($"| {name} | {watch.Elapsed.TotalMilliseconds / iterations:F4} | {bytes} |");

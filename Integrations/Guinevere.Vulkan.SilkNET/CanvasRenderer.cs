@@ -1,6 +1,5 @@
 using Serilog;
 using Silk.NET.Vulkan;
-using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 using SkiaSharp;
 using VkSemaphore = Silk.NET.Vulkan.Semaphore;
@@ -73,7 +72,11 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
             PickPhysicalDevice();
             CreateLogicalDevice();
             CreateFrameObjects();
-            if (Environment.GetEnvironmentVariable("GUINEVERE_RENDERER") != "raster") CreateGpuContext();
+            if (Environment.GetEnvironmentVariable("GUINEVERE_RENDERER") != "raster")
+            {
+                CreateGpuContext();
+            }
+
             CreateSwapchain();
             _logger.Information("Vulkan renderer ready: {Mode}, {Width}x{Height}",
                 IsGpuAccelerated ? "GPU Skia" : "CPU raster", _extent.Width, _extent.Height);
@@ -88,8 +91,15 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
     /// <inheritdoc/>
     public void Render(Action<SKCanvas> draw)
     {
-        if (_swapchainStale) RecreateSwapchain();
-        if (_swapchain.Handle == 0) return;
+        if (_swapchainStale)
+        {
+            RecreateSwapchain();
+        }
+
+        if (_swapchain.Handle == 0)
+        {
+            return;
+        }
 
         var fence = _inFlight[_currentFrame];
         _vk.WaitForFences(_device, 1, in fence, true, ulong.MaxValue);
@@ -109,8 +119,15 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
         }
 
         _vk.ResetFences(_device, 1, in fence);
-        if (IsGpuAccelerated) RenderGpu(imageIndex, draw);
-        else RenderRaster(imageIndex, draw);
+        if (IsGpuAccelerated)
+        {
+            RenderGpu(imageIndex, draw);
+        }
+        else
+        {
+            RenderRaster(imageIndex, draw);
+        }
+
         Present(imageIndex);
         _currentFrame = (_currentFrame + 1) % MaxFramesInFlight;
     }
@@ -118,7 +135,11 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
     /// <inheritdoc/>
     public void Resize(int width, int height)
     {
-        if (width <= 0 || height <= 0 || (width == _width && height == _height)) return;
+        if (width <= 0 || height <= 0 || (width == _width && height == _height))
+        {
+            return;
+        }
+
         _width = width;
         _height = height;
         _swapchainStale = true;
@@ -138,8 +159,14 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
             PImageIndices = &imageIndex,
         };
         var presented = _khrSwapchain.QueuePresent(_presentQueue, in presentInfo);
-        if (presented is Result.ErrorOutOfDateKhr or Result.SuboptimalKhr) _swapchainStale = true;
-        else if (presented != Result.Success) _logger.Error("Failed to present: {Result}", presented);
+        if (presented is Result.ErrorOutOfDateKhr or Result.SuboptimalKhr)
+        {
+            _swapchainStale = true;
+        }
+        else if (presented != Result.Success)
+        {
+            _logger.Error("Failed to present: {Result}", presented);
+        }
     }
 
     /// <summary>Submits one frame's commands: waits for the acquired image and signals the present semaphore.</summary>
@@ -160,7 +187,10 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
             PSignalSemaphores = &signal,
         };
         var result = _vk.QueueSubmit(_graphicsQueue, 1, in submit, fence);
-        if (result != Result.Success) _logger.Error("Failed to submit frame commands: {Result}", result);
+        if (result != Result.Success)
+        {
+            _logger.Error("Failed to submit frame commands: {Result}", result);
+        }
     }
 
     /// <summary>Records a whole-image layout transition.</summary>
@@ -211,9 +241,14 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
             CommandBufferCount = MaxFramesInFlight,
         };
         fixed (CommandBuffer* begin = _beginCommands)
+        {
             Check(_vk.AllocateCommandBuffers(_device, in allocInfo, begin), "allocate command buffers");
+        }
+
         fixed (CommandBuffer* end = _endCommands)
+        {
             Check(_vk.AllocateCommandBuffers(_device, in allocInfo, end), "allocate command buffers");
+        }
 
         var semaphoreInfo = new SemaphoreCreateInfo { SType = StructureType.SemaphoreCreateInfo };
         var fenceInfo = new FenceCreateInfo { SType = StructureType.FenceCreateInfo, Flags = FenceCreateFlags.SignaledBit };
@@ -226,7 +261,10 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
 
     static void Check(Result result, string action)
     {
-        if (result != Result.Success) throw new InvalidOperationException($"Vulkan failed to {action}: {result}");
+        if (result != Result.Success)
+        {
+            throw new InvalidOperationException($"Vulkan failed to {action}: {result}");
+        }
     }
 
     /// <inheritdoc/>
@@ -252,6 +290,6 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
             _vk.DestroyInstance(_instance, null);
         }
 
-        _vk?.Dispose();
+        _vk.Dispose();
     }
 }

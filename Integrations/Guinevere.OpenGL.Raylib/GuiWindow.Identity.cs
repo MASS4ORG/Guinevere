@@ -23,7 +23,10 @@ public partial class GuiWindow
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
         if (rgbaPixels.Length != checked(width * height * 4))
+        {
             throw new ArgumentException("The icon must contain four channels per pixel.", nameof(rgbaPixels));
+        }
+
         fixed (byte* pixels = rgbaPixels)
         {
             var icon = new Image

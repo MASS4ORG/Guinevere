@@ -14,7 +14,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     [InlineData(10f, 5f, 15f, 8f)]
     [InlineData(0f, 0f, 0f, 0f)]
     [InlineData(20f, 10f, 5f, 15f)]
-    public void MarginAndPadding_Together_ProduceCorrectRects(float margin, float padding, float width, float height)
+    public void MarginAndPaddingTogetherProduceCorrectRects(float margin, float padding, float width, float height)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -47,7 +47,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that specific asymmetric margin and padding values produce the correct inner and outer rects.
     /// </summary>
     [Fact]
-    public void SpecificMarginAndPadding_ProduceAsymmetricRects()
+    public void SpecificMarginAndPaddingProduceAsymmetricRects()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -80,7 +80,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     [InlineData(0.5f, 0.7f, 100f, 200f)]
     [InlineData(1.0f, 1.0f, 150f, 300f)]
     [InlineData(0.3f, 0.4f, 80f, 120f)]
-    public void ExpandWithExplicitSize_ExplicitSizeTakesPrecedence(float expandW, float expandH, float explicitW, float explicitH)
+    public void ExpandWithExplicitSizeExplicitSizeTakesPrecedence(float expandW, float expandH, float explicitW, float explicitH)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -100,7 +100,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that the size command sets both width and height dimensions.
     /// </summary>
     [Fact]
-    public void SizeCommand_SetsBothDimensions()
+    public void SizeCommandSetsBothDimensions()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -119,7 +119,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that expanding the width does not affect the height.
     /// </summary>
     [Fact]
-    public void ExpandWidth_DoesNotAffectHeight()
+    public void ExpandWidthDoesNotAffectHeight()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -140,7 +140,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that expanding the height does not affect the width.
     /// </summary>
     [Fact]
-    public void ExpandHeight_DoesNotAffectWidth()
+    public void ExpandHeightDoesNotAffectWidth()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -169,7 +169,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     [InlineData(Axis.Horizontal, 0.5f, 1.0f)]
     [InlineData(Axis.Vertical, 0.0f, 0.5f)]
     [InlineData(Axis.Vertical, 1.0f, 0.0f)]
-    public void DirectionWithAlignment_SetsCorrectCombination(Axis direction, float alignContent, float alignSelf)
+    public void DirectionWithAlignmentSetsCorrectCombination(Axis direction, float alignContent, float alignSelf)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -193,7 +193,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     [InlineData(Axis.Horizontal, 10f)]
     [InlineData(Axis.Vertical, 15f)]
     [InlineData(Axis.None, 0f)]
-    public void DirectionWithGap_WorksCorrectly(Axis direction, float gap)
+    public void DirectionWithGapWorksCorrectly(Axis direction, float gap)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -219,7 +219,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     [InlineData(25f, 35f, 10f)]
     [InlineData(0f, 0f, 5f)]
     [InlineData(-10f, -5f, 0f)]
-    public void PositionWithMargin_AffectsOuterRect(float left, float top, float margin)
+    public void PositionWithMarginAffectsOuterRect(float left, float top, float margin)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -248,7 +248,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     [InlineData(50f, 60f, 8f)]
     [InlineData(0f, 0f, 12f)]
     [InlineData(100f, 200f, 0f)]
-    public void PositionWithPadding_AffectsInnerRect(float left, float top, float padding)
+    public void PositionWithPaddingAffectsInnerRect(float left, float top, float padding)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -278,7 +278,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that a complex layout command chain applies all commands correctly.
     /// </summary>
     [Fact]
-    public void ComplexLayoutChain_AllCommandsWork()
+    public void ComplexLayoutChainAllCommandsWork()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -324,7 +324,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that when commands are overridden, the last call wins.
     /// </summary>
     [Fact]
-    public void OverridingCommands_LastCallWins()
+    public void OverridingCommandsLastCallWins()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -362,7 +362,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that negative values are accepted and stored as-is.
     /// </summary>
     [Fact]
-    public void NegativeValues_AreAccepted()
+    public void NegativeValuesAreAccepted()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -392,7 +392,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that zero values are accepted and stored as-is.
     /// </summary>
     [Fact]
-    public void ZeroValues_AreAccepted()
+    public void ZeroValuesAreAccepted()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -432,7 +432,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that extreme float values are accepted and stored as-is.
     /// </summary>
     [Fact]
-    public void ExtremeValues_AreAccepted()
+    public void ExtremeValuesAreAccepted()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -472,7 +472,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that transitioning from the build stage to the render stage stops accepting commands.
     /// </summary>
     [Fact]
-    public void StageTransition_BuildToRender_StopsAcceptingCommands()
+    public void StageTransitionBuildToRenderStopsAcceptingCommands()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -497,7 +497,7 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     /// Verifies that transitioning from the render stage to the build stage starts accepting commands again.
     /// </summary>
     [Fact]
-    public void StageTransition_RenderToBuild_StartsAcceptingCommands()
+    public void StageTransitionRenderToBuildStartsAcceptingCommands()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -526,7 +526,9 @@ public class LayoutNodeCommandsIntegrationTests : LayoutNodeTestBase
     {
         var field = node.GetType().GetField("_rect", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         if (field == null)
+        {
             throw new ArgumentException("Field '_rect' not found on LayoutNode");
+        }
 
         field.SetValue(node, rect);
     }

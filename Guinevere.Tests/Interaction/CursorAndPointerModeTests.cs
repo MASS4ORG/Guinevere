@@ -69,13 +69,18 @@ public class CursorAndPointerModeTests
     public void TheGestureOwnerKeepsItsCursorWhileThePointerWanders()
     {
         var harness = new Harness();
-        void Draw(Gui gui)
+        static void Draw(Gui gui)
         {
             using (gui.Node(Size, 100, "row").Direction(Axis.Horizontal).Enter())
             {
                 using (gui.Node(100, 100, "splitter").Cursor(PointerCursor.ResizeHorizontal).Enter())
+                {
                     if (gui.Pass == Pass.Pass2Render)
+                    {
                         gui.GetInteractable().OnDrag(out _);
+                    }
+                }
+
                 using (gui.Node(100, 100, "text").Cursor(PointerCursor.Text).Enter()) { }
             }
         }
@@ -161,11 +166,13 @@ public class CursorAndPointerModeTests
         void Draw(Gui gui)
         {
             using (gui.Node(Size, Size, "scrub").Enter())
+            {
                 if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnDrag(out var drag))
                 {
                     total = drag.TotalDelta;
                     gui.RequestPointerMode(PointerMode.Wrapped);
                 }
+            }
         }
 
         harness.Input.MoveTo(100, 100);
@@ -205,7 +212,7 @@ public class CursorAndPointerModeTests
     public void ScrollbarThumbShowsTheArrowOverAnIBeamContainer()
     {
         var harness = new Harness();
-        void Draw(Gui gui)
+        static void Draw(Gui gui)
         {
             using (gui.Node(Size, Size, "text-area").Cursor(PointerCursor.Text).Enter())
             {

@@ -28,7 +28,7 @@ public class GuiTransformTests
 
     /// <summary>The subtree is drawn transformed, and identity clears a transform.</summary>
     [Fact]
-    public void Draws_Transformed()
+    public void DrawsTransformed()
     {
         using var harness = new FrameHarness();
         harness.Frame(gui => Box(gui));
@@ -38,7 +38,10 @@ public class GuiTransformTests
         harness.Frame(gui =>
         {
             node = Box(gui, Matrix3x2.CreateTranslation(0, 100), Color.Blue);
-            using (node.Enter()) gui.SetTransform(Matrix3x2.Identity);
+            using (node.Enter())
+            {
+                gui.SetTransform(Matrix3x2.Identity);
+            }
         });
         Assert.Equal(SKColors.Blue, Pixel(harness, 55, 55));
         Assert.Equal(Matrix3x2.Identity, node!.Transform);
@@ -46,7 +49,7 @@ public class GuiTransformTests
 
     /// <summary>Events and interactables hit the node where it is drawn, not where it was laid out.</summary>
     [Fact]
-    public void HitTests_ThroughTheTransform()
+    public void HitTestsThroughTheTransform()
     {
         using var harness = new FrameHarness();
         var clicks = 0;
@@ -56,7 +59,12 @@ public class GuiTransformTests
             var node = Box(gui);
             node.On<ClickEvent>(_ => clicks++);
             using (node.Enter())
-                if (gui.Pass == Pass.Pass2Render) hovered = gui.GetInteractable().OnHover();
+            {
+                if (gui.Pass == Pass.Pass2Render)
+                {
+                    hovered = gui.GetInteractable().OnHover();
+                }
+            }
         }
 
         harness.Frame(Draw);
@@ -71,7 +79,7 @@ public class GuiTransformTests
 
     /// <summary>Interaction masks test the pointer through the transform.</summary>
     [Fact]
-    public void InteractionMasks_UseTheTransform()
+    public void InteractionMasksUseTheTransform()
     {
         using var harness = new FrameHarness();
         var results = new List<bool>();
@@ -79,7 +87,12 @@ public class GuiTransformTests
         void Draw(Gui gui)
         {
             using (Box(gui).Enter())
-                if (gui.Pass == Pass.Pass2Render) results.Add(gui.GetInteractable().On(mask));
+            {
+                if (gui.Pass == Pass.Pass2Render)
+                {
+                    results.Add(gui.GetInteractable().On(mask));
+                }
+            }
         }
 
         harness.Frame(Draw);
@@ -103,7 +116,7 @@ public class GuiTransformTests
 
     /// <summary>A transform that collapses the node leaves nothing to hit.</summary>
     [Fact]
-    public void SingularTransform_IsNotHittable()
+    public void SingularTransformIsNotHittable()
     {
         using var harness = new FrameHarness();
         var clicks = 0;
@@ -122,7 +135,7 @@ public class GuiTransformTests
 
     /// <summary>A child's transform applies before its ancestors', and the mapping round-trips.</summary>
     [Fact]
-    public void NestedTransforms_Compose()
+    public void NestedTransformsCompose()
     {
         using var harness = new FrameHarness();
         LayoutNode? child = null;
@@ -132,7 +145,10 @@ public class GuiTransformTests
             {
                 gui.SetTransform(Matrix3x2.CreateScale(2f));
                 child = gui.Node(10, 10).Absolute(5, 5);
-                using (child.Enter()) gui.SetTransform(Matrix3x2.CreateTranslation(10, 0));
+                using (child.Enter())
+                {
+                    gui.SetTransform(Matrix3x2.CreateTranslation(10, 0));
+                }
             }
         });
 
@@ -145,7 +161,7 @@ public class GuiTransformTests
 
     /// <summary>An ancestor's clip follows its transform for drawing and for hit testing.</summary>
     [Fact]
-    public void AncestorClips_FollowTheTransform()
+    public void AncestorClipsFollowTheTransform()
     {
         using var harness = new FrameHarness();
         var clicks = 0;
@@ -157,7 +173,10 @@ public class GuiTransformTests
                 gui.ClipContent();
                 var inner = gui.Node(60, 60);
                 inner.On<ClickEvent>(_ => clicks++);
-                using (inner.Enter()) gui.DrawBackgroundRect(Color.Green);
+                using (inner.Enter())
+                {
+                    gui.DrawBackgroundRect(Color.Green);
+                }
             }
         }
 
@@ -172,7 +191,7 @@ public class GuiTransformTests
 
     /// <summary>A faded group's layer covers its transformed ink, not its untransformed layout.</summary>
     [Fact]
-    public void OpacityGroups_CoverTransformedInk()
+    public void OpacityGroupsCoverTransformedInk()
     {
         using var harness = new FrameHarness();
         harness.Frame(gui =>
@@ -181,7 +200,10 @@ public class GuiTransformTests
             {
                 gui.SetTransform(Matrix3x2.CreateScale(2f, Corner));
                 gui.SetOpacity(0.5f);
-                using (gui.Node(20, 20).Enter()) gui.DrawBackgroundRect(Color.Red);
+                using (gui.Node(20, 20).Enter())
+                {
+                    gui.DrawBackgroundRect(Color.Red);
+                }
             }
         });
 
@@ -190,7 +212,7 @@ public class GuiTransformTests
 
     /// <summary>The wheel scrolls a transformed scroll container where it is drawn, vertically or with Shift sideways.</summary>
     [Fact]
-    public void Wheel_ScrollsWhereDrawn()
+    public void WheelScrollsWhereDrawn()
     {
         using var harness = new FrameHarness();
         LayoutNode? container = null;
@@ -219,7 +241,7 @@ public class GuiTransformTests
 
     /// <summary>A drag that starts on the transformed node keeps the pointer; deltas stay in screen space.</summary>
     [Fact]
-    public void Drags_KeepCaptureWithScreenDeltas()
+    public void DragsKeepCaptureWithScreenDeltas()
     {
         using var harness = new FrameHarness();
         var held = false;
@@ -228,9 +250,16 @@ public class GuiTransformTests
         {
             using (Box(gui).Enter())
             {
-                if (gui.Pass != Pass.Pass2Render) return;
+                if (gui.Pass != Pass.Pass2Render)
+                {
+                    return;
+                }
+
                 held = gui.GetInteractable().OnDrag(out var args);
-                if (held) delta = args.FrameDelta;
+                if (held)
+                {
+                    delta = args.FrameDelta;
+                }
             }
         }
 

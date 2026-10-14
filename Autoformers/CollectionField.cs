@@ -61,11 +61,19 @@ public sealed class CollectionField
     {
         ArgumentNullException.ThrowIfNull(field);
 
-        if (field.ValueType == typeof(string)) return null;
+        if (field.ValueType == typeof(string))
+        {
+            return null;
+        }
+
         if (field.Sources.Count > 1)
         {
             var shared = field.Sources.Select(TryCreate).ToArray();
-            if (shared.Any(collection => collection is null)) return null;
+            if (shared.Any(collection => collection is null))
+            {
+                return null;
+            }
+
             var first = shared[0]!;
             return new CollectionField(field, first._list, first._dictionary, first._keyType, first.ElementType)
             { _collections = [.. shared.OfType<CollectionField>()] };
@@ -94,7 +102,11 @@ public sealed class CollectionField
     /// <returns>One field per entry.</returns>
     public IReadOnlyList<FormField> Entries()
     {
-        if (_collections is not null) return SharedEntries();
+        if (_collections is not null)
+        {
+            return SharedEntries();
+        }
+
         if (_dictionary is { } map)
         {
             var keys = Keys();
@@ -105,7 +117,10 @@ public sealed class CollectionField
                 _ => _source.Touch(), IsReadOnly) { Options = _source.Options })];
         }
 
-        if (_list is not { } entries) return [];
+        if (_list is not { } entries)
+        {
+            return [];
+        }
 
         return [.. Enumerable.Range(0, entries.Count).Select(index => new FormField(
             $"[{index}]", ElementType, _source.Target,
@@ -123,10 +138,20 @@ public sealed class CollectionField
     /// <returns>True when an entry was added.</returns>
     public bool Add()
     {
-        if (!CanResize) return false;
-        if (_collections is not null) return ApplyAll(_collections, collection => collection.Add());
+        if (!CanResize)
+        {
+            return false;
+        }
 
-        if (_dictionary is not { } map) return Mutate(_source.Name, () => _list!.Add(Default(ElementType)));
+        if (_collections is not null)
+        {
+            return ApplyAll(_collections, collection => collection.Add());
+        }
+
+        if (_dictionary is not { } map)
+        {
+            return Mutate(_source.Name, () => _list!.Add(Default(ElementType)));
+        }
 
         return InventKey() is { } key && Mutate(_source.Name, () => map[key] = Default(ElementType));
     }
@@ -136,7 +161,11 @@ public sealed class CollectionField
     /// <returns>True when an entry was removed.</returns>
     public bool RemoveAt(int index)
     {
-        if (!CanResize || index < 0 || index >= Count) return false;
+        if (!CanResize || index < 0 || index >= Count)
+        {
+            return false;
+        }
+
         if (_collections is not null)
         {
             var entry = SharedEntries()[index];
@@ -144,7 +173,10 @@ public sealed class CollectionField
                 collection.Entries().ToList().FindIndex(candidate => candidate.Name == entry.Name)));
         }
 
-        if (_dictionary is not { } map) return Mutate($"{_source.Name}[{index}]", () => _list!.RemoveAt(index));
+        if (_dictionary is not { } map)
+        {
+            return Mutate($"{_source.Name}[{index}]", () => _list!.RemoveAt(index));
+        }
 
         var key = Keys()[index]!;
         return Mutate($"{_source.Name}[{key}]", () => map.Remove(key));
@@ -159,15 +191,26 @@ public sealed class CollectionField
     /// <returns>True when the entry moved.</returns>
     public bool Move(int from, int to)
     {
-        if (!CanReorder || from == to || (uint)from >= (uint)Count || (uint)to >= (uint)Count) return false;
-        if (_collections is not null) return ApplyAll(_collections, collection => collection.Move(from, to));
+        if (!CanReorder || from == to || (uint)from >= (uint)Count || (uint)to >= (uint)Count)
+        {
+            return false;
+        }
+
+        if (_collections is not null)
+        {
+            return ApplyAll(_collections, collection => collection.Move(from, to));
+        }
 
         return Mutate($"{_source.Name}[{from}]", () =>
         {
             var entries = _list!;
             var moved = entries[from];
             var step = from < to ? 1 : -1;
-            for (var i = from; i != to; i += step) entries[i] = entries[i + step];
+            for (var i = from; i != to; i += step)
+            {
+                entries[i] = entries[i + step];
+            }
+
             entries[to] = moved;
         });
     }
@@ -202,7 +245,10 @@ public sealed class CollectionField
         foreach (var entry in entries[0])
         {
             var shared = entries.Select(list => list.FirstOrDefault(candidate => candidate.Name == entry.Name)).ToArray();
-            if (shared.All(candidate => candidate is not null)) result.Add(FormField.Combine(shared.OfType<FormField>()));
+            if (shared.All(candidate => candidate is not null))
+            {
+                result.Add(FormField.Combine(shared.OfType<FormField>()));
+            }
         }
         return result;
     }
@@ -210,7 +256,11 @@ public sealed class CollectionField
     static bool ApplyAll(IEnumerable<CollectionField> sources, Func<CollectionField, bool> change)
     {
         var success = true;
-        foreach (var source in sources) success &= change(source);
+        foreach (var source in sources)
+        {
+            success &= change(source);
+        }
+
         return success;
     }
 
@@ -234,7 +284,10 @@ public sealed class CollectionField
                 ? (i == 0 ? "New Key" : $"New Key {i}")
                 : _keyType == typeof(long) ? (object)(long)i : i;
 
-            if (!map.Contains(candidate)) return candidate;
+            if (!map.Contains(candidate))
+            {
+                return candidate;
+            }
         }
 
         return null;
@@ -253,8 +306,15 @@ public sealed class CollectionField
     /// </summary>
     static object? Default(Type type)
     {
-        if (type == typeof(string)) return string.Empty;
-        if (!type.IsValueType) return type.GetConstructor(Type.EmptyTypes) is null ? null : Activator.CreateInstance(type);
+        if (type == typeof(string))
+        {
+            return string.Empty;
+        }
+
+        if (!type.IsValueType)
+        {
+            return type.GetConstructor(Type.EmptyTypes) is null ? null : Activator.CreateInstance(type);
+        }
 
         return Activator.CreateInstance(type);
     }

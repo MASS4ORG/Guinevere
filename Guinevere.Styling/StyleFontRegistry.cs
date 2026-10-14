@@ -11,19 +11,35 @@ sealed class StyleFontRegistry(FontRegistry registry)
     /// <summary>Loads the active sheets' faces into the shared registry, later sheets taking precedence.</summary>
     public void Synchronize(StyleSheetCollection sheets)
     {
-        if (_version == sheets.Version) return;
+        if (_version == sheets.Version)
+        {
+            return;
+        }
+
         _version = sheets.Version;
-        if (_sheets.SequenceEqual(sheets)) return;
+        if (_sheets.SequenceEqual(sheets))
+        {
+            return;
+        }
+
         _sheets = [.. sheets];
         registry.RemoveSource(this);
         foreach (var sheet in sheets)
+        {
             foreach (var face in sheet.FontFaces)
+            {
                 Load(face);
+            }
+        }
     }
 
     void Load(StyleFontFace face)
     {
-        if (StyleFonts.LocalPath(face.Source) is not { } path) return;
+        if (StyleFonts.LocalPath(face.Source) is not { } path)
+        {
+            return;
+        }
+
         registry.RegisterFile(face.Family, path, face.Weight, face.Italic, this);
     }
 
@@ -32,17 +48,32 @@ sealed class StyleFontRegistry(FontRegistry registry)
         bool italic = false)
     {
         Synchronize(sheets);
-        if (!string.IsNullOrWhiteSpace(families)) return registry.Resolve(families, weight: weight, italic: italic);
-        if (baseFont is null) return null;
+        if (!string.IsNullOrWhiteSpace(families))
+        {
+            return registry.Resolve(families, weight: weight, italic: italic);
+        }
+
+        if (baseFont is null)
+        {
+            return null;
+        }
+
         if (baseFont.Families is { } inherited)
+        {
             return registry.Resolve(inherited, weight: weight, italic: italic);
+        }
+
         if (_registryVersion != registry.Version)
         {
             _registryVersion = registry.Version;
             _restyled.Clear();
         }
         var key = (baseFont, weight, italic);
-        if (_restyled.TryGetValue(key, out var cached)) return cached;
+        if (_restyled.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
         var font = registry.Resolve(baseFont.FamilyName, weight: weight, italic: italic)
             ?? registry.Own(baseFont.Restyled(weight, italic));
         _restyled[key] = font;

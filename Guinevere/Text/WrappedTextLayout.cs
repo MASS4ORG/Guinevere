@@ -53,8 +53,15 @@ public static class WrappedTextLayout
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(measure);
         ArgumentNullException.ThrowIfNull(options);
-        if (options.LineHeight <= 0f) throw new ArgumentOutOfRangeException(nameof(options));
-        if (options.MaxLines < 0) throw new ArgumentOutOfRangeException(nameof(options));
+        if (options.LineHeight <= 0f)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options));
+        }
+
+        if (options.MaxLines < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options));
+        }
 
         if (maxWidth <= 0f || options.WrapMode == TextWrapMode.None)
         {
@@ -74,9 +81,14 @@ public static class WrappedTextLayout
         foreach (var paragraph in text.Split('\n'))
         {
             if (options.WrapMode == TextWrapMode.Character)
+            {
                 AppendCharacters(lines, paragraph, paragraphStart, measure, maxWidth);
+            }
             else
+            {
                 AppendParagraph(lines, paragraph, paragraphStart, measure, maxWidth);
+            }
+
             paragraphStart += paragraph.Length + 1;
         }
 
@@ -86,9 +98,13 @@ public static class WrappedTextLayout
             foreach (var line in lines)
             {
                 if (measure(line.Text) > maxWidth)
+                {
                     AppendCharacters(split, line.Text, line.Start, measure, maxWidth);
+                }
                 else
+                {
                     split.Add(line);
+                }
             }
             lines = split;
         }
@@ -105,7 +121,11 @@ public static class WrappedTextLayout
         for (var i = 1; i < boundaries.Length; i++)
         {
             var end = i + 1 < boundaries.Length ? boundaries[i + 1] : text.Length;
-            if (measure(text[lineStart..end]) <= maxWidth) continue;
+            if (measure(text[lineStart..end]) <= maxWidth)
+            {
+                continue;
+            }
+
             lines.Add(new WrappedLine(text[lineStart..boundaries[i]], start + lineStart));
             lineStart = boundaries[i];
         }
@@ -115,15 +135,25 @@ public static class WrappedTextLayout
     static IReadOnlyList<WrappedLine> LimitLines(List<WrappedLine> lines, float maxWidth,
         Func<string, float> measure, TextLayoutOptions options)
     {
-        if (options.MaxLines == 0 || lines.Count <= options.MaxLines) return lines;
+        if (options.MaxLines == 0 || lines.Count <= options.MaxLines)
+        {
+            return lines;
+        }
+
         var visible = lines.GetRange(0, options.MaxLines);
         var last = visible[^1];
         var marker = options.Ellipsis ?? "";
         if (maxWidth > 0f)
         {
-            while (marker.Length > 0 && measure(marker) > maxWidth) marker = marker[..^1];
+            while (marker.Length > 0 && measure(marker) > maxWidth)
+            {
+                marker = marker[..^1];
+            }
+
             while (last.Text.Length > 0 && measure(last.Text + marker) > maxWidth)
+            {
                 last = last with { Text = last.Text[..^1] };
+            }
         }
         visible[^1] = last with { Text = last.Text + marker };
         return visible;
@@ -173,12 +203,21 @@ public static class WrappedTextLayout
             {
                 lines.Add(new WrappedLine(current, currentStart));
                 current = measure(word) <= maxWidth ? word : "";
-                if (current.Length > 0) currentStart = wordStart;
-                else lines.Add(new WrappedLine(word, wordStart));
+                if (current.Length > 0)
+                {
+                    currentStart = wordStart;
+                }
+                else
+                {
+                    lines.Add(new WrappedLine(word, wordStart));
+                }
             }
         }
 
-        if (current.Length > 0) lines.Add(new WrappedLine(current, currentStart));
+        if (current.Length > 0)
+        {
+            lines.Add(new WrappedLine(current, currentStart));
+        }
     }
 
     /// <summary>The character offset nearest a point on one wrapped line.</summary>
@@ -196,14 +235,21 @@ public static class WrappedTextLayout
     public static int PositionInLine(Func<string, float> measure, string line, float clickX)
     {
         ArgumentNullException.ThrowIfNull(measure);
-        if (string.IsNullOrEmpty(line)) return 0;
+        if (string.IsNullOrEmpty(line))
+        {
+            return 0;
+        }
+
         var best = 0;
         var bestDistance = float.MaxValue;
 
         for (var index = 0; index <= line.Length; index++)
         {
             var distance = Math.Abs(clickX - measure(line[..index]));
-            if (distance >= bestDistance) continue;
+            if (distance >= bestDistance)
+            {
+                continue;
+            }
 
             best = index;
             bestDistance = distance;
@@ -235,7 +281,10 @@ public static class WrappedTextLayout
 
         var from = Math.Max(line.Start, selectionStart);
         var to = Math.Min(line.Start + line.Text.Length, selectionEnd);
-        if (from >= to) return null;
+        if (from >= to)
+        {
+            return null;
+        }
 
         var x = measure(line.Text[..(from - line.Start)]);
         var width = measure(line.Text[..(to - line.Start)]) - x;

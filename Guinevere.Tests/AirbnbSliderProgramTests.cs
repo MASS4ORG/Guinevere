@@ -1,4 +1,4 @@
-using Example_72_PanGui_AirbnbSlider;
+using Example72PanGuiAirbnbSlider;
 using Guinevere.Tests.Mocks;
 
 namespace Guinevere.Tests;
@@ -8,7 +8,7 @@ public class AirbnbSliderProgramTests
 {
     /// <summary>Dragging keeps a fractional angle and pointer ownership after the pointer leaves the handle.</summary>
     [Fact]
-    public void Drag_TracksFractionalAngleOutsideHandleAndReleasesCapture()
+    public void DragTracksFractionalAngleOutsideHandleAndReleasesCapture()
     {
         using var harness = new FrameHarness(500, 500);
         var month = 1;
@@ -42,7 +42,7 @@ public class AirbnbSliderProgramTests
 
     /// <summary>A pointer press outside the handle cannot start a drag.</summary>
     [Fact]
-    public void PressAwayFromHandle_DoesNotChangeMonthOrCapturePointer()
+    public void PressAwayFromHandleDoesNotChangeMonthOrCapturePointer()
     {
         using var harness = new FrameHarness(500, 500);
         var month = 1;
@@ -59,7 +59,7 @@ public class AirbnbSliderProgramTests
 
     /// <summary>Reduced motion settles directly on an externally selected month.</summary>
     [Fact]
-    public void ReducedMotion_SettlesWithoutInterpolation()
+    public void ReducedMotionSettlesWithoutInterpolation()
     {
         using var harness = new FrameHarness(500, 500);
         harness.Gui.ReduceMotion = true;

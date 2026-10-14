@@ -72,7 +72,10 @@ sealed class StyleExpression
     /// <exception cref="StyleExpressionException">The value is not a valid expression.</exception>
     public static void Validate(string value)
     {
-        if (NeedsEvaluation(value)) new StyleExpression(value, null, 0).Run();
+        if (NeedsEvaluation(value))
+        {
+            new StyleExpression(value, null, 0).Run();
+        }
     }
 
     /// <summary>Whether a value contains an operator, a call, a group or an <c>em</c> length outside strings.</summary>
@@ -80,8 +83,14 @@ sealed class StyleExpression
     {
         for (var i = 0; i < value.Length; i++)
         {
-            if (value[i] is '"' or '\'') i = SkipQuoted(value, i);
-            else if (Triggers(value, i)) return true;
+            if (value[i] is '"' or '\'')
+            {
+                i = SkipQuoted(value, i);
+            }
+            else if (Triggers(value, i))
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -91,7 +100,11 @@ sealed class StyleExpression
 
     static string Evaluate(string value, Func<string, string?> lookup, int depth)
     {
-        if (!NeedsEvaluation(value)) return value;
+        if (!NeedsEvaluation(value))
+        {
+            return value;
+        }
+
         try
         {
             return new StyleExpression(value, lookup, depth).Run();
@@ -105,20 +118,32 @@ sealed class StyleExpression
     string Run()
     {
         ParseList(topLevel: true);
-        if (_pos < _tokens.Count) throw Error($"Unexpected '{Slice(_tokens[_pos])}'");
+        if (_pos < _tokens.Count)
+        {
+            throw Error($"Unexpected '{Slice(_tokens[_pos])}'");
+        }
+
         return Apply();
     }
 
     /// <summary>Splices the outermost changed spans into the source text.</summary>
     string Apply()
     {
-        if (_replacements.Count == 0) return _text;
+        if (_replacements.Count == 0)
+        {
+            return _text;
+        }
+
         _replacements.Sort(static (a, b) => a.Start != b.Start ? a.Start.CompareTo(b.Start) : b.End.CompareTo(a.End));
         var builder = new System.Text.StringBuilder(_text.Length);
         var copied = 0;
         foreach (var (start, end, text) in _replacements)
         {
-            if (start < copied) continue;
+            if (start < copied)
+            {
+                continue;
+            }
+
             builder.Append(_text, copied, start - copied).Append(text);
             copied = end;
         }
@@ -139,7 +164,11 @@ sealed class StyleExpression
             count++;
             Record(single, start, _tokens[_pos - 1].End);
         }
-        if (count == 0) throw Error("Expected a value");
+        if (count == 0)
+        {
+            throw Error("Expected a value");
+        }
+
         return count == 1 ? single : ListText(listStart);
     }
 
@@ -151,7 +180,10 @@ sealed class StyleExpression
 
     void Record(StyleExprValue value, int start, int end)
     {
-        if (value.Changed && value.Kind != StyleValueKind.Unknown) _replacements.Add((start, end, value.Canonical()));
+        if (value.Changed && value.Kind != StyleValueKind.Unknown)
+        {
+            _replacements.Add((start, end, value.Canonical()));
+        }
     }
 
     StyleExprValue ParseSum()
@@ -179,7 +211,11 @@ sealed class StyleExpression
     StyleExprValue ParseUnary()
     {
         var negate = _pos < _tokens.Count && _tokens[_pos].Kind == StyleTokenKind.Negate || PeekOperator() == '-';
-        if (!negate) return ParsePrimary();
+        if (!negate)
+        {
+            return ParsePrimary();
+        }
+
         var at = _tokens[_pos++].Start;
         return StyleFunctions.Arithmetic('*', ParseUnary(), new StyleExprValue(StyleValueKind.Number, -1d), at);
     }
@@ -189,13 +225,17 @@ sealed class StyleExpression
 
     StyleExprValue ParsePrimary()
     {
-        if (_pos >= _tokens.Count) throw Error("Unexpected end of value");
+        if (_pos >= _tokens.Count)
+        {
+            throw Error("Unexpected end of value");
+        }
+
         var token = _tokens[_pos++];
         return token.Kind switch
         {
             StyleTokenKind.Number => NumberValue(token),
             StyleTokenKind.Color => new StyleExprValue(StyleValueKind.Color,
-                Color: StyleColor.From(Guinevere.Color.ParseHex(Slice(token)))),
+                Color: StyleColor.From(Color.ParseHex(Slice(token)))),
             StyleTokenKind.Word => IsCall(token) ? ParseCall(token) : Text(token),
             StyleTokenKind.Opaque => IsReference(token) ? StyleExprValue.Unknown : Text(token),
             StyleTokenKind.Open => ParseGroup(token),
@@ -239,9 +279,16 @@ sealed class StyleExpression
         while (_pos < _tokens.Count && _tokens[_pos].Kind != StyleTokenKind.Close)
         {
             args.Add(ParseList(topLevel: false));
-            if (_pos < _tokens.Count && _tokens[_pos].Kind == StyleTokenKind.Comma) _pos++;
+            if (_pos < _tokens.Count && _tokens[_pos].Kind == StyleTokenKind.Comma)
+            {
+                _pos++;
+            }
         }
-        if (_pos >= _tokens.Count) throw Error("Missing ')'", open.Start);
+        if (_pos >= _tokens.Count)
+        {
+            throw Error("Missing ')'", open.Start);
+        }
+
         _pos++;
         return args;
     }
@@ -253,7 +300,11 @@ sealed class StyleExpression
     /// <summary>A numeric token value, evaluated with default <c>em</c> to stop self-reference.</summary>
     double TokenNumber(string name, double fallback)
     {
-        if (Validating || _depth > 0 || _lookup!(name) is not { } raw) return fallback;
+        if (Validating || _depth > 0 || _lookup!(name) is not { } raw)
+        {
+            return fallback;
+        }
+
         var value = Evaluate(StyleSheet.Expand(raw, _lookup), _lookup, _depth + 1);
         return StyleValue.TryFloat(value, out var number) ? number : fallback;
     }
@@ -267,8 +318,14 @@ sealed class StyleExpression
     {
         for (var i = start + 1; i < value.Length; i++)
         {
-            if (value[i] == '\\') i++;
-            else if (value[i] == value[start]) return i;
+            if (value[i] == '\\')
+            {
+                i++;
+            }
+            else if (value[i] == value[start])
+            {
+                return i;
+            }
         }
         return value.Length;
     }

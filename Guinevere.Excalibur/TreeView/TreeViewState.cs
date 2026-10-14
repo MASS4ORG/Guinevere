@@ -12,21 +12,21 @@ public sealed class TreeViewState
     /// <summary>The selected row's id, or null.</summary>
     public string? SelectedId
     {
-        get => selectedId;
+        get => _selectedId;
         set => SetSelection(value is null ? [] : [value], value);
     }
 
-    string? selectedId;
-    string? anchor;
+    string? _selectedId;
+    string? _anchor;
 
-    internal string? SelectionAnchor { get => anchor; set => anchor = value; }
-    IReadOnlyList<string> selectedIds = Array.Empty<string>();
+    internal string? SelectionAnchor { get => _anchor; set => _anchor = value; }
+    IReadOnlyList<string> _selectedIds = Array.Empty<string>();
 
     /// <summary>Enables modifier clicks, range selection and Select All.</summary>
     public bool MultiSelect { get; set; }
 
     /// <summary>The selected row ids in selection order.</summary>
-    public IReadOnlyList<string> SelectedIds => selectedIds;
+    public IReadOnlyList<string> SelectedIds => _selectedIds;
 
     /// <summary>Rows participating in keyboard and pointer ranges this frame.</summary>
     internal IReadOnlyList<string> VisibleIds { get; set; } = Array.Empty<string>();
@@ -35,9 +35,12 @@ public sealed class TreeViewState
     public void SetSelection(IEnumerable<string> ids, string? active = null)
     {
         var next = ids.Distinct(StringComparer.Ordinal).ToArray();
-        selectedIds = Array.AsReadOnly(next);
-        selectedId = active is not null && next.Contains(active) ? active : next.LastOrDefault();
-        if (anchor is null || !next.Contains(anchor)) anchor = selectedId;
+        _selectedIds = Array.AsReadOnly(next);
+        _selectedId = active is not null && next.Contains(active) ? active : next.LastOrDefault();
+        if (_anchor is null || !next.Contains(_anchor))
+        {
+            _anchor = _selectedId;
+        }
     }
 
     /// <summary>Selects one row, toggles it, or extends the range from the last unmodified selection.</summary>
@@ -46,32 +49,43 @@ public sealed class TreeViewState
         if (!MultiSelect || (!toggle && !range))
         {
             SetSelection([id], id);
-            anchor = id;
+            _anchor = id;
             return;
         }
         if (range)
         {
             SelectRange(id, visible, toggle);
         }
-        else if (selectedIds.Contains(id)) SetSelection(selectedIds.Where(item => item != id), selectedId);
+        else if (_selectedIds.Contains(id))
+        {
+            SetSelection(_selectedIds.Where(item => item != id), _selectedId);
+        }
         else
         {
-            SetSelection(selectedIds.Append(id), id);
-            anchor = id;
+            SetSelection(_selectedIds.Append(id), id);
+            _anchor = id;
         }
     }
 
     void SelectRange(string id, IReadOnlyList<string> visible, bool toggle)
     {
         var order = visible.ToList();
-        var start = order.IndexOf(anchor ?? id);
+        var start = order.IndexOf(_anchor ?? id);
         var end = order.IndexOf(id);
-        if (end < 0) return;
-        if (start < 0) start = end;
-        var savedAnchor = anchor;
+        if (end < 0)
+        {
+            return;
+        }
+
+        if (start < 0)
+        {
+            start = end;
+        }
+
+        var savedAnchor = _anchor;
         var span = order.Skip(Math.Min(start, end)).Take(Math.Abs(end - start) + 1);
-        SetSelection(toggle ? selectedIds.Concat(span) : span, id);
-        anchor = savedAnchor;
+        SetSelection(toggle ? _selectedIds.Concat(span) : span, id);
+        _anchor = savedAnchor;
     }
 
     /// <summary>
@@ -87,8 +101,15 @@ public sealed class TreeViewState
     /// <param name="depth">The row's nesting level.</param>
     public bool IsCollapsed(string id, int depth)
     {
-        if (_collapsed.Contains(id)) return true;
-        if (_expanded.Contains(id)) return false;
+        if (_collapsed.Contains(id))
+        {
+            return true;
+        }
+
+        if (_expanded.Contains(id))
+        {
+            return false;
+        }
 
         return depth >= DefaultExpandedDepth;
     }
@@ -114,8 +135,14 @@ public sealed class TreeViewState
         _collapsed.Remove(id);
         _expanded.Remove(id);
 
-        if (expanded) _expanded.Add(id);
-        else _collapsed.Add(id);
+        if (expanded)
+        {
+            _expanded.Add(id);
+        }
+        else
+        {
+            _collapsed.Add(id);
+        }
     }
 
     /// <summary>The row being renamed in place, or null when nothing is being edited.</summary>

@@ -54,7 +54,11 @@ public static partial class ControlsExtensions
         padding = gui.ControlStyle.SpacingOr(padding);
 
         ArgumentNullException.ThrowIfNull(gui);
-        if (max < min) (min, max) = (max, min);
+        if (max < min)
+        {
+            (min, max) = (max, min);
+        }
+
         value = Clamp(value, min, max);
 
         var node = FieldNode(gui, NumberClass, classes, id, enabled, width, height, padding,
@@ -63,7 +67,11 @@ public static partial class ControlsExtensions
         var field = gui.ControlState(nodeId, () => new NumberFieldState());
 
         var original = value;
-        if (gui.Pass == Pass.Pass2Render) field.Committed = false;
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            field.Committed = false;
+        }
+
         SyncNumberBuffer(field, value, format, mixed);
 
         using (node.ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
@@ -111,7 +119,10 @@ public static partial class ControlsExtensions
         InteractableElement interactable, double min, double max, string format,
         float fontSize, bool enabled)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         if (!enabled)
         {
@@ -167,14 +178,21 @@ public static partial class ControlsExtensions
                 gui.RequestFocus(FocusReason.Mouse);
                 var at = TextEditor.PositionAt(gui, mouse, gui.CurrentNode.InnerRect,
                     field.Buffer.Text, fontSize);
-                if (field.ClickCount >= 3) field.Buffer.SelectAll();
+                if (field.ClickCount >= 3)
+                {
+                    field.Buffer.SelectAll();
+                }
                 else if (field.ClickCount == 2)
                 {
                     var (start, end) = TextEditor.WordAt(field.Buffer.Text, at);
                     field.Buffer.MoveTo(start, extend: false);
                     field.Buffer.MoveTo(end, extend: true);
                 }
-                else field.Buffer.MoveTo(at, extend: false);
+                else
+                {
+                    field.Buffer.MoveTo(at, extend: false);
+                }
+
                 field.Buffer.BlinkTimer = 0f;
                 field.Captured = false;
             }

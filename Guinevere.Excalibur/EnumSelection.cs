@@ -9,7 +9,11 @@ public static class EnumSelection
     public static bool Contains(Enum value, Enum option)
     {
         Validate(value, option);
-        if (!value.GetType().IsDefined(typeof(FlagsAttribute), false)) return value.Equals(option);
+        if (!value.GetType().IsDefined(typeof(FlagsAttribute), false))
+        {
+            return value.Equals(option);
+        }
+
         var bits = Bits(option);
         return bits == 0 ? Bits(value) == 0 : (Bits(value) & bits) == bits;
     }
@@ -19,9 +23,16 @@ public static class EnumSelection
     {
         Validate(value, change.Item);
         if (!value.GetType().IsDefined(typeof(FlagsAttribute), false))
+        {
             return change.Selected ? change.Item : value;
+        }
+
         var bits = Bits(change.Item);
-        if (bits == 0) return change.Selected ? (Enum)Enum.ToObject(value.GetType(), 0UL) : value;
+        if (bits == 0)
+        {
+            return change.Selected ? (Enum)Enum.ToObject(value.GetType(), 0UL) : value;
+        }
+
         var next = change.Selected ? Bits(value) | bits : Bits(value) & ~bits;
         return (Enum)Enum.ToObject(value.GetType(), next);
     }
@@ -31,7 +42,9 @@ public static class EnumSelection
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(option);
         if (value.GetType() != option.GetType())
+        {
             throw new ArgumentException("Value and option must have the same enum type.", nameof(option));
+        }
     }
 
     static ulong Bits(Enum value) => Type.GetTypeCode(Enum.GetUnderlyingType(value.GetType())) switch

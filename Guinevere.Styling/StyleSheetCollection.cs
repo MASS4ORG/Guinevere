@@ -42,7 +42,11 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     /// <param name="name">Token name, with or without the <c>$</c> or <c>--</c> prefix.</param>
     public bool RemoveToken(string name)
     {
-        if (!_tokens.Remove(TokenKey(name))) return false;
+        if (!_tokens.Remove(TokenKey(name)))
+        {
+            return false;
+        }
+
         Invalidate();
         return true;
     }
@@ -57,7 +61,11 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     public ResolvedStyle Resolve(in StyleTarget target, IReadOnlyList<StyleVariable>? scopedVariables = null,
         StyleTokens? inherited = null)
     {
-        if (Count == 0) return ResolvedStyle.Empty;
+        if (Count == 0)
+        {
+            return ResolvedStyle.Empty;
+        }
+
         var globals = _globals ??= StyleResolver.LayerVariables(this, _tokens);
         if (!_cache.TryGet(target, out var entry))
         {
@@ -81,7 +89,11 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     {
         var key = TokenKey(name);
         var values = _tokenValues ??= new Dictionary<string, string?>(StringComparer.Ordinal);
-        if (values.TryGetValue(key, out var cached)) return cached;
+        if (values.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
         var globals = _globals ??= StyleResolver.LayerVariables(this, _tokens);
         var value = globals.TryGetValue(key, out var raw) ? StyleSheet.Compute(raw, globals.GetValueOrDefault) : null;
         values[key] = value;
@@ -143,7 +155,11 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     static string TokenKey(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        if (name.StartsWith("--", StringComparison.Ordinal)) return name;
+        if (name.StartsWith("--", StringComparison.Ordinal))
+        {
+            return name;
+        }
+
         return name[0] == '$' ? $"--{name[1..]}" : $"--{name}";
     }
 }

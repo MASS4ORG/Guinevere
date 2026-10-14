@@ -56,7 +56,10 @@ public class AppBarTests
 
     static void Draw(Gui gui)
     {
-        using (gui.AppBar()) gui.DrawText("Studio");
+        using (gui.AppBar())
+        {
+            gui.DrawText("Studio");
+        }
     }
 
     /// <summary>Hands each background press to the desktop once and leaves subsequent movement to the OS.</summary>
@@ -67,7 +70,11 @@ public class AppBarTests
     {
         using var h = new FrameHarness();
         var window = new Window(h) { NativeMoveSupported = true };
-        if (maximized) window.Maximize();
+        if (maximized)
+        {
+            window.Maximize();
+        }
+
         h.Gui.Platform.Register<IWindowChromeCapability>(window);
         h.Frame(Draw);
         var point = Content(h).Center;
@@ -94,7 +101,7 @@ public class AppBarTests
         using var h = new FrameHarness();
         var window = new Window(h) { NativeMoveSupported = true };
         h.Gui.Platform.Register<IWindowChromeCapability>(window);
-        void Custom(Gui gui)
+        static void Custom(Gui gui)
         {
             using var bar = gui.AppBar();
             gui.Button("Search", 100, 36);
@@ -195,14 +202,18 @@ public class AppBarTests
                 .Menu("File", file => file.Item("Close", () => { }))
                 .Menu("View", view => view.Item("Toggle", () => { })));
             gui.DrawText("Guinevere Excalibur");
-            using (gui.Node().ExpandWidth().Enter()) spacer = gui.CurrentNode;
+            using (gui.Node().ExpandWidth().Enter())
+            {
+                spacer = gui.CurrentNode;
+            }
+
             gui.DrawText("FPS: 60.0");
             checkbox = gui.Checkbox(checkbox, "Native title bar");
             gui.Button("◐", 36, 36);
         }
         h.Frame(Gallery);
         Assert.NotNull(spacer);
-        h.Input.MoveTo(spacer!.Center);
+        h.Input.MoveTo(spacer.Center);
         h.Input.PressButton();
         h.Frame(Gallery);
         h.Input.MoveTo(spacer.Center + new Vector2(40, 20));
@@ -301,9 +312,14 @@ public class AppBarTests
             {
                 if (gui.Pass == Pass.Pass2Render
                     && gui.GetInteractable(gui.CurrentNode.Rect.Position, Shape.Rectangle(100, 36)).OnClick())
+                {
                     clicked++;
+                }
             }
-            else if (gui.Button("Search", 100, 36)) clicked++;
+            else if (gui.Button("Search", 100, 36))
+            {
+                clicked++;
+            }
         }
         h.Frame(Custom);
         var control = Content(h).Children[0].Center;
@@ -354,13 +370,24 @@ public class AppBarTests
     {
         using var h = new FrameHarness();
         var window = new Window(h);
-        if (registerWindow) h.Gui.Platform.Register<IWindowChromeCapability>(window);
+        if (registerWindow)
+        {
+            h.Gui.Platform.Register<IWindowChromeCapability>(window);
+        }
+
         var runs = 0;
         void Embedded(Gui gui)
         {
             using var bar = gui.AppBar(windowControls: false);
-            if (gui.Button("Run", 50, 36)) runs++;
-            if (gui.Button("Off", 50, 36, enabled: false)) runs++;
+            if (gui.Button("Run", 50, 36))
+            {
+                runs++;
+            }
+
+            if (gui.Button("Off", 50, 36, enabled: false))
+            {
+                runs++;
+            }
         }
         h.Frame(Embedded);
         Assert.Single(Bar(h).Children);
@@ -383,7 +410,10 @@ public class AppBarTests
         void Toggle(Gui gui)
         {
             using var bar = gui.AppBar(windowControls: manage, nativeTitlebar: native);
-            if (gui.Button("Decorations", 100, 36)) native = !native;
+            if (gui.Button("Decorations", 100, 36))
+            {
+                native = !native;
+            }
         }
         h.Frame(Toggle);
         Assert.Equal(4, Bar(h).Children.Count);

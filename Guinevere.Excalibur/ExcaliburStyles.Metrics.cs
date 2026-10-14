@@ -13,13 +13,25 @@ public static partial class ExcaliburStyles
     {
         ArgumentNullException.ThrowIfNull(gui);
         Ensure(gui);
-        if (gui.LayoutNodeScopeStack.Count == 0) return;
+        if (gui.LayoutNodeScopeStack.Count == 0)
+        {
+            return;
+        }
+
         var scope = gui.CurrentNodeScope;
         if (gui.StyleSheets.GetTokenLength("control-field-height") is { } field)
+        {
             scope.Set(ControlStyles.Value<ControlFieldHeight, float>(field));
+        }
+
         if (gui.StyleSheets.GetTokenLength("control-compact-height") is { } compact)
+        {
             scope.Set(ControlStyles.Value<ControlCompactHeight, float>(compact));
+        }
+
         if (gui.StyleSheets.GetTokenLength("control-indicator-size") is { } indicator)
+        {
             scope.Set(ControlStyles.Value<ControlIndicatorSize, float>(indicator));
+        }
     }
 }

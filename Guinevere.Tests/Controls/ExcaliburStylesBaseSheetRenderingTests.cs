@@ -85,7 +85,7 @@ public class ExcaliburStylesBaseSheetRenderingTests
             g => g.NumberField(ref value),
             g => g.Slider(ref value, 0, 1, showValue: true),
             g => g.Dropdown(["First", "Second"], ref index),
-            g => g.MultiDropdown<string>(["First", "Second"], ["First"], chips: true),
+            g => g.MultiDropdown(["First", "Second"], ["First"], chips: true),
             g => g.EnumDropdown(ref axis),
             g => g.EnumDropdown(ref axis, EnumPresentation.ToggleButtons),
             g => g.EnumDropdown(ref axis, EnumPresentation.Paging),
@@ -150,7 +150,10 @@ public class ExcaliburStylesBaseSheetRenderingTests
         harness.Frame(DrawButton);
         using (var snapshot = harness.Snapshot())
         using (var bitmap = SKBitmap.FromImage(snapshot))
+        {
             Assert.Equal(SKColor.Parse("#29445d"), bitmap.GetPixel(10, 10));
+        }
+
         harness.Click(DrawButton, new Vector2(10, 10));
         Assert.True(clicked);
 

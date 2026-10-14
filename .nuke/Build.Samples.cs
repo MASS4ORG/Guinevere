@@ -57,7 +57,7 @@ partial class Build
             {
                 Log.Information("Building example: {Project}", project.Name);
 
-                _ = DotNetTasks.DotNetBuild(s => s
+                _ = DotNetBuild(s => s
                     .SetProjectFile(project.File)
                     .SetConfiguration(Config)
                     .EnableNoRestore()
@@ -97,7 +97,7 @@ partial class Build
 
                     Log.Information("Publishing {Project} for {Runtime}", project.Name, runtime);
 
-                    _ = DotNetTasks.DotNetPublish(s => s
+                    _ = DotNetPublish(s => s
                         .SetProject(project.File)
                         .SetConfiguration(Config)
                         .SetOutput(projectOutput)
@@ -131,7 +131,7 @@ partial class Build
 
                 Log.Information("Creating examples archive: {Archive}", archiveName);
 
-                runtimeOutput.ZipTo(archivePath, compressionLevel: System.IO.Compression.CompressionLevel.Optimal);
+                runtimeOutput.ZipTo(archivePath, compressionLevel: CompressionLevel.Optimal);
             }
 
             Log.Information("Successfully packaged all examples");

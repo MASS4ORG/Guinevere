@@ -5,12 +5,12 @@ public class ControlGalleryTests
 {
     /// <summary>Loads the real embedded badge and reuses its decoded image across frames.</summary>
     [Fact]
-    public void Badge_LoadsFromAssemblyAndIsCached()
+    public void BadgeLoadsFromAssemblyAndIsCached()
     {
-        var badge = Controls_01.Program.LoadBadge();
+        var badge = Controls01.Program.LoadBadge();
 
         Assert.Equal(1024, badge.Width);
         Assert.Equal(1024, badge.Height);
-        Assert.Same(badge, Controls_01.Program.LoadBadge());
+        Assert.Same(badge, Controls01.Program.LoadBadge());
     }
 }

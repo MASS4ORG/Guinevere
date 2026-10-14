@@ -31,10 +31,18 @@ public static partial class ControlsExtensions
     /// </summary>
     static bool ChoiceActivated(Gui gui, bool enabled)
     {
-        if (gui.Pass != Pass.Pass2Render || !enabled) return false;
+        if (gui.Pass != Pass.Pass2Render || !enabled)
+        {
+            return false;
+        }
+
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
         var clicked = gui.GetInteractable().OnClick();
-        if (clicked) gui.RequestFocus(FocusReason.Mouse);
+        if (clicked)
+        {
+            gui.RequestFocus(FocusReason.Mouse);
+        }
+
         return clicked || (gui.HasFocus() && gui.Input.IsKeyPressed(KeyboardKey.Space));
     }
 
@@ -45,6 +53,9 @@ public static partial class ControlsExtensions
     /// <summary>The label, in the row's text color.</summary>
     static void ChoiceLabel(Gui gui, string label, float fontSize)
     {
-        if (!string.IsNullOrEmpty(label)) gui.DrawText(label, fontSize, centerInRect: false);
+        if (!string.IsNullOrEmpty(label))
+        {
+            gui.DrawText(label, fontSize, centerInRect: false);
+        }
     }
 }

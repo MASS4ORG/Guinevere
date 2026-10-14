@@ -27,20 +27,30 @@ static class FormGroups
         var view = Paging(entries.Count, settings, context.Pages, id);
         var isOpen = Heading(gui, collection.Label, id, context.Collapsed, context.Modified(field),
             actions: () => HeaderActions(gui, collection, entries.Count, view, settings, id, context));
-        if (!isOpen) return;
+        if (!isOpen)
+        {
+            return;
+        }
 
         var draggable = settings.DraggableItems && collection.CanReorder;
         var hideLabels = !settings.ShowIndexLabels && !collection.IsDictionary;
         for (var i = view.Start; i < view.End; i++)
+        {
             if (DrawEntry(gui, collection, entries[i], i, id, context, draggable, hideLabels))
+            {
                 return;
+            }
+        }
     }
 
     /// <summary>The page to show, clamped to the pages that exist; one page holding everything without paging.</summary>
     internal static PageView Paging(int count, ListDrawerSettingsAttribute settings, IDictionary<string, int> pages,
         string id)
     {
-        if (!settings.ShowPaging) return new PageView(0, 1, 0, count);
+        if (!settings.ShowPaging)
+        {
+            return new PageView(0, 1, 0, count);
+        }
 
         var size = Math.Max(1, settings.NumberOfItemsPerPage);
         var pageCount = Math.Max(1, (count + size - 1) / size);
@@ -52,26 +62,40 @@ static class FormGroups
         ListDrawerSettingsAttribute settings, string id, FormRenderContext context)
     {
         HeaderText(gui, $"{count}", $"{id}/count");
-        if (view.Count > 1) PageControls(gui, view, id, context.Pages);
+        if (view.Count > 1)
+        {
+            PageControls(gui, view, id, context.Pages);
+        }
 
         // A new entry lands at the end, so follow it to the last page.
         if (collection.CanResize && FormControls.SmallButton(gui, "+", $"{id}/add") && collection.Add())
+        {
             context.Pages[id] = count / Math.Max(1, settings.NumberOfItemsPerPage);
+        }
     }
 
     /// <summary>Previous and next buttons around "page/pages"; each click turns one page.</summary>
     static void PageControls(Gui gui, PageView view, string id, IDictionary<string, int> pages)
     {
-        if (FormControls.SmallButton(gui, "<", $"{id}/prev") && view.Page > 0) pages[id] = view.Page - 1;
+        if (FormControls.SmallButton(gui, "<", $"{id}/prev") && view.Page > 0)
+        {
+            pages[id] = view.Page - 1;
+        }
+
         HeaderText(gui, $"{view.Page + 1}/{view.Count}", $"{id}/page");
-        if (FormControls.SmallButton(gui, ">", $"{id}/next") && view.Page < view.Count - 1) pages[id] = view.Page + 1;
+        if (FormControls.SmallButton(gui, ">", $"{id}/next") && view.Page < view.Count - 1)
+        {
+            pages[id] = view.Page + 1;
+        }
     }
 
     static void HeaderText(Gui gui, string text, string id)
     {
         var style = new FormStyle(gui);
         using (gui.Node(style.FontSize * (text.Length * 0.6f + 1f), style.RowHeight, id).ContentAlignY(0.5f).Enter())
+        {
             gui.DrawText(text, style.FontSize - 1f, style.InkDim);
+        }
     }
 
     /// <summary>One entry row: optional drag handle, the entry's own drawer, optional remove button.</summary>
@@ -83,13 +107,25 @@ static class FormGroups
         var entryId = $"{id}/entry{index}";
         using (gui.Node(-1, -1, entryId).ExpandWidth().Direction(Axis.Horizontal).Gap(4f).Enter())
         {
-            if (draggable) DragHandle(gui, new EntryDrag(id, index), $"{entryId}/handle");
+            if (draggable)
+            {
+                DragHandle(gui, new EntryDrag(id, index), $"{entryId}/handle");
+            }
 
             using (gui.Node(-1, -1, $"{entryId}/slot").Expand().Direction(Axis.Vertical).Enter())
+            {
                 FormRenderer.FormEntry(gui, entry, entryId, context, hideLabel);
+            }
 
-            if (draggable) AcceptDrop(gui, collection, id, index);
-            if (!collection.CanResize || !FormControls.SmallButton(gui, "-", $"{entryId}/remove")) return false;
+            if (draggable)
+            {
+                AcceptDrop(gui, collection, id, index);
+            }
+
+            if (!collection.CanResize || !FormControls.SmallButton(gui, "-", $"{entryId}/remove"))
+            {
+                return false;
+            }
 
             collection.RemoveAt(index);
             return true;
@@ -103,13 +139,18 @@ static class FormGroups
         using (gui.Node(style.FontSize, style.RowHeight, id).Enter())
         {
             gui.DragSource(id, payload, tag: EntryTag, keyboard: false);
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
 
             var rect = gui.CurrentNode.Rect;
             var width = rect.W * 0.6f;
             for (var bar = -1; bar <= 1; bar++)
+            {
                 gui.DrawRect(new Rect(rect.X + (rect.W - width) / 2f, rect.Y + rect.H / 2f + bar * 3.5f - 0.75f, width,
                     1.5f), style.InkDim);
+            }
         }
     }
 
@@ -119,8 +160,15 @@ static class FormGroups
         var drop = gui.DropTarget<EntryDrag>($"{id}/entry{index}/drop", EntryTag,
             drag => drag.CollectionId == id && drag.Index != index, keyboard: false);
 
-        if (drop.IsAccepted) gui.DrawDropIndicator(drop.State, style: ExcaliburStyles.DroppableArea(gui));
-        if (drop.IsDropped) collection.Move(drop.Payload!.Index, index);
+        if (drop.IsAccepted)
+        {
+            gui.DrawDropIndicator(drop.State, style: ExcaliburStyles.DroppableArea(gui));
+        }
+
+        if (drop.IsDropped)
+        {
+            collection.Move(drop.Payload!.Index, index);
+        }
     }
 
     /// <summary>
@@ -142,7 +190,10 @@ static class FormGroups
             DrawCompartment(gui, style, depth);
             var isOpen = Heading(gui, FormRenderer.Summary(field, target), id, context.Collapsed,
                 context.Modified(field), actions: null);
-            if (!isOpen) return;
+            if (!isOpen)
+            {
+                return;
+            }
 
             var forms = field.Sources.Select(source => (Source: source, Value: source.GetValue()))
                 .Where(entry => entry.Value is not null)
@@ -155,7 +206,9 @@ static class FormGroups
             {
                 gui.CurrentNodeScope.Set(ControlStyles.Value<FormNestingDepth, int>(depth + 1));
                 for (var i = 0; i < fields.Count; i++)
+                {
                     gui.FormField(fields[i], $"{id}/f{i}", context);
+                }
             }
         }
     }
@@ -166,7 +219,10 @@ static class FormGroups
 
     static void DrawCompartment(Gui gui, FormStyle style, int depth)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         gui.DrawBackgroundRect(CompartmentFill(style.Background, style.Ink, depth), style.CornerRadius);
         gui.DrawRectBorder(gui.CurrentNode.Rect, style.Divider, 1, style.CornerRadius);
@@ -179,7 +235,10 @@ static class FormGroups
         {
             var shared = sections.Select(section => section.BodyFields.FirstOrDefault(candidate =>
                 candidate.Name == field.Name && candidate.ValueType == field.ValueType)).ToArray();
-            if (shared.All(candidate => candidate is not null)) fields.Add(FormField.Combine(shared.OfType<FormField>()));
+            if (shared.All(candidate => candidate is not null))
+            {
+                fields.Add(FormField.Combine(shared.OfType<FormField>()));
+            }
         }
         return fields;
     }
@@ -205,20 +264,28 @@ static class FormGroups
                        .Enter())
             {
                 if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick() && !collapsed.Add(id))
+                {
                     collapsed.Remove(id);
+                }
 
                 using (gui.Node(10f, style.RowHeight, $"{id}/head/arrow").ContentAlignX(0.5f).ContentAlignY(0.5f)
                            .Enter())
+                {
                     FormControls.FoldArrow(gui, isOpen);
+                }
 
                 gui.DrawText(title, style.FontSize, style.Ink, centerInRect: false,
                     effects: FormControls.Emphasis(modified, style.Ink));
             }
 
             if (actions is not null)
+            {
                 using (gui.Node(-1, style.RowHeight, $"{id}/head/actions").Expand().Direction(Axis.Horizontal).Gap(4f)
                            .ContentAlignY(0.5f).Enter())
+                {
                     actions();
+                }
+            }
         }
 
         return isOpen;

@@ -52,7 +52,9 @@ static class DockLayoutSerializer
             var root = document.RootElement;
 
             if (!root.TryGetProperty("version", out var version) || version.GetInt32() != DockLayout.CurrentVersion)
+            {
                 return null;
+            }
 
             var layout = new DockLayout
             {
@@ -60,13 +62,18 @@ static class DockLayoutSerializer
             };
 
             if (root.TryGetProperty("floating", out var floating) && floating.ValueKind == JsonValueKind.Array)
+            {
                 foreach (var window in floating.EnumerateArray())
                 {
                     var node = window.TryGetProperty("root", out var windowRoot) ? ReadNode(windowRoot) : null;
-                    if (node is null) continue;
+                    if (node is null)
+                    {
+                        continue;
+                    }
 
                     layout.Floating.Add(new DockFloat(node, ReadRect(window)));
                 }
+            }
 
             return layout;
         }
@@ -78,7 +85,10 @@ static class DockLayoutSerializer
 
     static Rect ReadRect(JsonElement window)
     {
-        if (!window.TryGetProperty("bounds", out var bounds)) return new Rect(0, 0, 320, 240);
+        if (!window.TryGetProperty("bounds", out var bounds))
+        {
+            return new Rect(0, 0, 320, 240);
+        }
 
         return new Rect(
             bounds.GetProperty("x").GetSingle(),
@@ -102,7 +112,11 @@ static class DockLayoutSerializer
                 writer.WriteString("zone", leaf.Zone.ToString());
                 writer.WritePropertyName("panels");
                 writer.WriteStartArray();
-                foreach (var panelId in leaf.PanelIds) writer.WriteStringValue(panelId);
+                foreach (var panelId in leaf.PanelIds)
+                {
+                    writer.WriteStringValue(panelId);
+                }
+
                 writer.WriteEndArray();
                 writer.WriteEndObject();
                 return;
@@ -127,8 +141,15 @@ static class DockLayoutSerializer
 
     static DockNode? ReadNode(JsonElement element)
     {
-        if (element.ValueKind != JsonValueKind.Object) return null;
-        if (!element.TryGetProperty("kind", out var kind)) return null;
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        if (!element.TryGetProperty("kind", out var kind))
+        {
+            return null;
+        }
 
         switch (kind.GetString())
         {
@@ -136,13 +157,25 @@ static class DockLayoutSerializer
                 {
                     var leaf = new DockLeaf();
                     if (element.TryGetProperty("panels", out var panels) && panels.ValueKind == JsonValueKind.Array)
+                    {
                         foreach (var panel in panels.EnumerateArray())
+                        {
                             if (panel.GetString() is { } panelId)
+                            {
                                 leaf.PanelIds.Add(panelId);
+                            }
+                        }
+                    }
 
-                    if (element.TryGetProperty("active", out var active)) leaf.ActiveIndex = active.GetInt32();
+                    if (element.TryGetProperty("active", out var active))
+                    {
+                        leaf.ActiveIndex = active.GetInt32();
+                    }
+
                     if (element.TryGetProperty("zone", out var zone) && Enum.TryParse<DockZone>(zone.GetString(), out var parsed))
+                    {
                         leaf.Zone = parsed;
+                    }
 
                     return leaf.PanelIds.Count == 0 ? null : leaf;
                 }
@@ -153,8 +186,15 @@ static class DockLayoutSerializer
                     var second = element.TryGetProperty("second", out var s) ? ReadNode(s) : null;
 
                     // A split that lost a side on the way in collapses, the same way removal collapses it.
-                    if (first is null) return second;
-                    if (second is null) return first;
+                    if (first is null)
+                    {
+                        return second;
+                    }
+
+                    if (second is null)
+                    {
+                        return first;
+                    }
 
                     var axis = element.TryGetProperty("axis", out var a) && a.GetString() == "horizontal"
                         ? Axis.Horizontal

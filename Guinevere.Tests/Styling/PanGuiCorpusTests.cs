@@ -13,7 +13,10 @@ public class PanGuiCorpusTests
     {
         var data = new TheoryData<string>();
         foreach (var file in Directory.EnumerateFiles(CorpusDirectory, "*.pss").Order(StringComparer.Ordinal))
+        {
             data.Add(Path.GetFileNameWithoutExtension(file));
+        }
+
         return data;
     }
 
@@ -26,16 +29,16 @@ public class PanGuiCorpusTests
 
     /// <summary>The corpus holds every PanGui blog example.</summary>
     [Fact]
-    public void Corpus_HasEveryPublishedExample() => Assert.Equal(15, Fixtures().Count);
+    public void CorpusHasEveryPublishedExample() => Assert.Equal(15, Fixtures().Count);
 
     /// <summary>Every corpus fixture parses.</summary>
     [Theory]
     [MemberData(nameof(Fixtures))]
-    public void Fixture_Parses(string name) => Assert.NotNull(Load(name));
+    public void FixtureParses(string name) => Assert.NotNull(Load(name));
 
     /// <summary>Toggle: sizes apply; shapes, effects and the background shape are deferred.</summary>
     [Fact]
-    public void Toggle_ResolvesSizesAndDefersShapes()
+    public void ToggleResolvesSizesAndDefersShapes()
     {
         var sheet = Load("toggle");
         var style = StyleResolver.Resolve([sheet], Target("toggle"));
@@ -47,7 +50,7 @@ public class PanGuiCorpusTests
 
     /// <summary>Descendant, direct-child and nested selectors from the toolbar example.</summary>
     [Fact]
-    public void ToolbarAndSidebar_ResolveHierarchy()
+    public void ToolbarAndSidebarResolveHierarchy()
     {
         Assert.Equal("80", Resolve("toolbar-sidebar", Target("button", null, "dialog")).Get("min-width"));
         var sidebarButton = Resolve("toolbar-sidebar", Target("button", null, "sidebar"));
@@ -64,7 +67,7 @@ public class PanGuiCorpusTests
 
     /// <summary><c>#inherit</c> copies properties and joins parent selectors.</summary>
     [Fact]
-    public void Inherit_CopiesAndMatches()
+    public void InheritCopiesAndMatches()
     {
         var warning = Resolve("inherit", Target("warning-box"));
         Assert.Equal(("20", "orange"), (warning.Get("padding"), warning.Get("bg-color")));
@@ -73,7 +76,7 @@ public class PanGuiCorpusTests
 
     /// <summary>Property/selector-only inheritance and multi-parent inheritance parse into their maps.</summary>
     [Fact]
-    public void InheritVariants_AreRecorded()
+    public void InheritVariantsAreRecorded()
     {
         var variants = Load("inherit-properties-selector");
         Assert.Equal(new[] { "box" }, variants.PropertyInheritance["info-panel"]);
@@ -83,7 +86,7 @@ public class PanGuiCorpusTests
 
     /// <summary>Checkbox and button: sizes, scale and rule-scoped variables apply; effects are deferred.</summary>
     [Fact]
-    public void CheckboxAndButton_ResolveScalars()
+    public void CheckboxAndButtonResolveScalars()
     {
         var checkbox = Resolve("checkbox-button-effects", Target("checkbox", ["checked"]));
         Assert.Equal(("24", "24"), (checkbox.Get("width"), checkbox.Get("height")));
@@ -94,7 +97,7 @@ public class PanGuiCorpusTests
 
     /// <summary>Progress bar, spinner, node and card examples resolve their scalar declarations.</summary>
     [Fact]
-    public void ShapeExamples_ResolveScalars()
+    public void ShapeExamplesResolveScalars()
     {
         Assert.Equal("30", Resolve("progress-bar", Target("progress-bar")).Get("height"));
         Assert.Equal(("50", "50"), (Resolve("spinner", Target("loading-spinner")).Get("width"),
@@ -105,7 +108,7 @@ public class PanGuiCorpusTests
 
     /// <summary><c>@const</c> values substitute and are exposed to the host.</summary>
     [Fact]
-    public void Const_SubstitutesAndExposes()
+    public void ConstSubstitutesAndExposes()
     {
         var sheet = Load("const");
         var box = StyleResolver.Resolve([sheet], Target("box"));
@@ -120,7 +123,7 @@ public class PanGuiCorpusTests
     [InlineData("mixin-card-appearance", StyleDeferredKind.Mixin, 2)]
     [InlineData("style-icons", StyleDeferredKind.StyleMacro, 6)]
     [InlineData("shape-effect-macros", StyleDeferredKind.ShapeMacro, 10)]
-    public void Macros_AreDeferred(string fixture, StyleDeferredKind first, int count)
+    public void MacrosAreDeferred(string fixture, StyleDeferredKind first, int count)
     {
         var sheet = Load(fixture);
         Assert.Equal(first, sheet.Deferred[0].Kind);

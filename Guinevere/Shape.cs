@@ -41,8 +41,13 @@ public partial class Shape : IDrawable, IInkBounds
     {
         DrawShadows(canvas, inset: false);
         foreach (var (_, layerList) in Layers)
+        {
             foreach (var (path, paint) in layerList)
+            {
                 canvas.DrawPath(path, paint);
+            }
+        }
+
         DrawShadows(canvas, inset: true);
     }
 
@@ -74,7 +79,10 @@ public partial class Shape : IDrawable, IInkBounds
     /// <param name="paint">The paint to use for the path.</param>
     internal void AddToLayer(int zIndex, SKPath path, SKPaint paint)
     {
-        if (!Layers.ContainsKey(zIndex)) Layers[zIndex] = [];
+        if (!Layers.ContainsKey(zIndex))
+        {
+            Layers[zIndex] = [];
+        }
 
         Layers[zIndex].Add((path, paint));
     }
@@ -192,10 +200,20 @@ public partial class Shape : IDrawable, IInkBounds
         var sweepAngle = turnFinal;
 
         // Normalize angles to handle wrap-around cases
-        if (sweepAngle.Degree <= 0) sweepAngle += Angle.FullCircle;
-        if (sweepAngle.Degree > 360) sweepAngle -= Angle.FullCircle;
+        if (sweepAngle.Degree <= 0)
+        {
+            sweepAngle += Angle.FullCircle;
+        }
 
-        if (sweepAngle.Degree == 360) return Circle(outerRadius) - Circle(innerRadius);
+        if (sweepAngle.Degree > 360)
+        {
+            sweepAngle -= Angle.FullCircle;
+        }
+
+        if (sweepAngle.Degree == 360)
+        {
+            return Circle(outerRadius) - Circle(innerRadius);
+        }
 
         // Create the main arc body
         var arc = new SKPathBuilder();
@@ -251,8 +269,15 @@ public partial class Shape : IDrawable, IInkBounds
         var sweepAngle = turnFinal;
 
         // Normalize angles to handle wrap-around cases
-        if (sweepAngle.Degree <= 0) sweepAngle += Angle.FullCircle;
-        if (sweepAngle.Degree > 360) sweepAngle -= Angle.FullCircle;
+        if (sweepAngle.Degree <= 0)
+        {
+            sweepAngle += Angle.FullCircle;
+        }
+
+        if (sweepAngle.Degree > 360)
+        {
+            sweepAngle -= Angle.FullCircle;
+        }
 
         // Create the main arc body
         var arc = new SKPathBuilder();

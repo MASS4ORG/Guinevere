@@ -38,7 +38,10 @@ public static partial class ControlsExtensions
         // final; the build pass then reuses the last captured value, so both passes wrap to the same
         // width and produce the same node tree.
         ref var width = ref gui.GetValue(200f, $"{nodeId}/wrappedLabelWidth");
-        if (gui.Pass == Pass.Pass2Render) width = Math.Max(200f, inner.W);
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            width = Math.Max(200f, inner.W);
+        }
 
         var primary = new Font(new SKFont(drawFont?.SkFont.Typeface ?? measureFont.Typeface, size));
         var emoji = new Font(new SKFont(
@@ -47,7 +50,10 @@ public static partial class ControlsExtensions
         {
             var total = 0f;
             foreach (var run in gui.CreateTextRuns(value, primary, emoji))
+            {
                 total += run.Font.SkFont.MeasureText(run.Text);
+            }
+
             return total;
         }
 
@@ -58,7 +64,10 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render)
         {
             Select(gui, state, lines, Measure, inner, offsetY, lineHeight);
-            if (copyable) HandleLabelShortcuts(gui, state, text);
+            if (copyable)
+            {
+                HandleLabelShortcuts(gui, state, text);
+            }
         }
 
         var highlight = gui.ResolvePart("selection");
@@ -66,8 +75,10 @@ public static partial class ControlsExtensions
         {
             var top = inner.Y - offsetY + (index * lineHeight);
             using (gui.Node(-1, lineHeight, $"{nodeId}/wrappedLabelLine/{index}").ExpandWidth().Enter())
+            {
                 DrawWrappedLine(gui, state, lines[index], Measure, new Rect(inner.X, top, inner.W, lineHeight),
                     size, color, highlight, drawFont);
+            }
         }
 
         return state;
@@ -76,11 +87,19 @@ public static partial class ControlsExtensions
     /// <summary>Ctrl+A selects everything; Ctrl+C copies the selection, or the whole text with none.</summary>
     static void HandleLabelShortcuts(Gui gui, TextEditState state, string text)
     {
-        if (gui.Focus.IsTextInputFocused || !IsControlDown(gui)) return;
+        if (gui.Focus.IsTextInputFocused || !IsControlDown(gui))
+        {
+            return;
+        }
 
-        if (gui.Input.IsKeyPressed(KeyboardKey.A)) state.SelectAll();
+        if (gui.Input.IsKeyPressed(KeyboardKey.A))
+        {
+            state.SelectAll();
+        }
         else if (gui.Input.IsKeyPressed(KeyboardKey.C))
+        {
             gui.Platform.Require<IClipboard>().SetClipboardText(state.HasSelection ? state.SelectedText : text);
+        }
     }
 
     /// <summary>Draws one wrapped line into the current node, under its share of the selection highlight.</summary>
@@ -89,9 +108,14 @@ public static partial class ControlsExtensions
     {
         if (gui.Pass == Pass.Pass2Render && state.HasSelection &&
             WrappedTextLayout.SelectionOn(measure, line, state.SelectionStart, state.SelectionEnd) is { } run)
+        {
             gui.DrawStyledBox(highlight, new Rect(row.X + run.X, row.Y, run.Width, row.H));
+        }
 
-        if (line.Text.Length > 0) gui.DrawText(line.Text, size, color, drawFont, centerInRect: false, clip: true);
+        if (line.Text.Length > 0)
+        {
+            gui.DrawText(line.Text, size, color, drawFont, centerInRect: false, clip: true);
+        }
     }
 
     /// <summary>
@@ -124,7 +148,10 @@ public static partial class ControlsExtensions
     static int OffsetAt(IReadOnlyList<WrappedLine> lines, Func<string, float> measure, Vector2 point,
         Rect inner, float offsetY, float lineHeight)
     {
-        if (lines.Count == 0) return 0;
+        if (lines.Count == 0)
+        {
+            return 0;
+        }
 
         var row = (int)Math.Floor((point.Y - inner.Y + offsetY) / lineHeight);
         row = Math.Clamp(row, 0, lines.Count - 1);

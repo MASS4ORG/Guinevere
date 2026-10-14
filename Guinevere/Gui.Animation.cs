@@ -40,7 +40,10 @@ public partial class Gui
         [CallerLineNumber] int callerLineNumber = 0)
     {
         if (Canvas is null)
+        {
             return AnimationManager.AnimateBool01(targetState, duration, easingFunction, callerFilePath, callerLineNumber);
+        }
+
         return AnimateScopedBool(DataIdentity(null, callerFilePath, callerLineNumber),
             targetState, duration, easingFunction);
     }
@@ -53,18 +56,31 @@ public partial class Gui
     {
         ArgumentNullException.ThrowIfNull(easing);
         if (!_scopedAnimations.TryGetValue(identity, out var state))
+        {
             _scopedAnimations.Add(identity, state = new ScopedBoolAnimation(new AnimationFloat(target ? 1f : 0f, Time)));
-        if (state.Frame != _dataFrame) SampleScopedBool(state, target, duration, easing);
+        }
+
+        if (state.Frame != _dataFrame)
+        {
+            SampleScopedBool(state, target, duration, easing);
+        }
+
         return state.Value;
     }
 
     void SampleScopedBool(ScopedBoolAnimation state, bool target, float duration, Func<float, float> easing)
     {
         if (state.Animation.TargetValue != (target ? 1f : 0f))
+        {
             state.Animation.AnimateTo(target ? 1f : 0f, ReduceMotion ? 0f : duration, easing);
+        }
+
         state.Value = state.Animation.GetValue();
         state.Frame = _dataFrame;
-        if (state.Animation.IsAnimating) RequestFrame();
+        if (state.Animation.IsAnimating)
+        {
+            RequestFrame();
+        }
     }
 
     sealed class ScopedBoolAnimation(AnimationFloat animation)

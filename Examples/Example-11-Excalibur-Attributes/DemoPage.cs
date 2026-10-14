@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 /// <summary>One entry of the tour: a sidebar group, a title, a one-line summary and the demo class it shows.</summary>
 /// <param name="Group">The sidebar group.</param>
@@ -18,10 +18,16 @@ public sealed record DemoPage(string Group, string Title, string Summary, Type? 
     /// </summary>
     public string Source()
     {
-        if (Demo is null) return "";
+        if (Demo is null)
+        {
+            return "";
+        }
 
         using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"Demos.{Demo.Name}.cs");
-        if (stream is null) return "";
+        if (stream is null)
+        {
+            return "";
+        }
 
         using var reader = new StreamReader(stream);
         var lines = reader.ReadToEnd().ReplaceLineEndings("\n").Split('\n')

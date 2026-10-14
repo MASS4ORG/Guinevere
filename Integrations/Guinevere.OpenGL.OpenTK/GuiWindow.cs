@@ -75,11 +75,11 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         HookPacingEvents();
     }
 
-    float IDisplayCapability.ScaleFactor => Size.X > 0 ? (float)base.FramebufferSize.X / Size.X : 1f;
+    float IDisplayCapability.ScaleFactor => Size.X > 0 ? (float)FramebufferSize.X / Size.X : 1f;
 
     Vector2 IDisplayCapability.LogicalSize => new(Size.X, Size.Y);
 
-    Vector2 IDisplayCapability.FramebufferSize => new(base.FramebufferSize.X, base.FramebufferSize.Y);
+    Vector2 IDisplayCapability.FramebufferSize => new(FramebufferSize.X, FramebufferSize.Y);
 
     /// <inheritdoc />
     public Func<bool>? CloseRequested
@@ -103,7 +103,10 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     protected override void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
-        if (_close.MayClose()) return;
+        if (_close.MayClose())
+        {
+            return;
+        }
 
         e.Cancel = true;
     }
@@ -210,7 +213,10 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
                     PollGameInput();
                 }
                 ProcessWindowEvents(false);
-                if (GLFW.WindowShouldClose(WindowPtr)) break;
+                if (GLFW.WindowShouldClose(WindowPtr))
+                {
+                    break;
+                }
 
                 var frame = new FrameEventArgs(clock.Elapsed.TotalSeconds);
                 clock.Restart();
@@ -234,8 +240,13 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         get
         {
             for (var button = 1; button < 8; button++)
-                if (MouseState.IsButtonDown((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)button))
+            {
+                if (MouseState.IsButtonDown((OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)button))
+                {
                     return true;
+                }
+            }
+
             return false;
         }
     }
@@ -247,7 +258,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         KeyUp += _ => Pacing.NotifyInput();
         MouseDown += args =>
         {
-            if (args.Button == global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton.Left)
+            if (args.Button == OpenTK.Windowing.GraphicsLibraryFramework.MouseButton.Left)
             {
                 _nativeMovePress = _nativeMove;
                 _nativeMove = false;
@@ -257,7 +268,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         };
         MouseUp += args =>
         {
-            if (args.Button == global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton.Left && _nativeX11Move)
+            if (args.Button == OpenTK.Windowing.GraphicsLibraryFramework.MouseButton.Left && _nativeX11Move)
             {
                 _nativeX11Move = false;
                 X11WindowPosition.CancelMove(GLFW.GetX11Display(), GLFW.GetX11Window(WindowPtr));
@@ -393,8 +404,15 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         get
         {
             var position = new Vector2(MouseState.Position.X, MouseState.Position.Y);
-            if (_warp is not { } warp) return position;
-            if (position == warp.From) return warp.To;
+            if (_warp is not { } warp)
+            {
+                return position;
+            }
+
+            if (position == warp.From)
+            {
+                return warp.To;
+            }
 
             _warp = null;
             return position;
@@ -447,7 +465,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// <returns>True if the button was just pressed; otherwise, false.</returns>
     public bool IsMouseButtonPressed(MouseButton button) =>
         (button == MouseButton.Left && _nativeMovePress)
-        || IsMouseButtonPressed((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
+        || IsMouseButtonPressed((OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
 
     /// <summary>
     /// Determines whether the specified mouse button is currently held down.
@@ -456,7 +474,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// <returns>True if the button is held down; otherwise, false.</returns>
     public bool IsMouseButtonDown(MouseButton button) =>
         !(button == MouseButton.Left && _nativeMove)
-        && IsMouseButtonDown((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
+        && IsMouseButtonDown((OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
 
     /// <summary>
     /// Determines whether the specified mouse button is currently up (not pressed).
@@ -465,7 +483,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// <returns>True if the button is up; otherwise, false.</returns>
     public bool IsMouseButtonUp(MouseButton button) =>
         (button == MouseButton.Left && _nativeMove)
-        || IsMouseButtonReleased((global::OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
+        || IsMouseButtonReleased((OpenTK.Windowing.GraphicsLibraryFramework.MouseButton)(int)button);
 
     /// <summary>
     /// Gets all characters typed since the last call to this method.

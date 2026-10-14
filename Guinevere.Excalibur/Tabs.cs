@@ -47,7 +47,10 @@ public static partial class ControlsExtensions
             state.RequestedActiveTabIndex = null;
         }
 
-        if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
+        if (!LoadTabs(state, buildTabs, ref activeTabIndex))
+        {
+            return;
+        }
 
         var totalHeight = CalculateTabsHeight(state, tabBarHeight);
         var variantClasses = showBorder ? null : PlainClass;
@@ -56,7 +59,10 @@ public static partial class ControlsExtensions
         {
             using (gui.StyledNode("tabbar", variantClasses).Height(state.TabBarHeight).Direction(Axis.Horizontal).Enter())
             {
-                for (var i = 0; i < state.Tabs.Count; i++) RenderTabButton(gui, state, i, fontSize);
+                for (var i = 0; i < state.Tabs.Count; i++)
+                {
+                    RenderTabButton(gui, state, i, fontSize);
+                }
             }
 
             RenderActiveTabContent(gui, state, variantClasses);
@@ -116,7 +122,10 @@ public static partial class ControlsExtensions
 
         gui.Tabs(ref activeTabIndex, builder =>
             {
-                foreach (var title in tabTitles) builder.Tab(title);
+                foreach (var title in tabTitles)
+                {
+                    builder.Tab(title);
+                }
             }, height, fontSize, showBorder,
             classes: classes, filePath: filePath, lineNumber: lineNumber);
     }
@@ -145,26 +154,44 @@ public static partial class ControlsExtensions
         {
             var behavior = gui.Selectable(isActive, new ControlBehaviorOptions(
                 Enabled: tab.Enabled, Role: ControlRole.Tab, Label: tab.Title));
-            if (behavior.Activated) state.ActiveTabIndex = tabIndex;
+            if (behavior.Activated)
+            {
+                state.ActiveTabIndex = tabIndex;
+            }
 
             if (gui.Pass == Pass.Pass2Render)
             {
                 HandleTabBehavior(gui, state, tabIndex, tab, behavior);
-                if (isActive) DrawTabMarker(gui, vertical: false);
+                if (isActive)
+                {
+                    DrawTabMarker(gui, vertical: false);
+                }
             }
 
             using (gui.Node().Expand().Height(state.TabBarHeight).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+            {
                 gui.DrawText(tab.Title, fontSize, centerInRect: true);
+            }
 
-            if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
+            if (tab.Closable)
+            {
+                RenderTabCloseButton(gui, state, tabIndex);
+            }
         }
     }
 
     static void HandleTabBehavior(Gui gui, TabsState state, int tabIndex, TabInfo tab, ControlBehaviorResult behavior)
     {
         var closed = gui.GetInteractable().OnClick(MouseButton.Middle) && tab.Closable;
-        if (behavior.Is(ControlVisualState.Focused)) NavigateTabs(gui, state, tabIndex);
-        if (closed && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
+        if (behavior.Is(ControlVisualState.Focused))
+        {
+            NavigateTabs(gui, state, tabIndex);
+        }
+
+        if (closed && tab.Enabled)
+        {
+            state.TabToClose = (tabIndex, tab.Title);
+        }
     }
 
     /// <summary>Left/Right move the selection to the nearest enabled tab.</summary>
@@ -173,24 +200,36 @@ public static partial class ControlsExtensions
         if (gui.Input.IsKeyPressed(KeyboardKey.Left))
         {
             for (var i = tabIndex - 1; i >= 0; i--)
+            {
                 if (state.Tabs[i].Enabled) { state.RequestedActiveTabIndex = i; break; }
+            }
         }
         else if (gui.Input.IsKeyPressed(KeyboardKey.Right))
         {
             for (var i = tabIndex + 1; i < state.Tabs.Count; i++)
+            {
                 if (state.Tabs[i].Enabled) { state.RequestedActiveTabIndex = i; break; }
+            }
         }
     }
 
     static void RenderActiveTabContent(Gui gui, TabsState state, IReadOnlyList<string>? classes)
     {
-        if (state.ActiveTabIndex < 0 || state.ActiveTabIndex >= state.Tabs.Count) return;
+        if (state.ActiveTabIndex < 0 || state.ActiveTabIndex >= state.Tabs.Count)
+        {
+            return;
+        }
 
         var activeTab = state.Tabs[state.ActiveTabIndex];
-        if (activeTab.Content == null) return;
+        if (activeTab.Content == null)
+        {
+            return;
+        }
 
         using (gui.StyledNode("tabpanel", classes).Expand().Padding(12).Enter())
+        {
             activeTab.Content();
+        }
     }
 
     const float TabCloseButtonSize = 18f;
@@ -203,7 +242,11 @@ public static partial class ControlsExtensions
     /// <summary>True when the pointer sits over the "×" that closes a closable tab.</summary>
     static bool OverTabCloseButton(bool closable, Rect rect, Vector2 mousePos)
     {
-        if (!closable) return false;
+        if (!closable)
+        {
+            return false;
+        }
+
         var closeRect = new Rect(rect.X + rect.W - TabCloseButtonSize - 4,
             rect.Y + (rect.H - TabCloseButtonSize) * 0.5f, TabCloseButtonSize + 8, TabCloseButtonSize + 8);
         return closeRect.Contains(mousePos);
@@ -215,7 +258,10 @@ public static partial class ControlsExtensions
 
         using (gui.StyledNode("tab-close").Width(TabCloseButtonSize).Height(TabCloseButtonSize).Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
 
             var rect = gui.CurrentNode.Rect;
             var font = gui.GetTextFont(12f).SkFont;
@@ -228,7 +274,10 @@ public static partial class ControlsExtensions
                 IsAntialias = true
             }));
 
-            if (gui.GetInteractable().OnClick() && tab.Enabled) state.TabToClose = (tabIndex, tab.Title);
+            if (gui.GetInteractable().OnClick() && tab.Enabled)
+            {
+                state.TabToClose = (tabIndex, tab.Title);
+            }
         }
     }
 
@@ -255,7 +304,11 @@ public static partial class ControlsExtensions
     public static void RestoreTabs(this Gui gui, string id)
     {
         var state = gui.TryGetControlState<TabsState>(id);
-        if (state is null) return;
+        if (state is null)
+        {
+            return;
+        }
+
         state.Closed.Clear();
         state.ActiveTabIndex = 0;
     }
@@ -294,14 +347,20 @@ public static partial class ControlsExtensions
         var stateId = string.IsNullOrEmpty(id) ? gui.AutomaticId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, 32);
 
-        if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
+        if (!LoadTabs(state, buildTabs, ref activeTabIndex))
+        {
+            return;
+        }
 
         using (gui.StyledNode("tabs", classes, stateId).Expand().Direction(Axis.Horizontal).Enter())
         {
             using (gui.StyledNode("tabbar", showBorder ? VerticalClass : VerticalPlainClasses).Width(tabWidth)
                        .Expand().Direction(Axis.Vertical).Enter())
             {
-                for (var i = 0; i < state.Tabs.Count; i++) RenderVerticalTabButton(gui, state, i, tabWidth, fontSize);
+                for (var i = 0; i < state.Tabs.Count; i++)
+                {
+                    RenderVerticalTabButton(gui, state, i, tabWidth, fontSize);
+                }
             }
 
             RenderActiveTabContent(gui, state, showBorder ? null : PlainClass);
@@ -340,14 +399,20 @@ public static partial class ControlsExtensions
         var stateId = string.IsNullOrEmpty(id) ? gui.AutomaticId(filePath, lineNumber) : id;
         var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
 
-        if (!LoadTabs(state, buildTabs, ref activeTabIndex)) return;
+        if (!LoadTabs(state, buildTabs, ref activeTabIndex))
+        {
+            return;
+        }
 
         using (gui.StyledNode("tabs", classes, stateId).Expand().Direction(Axis.Vertical).Enter())
         {
             using (gui.StyledNode("tabbar", PillClass).Height(state.TabBarHeight).Direction(Axis.Horizontal)
                        .Gap(spacing).Padding(spacing).Enter())
             {
-                for (var i = 0; i < state.Tabs.Count; i++) RenderPillTabButton(gui, state, i, fontSize);
+                for (var i = 0; i < state.Tabs.Count; i++)
+                {
+                    RenderPillTabButton(gui, state, i, fontSize);
+                }
             }
 
             RenderActiveTabContent(gui, state, null);
@@ -369,7 +434,9 @@ public static partial class ControlsExtensions
         state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
 
         if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
+        {
             activeTabIndex = state.Tabs.Count > 0 ? 0 : -1;
+        }
 
         state.ActiveTabIndex = activeTabIndex;
         return state.Tabs.Count > 0;
@@ -378,15 +445,23 @@ public static partial class ControlsExtensions
     /// <summary>Closes the tab requested this frame, keeping the active tab on the same page where possible.</summary>
     static void ApplyTabClose(TabsState state, Action<int, string>? onTabClosed)
     {
-        if (state.TabToClose is not { } closeRequest) return;
+        if (state.TabToClose is not { } closeRequest)
+        {
+            return;
+        }
 
         state.TabToClose = null;
         state.Closed.Add(closeRequest.Title);
 
         var openCount = state.Tabs.Count - 1;
-        if (closeRequest.Index < state.ActiveTabIndex) state.ActiveTabIndex--;
+        if (closeRequest.Index < state.ActiveTabIndex)
+        {
+            state.ActiveTabIndex--;
+        }
         else if (closeRequest.Index == state.ActiveTabIndex)
+        {
             state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
+        }
 
         onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
     }
@@ -397,9 +472,14 @@ public static partial class ControlsExtensions
         var interactable = gui.GetInteractable();
         if (interactable.OnClick() && tab.Enabled
             && !OverTabCloseButton(tab.Closable, gui.CurrentNode.Rect, gui.LocalMousePosition))
+        {
             state.ActiveTabIndex = tabIndex;
+        }
+
         if (interactable.OnClick(MouseButton.Middle) && tab.Enabled && tab.Closable)
+        {
             state.TabToClose = (tabIndex, tab.Title);
+        }
     }
 
     static void RenderVerticalTabButton(Gui gui, TabsState state, int tabIndex, float tabWidth, float fontSize)
@@ -412,13 +492,21 @@ public static partial class ControlsExtensions
             if (gui.Pass == Pass.Pass2Render)
             {
                 HandleTabPointer(gui, state, tabIndex, tab);
-                if (isActive) DrawTabMarker(gui, vertical: true);
+                if (isActive)
+                {
+                    DrawTabMarker(gui, vertical: true);
+                }
             }
 
             using (gui.Node().Expand().Height(36).ContentAlignY(0.5f).Enter())
+            {
                 gui.DrawText(tab.Title, fontSize, centerInRect: false);
+            }
 
-            if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
+            if (tab.Closable)
+            {
+                RenderTabCloseButton(gui, state, tabIndex);
+            }
         }
     }
 
@@ -432,12 +520,20 @@ public static partial class ControlsExtensions
         using (node.Width(tabWidth).Height(state.TabBarHeight - 16).Direction(Axis.Horizontal)
                    .Enter())
         {
-            if (gui.Pass == Pass.Pass2Render) HandleTabPointer(gui, state, tabIndex, tab);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                HandleTabPointer(gui, state, tabIndex, tab);
+            }
 
             using (gui.Node().Expand().Height(state.TabBarHeight - 16).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+            {
                 gui.DrawText(tab.Title, fontSize, centerInRect: true);
+            }
 
-            if (tab.Closable) RenderTabCloseButton(gui, state, tabIndex);
+            if (tab.Closable)
+            {
+                RenderTabCloseButton(gui, state, tabIndex);
+            }
         }
     }
 }

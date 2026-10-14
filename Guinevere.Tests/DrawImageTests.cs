@@ -43,7 +43,7 @@ public class DrawImageTests
 
     /// <summary>The image fills exactly the destination rectangle; outside it stays clear.</summary>
     [Fact]
-    public void DrawImage_FillsDestinationRectAndNothingElse()
+    public void DrawImageFillsDestinationRectAndNothingElse()
     {
         using var surface = NewSurface();
         using var image = SolidImage(8, 8, new SKColor(255, 0, 0, 255));
@@ -57,7 +57,7 @@ public class DrawImageTests
 
     /// <summary>A tint multiplies the source colors.</summary>
     [Fact]
-    public void DrawImage_Tint_MultipliesColor()
+    public void DrawImageTintMultipliesColor()
     {
         using var surface = NewSurface();
         using var image = SolidImage(4, 4, new SKColor(255, 255, 255, 255));
@@ -74,7 +74,7 @@ public class DrawImageTests
 
     /// <summary>Opacity scales the alpha of the blit.</summary>
     [Fact]
-    public void DrawImage_Opacity_ScalesAlpha()
+    public void DrawImageOpacityScalesAlpha()
     {
         using var surface = NewSurface();
         using var image = SolidImage(4, 4, new SKColor(255, 255, 255, 255));
@@ -87,7 +87,7 @@ public class DrawImageTests
 
     /// <summary>A source sub-rectangle selects part of the image.</summary>
     [Fact]
-    public void DrawImage_SourceRect_ExamplesSubRegion()
+    public void DrawImageSourceRectExamplesSubRegion()
     {
         var bitmap = new SKBitmap(2, 1);
         bitmap.SetPixel(0, 0, new SKColor(255, 0, 0, 255));
@@ -104,7 +104,7 @@ public class DrawImageTests
 
     /// <summary>Drawing does nothing during the layout pass.</summary>
     [Fact]
-    public void DrawImage_LayoutPass_DrawsNothing()
+    public void DrawImageLayoutPassDrawsNothing()
     {
         using var surface = NewSurface();
         using var image = SolidImage(4, 4, new SKColor(255, 0, 0, 255));
@@ -125,7 +125,7 @@ public class DrawImageTests
 
     /// <summary><see cref="Bitmap.FromEncoded"/> round-trips a PNG.</summary>
     [Fact]
-    public void Texture_FromEncoded_DecodesPng()
+    public void TextureFromEncodedDecodesPng()
     {
         using var src = SolidImage(6, 4, new SKColor(10, 20, 30, 255));
         using var data = src.Encode(SKEncodedImageFormat.Png, 100);
@@ -138,7 +138,7 @@ public class DrawImageTests
 
     /// <summary><see cref="Bitmap.FromPixels"/> wraps raw pixels and rejects short buffers.</summary>
     [Fact]
-    public void Texture_FromPixels_WrapsAndValidates()
+    public void TextureFromPixelsWrapsAndValidates()
     {
         var info = new SKImageInfo(2, 2, SKColorType.Rgba8888, SKAlphaType.Unpremul);
         using var bitmap = Bitmap.FromPixels(info, new byte[2 * 2 * 4]);

@@ -29,7 +29,11 @@ public static class Spring
             value = offset * positionGain + velocity * velocityGain + target;
             velocity = offset * velocityPosition + velocity * velocityVelocity;
         }
-        if (Math.Abs(value - target) > SettleDistance || Math.Abs(velocity) > SettleSpeed) return false;
+        if (Math.Abs(value - target) > SettleDistance || Math.Abs(velocity) > SettleSpeed)
+        {
+            return false;
+        }
+
         value = target;
         velocity = 0f;
         return true;
@@ -38,8 +42,16 @@ public static class Spring
     /// <summary>Maps the offset and velocity at the start of a step to the offset and velocity at its end.</summary>
     static (float PosPos, float PosVel, float VelPos, float VelVel) Coefficients(float t, float omega, float zeta)
     {
-        if (zeta > 1f + Epsilon) return OverDamped(t, omega, zeta);
-        if (zeta < 1f - Epsilon) return UnderDamped(t, omega, zeta);
+        if (zeta > 1f + Epsilon)
+        {
+            return OverDamped(t, omega, zeta);
+        }
+
+        if (zeta < 1f - Epsilon)
+        {
+            return UnderDamped(t, omega, zeta);
+        }
+
         var exp = MathF.Exp(-omega * t);
         var timeExp = t * exp;
         var timeExpFrequency = timeExp * omega;
@@ -53,8 +65,8 @@ public static class Spring
         var (z1, z2) = (za - zb, za + zb);
         var e1 = MathF.Exp(z1 * t) / (2f * zb);
         var e2 = MathF.Exp(z2 * t) / (2f * zb);
-        var (z1e1, z2e2) = (z1 * e1, z2 * e2);
-        return (e1 * z2 - z2e2 + e2 * 2f * zb, -e1 + e2, (z1e1 - z2e2 + e2 * 2f * zb) * z2, -z1e1 + z2e2);
+        var (z1E1, z2E2) = (z1 * e1, z2 * e2);
+        return (e1 * z2 - z2E2 + e2 * 2f * zb, -e1 + e2, (z1E1 - z2E2 + e2 * 2f * zb) * z2, -z1E1 + z2E2);
     }
 
     static (float, float, float, float) UnderDamped(float t, float omega, float zeta)

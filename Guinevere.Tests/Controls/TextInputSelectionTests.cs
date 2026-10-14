@@ -91,7 +91,10 @@ public class TextInputSelectionTests
         var field = new Field("hello world");
         field.Press(KeyboardKey.Home);
 
-        for (var i = 0; i < 5; i++) field.Press(KeyboardKey.Right, shift: true);
+        for (var i = 0; i < 5; i++)
+        {
+            field.Press(KeyboardKey.Right, shift: true);
+        }
 
         field.Type("HELLO");
 
@@ -102,7 +105,10 @@ public class TextInputSelectionTests
     public void FocusedFieldRequestsAFrameForTheNextCaretBlink()
     {
         var field = new Field("hello");
-        for (var i = 0; i < 30; i++) field.Frame();
+        for (var i = 0; i < 30; i++)
+        {
+            field.Frame();
+        }
 
         Assert.InRange(field.Gui.FrameWaitSeconds, 0.001, 0.5);
     }
@@ -132,7 +138,10 @@ public class TextInputSelectionTests
     {
         var field = new Field("hello world");
         field.Press(KeyboardKey.Home);
-        for (var i = 0; i < 6; i++) field.Press(KeyboardKey.Right, shift: true);
+        for (var i = 0; i < 6; i++)
+        {
+            field.Press(KeyboardKey.Right, shift: true);
+        }
 
         field.Press(KeyboardKey.Backspace);
 
@@ -144,7 +153,10 @@ public class TextInputSelectionTests
     {
         var field = new Field("hello world");
         field.Press(KeyboardKey.Home);
-        for (var i = 0; i < 5; i++) field.Press(KeyboardKey.Right, shift: true);
+        for (var i = 0; i < 5; i++)
+        {
+            field.Press(KeyboardKey.Right, shift: true);
+        }
 
         field.Press(KeyboardKey.X, control: true);
         Assert.Equal("hello", field.Clipboard);
@@ -161,7 +173,10 @@ public class TextInputSelectionTests
     {
         var field = new Field("hello world");
         field.Press(KeyboardKey.End);
-        for (var i = 0; i < 5; i++) field.Press(KeyboardKey.Left, shift: true);
+        for (var i = 0; i < 5; i++)
+        {
+            field.Press(KeyboardKey.Left, shift: true);
+        }
 
         field.Press(KeyboardKey.C, control: true);
 
@@ -174,7 +189,10 @@ public class TextInputSelectionTests
     {
         var field = new Field("hello world");
         field.Press(KeyboardKey.Home);
-        for (var i = 0; i < 5; i++) field.Press(KeyboardKey.Right, shift: true);
+        for (var i = 0; i < 5; i++)
+        {
+            field.Press(KeyboardKey.Right, shift: true);
+        }
 
         // Collapse to the left edge, then delete forward: the 'h' goes, nothing else.
         field.Press(KeyboardKey.Left);

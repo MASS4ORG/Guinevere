@@ -41,7 +41,11 @@ readonly record struct StyleColor(double R, double G, double B, double A)
 
     double Hue(double max, double delta)
     {
-        if (delta <= 0d) return 0d;
+        if (delta <= 0d)
+        {
+            return 0d;
+        }
+
         var sector = max == R ? (G - B) / delta % 6d : max == G ? (B - R) / delta + 2d : (R - G) / delta + 4d;
         var hue = sector * 60d;
         return hue < 0d ? hue + 360d : hue;

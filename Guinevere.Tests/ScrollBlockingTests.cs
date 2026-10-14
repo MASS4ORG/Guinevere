@@ -36,7 +36,10 @@ public class ScrollBlockingTests
                 using (gui.Node(Width, Height * 3).Enter()) { }
             }
 
-            if (!withBlockingOverlay) return;
+            if (!withBlockingOverlay)
+            {
+                return;
+            }
 
             var overlay = gui.Node(Width, Height, "overlay").AbsoluteScreen(0, 0).BlockInput();
             using (overlay.Enter()) { }

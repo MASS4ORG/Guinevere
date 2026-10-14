@@ -96,7 +96,10 @@ public sealed class EnumDropdownTests
         var writes = 0;
         void Draw(Gui gui)
         {
-            if (gui.EnumDropdown(ref value, width: 200, height: 24, filePath: "flags", lineNumber: 0)) writes++;
+            if (gui.EnumDropdown(ref value, width: 200, height: 24, filePath: "flags", lineNumber: 0))
+            {
+                writes++;
+            }
         }
         h.Frame(Draw);
         Click(h, Draw, "/button");
@@ -209,7 +212,11 @@ public sealed class EnumDropdownTests
         var layout = new DockLayout { Root = new DockLeaf("buttons", "selection") };
         void Panel(string id, Gui gui)
         {
-            if (id != "selection") return;
+            if (id != "selection")
+            {
+                return;
+            }
+
             using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
             {
                 gui.ScrollY();
@@ -240,7 +247,11 @@ public sealed class EnumDropdownTests
             void Draw(Gui gui) =>
                 gui.EnumDropdown(ref value, presentation, filePath: presentation.ToString(), lineNumber: 0);
             h.Frame(Draw);
-            if (presentation == EnumPresentation.Paging) Click(h, Draw, "/next");
+            if (presentation == EnumPresentation.Paging)
+            {
+                Click(h, Draw, "/next");
+            }
+
             if (presentation == EnumPresentation.Dropdown)
             {
                 Click(h, Draw, "/button");

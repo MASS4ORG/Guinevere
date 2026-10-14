@@ -15,7 +15,10 @@ public static partial class ControlsExtensions
             Math.Max(gui.LayoutBounds.X, gui.LayoutBounds.X + gui.LayoutBounds.W - state.Anchor.W));
         var y = state.Anchor.Y + state.Anchor.H + 2;
         if (y + popupHeight > gui.LayoutBounds.Y + gui.LayoutBounds.H)
+        {
             y = Math.Max(gui.LayoutBounds.Y, state.Anchor.Y - popupHeight - 2);
+        }
+
         using (gui.StyledNode("listbox", id: $"{id}/popup").Width(state.Anchor.W).Height(popupHeight)
                    .AbsoluteScreen(x, y).BlockInput().Direction(Axis.Vertical).Enter())
         {
@@ -24,11 +27,22 @@ public static partial class ControlsExtensions
                 gui.CurrentNode.Parent!.Scope.Get<LayoutNodeScopeZIndex>().Value + 1));
             using var scope = gui.EnterFocusNavigationScope($"{id}/focus", $"{id}/button");
             scope.SetActive($"{id}/button");
-            if (gui.Pass == Pass.Pass2Render) state.PopupRect = gui.CurrentNode.Rect;
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                state.PopupRect = gui.CurrentNode.Rect;
+            }
+
             ChoiceSearch(gui, id, state, rowHeight, fontSize);
-            if (multiple) ChoiceBulk(gui, id, state, options, rowHeight, fontSize);
+            if (multiple)
+            {
+                ChoiceBulk(gui, id, state, options, rowHeight, fontSize);
+            }
+
             ChoiceRows(gui, id, state, options, multiple, rows * rowHeight, rowHeight, fontSize);
-            if (gui.Pass == Pass.Pass2Render) DismissChoices(gui, id, state);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                DismissChoices(gui, id, state);
+            }
         }
     }
 
@@ -38,7 +52,10 @@ public static partial class ControlsExtensions
         {
             var query = gui.TextInput(state.FrameQuery, width: 0, height: height, fontSize: fontSize,
                 placeholder: "Search…", id: $"{id}/search-text", grabFocus: state.JustOpened);
-            if (gui.Pass == Pass.Pass2Render) state.Query = query;
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                state.Query = query;
+            }
         }
     }
 
@@ -59,12 +76,22 @@ public static partial class ControlsExtensions
                    .Enter())
         {
             gui.DrawText(label, fontSize);
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             gui.RegisterFocusable(claimsArrowKeys: true);
-            if (!gui.GetInteractable().OnClick() && !(gui.HasFocus() && ChoiceActivateKey(gui))) return;
+            if (!gui.GetInteractable().OnClick() && !(gui.HasFocus() && ChoiceActivateKey(gui)))
+            {
+                return;
+            }
+
             gui.RequestFocus(FocusReason.Mouse);
             foreach (var index in state.Filtered)
+            {
                 state.Pending.Add(new SelectionChange<T>(options[index], selected));
+            }
         }
     }
 
@@ -75,15 +102,31 @@ public static partial class ControlsExtensions
         {
             RevealChoice(gui, state);
             gui.ScrollY();
-            if (gui.Pass == Pass.Pass2Render) gui.RegisterFocusable(claimsArrowKeys: true);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                gui.RegisterFocusable(claimsArrowKeys: true);
+            }
+
             ListingSpacer(gui, $"{id}/pad-top", state.First * height);
             for (var i = state.First; i < state.Last; i++)
+            {
                 ChoiceRow(gui, id, state, options, i, multiple, height, fontSize);
+            }
+
             ListingSpacer(gui, $"{id}/pad-bottom", (state.Filtered.Count - state.Last) * height);
             if (state.Filtered.Count == 0)
+            {
                 using (gui.Node(-1, height, $"{id}/empty").ExpandWidth().ContentAlignY(0.5f).Enter())
+                {
                     gui.DrawText("No results", fontSize, PlaceholderColor(gui, true));
-            if (gui.Pass != Pass.Pass2Render) return;
+                }
+            }
+
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             state.ScrollY = gui.GetScrollState(gui.CurrentNode.Id)?.ScrollOffset.Y ?? 0;
             NavigateChoices(gui, id, state, options, multiple, viewport, height);
         }
@@ -99,10 +142,22 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("option", id: $"{id}/option/{index}", modifiers: modifiers).Height(height).ExpandWidth()
                    .Padding(8, 0).Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(6).Enter())
         {
-            if (multiple) ChoiceMark(gui, state.Mixed[index], state.Checked[index], fontSize);
+            if (multiple)
+            {
+                ChoiceMark(gui, state.Mixed[index], state.Checked[index], fontSize);
+            }
+
             gui.DrawText(state.Labels[index], fontSize, centerInRect: false);
-            if (gui.Pass != Pass.Pass2Render) return;
-            if (!gui.GetInteractable().OnClick()) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
+            if (!gui.GetInteractable().OnClick())
+            {
+                return;
+            }
+
             state.Active = position;
             gui.RequestFocus($"{id}/list", FocusReason.Mouse);
             QueueChoice(state, options[index], !state.Checked[index] || state.Mixed[index], multiple);
@@ -112,14 +167,24 @@ public static partial class ControlsExtensions
     static void QueueChoice<T>(ChoiceState<T> state, T item, bool selected, bool multiple)
     {
         state.Pending.Add(new SelectionChange<T>(item, !multiple || selected));
-        if (!multiple) state.RequestedOpen = false;
+        if (!multiple)
+        {
+            state.RequestedOpen = false;
+        }
     }
 
     static void RevealChoice<T>(Gui gui, ChoiceState<T> state)
     {
-        if (gui.Pass != Pass.Pass1Build || !state.Reveal) return;
+        if (gui.Pass != Pass.Pass1Build || !state.Reveal)
+        {
+            return;
+        }
+
         if (gui.GetScrollState(gui.CurrentNode.Id) is { } scroll)
+        {
             scroll.ScrollOffset = new Vector2(0, state.ScrollY);
+        }
+
         state.Reveal = false;
     }
 
@@ -130,14 +195,21 @@ public static partial class ControlsExtensions
         var modifiers = mixed ? MixedModifier : selected ? CheckedModifier : NoModifiers;
         using (ChoicePart(gui, "indicator", size, size, modifiers).Enter())
         {
-            if (gui.Pass == Pass.Pass2Render && (mixed || selected)) RenderCheckboxMark(gui, size, mixed);
+            if (gui.Pass == Pass.Pass2Render && (mixed || selected))
+            {
+                RenderCheckboxMark(gui, size, mixed);
+            }
         }
     }
 
     static void NavigateChoices<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,
         bool multiple, float viewport, float height)
     {
-        if (!ChoiceOwnsFocus(gui, id) || state.Filtered.Count == 0) return;
+        if (!ChoiceOwnsFocus(gui, id) || state.Filtered.Count == 0)
+        {
+            return;
+        }
+
         var next = ChoiceNavigationIndex(gui, state.Active, state.Filtered.Count, (int)(viewport / height));
         if (next != state.Active)
         {
@@ -147,7 +219,11 @@ public static partial class ControlsExtensions
             state.Reveal = true;
             gui.RequestFocus($"{id}/list", FocusReason.Keyboard);
         }
-        if (!ChoiceKeyboardActivation(gui, id)) return;
+        if (!ChoiceKeyboardActivation(gui, id))
+        {
+            return;
+        }
+
         var index = state.Filtered[state.Active];
         QueueChoice(state, options[index], !state.Checked[index] || state.Mixed[index], multiple);
     }
@@ -162,13 +238,41 @@ public static partial class ControlsExtensions
 
     static int ChoiceNavigationIndex(Gui gui, int current, int count, int page)
     {
-        if (gui.Input.IsKeyPressed(KeyboardKey.Down)) return Math.Min(count - 1, current + 1);
-        if (gui.Input.IsKeyPressed(KeyboardKey.Up)) return Math.Max(0, current - 1);
-        if (gui.Focus.IsTextInputFocused) return current;
-        if (gui.Input.IsKeyPressed(KeyboardKey.Home)) return 0;
-        if (gui.Input.IsKeyPressed(KeyboardKey.End)) return count - 1;
-        if (gui.Input.IsKeyPressed(KeyboardKey.PageDown)) return Math.Min(count - 1, current + page);
-        if (gui.Input.IsKeyPressed(KeyboardKey.PageUp)) return Math.Max(0, current - page);
+        if (gui.Input.IsKeyPressed(KeyboardKey.Down))
+        {
+            return Math.Min(count - 1, current + 1);
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Up))
+        {
+            return Math.Max(0, current - 1);
+        }
+
+        if (gui.Focus.IsTextInputFocused)
+        {
+            return current;
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.Home))
+        {
+            return 0;
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.End))
+        {
+            return count - 1;
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.PageDown))
+        {
+            return Math.Min(count - 1, current + page);
+        }
+
+        if (gui.Input.IsKeyPressed(KeyboardKey.PageUp))
+        {
+            return Math.Max(0, current - page);
+        }
+
         return current;
     }
 
@@ -181,6 +285,8 @@ public static partial class ControlsExtensions
         }
         if (gui.Input.IsMouseButtonPressed(MouseButton.Left)
             && !gui.IsPointerIn(state.Anchor) && !gui.IsPointerIn(state.PopupRect))
+        {
             state.RequestedOpen = false;
+        }
     }
 }

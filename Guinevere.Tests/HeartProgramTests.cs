@@ -1,4 +1,4 @@
-using Example_74_PanGui_Heart;
+using Example74PanGuiHeart;
 using Guinevere.Tests.Mocks;
 
 namespace Guinevere.Tests;
@@ -8,11 +8,13 @@ public class HeartProgramTests
 {
     /// <summary>Every operation can be evaluated directly, without playing the earlier stages first.</summary>
     [Fact]
-    public void Stages_AreIndependentAndKeepSourceGeometry()
+    public void StagesAreIndependentAndKeepSourceGeometry()
     {
         var heart = Program.CreateStage(13, 0).Path.Bounds;
         for (var stage = 0; stage < 16; stage++)
+        {
             Assert.False(Program.CreateStage(stage, 1).Path.IsEmpty);
+        }
 
         Program.CreateStage(15, 2);
         Assert.Equal(heart, Program.CreateStage(13, 0).Path.Bounds);
@@ -21,7 +23,7 @@ public class HeartProgramTests
 
     /// <summary>A stage change starts at the previous contour and passes through intermediate geometry.</summary>
     [Fact]
-    public void StageTransition_MorphsAndReducedMotionSkipsIt()
+    public void StageTransitionMorphsAndReducedMotionSkipsIt()
     {
         var previous = Program.CreateStage(0, 0).Path.Bounds;
         var target = Program.CreateStage(1, 0).Path.Bounds;
@@ -37,7 +39,7 @@ public class HeartProgramTests
 
     /// <summary>Rotating the small mixed-in circle locally changes the heart's outline over time.</summary>
     [Fact]
-    public void FinalStage_DeformsOverTimeWithoutAccumulatingRotation()
+    public void FinalStageDeformsOverTimeWithoutAccumulatingRotation()
     {
         var first = Program.CreateStage(15, 0).Path.Bounds;
         var turned = Program.CreateStage(15, MathF.PI / 8).Path.Bounds;
@@ -47,7 +49,7 @@ public class HeartProgramTests
 
     /// <summary>The caption remains visible outside the shape rather than being clipped to the heart.</summary>
     [Fact]
-    public void Draw_KeepsCaptionAndRequestsAnimationFrames()
+    public void DrawKeepsCaptionAndRequestsAnimationFrames()
     {
         using var harness = new FrameHarness(800, 700);
         harness.Frame(Program.Draw, 46);
@@ -59,7 +61,7 @@ public class HeartProgramTests
 
     /// <summary>A shape and its shared main-layer path receive a scale exactly once.</summary>
     [Fact]
-    public void Scale_TransformsMainPathOnce()
+    public void ScaleTransformsMainPathOnce()
     {
         var original = Shape.Circle(100);
         var scaled = original.Scale(1.2f);

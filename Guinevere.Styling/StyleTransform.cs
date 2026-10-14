@@ -14,7 +14,10 @@ static class StyleTransform
         var scale = style.Get("scale");
         var rotate = style.Get("rotate");
         var translate = style.Get("translate");
-        if (scale is null && rotate is null && translate is null) return null;
+        if (scale is null && rotate is null && translate is null)
+        {
+            return null;
+        }
 
         var origin = Origin(style.Get("transform-origin"), rect);
         var (scaleX, scaleY) = Pair(scale, 1f, sameWhenSingle: true);
@@ -27,17 +30,29 @@ static class StyleTransform
     /// <summary>One or two numbers; a single value repeats for scale and leaves y at the default for translate.</summary>
     static (float X, float Y) Pair(string? text, float fallback, bool sameWhenSingle)
     {
-        if (text is null) return (fallback, fallback);
+        if (text is null)
+        {
+            return (fallback, fallback);
+        }
+
         var parts = Split(text);
         var x = parts.Length > 0 && StyleValue.TryLength(parts[0], out var first, out _) ? first : fallback;
-        if (parts.Length < 2) return (x, sameWhenSingle ? x : fallback);
+        if (parts.Length < 2)
+        {
+            return (x, sameWhenSingle ? x : fallback);
+        }
+
         return (x, StyleValue.TryLength(parts[1], out var second, out _) ? second : fallback);
     }
 
     /// <summary>An angle in <c>deg</c> (also the unit of a bare number), <c>rad</c> or <c>turn</c>.</summary>
     static float Radians(string? text)
     {
-        if (text is null) return 0f;
+        if (text is null)
+        {
+            return 0f;
+        }
+
         var t = text.Trim();
         var (number, scale) = t.EndsWith("turn", StringComparison.OrdinalIgnoreCase) ? (t[..^4], MathF.Tau)
             : t.EndsWith("rad", StringComparison.OrdinalIgnoreCase) ? (t[..^3], 1f)

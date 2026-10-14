@@ -3,7 +3,7 @@ namespace Guinevere;
 public static partial class ControlsExtensions
 {
     /// <summary>
-    /// The shortcuts column. Each entry jumps to its directory; the one containing what is being
+    /// The shortcuts' column. Each entry jumps to its directory; the one containing what is being
     /// browsed is marked, so the sidebar shows where the listing is.
     /// </summary>
     static void Sidebar(Gui gui, FileDialogState state, float fontSize)
@@ -17,7 +17,9 @@ public static partial class ControlsExtensions
                 gui.ScrollY();
 
                 foreach (var place in state.Places)
+                {
                     Place(gui, state, place, fontSize);
+                }
             }
         }
     }
@@ -43,9 +45,12 @@ public static partial class ControlsExtensions
 
             gui.Tooltip(gui.CurrentNode, place.Path, maxWidth: 600);
 
-            if (gui.Pass != Pass.Pass2Render || !interactable.OnClick()) return;
+            if (gui.Pass != Pass.Pass2Render || !interactable.OnClick())
+            {
+                return;
+            }
 
-            _ = state.Browser.NavigateAsync(place.Path);
+            _ = state.Browser.NavigateAsync(place.Path).AsTask();
             state.Selected = null;
             state.Message = null;
         }

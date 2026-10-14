@@ -79,7 +79,9 @@ public static partial class ExcaliburStyles
 
         var errors = ValidateBaseSheet(selected);
         if (errors.Count != 0)
+        {
             throw new ArgumentException($"Incomplete Excalibur base sheet: {string.Join("; ", errors)}", nameof(sheet));
+        }
 
         gui.StyleSheets.Remove(current);
         if (Themes.TryGetValue(gui, out var theme) && ReferenceEquals(theme, selected))
@@ -87,8 +89,15 @@ public static partial class ExcaliburStyles
             gui.StyleSheets.Remove(theme);
             Themes.Remove(gui);
         }
-        if (ReferenceEquals(selected, DefaultSheet)) Bases.Remove(gui);
-        else Bases.AddOrUpdate(gui, selected);
+        if (ReferenceEquals(selected, DefaultSheet))
+        {
+            Bases.Remove(gui);
+        }
+        else
+        {
+            Bases.AddOrUpdate(gui, selected);
+        }
+
         Ensure(gui);
     }
 
@@ -104,19 +113,31 @@ public static partial class ExcaliburStyles
         var errors = new List<string>();
         ValidateBaseTokens(sheets, errors);
         foreach (var (paths, properties) in BaseRules)
+        {
             foreach (var path in paths.Split(' '))
+            {
                 ValidateBaseRule(sheets, path, properties, errors);
+            }
+        }
+
         return errors;
     }
 
     static void ValidateBaseTokens(StyleSheetCollection sheets, List<string> errors)
     {
         foreach (var name in BaseColors)
-            if (sheets.GetTokenColor(name) is null) errors.Add($"--{name}: expected a color");
+        {
+            if (sheets.GetTokenColor(name) is null)
+            {
+                errors.Add($"--{name}: expected a color");
+            }
+        }
 
         if (!StyleValue.TryLength(sheets.GetToken("radius"), out var radius, out var percent) || percent ||
             !float.IsFinite(radius) || radius < 0)
+        {
             errors.Add("--radius: expected a nonnegative pixel length");
+        }
     }
 
     static void ValidateBaseRule(StyleSheetCollection sheets, string path, string properties, List<string> errors)
@@ -127,7 +148,9 @@ public static partial class ExcaliburStyles
             var value = BaseProperty(style, path, property);
             if (string.IsNullOrWhiteSpace(value) || value.Contains('$') ||
                 value.Contains("var(", StringComparison.Ordinal))
+            {
                 errors.Add($"{path}: missing or unresolved {property}");
+            }
         }
     }
 

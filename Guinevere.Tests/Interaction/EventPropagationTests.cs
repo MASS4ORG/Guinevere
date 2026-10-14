@@ -150,14 +150,16 @@ public class EventPropagationTests
         harness.Click(gui =>
         {
             using (gui.Node(100, 100, "button").Enter())
+            {
                 gui.On<PointerEvent>(e => types.Add(e.GetType().Name));
+            }
         }, OnButton);
 
         Assert.Equal(["PointerMoveEvent", "PointerDownEvent", "PointerUpEvent", "ClickEvent"], types);
     }
 
     [Fact]
-    public void LaterSiblingWinsAtEqualZ_AndHigherZWinsOverall()
+    public void LaterSiblingWinsAtEqualZAndHigherZWinsOverall()
     {
         string? target = null;
         var raiseFirst = false;
@@ -169,7 +171,13 @@ public class EventPropagationTests
             {
                 gui.On<ClickEvent>(e => target = e.TargetId);
                 using (gui.Node(100, 100, "first").Absolute(0, 0).Enter())
-                    if (raiseFirst) gui.SetZIndex(5);
+                {
+                    if (raiseFirst)
+                    {
+                        gui.SetZIndex(5);
+                    }
+                }
+
                 using (gui.Node(100, 100, "second").Absolute(0, 0).Enter()) { }
             }
         }
@@ -213,7 +221,10 @@ public class EventPropagationTests
             {
                 gui.On<ClickEvent>(e => target = e.TargetId);
                 using (gui.Node(100, 100, "under").Absolute(0, 0).Enter())
+                {
                     gui.SetZIndex(10);
+                }
+
                 using (gui.Node(150, 150, "overlay").Absolute(0, 0).BlockInput().Enter())
                 using (gui.Node(20, 20, "overlay-button").Absolute(100, 100).Enter()) { }
             }
@@ -260,7 +271,9 @@ public class EventPropagationTests
         void Draw(Gui gui)
         {
             using (gui.Node(100, 100, "button").Enter())
+            {
                 gui.On<ClickEvent>(e => counts.Add(e.ClickCount));
+            }
         }
 
         harness.Click(Draw, OnButton);
@@ -280,7 +293,10 @@ public class EventPropagationTests
             using (gui.Node(100, 100, "button").Enter())
             {
                 gui.On<PointerDownEvent>(e => e.PreventDefault());
-                if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick()) polledClicks++;
+                if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick())
+                {
+                    polledClicks++;
+                }
             }
         }, OnButton);
 
@@ -298,7 +314,10 @@ public class EventPropagationTests
             using (gui.Node(100, 100, "button").Enter())
             {
                 gui.On<PointerDownEvent>(_ => { });
-                if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick()) polledClicks++;
+                if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick())
+                {
+                    polledClicks++;
+                }
             }
         }, OnButton);
 
@@ -315,7 +334,10 @@ public class EventPropagationTests
             using (gui.Node(100, 100, "list").Enter())
             {
                 gui.On<ScrollEvent>(e => e.PreventDefault());
-                if (gui.Pass == Pass.Pass2Render) wheelSeen = gui.Input.MouseWheelDelta;
+                if (gui.Pass == Pass.Pass2Render)
+                {
+                    wheelSeen = gui.Input.MouseWheelDelta;
+                }
             }
         }
 
@@ -374,8 +396,12 @@ public class EventPropagationTests
             {
                 gui.On<DragStartEvent>(_ => started = true);
                 using (gui.Node(100, 100, "slider").Enter())
+                {
                     if (gui.Pass == Pass.Pass2Render)
+                    {
                         gui.GetInteractable().OnDrag(out _);
+                    }
+                }
             }
         }
 
@@ -469,8 +495,15 @@ public class EventPropagationTests
             {
                 gui.On<FocusInEvent>(e => log.Add($"in:{e.TargetId}<-{e.RelatedTargetId ?? "none"}"));
                 gui.On<FocusOutEvent>(e => log.Add($"out:{e.TargetId}->{e.RelatedTargetId ?? "none"}"));
-                using (gui.Node(100, 30, "name").Enter()) gui.RegisterFocusable();
-                using (gui.Node(100, 30, "email").Enter()) gui.RegisterFocusable();
+                using (gui.Node(100, 30, "name").Enter())
+                {
+                    gui.RegisterFocusable();
+                }
+
+                using (gui.Node(100, 30, "email").Enter())
+                {
+                    gui.RegisterFocusable();
+                }
             }
         }
 
@@ -496,7 +529,11 @@ public class EventPropagationTests
 
         harness.Frame(gui =>
         {
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             wheel = gui.Input.MouseWheelDelta;
             text = gui.Input.GetTypedCharacters();
         });

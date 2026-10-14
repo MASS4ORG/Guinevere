@@ -8,8 +8,16 @@ public static class GamepadMappings
     /// <summary>Applies a known raw-device mapping, preserving already mapped and unknown devices.</summary>
     public static GameInputSample Normalize(GameInputSample sample)
     {
-        if (sample.IsMapped || sample.MappingId != XboxSeriesUsbLinux) return sample;
-        if (sample.Buttons.Length < 11 || sample.Axes.Length < 6) return sample;
+        if (sample.IsMapped || sample.MappingId != XboxSeriesUsbLinux)
+        {
+            return sample;
+        }
+
+        if (sample.Buttons.Length < 11 || sample.Axes.Length < 6)
+        {
+            return sample;
+        }
+
         var buttons = new bool[15];
         Array.Copy(sample.Buttons, buttons, 11);
         var hat = sample.Hats.FirstOrDefault();

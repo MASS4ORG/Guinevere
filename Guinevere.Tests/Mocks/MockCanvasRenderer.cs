@@ -55,7 +55,9 @@ public class MockCanvasRenderer : ICanvasRenderer
     public void Render(Action<SKCanvas> draw)
     {
         if (_canvas == null)
+        {
             throw new InvalidOperationException("Canvas not initialized");
+        }
 
         draw(_canvas);
     }

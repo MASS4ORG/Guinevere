@@ -10,7 +10,7 @@ public class ScrollbarDraggingTests
     public void DraggingThumbMovesTheScrollOffsetAndStopsOnRelease(Axis axis)
     {
         using var harness = new FrameHarness(200, 200);
-        void Draw(Gui gui)
+        static void Draw(Gui gui)
         {
             using (gui.Node(100, 100, "scroll").Enter())
             {

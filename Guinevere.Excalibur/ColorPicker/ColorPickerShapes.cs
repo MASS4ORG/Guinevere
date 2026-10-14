@@ -65,7 +65,11 @@ public static class ColorPickerShapes
 
         public void Draw(Gui gui, Rect rect, Hsva value)
         {
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             gui.DrawRect(rect, new Hsva(value.H, 1f, 1f).ToColor());
             ColorPaint.FillGradient(gui, rect, Color.White, new Color(Color.White, 0f));
             ColorPaint.FillGradient(gui, rect, Color.Black, new Color(Color.Black, 0f), vertical: true);
@@ -89,7 +93,11 @@ public static class ColorPickerShapes
 
         public void Draw(Gui gui, Rect rect, Hsva value)
         {
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             var (center, radius) = Disc(rect);
             ColorPaint.FillHueWheel(gui, center, radius);
             ColorPaint.FillRadial(gui, center, radius, Color.White, new Color(Color.White, 0f));
@@ -109,8 +117,16 @@ public static class ColorPickerShapes
             var (center, radius) = Disc(rect);
             var offset = point - center;
             var distance = offset.Length();
-            if (radius <= 0) return value;
-            if (distance < 0.0001f) return value with { S = 0f };
+            if (radius <= 0)
+            {
+                return value;
+            }
+
+            if (distance < 0.0001f)
+            {
+                return value with { S = 0f };
+            }
+
             var hue = MathF.Atan2(offset.Y, offset.X) * 180f / MathF.PI;
             return value with { H = hue < 0 ? hue + 360f : hue, S = Math.Min(1f, distance / radius) };
         }

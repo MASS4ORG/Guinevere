@@ -16,7 +16,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void Lerp_BetweenPixelsAndPercentage_PreservesBothContributions()
+    public void LerpBetweenPixelsAndPercentagePreservesBothContributions()
     {
         var value = UnitValue.Lerp(UnitValue.Pixels(100f), UnitValue.Percentage(0.5f), 0.25f);
 
@@ -26,7 +26,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void Addition_ComposesEverySupportedMode()
+    public void AdditionComposesEverySupportedMode()
     {
         var value = UnitValue.Pixels(10f) + UnitValue.Percentage(0.2f) + UnitValue.Ratio(0.5f)
                     + UnitValue.Expand(2f) + UnitValue.FitContent(0.3f) + UnitValue.FitLargest(0.4f);
@@ -40,7 +40,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void BlendedWidth_ResolvesWithoutModeDiscontinuity()
+    public void BlendedWidthResolvesWithoutModeDiscontinuity()
     {
         var gui = CreateTestGui(400, 200);
         SetGuiStage(gui, Pass.Pass1Build);
@@ -60,7 +60,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     [InlineData(0.5f, 150f)]
     [InlineData(0.75f, 175f)]
     [InlineData(1f, 200f)]
-    public void PixelToPercentageAnimation_IsContinuous(float amount, float expected)
+    public void PixelToPercentageAnimationIsContinuous(float amount, float expected)
     {
         var gui = CreateTestGui(400, 200);
         SetGuiStage(gui, Pass.Pass1Build);
@@ -75,7 +75,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void ExpandExpressions_ShareRemainingSpaceByWeight()
+    public void ExpandExpressionsShareRemainingSpaceByWeight()
     {
         var gui = CreateTestGui(400, 100);
         SetGuiStage(gui, Pass.Pass1Build);
@@ -92,7 +92,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void FitLargest_UsesLargestChildOnAxis()
+    public void FitLargestUsesLargestChildOnAxis()
     {
         var gui = CreateTestGui(400, 100);
         SetGuiStage(gui, Pass.Pass1Build);

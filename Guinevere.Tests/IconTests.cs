@@ -55,20 +55,30 @@ public class IconTests
         var strongest = (R: (byte)0, G: (byte)0, B: (byte)0, A: (byte)0);
         var bounds = new SKRectI(Surface, Surface, 0, 0);
         for (var y = 0; y < Surface; y++)
+        {
             for (var x = 0; x < Surface; x++)
             {
                 var pixel = At(px, x, y);
-                if (pixel.A == 0) continue;
+                if (pixel.A == 0)
+                {
+                    continue;
+                }
+
                 bounds = new SKRectI(Math.Min(bounds.Left, x), Math.Min(bounds.Top, y), Math.Max(bounds.Right, x + 1),
                     Math.Max(bounds.Bottom, y + 1));
-                if (pixel.A > strongest.A) strongest = pixel;
+                if (pixel.A > strongest.A)
+                {
+                    strongest = pixel;
+                }
             }
+        }
+
         return (strongest, bounds);
     }
 
     /// <summary>An icon node is a square of the given size, or of the scope text size by default.</summary>
     [Fact]
-    public void Icon_LaysOutSquareNode()
+    public void IconLaysOutSquareNode()
     {
         LayoutNode? sized = null, scoped = null;
         Render(gui =>
@@ -84,12 +94,12 @@ public class IconTests
 
     /// <summary>A missing icon reserves its square and draws nothing.</summary>
     [Fact]
-    public void Icon_Null_DrawsNothing() =>
+    public void IconNullDrawsNothing() =>
         Assert.Equal((byte)0, Ink(Render(gui => gui.Icon(null, Surface))).Strongest.A);
 
     /// <summary>Images keep their aspect ratio, centred in the square.</summary>
     [Fact]
-    public void ImageIcon_FitsKeepingAspect()
+    public void ImageIconFitsKeepingAspect()
     {
         using var image = SolidImage(2, 1, SKColors.Red);
         var icon = Icon.FromImage(image);
@@ -105,7 +115,7 @@ public class IconTests
     [Theory]
     [InlineData(false, 255, 255)]
     [InlineData(true, 0, 255)]
-    public void ImageIcon_TintOnlyWhenTintable(bool tintable, int red, int green)
+    public void ImageIconTintOnlyWhenTintable(bool tintable, int red, int green)
     {
         using var image = SolidImage(4, 4, SKColors.White);
         var icon = Icon.FromImage(image, tintable);
@@ -119,7 +129,7 @@ public class IconTests
 
     /// <summary>Pictures scale from their cull rectangle to the square and take a tint when tintable.</summary>
     [Fact]
-    public void PictureIcon_ScalesFromCullRect()
+    public void PictureIconScalesFromCullRect()
     {
         var icon = Icon.FromPicture(SquarePicture(SKColors.Red), tintable: true);
 
@@ -133,7 +143,7 @@ public class IconTests
 
     /// <summary>Glyphs draw in the tint, else the icon color, centred in the square.</summary>
     [Fact]
-    public void GlyphIcon_TintedAndCentred()
+    public void GlyphIconTintedAndCentred()
     {
         var icon = Icon.FromGlyph("H", color: Color.FromArgb(255, 255, 0, 0));
 
@@ -150,7 +160,7 @@ public class IconTests
 
     /// <summary>An explicit font draws the glyph; without one, the scope text color applies.</summary>
     [Fact]
-    public void GlyphIcon_ExplicitFontAndScopeColor()
+    public void GlyphIconExplicitFontAndScopeColor()
     {
         var icon = Icon.FromGlyph("H", Font.FromFamilyName("monospace"));
 
@@ -165,10 +175,14 @@ public class IconTests
 
     /// <summary>Without a font, a glyph the text font lacks comes from the widget-icon font, then the icon font.</summary>
     [Fact]
-    public void GlyphIcon_FallsBackToWidgetThenIconFont()
+    public void GlyphIconFallsBackToWidgetThenIconFont()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (!File.Exists(Path.Combine(dir!.FullName, "Guinevere.slnx"))) dir = dir.Parent;
+        while (!File.Exists(Path.Combine(dir!.FullName, "Guinevere.slnx")))
+        {
+            dir = dir.Parent;
+        }
+
         var icons = Font.FromFile(Path.Combine(dir.FullName, "Integrations/Resources/Fonts/widget-icons.ttf"));
         var check = Icon.FromGlyph("");
 
@@ -189,7 +203,7 @@ public class IconTests
 
     /// <summary><c>gui.DrawIcon</c> draws into a rectangle and ignores empty ones.</summary>
     [Fact]
-    public void DrawIcon_DrawsIntoRect()
+    public void DrawIconDrawsIntoRect()
     {
         using var image = SolidImage(4, 4, SKColors.Red);
         var icon = Icon.FromImage(image);
@@ -206,7 +220,7 @@ public class IconTests
 
     /// <summary>Raster files decode without a decoder; a matching decoder wins; undecodable data is null.</summary>
     [Fact]
-    public void FromStream_PicksDecoderOrRaster()
+    public void FromStreamPicksDecoderOrRaster()
     {
         using var image = SolidImage(3, 2, SKColors.Red);
         using var png = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -224,12 +238,15 @@ public class IconTests
 
     /// <summary><see cref="Icon.FromFile"/> picks the decoder by file extension.</summary>
     [Fact]
-    public void FromFile_DecodesRaster()
+    public void FromFileDecodesRaster()
     {
         var path = Path.Combine(Path.GetTempPath(), $"icon-{Guid.NewGuid():N}.png");
         using (var image = SolidImage(5, 5, SKColors.Red))
         using (var png = image.Encode(SKEncodedImageFormat.Png, 100))
+        {
             File.WriteAllBytes(path, png.ToArray());
+        }
+
         try
         {
             Assert.Equal(5, Icon.FromFile(path)!.Image!.Width);
@@ -242,7 +259,7 @@ public class IconTests
 
     /// <summary>Factories reject empty input and glyphs are always tintable.</summary>
     [Fact]
-    public void Factories_Validate()
+    public void FactoriesValidate()
     {
         Assert.Throws<ArgumentException>(() => Icon.FromGlyph(""));
         Assert.Throws<ArgumentNullException>(() => Icon.FromImage(null!));
@@ -252,7 +269,7 @@ public class IconTests
 
     /// <summary>Fitting keeps the aspect ratio and leaves degenerate sources at the full bounds.</summary>
     [Fact]
-    public void Fit_KeepsAspect()
+    public void FitKeepsAspect()
     {
         Assert.Equal(new Rect(0, 25, 100, 50), Gui.Fit(new Rect(0, 0, 100, 100), 2, 1));
         Assert.Equal(new Rect(0, 0, 10, 10), Gui.Fit(new Rect(0, 0, 10, 10), 0, 1));

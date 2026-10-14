@@ -16,8 +16,16 @@ public static partial class ControlsExtensions
 
     static void PreparePopupMenuFrame(Gui gui, MenuBarState state, bool isOpen, MenuAppearance? appearance = null)
     {
-        if (gui.Pass != Pass.Pass1Build) return;
-        if (!isOpen) ResetMenuState(state);
+        if (gui.Pass != Pass.Pass1Build)
+        {
+            return;
+        }
+
+        if (!isOpen)
+        {
+            ResetMenuState(state);
+        }
+
         state.OpenIndex = isOpen ? 0 : -1;
         state.SubmenuRects = [];
         state.Appearance = appearance ?? state.Appearance;
@@ -27,9 +35,16 @@ public static partial class ControlsExtensions
     static int ResolveMenuBranch(Gui gui, MenuBarState state, string id, List<FlyoutItem> items,
         Rect rect, int hovered, int depth)
     {
-        if (gui.Pass != Pass.Pass1Build) return state.FrameBranches.GetValueOrDefault(id, -1);
+        if (gui.Pass != Pass.Pass1Build)
+        {
+            return state.FrameBranches.GetValueOrDefault(id, -1);
+        }
+
         if (!state.Branches.TryGetValue(id, out var branch))
+        {
             state.Branches[id] = branch = new MenuBranch();
+        }
+
         branch.Rect = rect;
         var index = UpdateMenuBranch(gui, state, id, items, hovered, depth, branch);
         state.FrameBranches[id] = index;
@@ -46,9 +61,16 @@ public static partial class ControlsExtensions
             return branch.OpenIndex;
         }
 
-        if (!IsValidSubmenu(items, branch.OpenIndex)) branch.OpenIndex = -1;
+        if (!IsValidSubmenu(items, branch.OpenIndex))
+        {
+            branch.OpenIndex = -1;
+        }
+
         if (branch.OpenIndex >= 0 && KeepMenuBranchOpen(gui, state, id, items, hovered, branch))
+        {
             return branch.OpenIndex;
+        }
+
         var candidate = IsValidSubmenu(items, hovered) ? hovered : -1;
         ChangeMenuBranch(state, id, branch, candidate);
         branch.LastInside = gui.Clock.Elapsed;
@@ -72,17 +94,28 @@ public static partial class ControlsExtensions
         }
         // Delay switching as the pointer crosses neighboring rows on its way to the child panel.
         var outside = gui.Clock.Elapsed - branch.LastInside;
-        if (gui.Input.IsMouseButtonPressed(MouseButton.Left) || outside >= SwitchDelay) return false;
+        if (gui.Input.IsMouseButtonPressed(MouseButton.Left) || outside >= SwitchDelay)
+        {
+            return false;
+        }
+
         gui.RequestFrameIn(SwitchDelay - outside);
         return true;
     }
 
     static void ChangeMenuBranch(MenuBarState state, string id, MenuBranch branch, int candidate)
     {
-        if (candidate == branch.OpenIndex) return;
+        if (candidate == branch.OpenIndex)
+        {
+            return;
+        }
+
         foreach (var descendant in state.Branches.Keys
                      .Where(key => key.StartsWith(id + "/", StringComparison.Ordinal)).ToArray())
+        {
             state.Branches.Remove(descendant);
+        }
+
         branch.OpenIndex = candidate;
     }
 
@@ -114,16 +147,27 @@ public static partial class ControlsExtensions
 
     static void ActivateMenuRow(MenuBarState state, FlyoutItem item, int depth, int index)
     {
-        if (!item.Enabled || item.IsSeparator) return;
+        if (!item.Enabled || item.IsSeparator)
+        {
+            return;
+        }
+
         if (item.HasSubmenu)
         {
-            while (state.KeyboardPath.Count <= depth) state.KeyboardPath.Add(-1);
+            while (state.KeyboardPath.Count <= depth)
+            {
+                state.KeyboardPath.Add(-1);
+            }
+
             state.KeyboardPath[depth] = index;
             state.KeyboardPath.RemoveRange(depth + 1, state.KeyboardPath.Count - depth - 1);
             state.KeyboardPath.Add(NextSelectableIndex(item.Submenu!, -1, 1));
             state.KeyboardActive = true;
         }
-        else ActivateRow(state, item);
+        else
+        {
+            ActivateRow(state, item);
+        }
     }
 
     static void DismissPopupMenuOutside(Gui gui, MenuBarState state, bool rightClick)
@@ -131,6 +175,8 @@ public static partial class ControlsExtensions
         var pressed = gui.Input.IsMouseButtonPressed(MouseButton.Left)
             || (rightClick && gui.Input.IsMouseButtonPressed(MouseButton.Right));
         if (pressed && !state.SubmenuRects.Any(gui.IsPointerIn))
+        {
             ResetMenuState(state);
+        }
     }
 }

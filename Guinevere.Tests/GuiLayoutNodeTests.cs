@@ -17,12 +17,16 @@ public class GuiLayoutNodeTests
 
     /// <summary>Repeated call sites and explicit IDs map to the build nodes in the order they were created.</summary>
     [Fact]
-    public void RenderPass_RevisitsBuildNodesInOrder()
+    public void RenderPassRevisitsBuildNodesInOrder()
     {
         using var harness = new FrameHarness();
         var (build, render, root) = Frame(harness, (gui, nodes) =>
         {
-            for (var i = 0; i < 5; i++) nodes.Add(gui.Node(4, 4));
+            for (var i = 0; i < 5; i++)
+            {
+                nodes.Add(gui.Node(4, 4));
+            }
+
             nodes.Add(gui.Node(UnitValue.Pixels(4), UnitValue.Pixels(4), id: "b"));
             nodes.Add(gui.Node(4, 4, id: "a"));
         });
@@ -37,15 +41,23 @@ public class GuiLayoutNodeTests
     /// still find their own build nodes.
     /// </summary>
     [Fact]
-    public void RenderPass_ResynchronizesWhenPassesDiverge()
+    public void RenderPassResynchronizesWhenPassesDiverge()
     {
         using var harness = new FrameHarness();
         var (build, render, root) = Frame(harness, (gui, nodes) =>
         {
             var renderPass = gui.Pass == Pass.Pass2Render;
             nodes.Add(gui.Node(4, 4, id: "first"));
-            if (renderPass) nodes.Add(gui.Node(4, 4, id: "render-only"));
-            if (!renderPass) nodes.Add(gui.Node(4, 4, id: "build-only"));
+            if (renderPass)
+            {
+                nodes.Add(gui.Node(4, 4, id: "render-only"));
+            }
+
+            if (!renderPass)
+            {
+                nodes.Add(gui.Node(4, 4, id: "build-only"));
+            }
+
             nodes.Add(gui.Node(4, 4, id: renderPass ? "y" : "x"));
             nodes.Add(gui.Node(4, 4, id: renderPass ? "x" : "y"));
             nodes.Add(gui.Node(4, 4, id: "last"));
@@ -61,15 +73,22 @@ public class GuiLayoutNodeTests
 
     /// <summary>A node entered again later in the pass keeps matching its remaining build children.</summary>
     [Fact]
-    public void ReenteredParent_ContinuesMatching()
+    public void ReenteredParentContinuesMatching()
     {
         using var harness = new FrameHarness();
         var (build, render, _) = Frame(harness, (gui, nodes) =>
         {
             var parent = gui.Node(100, 100);
-            using (parent.Enter()) nodes.Add(gui.Node(4, 4));
+            using (parent.Enter())
+            {
+                nodes.Add(gui.Node(4, 4));
+            }
+
             nodes.Add(gui.Node(4, 4));
-            using (parent.Enter()) nodes.Add(gui.Node(4, 4, id: "later"));
+            using (parent.Enter())
+            {
+                nodes.Add(gui.Node(4, 4, id: "later"));
+            }
         });
 
         Assert.Equal(build, render);
@@ -78,15 +97,22 @@ public class GuiLayoutNodeTests
 
     /// <summary>Consecutive frames rebuild cleanly: the root's cursor and indexes reset with each pass.</summary>
     [Fact]
-    public void ConsecutiveFrames_MatchFromTheStart()
+    public void ConsecutiveFramesMatchFromTheStart()
     {
         using var harness = new FrameHarness();
         for (var frame = 0; frame < 3; frame++)
         {
             var (build, render, root) = Frame(harness, (gui, nodes) =>
             {
-                if (gui.Pass == Pass.Pass2Render && frame == 1) nodes.Add(gui.Node(4, 4, id: "extra"));
-                for (var i = 0; i < 3; i++) nodes.Add(gui.Node(4, 4));
+                if (gui.Pass == Pass.Pass2Render && frame == 1)
+                {
+                    nodes.Add(gui.Node(4, 4, id: "extra"));
+                }
+
+                for (var i = 0; i < 3; i++)
+                {
+                    nodes.Add(gui.Node(4, 4));
+                }
             });
             Assert.Equal(build, render.Where(n => n.Id != "extra"));
             Assert.Equal(frame == 1 ? 4 : 3, root.ChildNodes.Count);

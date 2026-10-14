@@ -1,7 +1,7 @@
 using System.Numerics;
 using Guinevere;
 
-namespace Controls_01;
+namespace Controls01;
 
 /// <summary>
 /// The Excalibur control gallery hung on the docking system: every widget group is a dock panel that
@@ -67,7 +67,10 @@ public abstract partial class Program
     {
         var layout = new DockLayout();
         foreach (var panelId in CenterPanels)
+        {
             layout.DockAtEdge(panelId, DockZone.Center);
+        }
+
         layout.DockAtEdge("text-inputs", DockZone.Right, 0.24f);
         layout.DockAtEdge("scrolling", DockZone.Bottom, 0.3f);
         layout.DockAtEdge("buttons", DockZone.Left, 0.2f);
@@ -105,7 +108,10 @@ public abstract partial class Program
                     .Item("Save", () => _saved = _layout.ToJson())
                     .Item("Load", () => DeferLayout(() =>
                     {
-                        if (_saved is not null) _layout = DockLayout.FromJson(_saved) ?? SeedLayout();
+                        if (_saved is not null)
+                        {
+                            _layout = DockLayout.FromJson(_saved) ?? SeedLayout();
+                        }
                     }))
                     .Item("Reset", () => DeferLayout(() => _layout = SeedLayout()))
                 )
@@ -116,7 +122,10 @@ public abstract partial class Program
             gui.Node().ExpandWidth();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Token(gui, "text"));
             _nativeTitlebar = gui.Checkbox(_nativeTitlebar, "Native title bar");
-            if (gui.Button("◐", width: 62, height: 28, fontSize: 12)) ToggleTheme();
+            if (gui.Button("◐", width: 62, height: 28, fontSize: 12))
+            {
+                ToggleTheme();
+            }
         }
 
         gui.DockSpace(_layout, PanelInfo, RenderPanel, DockTheme, TabStripActions);
@@ -148,7 +157,11 @@ public abstract partial class Program
             var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: label),
                 state =>
                 {
-                    if (gui.Pass != Pass.Pass2Render) return;
+                    if (gui.Pass != Pass.Pass2Render)
+                    {
+                        return;
+                    }
+
                     gui.DrawBackgroundRect(
                         Token(gui, state.HasFlag(ControlVisualState.Hovered) ? "surface-hover" : "surface"), 3);
                     gui.DrawText(label, 10, Token(gui, "text"));
@@ -183,22 +196,38 @@ public abstract partial class Program
     /// </summary>
     static void TabStripActions(DockTabStrip strip, Gui gui)
     {
-        if (strip.ActivePanelId is not { } panelId) return;
+        if (strip.ActivePanelId is not { } panelId)
+        {
+            return;
+        }
 
         using (gui.Node(18, DockTheme.TabHeight, $"dock-actions/{panelId}").Enter())
         {
             var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: "Panel actions"),
                 state =>
                 {
-                    if (gui.Pass != Pass.Pass2Render) return;
+                    if (gui.Pass != Pass.Pass2Render)
+                    {
+                        return;
+                    }
+
                     if (state.HasFlag(ControlVisualState.Hovered))
+                    {
                         gui.DrawBackgroundRect(Token(gui, "surface-hover"), 2);
+                    }
+
                     DrawOverflowDots(gui, Token(gui, _menuPanelId == panelId ? "text" : "text-dim"));
                 });
-            if (result.Activated) _menuPanelId = _menuPanelId == panelId ? null : panelId;
+            if (result.Activated)
+            {
+                _menuPanelId = _menuPanelId == panelId ? null : panelId;
+            }
         }
 
-        if (_menuPanelId == panelId) PanelActions(gui, strip, panelId);
+        if (_menuPanelId == panelId)
+        {
+            PanelActions(gui, strip, panelId);
+        }
     }
 
     static void PanelActions(Gui gui, DockTabStrip strip, string panelId)
@@ -216,18 +245,23 @@ public abstract partial class Program
                 Token(gui, "text-dim"), centerInRect: false);
 
             if (ToolbarButton(gui, "Close panel"))
+            {
                 DeferLayout(() =>
                 {
                     _layout.Remove(panelId);
                     _menuPanelId = null;
                 });
+            }
         }
     }
 
     /// <summary>A stand-in for a real panel icon — any drawing works here.</summary>
     static void TabGlyph(Gui gui, TabGlyphKind kind, Color color)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var rect = gui.CurrentNode.Rect;
         var center = new Vector2(rect.X + rect.W / 2, rect.Y + rect.H / 2);
@@ -250,8 +284,11 @@ public abstract partial class Program
                 break;
             case TabGlyphKind.Menu:
                 for (var i = -1; i <= 1; i++)
+                {
                     gui.DrawLine(new Vector2(center.X - size, center.Y + i * size),
                         new Vector2(center.X + size, center.Y + i * size), color);
+                }
+
                 break;
             case TabGlyphKind.Toast:
                 gui.DrawCircleBorder(center, size, color, 1.5f);
@@ -291,7 +328,9 @@ public abstract partial class Program
         var center = new Vector2(rect.X + rect.W / 2f, rect.Y + rect.H / 2f);
 
         for (var i = -1; i <= 1; i++)
+        {
             gui.DrawCircleFilled(center with { Y = center.Y + i * 4f }, 1.4f, color);
+        }
     }
 
     /// <summary>A color token of the active theme, for the gallery's own drawing.</summary>

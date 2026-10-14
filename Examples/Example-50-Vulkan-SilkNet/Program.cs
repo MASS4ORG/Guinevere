@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Example_50_Vulkan_SilkNet;
+namespace Example50VulkanSilkNet;
 
 public abstract class Program
 {
@@ -8,8 +8,8 @@ public abstract class Program
     {
         Environment.SetEnvironmentVariable("SILKNET_USE_WAYLAND", "0");
         var gui = new Gui();
-        Controls_01.Program.ApplyDefaultSheet(gui);
+        Controls01.Program.ApplyDefaultSheet(gui);
         using var win = new GuiWindow(gui, 1360, 900, "Guinevere Excalibur — Controls & Docking");
-        win.RunGui(() => Controls_01.Program.Draw(gui));
+        win.RunGui(() => Controls01.Program.Draw(gui));
     }
 }

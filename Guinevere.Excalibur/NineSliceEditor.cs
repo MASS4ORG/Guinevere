@@ -48,8 +48,10 @@ public static partial class ControlsExtensions
             SliceChecker(gui, node.Rect);
             gui.DrawImageNineSlice(image, node.Rect, border);
             if (guides)
+            {
                 SliceGuides(gui, node.Rect,
                     new NineSliceLayout(image.Width, image.Height, node.Rect, border).DestinationCenter);
+            }
         }
         return node;
     }
@@ -86,10 +88,19 @@ public static partial class ControlsExtensions
         {
             var result = gui.Draggable(new ControlBehaviorOptions(Enabled: enabled, Focusable: false));
             var state = gui.ControlState(gui.CurrentNode.Id, () => new SliceGuideState());
-            if (gui.Pass != Pass.Pass1Build) return;
+            if (gui.Pass != Pass.Pass1Build)
+            {
+                return;
+            }
+
             if (enabled && result.Drag is { } drag)
+            {
                 MoveSliceGuide(gui.CurrentNode, state, drag, image, ref border, edge, scale);
-            else state.Active = false;
+            }
+            else
+            {
+                state.Active = false;
+            }
         }
     }
 
@@ -110,11 +121,19 @@ public static partial class ControlsExtensions
     static void MoveSliceGuide(LayoutNode node, SliceGuideState state, DragArgs drag, SKImage image,
         ref Insets border, int edge, float scale)
     {
-        if (!state.Active) state.Initial = SliceEdge(border, edge);
+        if (!state.Active)
+        {
+            state.Initial = SliceEdge(border, edge);
+        }
+
         state.Active = true;
         var delta = node.ScreenToLocal(drag.CurrentPosition) - node.ScreenToLocal(drag.Origin);
         var change = (edge % 2 == 0 ? delta.X : delta.Y) / scale;
-        if (edge >= 2) change = -change;
+        if (edge >= 2)
+        {
+            change = -change;
+        }
+
         var maximum = edge switch
         {
             0 => image.Width - border.Right,
@@ -133,7 +152,9 @@ public static partial class ControlsExtensions
             gui.DrawText(label, color: ExcaliburStyles.TokenColor(gui, "text")).Width(64);
             double value = SliceEdge(border, edge);
             if (gui.NumberField(ref value, min: 0, max: maximum, width: 120, enabled: enabled))
+            {
                 border = SetSliceEdge(border, edge, (float)value);
+            }
         }
     }
 
@@ -167,14 +188,22 @@ public static partial class ControlsExtensions
 
     static void SliceChecker(Gui gui, Rect rect)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         var light = ExcaliburStyles.TokenColor(gui, "surface");
         var dark = ExcaliburStyles.TokenColor(gui, "surface-hover");
         const float cell = 8;
         for (var y = 0; y < rect.H / cell; y++)
+        {
             for (var x = 0; x < rect.W / cell; x++)
+            {
                 gui.DrawRectFilled(new Rect(rect.X + x * cell, rect.Y + y * cell,
                     Math.Min(cell, rect.W - x * cell), Math.Min(cell, rect.H - y * cell)),
                     (x + y) % 2 == 0 ? light : dark);
+            }
+        }
     }
 }

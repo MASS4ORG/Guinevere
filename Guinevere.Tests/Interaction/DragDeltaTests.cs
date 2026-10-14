@@ -62,7 +62,9 @@ public class DragDeltaTests
                     using (_gui.Node(97, Size, "b").Enter())
                     {
                         if (_gui.Pass == Pass.Pass2Render && _gui.GetInteractable().OnDrag(out var args))
+                        {
                             LastArgs = args;
+                        }
                     }
                 }
             }

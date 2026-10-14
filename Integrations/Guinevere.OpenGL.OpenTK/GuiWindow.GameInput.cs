@@ -12,12 +12,19 @@ public partial class GuiWindow
     void PollGameInput()
     {
         _gameInput.Poll(ReadController, 16, _gameInputClock.Elapsed.TotalSeconds);
-        if (_gameInput.Changed) Pacing.NotifyInput();
+        if (_gameInput.Changed)
+        {
+            Pacing.NotifyInput();
+        }
     }
 
     GameInputSample? ReadController(int slot)
     {
-        if (!GLFW.JoystickPresent(slot)) return null;
+        if (!GLFW.JoystickPresent(slot))
+        {
+            return null;
+        }
+
         var guid = GLFW.GetJoystickGUID(slot);
         var (mapped, buttons, axes) = ReadControllerState(slot);
         return new GameInputSample($"glfw:{slot}:{guid}",
@@ -30,15 +37,22 @@ public partial class GuiWindow
     unsafe (bool Mapped, bool[] Buttons, float[] Axes) ReadControllerState(int slot)
     {
         if (GLFW.GetGamepadState(slot, out var pad))
+        {
             return (true, GameInputState.CopyButtons(new ReadOnlySpan<byte>(pad.Buttons, 15)),
                 new ReadOnlySpan<float>(pad.Axes, 6).ToArray());
+        }
+
         return ReadRawController(slot);
     }
 
     (bool Mapped, bool[] Buttons, float[] Axes) ReadRawController(int slot) =>
-        (false, GameInputState.CopyButtons(GLFW.GetJoystickButtons(slot).ToArray()
-            .Select(button => (byte)button).ToArray()), GLFW.GetJoystickAxes(slot).ToArray());
+        (false, GameInputState.CopyButtons([
+            .. GLFW.GetJoystickButtons(slot).ToArray()
+                .Select(button => (byte)button)
+        ]), [.. GLFW.GetJoystickAxes(slot)]);
 
-    Vector2[] ReadControllerHats(int slot) => GameInputState.CopyHats(GLFW.GetJoystickHats(slot).ToArray()
-        .Select(hat => (byte)hat).ToArray());
+    Vector2[] ReadControllerHats(int slot) => GameInputState.CopyHats([
+        .. GLFW.GetJoystickHats(slot).ToArray()
+            .Select(hat => (byte)hat)
+    ]);
 }

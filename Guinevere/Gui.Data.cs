@@ -20,9 +20,15 @@ public partial class Gui
     public void SetDataScope(string? key = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        if (key is not null) SetDataScope<string>(key);
-        else SetDataScope(new AutomaticDataScopeKey(_nodeIdentities.Automatic(CurrentNode.Identity,
+        if (key is not null)
+        {
+            SetDataScope(key);
+        }
+        else
+        {
+            SetDataScope(new AutomaticDataScopeKey(_nodeIdentities.Automatic(CurrentNode.Identity,
             _itemKey, filePath, lineNumber, control: true, data: CurrentNodeScope.InheritedDataScope)));
+        }
     }
 
     /// <summary>Enters a nested keyed data context; equal typed keys intentionally share data in the same context.</summary>
@@ -42,13 +48,16 @@ public partial class Gui
     {
         return key is null
             ? EnterDataScope(new AutomaticDataScopeKey(DataIdentity(null, filePath, lineNumber)))
-            : EnterDataScope<string>(key);
+            : EnterDataScope(key);
     }
 
     internal void ExitDataScope(LayoutNodeScope node, int previous, int token)
     {
         if (!_openDataScopes.TryPeek(out var active) || active != token || CurrentNodeScope != node)
+        {
             throw new InvalidOperationException("Data scopes must be disposed in reverse order within their node.");
+        }
+
         _openDataScopes.Pop();
         node.DataScope = previous;
     }
@@ -89,17 +98,26 @@ public partial class Gui
     DataCell<T> GetDataCell<T>(T defaultValue, int identity)
     {
         if (!_dataStores.TryGetValue(typeof(T), out var table))
+        {
             _dataStores.Add(typeof(T), table = new Dictionary<int, DataCell<T>>());
+        }
+
         var store = (Dictionary<int, DataCell<T>>)table;
         if (!store.TryGetValue(identity, out var cell))
+        {
             store.Add(identity, cell = new DataCell<T>(defaultValue));
+        }
+
         return cell;
     }
 
     void BeginDataPass()
     {
         if (_openDataScopes.Count != 0)
+        {
             throw new InvalidOperationException("Data scopes must end before changing passes.");
+        }
+
         RootNode?.Scope.ResetDataScope(0);
     }
 

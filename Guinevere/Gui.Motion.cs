@@ -70,7 +70,10 @@ public partial class Gui
     {
         var identity = DataIdentity(id, filePath, lineNumber);
         if (_springs.TryGetValue(identity, out var state) && state.Values.Length == 1)
+        {
             target = state.Values[0] + MathF.IEEERemainder(target - state.Values[0], MathF.Tau);
+        }
+
         return StepSpring(identity, [target], speed, 1f).Values[0];
     }
 
@@ -117,22 +120,36 @@ public partial class Gui
     {
         if (!_springs.TryGetValue(identity, out var state) || state.Values.Length != target.Length)
         {
-            _springs[identity] = state = new SpringMotion(target.ToArray(), new float[target.Length]);
+            _springs[identity] = state = new SpringMotion([.. target], new float[target.Length]);
             state.Frame = _dataFrame;
             return state;
         }
-        if (state.Frame == _dataFrame) return state;
+        if (state.Frame == _dataFrame)
+        {
+            return state;
+        }
+
         state.Frame = _dataFrame;
         // A frame after an idle wait reports the whole wait; stepping by it would skip motion the input just started.
         var deltaTime = Math.Min(Time.DeltaTime, MaxMotionStep);
         var settled = true;
         for (var i = 0; i < target.Length; i++)
         {
-            if (ReduceMotion) (state.Values[i], state.Velocities[i]) = (target[i], 0f);
-            else settled &= Spring.Step(ref state.Values[i], ref state.Velocities[i], target[i], deltaTime, frequency,
+            if (ReduceMotion)
+            {
+                (state.Values[i], state.Velocities[i]) = (target[i], 0f);
+            }
+            else
+            {
+                settled &= Spring.Step(ref state.Values[i], ref state.Velocities[i], target[i], deltaTime, frequency,
                 dampingRatio);
+            }
         }
-        if (!settled) RequestFrame();
+        if (!settled)
+        {
+            RequestFrame();
+        }
+
         return state;
     }
 
@@ -143,11 +160,19 @@ public partial class Gui
             _tweens[identity] = tween = new ChannelTween(target.Length);
             tween.Snap(target);
         }
-        if (tween.Frame == _dataFrame) return tween;
+        if (tween.Frame == _dataFrame)
+        {
+            return tween;
+        }
+
         tween.Frame = _dataFrame;
         tween.Retarget(target, Time.Elapsed, ReduceMotion ? 0f : duration, easing ?? Easing.EaseInOutSine);
         tween.Sample(Time.Elapsed);
-        if (tween.Running) RequestFrame();
+        if (tween.Running)
+        {
+            RequestFrame();
+        }
+
         return tween;
     }
 

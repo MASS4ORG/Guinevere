@@ -208,7 +208,10 @@ public class FormGroupsTests
         }
 
         harness.Input.ReleaseButton();
-        for (var i = 0; i < 3; i++) harness.Frame(draw);
+        for (var i = 0; i < 3; i++)
+        {
+            harness.Frame(draw);
+        }
     }
 
     sealed class Lists
@@ -227,8 +230,12 @@ public class FormGroupsTests
         void Draw(Gui gui)
         {
             using (gui.Node(-1, -1, "root").ExpandWidth().Direction(Axis.Vertical).Enter())
+            {
                 for (var i = 0; i < fields.Length; i++)
+                {
                     gui.FormField(fields[i], $"f{i}", context);
+                }
+            }
         }
 
         harness.Frame(Draw);

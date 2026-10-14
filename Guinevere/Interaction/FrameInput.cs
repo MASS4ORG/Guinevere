@@ -57,7 +57,11 @@ sealed class FrameInput(IInputHandler source) : IInputHandler
     public string GetTypedCharacters()
     {
         var text = PeekText();
-        if (_suppressText || _textConsumed) return string.Empty;
+        if (_suppressText || _textConsumed)
+        {
+            return string.Empty;
+        }
+
         _textConsumed = true;
         return text;
     }

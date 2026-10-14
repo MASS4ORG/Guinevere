@@ -13,7 +13,10 @@ public class PillTabsTests
     {
         gui.PillTabs(ref _active, tabs =>
         {
-            foreach (var title in titles) tabs.Tab(title, () => _contentBuilt.Add(title), closable: closable);
+            foreach (var title in titles)
+            {
+                tabs.Tab(title, () => _contentBuilt.Add(title), closable: closable);
+            }
         }, id: "pills", onTabClosed: (index, title) => _closed.Add((index, title)));
     }
 

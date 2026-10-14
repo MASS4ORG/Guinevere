@@ -54,7 +54,7 @@ public class ImageButtonTests
 
     /// <summary>With the pointer away, the button shows its normal image.</summary>
     [Fact]
-    public void ImageButton_ShowsNormalImageWhenNotHovered()
+    public void ImageButtonShowsNormalImageWhenNotHovered()
     {
         using var normal = Solid(new SKColor(220, 30, 30, 255));
         using var hover = Solid(new SKColor(0, 220, 0, 255));
@@ -71,7 +71,7 @@ public class ImageButtonTests
 
     /// <summary>With the pointer over it, the button shows its hover image.</summary>
     [Fact]
-    public void ImageButton_ShowsHoverImageWhenHovered()
+    public void ImageButtonShowsHoverImageWhenHovered()
     {
         using var normal = Solid(new SKColor(220, 30, 30, 255));
         using var hover = Solid(new SKColor(0, 220, 0, 255));
@@ -89,7 +89,7 @@ public class ImageButtonTests
 
     /// <summary>A disabled button shows the disabled image and never reports a click.</summary>
     [Fact]
-    public void ImageButton_Disabled_UsesDisabledImageAndNeverClicks()
+    public void ImageButtonDisabledUsesDisabledImageAndNeverClicks()
     {
         using var normal = Solid(new SKColor(220, 30, 30, 255));
         using var hover = Solid(new SKColor(0, 220, 0, 255));
@@ -112,7 +112,7 @@ public class ImageButtonTests
 
     /// <summary>Nine-slice scaling is accepted and fills the button.</summary>
     [Fact]
-    public void ImageButton_NineSlice_Renders()
+    public void ImageButtonNineSliceRenders()
     {
         using var normal = Solid(new SKColor(220, 30, 30, 255));
         var px = new byte[Surface * Surface * 4];
@@ -125,7 +125,7 @@ public class ImageButtonTests
 
     /// <summary>During the layout pass the control reports no click.</summary>
     [Fact]
-    public void ImageButton_LayoutPass_ReturnsFalse()
+    public void ImageButtonLayoutPassReturnsFalse()
     {
         using var normal = Solid(new SKColor(220, 30, 30, 255));
 

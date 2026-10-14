@@ -21,7 +21,7 @@ public class ImageTests
 
     /// <summary>With no explicit size the node is the image's pixel size.</summary>
     [Fact]
-    public void Image_DefaultSize_MatchesImagePixels()
+    public void ImageDefaultSizeMatchesImagePixels()
     {
         var gui = BuildStageGui();
         using var image = SolidImage(48, 32);
@@ -35,7 +35,7 @@ public class ImageTests
 
     /// <summary>An explicit size overrides the image dimensions.</summary>
     [Fact]
-    public void Image_ExplicitSize_OverridesImagePixels()
+    public void ImageExplicitSizeOverridesImagePixels()
     {
         var gui = BuildStageGui();
         using var image = SolidImage(48, 32);
@@ -49,7 +49,7 @@ public class ImageTests
 
     /// <summary>The control renders into its node's rect during the render pass.</summary>
     [Fact]
-    public void Image_RenderPass_FillsItsNode()
+    public void ImageRenderPassFillsItsNode()
     {
         using var surface = SKSurface.Create(new SKImageInfo(64, 64, SKColorType.Rgba8888, SKAlphaType.Unpremul));
         var canvas = surface.Canvas;
@@ -59,7 +59,9 @@ public class ImageTests
         void Draw(Gui g)
         {
             using (g.Node().Expand().Padding(10).Enter())
+            {
                 g.Image(image).Expand();
+            }
         }
 
         var gui = new Gui { Input = Substitute.For<IInputHandler>() };

@@ -65,7 +65,10 @@ public static class TextEditor
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
 
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         HandleFocusAndClick(gui, state, interactable, fontSize, multiline, displayText ?? state.Text);
         HandleKeyboard(gui, state, multiline);
@@ -108,15 +111,22 @@ public static class TextEditor
         if (state.IsSelecting)
         {
             if (gui.Input.IsMouseButtonDown(MouseButton.Left))
+            {
                 state.MoveTo(PositionAt(gui, gui.LocalMousePosition, inner, display, fontSize, multiline),
                     extend: true);
+            }
             else
+            {
                 state.IsSelecting = false;
+            }
         }
 
         // Tabbing into a field selects its value, so typing replaces it. Clicking does not — hover was
         // the wrong proxy, since moving the pointer away after a click also looked like a tab.
-        if (hasFocus && !state.IsFocused && gui.FocusReason == FocusReason.Keyboard) state.SelectAll();
+        if (hasFocus && !state.IsFocused && gui.FocusReason == FocusReason.Keyboard)
+        {
+            state.SelectAll();
+        }
 
         state.IsFocused = hasFocus;
     }
@@ -124,7 +134,10 @@ public static class TextEditor
     /// <summary>Places the caret for a single click, selects a word on a double click and everything on a triple.</summary>
     static void ApplyClick(Gui gui, TextEditState state, int at, int clicks)
     {
-        if (clicks >= 3) state.SelectAll();
+        if (clicks >= 3)
+        {
+            state.SelectAll();
+        }
         else if (clicks == 2)
         {
             var (start, end) = WordAt(state.Text, at);
@@ -137,7 +150,10 @@ public static class TextEditor
             state.IsSelecting = true;
         }
 
-        if (clicks >= 2) state.IsSelecting = false;
+        if (clicks >= 2)
+        {
+            state.IsSelecting = false;
+        }
 
         state.ShowCursor = true;
         state.BlinkTimer = 0f;
@@ -147,7 +163,10 @@ public static class TextEditor
 
     static void HandleKeyboard(Gui gui, TextEditState state, bool multiline)
     {
-        if (!state.IsFocused) return;
+        if (!state.IsFocused)
+        {
+            return;
+        }
 
         Blink(state, gui.Clock.DeltaTime);
         gui.RequestFrameIn(BlinkInterval - state.BlinkTimer);
@@ -159,9 +178,18 @@ public static class TextEditor
     {
         foreach (var c in gui.Input.GetTypedCharacters())
         {
-            if (c >= 32 && c != 127) state.Insert(c.ToString());
-            else if (multiline && c is '\r' or '\n') state.Insert("\n");
-            else continue;
+            if (c >= 32 && c != 127)
+            {
+                state.Insert(c.ToString());
+            }
+            else if (multiline && c is '\r' or '\n')
+            {
+                state.Insert("\n");
+            }
+            else
+            {
+                continue;
+            }
 
             state.ShowCursor = true;
             state.BlinkTimer = 0f;
@@ -176,7 +204,10 @@ public static class TextEditor
         ArgumentNullException.ThrowIfNull(state);
 
         state.BlinkTimer += deltaTime;
-        if (state.BlinkTimer < BlinkInterval) return;
+        if (state.BlinkTimer < BlinkInterval)
+        {
+            return;
+        }
 
         state.BlinkTimer = 0f;
         state.ShowCursor = !state.ShowCursor;
@@ -188,20 +219,51 @@ public static class TextEditor
         var extend = input.IsKeyDown(KeyboardKey.LeftShift) || input.IsKeyDown(KeyboardKey.RightShift);
         var word = input.IsKeyDown(KeyboardKey.LeftControl) || input.IsKeyDown(KeyboardKey.RightControl);
 
-        if (HandleClipboard(gui, state, word)) return;
+        if (HandleClipboard(gui, state, word))
+        {
+            return;
+        }
 
-        if (input.IsKeyPressed(KeyboardKey.Backspace)) Backspace(state, word);
-        else if (input.IsKeyPressed(KeyboardKey.Delete)) ForwardDelete(state, word);
+        if (input.IsKeyPressed(KeyboardKey.Backspace))
+        {
+            Backspace(state, word);
+        }
+        else if (input.IsKeyPressed(KeyboardKey.Delete))
+        {
+            ForwardDelete(state, word);
+        }
         else if (input.IsKeyPressed(KeyboardKey.Left))
+        {
             state.MoveTo(word ? WordBoundaryLeft(state) : Collapse(state, extend, forward: false), extend);
+        }
         else if (input.IsKeyPressed(KeyboardKey.Right))
+        {
             state.MoveTo(word ? WordBoundaryRight(state) : Collapse(state, extend, forward: true), extend);
-        else if (input.IsKeyPressed(KeyboardKey.Up)) MoveByLine(state, -1, extend);
-        else if (input.IsKeyPressed(KeyboardKey.Down)) MoveByLine(state, 1, extend);
-        else if (input.IsKeyPressed(KeyboardKey.Home)) state.MoveTo(LineStart(state), extend);
-        else if (input.IsKeyPressed(KeyboardKey.End)) state.MoveTo(LineEnd(state), extend);
-        else if (input.IsKeyPressed(KeyboardKey.Escape)) state.IsFocused = false;
-        else return;
+        }
+        else if (input.IsKeyPressed(KeyboardKey.Up))
+        {
+            MoveByLine(state, -1, extend);
+        }
+        else if (input.IsKeyPressed(KeyboardKey.Down))
+        {
+            MoveByLine(state, 1, extend);
+        }
+        else if (input.IsKeyPressed(KeyboardKey.Home))
+        {
+            state.MoveTo(LineStart(state), extend);
+        }
+        else if (input.IsKeyPressed(KeyboardKey.End))
+        {
+            state.MoveTo(LineEnd(state), extend);
+        }
+        else if (input.IsKeyPressed(KeyboardKey.Escape))
+        {
+            state.IsFocused = false;
+        }
+        else
+        {
+            return;
+        }
 
         state.ShowCursor = true;
         state.BlinkTimer = 0f;
@@ -209,7 +271,10 @@ public static class TextEditor
 
     static bool HandleClipboard(Gui gui, TextEditState state, bool control)
     {
-        if (!control) return false;
+        if (!control)
+        {
+            return false;
+        }
 
         var input = gui.Input;
         var clipboard = gui.Platform.Require<IClipboard>();
@@ -229,7 +294,11 @@ public static class TextEditor
         if (input.IsKeyPressed(KeyboardKey.X))
         {
             clipboard.SetClipboardText(state.HasSelection ? state.SelectedText : state.Text);
-            if (!state.DeleteSelection()) state.Text = string.Empty;
+            if (!state.DeleteSelection())
+            {
+                state.Text = string.Empty;
+            }
+
             state.MoveTo(state.CursorPosition, extend: false);
             return true;
         }
@@ -237,7 +306,11 @@ public static class TextEditor
         if (input.IsKeyPressed(KeyboardKey.V))
         {
             var text = clipboard.GetClipboardText();
-            if (!string.IsNullOrEmpty(text)) state.Insert(text);
+            if (!string.IsNullOrEmpty(text))
+            {
+                state.Insert(text);
+            }
+
             return true;
         }
 
@@ -250,15 +323,25 @@ public static class TextEditor
     /// </summary>
     static int Collapse(TextEditState state, bool extend, bool forward)
     {
-        if (!extend && state.HasSelection) return forward ? state.SelectionEnd : state.SelectionStart;
+        if (!extend && state.HasSelection)
+        {
+            return forward ? state.SelectionEnd : state.SelectionStart;
+        }
 
         return state.CursorPosition + (forward ? 1 : -1);
     }
 
     static void Backspace(TextEditState state, bool word)
     {
-        if (state.DeleteSelection()) return;
-        if (state.CursorPosition <= 0) return;
+        if (state.DeleteSelection())
+        {
+            return;
+        }
+
+        if (state.CursorPosition <= 0)
+        {
+            return;
+        }
 
         var from = word ? WordBoundaryLeft(state) : state.CursorPosition - 1;
         state.Text = state.Text.Remove(from, state.CursorPosition - from);
@@ -267,8 +350,15 @@ public static class TextEditor
 
     static void ForwardDelete(TextEditState state, bool word)
     {
-        if (state.DeleteSelection()) return;
-        if (state.CursorPosition >= state.Text.Length) return;
+        if (state.DeleteSelection())
+        {
+            return;
+        }
+
+        if (state.CursorPosition >= state.Text.Length)
+        {
+            return;
+        }
 
         var to = word ? WordBoundaryRight(state) : state.CursorPosition + 1;
         state.Text = state.Text.Remove(state.CursorPosition, to - state.CursorPosition);
@@ -295,7 +385,11 @@ public static class TextEditor
     static int LineStart(TextEditState state)
     {
         var position = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
-        if (position <= 0) return 0;
+        if (position <= 0)
+        {
+            return 0;
+        }
+
         return state.Text.LastIndexOf('\n', position - 1) + 1;
     }
 
@@ -311,8 +405,16 @@ public static class TextEditor
     static int WordBoundaryLeft(TextEditState state)
     {
         var i = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
-        while (i > 0 && char.IsWhiteSpace(state.Text[i - 1])) i--;
-        while (i > 0 && !char.IsWhiteSpace(state.Text[i - 1])) i--;
+        while (i > 0 && char.IsWhiteSpace(state.Text[i - 1]))
+        {
+            i--;
+        }
+
+        while (i > 0 && !char.IsWhiteSpace(state.Text[i - 1]))
+        {
+            i--;
+        }
+
         return i;
     }
 
@@ -320,8 +422,16 @@ public static class TextEditor
     static int WordBoundaryRight(TextEditState state)
     {
         var i = Math.Clamp(state.CursorPosition, 0, state.Text.Length);
-        while (i < state.Text.Length && !char.IsWhiteSpace(state.Text[i])) i++;
-        while (i < state.Text.Length && char.IsWhiteSpace(state.Text[i])) i++;
+        while (i < state.Text.Length && !char.IsWhiteSpace(state.Text[i]))
+        {
+            i++;
+        }
+
+        while (i < state.Text.Length && char.IsWhiteSpace(state.Text[i]))
+        {
+            i++;
+        }
+
         return i;
     }
 
@@ -332,15 +442,25 @@ public static class TextEditor
     public static (int Start, int End) WordAt(string text, int index)
     {
         ArgumentNullException.ThrowIfNull(text);
-        if (text.Length == 0) return (0, 0);
+        if (text.Length == 0)
+        {
+            return (0, 0);
+        }
 
         var i = Math.Clamp(index, 0, text.Length - 1);
         var kind = CharacterKind(text[i]);
         var start = i;
         var end = i;
 
-        while (start > 0 && CharacterKind(text[start - 1]) == kind) start--;
-        while (end < text.Length && CharacterKind(text[end]) == kind) end++;
+        while (start > 0 && CharacterKind(text[start - 1]) == kind)
+        {
+            start--;
+        }
+
+        while (end < text.Length && CharacterKind(text[end]) == kind)
+        {
+            end++;
+        }
 
         return (start, end);
     }
@@ -387,7 +507,10 @@ public static class TextEditor
         ArgumentNullException.ThrowIfNull(gui);
 
         var align = gui.CurrentNode.Style.AlignContentHorizontal;
-        if (align <= 0f) return inner.X;
+        if (align <= 0f)
+        {
+            return inner.X;
+        }
 
         var slack = Math.Max(0f, inner.W - MeasureWidth(font, text));
         return inner.X + (slack * align);
@@ -406,7 +529,10 @@ public static class TextEditor
     {
         ArgumentNullException.ThrowIfNull(text);
 
-        if (!multiline) return PositionInLine(gui, point, inner, text, fontSize);
+        if (!multiline)
+        {
+            return PositionInLine(gui, point, inner, text, fontSize);
+        }
 
         var lineHeight = fontSize * 1.2f;
         var lines = text.Split('\n');
@@ -441,7 +567,11 @@ public static class TextEditor
         var offset = 0;
         for (var row = 0; row < lines.Length; row++)
         {
-            if (position <= offset + lines[row].Length) return (row, position - offset);
+            if (position <= offset + lines[row].Length)
+            {
+                return (row, position - offset);
+            }
+
             offset += lines[row].Length + 1;
         }
 

@@ -90,7 +90,11 @@ public class NumberFieldTests
         h.Frame(mouse: new Vector2(140, 12), pressed: true, down: true);
         h.Frame(mouse: new Vector2(140, 12));
         h.Frame();
-        if (selected) h.Frame(key: KeyboardKey.A, control: true);
+        if (selected)
+        {
+            h.Frame(key: KeyboardKey.A, control: true);
+        }
+
         h.SetExternal(65f);
         h.Frame();
         h.Frame(key: KeyboardKey.Tab, shift: shift);

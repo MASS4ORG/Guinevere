@@ -73,7 +73,7 @@ public class TooltipTests
     {
         surface.Canvas.Flush();
         using var pixmap = surface.PeekPixels();
-        return pixmap!.GetPixelColor(x, y);
+        return pixmap.GetPixelColor(x, y);
     }
 
     static byte BackgroundAlpha(SKSurface surface, Rect tooltipRect)
@@ -112,7 +112,9 @@ public class TooltipTests
 
         // Keep hovering past the delay: the panel fades in.
         for (var i = 0; i < 40; i++)
+        {
             Frame(gui, surface.Canvas, "Some tooltip text");
+        }
 
         Assert.True(BackgroundAlpha(surface, TooltipRect(anchor)) > 100,
             "Tooltip must become visible once the pointer has hovered long enough.");
@@ -127,7 +129,10 @@ public class TooltipTests
 
         var anchor = Frame(gui, surface.Canvas, "Some tooltip text");
         for (var i = 0; i < 40; i++)
+        {
             Frame(gui, surface.Canvas, "Some tooltip text");
+        }
+
         Assert.True(BackgroundAlpha(surface, TooltipRect(anchor)) > 100, "precondition: shown");
 
         // Leave the anchor: the very next frame must stop drawing the panel.
@@ -161,7 +166,9 @@ public class TooltipTests
 
         var anchor = Frame(gui, surface.Canvas, "Some tooltip text");
         for (var i = 0; i < 40; i++)
+        {
             Frame(gui, surface.Canvas, "Some tooltip text");
+        }
 
         Assert.True(BackgroundAlpha(surface, TooltipRect(anchor)) < 8,
             "Tooltip must never appear while the pointer is not over the anchor.");

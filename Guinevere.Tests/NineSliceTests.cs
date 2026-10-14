@@ -15,15 +15,22 @@ public class NineSliceTests
     {
         var bitmap = new SKBitmap(Tex, Tex);
         for (var y = 0; y < Tex; y++)
+        {
             for (var x = 0; x < Tex; x++)
             {
                 SKColor c;
                 if (x < Border || y < Border || x >= Tex - Border || y >= Tex - Border)
+                {
                     c = new SKColor(0, 200, 0, 255); // border
+                }
                 else
+                {
                     c = new SKColor(0, 0, 200, 255); // center
+                }
+
                 bitmap.SetPixel(x, y, c);
             }
+        }
 
         return SKImage.FromBitmap(bitmap);
     }
@@ -58,7 +65,7 @@ public class NineSliceTests
 
     /// <summary>A stretched nine-patch keeps its border on the edges and its center in the middle.</summary>
     [Fact]
-    public void NineSlice_KeepsBorderAndStretchesCentre()
+    public void NineSliceKeepsBorderAndStretchesCentre()
     {
         using var texture = BorderedTexture();
         // ReSharper disable once AccessToDisposedClosure - Render invokes the callback synchronously
@@ -77,7 +84,7 @@ public class NineSliceTests
 
     /// <summary>Corners are drawn at 1:1 — a corner pixel is the texture's corner color, undistorted.</summary>
     [Fact]
-    public void NineSlice_CornersAreUnscaled()
+    public void NineSliceCornersAreUnscaled()
     {
         using var texture = BorderedTexture();
         // ReSharper disable once AccessToDisposedClosure - Render invokes the callback synchronously
@@ -89,7 +96,7 @@ public class NineSliceTests
 
     /// <summary>A destination smaller than the combined corners scales them down without crashing.</summary>
     [Fact]
-    public void NineSlice_TinyDestination_DoesNotThrow()
+    public void NineSliceTinyDestinationDoesNotThrow()
     {
         using var texture = BorderedTexture();
 
@@ -102,7 +109,7 @@ public class NineSliceTests
 
     /// <summary>Nothing is drawn during the layout pass.</summary>
     [Fact]
-    public void NineSlice_LayoutPass_DrawsNothing()
+    public void NineSliceLayoutPassDrawsNothing()
     {
         using var texture = BorderedTexture();
         using var surface = SKSurface.Create(new SKImageInfo(Surface, Surface, SKColorType.Rgba8888, SKAlphaType.Unpremul));
@@ -125,7 +132,7 @@ public class NineSliceTests
 
     /// <summary><see cref="Insets"/> convenience constructors fill the right edges.</summary>
     [Fact]
-    public void Insets_Constructors()
+    public void InsetsConstructors()
     {
         Assert.Equal(new Insets(4, 4, 4, 4), new Insets(4));
         Assert.Equal(new Insets(3, 7, 3, 7), new Insets(3, 7));

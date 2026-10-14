@@ -32,8 +32,12 @@ public static class FormRenderer
         id ??= gui.AutomaticId(filePath, lineNumber);
 
         using (gui.Node(-1, -1, id).ExpandWidth().Direction(Axis.Vertical).Gap(2f).Enter())
+        {
             for (var i = 0; i < model.Sections.Count; i++)
+            {
                 DrawSection(gui, model.Sections[i], $"{id}/s{i}", context);
+            }
+        }
     }
 
     /// <summary>Draws one field as a labelled row, or as a group for collections and nested objects.</summary>
@@ -79,19 +83,28 @@ public static class FormRenderer
         using (gui.Node(-1, style.RowHeight, $"{id}/head").ExpandWidth().Direction(Axis.Horizontal).Gap(6f)
                    .ContentAlignY(0.5f).Enter())
         {
-            if (section.EnabledField is { } enabled) gui.FormFieldEditor(enabled, $"{id}/enabled", context);
+            if (section.EnabledField is { } enabled)
+            {
+                gui.FormFieldEditor(enabled, $"{id}/enabled", context);
+            }
+
             gui.DrawText(section.Title, style.FontSize, style.Ink, centerInRect: false,
                 effects: FormControls.Emphasis(true, style.Ink));
         }
 
         var fields = section.BodyFields;
         for (var i = 0; i < fields.Count; i++)
+        {
             gui.FormField(fields[i], $"{id}/f{i}", context);
+        }
 
         for (var i = 0; i < section.Buttons.Count; i++)
         {
             var button = section.Buttons[i];
-            if (FormControls.TextButton(gui, button.Label, $"{id}/b{i}", button.IsEnabled)) button.Invoke();
+            if (FormControls.TextButton(gui, button.Label, $"{id}/b{i}", button.IsEnabled))
+            {
+                button.Invoke();
+            }
         }
     }
 
@@ -129,11 +142,16 @@ public static class FormRenderer
     static void DrawProperty(Gui gui, FormField field, string id, FormRenderContext context, bool hideLabel = false)
     {
         var drawer = RegisteredDrawer(field, context.Drawers);
-        if (drawer is null && TryDrawGroup(gui, field, id, context)) return;
+        if (drawer is null && TryDrawGroup(gui, field, id, context))
+        {
+            return;
+        }
 
         drawer ??= field.IsReadOnly ? BuiltinDrawers.Summary : BuiltinDrawers.For(field.ValueType);
         if (!(hideLabel || HidesLabel(field)) || !DrawWithoutLabel(gui, drawer, field, id, context))
+        {
             drawer.Draw(gui, field, id, context);
+        }
     }
 
     /// <summary>Draws a collection entry like <see cref="FormField"/>, optionally without its label.</summary>
@@ -150,11 +168,17 @@ public static class FormRenderer
     static bool TryDrawGroup(Gui gui, FormField field, string id, FormRenderContext context)
     {
         if (CollectionField.TryCreate(field) is { } collection)
+        {
             FormGroups.DrawCollection(gui, field, collection, id, context);
+        }
         else if (Inline(field, context) is { } target)
+        {
             FormGroups.DrawNested(gui, field, target, id, context);
+        }
         else
+        {
             return false;
+        }
 
         return true;
     }
@@ -163,7 +187,9 @@ public static class FormRenderer
     static bool DrawWithoutLabel(Gui gui, IPropertyDrawer drawer, FormField field, string id, FormRenderContext context)
     {
         using (gui.Node(-1, -1, $"{id}/value").ExpandWidth().Direction(Axis.Horizontal).Gap(4f).Enter())
+        {
             return drawer.DrawValue(gui, field, id, context);
+        }
     }
 
     static void DrawEditor(Gui gui, FormField field, string id, FormRenderContext context)
@@ -176,7 +202,10 @@ public static class FormRenderer
 
         var builtin = BuiltinDrawers.For(field.ValueType);
         var drawer = context.Drawers.TypeDrawer(field.ValueType) ?? builtin;
-        if (!drawer.DrawValue(gui, field, id, context)) builtin.DrawValue(gui, field, id, context);
+        if (!drawer.DrawValue(gui, field, id, context))
+        {
+            builtin.DrawValue(gui, field, id, context);
+        }
     }
 
     /// <summary>
@@ -187,7 +216,11 @@ public static class FormRenderer
     {
         var type = Nullable.GetUnderlyingType(field.ValueType) ?? field.ValueType;
 
-        if (IsPlainValue(type) || context.CanInline?.Invoke(type) == false) return null;
+        if (IsPlainValue(type) || context.CanInline?.Invoke(type) == false)
+        {
+            return null;
+        }
+
         return FormBuilder.EditableMembers(type).Count == 0 ? null : field.GetValue();
     }
 
@@ -207,10 +240,17 @@ public static class FormRenderer
 
         foreach (var member in (ReadOnlySpan<MemberMetadata?>)[members.Name, members.Path])
         {
-            if (member is null) continue;
+            if (member is null)
+            {
+                continue;
+            }
+
             try
             {
-                if (member.GetValue(target) is string { Length: > 0 } text) return text;
+                if (member.GetValue(target) is string { Length: > 0 } text)
+                {
+                    return text;
+                }
             }
             catch (Exception ex)
             {

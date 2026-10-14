@@ -63,7 +63,10 @@ public sealed class TextEditState
     public void MoveTo(int position, bool extend)
     {
         CursorPosition = Math.Clamp(position, 0, Text.Length);
-        if (!extend) SelectionAnchor = CursorPosition;
+        if (!extend)
+        {
+            SelectionAnchor = CursorPosition;
+        }
 
         ShowCursor = true;
         BlinkTimer = 0f;
@@ -73,7 +76,10 @@ public sealed class TextEditState
     /// <returns>True when something was removed.</returns>
     public bool DeleteSelection()
     {
-        if (!HasSelection) return false;
+        if (!HasSelection)
+        {
+            return false;
+        }
 
         var start = Math.Clamp(SelectionStart, 0, Text.Length);
         var end = Math.Clamp(SelectionEnd, 0, Text.Length);

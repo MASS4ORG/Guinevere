@@ -48,7 +48,10 @@ public static partial class ControlsExtensions
         gui.Platform.TryGet<IWindowChromeCapability>(out var window);
         var chrome = windowControls ? window : null;
         var native = AppBarUsesNativeTitlebar(chrome, nativeTitlebar);
-        if (gui.Pass == Pass.Pass1Build) state.Maximized = chrome?.IsMaximized == true;
+        if (gui.Pass == Pass.Pass1Build)
+        {
+            state.Maximized = chrome?.IsMaximized == true;
+        }
 
         var bar = gui.StyledNode("appbar", classes, id).ExpandWidth().Height(height).Direction(Axis.Horizontal).Enter();
         DrawAppBarChrome(gui, state, chrome, native);
@@ -64,16 +67,26 @@ public static partial class ControlsExtensions
 
     static void DrawAppBarChrome(Gui gui, AppBarState state, IWindowChromeCapability? window, bool native)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         UpdateAppBarChrome(state, window, native);
     }
 
     static void UpdateAppBarChrome(AppBarState state, IWindowChromeCapability? window, bool native)
     {
         if (state.Window is not null && !ReferenceEquals(state.Window, window))
+        {
             state.Window.DrawWindowTitlebar(true);
+        }
+
         if (window is not null && (!ReferenceEquals(state.Window, window) || state.NativeTitlebar != native))
+        {
             window.DrawWindowTitlebar(native);
+        }
+
         state.Window = window;
         state.NativeTitlebar = native;
     }
@@ -81,17 +94,31 @@ public static partial class ControlsExtensions
     internal static void EndAppBar(Gui gui, AppBarState state, IWindowChromeCapability? window,
         LayoutNodeScope content, LayoutNodeScope bar, float height)
     {
-        if (gui.Pass == Pass.Pass2Render && window is not null) HandleAppBarDrag(gui, state, window);
+        if (gui.Pass == Pass.Pass2Render && window is not null)
+        {
+            HandleAppBarDrag(gui, state, window);
+        }
+
         content.Dispose();
-        if (window is not null) RenderWindowControls(gui, window, state.Maximized, height);
+        if (window is not null)
+        {
+            RenderWindowControls(gui, window, state.Maximized, height);
+        }
+
         bar.Dispose();
     }
 
     static void HandleAppBarDrag(Gui gui, AppBarState state, IWindowChromeCapability window)
     {
         if (gui.Input.IsMouseButtonPressed(MouseButton.Left))
+        {
             state.PressedOverControl = AppBarPointerOverControl(gui, gui.CurrentNode);
-        if (state.PressedOverControl) return;
+        }
+
+        if (state.PressedOverControl)
+        {
+            return;
+        }
 
         var interaction = gui.GetInteractable();
         if (interaction.OnClick(out var count) && count == 2)
@@ -106,8 +133,15 @@ public static partial class ControlsExtensions
     {
         foreach (var child in node.ChildNodes)
         {
-            if (child.IsPointerInteractive && gui.GetInteractable(child).OnHover()) return true;
-            if (AppBarPointerOverControl(gui, child)) return true;
+            if (child.IsPointerInteractive && gui.GetInteractable(child).OnHover())
+            {
+                return true;
+            }
+
+            if (AppBarPointerOverControl(gui, child))
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -115,38 +149,74 @@ public static partial class ControlsExtensions
     static void MoveAppBarWindow(Gui gui, AppBarState state, IWindowChromeCapability window,
         InteractableElement interaction)
     {
-        if (!interaction.OnDrag(out _)) return;
+        if (!interaction.OnDrag(out _))
+        {
+            return;
+        }
+
         if (gui.Input.IsMouseButtonPressed(MouseButton.Left))
         {
             state.NativeMove = window.TryBeginMove();
-            if (!state.NativeMove && window.CanMove) state.DragOffset = window.PointerPosition - window.Position;
+            if (!state.NativeMove && window.CanMove)
+            {
+                state.DragOffset = window.PointerPosition - window.Position;
+            }
         }
-        if (state.NativeMove || !window.CanMove || window.IsMaximized) return;
+        if (state.NativeMove || !window.CanMove || window.IsMaximized)
+        {
+            return;
+        }
+
         var pointer = window.PointerPosition;
         window.Position = pointer - state.DragOffset;
     }
 
     static void RenderWindowControls(Gui gui, IWindowChromeCapability window, bool maximized, float height)
     {
-        if (WindowChromeButton(gui, 0, height)) window.Minimize();
-        if (WindowChromeButton(gui, maximized ? 2 : 1, height)) ToggleWindowMaximize(window);
-        if (WindowChromeButton(gui, 3, height)) window.RequestClose();
+        if (WindowChromeButton(gui, 0, height))
+        {
+            window.Minimize();
+        }
+
+        if (WindowChromeButton(gui, maximized ? 2 : 1, height))
+        {
+            ToggleWindowMaximize(window);
+        }
+
+        if (WindowChromeButton(gui, 3, height))
+        {
+            window.RequestClose();
+        }
     }
 
     static void ToggleWindowMaximize(IWindowChromeCapability window)
     {
-        if (window.IsMaximized) window.Restore();
-        else window.Maximize();
+        if (window.IsMaximized)
+        {
+            window.Restore();
+        }
+        else
+        {
+            window.Maximize();
+        }
     }
 
     static bool WindowChromeButton(Gui gui, int kind, float height)
     {
         using var scope = gui.StyledNode("window-button", modifiers: kind == 3 ? ["close"] : [])
             .Width(height).Height(height).Enter();
-        if (gui.Pass != Pass.Pass2Render) return false;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return false;
+        }
+
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
         var interaction = gui.GetInteractable();
-        if (interaction.OnClick()) gui.RequestFocus(FocusReason.Mouse);
+        if (interaction.OnClick())
+        {
+            gui.RequestFocus(FocusReason.Mouse);
+        }
+
         DrawWindowChromeGlyph(gui, kind, gui.CurrentNode.Rect);
         return interaction.OnClick() || (gui.HasFocus()
             && (gui.Input.IsKeyPressed(KeyboardKey.Enter) || gui.Input.IsKeyPressed(KeyboardKey.Space)));

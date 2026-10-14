@@ -98,7 +98,10 @@ public partial class FocusManager
             control.NavigationPosition = navigationPosition;
         }
 
-        if (!canReceiveFocus && _currentFocusedId == controlId) ClearFocus();
+        if (!canReceiveFocus && _currentFocusedId == controlId)
+        {
+            ClearFocus();
+        }
 
         // Track the order controls are registered this frame
         if (!_frameControlOrder.Contains(controlId))
@@ -124,10 +127,16 @@ public partial class FocusManager
     /// <returns>True if the control or its descendants have focus, false otherwise</returns>
     public bool HasFocusWithin(string controlId)
     {
-        if (_currentFocusedId == null) return false;
+        if (_currentFocusedId == null)
+        {
+            return false;
+        }
 
         // Check if the control itself has focus
-        if (_currentFocusedId == controlId) return true;
+        if (_currentFocusedId == controlId)
+        {
+            return true;
+        }
 
         // Check if any descendant has focus by walking up the parent chain
         var current = _currentFocusedId;
@@ -135,7 +144,11 @@ public partial class FocusManager
         {
             if (_focusableControls.TryGetValue(current, out var control))
             {
-                if (control.ParentId == controlId) return true;
+                if (control.ParentId == controlId)
+                {
+                    return true;
+                }
+
                 current = control.ParentId;
             }
             else
@@ -171,13 +184,20 @@ public partial class FocusManager
     /// </summary>
     public void SetClaimsArrowKeys(string controlId, bool claims)
     {
-        if (_focusableControls.TryGetValue(controlId, out var control)) control.ClaimsArrowKeys = claims;
+        if (_focusableControls.TryGetValue(controlId, out var control))
+        {
+            control.ClaimsArrowKeys = claims;
+        }
     }
 
     /// <summary>Associates explicit next and previous focus targets with a control.</summary>
     public void SetNavigationLinks(string controlId, string? nextId = null, string? previousId = null)
     {
-        if (!_focusableControls.TryGetValue(controlId, out var control)) return;
+        if (!_focusableControls.TryGetValue(controlId, out var control))
+        {
+            return;
+        }
+
         control.NextId = nextId;
         control.PreviousId = previousId;
     }
@@ -186,7 +206,10 @@ public partial class FocusManager
     public void Navigate(FocusDirection direction)
     {
         var candidates = GetNavigableIds();
-        if (candidates.Count == 0) return;
+        if (candidates.Count == 0)
+        {
+            return;
+        }
 
         if (_currentFocusedId is null || !candidates.Contains(_currentFocusedId))
         {
@@ -195,9 +218,19 @@ public partial class FocusManager
         }
 
         var current = _focusableControls[_currentFocusedId];
-        if (TryLinkedNavigation(current, direction, candidates)) return;
-        if (direction <= FocusDirection.Previous) NavigateSequential(direction, candidates);
-        else NavigateSpatial(current, direction, candidates);
+        if (TryLinkedNavigation(current, direction, candidates))
+        {
+            return;
+        }
+
+        if (direction <= FocusDirection.Previous)
+        {
+            NavigateSequential(direction, candidates);
+        }
+        else
+        {
+            NavigateSpatial(current, direction, candidates);
+        }
     }
 
     bool TryLinkedNavigation(FocusableControl current, FocusDirection direction, List<string> candidates)
@@ -226,7 +259,11 @@ public partial class FocusManager
 
     void NavigateSpatial(FocusableControl current, FocusDirection direction, List<string> candidates)
     {
-        if (current.NavigationPosition is not { } origin) return;
+        if (current.NavigationPosition is not { } origin)
+        {
+            return;
+        }
+
         var target = candidates
             .Where(id => id != _currentFocusedId && _focusableControls[id].NavigationPosition is not null)
             .Select(id => (Id: id, Delta: _focusableControls[id].NavigationPosition!.Value - origin))
@@ -234,7 +271,10 @@ public partial class FocusManager
             .OrderBy(x => NavigationDistance(x.Delta, direction))
             .Select(x => x.Id)
             .FirstOrDefault();
-        if (target is not null) RequestFocus(target, FocusReason.Keyboard);
+        if (target is not null)
+        {
+            RequestFocus(target, FocusReason.Keyboard);
+        }
     }
 
     /// <summary>Begins registering controls in a nestable focus-navigation scope.</summary>
@@ -242,9 +282,16 @@ public partial class FocusManager
     {
         _frameScopeIds.Add(scopeId);
         if (!_scopes.TryGetValue(scopeId, out var scope))
+        {
             _scopes[scopeId] = scope = new FocusNavigationScopeState();
+        }
+
         scope.ParentId = CurrentRegistrationScopeId;
-        if (restoreFocusId is not null) scope.RestoreFocusId = restoreFocusId;
+        if (restoreFocusId is not null)
+        {
+            scope.RestoreFocusId = restoreFocusId;
+        }
+
         _scopeStack.Add(scopeId);
         return new FocusNavigationScope(this, scopeId);
     }
@@ -252,7 +299,11 @@ public partial class FocusManager
     /// <summary>Makes a scope the sole owner of Tab and directional navigation.</summary>
     public void ActivateScope(string scopeId, string? restoreFocusId = null)
     {
-        if (!_scopes.TryGetValue(scopeId, out var scope)) return;
+        if (!_scopes.TryGetValue(scopeId, out var scope))
+        {
+            return;
+        }
+
         if (ActiveScopeId != scopeId)
         {
             scope.RestoreFocusId = restoreFocusId ?? _nextFrameFocusId ?? _currentFocusedId;
@@ -262,7 +313,10 @@ public partial class FocusManager
 
     internal void ExitScope(string scopeId)
     {
-        if (_scopeStack.Count > 0 && _scopeStack[^1] == scopeId) _scopeStack.RemoveAt(_scopeStack.Count - 1);
+        if (_scopeStack.Count > 0 && _scopeStack[^1] == scopeId)
+        {
+            _scopeStack.RemoveAt(_scopeStack.Count - 1);
+        }
     }
 
     /// <summary>
@@ -287,7 +341,10 @@ public partial class FocusManager
         {
             var focusableIds = GetNavigableIds();
 
-            if (focusableIds.Count == 0) return;
+            if (focusableIds.Count == 0)
+            {
+                return;
+            }
 
             var isShiftHeld = input.IsKeyDown(KeyboardKey.LeftShift) || input.IsKeyDown(KeyboardKey.RightShift);
 
@@ -323,11 +380,27 @@ public partial class FocusManager
             }
         }
 
-        if (IsTextInputFocused || FocusedClaimsArrowKeys) return;
-        if (input.IsKeyPressed(KeyboardKey.Left)) Navigate(FocusDirection.Left);
-        else if (input.IsKeyPressed(KeyboardKey.Right)) Navigate(FocusDirection.Right);
-        else if (input.IsKeyPressed(KeyboardKey.Up)) Navigate(FocusDirection.Up);
-        else if (input.IsKeyPressed(KeyboardKey.Down)) Navigate(FocusDirection.Down);
+        if (IsTextInputFocused || FocusedClaimsArrowKeys)
+        {
+            return;
+        }
+
+        if (input.IsKeyPressed(KeyboardKey.Left))
+        {
+            Navigate(FocusDirection.Left);
+        }
+        else if (input.IsKeyPressed(KeyboardKey.Right))
+        {
+            Navigate(FocusDirection.Right);
+        }
+        else if (input.IsKeyPressed(KeyboardKey.Up))
+        {
+            Navigate(FocusDirection.Up);
+        }
+        else if (input.IsKeyPressed(KeyboardKey.Down))
+        {
+            Navigate(FocusDirection.Down);
+        }
     }
 
     /// <summary>
@@ -375,7 +448,10 @@ public partial class FocusManager
 
         RestoreActiveScope();
 
-        foreach (var id in _scopes.Keys.Where(id => !_frameScopeIds.Contains(id)).ToList()) _scopes.Remove(id);
+        foreach (var id in _scopes.Keys.Where(id => !_frameScopeIds.Contains(id)).ToList())
+        {
+            _scopes.Remove(id);
+        }
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {
@@ -80,7 +80,10 @@ public abstract partial class Program
     static Stream? OpenBackground(Uri uri)
     {
         if (uri.OriginalString != "panel.png")
+        {
             return typeof(Program).Assembly.GetManifestResourceStream("Example_50.Backgrounds." + uri.OriginalString);
+        }
+
         using var data = SliceTexture.Value.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
         return new MemoryStream(data.ToArray());
     }
@@ -149,7 +152,11 @@ public abstract partial class Program
                 using (gui.Node().ExpandWidth().Height(16).Enter())
                 {
                     var hit = used.Contains(i + 1);
-                    if (hit) gui.DrawBackgroundRect(Color.FromArgb(90, 136, 192, 208), 2);
+                    if (hit)
+                    {
+                        gui.DrawBackgroundRect(Color.FromArgb(90, 136, 192, 208), 2);
+                    }
+
                     gui.DrawText($"{i + 1,3}  {lines[i]}", 12,
                         hit ? Color.White : Color.FromArgb(255, 154, 160, 166), centerInRect: false);
                 }
@@ -163,7 +170,11 @@ public abstract partial class Program
     static void ScrollToFirst(Gui gui, HashSet<int> used, int lineCount)
     {
         var key = _hovered is { } target ? $"{target.Type}#{target.Id}.{string.Join('.', target.Classes)}" : null;
-        if (gui.Pass != Pass.Pass2Render || used.Count == 0 || key == _scrolledFor) return;
+        if (gui.Pass != Pass.Pass2Render || used.Count == 0 || key == _scrolledFor)
+        {
+            return;
+        }
+
         _scrolledFor = key;
         gui.SetScrollPercentage(gui.CurrentNode.Id, Axis.Vertical, (used.Min() - 1f) / Math.Max(1, lineCount - 1));
     }
@@ -171,7 +182,11 @@ public abstract partial class Program
     /// <summary>The source lines of the page-sheet rules that match the hovered element.</summary>
     static HashSet<int> UsedLines(Gui gui)
     {
-        if (_hovered is not { } target) return [];
+        if (_hovered is not { } target)
+        {
+            return [];
+        }
+
         return
         [
             .. gui.StyleSheets.MatchedRules(target)
@@ -183,7 +198,11 @@ public abstract partial class Program
     static void StyledTile(Gui gui, string id, string label)
     {
         var node = gui.StyledNode("VisualElement", ["tile"], id);
-        using (node.Enter()) gui.DrawText(label);
+        using (node.Enter())
+        {
+            gui.DrawText(label);
+        }
+
         NoteHover(gui, node, new StyleTarget("VisualElement", id, ["tile"], StyleState.Hover));
     }
 
@@ -201,6 +220,9 @@ public abstract partial class Program
 
     static void NoteHover(Gui gui, LayoutNode node, StyleTarget target)
     {
-        if (gui.Pass == Pass.Pass2Render && gui.GetInteractable(node).OnHover()) _nextHovered = target;
+        if (gui.Pass == Pass.Pass2Render && gui.GetInteractable(node).OnHover())
+        {
+            _nextHovered = target;
+        }
     }
 }

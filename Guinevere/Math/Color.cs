@@ -233,9 +233,16 @@ public readonly struct Color : IEquatable<Color>
     public static bool TryParseHex(string? value, out Color color)
     {
         color = default;
-        if (string.IsNullOrWhiteSpace(value)) return false;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
         var hex = value.AsSpan().Trim();
-        if (hex[0] == '#') hex = hex[1..];
+        if (hex[0] == '#')
+        {
+            hex = hex[1..];
+        }
 
         Span<char> normalized = stackalloc char[8];
         var normalizedLength = hex.Length;
@@ -249,15 +256,25 @@ public readonly struct Color : IEquatable<Color>
             normalizedLength *= 2;
         }
         else if (hex.Length is 6 or 8)
+        {
             hex.CopyTo(normalized);
+        }
         else
+        {
             return false;
+        }
 
         if (!uint.TryParse(normalized[..normalizedLength], NumberStyles.HexNumber,
                 CultureInfo.InvariantCulture, out var packed))
+        {
             return false;
+        }
 
-        if (normalizedLength == 6) packed = packed << 8 | byte.MaxValue;
+        if (normalizedLength == 6)
+        {
+            packed = packed << 8 | byte.MaxValue;
+        }
+
         color = new Color(packed);
         return true;
     }
@@ -276,10 +293,26 @@ public readonly struct Color : IEquatable<Color>
 
     public static Color FromArgb(int alpha, int red, int green, int blue)
     {
-        if ((uint)alpha > byte.MaxValue) throw InvalidChannel(nameof(alpha));
-        if ((uint)red > byte.MaxValue) throw InvalidChannel(nameof(red));
-        if ((uint)green > byte.MaxValue) throw InvalidChannel(nameof(green));
-        if ((uint)blue > byte.MaxValue) throw InvalidChannel(nameof(blue));
+        if ((uint)alpha > byte.MaxValue)
+        {
+            throw InvalidChannel(nameof(alpha));
+        }
+
+        if ((uint)red > byte.MaxValue)
+        {
+            throw InvalidChannel(nameof(red));
+        }
+
+        if ((uint)green > byte.MaxValue)
+        {
+            throw InvalidChannel(nameof(green));
+        }
+
+        if ((uint)blue > byte.MaxValue)
+        {
+            throw InvalidChannel(nameof(blue));
+        }
+
         return new Color(Pack((byte)red, (byte)green, (byte)blue, (byte)alpha));
     }
 

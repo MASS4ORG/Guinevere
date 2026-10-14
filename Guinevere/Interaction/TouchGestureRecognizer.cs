@@ -19,11 +19,19 @@ public sealed class TouchGestureRecognizer
     public IReadOnlyList<TouchGesture> Process(IReadOnlyList<TouchContact> updates, double elapsed)
     {
         var gestures = new List<TouchGesture>();
-        foreach (var contact in updates) UpdateContact(contact, elapsed, gestures);
+        foreach (var contact in updates)
+        {
+            UpdateContact(contact, elapsed, gestures);
+        }
+
         foreach (var (id, state) in _contacts)
         {
             if (state.Multiple || state.LongPressed || state.Travel > Slop
-                || elapsed - state.Started < LongPressSeconds) continue;
+                || elapsed - state.Started < LongPressSeconds)
+            {
+                continue;
+            }
+
             state.LongPressed = true;
             gestures.Add(new TouchGesture(TouchGestureKind.LongPress, id, state.Position));
         }
@@ -40,13 +48,24 @@ public sealed class TouchGestureRecognizer
     void UpdateContact(TouchContact contact, double elapsed, List<TouchGesture> gestures)
     {
         if (contact.Phase == TouchPhase.Began)
+        {
             _contacts[contact.Id] = new ContactState(contact.Position, elapsed);
-        if (!_contacts.TryGetValue(contact.Id, out var state)) return;
+        }
+
+        if (!_contacts.TryGetValue(contact.Id, out var state))
+        {
+            return;
+        }
+
         state.Position = contact.Position;
         state.Travel = Math.Max(state.Travel, Vector2.Distance(state.Origin, contact.Position));
         if (contact.Phase is TouchPhase.Ended or TouchPhase.Canceled)
         {
-            if (contact.Phase == TouchPhase.Ended) RecognizeRelease(contact, state, elapsed, gestures);
+            if (contact.Phase == TouchPhase.Ended)
+            {
+                RecognizeRelease(contact, state, elapsed, gestures);
+            }
+
             _contacts.Remove(contact.Id);
         }
         RecognizePair(gestures);
@@ -54,17 +73,29 @@ public sealed class TouchGestureRecognizer
 
     void RecognizeRelease(TouchContact contact, ContactState state, double elapsed, List<TouchGesture> gestures)
     {
-        if (state.Multiple || state.LongPressed) return;
+        if (state.Multiple || state.LongPressed)
+        {
+            return;
+        }
+
         var delta = contact.Position - state.Origin;
         if (state.Travel <= Slop && elapsed - state.Started <= TapSeconds)
+        {
             gestures.Add(new TouchGesture(TouchGestureKind.Tap, contact.Id, contact.Position));
+        }
         else if (delta.Length() >= SwipeDistance)
+        {
             gestures.Add(new TouchGesture(TouchGestureKind.Swipe, contact.Id, contact.Position, delta));
+        }
     }
 
     void RecognizePair(List<TouchGesture> gestures)
     {
-        if (!HasPair()) return;
+        if (!HasPair())
+        {
+            return;
+        }
+
         var ids = _contacts.Keys.Order().ToArray();
         var first = _contacts[ids[0]];
         var second = _contacts[ids[1]];
@@ -72,7 +103,10 @@ public sealed class TouchGestureRecognizer
         var vector = second.Position - first.Position;
         var pair = (ids[0], ids[1]);
         if (_pair == pair && _pairVector.Length() > 0 && vector.Length() > 0)
+        {
             EmitPairGestures(ids[0], (first.Position + second.Position) / 2, vector, gestures);
+        }
+
         _pair = pair;
         _pairVector = vector;
     }
@@ -82,7 +116,13 @@ public sealed class TouchGestureRecognizer
         if (_contacts.Count != 2)
         {
             if (_contacts.Count > 1)
-                foreach (var state in _contacts.Values) state.Multiple = true;
+            {
+                foreach (var state in _contacts.Values)
+                {
+                    state.Multiple = true;
+                }
+            }
+
             _pair = null;
             return false;
         }
@@ -95,9 +135,14 @@ public sealed class TouchGestureRecognizer
         var rotation = MathF.Atan2(vector.Y, vector.X) - MathF.Atan2(_pairVector.Y, _pairVector.X);
         rotation = MathF.IEEERemainder(rotation, MathF.Tau);
         if (MathF.Abs(scale - 1) > 0.0001f)
+        {
             gestures.Add(new TouchGesture(TouchGestureKind.Pinch, id, position, Scale: scale));
+        }
+
         if (MathF.Abs(rotation) > 0.0001f)
+        {
             gestures.Add(new TouchGesture(TouchGestureKind.Rotate, id, position, Rotation: rotation));
+        }
     }
 
     sealed class ContactState(Vector2 origin, double started)

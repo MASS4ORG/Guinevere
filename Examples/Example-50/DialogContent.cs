@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {
@@ -65,8 +65,14 @@ public abstract partial class Program
             gui.DrawText(title, size: 14, color: Token(gui, "text"));
             gui.DrawText(result, size: 11, color: Token(gui, "text-dim"), wrapWidth: 500);
 
-            if (state.IsOpen) gui.FileBrowser(state, width: 504, height: 450, fontSize: 12);
-            else if (gui.Button("Browse again", width: 120, height: 28, fontSize: 12)) reopen();
+            if (state.IsOpen)
+            {
+                gui.FileBrowser(state, width: 504, height: 450, fontSize: 12);
+            }
+            else if (gui.Button("Browse again", width: 120, height: 28, fontSize: 12))
+            {
+                reopen();
+            }
         }
     }
 }

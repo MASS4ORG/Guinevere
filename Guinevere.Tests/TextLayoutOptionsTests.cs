@@ -7,7 +7,7 @@ public class TextLayoutOptionsTests
     static float Measure(string text) => text.Length;
 
     [Fact]
-    public void WordThenCharacter_SplitsLongWordsAndPreservesOffsets()
+    public void WordThenCharacterSplitsLongWordsAndPreservesOffsets()
     {
         var lines = WrappedTextLayout.Wrap("abcdefgh", 3f, Measure,
             new TextLayoutOptions { WrapMode = TextWrapMode.WordThenCharacter });
@@ -17,7 +17,7 @@ public class TextLayoutOptionsTests
     }
 
     [Fact]
-    public void Ellipsis_FitsTheAvailableWidth()
+    public void EllipsisFitsTheAvailableWidth()
     {
         var lines = WrappedTextLayout.Wrap("abc def ghi", 5f, Measure,
             new TextLayoutOptions { MaxLines = 1, Ellipsis = ".." });
@@ -27,7 +27,7 @@ public class TextLayoutOptionsTests
     }
 
     [Fact]
-    public void CharacterWrap_KeepsEmojiSurrogatePairsTogether()
+    public void CharacterWrapKeepsEmojiSurrogatePairsTogether()
     {
         var lines = WrappedTextLayout.Wrap("🙂🙂", 2f, Measure,
             new TextLayoutOptions { WrapMode = TextWrapMode.Character });
@@ -37,7 +37,7 @@ public class TextLayoutOptionsTests
     }
 
     [Fact]
-    public void UnwrappedLines_KeepOriginalOffsets()
+    public void UnwrappedLinesKeepOriginalOffsets()
     {
         var lines = WrappedTextLayout.Wrap("one\ntwo", 0f, Measure);
 
@@ -45,7 +45,7 @@ public class TextLayoutOptionsTests
     }
 
     [Fact]
-    public void DrawText_UsesTheSameLineLimitAndLineHeightInBothPasses()
+    public void DrawTextUsesTheSameLineLimitAndLineHeightInBothPasses()
     {
         using var harness = new FrameHarness();
         LayoutNode? node = null;
@@ -57,7 +57,7 @@ public class TextLayoutOptionsTests
     }
 
     [Fact]
-    public void StyleDeclarations_SetInheritedTextLayout()
+    public void StyleDeclarationsSetInheritedTextLayout()
     {
         var node = LayoutNode.CreateRoot(new Gui(), 100f, 100f);
         var style = new ResolvedStyle(new Dictionary<string, string>

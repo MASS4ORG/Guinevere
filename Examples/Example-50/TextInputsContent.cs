@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {

@@ -7,7 +7,7 @@ public class SvgIconTests
 
     /// <summary>Markup becomes a picture whose cull rectangle is the view box.</summary>
     [Fact]
-    public void FromMarkup_UsesViewBox()
+    public void FromMarkupUsesViewBox()
     {
         var icon = SvgIcon.FromMarkup(Square, tintable: true)!;
 
@@ -17,7 +17,7 @@ public class SvgIconTests
 
     /// <summary>Files and streams decode; the decoder only claims <c>.svg</c>.</summary>
     [Fact]
-    public void FromFileAndDecoder_Decode()
+    public void FromFileAndDecoderDecode()
     {
         var path = Path.Combine(Path.GetTempPath(), $"icon-{Guid.NewGuid():N}.svg");
         File.WriteAllText(path, Square);
@@ -37,15 +37,15 @@ public class SvgIconTests
 
     /// <summary>Markup that is not XML is not an icon.</summary>
     [Fact]
-    public void InvalidMarkup_IsNull()
+    public void InvalidMarkupIsNull()
     {
         Assert.Null(SvgIcon.FromMarkup("not svg"));
-        Assert.Null(SvgIcon.FromStream(new MemoryStream("<svg"u8.ToArray())));
+        Assert.Null(SvgIcon.FromStream(new MemoryStream([.. "<svg"u8])));
     }
 
     /// <summary>Arguments are validated.</summary>
     [Fact]
-    public void Arguments_AreValidated()
+    public void ArgumentsAreValidated()
     {
         Assert.Throws<ArgumentException>(() => SvgIcon.FromMarkup(""));
         Assert.Throws<ArgumentException>(() => SvgIcon.FromFile(""));

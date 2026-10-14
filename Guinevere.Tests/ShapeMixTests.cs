@@ -33,7 +33,7 @@ public class ShapeMixTests
 
         Assert.False(mix.Path.Contains(0, 0));
         Assert.True(mix.Path.Contains(25, 0));
-        Assert.Equal(new SkiaSharp.SKColor(127, 0, 127), mix.Paint!.Color);
+        Assert.Equal(new SKColor(127, 0, 127), mix.Paint!.Color);
         Assert.Same(mix.Paint, mix.Layers[0][0].paint);
         Assert.NotSame(ring.Paint, mix.Paint);
     }

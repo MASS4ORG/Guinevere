@@ -118,7 +118,10 @@ public static partial class ControlsExtensions
 
     static void RenderToasts(Gui gui, ToastState state, float now)
     {
-        if (state.Visible.Count == 0) return;
+        if (state.Visible.Count == 0)
+        {
+            return;
+        }
 
         var usedHeight = new Dictionary<ToastCorner, float>();
         var screen = gui.LayoutBounds;
@@ -146,7 +149,10 @@ public static partial class ControlsExtensions
                 gui.SetOpacity(alpha / 255f * gui.CurrentNode.Scope.Get<LayoutNodeScopeOpacity>().Value);
                 gui.DrawStyledBox(gui.ResolvePart("accent"), new Rect(position.X, position.Y, 4, height));
 
-                if (alpha > 0 && ClickedToDismiss(gui, opts)) toRemove.Add(entry);
+                if (alpha > 0 && ClickedToDismiss(gui, opts))
+                {
+                    toRemove.Add(entry);
+                }
 
                 // Built in both passes so the text node is measured during Pass1 layout; creating it
                 // only in Pass2 leaves its rect (0,0,0,0) and the glyphs draw at the canvas origin.
@@ -155,8 +161,12 @@ public static partial class ControlsExtensions
         }
 
         if (toRemove.Count > 0)
+        {
             foreach (var entry in toRemove)
+            {
                 state.Entries.Remove(entry);
+            }
+        }
     }
 
     /// <summary>Whether a dismissable toast was pressed this frame, where it is drawn.</summary>
@@ -187,8 +197,15 @@ public static partial class ControlsExtensions
         var remaining = entry.ExpiresAt - now;
 
         var alpha = 1f;
-        if (age < opts.FadeInSeconds) alpha = age / opts.FadeInSeconds;
-        if (remaining < opts.FadeOutSeconds) alpha = Math.Min(alpha, remaining / opts.FadeOutSeconds);
+        if (age < opts.FadeInSeconds)
+        {
+            alpha = age / opts.FadeInSeconds;
+        }
+
+        if (remaining < opts.FadeOutSeconds)
+        {
+            alpha = Math.Min(alpha, remaining / opts.FadeOutSeconds);
+        }
 
         return Math.Max(0, Math.Min(255, (int)(alpha * 255)));
     }
@@ -197,8 +214,14 @@ public static partial class ControlsExtensions
     static void RequestFadeFrame(Gui gui, float now, ToastEntry entry, ToastOptions opts)
     {
         var remaining = entry.ExpiresAt - now;
-        if (now - entry.SpawnedAt < opts.FadeInSeconds || remaining < opts.FadeOutSeconds) gui.RequestFrame();
-        else gui.RequestFrameIn(remaining - opts.FadeOutSeconds);
+        if (now - entry.SpawnedAt < opts.FadeInSeconds || remaining < opts.FadeOutSeconds)
+        {
+            gui.RequestFrame();
+        }
+        else
+        {
+            gui.RequestFrameIn(remaining - opts.FadeOutSeconds);
+        }
     }
 
 }

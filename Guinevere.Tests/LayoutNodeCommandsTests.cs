@@ -16,7 +16,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(0.8f, 0.3f)]
     [InlineData(0.0f, 1.0f)]
     [InlineData(1.0f, 0.0f)]
-    public void Expand_WithBuildStage_SetsExpansionProperties(float widthPercentage, float heightPercentage)
+    public void ExpandWithBuildStageSetsExpansionProperties(float widthPercentage, float heightPercentage)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -35,7 +35,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Expand with default parameters sets full expansion (1.0, 1.0).
     /// </summary>
     [Fact]
-    public void Expand_WithDefaultParameters_SetsFullExpansion()
+    public void ExpandWithDefaultParametersSetsFullExpansion()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -54,7 +54,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Expand does not set expansion properties during render stage.
     /// </summary>
     [Fact]
-    public void Expand_WithRenderStage_DoesNotSetProperties()
+    public void ExpandWithRenderStageDoesNotSetProperties()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -81,7 +81,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(0.5f)]
     [InlineData(0.75f)]
     [InlineData(1.0f)]
-    public void ExpandWidth_WithBuildStage_SetsWidthExpansion(float percentage)
+    public void ExpandWidthWithBuildStageSetsWidthExpansion(float percentage)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -99,7 +99,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that ExpandWidth with default parameter sets full width expansion.
     /// </summary>
     [Fact]
-    public void ExpandWidth_WithDefaultParameter_SetsFullWidthExpansion()
+    public void ExpandWidthWithDefaultParameterSetsFullWidthExpansion()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -117,7 +117,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that ExpandWidth does not set properties during render stage.
     /// </summary>
     [Fact]
-    public void ExpandWidth_WithRenderStage_DoesNotSetProperties()
+    public void ExpandWidthWithRenderStageDoesNotSetProperties()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -142,7 +142,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(0.5f)]
     [InlineData(0.75f)]
     [InlineData(1.0f)]
-    public void ExpandHeight_WithBuildStage_SetsHeightExpansion(float percentage)
+    public void ExpandHeightWithBuildStageSetsHeightExpansion(float percentage)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -160,7 +160,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that ExpandHeight with default parameter sets full height expansion.
     /// </summary>
     [Fact]
-    public void ExpandHeight_WithDefaultParameter_SetsFullHeightExpansion()
+    public void ExpandHeightWithDefaultParameterSetsFullHeightExpansion()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -178,7 +178,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that ExpandHeight does not set properties during render stage.
     /// </summary>
     [Fact]
-    public void ExpandHeight_WithRenderStage_DoesNotSetProperties()
+    public void ExpandHeightWithRenderStageDoesNotSetProperties()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -204,7 +204,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(10f)]
     [InlineData(20f)]
     [InlineData(50f)]
-    public void Gap_WithBuildStage_SetsGapValue(float gap)
+    public void GapWithBuildStageSetsGapValue(float gap)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -221,7 +221,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Gap does not set the property during render stage.
     /// </summary>
     [Fact]
-    public void Gap_WithRenderStage_DoesNotSetProperty()
+    public void GapWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -246,7 +246,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(10f)]
     [InlineData(15f)]
     [InlineData(0f)]
-    public void Margin_WithSingleValue_SetsAllMargins(float margin)
+    public void MarginWithSingleValueSetsAllMargins(float margin)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -268,7 +268,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(0f, 15f)]
     [InlineData(20f, 0f)]
     [InlineData(8f, 12f)]
-    public void Margin_WithHorizontalVertical_SetsSpecificMargins(float horizontal, float vertical)
+    public void MarginWithHorizontalVerticalSetsSpecificMargins(float horizontal, float vertical)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -289,7 +289,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(1f, 2f, 3f, 4f)]
     [InlineData(0f, 5f, 10f, 15f)]
     [InlineData(20f, 0f, 5f, 10f)]
-    public void Margin_WithFourValues_SetsIndividualMargins(float top, float right, float bottom, float left)
+    public void MarginWithFourValuesSetsIndividualMargins(float top, float right, float bottom, float left)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -307,7 +307,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Margin does not set properties during render stage.
     /// </summary>
     [Fact]
-    public void Margin_WithRenderStage_DoesNotSetProperties()
+    public void MarginWithRenderStageDoesNotSetProperties()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -332,7 +332,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(10f)]
     [InlineData(15f)]
     [InlineData(0f)]
-    public void Padding_WithSingleValue_SetsAllPaddings(float padding)
+    public void PaddingWithSingleValueSetsAllPaddings(float padding)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -353,7 +353,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(0f, 15f)]
     [InlineData(20f, 0f)]
     [InlineData(8f, 12f)]
-    public void Padding_WithHorizontalVertical_SetsSpecificPaddings(float horizontal, float vertical)
+    public void PaddingWithHorizontalVerticalSetsSpecificPaddings(float horizontal, float vertical)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -373,7 +373,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(1f, 2f, 3f, 4f)]
     [InlineData(0f, 5f, 10f, 15f)]
     [InlineData(20f, 0f, 5f, 10f)]
-    public void Padding_WithFourValues_SetsIndividualPaddings(float top, float right, float bottom, float left)
+    public void PaddingWithFourValuesSetsIndividualPaddings(float top, float right, float bottom, float left)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -390,7 +390,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Padding does not set properties during render stage.
     /// </summary>
     [Fact]
-    public void Padding_WithRenderStage_DoesNotSetProperties()
+    public void PaddingWithRenderStageDoesNotSetProperties()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -416,7 +416,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(0.5f)]
     [InlineData(0.75f)]
     [InlineData(1.0f)]
-    public void AlignContent_WithBuildStage_SetsAlignment(float alignment)
+    public void AlignContentWithBuildStageSetsAlignment(float alignment)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -439,7 +439,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(0.5f)]
     [InlineData(0.75f)]
     [InlineData(1.0f)]
-    public void AlignSelf_WithBuildStage_SetsAlignment(float alignment)
+    public void AlignSelfWithBuildStageSetsAlignment(float alignment)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -459,7 +459,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(0.0f, 0.5f)]
     [InlineData(0.25f, 0.75f)]
     [InlineData(1.0f, 0.0f)]
-    public void AlignContent_WithTwoParameters_SetsSeparateValues(float horizontal, float vertical)
+    public void AlignContentWithTwoParametersSetsSeparateValues(float horizontal, float vertical)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -477,7 +477,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that AlignContent does not set the property during render stage.
     /// </summary>
     [Fact]
-    public void AlignContent_WithRenderStage_DoesNotSetProperty()
+    public void AlignContentWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -495,7 +495,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that AlignContent with two parameters does not set the properties during render stage.
     /// </summary>
     [Fact]
-    public void AlignContent_TwoParameters_WithRenderStage_DoesNotSetProperty()
+    public void AlignContentTwoParametersWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -513,7 +513,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that AlignSelf does not set the property during render stage.
     /// </summary>
     [Fact]
-    public void AlignSelf_WithRenderStage_DoesNotSetProperty()
+    public void AlignSelfWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -537,7 +537,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(Axis.Horizontal)]
     [InlineData(Axis.Vertical)]
     [InlineData(Axis.None)]
-    public void Direction_WithBuildStage_SetsDirection(Axis direction)
+    public void DirectionWithBuildStageSetsDirection(Axis direction)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -554,7 +554,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Direction does not set the property during render stage.
     /// </summary>
     [Fact]
-    public void Direction_WithRenderStage_DoesNotSetProperty()
+    public void DirectionWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -575,7 +575,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Wrap sets the wrap content flag during build stage.
     /// </summary>
     [Fact]
-    public void WrapContent_WithBuildStage_SetsWrapContent()
+    public void WrapContentWithBuildStageSetsWrapContent()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -592,7 +592,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Wrap does not set the property during render stage.
     /// </summary>
     [Fact]
-    public void WrapContent_WithRenderStage_DoesNotSetProperty()
+    public void WrapContentWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -617,7 +617,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(100f)]
     [InlineData(200f)]
     [InlineData(0f)]
-    public void Width_WithBuildStage_SetsWidth(float width)
+    public void WidthWithBuildStageSetsWidth(float width)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -638,7 +638,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(100f)]
     [InlineData(200f)]
     [InlineData(0f)]
-    public void Height_WithBuildStage_SetsHeight(float height)
+    public void HeightWithBuildStageSetsHeight(float height)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -658,7 +658,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(50f)]
     [InlineData(100f)]
     [InlineData(200f)]
-    public void Size_WithBuildStage_SetsBothWidthAndHeight(float size)
+    public void SizeWithBuildStageSetsBothWidthAndHeight(float size)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -676,7 +676,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Width does not set the property during render stage.
     /// </summary>
     [Fact]
-    public void Width_WithRenderStage_DoesNotSetProperty()
+    public void WidthWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -693,7 +693,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Height does not set the property during render stage.
     /// </summary>
     [Fact]
-    public void Height_WithRenderStage_DoesNotSetProperty()
+    public void HeightWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -718,7 +718,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(50f)]
     [InlineData(100f)]
     [InlineData(-10f)]
-    public void Left_WithBuildStage_SetsXPosition(float value)
+    public void LeftWithBuildStageSetsXPosition(float value)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -739,7 +739,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     [InlineData(50f)]
     [InlineData(100f)]
     [InlineData(-10f)]
-    public void Top_WithBuildStage_SetsYPosition(float value)
+    public void TopWithBuildStageSetsYPosition(float value)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -756,7 +756,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Left does not set the X position during render stage.
     /// </summary>
     [Fact]
-    public void Left_WithRenderStage_DoesNotSetProperty()
+    public void LeftWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -774,7 +774,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that Top does not set the Y position during render stage.
     /// </summary>
     [Fact]
-    public void Top_WithRenderStage_DoesNotSetProperty()
+    public void TopWithRenderStageDoesNotSetProperty()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();
@@ -796,7 +796,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that a fluent chain of multiple commands applies correctly during build stage.
     /// </summary>
     [Fact]
-    public void FluentChain_WithMultipleCommands_WorksCorrectly()
+    public void FluentChainWithMultipleCommandsWorksCorrectly()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -841,7 +841,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
     /// Verifies that a fluent chain of commands does not set any properties during render stage.
     /// </summary>
     [Fact]
-    public void FluentChain_WithRenderStage_DoesNotSetAnyProperties()
+    public void FluentChainWithRenderStageDoesNotSetAnyProperties()
     {
         // Arrange
         var node = CreateNodeWithRenderStage();

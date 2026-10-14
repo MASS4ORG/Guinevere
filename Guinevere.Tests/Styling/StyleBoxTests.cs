@@ -18,7 +18,10 @@ public class StyleBoxTests
 
         void Frame()
         {
-            using (gui.Node(Size, Size).Padding(20).Enter()) draw(gui);
+            using (gui.Node(Size, Size).Padding(20).Enter())
+            {
+                draw(gui);
+            }
         }
 
         gui.SetStage(Pass.Pass1Build);
@@ -50,7 +53,7 @@ public class StyleBoxTests
 
     /// <summary>Each corner takes its own radius from the shorthand.</summary>
     [Fact]
-    public void BorderRadius_PerCorner()
+    public void BorderRadiusPerCorner()
     {
         var px = Render(Base + "background-color = #ff0000; border-radius = 16 0 0 0; }", g => Box(g));
 
@@ -61,7 +64,7 @@ public class StyleBoxTests
 
     /// <summary>A linear gradient runs in the CSS direction; <c>background</c> also takes a plain color.</summary>
     [Fact]
-    public void Background_GradientAndColor()
+    public void BackgroundGradientAndColor()
     {
         var gradient = Render(Base + "background = linear-gradient(to right, #ff0000, #0000ff); }", g => Box(g));
         var solid = Render(Base + "background = #00ff00; }", g => Box(g));
@@ -73,7 +76,7 @@ public class StyleBoxTests
 
     /// <summary>Outer shadows paint outside the box only; inset shadows paint inside along the offset edge.</summary>
     [Fact]
-    public void BoxShadow_OuterAndInset()
+    public void BoxShadowOuterAndInset()
     {
         var outer = Render(Base + "box-shadow = 6px 6px 0 #000000; }", g => Box(g));
         var inset = Render(Base + "background-color = #ffffff; box-shadow = inset 0 6px 0 0 #000000; }", g => Box(g));
@@ -90,7 +93,7 @@ public class StyleBoxTests
 
     /// <summary>The outline is a ring outside the box at its offset; borders still draw on the edge.</summary>
     [Fact]
-    public void Outline_DrawsOutsideTheBox()
+    public void OutlineDrawsOutsideTheBox()
     {
         var px = Render(Base + "border-color = #00ff00; border-width = 2; outline = 2px solid #0000ff; outline-offset = 3; }",
             g => Box(g));
@@ -102,7 +105,7 @@ public class StyleBoxTests
 
     /// <summary>A border lies inside the border box, so a 1px border fills the edge pixels and nothing outside them.</summary>
     [Fact]
-    public void Border_LiesInsideTheBox()
+    public void BorderLiesInsideTheBox()
     {
         var px = Render(Base + "border-color = #00ff00; border-width = 1; }", g => Box(g));
 
@@ -115,7 +118,7 @@ public class StyleBoxTests
 
     /// <summary>Per-side widths and colors override the shorthand ones; a side without a color draws nothing.</summary>
     [Fact]
-    public void Border_PerSide()
+    public void BorderPerSide()
     {
         var bottom = Render(Base + "border-bottom-color = #ff0000; border-bottom-width = 2; }", g => Box(g));
         var mixed = Render(Base + "border-color = #00ff00; border-width = 1; border-top-width = 3; border-left-color = #0000ff; }",
@@ -137,7 +140,7 @@ public class StyleBoxTests
     /// the parent through itself, and a fully transparent node hides its subtree.
     /// </summary>
     [Fact]
-    public void Opacity_CompositesTheSubtreeAsAGroup()
+    public void OpacityCompositesTheSubtreeAsAGroup()
     {
         var px = Render("""
             box { width = 40; height = 40; padding = 10; background-color = #ff0000; opacity = 50%; }
@@ -161,7 +164,7 @@ public class StyleBoxTests
 
     /// <summary>The group's offscreen layer covers ink outside the box: blurred shadows and outlines.</summary>
     [Fact]
-    public void Opacity_LayerKeepsShadowsAndOutlines()
+    public void OpacityLayerKeepsShadowsAndOutlines()
     {
         var px = Render(Base + "opacity = 0.5; box-shadow = 8px 8px 6px #000000; outline = 2px #0000ff; outline-offset = 4; }",
             g => Box(g));
@@ -172,7 +175,7 @@ public class StyleBoxTests
 
     /// <summary>Descendants on another z-layer leave the group but still get its opacity multiplied in.</summary>
     [Fact]
-    public void Opacity_FadesDescendantsOnOtherLayers()
+    public void OpacityFadesDescendantsOnOtherLayers()
     {
         var px = Render("""
             box { width = 40; height = 40; background-color = #ff0000; opacity = 0.5; }
@@ -181,7 +184,9 @@ public class StyleBoxTests
         {
             using (g.StyledNode("box").Enter())
             using (g.StyledNode("over").Enter())
+            {
                 g.SetZIndex(5);
+            }
         });
 
         // The layered child is drawn after the group, itself at 50%: 0.5 + 0.5 × 0.5 = 75% coverage, not opaque blue.
@@ -192,7 +197,7 @@ public class StyleBoxTests
 
     /// <summary>Text color, size and font set on a parent are inherited by child text.</summary>
     [Fact]
-    public void TextProperties_AreInherited()
+    public void TextPropertiesAreInherited()
     {
         LayoutNodeScope? scope = null;
         Font? font = null;
@@ -216,17 +221,23 @@ public class StyleBoxTests
 
     /// <summary>Synthesized bold survives resizing in <c>DrawText</c>, so bold text draws wider ink.</summary>
     [Fact]
-    public void SynthesizedBold_DrawsHeavierText()
+    public void SynthesizedBoldDrawsHeavierText()
     {
         static int Ink(byte[] px) => Enumerable.Range(0, Size * Size).Count(i => px[(i * 4) + 3] > 128);
 
         var regular = Render("card { color = #000000; }", g =>
         {
-            using (g.StyledNode("card").Enter()) g.DrawText("WWW", 16);
+            using (g.StyledNode("card").Enter())
+            {
+                g.DrawText("WWW", 16);
+            }
         });
         var bold = Render("card { color = #000000; font-weight = 900; }", g =>
         {
-            using (g.StyledNode("card").Enter()) g.DrawText("WWW", 16);
+            using (g.StyledNode("card").Enter())
+            {
+                g.DrawText("WWW", 16);
+            }
         });
 
         Assert.True(Ink(bold) > Ink(regular));
@@ -234,10 +245,14 @@ public class StyleBoxTests
 
     /// <summary><c>font-family</c> finds <c>@font-face</c> files; unknown families keep the inherited font.</summary>
     [Fact]
-    public void FontFamily_UsesFontFaces()
+    public void FontFamilyUsesFontFaces()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (!File.Exists(Path.Combine(dir!.FullName, "Guinevere.slnx"))) dir = dir.Parent;
+        while (!File.Exists(Path.Combine(dir!.FullName, "Guinevere.slnx")))
+        {
+            dir = dir.Parent;
+        }
+
         var file = new Uri(Path.Combine(dir.FullName, "Integrations/Resources/Fonts/Roboto-Regular.ttf")).AbsoluteUri;
         Font? found = null, missing = null, inherited = null;
 
@@ -248,8 +263,15 @@ public class StyleBoxTests
             """, g =>
         {
             inherited = g.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value;
-            using (g.StyledNode("a").Enter()) found = g.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value;
-            using (g.StyledNode("b").Enter()) missing = g.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value;
+            using (g.StyledNode("a").Enter())
+            {
+                found = g.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value;
+            }
+
+            using (g.StyledNode("b").Enter())
+            {
+                missing = g.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value;
+            }
         });
 
         Assert.Equal("Roboto", found!.SkFont.Typeface.FamilyName);
@@ -258,7 +280,7 @@ public class StyleBoxTests
 
     /// <summary><c>cursor</c> sets the node's pointer cursor in the build pass.</summary>
     [Fact]
-    public void Cursor_IsApplied()
+    public void CursorIsApplied()
     {
         LayoutNode? node = null;
         Render("box { cursor = pointer; } plain { }", g =>
@@ -272,7 +294,7 @@ public class StyleBoxTests
 
     /// <summary>A parent's <c>:hover</c> text color reaches a styled child that only sets its own font size.</summary>
     [Fact]
-    public void HoverTextColor_ReachesStyledChildren()
+    public void HoverTextColorReachesStyledChildren()
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(40, 40));
@@ -283,7 +305,9 @@ public class StyleBoxTests
         {
             using (g.StyledNode("box").Enter())
             using (g.StyledNode("inner").Enter())
+            {
                 scope = g.CurrentNodeScope;
+            }
         }, new Gui { Input = input });
 
         Assert.Equal(Color.FromArgb(255, 255, 0, 0), scope!.Get<LayoutNodeScopeTextColor>().Value);
@@ -294,7 +318,7 @@ public class StyleBoxTests
     [Theory]
     [InlineData(40f, PointerCursor.Move)]
     [InlineData(5f, PointerCursor.Hand)]
-    public void Cursor_FollowsHoverState(float pointer, PointerCursor expected)
+    public void CursorFollowsHoverState(float pointer, PointerCursor expected)
     {
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(pointer, pointer));

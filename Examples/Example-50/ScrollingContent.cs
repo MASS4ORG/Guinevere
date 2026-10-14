@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {
@@ -123,7 +123,9 @@ public abstract partial class Program
                         gui.DrawText($"Item {i + 1} - a scrollable row; click me", color: Token(gui, "text"));
 
                         if (gui.GetInteractable().OnClick())
+                        {
                             gui.DrawText($"[CLICKED]", color: Color.Yellow);
+                        }
                     }
                 }
             }

@@ -12,10 +12,17 @@ public partial class LayoutNode
     /// </summary>
     public LayoutNode AddChild(LayoutNode child)
     {
-        if (ChildNodes.Contains(child)) return child;
+        if (ChildNodes.Contains(child))
+        {
+            return child;
+        }
 
         ChildNodes.Add(child);
-        if (child.Style.IsAbsolute) _absoluteChildCount++;
+        if (child.Style.IsAbsolute)
+        {
+            _absoluteChildCount++;
+        }
+
         _flowChildrenCache = null;
         InvalidateLayout();
 
@@ -26,7 +33,11 @@ public partial class LayoutNode
     internal void AppendNewChild(LayoutNode child)
     {
         ChildNodes.Add(child);
-        if (child.Style.IsAbsolute) _absoluteChildCount++;
+        if (child.Style.IsAbsolute)
+        {
+            _absoluteChildCount++;
+        }
+
         _flowChildrenCache = null;
         InvalidateLayout();
     }
@@ -39,9 +50,16 @@ public partial class LayoutNode
     /// </summary>
     public bool RemoveChild(LayoutNode child)
     {
-        if (!ChildNodes.Remove(child)) return false;
+        if (!ChildNodes.Remove(child))
+        {
+            return false;
+        }
 
-        if (child.Style.IsAbsolute) _absoluteChildCount--;
+        if (child.Style.IsAbsolute)
+        {
+            _absoluteChildCount--;
+        }
+
         _flowChildrenCache = null;
         InvalidateLayout();
         return true;

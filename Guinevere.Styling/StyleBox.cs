@@ -44,18 +44,29 @@ sealed class StyleBox : IDrawable, IInkBounds
         var shadows = StyleBoxValues.Shadows(style.Get("box-shadow"));
         var border = StyleBoxValues.Border(style);
         var outline = StyleBoxValues.Outline(style);
-        if (fill is null && bitmap is null && shadows.Count == 0 && border is null && outline is null) return null;
+        if (fill is null && bitmap is null && shadows.Count == 0 && border is null && outline is null)
+        {
+            return null;
+        }
 
         var box = new SKRoundRect();
         box.SetRectRadii(bounds, StyleBoxValues.Radii(style.Get("border-radius"), rect));
         var shape = Shaped(box, fill, shadows);
-        if (opaqueGradient) shape.OpaqueFill = true;
+        if (opaqueGradient)
+        {
+            shape.OpaqueFill = true;
+        }
+
         return new StyleBox(shape, box, border, outline);
     }
 
     static SKPaint? BitmapFill(SKPaint? fill, StyleBitmapBackground? bitmap, SKRect bounds)
     {
-        if (bitmap is null) return fill;
+        if (bitmap is null)
+        {
+            return fill;
+        }
+
         using var background = fill?.Shader ?? SKShader.CreateColor(fill?.Color ?? SKColors.Transparent);
         using var image = bitmap.CreateShader(bounds);
         return new SKPaint
@@ -74,8 +85,14 @@ sealed class StyleBox : IDrawable, IInkBounds
         foreach (var shadow in shadows)
         {
             var offset = new Vector2(shadow.X, shadow.Y);
-            if (shadow.Inset) shape.InnerShadow(shadow.Color, offset, shadow.Blur, shadow.Spread);
-            else shape.OuterShadow(shadow.Color, offset, shadow.Blur, shadow.Spread);
+            if (shadow.Inset)
+            {
+                shape.InnerShadow(shadow.Color, offset, shadow.Blur, shadow.Spread);
+            }
+            else
+            {
+                shape.OuterShadow(shadow.Color, offset, shadow.Blur, shadow.Spread);
+            }
         }
         return shape;
     }
@@ -88,7 +105,10 @@ sealed class StyleBox : IDrawable, IInkBounds
     {
         var shader = StyleBoxValues.Gradient(style.Get("background-image"), bounds, out var opaque)
                      ?? StyleBoxValues.Gradient(style.Get("background"), bounds, out opaque);
-        if (shader is not null) return (new SKPaint { IsAntialias = true, Shader = shader }, opaque);
+        if (shader is not null)
+        {
+            return (new SKPaint { IsAntialias = true, Shader = shader }, opaque);
+        }
 
         var color = style.GetColor("background-color") ?? style.GetColor("bg-color") ?? style.GetColor("background");
         return (color is { } c ? new SKPaint { IsAntialias = true, Color = c } : null, false);
@@ -98,8 +118,16 @@ sealed class StyleBox : IDrawable, IInkBounds
     public void Render(Gui gui, LayoutNode node, SKCanvas canvas)
     {
         _shape.Render(gui, node, canvas);
-        if (_border is { } border) DrawBorder(canvas, border);
-        if (_outline is not { } outline) return;
+        if (_border is { } border)
+        {
+            DrawBorder(canvas, border);
+        }
+
+        if (_outline is not { } outline)
+        {
+            return;
+        }
+
         var ring = new SKRoundRect(_box);
         ring.Inflate(outline.Offset + outline.Width * 0.5f, outline.Offset + outline.Width * 0.5f);
         canvas.DrawRoundRect(ring, Stroke(outline.Color, outline.Width));
@@ -133,7 +161,9 @@ sealed class StyleBox : IDrawable, IInkBounds
     static void Strip(SKCanvas canvas, SKRect strip, Color color)
     {
         if (strip.Width > 0f && strip.Height > 0f && color.A > 0)
+        {
             canvas.DrawRect(strip, new SKPaint { IsAntialias = true, Color = color });
+        }
     }
 
     static SKPaint Stroke(Color color, float width) =>

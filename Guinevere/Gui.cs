@@ -22,10 +22,23 @@ public partial class Gui
     {
         ArgumentNullException.ThrowIfNull(text);
         Fonts.SetRole(FontRole.Ui, text);
-        if (emoji is null) Fonts.ClearRole(FontRole.Emoji);
-        else Fonts.SetRole(FontRole.Emoji, emoji);
-        if (widgetIcon is null) Fonts.ClearRole(FontRole.Icon);
-        else Fonts.SetRole(FontRole.Icon, widgetIcon);
+        if (emoji is null)
+        {
+            Fonts.ClearRole(FontRole.Emoji);
+        }
+        else
+        {
+            Fonts.SetRole(FontRole.Emoji, emoji);
+        }
+
+        if (widgetIcon is null)
+        {
+            Fonts.ClearRole(FontRole.Icon);
+        }
+        else
+        {
+            Fonts.SetRole(FontRole.Icon, widgetIcon);
+        }
     }
 
     /// <summary>
@@ -100,7 +113,11 @@ public partial class Gui
         BeginFrameRequests();
         _dataFrame++;
         Canvas = canvas;
-        if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.BeginFrame();
+        if (Platform.TryGet<IAccessibilityCapability>(out var accessibility))
+        {
+            accessibility?.BeginFrame();
+        }
+
         UpdateSystemAppearance();
 
         // Events run against the previous frame's tree, before it is cleared, so listeners see what the user saw.
@@ -137,18 +154,38 @@ public partial class Gui
 
     Font? ApplyFrameTextFonts(Font? font, Font? fontIcon)
     {
-        if (font is not null) Fonts.Register(font.FamilyName, font);
-        if (fontIcon is not null) Fonts.Register(fontIcon.FamilyName, fontIcon);
+        if (font is not null)
+        {
+            Fonts.Register(font.FamilyName, font);
+        }
+
+        if (fontIcon is not null)
+        {
+            Fonts.Register(fontIcon.FamilyName, fontIcon);
+        }
+
         var textFont = font ?? Fonts.ResolveRole(FontRole.Ui);
-        if (textFont is not null) SetTextFont(textFont);
+        if (textFont is not null)
+        {
+            SetTextFont(textFont);
+        }
+
         var emojiFont = fontIcon ?? Fonts.ResolveRole(FontRole.Emoji) ?? textFont;
-        if (emojiFont is not null) SetEmojiFont(emojiFont);
+        if (emojiFont is not null)
+        {
+            SetEmojiFont(emojiFont);
+        }
+
         return textFont;
     }
 
     void ApplyFrameWidgetFont(Font? textFont, Font? fontIcon, Font? fontWidgetIcon)
     {
-        if (fontWidgetIcon is not null) Fonts.Register(fontWidgetIcon.FamilyName, fontWidgetIcon);
+        if (fontWidgetIcon is not null)
+        {
+            Fonts.Register(fontWidgetIcon.FamilyName, fontWidgetIcon);
+        }
+
         SetWidgetIconFont(fontWidgetIcon ?? Fonts.ResolveRole(FontRole.Icon) ?? fontIcon
             ?? Fonts.ResolveRole(FontRole.Emoji) ?? textFont ?? LayoutNodeScopeIconFont.Default.Value);
     }
@@ -171,7 +208,11 @@ public partial class Gui
         ResolveDrag();
         ApplyCursorAndPointerMode();
         TrackPointerForNextFrame();
-        if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.EndFrame();
+        if (Platform.TryGet<IAccessibilityCapability>(out var accessibility))
+        {
+            accessibility?.EndFrame();
+        }
+
         Canvas = null;
     }
 
@@ -185,7 +226,11 @@ public partial class Gui
         BeginIdentityPass();
         Pass = newPass;
         _matchIndexes.Clear();
-        if (RootNode is null) return;
+        if (RootNode is null)
+        {
+            return;
+        }
+
         RootNode.Pass2NodeCount = 0;
         RootNode.MatchCursor = 0;
     }
@@ -219,14 +264,32 @@ public partial class Gui
             var node = _renderNodes[index].Node;
             var opacity = _opacityUsed ? EnterOpacityGroups(index) : 1f;
             var restore = Canvas!.Save();
-            if (TransformsUsed) ApplyTransformedClips(node, Canvas!);
-            else ApplyAncestorClips(node, Canvas!);
-            if (opacity < 1f) SaveOpacityLayer(node.DrawList.InkBounds(node), opacity);
-            if (opacity > 0f) node.DrawList.Render(this, node, Canvas!, renderer);
+            if (TransformsUsed)
+            {
+                ApplyTransformedClips(node, Canvas!);
+            }
+            else
+            {
+                ApplyAncestorClips(node, Canvas!);
+            }
+
+            if (opacity < 1f)
+            {
+                SaveOpacityLayer(node.DrawList.InkBounds(node), opacity);
+            }
+
+            if (opacity > 0f)
+            {
+                node.DrawList.Render(this, node, Canvas!, renderer);
+            }
+
             Canvas!.RestoreToCount(restore);
             node.Pass2NodeCount = 0;
         }
-        if (_opacityUsed) CloseOpacityGroups(int.MaxValue, int.MaxValue);
+        if (_opacityUsed)
+        {
+            CloseOpacityGroups(int.MaxValue, int.MaxValue);
+        }
     }
 
     /// <summary>
@@ -246,7 +309,9 @@ public partial class Gui
     {
         if (node.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
             && node.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
+        {
             return;
+        }
 
         _clipAncestors.Clear();
         for (var a = node.Parent; a is not null; a = a.Parent)
@@ -255,20 +320,31 @@ public partial class Gui
 
             if (a.Scope.HasLocal<LayoutNodeScopeEscapesAncestorClips>()
                 && a.Scope.Get<LayoutNodeScopeEscapesAncestorClips>().Value)
+            {
                 break;
+            }
         }
 
         for (var i = _clipAncestors.Count - 1; i >= 0; i--)
         {
             var ancestor = _clipAncestors[i];
-            if (!ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>()) continue;
-            if (!ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value) continue;
+            if (!ancestor.Scope.HasLocal<LayoutNodeScopeIsClipped>())
+            {
+                continue;
+            }
+
+            if (!ancestor.Scope.Get<LayoutNodeScopeIsClipped>().Value)
+            {
+                continue;
+            }
 
             // The node's own rect, not its content box: clipping means "nothing outside this node",
             // and a scroll container draws its bar in the padding it reserved.
             var r = ancestor.Rect;
             if (r is { W: > 0, H: > 0 })
+            {
                 canvas.ClipRect(r);
+            }
         }
     }
 
@@ -279,7 +355,9 @@ public partial class Gui
         list.Add((node.Scope.Get<LayoutNodeScopeZIndex>().Value, index, index, node));
 
         foreach (var child in node.Children)
+        {
             NodeFlatList(child, list);
+        }
 
         list[index] = list[index] with { End = list.Count - 1 };
     }

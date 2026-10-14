@@ -27,7 +27,10 @@ public class GuiDataTests
             }
             Assert.Null(gui.TryGetControlState<State>("same"));
             Assert.Equal("root", gui.GetData("root", "value"));
-            using (gui.EnterDataScope("popup")) Assert.Equal("popup", gui.GetData("", "value"));
+            using (gui.EnterDataScope("popup"))
+            {
+                Assert.Equal("popup", gui.GetData("", "value"));
+            }
         });
         Assert.NotEqual(harness.Gui.RootNode!.ChildNodes[0].Id, harness.Gui.RootNode.ChildNodes[1].Id);
     }
@@ -64,7 +67,11 @@ public class GuiDataTests
             }
             Assert.Equal(1, gui.GetData(0, "count"));
             Assert.Equal(rootColor, gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value);
-            using (panel.Enter()) Assert.Equal(2, gui.GetData(0, "count"));
+            using (panel.Enter())
+            {
+                Assert.Equal(2, gui.GetData(0, "count"));
+            }
+
             Assert.Equal(1, gui.GetData(0, "count"));
         });
     }
@@ -84,7 +91,11 @@ public class GuiDataTests
                 using var key = gui.ItemKey(item);
                 using var scope = gui.EnterDataScope();
                 ref var value = ref gui.GetData(item);
-                if (increment && gui.Pass == Pass.Pass1Build) value += 10;
+                if (increment && gui.Pass == Pass.Pass1Build)
+                {
+                    value += 10;
+                }
+
                 values[item] = value;
                 gui.Node(10, 10);
             }
@@ -107,15 +118,51 @@ public class GuiDataTests
         using var harness = new FrameHarness();
         harness.Frame(gui =>
         {
-            using (gui.EnterDataScope(1)) gui.SetData("integer", "value");
-            using (gui.EnterDataScope("1")) gui.SetData("string", "value");
-            using (gui.EnterDataScope(new Collision(1))) gui.SetData("first", "value");
-            using (gui.EnterDataScope(new Collision(2))) gui.SetData("second", "value");
-            using (gui.EnterDataScope(1)) Assert.Equal("integer", gui.GetData("", "value"));
-            using (gui.EnterDataScope("1")) Assert.Equal("string", gui.GetData("", "value"));
-            using (gui.EnterDataScope(new Collision(1))) Assert.Equal("first", gui.GetData("", "value"));
-            using (gui.EnterDataScope(new Collision(2))) Assert.Equal("second", gui.GetData("", "value"));
-            for (var i = 0; i < 3; i++) Assert.Equal(i, gui.GetData(i));
+            using (gui.EnterDataScope(1))
+            {
+                gui.SetData("integer", "value");
+            }
+
+            using (gui.EnterDataScope("1"))
+            {
+                gui.SetData("string", "value");
+            }
+
+            using (gui.EnterDataScope(new Collision(1)))
+            {
+                gui.SetData("first", "value");
+            }
+
+            using (gui.EnterDataScope(new Collision(2)))
+            {
+                gui.SetData("second", "value");
+            }
+
+            using (gui.EnterDataScope(1))
+            {
+                Assert.Equal("integer", gui.GetData("", "value"));
+            }
+
+            using (gui.EnterDataScope("1"))
+            {
+                Assert.Equal("string", gui.GetData("", "value"));
+            }
+
+            using (gui.EnterDataScope(new Collision(1)))
+            {
+                Assert.Equal("first", gui.GetData("", "value"));
+            }
+
+            using (gui.EnterDataScope(new Collision(2)))
+            {
+                Assert.Equal("second", gui.GetData("", "value"));
+            }
+
+            for (var i = 0; i < 3; i++)
+            {
+                Assert.Equal(i, gui.GetData(i));
+            }
+
             Assert.Throws<ArgumentNullException>(() => gui.EnterDataScope<string>(null!));
         });
     }
@@ -128,7 +175,11 @@ public class GuiDataTests
         harness.Frame(gui =>
         {
             ref var value = ref gui.GetData(1, "original");
-            for (var i = 0; i < 1000; i++) gui.SetData(i, i.ToString());
+            for (var i = 0; i < 1000; i++)
+            {
+                gui.SetData(i, i.ToString());
+            }
+
             value = 42;
             Assert.Equal(42, gui.GetData(0, "original"));
             var resource = new Resource();
@@ -174,7 +225,11 @@ public class GuiDataTests
             Assert.Throws<InvalidOperationException>(() => outer.Dispose());
             Assert.Throws<InvalidOperationException>(() => gui.SetStage(Pass.Pass2Render));
             inner.Dispose();
-            using (gui.Node(10, 10).Enter()) Assert.Throws<InvalidOperationException>(() => outer.Dispose());
+            using (gui.Node(10, 10).Enter())
+            {
+                Assert.Throws<InvalidOperationException>(() => outer.Dispose());
+            }
+
             outer.Dispose();
             Assert.Throws<InvalidOperationException>(() => outer.Dispose());
             default(DataScope).Dispose();
@@ -208,7 +263,7 @@ public class GuiDataTests
     public void AutomaticNodeDataScopesResetEachPass()
     {
         using var harness = new FrameHarness();
-        void Draw(Gui gui)
+        static void Draw(Gui gui)
         {
             for (var i = 0; i < 2; i++)
             {
@@ -242,12 +297,17 @@ public class GuiDataTests
                 {
                     ref var data = ref gui.GetData(index, "content");
                     Assert.Equal(index, data);
-                    if (gui.Pass == Pass.Pass1Build) builds[index]++;
+                    if (gui.Pass == Pass.Pass1Build)
+                    {
+                        builds[index]++;
+                    }
                 }, position: new Vector2(i * 250, 150), closeOnClickOutside: false, id: "popup");
                 var anchor = gui.Node(50, 30, "anchor").AbsoluteScreen(i * 100, 0);
                 gui.Tooltip(anchor, "tip", delay, id: "tip");
                 if (i == 1 && gui.Pass == Pass.Pass2Render)
+                {
                     show = gui.RootNode!.ChildNodes[^1].StyleTarget!.Value.Modifiers?.Contains("closed") != true;
+                }
             }
         }
         harness.Frame(Draw);

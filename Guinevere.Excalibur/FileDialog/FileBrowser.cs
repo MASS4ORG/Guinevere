@@ -71,19 +71,33 @@ public sealed class FileBrowser
         try
         {
             var directory = await _fileSystem.ResolveDirectoryAsync(path, next.Token).ConfigureAwait(false);
-            if (directory is null) return false;
+            if (directory is null)
+            {
+                return false;
+            }
+
             var entries = await _fileSystem.EnumerateAsync(directory, next.Token).ConfigureAwait(false);
 
             lock (_loaded)
             {
-                if (!ReferenceEquals(_loading, next)) return false;
+                if (!ReferenceEquals(_loading, next))
+                {
+                    return false;
+                }
+
                 CurrentPath = directory;
                 _loaded.Clear();
                 _loaded.AddRange(entries);
                 if (_historyIndex < _history.Count - 1)
+                {
                     _history.RemoveRange(_historyIndex + 1, _history.Count - _historyIndex - 1);
+                }
+
                 if (_history.Count == 0 || !string.Equals(_history[^1], directory, StringComparison.Ordinal))
+                {
                     _history.Add(directory);
+                }
+
                 _historyIndex = _history.Count - 1;
                 Rebuild();
                 return true;
@@ -95,14 +109,21 @@ public sealed class FileBrowser
         }
         catch (Exception exception) when (IsFileSystemError(exception))
         {
-            if (ReferenceEquals(_loading, next)) Error = exception.Message;
+            if (ReferenceEquals(_loading, next))
+            {
+                Error = exception.Message;
+            }
+
             return false;
         }
         finally
         {
             lock (_loaded)
             {
-                if (ReferenceEquals(_loading, next)) IsLoading = false;
+                if (ReferenceEquals(_loading, next))
+                {
+                    IsLoading = false;
+                }
             }
         }
     }
@@ -110,7 +131,11 @@ public sealed class FileBrowser
     /// <summary>Re-reads the current path asynchronously.</summary>
     public async ValueTask RefreshAsync(CancellationToken cancellationToken = default)
     {
-        if (CurrentPath.Length == 0) return;
+        if (CurrentPath.Length == 0)
+        {
+            return;
+        }
+
         await LoadCurrentAsync(CurrentPath, cancellationToken).ConfigureAwait(false);
     }
 
@@ -118,7 +143,11 @@ public sealed class FileBrowser
     public async ValueTask<string?> CreateFolderAsync(string name, CancellationToken cancellationToken = default)
     {
         Error = ValidateName(name);
-        if (Error is not null) return null;
+        if (Error is not null)
+        {
+            return null;
+        }
+
         try
         {
             var candidate = Path.Combine(CurrentPath, name.Trim());
@@ -176,7 +205,11 @@ public sealed class FileBrowser
         get => _showHidden;
         set
         {
-            if (_showHidden == value) return;
+            if (_showHidden == value)
+            {
+                return;
+            }
+
             _showHidden = value;
             Rebuild();
         }
@@ -189,7 +222,11 @@ public sealed class FileBrowser
         set
         {
             var next = value;
-            if (_search == next) return;
+            if (_search == next)
+            {
+                return;
+            }
+
             _search = next;
             Rebuild();
         }
@@ -202,7 +239,11 @@ public sealed class FileBrowser
         set
         {
             var next = value ?? FileDialogFilter.All;
-            if (ReferenceEquals(_filter, next)) return;
+            if (ReferenceEquals(_filter, next))
+            {
+                return;
+            }
+
             _filter = next;
             Rebuild();
         }
@@ -214,7 +255,11 @@ public sealed class FileBrowser
         get => _directoriesOnly;
         set
         {
-            if (_directoriesOnly == value) return;
+            if (_directoriesOnly == value)
+            {
+                return;
+            }
+
             _directoriesOnly = value;
             Rebuild();
         }
@@ -223,14 +268,22 @@ public sealed class FileBrowser
     /// <summary>Moves to the previous history entry asynchronously.</summary>
     public async ValueTask GoBackAsync(CancellationToken cancellationToken = default)
     {
-        if (!CanGoBack) return;
+        if (!CanGoBack)
+        {
+            return;
+        }
+
         await NavigateHistoryAsync(_historyIndex - 1, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Moves to the next history entry asynchronously.</summary>
     public async ValueTask GoForwardAsync(CancellationToken cancellationToken = default)
     {
-        if (!CanGoForward) return;
+        if (!CanGoForward)
+        {
+            return;
+        }
+
         await NavigateHistoryAsync(_historyIndex + 1, cancellationToken).ConfigureAwait(false);
     }
 
@@ -273,7 +326,10 @@ public sealed class FileBrowser
     /// <param name="column">The column to order by.</param>
     public void SortBy(FileSortColumn column)
     {
-        if (_sort == column) _ascending = !_ascending;
+        if (_sort == column)
+        {
+            _ascending = !_ascending;
+        }
         else
         {
             _sort = column;
@@ -324,8 +380,15 @@ public sealed class FileBrowser
     /// <returns>The formatted size, or an empty string when there is none.</returns>
     public static string FormatSize(long bytes)
     {
-        if (bytes < 0) return "";
-        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 0)
+        {
+            return "";
+        }
+
+        if (bytes < 1024)
+        {
+            return $"{bytes} B";
+        }
 
         string[] units = ["KB", "MB", "GB", "TB", "PB"];
         double size = bytes;
@@ -341,7 +404,11 @@ public sealed class FileBrowser
 
     static string? ValidateName(string name)
     {
-        if (string.IsNullOrWhiteSpace(name)) return "A folder needs a name.";
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "A folder needs a name.";
+        }
+
         return name.AsSpan().IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
             ? $"'{name}' is not a valid folder name."
             : null;

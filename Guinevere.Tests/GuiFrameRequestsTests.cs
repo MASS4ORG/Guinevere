@@ -7,7 +7,7 @@ public class GuiFrameRequestsTests
 {
     /// <summary>A request stays pending until the next frame starts, which serves it.</summary>
     [Fact]
-    public void RequestFrame_IsServedByTheNextFrame()
+    public void RequestFrameIsServedByTheNextFrame()
     {
         using var harness = new FrameHarness();
         Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
@@ -27,7 +27,7 @@ public class GuiFrameRequestsTests
     /// timers are re-requested by the controls that frame builds.
     /// </summary>
     [Fact]
-    public void RequestFrameIn_KeepsTheEarliestDeadline()
+    public void RequestFrameInKeepsTheEarliestDeadline()
     {
         using var harness = new FrameHarness();
         var gui = harness.Gui;
@@ -55,7 +55,7 @@ public class GuiFrameRequestsTests
 
     /// <summary>Requests from the frame thread do not wake the host; requests from other threads do.</summary>
     [Fact]
-    public void Requests_FromOtherThreads_WakeTheHost()
+    public void RequestsFromOtherThreadsWakeTheHost()
     {
         using var harness = new FrameHarness();
         var wakes = 0;
@@ -79,7 +79,7 @@ public class GuiFrameRequestsTests
 
     /// <summary>Springs, tweens and boolean animations request frames while moving and stop once settled.</summary>
     [Fact]
-    public void Animations_RequestFramesUntilSettled()
+    public void AnimationsRequestFramesUntilSettled()
     {
         using var harness = new FrameHarness();
         var target = 0f;
@@ -97,13 +97,17 @@ public class GuiFrameRequestsTests
         harness.Frame(Draw);
         Assert.Equal(0, harness.Gui.FrameWaitSeconds);
 
-        for (var i = 0; i < 120; i++) harness.Frame(Draw);
+        for (var i = 0; i < 120; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
     }
 
     /// <summary>A frame after a long idle wait does not make a spring jump past the motion the input just started.</summary>
     [Fact]
-    public void Smoothdamp_AfterIdleWait_StillAnimates()
+    public void SmoothdampAfterIdleWaitStillAnimates()
     {
         using var harness = new FrameHarness();
         var target = 0f;

@@ -42,19 +42,29 @@ public static class StyleValue
     {
         value = 0f;
         isPercent = false;
-        if (text.IsWhiteSpace()) return false;
+        if (text.IsWhiteSpace())
+        {
+            return false;
+        }
 
         var t = text.Trim();
         if (t.EndsWith('%'))
         {
             isPercent = true;
             if (!float.TryParse(t[..^1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+            {
                 return false;
+            }
+
             value /= 100f;
             return true;
         }
 
-        if (t.EndsWith("px", StringComparison.OrdinalIgnoreCase)) t = t[..^2].Trim();
+        if (t.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+        {
+            t = t[..^2].Trim();
+        }
+
         return float.TryParse(t, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
     }
 
@@ -91,12 +101,28 @@ public static class StyleValue
     public static bool TryUrl(string? text, Uri? baseUri, [NotNullWhen(true)] out Uri? uri)
     {
         uri = null;
-        if (string.IsNullOrWhiteSpace(text)) return false;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
         var t = text.Trim();
-        if (t.StartsWith("url(", StringComparison.OrdinalIgnoreCase) && t.EndsWith(')')) t = t[4..^1].Trim();
+        if (t.StartsWith("url(", StringComparison.OrdinalIgnoreCase) && t.EndsWith(')'))
+        {
+            t = t[4..^1].Trim();
+        }
+
         t = Unquote(t);
-        if (t.Length == 0) return false;
-        if (Uri.TryCreate(t, UriKind.Absolute, out uri)) return true;
+        if (t.Length == 0)
+        {
+            return false;
+        }
+
+        if (Uri.TryCreate(t, UriKind.Absolute, out uri))
+        {
+            return true;
+        }
+
         return baseUri is { IsAbsoluteUri: true }
             ? Uri.TryCreate(baseUri, t, out uri)
             : Uri.TryCreate(t, UriKind.Relative, out uri);
@@ -119,12 +145,22 @@ public static class StyleValue
     public static string Unescape(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
-        if (!text.Contains('\\')) return text;
+        if (!text.Contains('\\'))
+        {
+            return text;
+        }
+
         var builder = new System.Text.StringBuilder(text.Length);
         for (var i = 0; i < text.Length; i++)
         {
-            if (text[i] == '\\' && i + 1 < text.Length) i = AppendEscape(builder, text, i + 1);
-            else builder.Append(text[i]);
+            if (text[i] == '\\' && i + 1 < text.Length)
+            {
+                i = AppendEscape(builder, text, i + 1);
+            }
+            else
+            {
+                builder.Append(text[i]);
+            }
         }
         return builder.ToString();
     }
@@ -133,7 +169,11 @@ public static class StyleValue
     static int AppendEscape(System.Text.StringBuilder builder, string text, int start)
     {
         var end = start;
-        while (end - start < 6 && end < text.Length && char.IsAsciiHexDigit(text[end])) end++;
+        while (end - start < 6 && end < text.Length && char.IsAsciiHexDigit(text[end]))
+        {
+            end++;
+        }
+
         if (end == start)
         {
             builder.Append(text[start]);
@@ -156,7 +196,11 @@ public static class StyleValue
     public static bool TryColor(string? text, out Color color)
     {
         color = Color.Black;
-        if (string.IsNullOrWhiteSpace(text)) return false;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
         var t = text.Trim();
 
         if (t.StartsWith('#'))
@@ -165,7 +209,9 @@ public static class StyleValue
         }
 
         if (t.StartsWith("rgb", StringComparison.OrdinalIgnoreCase))
+        {
             return TryRgb(t, out color);
+        }
 
         if (t.Equals("transparent", StringComparison.OrdinalIgnoreCase))
         {
@@ -175,7 +221,9 @@ public static class StyleValue
 
         var named = System.Drawing.Color.FromName(t);
         if (named.A == 0 && !t.Equals("transparent", StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         color = named;
         return true;
@@ -187,11 +235,17 @@ public static class StyleValue
         color = Color.Black;
         var open = t.IndexOf('(');
         var close = t.IndexOf(')');
-        if (open < 0 || close < open) return false;
+        if (open < 0 || close < open)
+        {
+            return false;
+        }
 
         var scale = RgbScale(t[..open]);
         Span<float> channels = [0f, 0f, 0f, 255f / Math.Max(scale, 1f)];
-        if (scale == 0f || !TryChannels(t[(open + 1)..close], channels)) return false;
+        if (scale == 0f || !TryChannels(t[(open + 1)..close], channels))
+        {
+            return false;
+        }
 
         color = Color.FromArgb(Byte(channels[3]), Byte(channels[0]), Byte(channels[1]), Byte(channels[2]));
         return true;
@@ -203,9 +257,19 @@ public static class StyleValue
     static bool TryChannels(string list, Span<float> channels)
     {
         var parts = list.Split(',', StringSplitOptions.TrimEntries);
-        if (parts.Length is < 3 or > 4) return false;
+        if (parts.Length is < 3 or > 4)
+        {
+            return false;
+        }
+
         for (var i = 0; i < parts.Length; i++)
-            if (!TryFloat(parts[i], out channels[i])) return false;
+        {
+            if (!TryFloat(parts[i], out channels[i]))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 

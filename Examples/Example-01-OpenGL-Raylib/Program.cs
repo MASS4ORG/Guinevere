@@ -1,7 +1,7 @@
-using Example_01;
+using Example01;
 using Guinevere;
 
-namespace Example_01_OpenGL_Raylib;
+namespace Example01OpenGLRaylib;
 
 public abstract class Program
 {

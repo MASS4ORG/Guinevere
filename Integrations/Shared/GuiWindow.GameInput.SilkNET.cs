@@ -11,12 +11,19 @@ public partial class GuiWindow
     void PollGameInput()
     {
         _gameInput.Poll(ReadController, 16, _gameInputClock.Elapsed.TotalSeconds);
-        if (_gameInput.Changed) Pacing.NotifyInput();
+        if (_gameInput.Changed)
+        {
+            Pacing.NotifyInput();
+        }
     }
 
     GameInputSample? ReadController(int slot)
     {
-        if (!_glfw.JoystickPresent(slot)) return null;
+        if (!_glfw.JoystickPresent(slot))
+        {
+            return null;
+        }
+
         var guid = _glfw.GetJoystickGUID(slot);
         var (mapped, buttons, axes) = ReadControllerState(slot);
         return new GameInputSample($"glfw:{slot}:{guid}",
@@ -29,8 +36,11 @@ public partial class GuiWindow
     unsafe (bool Mapped, bool[] Buttons, float[] Axes) ReadControllerState(int slot)
     {
         if (_glfw.GetGamepadState(slot, out var pad))
+        {
             return (true, GameInputState.CopyButtons(new ReadOnlySpan<byte>(pad.Buttons, 15)),
                 new ReadOnlySpan<float>(pad.Axes, 6).ToArray());
+        }
+
         return ReadRawController(slot);
     }
 

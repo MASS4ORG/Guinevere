@@ -113,8 +113,12 @@ public class ScriptedInputHandlerTests
         void Draw()
         {
             using (gui.Node(100, 100, "target").Enter())
+            {
                 if (gui.Pass == Pass.Pass2Render)
+                {
                     clicked |= gui.GetInteractable().OnClick();
+                }
+            }
         }
 
         gui.SetStage(Pass.Pass1Build);

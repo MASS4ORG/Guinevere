@@ -12,7 +12,13 @@ sealed class StyleScrollbarRenderer : IScrollbarRenderer
     {
         var ancestors = new List<StyleTarget>();
         for (var node = container; node is not null; node = node.Parent)
-            if (node.StyleTarget is { } target) ancestors.Add(target);
+        {
+            if (node.StyleTarget is { } target)
+            {
+                ancestors.Add(target);
+            }
+        }
+
         var modifiers = axis == Axis.Vertical ? Vertical : Horizontal;
         var root = new StyleTarget("scrollbar", null, [], state, modifiers, ancestors);
         var tokens = container.Scope.Get<StyleTokens>();
@@ -20,7 +26,11 @@ sealed class StyleScrollbarRenderer : IScrollbarRenderer
         ancestors.Insert(0, root);
         var part = new StyleTarget("thumb", null, [], state, modifiers, ancestors);
         var thumbStyle = gui.StyleSheets.Resolve(part, null, tokens.With(style.Locals));
-        if (style.DeclarationMap.Count == 0 && thumbStyle.DeclarationMap.Count == 0) return false;
+        if (style.DeclarationMap.Count == 0 && thumbStyle.DeclarationMap.Count == 0)
+        {
+            return false;
+        }
+
         gui.DrawStyledBox(style, track);
         gui.DrawStyledBox(thumbStyle, thumb);
         return true;

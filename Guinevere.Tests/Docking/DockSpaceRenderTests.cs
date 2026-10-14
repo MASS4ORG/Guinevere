@@ -30,8 +30,11 @@ public class DockSpaceRenderTests
         var markerX = reverse ? target.Rect.X : target.Rect.X + target.Rect.W - 2;
         using (var snapshot = h.Snapshot())
         using (var bitmap = SKBitmap.FromImage(snapshot))
+        {
             Assert.Equal(h.Gui.StyleSheets.GetTokenColor("accent")!.Value, bitmap.GetPixel((int)Math.Ceiling(markerX),
                 (int)target.Rect.Y + 4));
+        }
+
         h.Input.ReleaseButton();
         h.Frame(Draw);
         h.Frame(Draw);
@@ -91,7 +94,10 @@ public class DockSpaceRenderTests
             panelInfo ?? (id => new DockPanelInfo(id)),
             (id, g) =>
             {
-                if (g.Pass == Pass.Pass2Render) painted.Add(id);
+                if (g.Pass == Pass.Pass2Render)
+                {
+                    painted.Add(id);
+                }
             },
             Theme,
             tabStripActions);
@@ -253,7 +259,10 @@ public class DockSpaceRenderTests
 
         var gui = RenderDock(layout, out _, tabStripActions: (strip, g) =>
         {
-            if (g.Pass == Pass.Pass2Render) captured = strip;
+            if (g.Pass == Pass.Pass2Render)
+            {
+                captured = strip;
+            }
         });
 
         Assert.Same(layout.FindLeaf("game"), captured.Leaf);

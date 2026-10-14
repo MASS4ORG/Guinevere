@@ -18,9 +18,17 @@ public sealed class StyleTokens : ILayoutNodeScopeValue<StyleTokens>
     /// <summary>These tokens with <paramref name="overrides"/> applied; the same instance when there is nothing to add.</summary>
     internal StyleTokens With(IReadOnlyDictionary<string, string>? overrides)
     {
-        if (overrides is null || overrides.Count == 0) return this;
+        if (overrides is null || overrides.Count == 0)
+        {
+            return this;
+        }
+
         var merged = new Dictionary<string, string>((IDictionary<string, string>)Values, StringComparer.Ordinal);
-        foreach (var (name, value) in overrides) merged[name] = value;
+        foreach (var (name, value) in overrides)
+        {
+            merged[name] = value;
+        }
+
         return new StyleTokens(merged);
     }
 }

@@ -36,7 +36,11 @@ public partial class Gui
         for (var i = index; i < _renderNodes.Count && _renderNodes[i].Z == z && _renderNodes[i].Sequence <= end; i++)
         {
             var member = _renderNodes[i].Node;
-            if (member.DrawList.InkBounds(member) is not { } bounds) return null;
+            if (member.DrawList.InkBounds(member) is not { } bounds)
+            {
+                return null;
+            }
+
             ink = Ink.Join(ink, TransformsUsed ? DrawnBounds(member, bounds) : bounds);
         }
         return ink;
@@ -55,7 +59,11 @@ public partial class Gui
     {
         while (_opacityGroups.Count > 0 && (_opacityGroups[^1].Z != z || sequence > _opacityGroups[^1].End))
         {
-            if (_opacityGroups[^1].SaveCount > 0) Canvas!.RestoreToCount(_opacityGroups[^1].SaveCount);
+            if (_opacityGroups[^1].SaveCount > 0)
+            {
+                Canvas!.RestoreToCount(_opacityGroups[^1].SaveCount);
+            }
+
             _opacityGroups.RemoveAt(_opacityGroups.Count - 1);
         }
     }
@@ -64,7 +72,13 @@ public partial class Gui
     bool Hidden()
     {
         foreach (var group in _opacityGroups)
-            if (group.SaveCount == int.MinValue) return true;
+        {
+            if (group.SaveCount == int.MinValue)
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -73,15 +87,26 @@ public partial class Gui
     {
         var opacity = 1f;
         for (var current = node; current is not null; current = current.Parent)
+        {
             if (current.Scope.HasLocal<LayoutNodeScopeOpacity>() && !IsOpenGroup(current))
+            {
                 opacity *= current.Scope.Get<LayoutNodeScopeOpacity>().Value;
+            }
+        }
+
         return opacity;
     }
 
     bool IsOpenGroup(LayoutNode node)
     {
         foreach (var group in _opacityGroups)
-            if (ReferenceEquals(group.Node, node)) return true;
+        {
+            if (ReferenceEquals(group.Node, node))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 

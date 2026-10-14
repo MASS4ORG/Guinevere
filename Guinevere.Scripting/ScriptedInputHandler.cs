@@ -63,7 +63,10 @@ public sealed partial class ScriptedInputHandler : IInputHandler, ICursorCapabil
     /// <summary>Presses a mouse button and holds it until <see cref="ReleaseButton"/>.</summary>
     public void PressButton(MouseButton button = MouseButton.Left)
     {
-        if (_buttonsDown.Add(button)) _buttonsPressed.Add(button);
+        if (_buttonsDown.Add(button))
+        {
+            _buttonsPressed.Add(button);
+        }
     }
 
     /// <summary>Releases a held mouse button.</summary>
@@ -75,7 +78,10 @@ public sealed partial class ScriptedInputHandler : IInputHandler, ICursorCapabil
     /// <summary>Presses a key and holds it until <see cref="ReleaseKey"/>.</summary>
     public void PressKey(KeyboardKey key)
     {
-        if (_keysDown.Add(key)) _keysPressed.Add(key);
+        if (_keysDown.Add(key))
+        {
+            _keysPressed.Add(key);
+        }
     }
 
     /// <summary>Releases a held key.</summary>

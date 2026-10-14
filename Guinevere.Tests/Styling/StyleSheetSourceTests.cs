@@ -5,7 +5,7 @@ public class StyleSheetSourceTests
 {
     /// <summary>An invalid provider result reports a diagnostic and retains the last valid sheet.</summary>
     [Fact]
-    public void Reload_KeepsLastValidSheetOnError()
+    public void ReloadKeepsLastValidSheetOnError()
     {
         var text = "button { width = 10; }";
         var source = StyleSheetSource.FromProvider(() => text);
@@ -25,7 +25,7 @@ public class StyleSheetSourceTests
 
     /// <summary>A reload diagnostic carries the source name, line and column of the parse error.</summary>
     [Fact]
-    public void Diagnostic_CarriesSourceLineAndColumn()
+    public void DiagnosticCarriesSourceLineAndColumn()
     {
         var text = "button { width = 10; }";
         var source = StyleSheetSource.FromProvider(() => text, new StyleSheetOptions { SourceName = "theme.pss" });
@@ -41,7 +41,7 @@ public class StyleSheetSourceTests
 
     /// <summary>File sources report their path, and I/O failures keep the last sheet with a diagnostic.</summary>
     [Fact]
-    public void FileSource_ReportsPathAndKeepsSheetOnIoFailure()
+    public void FileSourceReportsPathAndKeepsSheetOnIoFailure()
     {
         var directory = Directory.CreateTempSubdirectory("pss-");
         try
@@ -69,7 +69,7 @@ public class StyleSheetSourceTests
 
     /// <summary>A fixed-text source parses with its options and reloads the same text.</summary>
     [Fact]
-    public void StringSource_UsesOptions()
+    public void StringSourceUsesOptions()
     {
         var source = StyleSheetSource.FromString("button { width: 12; }", new StyleSheetOptions { AllowCssSyntax = true });
 
@@ -79,7 +79,7 @@ public class StyleSheetSourceTests
 
     /// <summary>A GUI tracks successful source replacements without accepting invalid ones.</summary>
     [Fact]
-    public void Gui_TracksReloadedSource()
+    public void GuiTracksReloadedSource()
     {
         var text = "button { width = 10; }";
         var source = StyleSheetSource.FromProvider(() => text);

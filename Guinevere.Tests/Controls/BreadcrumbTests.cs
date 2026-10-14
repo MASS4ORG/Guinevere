@@ -65,8 +65,15 @@ public class BreadcrumbTests
 
         void Visit(LayoutNode node)
         {
-            if (Regex.IsMatch(node.Id, $@"^breadcrumb/{index}$")) found = node;
-            foreach (var child in node.Children) Visit(child);
+            if (Regex.IsMatch(node.Id, $@"^breadcrumb/{index}$"))
+            {
+                found = node;
+            }
+
+            foreach (var child in node.Children)
+            {
+                Visit(child);
+            }
         }
     }
 
@@ -78,8 +85,15 @@ public class BreadcrumbTests
 
         void Visit(LayoutNode node)
         {
-            if (Regex.IsMatch(node.Id, $@"^breadcrumb/sep/{index}$")) found = node;
-            foreach (var child in node.Children) Visit(child);
+            if (Regex.IsMatch(node.Id, $@"^breadcrumb/sep/{index}$"))
+            {
+                found = node;
+            }
+
+            foreach (var child in node.Children)
+            {
+                Visit(child);
+            }
         }
     }
 
@@ -112,15 +126,29 @@ public class BreadcrumbTests
 
         void Visit(LayoutNode node)
         {
-            if (Regex.IsMatch(node.Id, @"^breadcrumb/\d+$")) crumbs++;
-            foreach (var child in node.Children) Visit(child);
+            if (Regex.IsMatch(node.Id, @"^breadcrumb/\d+$"))
+            {
+                crumbs++;
+            }
+
+            foreach (var child in node.Children)
+            {
+                Visit(child);
+            }
         }
 
         void CountChevrons(LayoutNode node)
         {
             var crumbsHere = node.Children.Count(child => Regex.IsMatch(child.Id, @"^breadcrumb/\d+$"));
-            if (crumbsHere > 0) chevrons = node.Children.Count - crumbsHere;
-            foreach (var child in node.Children) CountChevrons(child);
+            if (crumbsHere > 0)
+            {
+                chevrons = node.Children.Count - crumbsHere;
+            }
+
+            foreach (var child in node.Children)
+            {
+                CountChevrons(child);
+            }
         }
     }
 

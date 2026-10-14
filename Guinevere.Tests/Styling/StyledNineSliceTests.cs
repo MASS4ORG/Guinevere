@@ -10,8 +10,8 @@ public sealed class StyledNineSliceTests
     public void GalleryStylingPanelRenders()
     {
         using var harness = new FrameHarness(900, 600);
-        harness.Gui.StyleSheets.Add(Controls_01.Program.StylingSheet);
-        var draw = typeof(Controls_01.Program).GetMethod("StylingContent",
+        harness.Gui.StyleSheets.Add(Controls01.Program.StylingSheet);
+        var draw = typeof(Controls01.Program).GetMethod("StylingContent",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
             .CreateDelegate<Action<Gui>>();
         harness.Frame(draw);
@@ -24,7 +24,7 @@ public sealed class StyledNineSliceTests
     public void GalleryStylesheetLoadsSliceSkin()
     {
         using var harness = new FrameHarness(120, 64);
-        harness.Gui.StyleSheets.Add(Controls_01.Program.StylingSheet);
+        harness.Gui.StyleSheets.Add(Controls01.Program.StylingSheet);
         harness.Frame(g => { using (g.StyledNode("VisualElement", ["tile"], "sliced").Enter()) { } });
         using var snapshot = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(snapshot);
@@ -53,7 +53,13 @@ public sealed class StyledNineSliceTests
         using var bitmap = new SKBitmap(12, 12);
         bitmap.Erase(SKColors.Green);
         for (var y = 4; y < 8; y++)
-            for (var x = 4; x < 8; x++) bitmap.SetPixel(x, y, SKColors.Blue);
+        {
+            for (var x = 4; x < 8; x++)
+            {
+                bitmap.SetPixel(x, y, SKColors.Blue);
+            }
+        }
+
         bitmap.SetPixel(0, 0, SKColors.Transparent);
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -84,7 +90,10 @@ public sealed class StyledNineSliceTests
                 using (g.StyledNode("box").Enter()) { }
                 using (g.Node(width, height).Enter())
                 {
-                    if (effects) g.DrawStyledBox(g.ResolveStyle("box"), g.CurrentNode.Rect);
+                    if (effects)
+                    {
+                        g.DrawStyledBox(g.ResolveStyle("box"), g.CurrentNode.Rect);
+                    }
                     else
                     {
                         g.DrawBackgroundRect(Color.Red);
@@ -96,6 +105,7 @@ public sealed class StyledNineSliceTests
         using var snapshot = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(snapshot);
         for (var y = 0; y < height; y++)
+        {
             for (var x = 0; x < width; x++)
             {
                 var first = pixels.GetPixel(x, y);
@@ -104,7 +114,12 @@ public sealed class StyledNineSliceTests
                 Assert.True(Math.Abs(first.Red - second.Red) <= 16 && Math.Abs(first.Green - second.Green) <= 16
                     && Math.Abs(first.Blue - second.Blue) <= 16, $"({x}, {y}): {first} versus {second}");
             }
-        if (effects) Assert.Equal(SKColors.White, pixels.GetPixel(0, 0));
+        }
+
+        if (effects)
+        {
+            Assert.Equal(SKColors.White, pixels.GetPixel(0, 0));
+        }
         else if (width == 40)
         {
             Assert.Equal(SKColors.Green, pixels.GetPixel(1, 15));
@@ -133,7 +148,7 @@ public sealed class StyledNineSliceTests
                 SourceName = "slice.pss",
                 ResourceResolver = _ => new MemoryStream(Texture()),
             }));
-        void Draw(Gui g) { using (g.StyledNode("box").Enter()) { } }
+        static void Draw(Gui g) { using (g.StyledNode("box").Enter()) { } }
         harness.Frame(Draw);
         harness.Frame(Draw);
         var diagnostic = Assert.Single(harness.Gui.BackgroundDiagnostics);

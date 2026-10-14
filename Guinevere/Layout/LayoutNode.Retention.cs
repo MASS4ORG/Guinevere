@@ -28,16 +28,31 @@ public partial class LayoutNode
     {
         RetainChildren();
         Style = LayoutStyle.Default;
-        if (width.HasValue) Style.Width = width.Value;
-        if (height.HasValue) Style.Height = height.Value;
+        if (width.HasValue)
+        {
+            Style.Width = width.Value;
+        }
+
+        if (height.HasValue)
+        {
+            Style.Height = height.Value;
+        }
+
         StyleTarget = null;
         ResetLayoutState();
         Pass2NodeCount = 0;
         DrawList.Clear();
         ResetInteraction();
         Scope.ResetForBuild();
-        if (width == 0) ExpandWidth();
-        if (height == 0) ExpandHeight();
+        if (width == 0)
+        {
+            ExpandWidth();
+        }
+
+        if (height == 0)
+        {
+            ExpandHeight();
+        }
     }
 
     /// <summary>Starts a root frame: children become reusable, frame-local state is cleared; the root scope persists.</summary>
@@ -88,7 +103,11 @@ public partial class LayoutNode
     /// </summary>
     internal LayoutNode? TakePreviousChild(int identity)
     {
-        if (_previousChildren is not { Count: > 0 } previous) return null;
+        if (_previousChildren is not { Count: > 0 } previous)
+        {
+            return null;
+        }
+
         var cursor = _reuseCursor;
         if (cursor < previous.Count && previous[cursor] is { } next && next.Identity == identity)
         {
@@ -105,10 +124,20 @@ public partial class LayoutNode
         {
             (_reuseIndex ??= new Dictionary<int, int>(previous.Count)).Clear();
             for (var i = 0; i < previous.Count; i++)
-                if (previous[i] is { } child) _reuseIndex.TryAdd(child.Identity, i);
+            {
+                if (previous[i] is { } child)
+                {
+                    _reuseIndex.TryAdd(child.Identity, i);
+                }
+            }
+
             _reuseIndexValid = true;
         }
-        if (!_reuseIndex!.Remove(identity, out var position) || previous[position] is not { } match) return null;
+        if (!_reuseIndex!.Remove(identity, out var position) || previous[position] is not { } match)
+        {
+            return null;
+        }
+
         previous[position] = null!;
         _reuseCursor = position + 1;
         return match;

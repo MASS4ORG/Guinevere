@@ -53,7 +53,10 @@ public class HeadlessControlBehaviorTests
             {
                 var result = gui.Toggleable(true,
                     new ControlBehaviorOptions(Enabled: false, Role: ControlRole.Switch));
-                if (gui.Pass == Pass.Pass1Build) layout = result;
+                if (gui.Pass == Pass.Pass1Build)
+                {
+                    layout = result;
+                }
             }
         }
 
@@ -77,7 +80,9 @@ public class HeadlessControlBehaviorTests
         Frame(gui, NoInput(), () =>
         {
             using (gui.Node(100, 30, "save").Enter())
+            {
                 gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: "Save"));
+            }
         });
 
         var semantics = Assert.Single(sink.Items);
@@ -109,7 +114,9 @@ public class HeadlessControlBehaviorTests
     static void Control(Gui gui, ICollection<ControlVisualState> states)
     {
         using (gui.Node(100, 30, "control").Enter())
+        {
             gui.Pressable(render: states.Add);
+        }
     }
 
     static void Press(Gui gui, ICollection<(Pass, bool)> activations)

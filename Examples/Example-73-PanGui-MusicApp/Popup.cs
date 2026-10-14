@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Example_73_PanGui_MusicApp;
+namespace Example73PanGuiMusicApp;
 
 struct Popup
 {
@@ -8,15 +8,15 @@ struct Popup
     public LayoutNodeScope HeaderContainer;
     public LayoutNodeScope BodyContainer;
     public LayoutNodeScope FooterContainer;
-    public void Show()
+    public readonly void Show()
     {
         Visibility.AnimateTo(1, 0.3f, Easing.SmoothStep);
     }
-    public void Hide()
+    public readonly void Hide()
     {
         Visibility.AnimateTo(0, 0.3f, Easing.SmoothStep);
     }
-    public bool IsVisible()
+    public readonly bool IsVisible()
     {
         return Visibility > 0.001f;
     }

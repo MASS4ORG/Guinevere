@@ -26,8 +26,14 @@ public sealed class DrawList
         var primitives = _primitives ??= [];
         var command = DrawCommand.Primitive(primitives.Count);
         primitives.Add(primitive);
-        if (prepend) _entries.Insert(0, command);
-        else _entries.Add(command);
+        if (prepend)
+        {
+            _entries.Insert(0, command);
+        }
+        else
+        {
+            _entries.Add(command);
+        }
     }
 
     /// <summary>
@@ -91,8 +97,16 @@ public sealed class DrawList
         var ink = SKRect.Empty;
         foreach (var entry in _entries)
         {
-            if (entry.IsClip) continue;
-            if (entry.InkBounds(node, _primitives) is not { } bounds) return null;
+            if (entry.IsClip)
+            {
+                continue;
+            }
+
+            if (entry.InkBounds(node, _primitives) is not { } bounds)
+            {
+                return null;
+            }
+
             ink = Ink.Join(ink, bounds);
         }
         return ink;
@@ -119,7 +133,10 @@ public sealed class DrawList
 
     internal void Render(Gui gui, LayoutNode node, SKCanvas canvas, PrimitiveRenderer renderer)
     {
-        foreach (var entry in _entries) entry.Execute(gui, node, canvas, _primitives, renderer);
+        foreach (var entry in _entries)
+        {
+            entry.Execute(gui, node, canvas, _primitives, renderer);
+        }
     }
 
     enum DrawCommandKind : byte
@@ -150,7 +167,11 @@ public sealed class DrawList
 
         public SKRect? InkBounds(LayoutNode node, List<PrimitiveCommand>? primitives)
         {
-            if (_kind == DrawCommandKind.Primitive) return primitives![_primitiveIndex].InkBounds();
+            if (_kind == DrawCommandKind.Primitive)
+            {
+                return primitives![_primitiveIndex].InkBounds();
+            }
+
             return _kind == DrawCommandKind.Drawable && _value is IInkBounds bounded ? bounded.InkBounds(node) : null;
         }
 
@@ -194,12 +215,19 @@ public sealed class DrawList
         static void ExecuteClip(Gui gui, LayoutNode node, SKCanvas canvas, Rect rect)
         {
             canvas.Save();
-            if (rect.W <= 0 || rect.H <= 0) return;
+            if (rect.W <= 0 || rect.H <= 0)
+            {
+                return;
+            }
 
             var scrollState = gui.GetScrollState(node.Id);
             if (scrollState != null && (scrollState.IsScrollingX || scrollState.IsScrollingY))
             {
-                if (node.Rect is { W: > 0, H: > 0 } viewportRect) canvas.ClipRect(viewportRect);
+                if (node.Rect is { W: > 0, H: > 0 } viewportRect)
+                {
+                    canvas.ClipRect(viewportRect);
+                }
+
                 return;
             }
 

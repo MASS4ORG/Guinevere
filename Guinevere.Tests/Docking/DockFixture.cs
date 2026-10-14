@@ -51,6 +51,8 @@ public sealed class DockFixture
     static void RenderPanel(string panelId, Gui gui)
     {
         using (gui.Node().Expand().Padding(8).Enter())
+        {
             gui.DrawText(panelId, 12, Color.FromArgb(255, 200, 200, 200), centerInRect: false);
+        }
     }
 }

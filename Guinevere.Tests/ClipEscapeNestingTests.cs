@@ -57,8 +57,12 @@ public class ClipEscapeNestingTests
 
                     // A fill far taller than the 20px scroll viewport it sits in.
                     using (gui.Node(40, 100).Enter())
+                    {
                         if (gui.Pass == Pass.Pass2Render)
+                        {
                             gui.DrawBackgroundRect(Color.FromArgb(255, 255, 0, 0));
+                        }
+                    }
                 }
             }
         });

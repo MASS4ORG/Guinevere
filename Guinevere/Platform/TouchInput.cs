@@ -64,8 +64,15 @@ public sealed class TouchInputState : ITouchCapability
     public void AddContact(TouchContact contact)
     {
         _contacts.Add(contact);
-        if (contact.Phase is TouchPhase.Ended or TouchPhase.Canceled) _active.Remove(contact.Id);
-        else _active[contact.Id] = contact;
+        if (contact.Phase is TouchPhase.Ended or TouchPhase.Canceled)
+        {
+            _active.Remove(contact.Id);
+        }
+        else
+        {
+            _active[contact.Id] = contact;
+        }
+
         Changed = true;
     }
     /// <summary>Queues one high-level host gesture.</summary>
@@ -83,11 +90,20 @@ public sealed class TouchInputState : ITouchCapability
         {
             seen.Add(contact.Id);
             var exists = _active.TryGetValue(contact.Id, out var previous);
-            if (exists && previous.Position == contact.Position && previous.Pressure == contact.Pressure) continue;
+            if (exists && previous.Position == contact.Position && previous.Pressure == contact.Pressure)
+            {
+                continue;
+            }
+
             AddContact(contact with { Phase = exists ? TouchPhase.Moved : TouchPhase.Began });
         }
         foreach (var contact in _active.Values.ToArray())
-            if (!seen.Contains(contact.Id)) AddContact(contact with { Phase = TouchPhase.Ended });
+        {
+            if (!seen.Contains(contact.Id))
+            {
+                AddContact(contact with { Phase = TouchPhase.Ended });
+            }
+        }
     }
     /// <summary>Clears updates after both frame passes.</summary>
     public void NewFrame()

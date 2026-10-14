@@ -14,8 +14,14 @@ public partial class Gui
         set
         {
             _controlSemantics = value;
-            if (value is not null) Platform.Register<IControlSemanticsSink>(value);
-            else Platform.Remove<IControlSemanticsSink>();
+            if (value is not null)
+            {
+                Platform.Register(value);
+            }
+            else
+            {
+                Platform.Remove<IControlSemanticsSink>();
+            }
         }
     }
 
@@ -31,8 +37,14 @@ public partial class Gui
         set
         {
             _controlActivation = value;
-            if (value is not null) Platform.Register<IControlActivationSource>(value);
-            else Platform.Remove<IControlActivationSource>();
+            if (value is not null)
+            {
+                Platform.Register(value);
+            }
+            else
+            {
+                Platform.Remove<IControlActivationSource>();
+            }
         }
     }
 
@@ -93,7 +105,10 @@ public partial class Gui
 
         render?.Invoke(result.State);
 
-        if (Pass != Pass.Pass2Render) return result;
+        if (Pass != Pass.Pass2Render)
+        {
+            return result;
+        }
 
         UpdateBehavior(behavior, options, kind, repeatDelay, repeatInterval);
         return result;
@@ -102,28 +117,48 @@ public partial class Gui
     void UpdateBehavior(HeadlessBehaviorState behavior, ControlBehaviorOptions options, BehaviorKind kind,
         float repeatDelay, float repeatInterval)
     {
-        if (options.Focusable) RegisterFocusable(options.Enabled, options.Enabled);
+        if (options.Focusable)
+        {
+            RegisterFocusable(options.Enabled, options.Enabled);
+        }
+
         var interaction = ReadBehaviorInteraction(options);
-        if (interaction.Activated) behavior.PendingActivated = true;
+        if (interaction.Activated)
+        {
+            behavior.PendingActivated = true;
+        }
+
         behavior.Hovered = interaction.Hovered;
         behavior.Pressed = interaction.Pressed;
         behavior.Focused = interaction.Focused;
         behavior.Dragging = false;
         UpdateBehaviorDrag(behavior, options, kind);
-        if (kind == BehaviorKind.Repeat) UpdateRepeat(behavior, interaction.Pressed, repeatDelay, repeatInterval);
+        if (kind == BehaviorKind.Repeat)
+        {
+            UpdateRepeat(behavior, interaction.Pressed, repeatDelay, repeatInterval);
+        }
+
         PublishBehaviorSemantics(behavior, options);
     }
 
     BehaviorInteraction ReadBehaviorInteraction(ControlBehaviorOptions options)
     {
         var focused = options.Focusable && HasFocus();
-        if (!options.Enabled) return new BehaviorInteraction(false, false, focused, false);
+        if (!options.Enabled)
+        {
+            return new BehaviorInteraction(false, false, focused, false);
+        }
+
         var interactable = GetInteractable();
         var hovered = interactable.OnHover();
         var pressed = interactable.OnHold();
         var pointerActivated = interactable.OnClick();
         var activated = pointerActivated || focused && IsBehaviorActivationPressed(options);
-        if (pointerActivated) RequestFocus(FocusReason.Mouse);
+        if (pointerActivated)
+        {
+            RequestFocus(FocusReason.Mouse);
+        }
+
         return new BehaviorInteraction(hovered, pressed, focused || pointerActivated, activated);
     }
 
@@ -145,8 +180,14 @@ public partial class Gui
     {
         var semantics = new ControlSemantics(CurrentNode.Id, options.Role, options.Label, options.Value,
             CurrentNode.Rect, ComposeState(options, behavior.Hovered, behavior.Pressed, behavior.Focused, behavior.Dragging));
-        if (ControlSemantics is { } sink) sink.Publish(semantics);
-        else if (Platform.TryGet<IAccessibilityCapability>(out var accessibility)) accessibility?.Publish(semantics);
+        if (ControlSemantics is { } sink)
+        {
+            sink.Publish(semantics);
+        }
+        else if (Platform.TryGet<IAccessibilityCapability>(out var accessibility))
+        {
+            accessibility?.Publish(semantics);
+        }
     }
 
     readonly record struct BehaviorInteraction(bool Hovered, bool Pressed, bool Focused, bool Activated);
@@ -162,7 +203,10 @@ public partial class Gui
 
         behavior.HoldStarted ??= Clock.Elapsed;
         var heldFor = Clock.Elapsed - behavior.HoldStarted.Value;
-        if (heldFor < delay || Clock.Elapsed - behavior.LastRepeat < interval) return;
+        if (heldFor < delay || Clock.Elapsed - behavior.LastRepeat < interval)
+        {
+            return;
+        }
 
         behavior.LastRepeat = Clock.Elapsed;
         behavior.PendingRepeated = true;
@@ -172,13 +216,41 @@ public partial class Gui
         bool pressed, bool focused, bool dragging)
     {
         var state = ControlVisualState.None;
-        if (!options.Enabled) state |= ControlVisualState.Disabled;
-        if (focused) state |= ControlVisualState.Focused;
-        if (hovered) state |= ControlVisualState.Hovered;
-        if (pressed) state |= ControlVisualState.Pressed;
-        if (options.Checked) state |= ControlVisualState.Checked;
-        if (options.Selected) state |= ControlVisualState.Selected;
-        if (dragging) state |= ControlVisualState.Dragging;
+        if (!options.Enabled)
+        {
+            state |= ControlVisualState.Disabled;
+        }
+
+        if (focused)
+        {
+            state |= ControlVisualState.Focused;
+        }
+
+        if (hovered)
+        {
+            state |= ControlVisualState.Hovered;
+        }
+
+        if (pressed)
+        {
+            state |= ControlVisualState.Pressed;
+        }
+
+        if (options.Checked)
+        {
+            state |= ControlVisualState.Checked;
+        }
+
+        if (options.Selected)
+        {
+            state |= ControlVisualState.Selected;
+        }
+
+        if (dragging)
+        {
+            state |= ControlVisualState.Dragging;
+        }
+
         return state;
     }
 

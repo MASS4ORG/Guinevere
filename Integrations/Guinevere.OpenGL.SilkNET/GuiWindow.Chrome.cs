@@ -11,7 +11,11 @@ public unsafe partial class GuiWindow
 
     void PlaceInitialWindow()
     {
-        if (!CanMove) return;
+        if (!CanMove)
+        {
+            return;
+        }
+
         PlaceInitialWindow(GetMonitorWorkAreas());
     }
 
@@ -31,7 +35,11 @@ public unsafe partial class GuiWindow
     {
         var selected = WindowPlacement.SelectMonitor(
             new Rect(Position.X, Position.Y, ClientSize.X, ClientSize.Y), areas);
-        if (selected < 0) return;
+        if (selected < 0)
+        {
+            return;
+        }
+
         var placement = WindowPlacement.Center(ClientSize, areas[selected]);
         ClientSize = new Vector2(placement.W, placement.H);
         Position = new Vector2(placement.X, placement.Y);
@@ -39,7 +47,10 @@ public unsafe partial class GuiWindow
 
     void ConfigureWindowPlatform()
     {
-        if (!OperatingSystem.IsLinux() || Environment.GetEnvironmentVariable("SILKNET_USE_WAYLAND") != "0") return;
+        if (!OperatingSystem.IsLinux() || Environment.GetEnvironmentVariable("SILKNET_USE_WAYLAND") != "0")
+        {
+            return;
+        }
         // GLFW's platform hint and X11 value are absent from this binding's enums.
         const InitHint platformHint = (InitHint)0x00050003;
         const int x11Platform = 0x00060004;
@@ -61,14 +72,24 @@ public unsafe partial class GuiWindow
         get => new(_window.Size.X, _window.Size.Y);
         set
         {
-            if (_gui.Canvas is not null) _pendingClientSize = value;
-            else _window.Size = new Vector2D<int>((int)value.X, (int)value.Y);
+            if (_gui.Canvas is not null)
+            {
+                _pendingClientSize = value;
+            }
+            else
+            {
+                _window.Size = new Vector2D<int>((int)value.X, (int)value.Y);
+            }
         }
     }
 
     void ApplyPendingResize()
     {
-        if (_pendingClientSize is not { } size) return;
+        if (_pendingClientSize is not { } size)
+        {
+            return;
+        }
+
         _pendingClientSize = null;
         ClientSize = size;
     }
@@ -90,14 +111,22 @@ public unsafe partial class GuiWindow
     bool TryMoveX11(Vector2 position)
     {
         var native = NativeX11;
-        if (!native.HasValue) return false;
+        if (!native.HasValue)
+        {
+            return false;
+        }
+
         return X11WindowPosition.TrySet(native.Value.Display, native.Value.Window, position);
     }
 
     /// <inheritdoc />
     public bool TryBeginMove()
     {
-        if (!BeginNativeMove()) return false;
+        if (!BeginNativeMove())
+        {
+            return false;
+        }
+
         _nativeX11Move = !OperatingSystem.IsWindows();
         _heldButtons.Remove(Silk.NET.Input.MouseButton.Left);
         return true;
@@ -105,13 +134,21 @@ public unsafe partial class GuiWindow
 
     bool BeginNativeMove()
     {
-        if (OperatingSystem.IsWindows()) return WindowsWindowMove.TryBegin(_window.Native?.Win32?.Hwnd ?? 0);
+        if (OperatingSystem.IsWindows())
+        {
+            return WindowsWindowMove.TryBegin(_window.Native?.Win32?.Hwnd ?? 0);
+        }
+
         return BeginX11Move();
     }
 
     bool BeginX11Move()
     {
-        if (NativeX11 is not { } x11) return false;
+        if (NativeX11 is not { } x11)
+        {
+            return false;
+        }
+
         return X11WindowPosition.TryBeginMove(x11.Display, x11.Window, PointerPosition);
     }
 
@@ -121,27 +158,48 @@ public unsafe partial class GuiWindow
     /// <inheritdoc />
     public void Minimize()
     {
-        if (_window.IsInitialized) _glfw.IconifyWindow((WindowHandle*)_window.Handle);
-        else _window.WindowState = WindowState.Minimized;
+        if (_window.IsInitialized)
+        {
+            _glfw.IconifyWindow((WindowHandle*)_window.Handle);
+        }
+        else
+        {
+            _window.WindowState = WindowState.Minimized;
+        }
     }
 
     /// <inheritdoc />
     public void Maximize()
     {
-        if (_window.IsInitialized) _glfw.MaximizeWindow((WindowHandle*)_window.Handle);
-        else _window.WindowState = WindowState.Maximized;
+        if (_window.IsInitialized)
+        {
+            _glfw.MaximizeWindow((WindowHandle*)_window.Handle);
+        }
+        else
+        {
+            _window.WindowState = WindowState.Maximized;
+        }
     }
 
     /// <inheritdoc />
     public void Restore()
     {
-        if (_window.IsInitialized) _glfw.RestoreWindow((WindowHandle*)_window.Handle);
-        else _window.WindowState = WindowState.Normal;
+        if (_window.IsInitialized)
+        {
+            _glfw.RestoreWindow((WindowHandle*)_window.Handle);
+        }
+        else
+        {
+            _window.WindowState = WindowState.Normal;
+        }
     }
 
     /// <inheritdoc />
     public void RequestClose()
     {
-        if (_close.MayClose()) Close();
+        if (_close.MayClose())
+        {
+            Close();
+        }
     }
 }

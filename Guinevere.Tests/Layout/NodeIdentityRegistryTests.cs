@@ -43,9 +43,17 @@ public class NodeIdentityRegistryTests
                 registry.At(root, scope, "source.cs", 44, 0);
             }
         }
-        for (var i = 0; i < 100; i++) Lookup();
+        for (var i = 0; i < 100; i++)
+        {
+            Lookup();
+        }
+
         var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 100; i++) Lookup();
+        for (var i = 0; i < 100; i++)
+        {
+            Lookup();
+        }
+
         var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
         Assert.Equal(0, allocated);
     }

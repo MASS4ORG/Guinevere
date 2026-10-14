@@ -78,8 +78,12 @@ public class InputScriptTests
         var (passed, failures, _) = Run(ClickScript, gui =>
         {
             using (gui.Node(100, 100, "target").Enter())
+            {
                 if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick())
+                {
                     clicks++;
+                }
+            }
         });
 
         Assert.True(passed);
@@ -107,8 +111,12 @@ public class InputScriptTests
         var (passed, failures, _) = Run(json, gui =>
         {
             using (gui.Node(100, 100, "target").Enter())
+            {
                 if (gui.Pass == Pass.Pass2Render)
+                {
                     gui.GetInteractable().OnDrag(out _);
+                }
+            }
         });
 
         Assert.True(passed);
@@ -174,7 +182,10 @@ public class InputScriptTests
         }
         finally
         {
-            if (File.Exists(path)) File.Delete(path);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
         }
     }
 }

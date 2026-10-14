@@ -60,7 +60,11 @@ public partial class Gui
 
     static TextEffects? ResolveTextEffects(TextEffects? explicitEffects, LayoutNodeScope scope)
     {
-        if (explicitEffects is { } explicitValue) return explicitValue;
+        if (explicitEffects is { } explicitValue)
+        {
+            return explicitValue;
+        }
+
         var inherited = scope.Get<LayoutNodeScopeTextEffects>().Value;
         return inherited == default ? null : inherited;
     }
@@ -115,7 +119,9 @@ public partial class Gui
 
         // If wrapping is enabled, use the wrap width as max width
         if (cfg.WrapWidth > 0 && layout.WrapMode != TextWrapMode.None)
+        {
             maxWidth = Math.Min(maxWidth, cfg.WrapWidth);
+        }
 
         var totalHeight = wrappedLines.Count * lineHeight;
 
@@ -127,8 +133,16 @@ public partial class Gui
     void RenderTextNode(DrawConfig cfg, LayoutNode node, IReadOnlyList<WrappedLine> wrappedLines,
         Font mainFont, Font iconFont, float lineHeight, Color color)
     {
-        if (cfg.Selectable) node.Cursor(PointerCursor.Text);
-        if (Pass != Pass.Pass2Render) return;
+        if (cfg.Selectable)
+        {
+            node.Cursor(PointerCursor.Text);
+        }
+
+        if (Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         var selection = cfg.Selectable
             ? ProcessTextSelection(node, cfg.Text, wrappedLines, mainFont, iconFont, lineHeight, cfg.Center)
             : null;
@@ -143,11 +157,17 @@ public partial class Gui
             var pos = node.InnerRect.Position;
             pos.Y += (i * lineHeight) + Baseline(mainFont, lineHeight);
 
-            if (cfg.Center) pos.X += Math.Max((node.InnerRect.W - lineWidth) * 0.5f, 0f);
+            if (cfg.Center)
+            {
+                pos.X += Math.Max((node.InnerRect.W - lineWidth) * 0.5f, 0f);
+            }
 
             if (selection is not null)
+            {
                 DrawTextSelection(node, selection, wrappedLines[i], mainFont, iconFont,
                     new Rect(pos.X, node.InnerRect.Y + i * lineHeight, lineWidth, lineHeight));
+            }
+
             DrawLineWithFallback(line, pos, mainFont, iconFont, layers, cfg.Effects, cfg.Clip, node);
         }
 
@@ -161,7 +181,9 @@ public partial class Gui
     static List<(SKPaint Paint, Vector2 Offset)> BuildTextPaints(Color color, TextEffects? effects, Rect bounds)
     {
         if (effects is null)
+        {
             return [(new SKPaint { IsAntialias = true, Color = color }, Vector2.Zero)];
+        }
 
         var effect = effects.Value;
         var layers = new List<(SKPaint, Vector2)>(4 + (effect.DropShadows?.Count ?? 0));
@@ -175,19 +197,32 @@ public partial class Gui
 
     static void AddLegacyDropShadow(List<(SKPaint, Vector2)> layers, TextEffects.TextShadow? shadow)
     {
-        if (shadow is { } value) layers.Add((BuildOuterShadowPaint(value), Vector2.Zero));
+        if (shadow is { } value)
+        {
+            layers.Add((BuildOuterShadowPaint(value), Vector2.Zero));
+        }
     }
 
     static void AddDropShadows(List<(SKPaint, Vector2)> layers, IReadOnlyList<TextEffects.TextShadow>? shadows)
     {
-        if (shadows is null) return;
+        if (shadows is null)
+        {
+            return;
+        }
+
         for (var i = shadows.Count - 1; i >= 0; i--)
+        {
             layers.Add((BuildOuterShadowPaint(shadows[i]), Vector2.Zero));
+        }
     }
 
     static void AddOutline(List<(SKPaint, Vector2)> layers, TextEffects.TextOutline? outline)
     {
-        if (outline is not { Width: > 0 } value) return;
+        if (outline is not { Width: > 0 } value)
+        {
+            return;
+        }
+
         layers.Add((new SKPaint
         {
             IsAntialias = true,
@@ -201,13 +236,21 @@ public partial class Gui
     static SKPaint BuildFillPaint(Color color, TextEffects.TextGradient? gradient, Rect bounds)
     {
         var fill = new SKPaint { IsAntialias = true, Color = color };
-        if (gradient is { } value) fill.Shader = BuildGradientShader(value, bounds);
+        if (gradient is { } value)
+        {
+            fill.Shader = BuildGradientShader(value, bounds);
+        }
+
         return fill;
     }
 
     static void AddInnerShadow(List<(SKPaint, Vector2)> layers, TextEffects.TextShadow? shadow)
     {
-        if (shadow is not { } inner) return;
+        if (shadow is not { } inner)
+        {
+            return;
+        }
+
         layers.Add((new SKPaint
         {
             IsAntialias = true,
@@ -287,7 +330,9 @@ public partial class Gui
         foreach (var (paint, offset) in layers)
         {
             for (var i = 0; i < runs.Count; i++)
+            {
                 AddDraw(new Text(runs[i].Text, positions[i] + offset, runs[i].Font.SkFont, paint, effects), clip, node);
+            }
         }
     }
 

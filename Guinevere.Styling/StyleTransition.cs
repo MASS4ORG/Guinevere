@@ -17,7 +17,7 @@ public sealed record StyleTransition(float Duration, string EasingName)
 
     /// <summary>
     /// Parses an annotation body: a duration in seconds (<c>0.15</c>, <c>0.15s</c>) or milliseconds (<c>150ms</c>),
-    /// then an optional easing accepted by <see cref="Guinevere.Easing.TryParse"/>.
+    /// then an optional easing accepted by <see cref="Easing.TryParse"/>.
     /// </summary>
     /// <param name="text">The text between the parentheses.</param>
     /// <exception cref="FormatException">The duration or easing is malformed.</exception>

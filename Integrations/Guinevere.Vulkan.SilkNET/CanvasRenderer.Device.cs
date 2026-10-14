@@ -16,8 +16,10 @@ public unsafe partial class CanvasRenderer
     Queue _graphicsQueue;
     Queue _presentQueue;
     SurfaceKHR _surface;
-    KhrSurface _khrSurface = null!;
-    KhrSwapchain _khrSwapchain = null!;
+#pragma warning disable CS8625 // assigned in CreateInstance / CreateDevice before first use
+    KhrSurface _khrSurface = null;
+    KhrSwapchain _khrSwapchain = null;
+#pragma warning restore CS8625
     uint _graphicsFamily;
     uint _presentFamily;
     string[] _instanceExtensions = [];
@@ -59,13 +61,17 @@ public unsafe partial class CanvasRenderer
         }
 
         if (!_vk.TryGetInstanceExtension(_instance, out _khrSurface))
+        {
             throw new InvalidOperationException("Failed to get KHR Surface extension");
+        }
     }
 
     string[] RequiredInstanceExtensions()
     {
         if (_window.VkSurface == null)
+        {
             return ["VK_KHR_surface", "VK_KHR_xlib_surface", "VK_KHR_wayland_surface"];
+        }
 
         var extensions = _window.VkSurface.GetRequiredExtensions(out var count);
         return SilkMarshal.PtrToStringArray((nint)extensions, (int)count);
@@ -82,7 +88,10 @@ public unsafe partial class CanvasRenderer
         if (_window.Native?.X11 is { } x11)
         {
             if (!_vk.TryGetInstanceExtension(_instance, out KhrXlibSurface xlibSurface))
+            {
                 throw new InvalidOperationException("Failed to get X11 surface extension");
+            }
+
             var createInfo = new XlibSurfaceCreateInfoKHR
             {
                 SType = StructureType.XlibSurfaceCreateInfoKhr,
@@ -94,7 +103,10 @@ public unsafe partial class CanvasRenderer
         else if (_window.Native?.Wayland is { } wayland)
         {
             if (!_vk.TryGetInstanceExtension(_instance, out KhrWaylandSurface waylandSurface))
+            {
                 throw new InvalidOperationException("Failed to get Wayland surface extension");
+            }
+
             var createInfo = new WaylandSurfaceCreateInfoKHR
             {
                 SType = StructureType.WaylandSurfaceCreateInfoKhr,
@@ -114,15 +126,24 @@ public unsafe partial class CanvasRenderer
     {
         uint deviceCount = 0;
         _vk.EnumeratePhysicalDevices(_instance, ref deviceCount, null);
-        if (deviceCount == 0) throw new InvalidOperationException("Failed to find GPUs with Vulkan support");
+        if (deviceCount == 0)
+        {
+            throw new InvalidOperationException("Failed to find GPUs with Vulkan support");
+        }
 
         var devices = new PhysicalDevice[deviceCount];
         fixed (PhysicalDevice* devicesPtr = devices)
+        {
             _vk.EnumeratePhysicalDevices(_instance, ref deviceCount, devicesPtr);
+        }
 
         foreach (var device in devices)
         {
-            if (!IsDeviceSuitable(device)) continue;
+            if (!IsDeviceSuitable(device))
+            {
+                continue;
+            }
+
             _physicalDevice = device;
             return;
         }
@@ -132,7 +153,11 @@ public unsafe partial class CanvasRenderer
 
     bool IsDeviceSuitable(PhysicalDevice device)
     {
-        if (!FindQueueFamilies(device, out _, out _) || !SupportsDeviceExtensions(device)) return false;
+        if (!FindQueueFamilies(device, out _, out _) || !SupportsDeviceExtensions(device))
+        {
+            return false;
+        }
+
         var support = QuerySwapchainSupport(device);
         return support.Formats.Length > 0 && support.PresentModes.Length > 0;
     }
@@ -143,14 +168,23 @@ public unsafe partial class CanvasRenderer
         _vk.GetPhysicalDeviceQueueFamilyProperties(device, ref familyCount, null);
         var families = new QueueFamilyProperties[familyCount];
         fixed (QueueFamilyProperties* familiesPtr = families)
+        {
             _vk.GetPhysicalDeviceQueueFamilyProperties(device, ref familyCount, familiesPtr);
+        }
 
         uint? graphicsFamily = null, presentFamily = null;
         for (uint i = 0; i < familyCount && (graphicsFamily is null || presentFamily is null); i++)
         {
-            if (families[i].QueueFlags.HasFlag(QueueFlags.GraphicsBit)) graphicsFamily ??= i;
+            if (families[i].QueueFlags.HasFlag(QueueFlags.GraphicsBit))
+            {
+                graphicsFamily ??= i;
+            }
+
             _khrSurface.GetPhysicalDeviceSurfaceSupport(device, i, _surface, out var presentSupport);
-            if (presentSupport) presentFamily ??= i;
+            if (presentSupport)
+            {
+                presentFamily ??= i;
+            }
         }
 
         graphics = graphicsFamily ?? 0;
@@ -164,11 +198,16 @@ public unsafe partial class CanvasRenderer
         _vk.EnumerateDeviceExtensionProperties(device, (byte*)null, ref extensionCount, null);
         var available = new ExtensionProperties[extensionCount];
         fixed (ExtensionProperties* availablePtr = available)
+        {
             _vk.EnumerateDeviceExtensionProperties(device, (byte*)null, ref extensionCount, availablePtr);
+        }
 
         var required = new HashSet<string>(_deviceExtensions);
         foreach (var extension in available)
+        {
             required.Remove(Marshal.PtrToStringAnsi((IntPtr)extension.ExtensionName)!);
+        }
+
         return required.Count == 0;
     }
 
@@ -213,6 +252,8 @@ public unsafe partial class CanvasRenderer
         _vk.GetDeviceQueue(_device, _graphicsFamily, 0, out _graphicsQueue);
         _vk.GetDeviceQueue(_device, _presentFamily, 0, out _presentQueue);
         if (!_vk.TryGetDeviceExtension(_instance, _device, out _khrSwapchain))
+        {
             throw new InvalidOperationException("Failed to get KHR Swapchain extension");
+        }
     }
 }

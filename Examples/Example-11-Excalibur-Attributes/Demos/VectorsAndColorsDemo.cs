@@ -1,7 +1,7 @@
 using System.Numerics;
 using Guinevere;
 
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 // Vectors edit per axis (drag an axis letter to scrub); colors edit per channel.
 public sealed class VectorsAndColorsDemo

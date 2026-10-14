@@ -44,7 +44,10 @@ public class ObjectFieldTests
             {
                 before?.Invoke(_gui);
                 var outcome = _gui.ObjectField("Cube", Id, isEmpty: false);
-                if (outcome.Action != ObjectFieldAction.None) result = outcome;
+                if (outcome.Action != ObjectFieldAction.None)
+                {
+                    result = outcome;
+                }
             }
 
             _gui.Time.Update(0.016);
@@ -69,7 +72,10 @@ public class ObjectFieldTests
         var toggles = 0;
 
         h.Frame(new Vector2(200, 10));
-        if (h.Frame(new Vector2(370, 10), pressed: true).Action == ObjectFieldAction.Pick) toggles++;
+        if (h.Frame(new Vector2(370, 10), pressed: true).Action == ObjectFieldAction.Pick)
+        {
+            toggles++;
+        }
 
         Assert.Equal(1, toggles);
     }

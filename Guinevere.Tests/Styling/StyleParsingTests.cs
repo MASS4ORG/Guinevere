@@ -26,7 +26,7 @@ public class StyleParsingTests
 
     /// <summary>Descendant and direct-child combinators use nearest-first ancestry.</summary>
     [Fact]
-    public void HierarchyCombinators_MatchAncestors()
+    public void HierarchyCombinatorsMatchAncestors()
     {
         var ancestors = new[]
         {
@@ -43,7 +43,7 @@ public class StyleParsingTests
 
     /// <summary>Unknown pseudo-classes are application-defined semantic modifiers.</summary>
     [Fact]
-    public void CustomModifiers_CanBeCombinedWithBuiltInState()
+    public void CustomModifiersCanBeCombinedWithBuiltInState()
     {
         var selector = Selector.Parse("Toggle:checked:hover");
         var target = new StyleTarget("Toggle", null, [], StyleState.Hover, ["checked"]);
@@ -62,7 +62,7 @@ public class StyleParsingTests
     [InlineData("12", 12f, false)]
     [InlineData("12px", 12f, false)]
     [InlineData("50%", 0.5f, true)]
-    public void Value_Length(string text, float expected, bool percent)
+    public void ValueLength(string text, float expected, bool percent)
     {
         Assert.True(StyleValue.TryLength(text, out var v, out var p));
         Assert.Equal(expected, v, 3);
@@ -73,7 +73,7 @@ public class StyleParsingTests
     /// Verifies that hex and rgba color strings are parsed correctly.
     /// </summary>
     [Fact]
-    public void Value_Color_Hex_And_Rgb()
+    public void ValueColorHexAndRgb()
     {
         Assert.True(StyleValue.TryColor("#4a90e2", out var hex));
         Assert.Equal((74, 144, 226, 255), (hex.R, hex.G, hex.B, hex.A));
@@ -88,7 +88,7 @@ public class StyleParsingTests
     [InlineData("RGBA1(1, 1, 1, 1)", 255, 255)]
     [InlineData("rgb1(0.5, 0.5, 0.5)", 128, 255)]
     [InlineData("rgb(300, 0, 0)", 255, 255)]
-    public void Value_Color_RgbScales(string text, int red, int alpha)
+    public void ValueColorRgbScales(string text, int red, int alpha)
     {
         Assert.True(StyleValue.TryColor(text, out var color));
         Assert.Equal((red, alpha), (color.R, color.A));
@@ -100,7 +100,7 @@ public class StyleParsingTests
     [InlineData("rgba(1, 1, 1, x)")]
     [InlineData("rgb(1, 1)")]
     [InlineData("rgb 1, 1, 1")]
-    public void Value_Color_RgbRejectsMalformed(string text) => Assert.False(StyleValue.TryColor(text, out _));
+    public void ValueColorRgbRejectsMalformed(string text) => Assert.False(StyleValue.TryColor(text, out _));
 
     /// <summary>CSS escapes: hex code points with an optional trailing space, and literal characters.</summary>
     [Theory]
@@ -110,11 +110,11 @@ public class StyleParsingTests
     [InlineData(@"\110000", "�")]
     [InlineData(@"a\", @"a\")]
     [InlineData("plain", "plain")]
-    public void Value_Unescape(string text, string expected) => Assert.Equal(expected, StyleValue.Unescape(text));
+    public void ValueUnescape(string text, string expected) => Assert.Equal(expected, StyleValue.Unescape(text));
 
     /// <summary>Escaped dots, hashes and colons stay inside a selector name.</summary>
     [Fact]
-    public void Selector_Escapes()
+    public void SelectorEscapes()
     {
         var s = Selector.Parse(@"icon#scene\.move.ext\:x");
 
@@ -126,7 +126,7 @@ public class StyleParsingTests
     /// Verifies that compound selectors with type, classes, and pseudo-states match correctly.
     /// </summary>
     [Fact]
-    public void Selector_Parse_Compound()
+    public void SelectorParseCompound()
     {
         var s = Selector.Parse("Button.primary.big:hover");
 
@@ -139,7 +139,7 @@ public class StyleParsingTests
     /// Verifies that universal and ID selectors match correctly and have expected specificity.
     /// </summary>
     [Fact]
-    public void Selector_Universal_And_Id()
+    public void SelectorUniversalAndId()
     {
         Assert.True(Selector.Parse("*").Matches(new StyleTarget("Anything", null, [])));
 
@@ -154,7 +154,7 @@ public class StyleParsingTests
     /// Verifies malformed combinators are rejected.
     /// </summary>
     [Fact]
-    public void Selector_RejectsMalformedCombinators()
+    public void SelectorRejectsMalformedCombinators()
     {
         Assert.Throws<FormatException>(() => Selector.Parse("> Button"));
         Assert.Throws<FormatException>(() => Selector.Parse("Panel >"));
@@ -165,7 +165,7 @@ public class StyleParsingTests
     /// Verifies that the CSS-flavored fallback parses comments, variables, and multi-selector rules when enabled.
     /// </summary>
     [Fact]
-    public void Sheet_Parse_CssSyntax_Comments_Variables_MultiSelector()
+    public void SheetParseCssSyntaxCommentsVariablesMultiSelector()
     {
         var sheet = StyleSheet.Parse("""
             /* a comment */
@@ -186,7 +186,7 @@ public class StyleParsingTests
 
     /// <summary>Nested selectors expand against each parent selector, including ampersand modifiers.</summary>
     [Fact]
-    public void Sheet_Parse_NestedRules()
+    public void SheetParseNestedRules()
     {
         var sheet = StyleSheet.Parse("""
             .panel, Dialog {
@@ -205,7 +205,7 @@ public class StyleParsingTests
 
     /// <summary>PanGui assignment, variable, transition annotation and constant forms remain source-compatible.</summary>
     [Fact]
-    public void Sheet_Parse_PanGuiCompatibleScalarSyntax()
+    public void SheetParsePanGuiCompatibleScalarSyntax()
     {
         var sheet = StyleSheet.Parse("""
             @const spacing = 12;
@@ -230,7 +230,7 @@ public class StyleParsingTests
     /// Verifies that an unterminated rule throws a format exception.
     /// </summary>
     [Fact]
-    public void Sheet_UnterminatedRule_Throws()
+    public void SheetUnterminatedRuleThrows()
     {
         Assert.Throws<StyleSheetException>(() => StyleSheet.Parse(".x { color = red "));
     }

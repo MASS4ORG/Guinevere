@@ -42,7 +42,11 @@ public static partial class ControlsExtensions
         {
             // The thumb's side is layout, settled in the build pass; a click shows on the next frame.
             var thumbSide = isOn ? 1f : 0f;
-            if (ChoiceActivated(gui, enabled)) isOn = !isOn;
+            if (ChoiceActivated(gui, enabled))
+            {
+                isOn = !isOn;
+            }
+
             var modifiers = isOn ? CheckedModifier : NoModifiers;
             var thumb = height * 0.8f;
             using (ChoicePart(gui, "track", width, height, modifiers).Padding((height - thumb) * 0.5f)

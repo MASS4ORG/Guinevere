@@ -38,7 +38,11 @@ sealed class ChannelTween(int channels)
     /// <returns>Whether the target changed.</returns>
     internal bool Retarget(ReadOnlySpan<float> target, float now, float duration, Func<float, float> easing)
     {
-        if (target.SequenceEqual(_to)) return false;
+        if (target.SequenceEqual(_to))
+        {
+            return false;
+        }
+
         if (duration <= 0f)
         {
             Snap(target);
@@ -53,7 +57,11 @@ sealed class ChannelTween(int channels)
     /// <summary>Updates <see cref="Current"/> for the time <paramref name="now"/>.</summary>
     internal void Sample(float now)
     {
-        if (!Running) return;
+        if (!Running)
+        {
+            return;
+        }
+
         var progress = (now - _start) / _duration;
         if (progress >= 1f)
         {
@@ -62,6 +70,9 @@ sealed class ChannelTween(int channels)
             return;
         }
         var eased = _easing(Math.Max(0f, progress));
-        for (var i = 0; i < _current.Length; i++) _current[i] = _from[i] + (_to[i] - _from[i]) * eased;
+        for (var i = 0; i < _current.Length; i++)
+        {
+            _current[i] = _from[i] + (_to[i] - _from[i]) * eased;
+        }
     }
 }

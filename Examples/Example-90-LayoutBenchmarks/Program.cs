@@ -11,7 +11,11 @@ Console.WriteLine("|---|---:|---:|---:|---:|");
 
 if (args.Contains("--deep-only"))
 {
-    foreach (var depth in new[] { 64, 128, 256, 512, 1_024 }) Run($"deep-fit-{depth}", BuildDeep(depth));
+    foreach (var depth in new[] { 64, 128, 256, 512, 1_024 })
+    {
+        Run($"deep-fit-{depth}", BuildDeep(depth));
+    }
+
     return;
 }
 
@@ -21,9 +25,16 @@ foreach (var count in sizes)
     Run($"wide-wrap-{count}", BuildWide(count, wrap: true));
     Run($"expand-minmax-{count}", BuildExpand(count));
 }
-if (!args.Contains("--quick")) Run("pangui-wide-no-wrap-simple-many", BuildWide(100_000, wrap: false));
+if (!args.Contains("--quick"))
+{
+    Run("pangui-wide-no-wrap-simple-many", BuildWide(100_000, wrap: false));
+}
 
-foreach (var depth in new[] { 64, 128, 256, 512 }) Run($"deep-fit-{depth}", BuildDeep(depth));
+foreach (var depth in new[] { 64, 128, 256, 512 })
+{
+    Run($"deep-fit-{depth}", BuildDeep(depth));
+}
+
 Run(args.Contains("--quick") ? "pangui-fit-nesting-scaled" : "pangui-fit-nesting",
     BuildFitNesting(args.Contains("--quick") ? 10 : 100));
 Run("text-measurements-1000", BuildText(1_000));
@@ -62,18 +73,29 @@ foreach (var raster in new[] { false, true })
                       + $"(scoped variables: {scoped / hardcoded:F2}x, visuals: {visuals / hardcoded:F2}x)");
 }
 foreach (var diverged in new[] { false, true })
+{
     foreach (var count in new[] { 1_000, 10_000 })
+    {
         RunNodeFrames(count, diverged);
+    }
+}
+
 RunConstruction(10_000);
 
 static void Run(string name, Fixture fixture)
 {
-    for (var i = 0; i < warmups; i++) fixture.Layout();
+    for (var i = 0; i < warmups; i++)
+    {
+        fixture.Layout();
+    }
+
     if (name == "pangui-pixels-with-min-expand")
     {
         var second = fixture.Root.ChildNodes[0].ChildNodes[1];
         if (Math.Abs(second.Rect.W - 40f) > 0.01f)
+        {
             throw new InvalidOperationException($"Composable minimum resolved to {second.Rect.W}, expected 40.");
+        }
     }
     GC.Collect();
     GC.WaitForPendingFinalizers();
@@ -118,7 +140,11 @@ static void RunStyleApply(string name, string css)
     var node = new LayoutNode("styled", gui, root);
     root.AddChild(node);
     var style = StyleResolver.Resolve([StyleSheet.Parse(css)], new StyleTarget("box", null, []));
-    for (var i = 0; i < warmups; i++) StyleLayout.Apply(node, style);
+    for (var i = 0; i < warmups; i++)
+    {
+        StyleLayout.Apply(node, style);
+    }
+
     GC.Collect();
     GC.WaitForPendingFinalizers();
     GC.Collect();
@@ -143,7 +169,11 @@ static void RunFreshStyleApply(string name, string css)
     var root = LayoutNode.CreateRoot(gui, 1_000, 1_000);
     var style = css.Length == 0 ? ResolvedStyle.Empty :
         StyleResolver.Resolve([StyleSheet.Parse(css)], new StyleTarget("box", null, []));
-    for (var i = 0; i < warmups; i++) Apply();
+    for (var i = 0; i < warmups; i++)
+    {
+        Apply();
+    }
+
     GC.Collect();
     GC.WaitForPendingFinalizers();
     GC.Collect();
@@ -175,7 +205,11 @@ static void RunStyleResolve(string name, int calls, bool miss)
     var sheet = StyleSheet.Parse(StyledFrames.Sheet);
     gui.StyleSheets.Add(sheet);
     string[][] classes = [["primary"], ["secondary"], [], ["primary", "wide"]];
-    for (var i = 0; i < warmups; i++) Resolve();
+    for (var i = 0; i < warmups; i++)
+    {
+        Resolve();
+    }
+
     GC.Collect();
     GC.WaitForPendingFinalizers();
     GC.Collect();
@@ -197,7 +231,11 @@ static void RunStyleResolve(string name, int calls, bool miss)
     {
         for (var i = 0; i < calls; i++)
         {
-            if (miss) gui.StyleSheets[0] = sheet;
+            if (miss)
+            {
+                gui.StyleSheets[0] = sheet;
+            }
+
             var state = i % 3 == 0 ? StyleState.Hover : StyleState.None;
             GC.KeepAlive(gui.ResolveStyle("button", classes[i % classes.Length], state: state));
         }
@@ -210,9 +248,17 @@ static double RunFrames(string name, int count, StyledFrames.Mode mode, bool ras
     using var surface = SKSurface.Create(new SKImageInfo(1_000, 1_000));
     var input = new ScriptedInputHandler();
     var gui = new BenchmarkGui(1_000, 1_000) { Input = input };
-    if (mode != StyledFrames.Mode.Hardcoded) gui.StyleSheets.Add(StyleSheet.Parse(StyledFrames.Sheet));
+    if (mode != StyledFrames.Mode.Hardcoded)
+    {
+        gui.StyleSheets.Add(StyleSheet.Parse(StyledFrames.Sheet));
+    }
+
     input.MoveTo(new System.Numerics.Vector2(15f, 10f));
-    for (var i = 0; i < warmups; i++) Frame();
+    for (var i = 0; i < warmups; i++)
+    {
+        Frame();
+    }
+
     GC.Collect();
     GC.WaitForPendingFinalizers();
     GC.Collect();
@@ -239,7 +285,11 @@ static double RunFrames(string name, int count, StyledFrames.Mode mode, bool ras
         gui.CalculateLayout();
         gui.SetStage(Pass.Pass2Render);
         StyledFrames.Draw(gui, count, mode);
-        if (raster) gui.Render();
+        if (raster)
+        {
+            gui.Render();
+        }
+
         gui.EndFrame();
         input.NewFrame();
     }
@@ -251,7 +301,11 @@ static void RunNodeFrames(int count, bool diverged)
 {
     using var surface = SKSurface.Create(new SKImageInfo(1_000, 1_000));
     var gui = new BenchmarkGui(1_000, 1_000) { Input = new ScriptedInputHandler() };
-    for (var i = 0; i < warmups; i++) Frame();
+    for (var i = 0; i < warmups; i++)
+    {
+        Frame();
+    }
+
     GC.Collect();
     GC.WaitForPendingFinalizers();
     GC.Collect();
@@ -277,19 +331,32 @@ static void RunNodeFrames(int count, bool diverged)
         Nodes();
         gui.CalculateLayout();
         gui.SetStage(Pass.Pass2Render);
-        if (diverged) OtherNodes();
-        else Nodes();
+        if (diverged)
+        {
+            OtherNodes();
+        }
+        else
+        {
+            Nodes();
+        }
+
         gui.EndFrame();
     }
 
     void Nodes()
     {
-        for (var i = 0; i < count; i++) gui.Node(4, 4);
+        for (var i = 0; i < count; i++)
+        {
+            gui.Node(4, 4);
+        }
     }
 
     void OtherNodes()
     {
-        for (var i = 0; i < count; i++) gui.Node(4, 4);
+        for (var i = 0; i < count; i++)
+        {
+            gui.Node(4, 4);
+        }
     }
 }
 
@@ -320,7 +387,10 @@ static Fixture BuildWide(int count, bool wrap)
     root.Style.Wrap = wrap;
     root.Style.Gap = 1f;
     for (var i = 0; i < count; i++)
+    {
         root.AddChild(new LayoutNode(i.ToString(), gui, root, 10f, 10f));
+    }
+
     return new Fixture(root, count + 1);
 }
 
@@ -414,8 +484,15 @@ static Fixture BuildExpandConstraint(int count, bool useMin)
         row.Style.Direction = Axis.Horizontal;
         var first = new LayoutNode($"first-{i}", gui, row, 0f, 10f);
         var second = new LayoutNode($"second-{i}", gui, row, 0f, 10f);
-        if (useMin) second.Style.MinWidth = 60f;
-        else second.Style.MaxWidth = 40f;
+        if (useMin)
+        {
+            second.Style.MinWidth = 60f;
+        }
+        else
+        {
+            second.Style.MaxWidth = 40f;
+        }
+
         row.AddChild(first);
         row.AddChild(second);
         root.AddChild(row);
@@ -446,7 +523,11 @@ static Fixture BuildEqualExpand(int count)
     var gui = new BenchmarkGui(10_000, 100);
     var root = LayoutNode.CreateRoot(gui, 10_000, 100);
     root.Style.Direction = Axis.Horizontal;
-    for (var i = 0; i < count; i++) root.AddChild(new LayoutNode(i.ToString(), gui, root, 0f, 100f));
+    for (var i = 0; i < count; i++)
+    {
+        root.AddChild(new LayoutNode(i.ToString(), gui, root, 0f, 100f));
+    }
+
     return new Fixture(root, count + 1);
 }
 
@@ -474,7 +555,11 @@ static Fixture BuildVerticalStack(int count)
     var root = LayoutNode.CreateRoot(gui, 200, 20_000);
     root.Style.PaddingTop = root.Style.PaddingRight = root.Style.PaddingBottom = root.Style.PaddingLeft = 10f;
     root.Style.Gap = 5f;
-    for (var i = 0; i < count; i++) root.AddChild(new LayoutNode(i.ToString(), gui, root, 0f, 1f));
+    for (var i = 0; i < count; i++)
+    {
+        root.AddChild(new LayoutNode(i.ToString(), gui, root, 0f, 1f));
+    }
+
     return new Fixture(root, count + 1);
 }
 
@@ -482,7 +567,10 @@ static Fixture BuildPaddingAndMargin()
 {
     var fixture = BuildVerticalStack(100);
     foreach (var child in fixture.Root.ChildNodes)
+    {
         child.Style.MarginTop = child.Style.MarginRight = child.Style.MarginBottom = child.Style.MarginLeft = 2f;
+    }
+
     return fixture;
 }
 
@@ -599,7 +687,11 @@ static class StyledFrames
         var node = gui.Node(30, 20).Padding(4);
         using (node.Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             var hover = gui.GetInteractable(node).OnHover();
             gui.DrawRectFilled(node.Rect, hover ? FillHover : Fill, 6);
             gui.DrawRectBorder(node.Rect, Border, 1, 6);

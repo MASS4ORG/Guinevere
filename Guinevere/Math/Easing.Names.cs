@@ -149,12 +149,23 @@ public static partial class Easing
     public static bool TryParse(string? name, out Func<float, float> easing)
     {
         easing = Linear;
-        if (string.IsNullOrWhiteSpace(name)) return false;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return false;
+        }
+
         var text = name.Trim();
         if (text.StartsWith("cubic-bezier(", StringComparison.OrdinalIgnoreCase) && text.EndsWith(')'))
+        {
             return TryParseBezier(text[13..^1], out easing);
+        }
+
         var key = text.Replace("-", "", StringComparison.Ordinal).ToLowerInvariant();
-        if (!Named.TryGetValue(key, out var found)) return false;
+        if (!Named.TryGetValue(key, out var found))
+        {
+            return false;
+        }
+
         easing = found;
         return true;
     }
@@ -163,8 +174,16 @@ public static partial class Easing
     {
         easing = Linear;
         var parts = arguments.Split(',');
-        if (parts.Length != 4 || !TryParseNumbers(parts, out var values)) return false;
-        if (!IsUnit(values[0]) || !IsUnit(values[2])) return false;
+        if (parts.Length != 4 || !TryParseNumbers(parts, out var values))
+        {
+            return false;
+        }
+
+        if (!IsUnit(values[0]) || !IsUnit(values[2]))
+        {
+            return false;
+        }
+
         easing = CubicBezier(values[0], values[1], values[2], values[3]);
         return true;
     }
@@ -175,9 +194,14 @@ public static partial class Easing
     {
         values = new float[parts.Length];
         for (var i = 0; i < parts.Length; i++)
+        {
             if (!float.TryParse(parts[i], System.Globalization.NumberStyles.Float,
                     System.Globalization.CultureInfo.InvariantCulture, out values[i]))
+            {
                 return false;
+            }
+        }
+
         return true;
     }
 
@@ -188,8 +212,16 @@ public static partial class Easing
     /// <param name="y2">Second control point y.</param>
     public static Func<float, float> CubicBezier(float x1, float y1, float x2, float y2) => t =>
     {
-        if (t <= 0f) return 0f;
-        if (t >= 1f) return 1f;
+        if (t <= 0f)
+        {
+            return 0f;
+        }
+
+        if (t >= 1f)
+        {
+            return 1f;
+        }
+
         var u = SolveBezierX(t, x1, x2);
         return Bezier(u, y1, y2);
     };
@@ -207,9 +239,20 @@ public static partial class Easing
         for (var i = 0; i < 24; i++)
         {
             var error = Bezier(u, x1, x2) - x;
-            if (Math.Abs(error) < 1e-6f) break;
-            if (error > 0f) high = u;
-            else low = u;
+            if (Math.Abs(error) < 1e-6f)
+            {
+                break;
+            }
+
+            if (error > 0f)
+            {
+                high = u;
+            }
+            else
+            {
+                low = u;
+            }
+
             u = (low + high) * 0.5f;
         }
         return u;

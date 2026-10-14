@@ -43,7 +43,10 @@ static partial class StyleValueChannels
                 list.AddRange([color.R, color.G, color.B, color.A]);
                 builder.Append(ColorSlot);
             }
-            else builder.Append(match.Value);
+            else
+            {
+                builder.Append(match.Value);
+            }
         }
         builder.Append(value, start, value.Length - start);
         (shape, channels) = (builder.ToString(), [.. list]);
@@ -57,15 +60,23 @@ static partial class StyleValueChannels
         var next = 0;
         foreach (var c in shape)
         {
-            if (c == NumberSlot) builder.Append(channels[next++].ToString("0.####", CultureInfo.InvariantCulture));
+            if (c == NumberSlot)
+            {
+                builder.Append(channels[next++].ToString("0.####", CultureInfo.InvariantCulture));
+            }
             else if (c == ColorSlot)
             {
                 builder.Append('#');
                 for (var i = 0; i < 4; i++)
+                {
                     builder.Append(((int)Math.Clamp(MathF.Round(channels[next++]), 0f, 255f)).ToString("x2",
                         CultureInfo.InvariantCulture));
+                }
             }
-            else builder.Append(c);
+            else
+            {
+                builder.Append(c);
+            }
         }
         return builder.ToString();
     }

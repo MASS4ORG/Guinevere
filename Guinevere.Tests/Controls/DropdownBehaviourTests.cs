@@ -20,11 +20,11 @@ public class DropdownBehaviorTests
         // longer share an open/closed state.
         const string Id = "test/dropdown";
 
-        readonly string[] options;
+        readonly string[] _options;
 
         public Harness(string[]? options = null)
         {
-            this.options = options ?? Options;
+            _options = options ?? Options;
             _gui = new TestableGui { Input = _input };
             _gui.SetScreenRect(300, 300);
             Selected = -1;
@@ -49,7 +49,7 @@ public class DropdownBehaviorTests
             LastFramePasses.Clear();
             void Draw()
             {
-                _gui.Dropdown(options, ref index, width: 120, height: 24,
+                _gui.Dropdown(_options, ref index, width: 120, height: 24,
                     filePath: Id, lineNumber: 0);
                 LastFramePasses.Add((_gui.Pass, Exists(_gui.RootNode!, "/list")));
             }
@@ -198,7 +198,11 @@ public class DropdownBehaviorTests
 
     static LayoutNode Find(LayoutNode node, string suffix)
     {
-        if (node.Id.EndsWith(suffix, StringComparison.Ordinal)) return node;
+        if (node.Id.EndsWith(suffix, StringComparison.Ordinal))
+        {
+            return node;
+        }
+
         foreach (var child in node.Children)
         {
             try { return Find(child, suffix); }

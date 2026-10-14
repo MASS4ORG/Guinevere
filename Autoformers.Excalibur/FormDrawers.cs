@@ -75,7 +75,11 @@ public sealed class FormDrawers
         Changed();
         return new Registration(() =>
         {
-            lock (_gate) _predicates.Remove(entry);
+            lock (_gate)
+            {
+                _predicates.Remove(entry);
+            }
+
             Changed();
         });
     }
@@ -98,10 +102,16 @@ public sealed class FormDrawers
         var registrations = new List<IDisposable>();
         foreach (var type in assemblies.SelectMany(assembly => assembly.GetTypes()))
         {
-            if (type.IsAbstract || !typeof(IPropertyDrawer).IsAssignableFrom(type)) continue;
+            if (type.IsAbstract || !typeof(IPropertyDrawer).IsAssignableFrom(type))
+            {
+                continue;
+            }
 
             var edited = type.GetCustomAttributes<CustomEditorAttribute>().ToArray();
-            if (edited.Length == 0) continue;
+            if (edited.Length == 0)
+            {
+                continue;
+            }
 
             var drawer = (IPropertyDrawer)Activator.CreateInstance(type)!;
             registrations.AddRange(edited.Select(attribute => Add(attribute.EditorType, drawer)));
@@ -114,7 +124,10 @@ public sealed class FormDrawers
     internal IPropertyDrawer? TypeDrawer(Type valueType)
     {
         Refresh();
-        if (_typeCache.TryGetValue(valueType, out var hit)) return hit.Drawer;
+        if (_typeCache.TryGetValue(valueType, out var hit))
+        {
+            return hit.Drawer;
+        }
 
         var lookup = new Lookup(Resolve(valueType));
         _typeCache.AddOrUpdate(valueType, lookup);
@@ -128,7 +141,12 @@ public sealed class FormDrawers
         _predicateCache ??= [.. Predicates(0).OrderBy(p => p.Order).ThenBy(p => p.Depth).ThenBy(p => p.Sequence)];
 
         foreach (var predicate in _predicateCache)
-            if (predicate.When(field)) return predicate.Drawer;
+        {
+            if (predicate.When(field))
+            {
+                return predicate.Drawer;
+            }
+        }
 
         return null;
     }
@@ -137,7 +155,12 @@ public sealed class FormDrawers
     internal IAttributeDrawer? AttributeDrawer(Type attributeType)
     {
         for (var current = attributeType; current is not null && current != typeof(Attribute); current = current.BaseType)
-            if (Exact(static scope => scope._attributes, current) is { } drawer) return drawer;
+        {
+            if (Exact(static scope => scope._attributes, current) is { } drawer)
+            {
+                return drawer;
+            }
+        }
 
         return null;
     }
@@ -164,7 +187,11 @@ public sealed class FormDrawers
         var slot = new Slot<T>(drawer);
         lock (_gate)
         {
-            if (!map.TryGetValue(key, out var slots)) map[key] = slots = [];
+            if (!map.TryGetValue(key, out var slots))
+            {
+                map[key] = slots = [];
+            }
+
             slots.Add(slot);
         }
 
@@ -172,8 +199,13 @@ public sealed class FormDrawers
         return new Registration(() =>
         {
             lock (_gate)
+            {
                 if (map.TryGetValue(key, out var slots) && slots.Remove(slot) && slots.Count == 0)
+                {
                     map.Remove(key);
+                }
+            }
+
             Changed();
         });
     }
@@ -182,9 +214,18 @@ public sealed class FormDrawers
     {
         for (var current = valueType; current is not null; current = current.BaseType)
         {
-            if (Exact(static scope => scope._types, current) is { } drawer) return drawer;
+            if (Exact(static scope => scope._types, current) is { } drawer)
+            {
+                return drawer;
+            }
+
             foreach (var face in current.GetInterfaces())
-                if (Exact(static scope => scope._types, face) is { } byInterface) return byInterface;
+            {
+                if (Exact(static scope => scope._types, face) is { } byInterface)
+                {
+                    return byInterface;
+                }
+            }
         }
 
         return Nullable.GetUnderlyingType(valueType) is { } underlying ? Resolve(underlying) : null;
@@ -194,9 +235,15 @@ public sealed class FormDrawers
     T? Exact<T>(Func<FormDrawers, Dictionary<Type, List<Slot<T>>>> map, Type key) where T : class
     {
         for (var scope = this; scope is not null; scope = scope._parent)
+        {
             lock (scope._gate)
+            {
                 if (map(scope).TryGetValue(key, out var slots) && slots.Count > 0)
+                {
                     return slots[^1].Drawer;
+                }
+            }
+        }
 
         return null;
     }
@@ -204,7 +251,10 @@ public sealed class FormDrawers
     IEnumerable<Predicate> Predicates(int depth)
     {
         Predicate[] own;
-        lock (_gate) own = [.. _predicates];
+        lock (_gate)
+        {
+            own = [.. _predicates];
+        }
 
         var mine = own.Select(p => p with { Depth = depth });
         return _parent is null ? mine : mine.Concat(_parent.Predicates(depth + 1));
@@ -213,7 +263,10 @@ public sealed class FormDrawers
     void Refresh()
     {
         var current = Volatile.Read(ref _epoch);
-        if (_cacheEpoch == current) return;
+        if (_cacheEpoch == current)
+        {
+            return;
+        }
 
         _typeCache = new ConditionalWeakTable<Type, Lookup>();
         _predicateCache = null;
@@ -224,7 +277,10 @@ public sealed class FormDrawers
 
     void ThrowIfFrozen()
     {
-        if (_frozen) throw new InvalidOperationException("FormDrawers.Default is read-only; register in a child scope.");
+        if (_frozen)
+        {
+            throw new InvalidOperationException("FormDrawers.Default is read-only; register in a child scope.");
+        }
     }
 
     sealed class Registration(Action remove) : IDisposable

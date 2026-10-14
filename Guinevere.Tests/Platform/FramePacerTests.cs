@@ -5,7 +5,7 @@ public class FramePacerTests
 {
     /// <summary>Pacing is on demand by default; continuous pacing never waits.</summary>
     [Fact]
-    public void Continuous_NeverWaits()
+    public void ContinuousNeverWaits()
     {
         Assert.True(new FramePacer().OnDemand);
         var pacer = new FramePacer { OnDemand = false };
@@ -19,7 +19,7 @@ public class FramePacerTests
     [InlineData("continuous", true, false)]
     [InlineData(null, true, true)]
     [InlineData("bogus", false, false)]
-    public void ApplyOverride_SwitchesOnlyForKnownValues(string? value, bool before, bool after)
+    public void ApplyOverrideSwitchesOnlyForKnownValues(string? value, bool before, bool after)
     {
         var pacer = new FramePacer { OnDemand = before };
         pacer.ApplyOverride(value);
@@ -28,7 +28,7 @@ public class FramePacerTests
 
     /// <summary>On demand waits up to the idle limit, and not at all while input is held or a frame is requested.</summary>
     [Fact]
-    public void OnDemand_WaitsUntilSomethingNeedsAFrame()
+    public void OnDemandWaitsUntilSomethingNeedsAFrame()
     {
         var gui = new Gui();
         var pacer = new FramePacer { OnDemand = true, MaxIdleSeconds = 10 };
@@ -44,7 +44,7 @@ public class FramePacerTests
 
     /// <summary>Input renders the settle frames, then pacing waits again; the idle limit counts from the last frame.</summary>
     [Fact]
-    public void OnDemand_RendersSettleFramesAfterInput()
+    public void OnDemandRendersSettleFramesAfterInput()
     {
         var gui = new Gui();
         var pacer = new FramePacer { OnDemand = true, SettleFrames = 2, MaxIdleSeconds = 10 };

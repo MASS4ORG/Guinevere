@@ -26,7 +26,11 @@ public sealed class FileBrowserTests : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        if (Directory.Exists(_root)) Directory.Delete(_root, true);
+        if (Directory.Exists(_root))
+        {
+            Directory.Delete(_root, true);
+        }
+
         GC.SuppressFinalize(this);
     }
 
@@ -160,7 +164,10 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public async Task AnUnreadableFolderReportsInsteadOfThrowing()
     {
-        if (OperatingSystem.IsWindows()) return;
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
 
         var locked = Path.Combine(_root, "locked");
         Directory.CreateDirectory(locked);

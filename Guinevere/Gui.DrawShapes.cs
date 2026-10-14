@@ -113,15 +113,24 @@ public partial class Gui
         var copy = shape.Copy();
         copy.Node = CurrentNode;
         foreach (var (_, layers) in copy.Layers)
+        {
             foreach (var (path, _) in layers)
+            {
                 path.Transform(SKMatrix.CreateTranslation(position.X, position.Y));
+            }
+        }
+
         AddDraw(copy);
         return copy;
     }
 
     void AddPrimitive(in PrimitiveCommand command, bool prepend = false)
     {
-        if (Pass != Pass.Pass2Render) return;
+        if (Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         CurrentNode.DrawList.Add(command, prepend);
     }
 
@@ -132,7 +141,10 @@ public partial class Gui
     /// <param name="clipShape">The shape defining the clipping area.</param>
     public void SetClipArea(LayoutNode node, Shape clipShape)
     {
-        if (Pass != Pass.Pass2Render) return;
+        if (Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         // Queue the clip operation in the node's draw list
         node.DrawList.AddClip(clipShape, node.Rect.Center);
@@ -140,21 +152,37 @@ public partial class Gui
 
     void AddDraw(IDrawable shape, bool prepend = false, LayoutNode? node = null)
     {
-        if (Pass != Pass.Pass2Render) return;
+        if (Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         node ??= CurrentNode;
         if (prepend)
+        {
             node.DrawList.Prepend(shape);
+        }
         else
+        {
             node.DrawList.Add(shape);
+        }
     }
 
     void AddDraw(IDrawListEntry entry, LayoutNode? node = null, bool prepend = false)
     {
-        if (Pass != Pass.Pass2Render) return;
+        if (Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         node ??= CurrentNode;
         if (prepend)
+        {
             node.DrawList.Prepend(entry);
+        }
         else
+        {
             node.DrawList.Add(entry);
+        }
     }
 }

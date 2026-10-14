@@ -34,8 +34,14 @@ public sealed class FramePacer
     /// <param name="value">The variable's value; null or anything else keeps the current setting.</param>
     public void ApplyOverride(string? value)
     {
-        if (value == "on-demand") OnDemand = true;
-        else if (value == "continuous") OnDemand = false;
+        if (value == "on-demand")
+        {
+            OnDemand = true;
+        }
+        else if (value == "continuous")
+        {
+            OnDemand = false;
+        }
     }
 
     /// <summary>Records an input or window event, which renders the next <see cref="SettleFrames"/> frames.</summary>
@@ -50,7 +56,11 @@ public sealed class FramePacer
     public double WaitSeconds(Gui gui, bool inputHeld)
     {
         ArgumentNullException.ThrowIfNull(gui);
-        if (!OnDemand || inputHeld || _settleFrames > 0) return 0;
+        if (!OnDemand || inputHeld || _settleFrames > 0)
+        {
+            return 0;
+        }
+
         var idle = MaxIdleSeconds - Stopwatch.GetElapsedTime(_lastFrame).TotalSeconds;
         return Math.Max(0, Math.Min(gui.FrameWaitSeconds, idle));
     }
@@ -59,6 +69,9 @@ public sealed class FramePacer
     public void FrameRendered()
     {
         _lastFrame = Stopwatch.GetTimestamp();
-        if (_settleFrames > 0) _settleFrames--;
+        if (_settleFrames > 0)
+        {
+            _settleFrames--;
+        }
     }
 }

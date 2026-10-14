@@ -37,12 +37,12 @@ public class GuiOpacityTests
 
     /// <summary>A fully transparent node hides its whole subtree, including opaque children.</summary>
     [Fact]
-    public void ZeroOpacity_HidesTheSubtree() =>
+    public void ZeroOpacityHidesTheSubtree() =>
         Assert.Equal(0, Alpha(Render(g => Filled(g, 0f, () => Filled(g, 1f))), 20, 20));
 
     /// <summary>Nested groups multiply; an opaque child inside a group does not stack its alpha.</summary>
     [Fact]
-    public void NestedGroups_Multiply()
+    public void NestedGroupsMultiply()
     {
         Assert.InRange(Alpha(Render(g => Filled(g, 0.5f, () => Filled(g, 0.5f))), 20, 20), 120, 135);
         Assert.InRange(Alpha(Render(g => Filled(g, 0.5f, () => Filled(g, 1f))), 20, 20), 120, 135);
@@ -51,6 +51,6 @@ public class GuiOpacityTests
 
     /// <summary>Values outside 0..1 are clamped.</summary>
     [Fact]
-    public void Opacity_IsClamped() =>
+    public void OpacityIsClamped() =>
         Assert.Equal(255, Alpha(Render(g => Filled(g, 3f)), 20, 20));
 }

@@ -47,12 +47,20 @@ public class PointerCaptureTests
                 using (_gui.Node(Size, Size, "row").Direction(Axis.Horizontal).Enter())
                 {
                     using (_gui.Node(100, Size, RenameLeft ? "left-moved" : "left").Enter())
+                    {
                         if (_gui.Pass == Pass.Pass2Render)
+                        {
                             LeftDragged |= _gui.GetInteractable().OnDrag(out _, button);
+                        }
+                    }
 
                     using (_gui.Node(100, Size, "right").Enter())
+                    {
                         if (_gui.Pass == Pass.Pass2Render)
+                        {
                             RightDragged |= _gui.GetInteractable().OnDrag(out _, button);
+                        }
+                    }
                 }
             }
 

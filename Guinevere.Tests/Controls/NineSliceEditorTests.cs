@@ -10,7 +10,13 @@ public sealed class NineSliceEditorTests
         using var bitmap = new SKBitmap(24, 24);
         bitmap.Erase(SKColors.Green);
         for (var y = 4; y < 20; y++)
-            for (var x = 4; x < 20; x++) bitmap.SetPixel(x, y, SKColors.Blue);
+        {
+            for (var x = 4; x < 20; x++)
+            {
+                bitmap.SetPixel(x, y, SKColors.Blue);
+            }
+        }
+
         return SKImage.FromBitmap(bitmap);
     }
 
@@ -28,7 +34,10 @@ public sealed class NineSliceEditorTests
         var changes = 0;
         void Draw(Gui g)
         {
-            if (g.NineSliceEditor(image, ref border, 120, 120, id: "editor")) changes++;
+            if (g.NineSliceEditor(image, ref border, 120, 120, id: "editor"))
+            {
+                changes++;
+            }
         }
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(x, y));
@@ -179,8 +188,14 @@ public sealed class NineSliceEditorTests
         using var pixels = SKBitmap.FromImage(snapshot);
         Assert.Equal(SKColors.Green, pixels.GetPixel(2, 30));
         Assert.Equal(SKColors.Blue, pixels.GetPixel(50, 30));
-        if (guides) Assert.NotEqual(SKColors.Blue, pixels.GetPixel(4, 30));
-        else Assert.Equal(SKColors.Blue, pixels.GetPixel(10, 30));
+        if (guides)
+        {
+            Assert.NotEqual(SKColors.Blue, pixels.GetPixel(4, 30));
+        }
+        else
+        {
+            Assert.Equal(SKColors.Blue, pixels.GetPixel(10, 30));
+        }
     }
 
     /// <summary>The gallery authoring panel builds and renders through the full two-pass frame.</summary>
@@ -188,7 +203,7 @@ public sealed class NineSliceEditorTests
     public void GalleryRenders()
     {
         using var harness = new FrameHarness(900, 600);
-        harness.Frame(Controls_01.Program.NineSliceContent);
+        harness.Frame(Controls01.Program.NineSliceContent);
         using var snapshot = harness.Snapshot();
         Assert.True(harness.Gui.RootNode!.Children.Count > 0);
     }

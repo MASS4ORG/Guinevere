@@ -210,7 +210,9 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     {
         // Make sure we're initialized before rendering
         if (!_isInitialized)
+        {
             return;
+        }
 
         // Render our GUI using the Vulkan canvas renderer
         try
@@ -260,7 +262,9 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     void OnResize(Vector2D<int> newSize)
     {
         if (!_isInitialized)
+        {
             return;
+        }
 
         // Update renderer size
         _renderer.Resize(newSize.X, newSize.Y);
@@ -297,7 +301,11 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
 
     void OnMouseDown(IMouse mouse, Silk.NET.Input.MouseButton button)
     {
-        if (button == Silk.NET.Input.MouseButton.Left) _nativeX11Move = false;
+        if (button == Silk.NET.Input.MouseButton.Left)
+        {
+            _nativeX11Move = false;
+        }
+
         _pressedButtons.Add(button);
         _heldButtons.Add(button);
         Pacing.NotifyInput();
@@ -306,20 +314,31 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     void OnMouseUp(IMouse mouse, Silk.NET.Input.MouseButton button)
     {
         _heldButtons.Remove(button);
-        if (button == Silk.NET.Input.MouseButton.Left) CancelNativeMove();
+        if (button == Silk.NET.Input.MouseButton.Left)
+        {
+            CancelNativeMove();
+        }
+
         Pacing.NotifyInput();
     }
 
     void CancelNativeMove()
     {
-        if (!_nativeX11Move) return;
+        if (!_nativeX11Move)
+        {
+            return;
+        }
+
         _nativeX11Move = false;
         CancelX11Move();
     }
 
     void CancelX11Move()
     {
-        if (NativeX11 is { } x11) X11WindowPosition.CancelMove(x11.Display, x11.Window);
+        if (NativeX11 is { } x11)
+        {
+            X11WindowPosition.CancelMove(x11.Display, x11.Window);
+        }
     }
 
     void OnKeyDown(IKeyboard keyboard, Key key, int scanCode)
@@ -368,7 +387,10 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
             // Native maximization requires a resizable window even when decorations are hidden.
             _glfw.SetWindowAttrib((WindowHandle*)_window.Handle, WindowAttributeSetter.Resizable, true);
         }
-        else _window.WindowBorder = show ? WindowBorder.Resizable : WindowBorder.Hidden;
+        else
+        {
+            _window.WindowBorder = show ? WindowBorder.Resizable : WindowBorder.Hidden;
+        }
     }
 
     #region Cursor and pointer
@@ -384,7 +406,10 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         set
         {
             _cursor = value;
-            if (_mouse is not null) _mouse.Cursor.StandardCursor = ToStandardCursor(value);
+            if (_mouse is not null)
+            {
+                _mouse.Cursor.StandardCursor = ToStandardCursor(value);
+            }
         }
     }
 
@@ -413,7 +438,11 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     /// <inheritdoc />
     public void Warp(Vector2 position)
     {
-        if (_mouse is null) return;
+        if (_mouse is null)
+        {
+            return;
+        }
+
         _mouse.Position = position;
         _mousePosition = _prevMousePosition = position;
         _mouseDelta = Vector2.Zero;
@@ -422,7 +451,11 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     /// <summary>GLFW's disabled mode hides the pointer and reports unbounded virtual positions.</summary>
     void ApplyCursorMode()
     {
-        if (_mouse is null) return;
+        if (_mouse is null)
+        {
+            return;
+        }
+
         _mouse.Cursor.CursorMode = _pointerLocked ? CursorMode.Disabled
             : _pointerVisible ? CursorMode.Normal
             : CursorMode.Hidden;

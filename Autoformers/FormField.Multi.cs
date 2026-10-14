@@ -27,11 +27,22 @@ public sealed partial class FormField
     {
         ArgumentNullException.ThrowIfNull(fields);
         var all = fields.SelectMany(field => field.Sources).ToArray();
-        if (all.Length == 0) throw new ArgumentException("At least one field is required.", nameof(fields));
+        if (all.Length == 0)
+        {
+            throw new ArgumentException("At least one field is required.", nameof(fields));
+        }
+
         var first = all[0];
         if (all.Any(field => field.ValueType != first.ValueType || field.Name != first.Name))
+        {
             throw new ArgumentException("Fields must have the same name and value type.", nameof(fields));
-        if (all.Length == 1) return first;
+        }
+
+        if (all.Length == 1)
+        {
+            return first;
+        }
+
         return new FormField(first, first.GetValue, value => WriteAll(all, value), first.ValueType, first.Label, all.Any(field => field.IsReadOnly))
         {
             _sources = Array.AsReadOnly(all),
@@ -55,7 +66,11 @@ public sealed partial class FormField
         var changed = false;
         foreach (var field in fields)
         {
-            if (Equals(field.GetValue(), value)) continue;
+            if (Equals(field.GetValue(), value))
+            {
+                continue;
+            }
+
             var written = field.SetValue(value);
             success &= written;
             changed |= written;

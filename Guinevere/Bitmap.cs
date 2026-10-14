@@ -60,7 +60,9 @@ public sealed class Bitmap : IDisposable
     {
         var expected = info.RowBytes * info.Height;
         if (pixels.Length < expected)
+        {
             throw new ArgumentException($"Expected at least {expected} bytes, got {pixels.Length}", nameof(pixels));
+        }
 
         using var skData = SKData.CreateCopy(pixels.ToArray());
         var image = SKImage.FromPixels(info, skData, info.RowBytes)
@@ -79,7 +81,11 @@ public sealed class Bitmap : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         Image.Dispose();
     }

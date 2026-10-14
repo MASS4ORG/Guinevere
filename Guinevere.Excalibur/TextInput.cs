@@ -31,10 +31,24 @@ public static partial class ControlsExtensions
     /// <summary>Sizes a node the way <c>gui.Node(width, height)</c> does: 0 expands, a negative value fits the content.</summary>
     static LayoutNode Sized(LayoutNode node, float width, float height)
     {
-        if (width == 0) node.ExpandWidth();
-        else if (width > 0) node.Width(width);
-        if (height == 0) node.ExpandHeight();
-        else if (height > 0) node.Height(height);
+        if (width == 0)
+        {
+            node.ExpandWidth();
+        }
+        else if (width > 0)
+        {
+            node.Width(width);
+        }
+
+        if (height == 0)
+        {
+            node.ExpandHeight();
+        }
+        else if (height > 0)
+        {
+            node.Height(height);
+        }
+
         return node;
     }
 
@@ -48,7 +62,10 @@ public static partial class ControlsExtensions
     /// <summary>Paints the selected run behind the glyphs, so the text stays readable over it.</summary>
     static void DrawSelection(Gui gui, TextEditState state, string text, float fontSize)
     {
-        if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render) return;
+        if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var font = TextEditor.MeasuringFont(gui, fontSize);
         var inner = gui.CurrentNode.InnerRect;
@@ -67,7 +84,10 @@ public static partial class ControlsExtensions
     /// <summary>Paints the selected run per line in a multi-line field, so text areas get the same highlight as inputs.</summary>
     static void DrawSelectionMultiline(Gui gui, TextEditState state, string text, float fontSize)
     {
-        if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render) return;
+        if (!state.IsFocused || !state.HasSelection || gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var font = TextEditor.MeasuringFont(gui, fontSize);
         var lineHeight = fontSize * 1.2f;
@@ -75,7 +95,10 @@ public static partial class ControlsExtensions
 
         var start = Math.Clamp(state.SelectionStart, 0, text.Length);
         var end = Math.Clamp(state.SelectionEnd, 0, text.Length);
-        if (start == end) return;
+        if (start == end)
+        {
+            return;
+        }
 
         var lines = text.Split('\n');
         var (startRow, startCol) = TextEditor.LineAndColumn(lines, start);
@@ -86,7 +109,10 @@ public static partial class ControlsExtensions
         {
             var colStart = row == startRow ? startCol : 0;
             var colEnd = row == endRow ? endCol : lines[row].Length;
-            if (colEnd <= colStart) continue;
+            if (colEnd <= colStart)
+            {
+                continue;
+            }
 
             var x1 = inner.X + TextEditor.MeasureWidth(font, lines[row][..colStart]);
             var x2 = inner.X + TextEditor.MeasureWidth(font, lines[row][..colEnd]);
@@ -105,7 +131,11 @@ public static partial class ControlsExtensions
     {
         var empty = string.IsNullOrEmpty(displayText);
         var shown = empty ? placeholder : displayText;
-        if (string.IsNullOrEmpty(shown)) return;
+        if (string.IsNullOrEmpty(shown))
+        {
+            return;
+        }
+
         Color? color = empty ? PlaceholderColor(gui, enabled) : null;
         gui.DrawText(shown, fontSize, color, centerInRect: false, clip: clip);
     }
@@ -118,7 +148,10 @@ public static partial class ControlsExtensions
     /// <summary>Draws the caret in the field's text color.</summary>
     static void DrawCursor(Gui gui, TextEditState state, string text, float fontSize)
     {
-        if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
+        if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var font = TextEditor.MeasuringFont(gui, fontSize);
         var textBeforeCursor = text.Substring(0, Math.Min(state.CursorPosition, text.Length));
@@ -135,13 +168,19 @@ public static partial class ControlsExtensions
 
     static void DrawCursorMultiline(Gui gui, TextEditState state, string text, float fontSize)
     {
-        if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render) return;
+        if (!state.IsFocused || !state.ShowCursor || gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         var (line, column, lineText) = CaretLineAndColumn(text, state.CursorPosition);
         var lineHeight = fontSize * 1.2f;
         var inner = gui.CurrentNode.InnerRect;
         var cursorY = line * lineHeight + 2;
-        if (cursorY < 0 || cursorY >= inner.Height) return;
+        if (cursorY < 0 || cursorY >= inner.Height)
+        {
+            return;
+        }
 
         // Drawn straight into the area rather than into a caret node: a node built only in the render pass never
         // takes part in layout, so it had no size and the caret never showed.
@@ -164,7 +203,9 @@ public static partial class ControlsExtensions
             var isLast = lineEnd < 0;
             var lineText = isLast ? text[lineStart..] : text[lineStart..lineEnd];
             if (isLast || position <= lineEnd)
+            {
                 return (line, Math.Clamp(position - lineStart, 0, lineText.Length), lineText);
+            }
 
             lineStart = lineEnd + 1;
             line++;
@@ -210,8 +251,14 @@ public static partial class ControlsExtensions
             gui.Focus.RegisterTextInput(nodeId);
             var state = TextEditor.State(gui, nodeId, text);
 
-            if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize);
-            else state.IsFocused = false;
+            if (enabled)
+            {
+                TextEditor.Process(gui, state, gui.GetInteractable(), fontSize);
+            }
+            else
+            {
+                state.IsFocused = false;
+            }
 
             if (grabFocus && enabled && gui.Pass == Pass.Pass2Render && !state.IsFocused)
             {
@@ -291,9 +338,14 @@ public static partial class ControlsExtensions
             var state = TextEditor.State(gui, nodeId, text);
 
             if (enabled)
+            {
                 TextEditor.Process(gui, state, gui.GetInteractable(), fontSize,
                     displayText: new string(maskChar, state.Text.Length));
-            else state.IsFocused = false;
+            }
+            else
+            {
+                state.IsFocused = false;
+            }
 
             var maskedText = new string(maskChar, state.Text.Length);
             DrawInputText(gui, maskedText, placeholder, fontSize, enabled);
@@ -363,12 +415,21 @@ public static partial class ControlsExtensions
             gui.Focus.RegisterTextInput(nodeId);
             var state = TextEditor.State(gui, nodeId, text);
 
-            if (enabled) TextEditor.Process(gui, state, gui.GetInteractable(), fontSize, multiline: true);
-            else state.IsFocused = false;
+            if (enabled)
+            {
+                TextEditor.Process(gui, state, gui.GetInteractable(), fontSize, multiline: true);
+            }
+            else
+            {
+                state.IsFocused = false;
+            }
 
             DrawSelectionMultiline(gui, state, state.Text, fontSize);
             DrawInputText(gui, state.Text, placeholder, fontSize, enabled);
-            if (enabled) DrawCursorMultiline(gui, state, state.Text, fontSize);
+            if (enabled)
+            {
+                DrawCursorMultiline(gui, state, state.Text, fontSize);
+            }
 
             text = state.Text;
         }

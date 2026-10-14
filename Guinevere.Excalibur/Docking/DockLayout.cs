@@ -46,12 +46,20 @@ public sealed class DockLayout
     public IEnumerable<DockLeaf> Leaves()
     {
         if (Root is not null)
+        {
             foreach (var leaf in Root.Leaves())
+            {
                 yield return leaf;
+            }
+        }
 
         foreach (var window in Floating)
+        {
             foreach (var leaf in window.Root.Leaves())
+            {
                 yield return leaf;
+            }
+        }
     }
 
     /// <summary>
@@ -76,7 +84,10 @@ public sealed class DockLayout
     {
         MarkChanged();
         var leaf = FindLeaf(panelId);
-        if (leaf is null) return;
+        if (leaf is null)
+        {
+            return;
+        }
 
         leaf.ActiveIndex = leaf.PanelIds.IndexOf(panelId);
     }
@@ -89,8 +100,15 @@ public sealed class DockLayout
     /// <param name="to">The index to move it to.</param>
     public static void Reorder(DockLeaf leaf, int from, int to)
     {
-        if (from == to) return;
-        if (from < 0 || from >= leaf.PanelIds.Count) return;
+        if (from == to)
+        {
+            return;
+        }
+
+        if (from < 0 || from >= leaf.PanelIds.Count)
+        {
+            return;
+        }
 
         to = Math.Clamp(to, 0, leaf.PanelIds.Count - 1);
         var active = leaf.ActivePanelId;
@@ -99,7 +117,10 @@ public sealed class DockLayout
         leaf.PanelIds.RemoveAt(from);
         leaf.PanelIds.Insert(to, panelId);
 
-        if (active is not null) leaf.ActiveIndex = leaf.PanelIds.IndexOf(active);
+        if (active is not null)
+        {
+            leaf.ActiveIndex = leaf.PanelIds.IndexOf(active);
+        }
     }
 
     /// <summary>
@@ -110,11 +131,17 @@ public sealed class DockLayout
     {
         MarkChanged();
         var leaf = FindLeaf(panelId);
-        if (leaf is null) return false;
+        if (leaf is null)
+        {
+            return false;
+        }
 
         var active = leaf.ActivePanelId;
         leaf.PanelIds.Remove(panelId);
-        if (active is not null && active != panelId) leaf.ActiveIndex = leaf.PanelIds.IndexOf(active);
+        if (active is not null && active != panelId)
+        {
+            leaf.ActiveIndex = leaf.PanelIds.IndexOf(active);
+        }
 
         Prune();
         return true;
@@ -132,7 +159,10 @@ public sealed class DockLayout
     public void DockInto(string panelId, DockLeaf target, DockZone zone, float fraction = 0.5f)
     {
         MarkChanged();
-        if (target.PanelIds.Count == 1 && target.PanelIds[0] == panelId) return;
+        if (target.PanelIds.Count == 1 && target.PanelIds[0] == panelId)
+        {
+            return;
+        }
 
         Remove(panelId);
 
@@ -220,7 +250,10 @@ public sealed class DockLayout
     /// </summary>
     public void EnsurePanel(string panelId, DockZone zone = DockZone.Center, float fraction = 0.25f)
     {
-        if (Contains(panelId)) return;
+        if (Contains(panelId))
+        {
+            return;
+        }
 
         DockAtEdge(panelId, zone, fraction);
         Activate(panelId);
@@ -234,7 +267,9 @@ public sealed class DockLayout
     public void RemoveUnknown(IReadOnlyCollection<string> known)
     {
         foreach (var panelId in PanelIds.Where(id => !known.Contains(id)).ToList())
+        {
             Remove(panelId);
+        }
     }
 
     DockLeaf? EdgeLeaf(DockZone zone)
@@ -244,8 +279,14 @@ public sealed class DockLayout
 
     void EnsureRoot(DockNode node)
     {
-        if (Root is null) Root = node;
-        else Root = new DockSplit(Axis.Horizontal, Root, node);
+        if (Root is null)
+        {
+            Root = node;
+        }
+        else
+        {
+            Root = new DockSplit(Axis.Horizontal, Root, node);
+        }
     }
 
     /// <summary>
@@ -270,16 +311,23 @@ public sealed class DockLayout
             }
 
             if (ReplaceChild(window.Root, target, replacement))
+            {
                 return;
+            }
         }
 
         if (Root is not null)
+        {
             ReplaceChild(Root, target, replacement);
+        }
     }
 
     static bool ReplaceChild(DockNode node, DockNode target, DockNode replacement)
     {
-        if (node is not DockSplit split) return false;
+        if (node is not DockSplit split)
+        {
+            return false;
+        }
 
         if (ReferenceEquals(split.First, target))
         {
@@ -304,8 +352,14 @@ public sealed class DockLayout
         for (var i = Floating.Count - 1; i >= 0; i--)
         {
             var pruned = Prune(Floating[i].Root);
-            if (pruned is null) Floating.RemoveAt(i);
-            else Floating[i].Root = pruned;
+            if (pruned is null)
+            {
+                Floating.RemoveAt(i);
+            }
+            else
+            {
+                Floating[i].Root = pruned;
+            }
         }
     }
 
@@ -322,8 +376,15 @@ public sealed class DockLayout
                     var first = Prune(split.First);
                     var second = Prune(split.Second);
 
-                    if (first is null) return second;
-                    if (second is null) return first;
+                    if (first is null)
+                    {
+                        return second;
+                    }
+
+                    if (second is null)
+                    {
+                        return first;
+                    }
 
                     split.First = first;
                     split.Second = second;

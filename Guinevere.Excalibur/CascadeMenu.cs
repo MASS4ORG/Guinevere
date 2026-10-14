@@ -62,7 +62,10 @@ public static partial class ControlsExtensions
             return;
         }
 
-        if (gui.Pass == Pass.Pass2Render) HandleMenuKeyboard(gui, state, builder.Items);
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            HandleMenuKeyboard(gui, state, builder.Items);
+        }
 
         using (var focusScope = gui.EnterFocusNavigationScope($"{id}/focus"))
         {
@@ -71,7 +74,10 @@ public static partial class ControlsExtensions
                 fontSize, padding, CascadeMenuZIndex);
         }
 
-        if (gui.Pass == Pass.Pass2Render) DismissPopupMenuOutside(gui, state, rightClick: true);
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            DismissPopupMenuOutside(gui, state, rightClick: true);
+        }
 
         isOpen = state.OpenIndex >= 0;
     }

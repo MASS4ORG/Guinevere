@@ -9,9 +9,18 @@ public partial class FocusManager
     public void SetDirectionalNeighbor(string controlId, FocusDirection direction, string? targetId)
     {
         if (!_directionalNeighbors.TryGetValue(controlId, out var neighbors))
+        {
             _directionalNeighbors[controlId] = neighbors = new Dictionary<FocusDirection, string>();
-        if (targetId is null) neighbors.Remove(direction);
-        else neighbors[direction] = targetId;
+        }
+
+        if (targetId is null)
+        {
+            neighbors.Remove(direction);
+        }
+        else
+        {
+            neighbors[direction] = targetId;
+        }
     }
 
     /// <summary>Restores a scope's remembered focus, falling back to its first available control.</summary>
@@ -21,14 +30,19 @@ public partial class FocusManager
             && _focusableControls[id].ScopeId == scopeId).ToList();
         var target = _focusHistory.TryGetValue(scopeId, out var remembered) && candidates.Contains(remembered)
             ? remembered : candidates.FirstOrDefault();
-        if (target is not null) RequestFocus(target);
+        if (target is not null)
+        {
+            RequestFocus(target);
+        }
     }
 
     void RememberFocus()
     {
         if (_currentFocusedId is { } id && _focusableControls.TryGetValue(id, out var control)
             && control.ScopeId is { } scope)
+        {
             _focusHistory[scope] = id;
+        }
     }
 
     void RestoreActiveScope()
@@ -42,8 +56,13 @@ public partial class FocusManager
         }
 
         var candidates = GetNavigableIds();
-        if (restore is not null && candidates.Contains(restore)) RequestFocus(restore);
+        if (restore is not null && candidates.Contains(restore))
+        {
+            RequestFocus(restore);
+        }
         else if (ActiveScopeId is { } scope && !candidates.Contains(_nextFrameFocusId ?? ""))
+        {
             RestoreScopeFocus(scope);
+        }
     }
 }

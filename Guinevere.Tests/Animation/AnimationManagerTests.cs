@@ -14,7 +14,7 @@ public class AnimationManagerTests
     /// Verifies that the constructor initializes active and running animation counts to zero.
     /// </summary>
     [Fact]
-    public void Constructor_InitializesCorrectly()
+    public void ConstructorInitializesCorrectly()
     {
         // Arrange
         var time = CreateTestTime();
@@ -31,7 +31,7 @@ public class AnimationManagerTests
     /// Verifies that the first call to AnimateBool01 creates a new animation and returns the target value.
     /// </summary>
     [Fact]
-    public void AnimateBool01_FirstCall_CreatesNewAnimation()
+    public void AnimateBool01FirstCallCreatesNewAnimation()
     {
         // Arrange
         var time = CreateTestTime();
@@ -50,7 +50,7 @@ public class AnimationManagerTests
     /// Verifies that calls from the same location return the same animation instance.
     /// </summary>
     [Fact]
-    public void AnimateBool01_SameLocation_ReturnsSameAnimation()
+    public void AnimateBool01SameLocationReturnsSameAnimation()
     {
         // Arrange
         var time = CreateTestTime();
@@ -72,7 +72,7 @@ public class AnimationManagerTests
     /// Verifies that calls from different locations create separate animations.
     /// </summary>
     [Fact]
-    public void AnimateBool01_DifferentLocations_CreatesSeparateAnimations()
+    public void AnimateBool01DifferentLocationsCreatesSeparateAnimations()
     {
         // Arrange
         var time = CreateTestTime();
@@ -92,7 +92,7 @@ public class AnimationManagerTests
     /// Verifies that a state change triggers an animation.
     /// </summary>
     [Fact]
-    public void AnimateBool01_StateChange_TriggersAnimation()
+    public void AnimateBool01StateChangeTriggersAnimation()
     {
         // Arrange
         var time = CreateTestTime();
@@ -121,7 +121,7 @@ public class AnimationManagerTests
     /// Verifies that changing from false to true animates the value correctly.
     /// </summary>
     [Fact]
-    public void AnimateBool01_FalseToTrue_AnimatesCorrectly()
+    public void AnimateBool01FalseToTrueAnimatesCorrectly()
     {
         // Arrange
         var time = CreateTestTime();
@@ -148,7 +148,7 @@ public class AnimationManagerTests
     /// Verifies that changing from true to false animates the value correctly.
     /// </summary>
     [Fact]
-    public void AnimateBool01_TrueToFalse_AnimatesCorrectly()
+    public void AnimateBool01TrueToFalseAnimatesCorrectly()
     {
         // Arrange
         var time = CreateTestTime();
@@ -175,7 +175,7 @@ public class AnimationManagerTests
     /// Verifies that repeated calls with the same state do not restart the animation.
     /// </summary>
     [Fact]
-    public void AnimateBool01_SameStateRepeated_DoesNotRestartAnimation()
+    public void AnimateBool01SameStateRepeatedDoesNotRestartAnimation()
     {
         // Arrange
         var time = CreateTestTime();
@@ -209,7 +209,7 @@ public class AnimationManagerTests
     /// Verifies that different easing functions are applied to their respective animations.
     /// </summary>
     [Fact]
-    public void AnimateBool01_DifferentEasingFunctions_AppliedCorrectly()
+    public void AnimateBool01DifferentEasingFunctionsAppliedCorrectly()
     {
         // Arrange
         var time = CreateTestTime();
@@ -240,7 +240,7 @@ public class AnimationManagerTests
     /// Verifies that Clear removes all animations from the manager.
     /// </summary>
     [Fact]
-    public void Clear_RemovesAllAnimations()
+    public void ClearRemovesAllAnimations()
     {
         // Arrange
         var time = CreateTestTime();
@@ -264,7 +264,7 @@ public class AnimationManagerTests
     /// Verifies that RunningAnimationCount reflects only actively animating entries.
     /// </summary>
     [Fact]
-    public void RunningAnimationCount_ReflectsActiveAnimations()
+    public void RunningAnimationCountReflectsActiveAnimations()
     {
         // Arrange
         var time = CreateTestTime();
@@ -293,7 +293,7 @@ public class AnimationManagerTests
     /// Verifies that a zero-duration animation sets the value immediately without animating.
     /// </summary>
     [Fact]
-    public void AnimateBool01_ZeroDuration_SetsValueImmediately()
+    public void AnimateBool01ZeroDurationSetsValueImmediately()
     {
         // Arrange
         var time = CreateTestTime();

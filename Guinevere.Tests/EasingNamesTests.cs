@@ -5,7 +5,7 @@ public class EasingNamesTests
 {
     /// <summary>Every alias evaluates like the function it names.</summary>
     [Fact]
-    public void Aliases_MatchTheirFunctions()
+    public void AliasesMatchTheirFunctions()
     {
         (Func<float, float> Alias, Func<float, float> Original)[] pairs =
         [
@@ -26,7 +26,9 @@ public class EasingNamesTests
             (Easing.EaseOutBounce, Easing.BounceOut), (Easing.EaseInOutBounce, Easing.BounceInOut),
         ];
         foreach (var (alias, original) in pairs)
+        {
             Assert.Equal(original(0.3f), alias(0.3f));
+        }
     }
 
     /// <summary>CSS keywords use the CSS curves; easings.net names work in kebab or Pascal case.</summary>
@@ -35,7 +37,7 @@ public class EasingNamesTests
     [InlineData("EaseInOutSine", 0.3f)]
     [InlineData("linear", 0.3f)]
     [InlineData(" smooth-step ", 0.3f)]
-    public void TryParse_FindsNames(string name, float t)
+    public void TryParseFindsNames(string name, float t)
     {
         Assert.True(Easing.TryParse(name, out var easing));
         Assert.InRange(easing(t), 0f, 1f);
@@ -45,7 +47,7 @@ public class EasingNamesTests
 
     /// <summary>CSS <c>ease-in</c> is the CSS curve, which differs from the quadratic <see cref="Easing.EaseIn"/>.</summary>
     [Fact]
-    public void TryParse_CssKeywordsFollowCss()
+    public void TryParseCssKeywordsFollowCss()
     {
         Assert.True(Easing.TryParse("ease-in", out var cssIn));
         Assert.Equal(0.3153f, cssIn(0.5f), 3);
@@ -56,7 +58,7 @@ public class EasingNamesTests
 
     /// <summary><c>cubic-bezier()</c> parses four numbers with x inside [0, 1]; anything else is rejected.</summary>
     [Fact]
-    public void TryParse_CubicBezier()
+    public void TryParseCubicBezier()
     {
         Assert.True(Easing.TryParse("cubic-bezier(0, 0, 1, 1)", out var linear));
         Assert.Equal(0.4f, linear(0.4f), 3);

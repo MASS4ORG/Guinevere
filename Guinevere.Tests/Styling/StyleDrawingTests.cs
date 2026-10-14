@@ -24,14 +24,22 @@ public class StyleDrawingTests
             using (g.Node(100, 60).Padding(10).Direction(Axis.Horizontal).Gap(20).Enter())
             {
                 using (g.StyledNode("box").Enter()) { }
-                using (g.Node(30, 30).Enter()) g.DrawStyledBox(g.ResolveStyle("box"), g.CurrentNode.Rect);
+                using (g.Node(30, 30).Enter())
+                {
+                    g.DrawStyledBox(g.ResolveStyle("box"), g.CurrentNode.Rect);
+                }
             }
         });
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);
         for (var y = 5; y < 45; y++)
+        {
             for (var x = 5; x < 45; x++)
+            {
                 Assert.Equal(pixels.GetPixel(x, y), pixels.GetPixel(x + 50, y));
+            }
+        }
+
         var container = Assert.Single(harness.Gui.RootNode!.Children);
         Assert.Equal(2, container.Children.Count);
     }

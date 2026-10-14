@@ -77,8 +77,16 @@ public static partial class ControlsExtensions
 
         using (node.Width(buttonWidth).Height(buttonHeight).Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return false;
-            if (enabled) gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return false;
+            }
+
+            if (enabled)
+            {
+                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+            }
+
             RenderCenteredText(gui, text, fontSizeEffective);
             return enabled && Activated(gui);
         }
@@ -99,14 +107,21 @@ public static partial class ControlsExtensions
         var activated = gui.HasFocus() && (gui.IsAcceptPressed
             || gui.ControlActivation?.IsActivated(gui.CurrentNode.Id) == true);
         var clicked = gui.GetInteractable().OnClick();
-        if (clicked) gui.RequestFocus(FocusReason.Mouse);
+        if (clicked)
+        {
+            gui.RequestFocus(FocusReason.Mouse);
+        }
+
         return clicked || activated;
     }
 
     static (float width, float height) CalculateButtonDimensions(Gui gui, LayoutNode node, Text text, float width,
         float height, float fontSize)
     {
-        if (width > 0 && height > 0) return (width, height);
+        if (width > 0 && height > 0)
+        {
+            return (width, height);
+        }
 
         // Measure through the same main/icon font fallback as Gui.DrawText so emoji and icon text
         // size the button to the glyphs that will actually render.
@@ -140,7 +155,10 @@ public static partial class ControlsExtensions
     {
         var rect = gui.CurrentNode.Rect;
         var label = text?.Label ?? string.Empty;
-        if (string.IsNullOrEmpty(label)) return;
+        if (string.IsNullOrEmpty(label))
+        {
+            return;
+        }
 
         var paint = new SKPaint { Color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value, IsAntialias = true };
 

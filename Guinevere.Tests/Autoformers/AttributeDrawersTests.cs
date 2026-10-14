@@ -166,9 +166,19 @@ public class AttributeDrawersTests
         void Draw(Gui gui)
         {
             using (gui.Node(-1, -1, "root").ExpandWidth().Direction(Axis.Vertical).Enter())
+            {
                 for (var i = 0; i < fields.Length; i++)
-                    if (editorOnly) gui.FormFieldEditor(fields[i], $"f{i}", context);
-                    else gui.FormField(fields[i], $"f{i}", context);
+                {
+                    if (editorOnly)
+                    {
+                        gui.FormFieldEditor(fields[i], $"f{i}", context);
+                    }
+                    else
+                    {
+                        gui.FormField(fields[i], $"f{i}", context);
+                    }
+                }
+            }
         }
 
         harness.Frame(Draw);

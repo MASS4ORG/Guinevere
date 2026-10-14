@@ -1,7 +1,7 @@
-using Example_01;
+using Example01;
 using Guinevere;
 
-namespace Example_01_OpenGL_OpenTK;
+namespace Example01OpenGLOpenTK;
 
 public abstract class Program
 {

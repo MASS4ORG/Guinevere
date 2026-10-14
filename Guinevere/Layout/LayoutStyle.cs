@@ -206,25 +206,41 @@ public struct LayoutStyle
     public UnitValue? MinWidthExpression
     {
         readonly get => _constraints?.MinWidth;
-        set { if (value is not null || _constraints is not null) _constraints = (_constraints ?? new()) with { MinWidth = value }; }
+        set { if (value is not null || _constraints is not null)
+            {
+                _constraints = (_constraints ?? new()) with { MinWidth = value };
+            }
+        }
     }
     /// <summary>Composable maximum width; null uses the legacy pixel bound.</summary>
     public UnitValue? MaxWidthExpression
     {
         readonly get => _constraints?.MaxWidth;
-        set { if (value is not null || _constraints is not null) _constraints = (_constraints ?? new()) with { MaxWidth = value }; }
+        set { if (value is not null || _constraints is not null)
+            {
+                _constraints = (_constraints ?? new()) with { MaxWidth = value };
+            }
+        }
     }
     /// <summary>Composable minimum height; null uses the legacy pixel bound.</summary>
     public UnitValue? MinHeightExpression
     {
         readonly get => _constraints?.MinHeight;
-        set { if (value is not null || _constraints is not null) _constraints = (_constraints ?? new()) with { MinHeight = value }; }
+        set { if (value is not null || _constraints is not null)
+            {
+                _constraints = (_constraints ?? new()) with { MinHeight = value };
+            }
+        }
     }
     /// <summary>Composable maximum height; null uses the legacy pixel bound.</summary>
     public UnitValue? MaxHeightExpression
     {
         readonly get => _constraints?.MaxHeight;
-        set { if (value is not null || _constraints is not null) _constraints = (_constraints ?? new()) with { MaxHeight = value }; }
+        set { if (value is not null || _constraints is not null)
+            {
+                _constraints = (_constraints ?? new()) with { MaxHeight = value };
+            }
+        }
     }
 
     /// <summary>Width as a fraction (0..1) of the parent's inner width, or -1 to use <see cref="Width"/>.</summary>
@@ -237,8 +253,16 @@ public struct LayoutStyle
     /// <param name="width">The width to constrain.</param>
     public readonly float ClampWidth(float width)
     {
-        if (MinWidth >= 0f && width < MinWidth) width = MinWidth;
-        if (MaxWidth >= 0f && width > MaxWidth) width = MaxWidth;
+        if (MinWidth >= 0f && width < MinWidth)
+        {
+            width = MinWidth;
+        }
+
+        if (MaxWidth >= 0f && width > MaxWidth)
+        {
+            width = MaxWidth;
+        }
+
         return width;
     }
 
@@ -246,8 +270,16 @@ public struct LayoutStyle
     /// <param name="height">The height to constrain.</param>
     public readonly float ClampHeight(float height)
     {
-        if (MinHeight >= 0f && height < MinHeight) height = MinHeight;
-        if (MaxHeight >= 0f && height > MaxHeight) height = MaxHeight;
+        if (MinHeight >= 0f && height < MinHeight)
+        {
+            height = MinHeight;
+        }
+
+        if (MaxHeight >= 0f && height > MaxHeight)
+        {
+            height = MaxHeight;
+        }
+
         return height;
     }
 

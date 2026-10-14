@@ -18,8 +18,14 @@ public class GuiIdentityTests
             for (var i = 0; i < 4; i++)
             {
                 var node = gui.Node(20, 20);
-                if (gui.Pass == Pass.Pass1Build) build.Add(node);
-                else Assert.Same(build[i], node);
+                if (gui.Pass == Pass.Pass1Build)
+                {
+                    build.Add(node);
+                }
+                else
+                {
+                    Assert.Same(build[i], node);
+                }
             }
             Assert.Equal(4, gui.CurrentNode.Pass2NodeCount);
         }
@@ -41,7 +47,11 @@ public class GuiIdentityTests
         LayoutNode? target = null;
         void Draw(Gui gui)
         {
-            if (show) gui.Node(20, 20);
+            if (show)
+            {
+                gui.Node(20, 20);
+            }
+
             target = gui.Node(20, 20);
         }
         harness.Frame(Draw);
@@ -101,7 +111,10 @@ public class GuiIdentityTests
                 using var key = gui.ItemKey(i);
                 var node = gui.StyledNode("input", id: "editor");
                 nodes[i] = node;
-                using (node.Enter()) gui.RegisterFocusable();
+                using (node.Enter())
+                {
+                    gui.RegisterFocusable();
+                }
             }
         }
         harness.Frame(Draw);
@@ -156,7 +169,10 @@ public class GuiIdentityTests
         var values = new[] { "one", "two" };
         void Draw(Gui gui)
         {
-            for (var i = 0; i < values.Length; i++) gui.TextInput(ref values[i]);
+            for (var i = 0; i < values.Length; i++)
+            {
+                gui.TextInput(ref values[i]);
+            }
         }
         harness.Frame(Draw);
         var nodes = harness.Gui.RootNode!.ChildNodes;
@@ -182,7 +198,10 @@ public class GuiIdentityTests
             {
                 using var key = gui.ItemKey(item);
                 using var row = gui.Node(100, 30).Enter();
-                if (gui.GetInteractable().OnDrag(out _)) dragged.Add(item);
+                if (gui.GetInteractable().OnDrag(out _))
+                {
+                    dragged.Add(item);
+                }
             }
         }
         harness.Frame(Draw);
@@ -212,7 +231,11 @@ public class GuiIdentityTests
         {
             gui.Node(id: "same");
             Assert.Throws<InvalidOperationException>(() => gui.Node(id: "same"));
-            using (gui.ItemKey(1)) gui.Node();
+            using (gui.ItemKey(1))
+            {
+                gui.Node();
+            }
+
             Assert.Throws<InvalidOperationException>(() => gui.ItemKey(1));
         });
     }
@@ -276,7 +299,10 @@ public class GuiIdentityTests
         var values = new[] { 1d, 2d };
         void Draw(Gui gui)
         {
-            for (var i = 0; i < values.Length; i++) gui.NumberField(ref values[i]);
+            for (var i = 0; i < values.Length; i++)
+            {
+                gui.NumberField(ref values[i]);
+            }
         }
         harness.Frame(Draw);
         var second = harness.Gui.RootNode!.ChildNodes[1].Id;
@@ -304,15 +330,33 @@ public class GuiIdentityTests
         var ids = new List<string>();
         void Draw(Gui gui)
         {
-            foreach (var model in models) gui.Form(model);
-            foreach (var model in models) gui.FormField(model.Sections[0].Fields[0]);
-            foreach (var model in models) gui.FormFieldEditor(model.Sections[0].Fields[0]);
+            foreach (var model in models)
+            {
+                gui.Form(model);
+            }
+
+            foreach (var model in models)
+            {
+                gui.FormField(model.Sections[0].Fields[0]);
+            }
+
+            foreach (var model in models)
+            {
+                gui.FormFieldEditor(model.Sections[0].Fields[0]);
+            }
+
             if (gui.Pass == Pass.Pass2Render)
             {
                 var names = gui.RootNode!.ChildNodes.Select(node => node.Id).ToArray();
                 Assert.Equal(names.Length, names.Distinct().Count());
-                if (ids.Count == 0) ids.AddRange(names);
-                else Assert.Equal(ids, names);
+                if (ids.Count == 0)
+                {
+                    ids.AddRange(names);
+                }
+                else
+                {
+                    Assert.Equal(ids, names);
+                }
             }
         }
         harness.Frame(Draw);

@@ -8,7 +8,7 @@ public class StyleBoxValuesTests
 
     /// <summary>Splitting ignores separators inside parentheses and quotes and drops empty parts.</summary>
     [Fact]
-    public void Split_RespectsNesting()
+    public void SplitRespectsNesting()
     {
         Assert.Equal(["a", "f(b, c)", "'d,e'"], StyleBoxValues.Split("a, f(b, c),, 'd,e'", ','));
         Assert.Equal(["0", "2px", "rgb(1, 2, 3)"], StyleBoxValues.Split(" 0  2px\trgb(1, 2, 3) ", ' '));
@@ -17,7 +17,7 @@ public class StyleBoxValuesTests
 
     /// <summary>Shadow layers keep their order; malformed layers are skipped.</summary>
     [Fact]
-    public void Shadows_ParseLayers()
+    public void ShadowsParseLayers()
     {
         var shadows = StyleBoxValues.Shadows("0 2px 8px 1px #ff000080, inset 1 2 #00ff00, 3 4, x y, 1, 1 2 3 4 5");
 
@@ -42,7 +42,7 @@ public class StyleBoxValuesTests
     [InlineData("1 2 3 4 5", 0, 0, 0, 0)]
     [InlineData("big", 0, 0, 0, 0)]
     [InlineData(null, 0, 0, 0, 0)]
-    public void Radii_FollowShorthand(string? value, float tl, float tr, float br, float bl)
+    public void RadiiFollowShorthand(string? value, float tl, float tr, float br, float bl)
     {
         var radii = StyleBoxValues.Radii(value, new Rect(0, 0, 100, 40));
 
@@ -51,7 +51,7 @@ public class StyleBoxValuesTests
 
     /// <summary>The outline shorthand and longhands combine; missing colors or <c>none</c> draw nothing.</summary>
     [Fact]
-    public void Outline_CombinesShorthandAndLonghands()
+    public void OutlineCombinesShorthandAndLonghands()
     {
         Assert.Equal(new BoxOutline(2, 0, Color.FromArgb(255, 0, 0, 255)),
             StyleBoxValues.Outline(Style("outline = 2px solid #0000ff;")));
@@ -85,7 +85,7 @@ public class StyleBoxValuesTests
     [InlineData("linear-gradient(red, blue", false)]
     [InlineData("radial-gradient(red, blue)", false)]
     [InlineData(null, false)]
-    public void Gradient_Parses(string? value, bool valid) =>
+    public void GradientParses(string? value, bool valid) =>
         Assert.Equal(valid, StyleBoxValues.Gradient(value, new SKRect(0, 0, 10, 10)) is not null);
 
     /// <summary>CSS cursor keywords map to the closest platform cursor.</summary>
@@ -106,12 +106,12 @@ public class StyleBoxValuesTests
     [InlineData("not-allowed", PointerCursor.NotAllowed)]
     [InlineData("move", PointerCursor.Move)]
     [InlineData("grabbing", PointerCursor.Move)]
-    public void Cursor_MapsKeywords(string value, PointerCursor expected) =>
+    public void CursorMapsKeywords(string value, PointerCursor expected) =>
         Assert.Equal(expected, StyleBoxValues.Cursor(value));
 
     /// <summary>Unknown cursors and opacities are ignored; opacities clamp to 0..1.</summary>
     [Fact]
-    public void CursorAndOpacity_Fallbacks()
+    public void CursorAndOpacityFallbacks()
     {
         Assert.Null(StyleBoxValues.Cursor("zoom-in"));
         Assert.Null(StyleBoxValues.Cursor(null));
@@ -128,11 +128,11 @@ public class StyleBoxValuesTests
     [InlineData("300", 300)]
     [InlineData("5000", 1000)]
     [InlineData("heavy", 400)]
-    public void FontWeight_Parses(string? value, int expected) => Assert.Equal(expected, StyleFonts.Weight(value));
+    public void FontWeightParses(string? value, int expected) => Assert.Equal(expected, StyleFonts.Weight(value));
 
     /// <summary>Only <c>italic</c> and <c>oblique</c> slant the face.</summary>
     [Fact]
-    public void FontStyle_Parses()
+    public void FontStyleParses()
     {
         Assert.True(StyleFonts.Italic("Italic"));
         Assert.True(StyleFonts.Italic("oblique"));

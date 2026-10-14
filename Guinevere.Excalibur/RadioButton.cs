@@ -39,7 +39,11 @@ public static partial class ControlsExtensions
             lineNumber);
         using (row.Enter())
         {
-            if (ChoiceActivated(gui, enabled)) selectedIndex = value;
+            if (ChoiceActivated(gui, enabled))
+            {
+                selectedIndex = value;
+            }
+
             var modifiers = selectedIndex == value ? CheckedModifier : NoModifiers;
             using (ChoicePart(gui, "indicator", size, size, modifiers).ContentAlignX(0.5f).ContentAlignY(0.5f)
                        .Enter())
@@ -111,7 +115,9 @@ public static partial class ControlsExtensions
         using (gui.Node().Direction(Axis.Vertical).Gap(gap).Enter())
         {
             foreach (var (value, label) in options)
+            {
                 gui.RadioButton(ref selectedIndex, value, label, size, fontSize, spacing, enabled, classes);
+            }
         }
     }
 }

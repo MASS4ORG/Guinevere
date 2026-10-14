@@ -40,7 +40,10 @@ public sealed class InputScriptPlayer(
         using var surface = SKSurface.Create(
             new SKImageInfo(script.Width, script.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul));
 
-        foreach (var step in script.Steps) Execute(step, gui, draw, surface, font);
+        foreach (var step in script.Steps)
+        {
+            Execute(step, gui, draw, surface, font);
+        }
 
         return Failures == 0;
     }
@@ -94,7 +97,10 @@ public sealed class InputScriptPlayer(
 
     static void AdvanceFrames(int count, Gui gui, Action<Gui> draw, SKSurface surface, Font font)
     {
-        for (var i = 0; i < Math.Max(1, count); i++) Frame(gui, draw, surface, font);
+        for (var i = 0; i < Math.Max(1, count); i++)
+        {
+            Frame(gui, draw, surface, font);
+        }
     }
 
     bool ExecuteDeviceStep(InputScriptStep step)
@@ -114,12 +120,12 @@ public sealed class InputScriptPlayer(
                 input.SetControllerAxis(step.DeviceId, step.Axis, step.AxisValue);
                 break;
             case InputAction.Touch:
-                input.Touch(new TouchContact(step.ContactId, new System.Numerics.Vector2(step.X, step.Y),
+                input.Touch(new TouchContact(step.ContactId, new Vector2(step.X, step.Y),
                     step.Pressure, step.Phase));
                 break;
             case InputAction.Gesture:
                 input.Gesture(new TouchGesture(step.GestureKind, step.ContactId,
-                    new System.Numerics.Vector2(step.X, step.Y), Scale: step.Scale, Rotation: step.Rotation));
+                    new Vector2(step.X, step.Y), Scale: step.Scale, Rotation: step.Rotation));
                 break;
             default:
                 return false;
@@ -214,8 +220,14 @@ public sealed class InputScriptPlayer(
             ? actual is null
             : actual is not null && actual.Contains(expected, StringComparison.Ordinal);
 
-        if (ok) _log($"expectCapture '{expected}': ok");
-        else Fail($"expectCapture '{expected}': pointer capture was {actual ?? "none"}");
+        if (ok)
+        {
+            _log($"expectCapture '{expected}': ok");
+        }
+        else
+        {
+            Fail($"expectCapture '{expected}': pointer capture was {actual ?? "none"}");
+        }
     }
 
     void ExpectNode(Gui gui, string? idFragment, bool shouldExist)
@@ -227,8 +239,14 @@ public sealed class InputScriptPlayer(
         }
 
         var found = Exists(gui.RootNode!, idFragment);
-        if (found == shouldExist) _log($"{(shouldExist ? "expectNode" : "expectNoNode")} '{idFragment}': ok");
-        else Fail($"{(shouldExist ? "expectNode" : "expectNoNode")} '{idFragment}': node was {(found ? "" : "not ")}found");
+        if (found == shouldExist)
+        {
+            _log($"{(shouldExist ? "expectNode" : "expectNoNode")} '{idFragment}': ok");
+        }
+        else
+        {
+            Fail($"{(shouldExist ? "expectNode" : "expectNoNode")} '{idFragment}': node was {(found ? "" : "not ")}found");
+        }
     }
 
     static bool Exists(LayoutNode node, string idFragment) =>
@@ -248,7 +266,10 @@ public sealed class InputScriptPlayer(
             : Path.Combine(outputDirectory, path);
 
         var directory = Path.GetDirectoryName(target);
-        if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
 
         using var image = surface.Snapshot();
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -262,7 +283,10 @@ public sealed class InputScriptPlayer(
         var r = node.Rect;
         var id = node.Id.Length > 60 ? "…" + node.Id[^58..] : node.Id;
         _log($"{new string(' ', depth * 2)}[{r.X:0},{r.Y:0} {r.W:0}x{r.H:0}] kids={node.Children.Count} {id}");
-        foreach (var child in node.Children) ReportTree(child, depth + 1);
+        foreach (var child in node.Children)
+        {
+            ReportTree(child, depth + 1);
+        }
     }
 
     void Fail(string message)

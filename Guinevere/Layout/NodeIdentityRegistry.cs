@@ -46,7 +46,10 @@ sealed class NodeIdentityRegistry
     {
         var descriptor = new DataScopeKey(outer, itemScope, ItemToken(key));
         if (!_dataScopes.TryGetValue(descriptor, out var scope))
+        {
             _dataScopes.Add(descriptor, scope = checked(_dataScopes.Count + 1));
+        }
+
         return scope;
     }
 
@@ -54,30 +57,58 @@ sealed class NodeIdentityRegistry
     {
         var descriptor = new ItemScope(parent, outer, ItemToken(item), data);
         if (!_scopes.TryGetValue(descriptor, out var scope))
+        {
             _scopes.Add(descriptor, scope = checked(_scopes.Count + 1));
+        }
+
         if (!_visitedScopes.Add(scope))
+        {
             throw new InvalidOperationException("An item key must be unique within its parent and outer item scope.");
+        }
+
         return scope;
     }
 
     int ItemToken<T>(T item) where T : notnull
     {
-        if (!typeof(T).IsValueType && item is null) throw new ArgumentNullException(nameof(item));
+        if (!typeof(T).IsValueType && item is null)
+        {
+            throw new ArgumentNullException(nameof(item));
+        }
+
         if (!_items.TryGetValue(typeof(T), out var table))
+        {
             _items[typeof(T)] = table = new Dictionary<T, int>();
+        }
+
         var items = (Dictionary<T, int>)table;
-        if (!items.TryGetValue(item, out var token)) items.Add(item, token = checked(++_itemCount));
+        if (!items.TryGetValue(item, out var token))
+        {
+            items.Add(item, token = checked(++_itemCount));
+        }
+
         return token;
     }
 
     internal string Name(int key)
     {
-        if (_names[key] is { } cached) return cached;
+        if (_names[key] is { } cached)
+        {
+            return cached;
+        }
+
         var descriptor = _descriptors[key];
         var location = descriptor.Location;
         if (location.Scope != 0 || location.Control || location.Data != 0)
+        {
             return _names[key] = $"@node:{key}";
-        if (descriptor.ExplicitId is { } explicitId) return _names[key] = explicitId;
+        }
+
+        if (descriptor.ExplicitId is { } explicitId)
+        {
+            return _names[key] = explicitId;
+        }
+
         var site = _siteNames[location.Site];
         return _names[key] = $"{Name(location.Parent)}{site.FilePath}:{site.LineNumber} {descriptor.Index}";
     }
@@ -85,7 +116,11 @@ sealed class NodeIdentityRegistry
     int Site(string filePath, int lineNumber)
     {
         var site = new CallSite(filePath, lineNumber);
-        if (_sites.TryGetValue(site, out var key)) return key;
+        if (_sites.TryGetValue(site, out var key))
+        {
+            return key;
+        }
+
         key = _siteNames.Count;
         _sites.Add(site, key);
         _siteNames.Add(site);
@@ -94,7 +129,11 @@ sealed class NodeIdentityRegistry
 
     int Intern(Identity descriptor)
     {
-        if (_identities.TryGetValue(descriptor, out var key)) return key;
+        if (_identities.TryGetValue(descriptor, out var key))
+        {
+            return key;
+        }
+
         key = _descriptors.Count;
         _identities.Add(descriptor, key);
         _descriptors.Add(descriptor);

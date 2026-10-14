@@ -15,7 +15,11 @@ public static class StyledFonts
             scope ??= gui.LayoutNodeScopeStack.Count > 0 ? gui.CurrentNodeScope : null;
             var scoped = scope?.Get<StyleTokens>().Values;
             var families = scoped?.GetValueOrDefault($"--{token}") ?? sheets.GetToken(token);
-            if (families is null) return gui.Fonts.ResolveRole(role, size, weight, italic);
+            if (families is null)
+            {
+                return gui.Fonts.ResolveRole(role, size, weight, italic);
+            }
+
             families = StyleSheet.Compute(families,
                 name => scoped?.GetValueOrDefault(name) ?? sheets.GetToken(name));
             return gui.Fonts.Resolve(families, size, weight, italic);
@@ -25,10 +29,23 @@ public static class StyledFonts
         public void UseFontRole(FontRole role, LayoutNodeScope? scope = null)
         {
             scope ??= gui.CurrentNodeScope;
-            if (gui.ResolveFontRole(role, scope: scope) is not { } font) return;
-            if (role == FontRole.Icon) gui.SetWidgetIconFont(font, scope);
-            else if (role == FontRole.Emoji) gui.SetEmojiFont(font, scope);
-            else gui.SetTextFont(font, scope);
+            if (gui.ResolveFontRole(role, scope: scope) is not { } font)
+            {
+                return;
+            }
+
+            if (role == FontRole.Icon)
+            {
+                gui.SetWidgetIconFont(font, scope);
+            }
+            else if (role == FontRole.Emoji)
+            {
+                gui.SetEmojiFont(font, scope);
+            }
+            else
+            {
+                gui.SetTextFont(font, scope);
+            }
         }
     }
 

@@ -16,16 +16,29 @@ sealed class TitleDrawer : IAttributeDrawer
         using (gui.Node(-1, -1, $"{id}/title").ExpandWidth().Direction(Axis.Vertical).Gap(2f).Enter())
         {
             using (gui.Node(-1, style.RowHeight, $"{id}/title/text").ExpandWidth().ContentAlignY(0.5f).Enter())
+            {
                 gui.DrawText(title.Title, style.FontSize + 1f, style.Ink, centerInRect: false,
                     effects: FormControls.Emphasis(title.Bold, style.Ink));
+            }
 
             if (title.Subtitle is { } subtitle)
+            {
                 using (gui.Node(-1, style.FontSize + 4f, $"{id}/title/subtitle").ExpandWidth().Enter())
+                {
                     gui.DrawText(subtitle, style.FontSize - 1f, style.InkDim, centerInRect: false);
+                }
+            }
 
             if (title.HorizontalLine)
+            {
                 using (gui.Node(-1, 1f, $"{id}/title/line").ExpandWidth().Enter())
-                    if (gui.Pass == Pass.Pass2Render) gui.DrawBackgroundRect(style.Divider);
+                {
+                    if (gui.Pass == Pass.Pass2Render)
+                    {
+                        gui.DrawBackgroundRect(style.Divider);
+                    }
+                }
+            }
 
             next();
         }
@@ -45,7 +58,10 @@ sealed class RequiredDrawer : IAttributeDrawer
         using (gui.Node(-1, -1, $"{id}/required").ExpandWidth().Direction(Axis.Vertical).Gap(2f).Enter())
         {
             next();
-            if (!IsMissing(field.GetValue())) return;
+            if (!IsMissing(field.GetValue()))
+            {
+                return;
+            }
 
             var style = new FormStyle(gui);
             using (gui.Node(-1, style.RowHeight, $"{id}/required/error").ExpandWidth().Padding(0f, 6f, 0f, 6f)
@@ -53,7 +69,10 @@ sealed class RequiredDrawer : IAttributeDrawer
             {
                 var negative = style.Negative;
                 if (gui.Pass == Pass.Pass2Render)
+                {
                     gui.DrawBackgroundRect(Color.FromArgb(40, negative.R, negative.G, negative.B), 3f);
+                }
+
                 gui.DrawText(Message(field, (RequiredAttribute)attribute), style.FontSize, negative,
                     centerInRect: false);
             }

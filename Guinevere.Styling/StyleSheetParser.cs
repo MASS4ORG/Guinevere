@@ -85,18 +85,31 @@ sealed class StyleSheetParser
             BaseUri = resolved.BaseUri ?? Options.BaseUri,
         };
         var chain = new List<string>(_importChain) { id };
-        if (Options.SourceName is { } self) chain.Add(self);
+        if (Options.SourceName is { } self)
+        {
+            chain.Add(self);
+        }
+
         var imported = Parse(resolved.Text, childOptions, chain);
         _imports.Add(imported);
-        foreach (var (name, value) in imported.Constants) Constants[name] = value;
+        foreach (var (name, value) in imported.Constants)
+        {
+            Constants[name] = value;
+        }
     }
 
     StyleSheetText ResolveImport(string id, int offset)
     {
         if (Options.ImportResolver is not { } resolver)
+        {
             throw Error(offset, $"@import \"{id}\" needs StyleSheetOptions.ImportResolver");
+        }
+
         if (_importChain.Contains(id, StringComparer.Ordinal) || id == Options.SourceName)
+        {
             throw Error(offset, $"Cyclic @import of \"{id}\"");
+        }
+
         return resolver(id) ?? throw Error(offset, $"Cannot resolve @import \"{id}\"");
     }
 
@@ -125,15 +138,28 @@ sealed class StyleSheetParser
         var i = 0;
         while (SkipTrivia(ref i))
         {
-            if (_text[i] == '@') i = ParseAtRule(i, topLevel: true);
-            else if (_text[i] == '$' || IsCustomPropertyStart(i)) i = ParseTopLevelVariable(i);
-            else i = ParseRule(i);
+            if (_text[i] == '@')
+            {
+                i = ParseAtRule(i, topLevel: true);
+            }
+            else if (_text[i] == '$' || IsCustomPropertyStart(i))
+            {
+                i = ParseTopLevelVariable(i);
+            }
+            else
+            {
+                i = ParseRule(i);
+            }
         }
     }
 
     bool SkipTrivia(ref int i)
     {
-        while (i < _text.Length && (char.IsWhiteSpace(_text[i]) || _text[i] == ';')) i++;
+        while (i < _text.Length && (char.IsWhiteSpace(_text[i]) || _text[i] == ';'))
+        {
+            i++;
+        }
+
         return i < _text.Length;
     }
 
@@ -142,8 +168,16 @@ sealed class StyleSheetParser
     int ParseTopLevelVariable(int i)
     {
         var end = StyleSheetLexer.FindBoundary(_text, i);
-        if (end >= 0 && _text[end] != ';') throw Error(i, "Expected ';' after a top-level token");
-        if (end < 0) end = _text.Length;
+        if (end >= 0 && _text[end] != ';')
+        {
+            throw Error(i, "Expected ';' after a top-level token");
+        }
+
+        if (end < 0)
+        {
+            end = _text.Length;
+        }
+
         var (name, value) = SplitDeclaration(_text[i..end].Trim(), i);
         Variables[name] = value;
         return end + 1;
@@ -152,9 +186,17 @@ sealed class StyleSheetParser
     int ParseRule(int i)
     {
         var brace = StyleSheetLexer.FindBoundary(_text, i);
-        if (brace < 0 || _text[brace] != '{') throw Error(i, "Expected a rule block");
+        if (brace < 0 || _text[brace] != '{')
+        {
+            throw Error(i, "Expected a rule block");
+        }
+
         var selectorText = _text[i..brace].Trim();
-        if (selectorText.Length == 0) throw Error(i, "Missing selector");
+        if (selectorText.Length == 0)
+        {
+            throw Error(i, "Missing selector");
+        }
+
         selectorText = ParseInheritance(selectorText, i);
         return ParseBlock(brace + 1, SplitSelectors(selectorText), i);
     }
@@ -162,7 +204,11 @@ sealed class StyleSheetParser
     string ParseInheritance(string selectorText, int offset)
     {
         var inherit = InheritPattern.Match(selectorText);
-        if (!inherit.Success) return selectorText;
+        if (!inherit.Success)
+        {
+            return selectorText;
+        }
+
         var child = inherit.Groups["child"].Value;
         var target = inherit.Groups["kind"].Value switch
         {
@@ -184,26 +230,45 @@ sealed class StyleSheetParser
         var sources = new Dictionary<string, StylePropertySource>(StringComparer.Ordinal);
         while (true)
         {
-            if (!SkipTrivia(ref i)) throw Error(i, "Unterminated rule block: missing '}'");
+            if (!SkipTrivia(ref i))
+            {
+                throw Error(i, "Unterminated rule block: missing '}'");
+            }
+
             if (_text[i] == '}') { i++; break; }
             i = ParseBlockStatement(i, selectorTexts, declarations, lines, sources);
         }
 
         if (declarations.Count > 0)
+        {
             _ownRules.Add(CreateRule(selectorTexts, declarations, ownOrder, selectorOffset, lines, sources));
+        }
+
         return i;
     }
 
     int ParseBlockStatement(int i, string[] selectorTexts, Dictionary<string, string> declarations, List<int> lines,
         Dictionary<string, StylePropertySource> sources)
     {
-        if (_text[i] == '@') return ParseAtRule(i, topLevel: false);
+        if (_text[i] == '@')
+        {
+            return ParseAtRule(i, topLevel: false);
+        }
+
         var end = StyleSheetLexer.FindBoundary(_text, i);
-        if (end < 0) throw Error(i, "Unterminated declaration");
+        if (end < 0)
+        {
+            throw Error(i, "Unterminated declaration");
+        }
+
         var head = _text[i..end].Trim();
         if (_text[end] == '{')
         {
-            if (StartsWithKeyword(head, "effect")) return Defer(StyleDeferredKind.Effect, i);
+            if (StartsWithKeyword(head, "effect"))
+            {
+                return Defer(StyleDeferredKind.Effect, i);
+            }
+
             var nested = SplitSelectors(head)
                 .SelectMany(child => selectorTexts.Select(parent => Combine(parent, child)))
                 .ToArray();
@@ -211,8 +276,16 @@ sealed class StyleSheetParser
         }
 
         var next = _text[end] == ';' ? end + 1 : end;
-        if (StartsWithKeyword(head, "shape")) return Defer(StyleDeferredKind.Shape, i);
-        if (IsBackgroundShape(head)) return Defer(StyleDeferredKind.BackgroundShape, i);
+        if (StartsWithKeyword(head, "shape"))
+        {
+            return Defer(StyleDeferredKind.Shape, i);
+        }
+
+        if (IsBackgroundShape(head))
+        {
+            return Defer(StyleDeferredKind.BackgroundShape, i);
+        }
+
         AddDeclaration(head, i, declarations, lines, sources);
         return next;
     }
@@ -225,7 +298,10 @@ sealed class StyleSheetParser
         declarations[property] = value;
         var line = LineOf(offset);
         sources[property] = new StylePropertySource(Options, line, offset - _lineStarts![line - 1] + 1);
-        if (lines[^1] != line) lines.Add(line);
+        if (lines[^1] != line)
+        {
+            lines.Add(line);
+        }
     }
 
     List<int>? _lineStarts;
@@ -237,7 +313,12 @@ sealed class StyleSheetParser
         {
             _lineStarts = [0];
             for (var j = 0; j < _text.Length; j++)
-                if (_text[j] == '\n') _lineStarts.Add(j + 1);
+            {
+                if (_text[j] == '\n')
+                {
+                    _lineStarts.Add(j + 1);
+                }
+            }
         }
         var index = _lineStarts.BinarySearch(offset);
         return index >= 0 ? index + 1 : ~index;
@@ -246,12 +327,24 @@ sealed class StyleSheetParser
     (string Name, string Value) SplitDeclaration(string declaration, int offset)
     {
         var separator = DeclarationSeparator(declaration);
-        if (separator <= 0) throw Error(offset, $"Malformed declaration '{declaration}'{CssHint(declaration)}");
+        if (separator <= 0)
+        {
+            throw Error(offset, $"Malformed declaration '{declaration}'{CssHint(declaration)}");
+        }
+
         var name = declaration[..separator].Trim();
         var value = SubstituteConstants(declaration[(separator + 1)..].Trim());
         ValidateValue(declaration, separator, value, offset);
-        if (name[0] == '$') return ($"--{name[1..]}", value);
-        if (!Css) RejectCssForms(name, value, offset);
+        if (name[0] == '$')
+        {
+            return ($"--{name[1..]}", value);
+        }
+
+        if (!Css)
+        {
+            RejectCssForms(name, value, offset);
+        }
+
         return (name, value);
     }
 
@@ -280,42 +373,79 @@ sealed class StyleSheetParser
     void RejectCssForms(string name, string value, int offset)
     {
         if (name.StartsWith("--", StringComparison.Ordinal))
+        {
             throw Error(offset, $"CSS custom property '{name}' needs StyleSheetOptions.AllowCssSyntax; use ${name[2..]}");
+        }
+
         if (value.Contains("var(--", StringComparison.Ordinal))
+        {
             throw Error(offset, "var() needs StyleSheetOptions.AllowCssSyntax; use $name");
+        }
     }
 
     int DeclarationSeparator(string text)
     {
         var equals = text.IndexOf('=');
-        if (!Css) return equals;
+        if (!Css)
+        {
+            return equals;
+        }
+
         var colon = text.IndexOf(':');
-        if (equals < 0) return colon;
+        if (equals < 0)
+        {
+            return colon;
+        }
+
         return colon < 0 ? equals : Math.Min(equals, colon);
     }
 
     int ParseAtRule(int i, bool topLevel)
     {
         var nameEnd = i + 1;
-        while (nameEnd < _text.Length && StyleSheetLexer.IsIdentifierChar(_text[nameEnd])) nameEnd++;
+        while (nameEnd < _text.Length && StyleSheetLexer.IsIdentifierChar(_text[nameEnd]))
+        {
+            nameEnd++;
+        }
+
         var name = _text[(i + 1)..nameEnd];
-        if (name.Length == 0) throw Error(i, "Expected a name after '@'");
-        if (topLevel && name == "font-face") return ParseFontFace(i, nameEnd);
-        if (MalformedAtRules.TryGetValue(name, out var message)) throw Error(i, message);
+        if (name.Length == 0)
+        {
+            throw Error(i, "Expected a name after '@'");
+        }
+
+        if (topLevel && name == "font-face")
+        {
+            return ParseFontFace(i, nameEnd);
+        }
+
+        if (MalformedAtRules.TryGetValue(name, out var message))
+        {
+            throw Error(i, message);
+        }
+
         return Defer(DeferredAtRules.GetValueOrDefault(name, StyleDeferredKind.Invocation), i);
     }
 
     int Defer(StyleDeferredKind kind, int i)
     {
         var end = StyleSheetLexer.FindBoundary(_text, i);
-        if (end < 0) throw Error(i, "Unterminated statement");
+        if (end < 0)
+        {
+            throw Error(i, "Unterminated statement");
+        }
+
         var after = _text[end] switch
         {
             '{' => StyleSheetLexer.SkipBlock(_text, end),
             ';' => end + 1,
             _ => end,
         };
-        if (after < 0) throw Error(i, "Unterminated block: missing '}'");
+        if (after < 0)
+        {
+            throw Error(i, "Unterminated block: missing '}'");
+        }
+
         var (line, column) = StyleSheetLexer.Position(_text, i);
         Deferred.Add(new StyleDeferredConstruct(kind, _text[i..after].Trim(), line, column));
         return after;
@@ -325,12 +455,18 @@ sealed class StyleSheetParser
     {
         var open = StyleSheetLexer.FindBoundary(_text, nameEnd);
         if (open < 0 || _text[open] != '{' || !string.IsNullOrWhiteSpace(_text[nameEnd..open]))
+        {
             throw Error(i, "Expected '{' after @font-face");
+        }
+
         var (declarations, close) = ParseFontFaceDeclarations(open + 1, i);
         if (!declarations.TryGetValue("font-family", out var family)
             || !declarations.TryGetValue("src", out var src)
             || !StyleValue.TryUrl(src, Options.BaseUri, out var uri))
+        {
             throw Error(i, "@font-face needs font-family and a valid src");
+        }
+
         FontFaces.Add(new StyleFontFace(StyleValue.Unquote(family), uri)
         {
             Weight = StyleFonts.Weight(declarations.GetValueOrDefault("font-weight")),
@@ -345,10 +481,22 @@ sealed class StyleSheetParser
         var declarations = new Dictionary<string, string>(StringComparer.Ordinal);
         while (true)
         {
-            if (!SkipTrivia(ref j)) throw Error(ruleOffset, "Unterminated @font-face block: missing '}'");
-            if (_text[j] == '}') return (declarations, j);
+            if (!SkipTrivia(ref j))
+            {
+                throw Error(ruleOffset, "Unterminated @font-face block: missing '}'");
+            }
+
+            if (_text[j] == '}')
+            {
+                return (declarations, j);
+            }
+
             var end = StyleSheetLexer.FindBoundary(_text, j);
-            if (end < 0 || _text[end] == '{') throw Error(j, "Malformed @font-face declaration");
+            if (end < 0 || _text[end] == '{')
+            {
+                throw Error(j, "Malformed @font-face declaration");
+            }
+
             var (name, value) = SplitDeclaration(_text[j..end].Trim(), j);
             declarations[name] = value;
             j = _text[end] == ';' ? end + 1 : end;
@@ -397,7 +545,11 @@ sealed class StyleSheetParser
 
     static string Combine(string parent, string child)
     {
-        if (child.Contains('&', StringComparison.Ordinal)) return child.Replace("&", parent, StringComparison.Ordinal);
+        if (child.Contains('&', StringComparison.Ordinal))
+        {
+            return child.Replace("&", parent, StringComparison.Ordinal);
+        }
+
         return child.StartsWith(':') ? $"{parent}{child}" : $"{parent} {child}";
     }
 
@@ -405,18 +557,37 @@ sealed class StyleSheetParser
     {
         var visiting = new HashSet<string>(StringComparer.Ordinal);
         var visited = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var child in _inheritanceOffsets.Keys) Visit(child, child);
+        foreach (var child in _inheritanceOffsets.Keys)
+        {
+            Visit(child, child);
+        }
+
         return;
 
         void Visit(string child, string root)
         {
-            if (visited.Contains(child)) return;
+            if (visited.Contains(child))
+            {
+                return;
+            }
+
             if (!visiting.Add(child))
+            {
                 throw Error(_inheritanceOffsets.GetValueOrDefault(child, _inheritanceOffsets[root]),
                     $"Cyclic style inheritance involving '{child}'");
+            }
+
             foreach (var map in InheritanceMaps)
+            {
                 if (map.TryGetValue(child, out var parents))
-                    foreach (var parent in parents) Visit(parent, root);
+                {
+                    foreach (var parent in parents)
+                    {
+                        Visit(parent, root);
+                    }
+                }
+            }
+
             visiting.Remove(child);
             visited.Add(child);
         }
@@ -425,9 +596,20 @@ sealed class StyleSheetParser
     void Assemble()
     {
         var offset = 0;
-        foreach (var imported in _imports) offset = AppendRules(imported.Rules, offset);
-        foreach (var rule in _ownRules) Rules.Add(offset == 0 ? rule : Renumber(rule, offset + rule.Order));
-        if (_imports.Count > 0) LayerImports();
+        foreach (var imported in _imports)
+        {
+            offset = AppendRules(imported.Rules, offset);
+        }
+
+        foreach (var rule in _ownRules)
+        {
+            Rules.Add(offset == 0 ? rule : Renumber(rule, offset + rule.Order));
+        }
+
+        if (_imports.Count > 0)
+        {
+            LayerImports();
+        }
     }
 
     /// <summary>Appends rules renumbered after <paramref name="offset"/>; returns the offset for the next sheet.</summary>
@@ -456,10 +638,23 @@ sealed class StyleSheetParser
     {
         var layered = new Dictionary<string, T>(StringComparer.Ordinal);
         foreach (var imported in _imports)
-            foreach (var (key, value) in select(imported)) layered[key] = value;
-        foreach (var (key, value) in own) layered[key] = value;
+        {
+            foreach (var (key, value) in select(imported))
+            {
+                layered[key] = value;
+            }
+        }
+
+        foreach (var (key, value) in own)
+        {
+            layered[key] = value;
+        }
+
         own.Clear();
-        foreach (var (key, value) in layered) own[key] = value;
+        foreach (var (key, value) in layered)
+        {
+            own[key] = value;
+        }
     }
 
     static StyleRule Renumber(StyleRule rule, int order) => new()

@@ -74,7 +74,10 @@ sealed partial class Build
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
-        foreach (var argument in arguments) start.ArgumentList.Add(argument);
+        foreach (var argument in arguments)
+        {
+            start.ArgumentList.Add(argument);
+        }
 
         using var process = Process.Start(start) ?? throw new InvalidOperationException($"Could not start git for {operation}.");
         var output = process.StandardOutput.ReadToEndAsync();
@@ -83,11 +86,22 @@ sealed partial class Build
         var standardOutput = output.GetAwaiter().GetResult();
         var standardError = error.GetAwaiter().GetResult();
 
-        if (process.ExitCode == 0) return standardOutput;
+        if (process.ExitCode == 0)
+        {
+            return standardOutput;
+        }
 
         var message = standardError;
-        if (!string.IsNullOrEmpty(GithubToken)) message = message.Replace(GithubToken, "[redacted]", StringComparison.Ordinal);
-        if (!string.IsNullOrEmpty(GitlabToken)) message = message.Replace(GitlabToken, "[redacted]", StringComparison.Ordinal);
+        if (!string.IsNullOrEmpty(GithubToken))
+        {
+            message = message.Replace(GithubToken, "[redacted]", StringComparison.Ordinal);
+        }
+
+        if (!string.IsNullOrEmpty(GitlabToken))
+        {
+            message = message.Replace(GitlabToken, "[redacted]", StringComparison.Ordinal);
+        }
+
         throw new InvalidOperationException($"Git {operation} failed (exit {process.ExitCode}): {message.Trim()}");
     }
 }

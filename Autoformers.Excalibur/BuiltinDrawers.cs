@@ -38,7 +38,10 @@ static class BuiltinDrawers
         var current = !field.HasMixedValue && field.GetValue() is true;
         var next = gui.Checkbox(current, size: new FormStyle(gui).FontSize + 2f, mixed: field.HasMixedValue);
 
-        if (gui.Pass == Pass.Pass2Render && next != current) field.SetValue(next);
+        if (gui.Pass == Pass.Pass2Render && next != current)
+        {
+            field.SetValue(next);
+        }
     }
 
     static void DrawString(Gui gui, FormField field, string id)
@@ -51,7 +54,10 @@ static class BuiltinDrawers
             : gui.TextInput(current, width: 0, height: style.RowHeight, fontSize: style.FontSize,
                 padding: 4, id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "");
 
-        if (!string.Equals(next, current, StringComparison.Ordinal)) field.SetValue(next);
+        if (!string.Equals(next, current, StringComparison.Ordinal))
+        {
+            field.SetValue(next);
+        }
     }
 
     /// <summary>
@@ -110,9 +116,20 @@ static class BuiltinDrawers
     {
         foreach (var change in changes)
         {
-            if (presentation == EnumPresentation.Paging) field.SetValue(change.Item);
-            else foreach (var source in field.Sources)
-                if (source.GetValue() is Enum own) source.SetValue(EnumSelection.Apply(own, change));
+            if (presentation == EnumPresentation.Paging)
+            {
+                field.SetValue(change.Item);
+            }
+            else
+            {
+                foreach (var source in field.Sources)
+                {
+                    if (source.GetValue() is Enum own)
+                    {
+                        source.SetValue(EnumSelection.Apply(own, change));
+                    }
+                }
+            }
         }
     }
 
@@ -123,7 +140,9 @@ static class BuiltinDrawers
 
         if (FormControls.NumberEditor(gui, current, $"{id}/num", FormControls.IsIntegral(type), min, max,
                 out var edited, field.HasMixedValue))
+        {
             field.SetValue(FormControls.ToNumber(edited, type));
+        }
     }
 
     /// <summary>A drawer over one value-drawing routine, laid out as a labelled row.</summary>
@@ -141,7 +160,9 @@ static class BuiltinDrawers
         public bool DrawValue(Gui gui, FormField field, string id, FormRenderContext context)
         {
             if (field.IsReadOnly && !ReferenceEquals(this, Summary))
+            {
                 return Summary.DrawValue(gui, field, id, context);
+            }
 
             draw(gui, field, Nullable.GetUnderlyingType(field.ValueType) ?? field.ValueType, id, context);
             return true;
@@ -170,7 +191,9 @@ sealed class VectorDrawer : IPropertyDrawer
                 return Compose(Array.ConvertAll(own, p => (float)p));
             });
             if (FormControls.AxisField(gui, i, parts[i], $"{id}/a{i}", out var next, part.HasMixedValue))
+            {
                 part.SetValue(next);
+            }
         }
         return true;
     }
@@ -205,11 +228,13 @@ sealed class ColorDrawer : IPropertyDrawer
         var color = field.GetValue() is Color value ? value : Color.Black;
 
         using (gui.Node(style.RowHeight, style.RowHeight, $"{id}/swatch").Enter())
+        {
             if (gui.Pass == Pass.Pass2Render)
             {
                 gui.DrawBackgroundRect(color, 2);
                 gui.DrawRectBorder(gui.CurrentNode.Rect, style.Border, 1, 2);
             }
+        }
 
         int[] channels = [color.R, color.G, color.B, color.A];
         for (var i = 0; i < channels.Length; i++)
@@ -222,7 +247,10 @@ sealed class ColorDrawer : IPropertyDrawer
                 return Color.FromArgb(own[3], own[0], own[1], own[2]);
             });
             if (FormControls.NumberEditor(gui, channels[i], $"{id}/c{i}", integral: true, 0, 255,
-                    out var next, part.HasMixedValue)) part.SetValue((int)next);
+                    out var next, part.HasMixedValue))
+            {
+                part.SetValue((int)next);
+            }
         }
 
         return true;

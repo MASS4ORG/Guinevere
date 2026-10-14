@@ -45,7 +45,11 @@ public static partial class ExcaliburStyles
     {
         var sheet = GetBaseSheet(gui);
         var sheets = gui.StyleSheets;
-        if (sheets.Count != 0 && ReferenceEquals(sheets[0], sheet)) return;
+        if (sheets.Count != 0 && ReferenceEquals(sheets[0], sheet))
+        {
+            return;
+        }
+
         sheets.Remove(sheet);
         sheets.Insert(0, sheet);
     }
@@ -70,11 +74,19 @@ public static partial class ExcaliburStyles
         var sheets = gui.StyleSheets;
         if (Themes.TryGetValue(gui, out var current))
         {
-            if (ReferenceEquals(current, theme)) return;
+            if (ReferenceEquals(current, theme))
+            {
+                return;
+            }
+
             sheets.Remove(current);
             Themes.Remove(gui);
         }
-        if (theme is null || ReferenceEquals(theme, DefaultSheet) || ReferenceEquals(theme, GetBaseSheet(gui))) return;
+        if (theme is null || ReferenceEquals(theme, DefaultSheet) || ReferenceEquals(theme, GetBaseSheet(gui)))
+        {
+            return;
+        }
+
         sheets.Insert(1, theme);
         Themes.AddOrUpdate(gui, theme);
     }
@@ -96,7 +108,10 @@ public static partial class ExcaliburStyles
         ArgumentNullException.ThrowIfNull(gui);
         var appearance = gui.SystemAppearance;
         SetTheme(gui, ThemeFor(appearance.ColorScheme, light ?? Light, dark ?? Dark, fallback));
-        if (accent && appearance.AccentColor is { } color) ApplyAccent(gui, color);
+        if (accent && appearance.AccentColor is { } color)
+        {
+            ApplyAccent(gui, color);
+        }
     }
 
     static StyleSheet ThemeFor(ColorScheme scheme, StyleSheet light, StyleSheet dark, StyleSheet? fallback) =>

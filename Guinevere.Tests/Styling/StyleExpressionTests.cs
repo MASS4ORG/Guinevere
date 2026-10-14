@@ -9,7 +9,7 @@ public class StyleExpressionTests
 
     /// <summary>Arithmetic follows precedence and parentheses.</summary>
     [Fact]
-    public void Arithmetic_FollowsPrecedence()
+    public void ArithmeticFollowsPrecedence()
     {
         var style = Box("width = 10 + 4 * 2; height = (10 + 4) * 2; gap = 12 / 4 - 1; margin = 10 - 4;");
 
@@ -19,7 +19,7 @@ public class StyleExpressionTests
 
     /// <summary><c>em</c> scales with <c>$font-size</c>, defaulting to 16, and works inside <c>calc()</c>.</summary>
     [Fact]
-    public void Em_UsesFontSizeToken()
+    public void EmUsesFontSizeToken()
     {
         var themed = Box("width = calc(2em + 4); padding = 0.5em 1em;", "$font-size = 10 * 2;");
 
@@ -29,7 +29,7 @@ public class StyleExpressionTests
 
     /// <summary>Only evaluated parts are rewritten; other items keep their spelling and units.</summary>
     [Fact]
-    public void Lists_RewriteOnlyEvaluatedItems()
+    public void ListsRewriteOnlyEvaluatedItems()
     {
         var style = Box("""
             padding = 10px 16px; margin = 10 -4; shadow = 0 2px rgba(0, 0, 0, 51);
@@ -75,7 +75,7 @@ public class StyleExpressionTests
     [InlineData("shade(#00ff00, 0)", "#00ff00ff")]
     [InlineData("shade(#0000ff, 0)", "#0000ffff")]
     [InlineData("shade(#ff00ff, 0)", "#ff00ffff")]
-    public void ColorFunctions_Evaluate(string expression, string expected) =>
+    public void ColorFunctionsEvaluate(string expression, string expected) =>
         Assert.Equal(expected, Box($"color = {expression};").Get("color"));
 
     /// <summary><c>min</c>, <c>max</c> and <c>clamp</c> pick numbers of one unit.</summary>
@@ -90,12 +90,12 @@ public class StyleExpressionTests
     [InlineData("10% * 10%", "10% * 10%")]
     [InlineData("10 / 50%", "10 / 50%")]
     [InlineData("-(2 + 3)", "-5")]
-    public void NumericFunctions_Evaluate(string expression, string expected) =>
+    public void NumericFunctionsEvaluate(string expression, string expected) =>
         Assert.Equal(expected, Box($"value = {expression};").Get("value"));
 
     /// <summary><c>shade</c> follows Godot's ladder: darker for positive offsets, brighter for negative ones.</summary>
     [Fact]
-    public void Shade_FollowsContrastLadder()
+    public void ShadeFollowsContrastLadder()
     {
         var style = Box("""
             dark = shade(#808080, 1); bright = shade(#808080, -1, 1, 0.2); faded = shade(#ff0000, 0, 0.5);
@@ -108,7 +108,7 @@ public class StyleExpressionTests
 
     /// <summary>Derived tokens are readable by the host and follow host overrides.</summary>
     [Fact]
-    public void Tokens_DeriveAndFollowHostOverrides()
+    public void TokensDeriveAndFollowHostOverrides()
     {
         var gui = new Gui();
         gui.StyleSheets.Add(StyleSheet.Parse("""
@@ -129,7 +129,7 @@ public class StyleExpressionTests
 
     /// <summary>Typed call-site values are formatted as <c>.pss</c> text before expressions run.</summary>
     [Fact]
-    public void TypedVariables_FeedExpressions()
+    public void TypedVariablesFeedExpressions()
     {
         var style = Box("bg-color = mix($tint, #ffffff, 50%); width = $size * 2; on = $flag;", variables:
         [
@@ -143,7 +143,7 @@ public class StyleExpressionTests
 
     /// <summary>Values that only fail once tokens are known fall back to their text, like any unparseable value.</summary>
     [Fact]
-    public void RuntimeTypeError_KeepsValue()
+    public void RuntimeTypeErrorKeepsValue()
     {
         var style = Box("bg-color = mix($c, red, 0.5); size = $c / 0; scale = outer - inner;", "$c = 10;");
 
@@ -164,7 +164,7 @@ public class StyleExpressionTests
     [InlineData("width = min();", "min() expects at least 1 arguments", 11)]
     [InlineData("width = shade(red, 1, 2, 3, 4);", "shade() expects 2 to 4 arguments", 11)]
     [InlineData("width = (,);", "Expected a value", 12)]
-    public void SyntaxError_ReportsPosition(string declaration, string reason, int column)
+    public void SyntaxErrorReportsPosition(string declaration, string reason, int column)
     {
         var error = Assert.Throws<StyleSheetException>(() =>
             StyleSheet.Parse($"box {{\n  {declaration}\n}}", new StyleSheetOptions { SourceName = "theme.pss" }));
@@ -175,7 +175,7 @@ public class StyleExpressionTests
 
     /// <summary>An unclosed group inside a value reports the opening parenthesis.</summary>
     [Fact]
-    public void Validate_ReportsUnclosedGroup()
+    public void ValidateReportsUnclosedGroup()
     {
         var error = Assert.Throws<StyleExpressionException>(() => StyleExpression.Validate("2 * (1 + 2"));
 
@@ -184,7 +184,7 @@ public class StyleExpressionTests
 
     /// <summary>Token declarations are validated too; a value changed by <c>@const</c> reports its start.</summary>
     [Fact]
-    public void SyntaxError_InTokenAndConstValues()
+    public void SyntaxErrorInTokenAndConstValues()
     {
         var token = Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("$x = 1 * ;"));
         var constant = Assert.Throws<StyleSheetException>(() =>
@@ -196,7 +196,7 @@ public class StyleExpressionTests
 
     /// <summary>CSS-flavored sheets keep working: <c>var()</c> and <c>--name</c> are opaque until expanded.</summary>
     [Fact]
-    public void CssSyntax_EvaluatesAfterExpansion()
+    public void CssSyntaxEvaluatesAfterExpansion()
     {
         var sheet = StyleSheet.Parse("--a: 3; box { width: calc(var(--a) * 2); }",
             new StyleSheetOptions { AllowCssSyntax = true });
@@ -206,14 +206,17 @@ public class StyleExpressionTests
 
     /// <summary>Evaluated styles are cached, so hits stay allocation-free.</summary>
     [Fact]
-    public void CachedHit_WithExpressions_AllocatesNothing()
+    public void CachedHitWithExpressionsAllocatesNothing()
     {
         var gui = new Gui();
         gui.StyleSheets.Add(StyleSheet.Parse("box { width = 2 * 3; bg-color = mix(red, blue, 0.5); }"));
         var first = gui.ResolveStyle("box");
 
         var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 100; i++) GC.KeepAlive(gui.ResolveStyle("box"));
+        for (var i = 0; i < 100; i++)
+        {
+            GC.KeepAlive(gui.ResolveStyle("box"));
+        }
 
         Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
         Assert.Equal(("6", "#800080ff"), (first.Get("width"), first.Get("bg-color")));
@@ -221,7 +224,7 @@ public class StyleExpressionTests
 
     /// <summary><see cref="StyleValue.Format"/> writes typed values in invariant <c>.pss</c> form.</summary>
     [Fact]
-    public void Format_WritesTypedValues()
+    public void FormatWritesTypedValues()
     {
         Assert.Equal("", StyleValue.Format(null));
         Assert.Equal("text", StyleValue.Format("text"));

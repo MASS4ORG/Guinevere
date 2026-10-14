@@ -282,7 +282,10 @@ public sealed class MultiDropdownTests
                 gui.ClipContent();
                 var result = gui.MultiDropdown(["Alpha", "Beta"], selected, width: 120, height: 24,
                     filePath: "edge", lineNumber: 0);
-                if (result.Changed) selected = result.Selected;
+                if (result.Changed)
+                {
+                    selected = result.Selected;
+                }
             }
         }
         harness.Frame(Draw);

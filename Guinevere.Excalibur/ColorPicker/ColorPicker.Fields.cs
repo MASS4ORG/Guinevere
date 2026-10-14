@@ -44,10 +44,16 @@ public static partial class ControlsExtensions
         {
             var inputId = node.Id + "/text";
             var state = gui.ControlState(inputId, () => new ColorHexState());
-            if (gui.Pass == Pass.Pass2Render) value = TrackHexEditing(gui, state, inputId, alpha, value);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                value = TrackHexEditing(gui, state, inputId, alpha, value);
+            }
+
             value = HexInput(gui, state, inputId, value, alpha, height, enabled);
             if (clipboard && gui.Platform.TryGet<IClipboard>(out var board))
+            {
                 value = ClipboardButtons(gui, board!, node.Id, value, alpha, height, enabled);
+            }
         }
         return gui.Pass == Pass.Pass2Render && value != before;
     }
@@ -87,9 +93,17 @@ public static partial class ControlsExtensions
             state.Draft = value.ToColor().ToHex(alpha);
             return value;
         }
-        if (!(focused ? gui.Input.IsKeyPressed(KeyboardKey.Enter) : state.Editing)) return value;
+        if (!(focused ? gui.Input.IsKeyPressed(KeyboardKey.Enter) : state.Editing))
+        {
+            return value;
+        }
+
         state.Editing = focused;
-        if (TryParseColorText(state.Draft, out var color)) value = Hsva.Sync(value, KeepAlpha(color, value, alpha));
+        if (TryParseColorText(state.Draft, out var color))
+        {
+            value = Hsva.Sync(value, KeepAlpha(color, value, alpha));
+        }
+
         state.Draft = value.ToColor().ToHex(alpha);
         return value;
     }
@@ -98,10 +112,16 @@ public static partial class ControlsExtensions
         bool enabled)
     {
         if (GlyphButton(gui, WidgetIcons.Copy, size, rowId + "/copy", enabled))
+        {
             board.SetClipboardText(value.ToColor().ToHex(alpha));
+        }
+
         if (GlyphButton(gui, WidgetIcons.Paste, size, rowId + "/paste", enabled)
             && TryParseColorText(board.GetClipboardText(), out var pasted))
+        {
             value = Hsva.Sync(value, KeepAlpha(pasted, value, alpha));
+        }
+
         return value;
     }
 
@@ -115,9 +135,17 @@ public static partial class ControlsExtensions
     public static bool TryParseColorText(string? text, out Color color)
     {
         color = default;
-        if (string.IsNullOrWhiteSpace(text)) return false;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
         var span = text.AsSpan().Trim().Trim("\"'`").Trim();
-        if (span.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) span = span[2..];
+        if (span.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            span = span[2..];
+        }
+
         return Color.TryParseHex(span.ToString(), out color);
     }
 
@@ -125,8 +153,17 @@ public static partial class ControlsExtensions
     {
         var count = 0;
         foreach (var c in text)
-            if (Uri.IsHexDigit(c)) count++;
-            else if (c != '#' && !char.IsWhiteSpace(c)) return -1;
+        {
+            if (Uri.IsHexDigit(c))
+            {
+                count++;
+            }
+            else if (c != '#' && !char.IsWhiteSpace(c))
+            {
+                return -1;
+            }
+        }
+
         return count;
     }
 
@@ -165,13 +202,19 @@ public static partial class ControlsExtensions
             {
                 var channel = channels[i];
                 var number = values[i];
-                if (!ChannelField(gui, channel, ref number, $"{rowId}/{mode.Name}/{i}", height, enabled)) continue;
+                if (!ChannelField(gui, channel, ref number, $"{rowId}/{mode.Name}/{i}", height, enabled))
+                {
+                    continue;
+                }
+
                 values[i] = number;
                 value = mode.Write(value, values);
             }
             var opacity = MathF.Round(value.A * 255f);
             if (alpha && ChannelField(gui, new ColorChannel("A", 0, 255), ref opacity, rowId + "/alpha", height, enabled))
+            {
                 value = value with { A = opacity / 255f };
+            }
         }
         return gui.Pass == Pass.Pass2Render && value != before;
     }
@@ -182,7 +225,10 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("color-channel").ExpandWidth().Height(height).Enter())
         {
             using (gui.StyledNode("label").Enter())
+            {
                 gui.DrawText(channel.Label, ControlMetrics.CompactFontSize, centerInRect: false);
+            }
+
             return gui.NumberField(ref number, 1f, channel.Min, channel.Max, width: 0, height: height,
                 format: channel.Format, fontSize: ControlMetrics.CompactFontSize, padding: 4, enabled: enabled,
                 id: fieldId);
@@ -197,7 +243,11 @@ public static partial class ControlsExtensions
                    .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
         {
             gui.DrawText(glyph, size * 0.5f);
-            if (gui.Pass != Pass.Pass2Render || !enabled) return false;
+            if (gui.Pass != Pass.Pass2Render || !enabled)
+            {
+                return false;
+            }
+
             gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
             return Activated(gui);
         }

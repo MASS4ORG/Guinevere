@@ -1,7 +1,7 @@
 using System.Numerics;
 using Guinevere;
 
-namespace Example_01;
+namespace Example01;
 
 public partial class Shared
 {
@@ -11,11 +11,11 @@ public partial class Shared
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.";
 
     static readonly string[] ColorNames = ["Text", "Accent", "Positive", "Warning", "Negative"];
-    static int typeSize = 32;
-    static int typeColor;
+    static int _typeSize = 32;
+    static int _typeColor;
 
-    static float wrapWidth = 360f;
-    static int effectSize = 24;
+    static float _wrapWidth = 360f;
+    static int _effectSize = 24;
 
     /// <summary>A live specimen: change the size and color, and see the same string next to a type ramp.</summary>
     static void Typography(Gui gui, ColorPalette p)
@@ -26,24 +26,28 @@ public partial class Shared
             gui.ScrollY(p.Track, p.Border);
             using (gui.Node().Direction(Axis.Horizontal).Gap(24).ContentAlignY(0.5f).Enter())
             {
-                Stepper(gui, p, "type-size", "Size", typeSize, 10, 72, value => typeSize = value, step: 2);
-                Choice(gui, p, "type-color", ColorNames, typeColor, index => typeColor = index);
+                Stepper(gui, p, "type-size", "Size", _typeSize, 10, 72, value => _typeSize = value, step: 2);
+                Choice(gui, p, "type-color", ColorNames, _typeColor, index => _typeColor = index);
             }
 
             using (gui.Node().ExpandWidth().Padding(20).Enter())
             {
                 gui.DrawBackgroundRect(p.SurfaceRaised, 12);
-                gui.DrawText(TextShort, typeSize, colors[typeColor]);
+                gui.DrawText(TextShort, _typeSize, colors[_typeColor]);
             }
 
             Label(gui, p, "Type ramp");
             using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(18).ContentAlignY(1f).Enter())
+            {
                 foreach (var size in new[] { 11, 13, 16, 20, 28, 40 })
+                {
                     using (gui.Node().Direction(Axis.Vertical).ContentAlignX(0.5f).Enter())
                     {
                         gui.DrawText("Aa", size, p.Text);
                         Label(gui, p, $"{size}");
                     }
+                }
+            }
 
             Label(gui, p, "Fallback and multi-line");
             using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Gap(4).Padding(14).Enter())
@@ -62,20 +66,20 @@ public partial class Shared
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter())
         {
-            Label(gui, p, $"wrapWidth: {wrapWidth:0}px");
+            Label(gui, p, $"wrapWidth: {_wrapWidth:0}px");
             using (gui.Node().Expand().Direction(Axis.Horizontal).Enter())
             {
-                using (gui.Node().Width(wrapWidth + 32).ExpandHeight().Direction(Axis.Vertical).Padding(16).Gap(14)
+                using (gui.Node().Width(_wrapWidth + 32).ExpandHeight().Direction(Axis.Vertical).Padding(16).Gap(14)
                            .Enter())
                 {
                     gui.DrawBackgroundRect(p.SurfaceRaised, 12);
                     gui.ScrollY(p.Track, p.Border);
-                    gui.DrawText(TextLong, 14, p.Text, wrapWidth: wrapWidth, centerInRect: false);
-                    gui.DrawText(TextLong, 18, p.Accent, wrapWidth: wrapWidth, centerInRect: false);
-                    gui.DrawText(TextLong, 12, p.TextDim, wrapWidth: wrapWidth, centerInRect: false);
+                    gui.DrawText(TextLong, 14, p.Text, wrapWidth: _wrapWidth, centerInRect: false);
+                    gui.DrawText(TextLong, 18, p.Accent, wrapWidth: _wrapWidth, centerInRect: false);
+                    gui.DrawText(TextLong, 12, p.TextDim, wrapWidth: _wrapWidth, centerInRect: false);
                 }
 
-                ResizeHandle(gui, p, "wrap/handle", () => wrapWidth, value => wrapWidth = value, 120f, 800f);
+                ResizeHandle(gui, p, "wrap/handle", () => _wrapWidth, value => _wrapWidth = value, 120f, 800f);
             }
         }
     }
@@ -91,7 +95,7 @@ public partial class Shared
 
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter())
         {
-            Stepper(gui, p, "effect-size", "Size", effectSize, 20, 64, value => effectSize = value, step: 4);
+            Stepper(gui, p, "effect-size", "Size", _effectSize, 20, 64, value => _effectSize = value, step: 4);
             using (gui.Node().Expand().Direction(Axis.Vertical).Gap(8).Enter())
             {
                 gui.ScrollY(p.Track, p.Border);
@@ -125,8 +129,12 @@ public partial class Shared
         using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(24).Padding(14, 8).ContentAlignY(0.5f).Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 10);
-            using (gui.Node(width: 130).ContentAlignY(0.5f).Enter()) Label(gui, p, label);
-            gui.DrawText(TextShort, effectSize, p.Text, effects: effects);
+            using (gui.Node(width: 130).ContentAlignY(0.5f).Enter())
+            {
+                Label(gui, p, label);
+            }
+
+            gui.DrawText(TextShort, _effectSize, p.Text, effects: effects);
         }
     }
 
@@ -155,8 +163,10 @@ public partial class Shared
                 gui.DrawBackgroundRect(p.SurfaceRaised, 12);
                 gui.ScrollY(p.Track, p.Border);
                 for (var i = 0; i < 40; i++)
+                {
                     gui.DrawText($"Line {i + 1}: lorem ipsum dolor sit amet", 10 + i % 4 * 2,
                         i % 5 == 0 ? p.Accent : p.Text);
+                }
             }
         }
     }

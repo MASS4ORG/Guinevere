@@ -17,10 +17,15 @@ public partial class Gui
     internal TState ControlState<TState>(string id, Func<TState> create) where TState : class
     {
         if (!_controlStates.TryGetValue(typeof(TState), out var store))
+        {
             _controlStates[typeof(TState)] = store = new Dictionary<ControlStateKey, object>();
+        }
 
         var key = new ControlStateKey(CurrentDataScope, id);
-        if (store.TryGetValue(key, out var existing)) return (TState)existing;
+        if (store.TryGetValue(key, out var existing))
+        {
+            return (TState)existing;
+        }
 
         var state = create();
         store[key] = state;
@@ -30,7 +35,11 @@ public partial class Gui
     /// <summary>Returns the control state for an id, if one already exists. Never creates one.</summary>
     internal TState? TryGetControlState<TState>(string id) where TState : class
     {
-        if (!_controlStates.TryGetValue(typeof(TState), out var store)) return null;
+        if (!_controlStates.TryGetValue(typeof(TState), out var store))
+        {
+            return null;
+        }
+
         return store.TryGetValue(new ControlStateKey(CurrentDataScope, id), out var existing) ? (TState)existing : null;
     }
 

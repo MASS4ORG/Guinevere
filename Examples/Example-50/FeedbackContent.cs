@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {
@@ -22,42 +22,54 @@ public abstract partial class Program
             using (gui.Node().Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
             {
                 if (gui.Button("Info BottomRight", classes: ["accent"]))
+                {
                     gui.Toast("Here is some information", new ToastOptions
                     {
                         Corner = ToastCorner.BottomRight,
                         Classes = ["accent"]
                     });
+                }
 
                 if (gui.Button("Success BottomRight", classes: ["success"]))
+                {
                     gui.Toast("Operation completed successfully!", new ToastOptions
                     {
                         Corner = ToastCorner.BottomRight,
                         Classes = ["positive"]
                     });
+                }
 
                 if (gui.Button("Warning TopRight", classes: ["warning"]))
+                {
                     gui.Toast("Something needs your attention", new ToastOptions
                     {
                         Corner = ToastCorner.TopRight,
                         Classes = ["warning"]
                     });
+                }
 
                 if (gui.Button("Danger BottomLeft", classes: ["danger"]))
+                {
                     gui.Toast("That action could not be completed", new ToastOptions
                     {
                         Corner = ToastCorner.BottomLeft,
                         Classes = ["negative"]
                     });
+                }
 
                 if (gui.Button("Note TopLeft", classes: ["info"]))
+                {
                     gui.Toast("A reminder pinned to the top-left corner", new ToastOptions
                     {
                         Corner = ToastCorner.TopLeft,
                         Classes = ["info"]
                     });
+                }
 
                 if (gui.Button("Clear"))
+                {
                     gui.ClearToasts();
+                }
             }
         }
     }
@@ -65,7 +77,9 @@ public abstract partial class Program
     static void TooltipContent(Gui gui)
     {
         if (gui.Button("Hover me for a tooltip", width: 180, height: 28))
+        {
             gui.Toast("You clicked the tooltip button");
+        }
 
         gui.Tooltip(gui.CurrentNode, "Sticking around on a button reveals this hint", delay: 0.35f);
     }

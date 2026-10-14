@@ -19,8 +19,14 @@ public sealed class NumberFieldClippingTests
         void Draw(Gui gui)
         {
             using var scope = gui.Node(100, 30, "fieldHost").Absolute(100, 30).Enter();
-            if (numeric) gui.NumberField(ref number, width: 100, height: 30, alignX: align, id: "number");
-            else gui.TextInput(ref text, width: 100, height: 30, alignX: align, id: "text");
+            if (numeric)
+            {
+                gui.NumberField(ref number, width: 100, height: 30, alignX: align, id: "number");
+            }
+            else
+            {
+                gui.TextInput(ref text, width: 100, height: 30, alignX: align, id: "text");
+            }
         }
         h.Frame(Draw);
         h.Click(Draw, new Vector2(150, 45));
@@ -30,7 +36,14 @@ public sealed class NumberFieldClippingTests
         using var snapshot = h.Snapshot();
         using var bitmap = SKBitmap.FromImage(snapshot);
         for (var y = 30; y < 60; y++)
+        {
             for (var x = 0; x < 300; x++)
-                if (x < 99 || x > 200) Assert.Equal((byte)0, bitmap.GetPixel(x, y).Alpha);
+            {
+                if (x < 99 || x > 200)
+                {
+                    Assert.Equal((byte)0, bitmap.GetPixel(x, y).Alpha);
+                }
+            }
+        }
     }
 }

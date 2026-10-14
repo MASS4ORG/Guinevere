@@ -14,8 +14,11 @@ public class InputDevicesTests
         harness.Input.ConnectController("pad");
         void Draw(Gui gui)
         {
-            Example_01.Shared.InputDevices(gui, Example_01.ColorPalette.Dark);
-            using (gui.Node(100, 30, "outside").Absolute(0, 350).Enter()) gui.Pressable();
+            Example01.Shared.InputDevices(gui, Example01.ColorPalette.Dark);
+            using (gui.Node(100, 30, "outside").Absolute(0, 350).Enter())
+            {
+                gui.Pressable();
+            }
         }
         void Press(GameButton button, float x, float y)
         {
@@ -24,7 +27,11 @@ public class InputDevicesTests
                 harness.Input.SetControllerAxis("pad", 0, x);
                 harness.Input.SetControllerAxis("pad", 1, y);
             }
-            else harness.Input.SetControllerButton("pad", button, true);
+            else
+            {
+                harness.Input.SetControllerButton("pad", button, true);
+            }
+
             harness.Frame(Draw);
             harness.Input.SetControllerAxis("pad", 0, 0);
             harness.Input.SetControllerAxis("pad", 1, 0);
@@ -52,7 +59,7 @@ public class InputDevicesTests
     public void GalleryShowsDevicesAndReceivesNavigationAndTouch()
     {
         using var harness = new FrameHarness(800, 900);
-        void Draw(Gui gui) => Example_01.Shared.InputDevices(gui, Example_01.ColorPalette.Dark);
+        static void Draw(Gui gui) => Example01.Shared.InputDevices(gui, Example01.ColorPalette.Dark);
         harness.Frame(Draw);
         harness.Gui.Platform.Register<IGameInputCapability>(harness.Input);
         harness.Gui.Platform.Register<ITouchCapability>(harness.Input);
@@ -93,7 +100,10 @@ public class InputDevicesTests
         var activated = 0;
         void Draw(Gui gui)
         {
-            if (Example_01.Shared.NavItem(gui, Example_01.ColorPalette.Dark, "Input", active, compact)) activated++;
+            if (Example01.Shared.NavItem(gui, Example01.ColorPalette.Dark, "Input", active, compact))
+            {
+                activated++;
+            }
         }
         harness.Frame(Draw);
         var node = Assert.Single(harness.Gui.RootNode!.Children);

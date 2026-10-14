@@ -30,9 +30,15 @@ public sealed class GuiColorAttribute : Attribute
         var digits = hex?.TrimStart('#') ?? "";
         if (digits.Length is not (6 or 8) || !uint.TryParse(digits, System.Globalization.NumberStyles.HexNumber,
                 null, out var value))
+        {
             return null;
+        }
 
-        if (digits.Length == 6) value = (value << 8) | 0xFF;
+        if (digits.Length == 6)
+        {
+            value = (value << 8) | 0xFF;
+        }
+
         return ((value >> 24) / 255f, ((value >> 16) & 0xFF) / 255f, ((value >> 8) & 0xFF) / 255f,
             (value & 0xFF) / 255f);
     }

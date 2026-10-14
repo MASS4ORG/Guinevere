@@ -1,12 +1,12 @@
 using Guinevere;
 
-namespace Example_01;
+namespace Example01;
 
 public partial class Shared
 {
     static readonly string[] ResponsiveNames = ["Mobile", "Tablet", "Desktop"];
     static readonly string[] ResponsiveTabs = ["Home", "Search", "Profile", "Settings"];
-    static int responsiveTab;
+    static int _responsiveTab;
 
     /// <summary>The layout depends on the width the stage has: a column, two columns or three.</summary>
     static void Responsive(Gui gui, ColorPalette p)
@@ -19,6 +19,7 @@ public partial class Shared
         {
             Label(gui, p, $"Stage about {width:0}px wide: {ResponsiveNames[layout]} layout. Resize across 480 and 720.");
             using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter())
+            {
                 switch (layout)
                 {
                     case 0:
@@ -36,7 +37,10 @@ public partial class Shared
                         using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(10).Enter())
                         {
                             ResponsiveBlock(gui, p, "Main content", 0);
-                            using (gui.Node(170).ExpandHeight().Enter()) ResponsiveBlock(gui, p, "Sidebar", 4);
+                            using (gui.Node(170).ExpandHeight().Enter())
+                            {
+                                ResponsiveBlock(gui, p, "Sidebar", 4);
+                            }
                         }
 
                         break;
@@ -44,13 +48,21 @@ public partial class Shared
                         ResponsiveHeader(gui, p, "Desktop app", showTabs: true);
                         using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(10).Enter())
                         {
-                            using (gui.Node(170).ExpandHeight().Enter()) ResponsiveBlock(gui, p, "Left sidebar", 2);
+                            using (gui.Node(170).ExpandHeight().Enter())
+                            {
+                                ResponsiveBlock(gui, p, "Left sidebar", 2);
+                            }
+
                             ResponsiveBlock(gui, p, "Main content", 0);
-                            using (gui.Node(170).ExpandHeight().Enter()) ResponsiveBlock(gui, p, "Right sidebar", 4);
+                            using (gui.Node(170).ExpandHeight().Enter())
+                            {
+                                ResponsiveBlock(gui, p, "Right sidebar", 4);
+                            }
                         }
 
                         break;
                 }
+            }
         }
     }
 
@@ -62,7 +74,10 @@ public partial class Shared
             gui.DrawBackgroundRect(p.SurfaceRaised, 10);
             gui.DrawText(title, 16, p.Text);
             gui.Node().Expand();
-            if (showTabs) ResponsiveTabButtons(gui, p);
+            if (showTabs)
+            {
+                ResponsiveTabButtons(gui, p);
+            }
         }
     }
 
@@ -81,8 +96,10 @@ public partial class Shared
         for (var i = 0; i < ResponsiveTabs.Length; i++)
         {
             var index = i;
-            if (Button(gui, p, ResponsiveTabs[i], i == responsiveTab, $"responsive/{i}"))
-                Later(() => responsiveTab = index);
+            if (Button(gui, p, ResponsiveTabs[i], i == _responsiveTab, $"responsive/{i}"))
+            {
+                Later(() => _responsiveTab = index);
+            }
         }
     }
 
@@ -92,7 +109,7 @@ public partial class Shared
         {
             gui.DrawBackgroundRect(p.Pick(color), 12);
             gui.DrawText(title, 15, p.AccentText);
-            gui.DrawText(ResponsiveTabs[responsiveTab], 12, p.AccentText);
+            gui.DrawText(ResponsiveTabs[_responsiveTab], 12, p.AccentText);
         }
     }
 }

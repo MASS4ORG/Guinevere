@@ -129,14 +129,21 @@ public sealed partial class FormField
     /// <summary>Turns <c>MaxResolution</c> into <c>Max Resolution</c>.</summary>
     internal static string Humanize(string name)
     {
-        if (string.IsNullOrEmpty(name)) return name;
+        if (string.IsNullOrEmpty(name))
+        {
+            return name;
+        }
 
         var text = new StringBuilder(name.Length + 8);
         text.Append(char.ToUpperInvariant(name[0]));
 
         for (var i = 1; i < name.Length; i++)
         {
-            if (char.IsUpper(name[i]) && !char.IsUpper(name[i - 1])) text.Append(' ');
+            if (char.IsUpper(name[i]) && !char.IsUpper(name[i - 1]))
+            {
+                text.Append(' ');
+            }
+
             text.Append(name[i]);
         }
 

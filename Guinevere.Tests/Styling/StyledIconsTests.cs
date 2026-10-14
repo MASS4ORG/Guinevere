@@ -25,20 +25,28 @@ public sealed class StyledIconsTests : IDisposable
     static Gui GuiWith(params StyleSheet[] sheets)
     {
         var gui = new Gui { Input = Substitute.For<IInputHandler>() };
-        foreach (var sheet in sheets) gui.StyleSheets.Add(sheet);
+        foreach (var sheet in sheets)
+        {
+            gui.StyleSheets.Add(sheet);
+        }
+
         return gui;
     }
 
     static string RepoFile(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "Guinevere.slnx"))) dir = dir.Parent;
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "Guinevere.slnx")))
+        {
+            dir = dir.Parent;
+        }
+
         return Path.Combine(dir!.FullName, relative);
     }
 
     /// <summary>The same id renders from a glyph theme and from an image theme by swapping sheets.</summary>
     [Fact]
-    public void SwappingSheets_SwapsGlyphAndImageThemes()
+    public void SwappingSheetsSwapsGlyphAndImageThemes()
     {
         var gui = GuiWith(Sheet("""icon#asset\.folder { glyph = "\f07b"; color = #ff0000; }"""));
 
@@ -52,7 +60,7 @@ public sealed class StyledIconsTests : IDisposable
 
     /// <summary><c>src</c> wins over <c>glyph</c>; <c>src = none</c> or an unreadable file falls back to the glyph.</summary>
     [Fact]
-    public void Src_WinsOverGlyph_UntilCleared()
+    public void SrcWinsOverGlyphUntilCleared()
     {
         var gui = GuiWith(
             Sheet("""icon#a { glyph = "A"; src = url("folder.png"); }"""),
@@ -70,7 +78,7 @@ public sealed class StyledIconsTests : IDisposable
 
     /// <summary>Classes, modifiers and states select icon variants.</summary>
     [Fact]
-    public void ClassesModifiersAndStates_SelectVariants()
+    public void ClassesModifiersAndStatesSelectVariants()
     {
         var gui = GuiWith(Sheet("""
             icon.file.ext-png { glyph = "P"; }
@@ -85,7 +93,7 @@ public sealed class StyledIconsTests : IDisposable
 
     /// <summary>Resolved icons are reused until the sheets change.</summary>
     [Fact]
-    public void ResolvedIcons_AreCachedPerSheetVersion()
+    public void ResolvedIconsAreCachedPerSheetVersion()
     {
         var gui = GuiWith(Sheet("""icon#a { src = url("folder.png"); }"""));
 
@@ -100,7 +108,7 @@ public sealed class StyledIconsTests : IDisposable
 
     /// <summary><c>font-family</c> resolves <c>@font-face</c> files, then system families, else the scope fallback.</summary>
     [Fact]
-    public void FontFamily_ResolvesFontFacesThenFallback()
+    public void FontFamilyResolvesFontFacesThenFallback()
     {
         var font = new Uri(RepoFile("Integrations/Resources/Fonts/widget-icons.ttf")).AbsoluteUri;
         var gui = GuiWith(Sheet($$"""
@@ -120,7 +128,7 @@ public sealed class StyledIconsTests : IDisposable
 
     /// <summary>SVG sources need the registered decoder and become tintable pictures on request.</summary>
     [Fact]
-    public void SvgSources_UseRegisteredDecoder()
+    public void SvgSourcesUseRegisteredDecoder()
     {
         var gui = GuiWith(Sheet("""icon#a { src = url("folder.svg"); tint = true; color = #00ff00; }"""));
 
@@ -136,7 +144,7 @@ public sealed class StyledIconsTests : IDisposable
 
     /// <summary><c>gui.StyledIcon</c> draws the resolved icon and reserves the square when it is missing.</summary>
     [Fact]
-    public void StyledIcon_DrawsOrReserves()
+    public void StyledIconDrawsOrReserves()
     {
         const int size = 32;
         using var surface = SKSurface.Create(new SKImageInfo(size, size, SKColorType.Rgba8888, SKAlphaType.Unpremul));
@@ -172,6 +180,6 @@ public sealed class StyledIconsTests : IDisposable
 
     /// <summary>The id must be non-empty.</summary>
     [Fact]
-    public void ResolveIcon_RejectsEmptyId() =>
+    public void ResolveIconRejectsEmptyId() =>
         Assert.Throws<ArgumentException>(() => GuiWith().ResolveIcon(""));
 }

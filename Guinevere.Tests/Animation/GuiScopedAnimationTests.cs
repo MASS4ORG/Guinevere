@@ -56,12 +56,21 @@ public class GuiScopedAnimationTests
             using (gui.EnterDataScope("popup"))
             {
                 var value = gui.AnimateBool01("visibility", target, 1, Ease);
-                if (gui.Pass == Pass.Pass1Build) build = value;
-                else Assert.Equal(build, value);
+                if (gui.Pass == Pass.Pass1Build)
+                {
+                    build = value;
+                }
+                else
+                {
+                    Assert.Equal(build, value);
+                }
+
                 Assert.Equal(value, gui.AnimateBool01("visibility", !target, 0, Ease));
             }
             using (gui.EnterDataScope("tooltip"))
+            {
                 Assert.Equal(1, gui.AnimateBool01("visibility", true, 0, Easing.Linear));
+            }
         }
         harness.Frame(Draw);
         target = true;

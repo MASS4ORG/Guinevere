@@ -13,7 +13,11 @@ public class DockInputScriptTests : IDisposable
     /// <summary>Removes the frames the scripts dumped.</summary>
     public void Dispose()
     {
-        if (Directory.Exists(_output)) Directory.Delete(_output, recursive: true);
+        if (Directory.Exists(_output))
+        {
+            Directory.Delete(_output, recursive: true);
+        }
+
         GC.SuppressFinalize(this);
     }
 
@@ -24,7 +28,9 @@ public class DockInputScriptTests : IDisposable
     {
         var data = new TheoryData<string>();
         foreach (var path in Directory.EnumerateFiles(ScriptsDirectory, "*.json").Order())
+        {
             data.Add(Path.GetFileName(path));
+        }
 
         return data;
     }

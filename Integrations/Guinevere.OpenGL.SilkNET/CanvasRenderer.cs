@@ -36,7 +36,10 @@ public class CanvasRenderer : ICanvasRenderer
 
         Initialize(width, height);
 
-        if (IsGpuAccelerated) return;
+        if (IsGpuAccelerated)
+        {
+            return;
+        }
         // Enable blending for transparency
         _gl.Enable(EnableCap.Blend);
         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -73,7 +76,9 @@ public class CanvasRenderer : ICanvasRenderer
         // Check compilation
         _gl.GetShader(vertexShader, ShaderParameterName.CompileStatus, out var vStatus);
         if (vStatus != (int)GLEnum.True)
+        {
             throw new Exception("Vertex shader failed to compile: " + _gl.GetShaderInfoLog(vertexShader));
+        }
 
         // Create the fragment shader
         var fragmentShader = _gl.CreateShader(ShaderType.FragmentShader);
@@ -83,7 +88,9 @@ public class CanvasRenderer : ICanvasRenderer
         // Check compilation
         _gl.GetShader(fragmentShader, ShaderParameterName.CompileStatus, out var fStatus);
         if (fStatus != (int)GLEnum.True)
+        {
             throw new Exception("Fragment shader failed to compile: " + _gl.GetShaderInfoLog(fragmentShader));
+        }
 
         // Create and link the program
         _shaderProgram = _gl.CreateProgram();
@@ -151,7 +158,9 @@ public class CanvasRenderer : ICanvasRenderer
         }
 
         if (_canvas == null || _surface == null)
+        {
             return;
+        }
 
         // Clear canvas and draw using Skia
         _canvas.Clear(SKColors.Black);
@@ -160,7 +169,10 @@ public class CanvasRenderer : ICanvasRenderer
 
         // The surface is read in place; it is not drawn again until the upload below has consumed it.
         using var pixels = _surface.PeekPixels();
-        if (pixels == null) return;
+        if (pixels == null)
+        {
+            return;
+        }
 
         _gl.BindTexture(TextureTarget.Texture2D, _texture);
 
@@ -186,7 +198,9 @@ public class CanvasRenderer : ICanvasRenderer
     public void Resize(int width, int height)
     {
         if (width <= 0 || height <= 0 || (width == _width && height == _height))
+        {
             return;
+        }
 
         _width = width;
         _height = height;

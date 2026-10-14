@@ -49,7 +49,9 @@ public class DialogTests
             void Content()
             {
                 if (_gui.Pass == Pass.Pass2Render)
+                {
                     Origin = _gui.CurrentNode.Rect.Position - new Vector2(BodyPadding, TitleBarHeight + BodyPadding);
+                }
             }
 
             // ReSharper disable once ExplicitCallerInfoArgument - one stable id across frames.

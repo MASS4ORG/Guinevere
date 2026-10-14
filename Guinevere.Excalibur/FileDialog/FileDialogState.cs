@@ -84,7 +84,10 @@ public sealed class FileDialogState
     public async ValueTask OpenAsync(FileDialogRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (IsOpen) Close(null);
+        if (IsOpen)
+        {
+            Close(null);
+        }
 
         Request = request;
         Places = request.Places ?? [];
@@ -101,14 +104,18 @@ public sealed class FileDialogState
         Browser.DirectoriesOnly = request.Mode is FileDialogMode.SelectFolder or FileDialogMode.CreateFolder;
 
         if (request.Places is null)
+        {
             Places = await Browser.FileSystem.GetPlacesAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         var start = request.StartPath ?? Browser.CurrentPath;
         if (!await Browser.NavigateAsync(start, cancellationToken).ConfigureAwait(false))
         {
             var fallback = Places.FirstOrDefault()?.Path;
             if (fallback is not null)
+            {
                 await Browser.NavigateAsync(fallback, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 
@@ -136,7 +143,10 @@ public sealed class FileDialogState
     /// <returns>The absolute path, or null.</returns>
     public string? Choice()
     {
-        if (Request is null) return null;
+        if (Request is null)
+        {
+            return null;
+        }
 
         return Request.Mode switch
         {

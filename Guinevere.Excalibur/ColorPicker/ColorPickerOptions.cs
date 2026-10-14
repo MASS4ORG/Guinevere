@@ -72,8 +72,14 @@ public sealed record ColorPickerOptions
     public static void SetDefault(Gui gui, ColorPickerOptions? options)
     {
         ArgumentNullException.ThrowIfNull(gui);
-        if (options is null) Defaults.Remove(gui);
-        else Defaults.AddOrUpdate(gui, options);
+        if (options is null)
+        {
+            Defaults.Remove(gui);
+        }
+        else
+        {
+            Defaults.AddOrUpdate(gui, options);
+        }
     }
 }
 
@@ -103,7 +109,10 @@ public sealed class ColorRecents(int capacity = 10)
     {
         _items.Remove(color);
         _items.Insert(0, color);
-        if (_items.Count > Capacity) _items.RemoveAt(_items.Count - 1);
+        if (_items.Count > Capacity)
+        {
+            _items.RemoveAt(_items.Count - 1);
+        }
     }
 
     /// <summary>Forgets every color.</summary>

@@ -129,7 +129,9 @@ public class ScrollState
         var thumbHeight = Math.Max(ScrollbarMinThumbSize, ViewportSize.Y / ContentSize.Y * trackHeight);
         var thumbY = trackY;
         if (MaxScroll.Y > 0)
+        {
             thumbY += ScrollOffset.Y / MaxScroll.Y * (trackHeight - thumbHeight);
+        }
 
         var thumb = new Rect(trackX + ScrollbarPadding, thumbY, ScrollbarThickness - 2 * ScrollbarPadding,
             thumbHeight);
@@ -151,7 +153,9 @@ public class ScrollState
         var thumbWidth = Math.Max(ScrollbarMinThumbSize, ViewportSize.X / ContentSize.X * trackWidth);
         var thumbX = trackX;
         if (MaxScroll.X > 0)
+        {
             thumbX += ScrollOffset.X / MaxScroll.X * (trackWidth - thumbWidth);
+        }
 
         var thumb = new Rect(thumbX, trackY + ScrollbarPadding, thumbWidth,
             ScrollbarThickness - 2 * ScrollbarPadding);
@@ -164,7 +168,10 @@ public class ScrollState
     /// </summary>
     public bool IsPointOverVerticalThumb(Vector2 point, Rect containerRect)
     {
-        if (!NeedsVerticalScroll) return false;
+        if (!NeedsVerticalScroll)
+        {
+            return false;
+        }
 
         var (_, thumb) = CalculateVerticalScrollbar(containerRect);
         return thumb.Contains(point);
@@ -175,7 +182,10 @@ public class ScrollState
     /// </summary>
     public bool IsPointOverHorizontalThumb(Vector2 point, Rect containerRect)
     {
-        if (!NeedsHorizontalScroll) return false;
+        if (!NeedsHorizontalScroll)
+        {
+            return false;
+        }
 
         var (_, thumb) = CalculateHorizontalScrollbar(containerRect);
         return thumb.Contains(point);
@@ -186,7 +196,10 @@ public class ScrollState
     /// </summary>
     public void HandleVerticalScrollbarDrag(Vector2 mousePos, Rect containerRect)
     {
-        if (!IsDraggingScrollbarY) return;
+        if (!IsDraggingScrollbarY)
+        {
+            return;
+        }
 
         var (track, _) = CalculateVerticalScrollbar(containerRect);
         var thumbHeight = Math.Max(ScrollbarMinThumbSize, ViewportSize.Y / ContentSize.Y * track.H);
@@ -210,7 +223,10 @@ public class ScrollState
     /// </summary>
     public void HandleHorizontalScrollbarDrag(Vector2 mousePos, Rect containerRect)
     {
-        if (!IsDraggingScrollbarX) return;
+        if (!IsDraggingScrollbarX)
+        {
+            return;
+        }
 
         var (track, _) = CalculateHorizontalScrollbar(containerRect);
         var thumbWidth = Math.Max(ScrollbarMinThumbSize, ViewportSize.X / ContentSize.X * track.W);

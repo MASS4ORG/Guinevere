@@ -41,7 +41,10 @@ public partial class Gui
         do
         {
             current = Volatile.Read(ref _frameDeadline);
-            if (deadline >= current) return;
+            if (deadline >= current)
+            {
+                return;
+            }
         } while (Interlocked.CompareExchange(ref _frameDeadline, deadline, current) != current);
         WakeFromOtherThread();
     }
@@ -54,9 +57,17 @@ public partial class Gui
     {
         get
         {
-            if (Volatile.Read(ref _frameRequested) != 0) return 0;
+            if (Volatile.Read(ref _frameRequested) != 0)
+            {
+                return 0;
+            }
+
             var deadline = Volatile.Read(ref _frameDeadline);
-            if (deadline == long.MaxValue) return double.PositiveInfinity;
+            if (deadline == long.MaxValue)
+            {
+                return double.PositiveInfinity;
+            }
+
             return Math.Max(0, (deadline - Stopwatch.GetTimestamp()) / (double)Stopwatch.Frequency);
         }
     }
@@ -68,11 +79,16 @@ public partial class Gui
         Volatile.Write(ref _frameRequested, 0);
         var deadline = Volatile.Read(ref _frameDeadline);
         if (deadline <= Stopwatch.GetTimestamp())
+        {
             Interlocked.CompareExchange(ref _frameDeadline, long.MaxValue, deadline);
+        }
     }
 
     void WakeFromOtherThread()
     {
-        if (Environment.CurrentManagedThreadId != _frameThread) WakeHost?.Invoke();
+        if (Environment.CurrentManagedThreadId != _frameThread)
+        {
+            WakeHost?.Invoke();
+        }
     }
 }

@@ -30,13 +30,19 @@ public class ControlTextAlignmentTests
                 case "tooltip": gui.Tooltip("Tip text"); break;
                 default:
                     if (gui.Pass == Pass.Pass1Build && gui.Clock.Elapsed < 0.02f)
+                    {
                         gui.Toast("Saved", new ToastOptions { Duration = 100f, FadeInSeconds = 0f });
+                    }
+
                     gui.Toasts();
                     break;
             }
         }
 
-        for (var i = 0; i < 3; i++) harness.Frame(Draw);
+        for (var i = 0; i < 3; i++)
+        {
+            harness.Frame(Draw);
+        }
 
         var leaves = Leaves(harness.Gui.RootNode!).ToList();
         Assert.NotEmpty(leaves);
@@ -44,15 +50,26 @@ public class ControlTextAlignmentTests
         {
             var box = text.Parent!.Rect;
             Assert.Equal(box.Y + box.H * 0.5f, text.Rect.Y + text.Rect.H * 0.5f, 1f);
-            if (horizontally) Assert.Equal(box.X + box.W * 0.5f, text.Rect.X + text.Rect.W * 0.5f, 1f);
+            if (horizontally)
+            {
+                Assert.Equal(box.X + box.W * 0.5f, text.Rect.X + text.Rect.W * 0.5f, 1f);
+            }
         }
     }
 
     static IEnumerable<LayoutNode> Leaves(LayoutNode node)
     {
         if (node.Children.Count == 0 && node.Parent is not null && node.Rect.W > 0 && node.Rect.H > 0)
+        {
             yield return node;
+        }
+
         foreach (var child in node.Children)
-            foreach (var leaf in Leaves(child)) yield return leaf;
+        {
+            foreach (var leaf in Leaves(child))
+            {
+                yield return leaf;
+            }
+        }
     }
 }

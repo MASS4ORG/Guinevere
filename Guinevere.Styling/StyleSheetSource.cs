@@ -33,7 +33,10 @@ public sealed class StyleSheetSource
         _filePath = filePath;
         _options = options;
         Current = StyleSheet.Parse(provider(), options);
-        if (filePath is not null) _lastWriteTimeUtc = File.GetLastWriteTimeUtc(filePath);
+        if (filePath is not null)
+        {
+            _lastWriteTimeUtc = File.GetLastWriteTimeUtc(filePath);
+        }
     }
 
     /// <summary>Creates a source containing fixed stylesheet text.</summary>
@@ -78,7 +81,11 @@ public sealed class StyleSheetSource
             var parsed = StyleSheet.Parse(_provider(), _options);
             Current = parsed;
             Diagnostic = null;
-            if (_filePath is not null) _lastWriteTimeUtc = File.GetLastWriteTimeUtc(_filePath);
+            if (_filePath is not null)
+            {
+                _lastWriteTimeUtc = File.GetLastWriteTimeUtc(_filePath);
+            }
+
             Reloaded?.Invoke(parsed);
             return true;
         }
@@ -98,7 +105,11 @@ public sealed class StyleSheetSource
     /// <summary>Reloads a file source only when its last-write timestamp changed.</summary>
     public bool TryReloadIfChanged()
     {
-        if (_filePath is null) return false;
+        if (_filePath is null)
+        {
+            return false;
+        }
+
         var writeTime = File.GetLastWriteTimeUtc(_filePath);
         return writeTime != _lastWriteTimeUtc && TryReload();
     }

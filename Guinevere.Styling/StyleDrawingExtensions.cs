@@ -14,8 +14,16 @@ public static class StyleDrawingExtensions
     /// <param name="rect">The part's bounds in screen coordinates.</param>
     public static void DrawStyledBox(this Gui gui, ResolvedStyle style, Rect rect)
     {
-        if (gui.Pass != Pass.Pass2Render || rect.W <= 0 || rect.H <= 0) return;
-        if (StyleBox.From(style, rect, gui) is not { } box) return;
+        if (gui.Pass != Pass.Pass2Render || rect.W <= 0 || rect.H <= 0)
+        {
+            return;
+        }
+
+        if (StyleBox.From(style, rect, gui) is not { } box)
+        {
+            return;
+        }
+
         var opacity = StyleBoxValues.Opacity(style.Get("opacity")) ?? 1f;
         gui.CurrentNode.DrawList.Add(opacity == 1f ? box : new PartBox(box, opacity));
     }
@@ -31,7 +39,11 @@ public static class StyleDrawingExtensions
         /// <inheritdoc/>
         public void Render(Gui gui, LayoutNode node, SKCanvas canvas)
         {
-            if (opacity <= 0f) return;
+            if (opacity <= 0f)
+            {
+                return;
+            }
+
             using var paint = new SKPaint { Color = SKColors.White.WithAlpha((byte)(opacity * 255f + 0.5f)) };
             canvas.SaveLayer(paint);
             try

@@ -51,7 +51,11 @@ public class WindowResizeTests
         var window = new Window(h);
         h.Gui.Platform.Register<ICursorCapability>(h.Input);
         h.Gui.Platform.Register<IWindowChromeCapability>(window);
-        if (resize) h.Gui.Platform.Register<IWindowResizeCapability>(window);
+        if (resize)
+        {
+            h.Gui.Platform.Register<IWindowResizeCapability>(window);
+        }
+
         return window;
     }
 
@@ -63,7 +67,11 @@ public class WindowResizeTests
 
     static void Draw(Gui gui)
     {
-        using (gui.AppBar(resizable: true)) gui.DrawText("Studio");
+        using (gui.AppBar(resizable: true))
+        {
+            gui.DrawText("Studio");
+        }
+
         gui.Button("Content", gui.ScreenRect.W, gui.ScreenRect.H - 36);
     }
 
@@ -119,7 +127,7 @@ public class WindowResizeTests
     {
         using var h = new FrameHarness();
         var window = Register(h);
-        void Small(Gui gui)
+        static void Small(Gui gui)
         {
             using var bar = gui.AppBar(resizable: true, minimumWindowSize: new Vector2(159.5f, 109.5f));
         }
@@ -175,11 +183,18 @@ public class WindowResizeTests
     {
         using var h = new FrameHarness();
         var window = Register(h);
-        void Content(Gui gui)
+        static void Content(Gui gui)
         {
-            using (gui.AppBar(resizable: true)) gui.DrawText("Studio");
+            using (gui.AppBar(resizable: true))
+            {
+                gui.DrawText("Studio");
+            }
+
             using var body = gui.Node(400, 264).Enter();
-            if (gui.Pass == Pass.Pass2Render) gui.GetInteractable().OnDrag(out _);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                gui.GetInteractable().OnDrag(out _);
+            }
         }
         h.Frame(Content);
         Move(h, window, new Vector2(300, 250));
@@ -251,7 +266,10 @@ public class WindowResizeTests
                 gui.SetClipped(true);
                 using var bar = gui.AppBar(resizable: true);
             }
-            if (gui.Button("Content", 400, 264)) clicks++;
+            if (gui.Button("Content", 400, 264))
+            {
+                clicks++;
+            }
         }
         h.Frame(Clipped);
         Move(h, window, new Vector2(498, 398));

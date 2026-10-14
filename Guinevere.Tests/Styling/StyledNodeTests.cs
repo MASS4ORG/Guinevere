@@ -47,7 +47,7 @@ public class StyledNodeTests
 
     /// <summary>Layout and background from a class rule are applied to a styled node.</summary>
     [Fact]
-    public void ClassRule_AppliesLayoutAndBackground()
+    public void ClassRuleAppliesLayoutAndBackground()
     {
         var px = RenderFrame(
             ".panel { flex-grow = 1; background-color = #ff0000; }",
@@ -63,7 +63,7 @@ public class StyledNodeTests
 
     /// <summary>A bare-type selector styles a node by its type name.</summary>
     [Fact]
-    public void TypeSelector_Applies()
+    public void TypeSelectorApplies()
     {
         var px = RenderFrame(
             "Box { flex-grow = 1; background-color = #00ff00; }",
@@ -78,7 +78,7 @@ public class StyledNodeTests
 
     /// <summary>A <c>:hover</c> rule swaps the background when the pointer is over the node.</summary>
     [Fact]
-    public void HoverModifier_SwapsBackground()
+    public void HoverModifierSwapsBackground()
     {
         const string css = """
             .btn        { flex-grow = 1; background-color = #101010; }
@@ -96,7 +96,7 @@ public class StyledNodeTests
 
     /// <summary>A child matches a selector on its parent's live state, such as <c>Row:hover &gt; Box</c>.</summary>
     [Fact]
-    public void ParentHover_StylesChild()
+    public void ParentHoverStylesChild()
     {
         const string css = """
             Row { flex-grow = 1; }
@@ -118,7 +118,7 @@ public class StyledNodeTests
 
     /// <summary>Styled-node scopes automatically provide ancestry and semantic modifiers.</summary>
     [Fact]
-    public void NestedRuleAndCustomModifier_ApplyThroughStyledHierarchy()
+    public void NestedRuleAndCustomModifierApplyThroughStyledHierarchy()
     {
         var px = RenderFrame("""
             Panel {
@@ -136,7 +136,7 @@ public class StyledNodeTests
 
     /// <summary>The PanGui <c>bg-color</c> spelling drives the standard background shape.</summary>
     [Fact]
-    public void PanGuiBackgroundAlias_Applies()
+    public void PanGuiBackgroundAliasApplies()
     {
         var px = RenderFrame("box { width = expand; height = expand; bg-color = #ff0000; }",
             MouseAt(-100, -100), gui => { using (gui.StyledNode("box").Enter()) { } });
@@ -146,7 +146,7 @@ public class StyledNodeTests
 
     /// <summary><c>:disabled</c> drives layout in the build pass and wins over hover in the render pass.</summary>
     [Fact]
-    public void Disabled_AppliesToLayoutAndSuppressesHover()
+    public void DisabledAppliesToLayoutAndSuppressesHover()
     {
         const string css = """
             .btn          { width = 20; height = expand; background-color = #101010; }
@@ -163,21 +163,28 @@ public class StyledNodeTests
 
     /// <summary>A focused styled node is matched by <c>:focus</c>.</summary>
     [Fact]
-    public void Focus_AppliesFocusRule()
+    public void FocusAppliesFocusRule()
     {
         using var harness = new FrameHarness(Size, Size);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
             .btn       { width = expand; height = expand; background-color = #101010; }
             .btn:focus { background-color = #00ff00; }
             """));
-        void Draw(Gui gui)
+        static void Draw(Gui gui)
         {
-            using (gui.StyledNode("Button", ["btn"], id: "target").Enter()) gui.RegisterFocusable();
+            using (gui.StyledNode("Button", ["btn"], id: "target").Enter())
+            {
+                gui.RegisterFocusable();
+            }
         }
 
         harness.Frame(Draw);
         harness.Gui.RequestFocus("target");
-        for (var i = 0; i < 3 && !harness.Gui.HasFocus("target"); i++) harness.Frame(Draw);
+        for (var i = 0; i < 3 && !harness.Gui.HasFocus("target"); i++)
+        {
+            harness.Frame(Draw);
+        }
+
         harness.Frame(Draw);
 
         Assert.True(harness.Gui.HasFocus("target"));
@@ -187,7 +194,7 @@ public class StyledNodeTests
 
     /// <summary>With no stylesheet a styled node behaves like a plain node.</summary>
     [Fact]
-    public void NoStyleSheet_IsHarmless()
+    public void NoStyleSheetIsHarmless()
     {
         using var surface = SKSurface.Create(new SKImageInfo(Size, Size));
         var gui = new Gui { Input = MouseAt(0, 0) };

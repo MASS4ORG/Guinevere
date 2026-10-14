@@ -68,7 +68,11 @@ public unsafe partial class CanvasRenderer
                 _vk.FreeMemory(_device, _rasterMemory[i], null);
                 _rasterMemory[i] = default;
             }
-            if (_rasterBuffers[i].Handle != 0) _vk.DestroyBuffer(_device, _rasterBuffers[i], null);
+            if (_rasterBuffers[i].Handle != 0)
+            {
+                _vk.DestroyBuffer(_device, _rasterBuffers[i], null);
+            }
+
             _rasterBuffers[i] = default;
         }
     }
@@ -114,7 +118,9 @@ public unsafe partial class CanvasRenderer
         for (var i = 0; i < memory.MemoryTypeCount; i++)
         {
             if ((typeFilter & (1u << i)) != 0 && (memory.MemoryTypes[i].PropertyFlags & properties) == properties)
+            {
                 return (uint)i;
+            }
         }
         return null;
     }

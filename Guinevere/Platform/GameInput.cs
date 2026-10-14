@@ -53,7 +53,10 @@ public sealed record GameInputDevice(
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);
         if (!float.IsFinite(deadZone) || deadZone < 0 || deadZone >= 1)
+        {
             throw new ArgumentOutOfRangeException(nameof(deadZone));
+        }
+
         var value = index < Axes.Count ? Axes[index] : 0;
         return MathF.Abs(value) <= deadZone ? 0 : MathF.CopySign((MathF.Abs(value) - deadZone) / (1 - deadZone), value);
     }
@@ -112,11 +115,14 @@ public sealed class GameInputState : IGameInputCapability
     {
         BeginUpdate();
         for (var slot = 0; slot < slotCount; slot++)
+        {
             if (readSlot(slot) is { } sample)
             {
                 sample = GamepadMappings.Normalize(sample);
                 UpdateDevice(sample.Id, sample.Name, sample.IsMapped, sample.Buttons, sample.Axes, sample.Hats, elapsed);
             }
+        }
+
         EndUpdate();
     }
 
@@ -135,7 +141,11 @@ public sealed class GameInputState : IGameInputCapability
     public static bool[] CopyButtons(ReadOnlySpan<byte> buttons)
     {
         var result = new bool[buttons.Length];
-        for (var i = 0; i < buttons.Length; i++) result[i] = buttons[i] != 0;
+        for (var i = 0; i < buttons.Length; i++)
+        {
+            result[i] = buttons[i] != 0;
+        }
+
         return result;
     }
 
@@ -143,7 +153,11 @@ public sealed class GameInputState : IGameInputCapability
     public static Vector2[] CopyHats(ReadOnlySpan<byte> hats)
     {
         var result = new Vector2[hats.Length];
-        for (var i = 0; i < hats.Length; i++) result[i] = DecodeHat(hats[i]);
+        for (var i = 0; i < hats.Length; i++)
+        {
+            result[i] = DecodeHat(hats[i]);
+        }
+
         return result;
     }
 
@@ -155,7 +169,11 @@ public sealed class GameInputState : IGameInputCapability
         _seen.Add(id);
         var state = GetOrConnect(id, name, mapped);
         var next = new GameButtonState[buttons.Length];
-        for (var i = 0; i < buttons.Length; i++) next[i] = UpdateButton(state, i, buttons[i], elapsed);
+        for (var i = 0; i < buttons.Length; i++)
+        {
+            next[i] = UpdateButton(state, i, buttons[i], elapsed);
+        }
+
         var cleanAxes = CleanAxes(axes);
         var nextHats = hats.ToArray();
         Changed |= !cleanAxes.SequenceEqual(state.Sample.Axes);
@@ -181,7 +199,11 @@ public sealed class GameInputState : IGameInputCapability
         var previous = index < state.Sample.Buttons.Count ? state.Sample.Buttons[index] : default;
         var pressed = down && !previous.Down;
         var released = !down && previous.Down;
-        if (pressed) state.Started[index] = elapsed;
+        if (pressed)
+        {
+            state.Started[index] = elapsed;
+        }
+
         var held = down ? Math.Max(0, elapsed - state.Started[index]) : 0;
         Changed |= down != previous.Down;
         return new GameButtonState(down, previous.Pressed | pressed, previous.Released | released, held);
@@ -191,20 +213,30 @@ public sealed class GameInputState : IGameInputCapability
     {
         var cleanAxes = axes.ToArray();
         for (var i = 0; i < cleanAxes.Length; i++)
+        {
             cleanAxes[i] = float.IsFinite(cleanAxes[i]) ? Math.Clamp(cleanAxes[i], -1, 1) : 0;
+        }
+
         return cleanAxes;
     }
 
     /// <summary>Disconnects devices missing from the enumeration and discards their held state.</summary>
     public void EndUpdate()
     {
-        foreach (var id in _devices.Keys.Where(id => !_seen.Contains(id)).ToArray()) Disconnect(id);
+        foreach (var id in _devices.Keys.Where(id => !_seen.Contains(id)).ToArray())
+        {
+            Disconnect(id);
+        }
     }
 
     /// <summary>Disconnects a device and removes every held button and touchpad contact.</summary>
     public void Disconnect(string id)
     {
-        if (!_devices.Remove(id)) return;
+        if (!_devices.Remove(id))
+        {
+            return;
+        }
+
         _connections.Add(new GameDeviceConnection(id, false));
         Changed = true;
     }
@@ -215,11 +247,17 @@ public sealed class GameInputState : IGameInputCapability
         _connections.Clear();
         Changed = false;
         foreach (var state in _devices.Values)
+        {
             state.Sample = state.Sample with
             {
-                Buttons = Array.AsReadOnly(state.Sample.Buttons.Select(button => button with
-                { Pressed = false, Released = false }).ToArray())
+                Buttons = Array.AsReadOnly([
+                    .. state.Sample.Buttons.Select(button => button with
+                    {
+                        Pressed = false, Released = false
+                    })
+                ])
             };
+        }
     }
 
     sealed class DeviceState(GameInputDevice sample)

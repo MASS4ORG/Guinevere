@@ -40,7 +40,11 @@ public static partial class ControlsExtensions
         /// <summary>Snapshots the live menu state for both passes.</summary>
         public void BeginFrame(Vector2 mouse)
         {
-            if (mouse != PreviousMouse) KeyboardActive = false;
+            if (mouse != PreviousMouse)
+            {
+                KeyboardActive = false;
+            }
+
             PreviousMouse = mouse;
             FrameOpenIndex = OpenIndex;
             FrameKeyboardActive = KeyboardActive;
@@ -83,7 +87,10 @@ public static partial class ControlsExtensions
         var builder = new MenuBarBuilder();
         buildMenus(builder);
 
-        if (state.OpenIndex >= builder.Menus.Count) state.OpenIndex = -1;
+        if (state.OpenIndex >= builder.Menus.Count)
+        {
+            state.OpenIndex = -1;
+        }
 
         if (gui.Pass == Pass.Pass1Build)
         {
@@ -100,7 +107,11 @@ public static partial class ControlsExtensions
         float fontSize, float padding)
     {
         var barNode = gui.StyledNode("menubar", state.Classes, state.StyleId).Height(height).Direction(Axis.Horizontal);
-        if (builder.CollapsedLabel is not null) barNode.Width(UnitValue.Fit);
+        if (builder.CollapsedLabel is not null)
+        {
+            barNode.Width(UnitValue.Fit);
+        }
+
         using var scope = barNode.Enter();
         if (gui.Pass == Pass.Pass2Render)
         {
@@ -114,7 +125,10 @@ public static partial class ControlsExtensions
         float fontSize, float padding)
     {
         if (state.TitleRects.Count != builder.Menus.Count)
+        {
             state.TitleRects = [.. builder.Menus.Select(_ => new Rect())];
+        }
+
         if (builder.CollapsedLabel is not null && !state.FrameExpanded)
         {
             if (RenderCompactMenuToggle(gui, builder.CollapsedLabel, height, fontSize) && builder.Menus.Count > 0)
@@ -124,8 +138,12 @@ public static partial class ControlsExtensions
             }
         }
         else
+        {
             for (var i = 0; i < builder.Menus.Count; i++)
+            {
                 RenderMenuBarTitle(gui, state, builder.Menus[i], i, height, fontSize, padding);
+            }
+        }
     }
 
     static bool RenderCompactMenuToggle(Gui gui, string label, float height,
@@ -134,38 +152,67 @@ public static partial class ControlsExtensions
         using var scope = gui.StyledNode("menu-title").Width(height).Height(height).Enter();
         var activated = ActivateCompactMenu(gui);
         var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
-        if (label == "☰") DrawCompactMenuGlyph(gui, height, color);
-        else gui.DrawText(label, fontSize, color);
+        if (label == "☰")
+        {
+            DrawCompactMenuGlyph(gui, height, color);
+        }
+        else
+        {
+            gui.DrawText(label, fontSize, color);
+        }
+
         return activated;
     }
 
     static bool ActivateCompactMenu(Gui gui)
     {
-        if (gui.Pass != Pass.Pass2Render) return false;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return false;
+        }
+
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
         var interaction = gui.GetInteractable();
         var activated = interaction.OnClick() || MenuKeyboardActivated(gui);
-        if (activated) gui.RequestFocus(FocusReason.Mouse);
+        if (activated)
+        {
+            gui.RequestFocus(FocusReason.Mouse);
+        }
+
         return activated;
     }
 
     static void DrawCompactMenuGlyph(Gui gui, float height, Color color)
     {
         using var glyph = gui.Node(height, height).Absolute(0, 0).HitTestVisible(false).Enter();
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         var rect = gui.CurrentNode.Rect;
         var x = rect.X + (rect.W - 12) * 0.5f;
         var y = rect.Y + rect.H * 0.5f;
         for (var offset = -4; offset <= 4; offset += 4)
+        {
             gui.DrawLine(new Vector2(x, y + offset), new Vector2(x + 12, y + offset), color);
+        }
     }
 
     static void RenderOpenMenuBar(Gui gui, MenuBarState state, MenuBarBuilder builder, string id, float height,
         float fontSize, float padding)
     {
-        if (state.FrameOpenIndex < 0) return;
+        if (state.FrameOpenIndex < 0)
+        {
+            return;
+        }
+
         var menu = builder.Menus[state.FrameOpenIndex];
-        if (gui.Pass == Pass.Pass2Render) HandleMenuKeyboard(gui, state, menu.Items);
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            HandleMenuKeyboard(gui, state, menu.Items);
+        }
+
         using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
         focusScope.SetActive();
         RenderMenuBarDropdown(gui, state, menu, height,
@@ -175,9 +222,15 @@ public static partial class ControlsExtensions
     static void DismissMenuBarOutside(Gui gui, MenuBarState state)
     {
         if (gui.Pass != Pass.Pass2Render || state.FrameOpenIndex < 0
-            || !gui.Input.IsMouseButtonPressed(MouseButton.Left)) return;
+            || !gui.Input.IsMouseButtonPressed(MouseButton.Left))
+        {
+            return;
+        }
+
         if (!state.TitleRects.Any(gui.IsPointerIn) && !state.SubmenuRects.Any(gui.IsPointerIn))
+        {
             ResetMenuState(state);
+        }
     }
 
     static void RenderMenuBarTitle(Gui gui, MenuBarState state, MenuBarMenu menu, int index,
@@ -191,7 +244,11 @@ public static partial class ControlsExtensions
             var interaction = gui.GetInteractable();
             var hovered = interaction.OnHover();
             var clicked = interaction.OnClick();
-            if (clicked) gui.RequestFocus(FocusReason.Mouse);
+            if (clicked)
+            {
+                gui.RequestFocus(FocusReason.Mouse);
+            }
+
             UpdateMenuBarTitle(state, index, hovered, clicked || MenuKeyboardActivated(gui));
         }
         gui.DrawText(menu.Title, fontSize, centerInRect: false);
@@ -205,11 +262,19 @@ public static partial class ControlsExtensions
         var open = state.FrameOpenIndex == index;
         if (activated)
         {
-            if (open) ResetMenuState(state);
-            else OpenMenuBarTitle(state, index);
+            if (open)
+            {
+                ResetMenuState(state);
+            }
+            else
+            {
+                OpenMenuBarTitle(state, index);
+            }
         }
         else if (state.FrameOpenIndex >= 0 && !open && hovered)
+        {
             OpenMenuBarTitle(state, index);
+        }
     }
 
     static void OpenMenuBarTitle(MenuBarState state, int index)
@@ -223,11 +288,21 @@ public static partial class ControlsExtensions
     static void RenderMenuBarDropdown(Gui gui, MenuBarState state, MenuBarMenu menu, float height,
         float fontSize, float padding)
     {
-        if (state.FrameOpenIndex >= state.FrameTitleRects.Count) return;
+        if (state.FrameOpenIndex >= state.FrameTitleRects.Count)
+        {
+            return;
+        }
 
         var anchor = state.FrameTitleRects[state.FrameOpenIndex];
-        if (anchor.W <= 0 || anchor.H <= 0) anchor = state.FrameBarRect;
-        if (anchor.W <= 0 || anchor.H <= 0) return;
+        if (anchor.W <= 0 || anchor.H <= 0)
+        {
+            anchor = state.FrameBarRect;
+        }
+
+        if (anchor.W <= 0 || anchor.H <= 0)
+        {
+            return;
+        }
 
         RenderMenuGroup(gui, state, menu.Title, menu.Items,
             new Vector2(anchor.X, anchor.Y + height), depth: 0,
@@ -272,8 +347,10 @@ public static partial class ControlsExtensions
             gui.SetEscapesAncestorClips();
 
             for (var i = 0; i < items.Count; i++)
+            {
                 RenderMenuBarRow(gui, state, items, i, nodeId, menuWidth, itemHeight, separatorHeight,
                     hasCheckColumn, fontSize, padding, depth);
+            }
         }
 
         if (openSubmenuIndex >= 0 && items[openSubmenuIndex].Submenu is { } submenu)
@@ -299,14 +376,22 @@ public static partial class ControlsExtensions
             modifiers: MenuRowSelected(state, depth, index, false) ? ["highlighted"] : [], disabled: !item.Enabled)
             .Width(width).Height(itemHeight)
             .Padding(padding, 0).Direction(Axis.Horizontal).ContentAlignY(0.5f).Enter();
-        if (gui.Pass == Pass.Pass2Render) HandleMenuRow(gui, state, item, index, depth);
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            HandleMenuRow(gui, state, item, index, depth);
+        }
+
         RenderMenuRowContent(gui, state, item, hasCheckColumn, fontSize);
     }
 
     static void RenderMenuSeparator(Gui gui, MenuBarState state, float width, float height, string id, float padding)
     {
         using var scope = gui.StyledNode("menu-separator", id: id).Width(width).Height(height).Enter();
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         var rect = gui.CurrentNode.Rect;
         var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
         var y = rect.Y + rect.H * 0.5f;
@@ -316,11 +401,22 @@ public static partial class ControlsExtensions
     static void HandleMenuRow(Gui gui, MenuBarState state, FlyoutItem item, int index, int depth)
     {
         gui.RegisterFocusable(canReceiveFocus: item.Enabled, isInteractable: true, claimsArrowKeys: true);
-        if (IsKeyboardMenuTarget(state, index, depth)) gui.RequestFocus(FocusReason.Keyboard);
+        if (IsKeyboardMenuTarget(state, index, depth))
+        {
+            gui.RequestFocus(FocusReason.Keyboard);
+        }
+
         var interaction = gui.GetInteractable();
         var hovered = interaction.OnHover();
-        if (hovered) PreviewMenuRow(item);
-        if (interaction.OnClick()) ActivateMenuRow(state, item, depth, index);
+        if (hovered)
+        {
+            PreviewMenuRow(item);
+        }
+
+        if (interaction.OnClick())
+        {
+            ActivateMenuRow(state, item, depth, index);
+        }
     }
 
     static bool IsKeyboardMenuTarget(MenuBarState state, int index, int depth) =>
@@ -328,7 +424,10 @@ public static partial class ControlsExtensions
 
     static void PreviewMenuRow(FlyoutItem item)
     {
-        if (item.Enabled) item.OnHover?.Invoke();
+        if (item.Enabled)
+        {
+            item.OnHover?.Invoke();
+        }
     }
 
     static bool MenuRowSelected(MenuBarState state, int depth, int index, bool hovered) => hovered
@@ -357,11 +456,22 @@ public static partial class ControlsExtensions
     static void RenderMenuCheckColumn(Gui gui, MenuBarState state, FlyoutItem item, bool hasCheckColumn,
         float fontSize, Color color)
     {
-        if (!hasCheckColumn) return;
+        if (!hasCheckColumn)
+        {
+            return;
+        }
+
         using var scope = gui.StyledNode("menu-check").Width(14f).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter();
         var id = gui.CurrentNode.Id;
-        if (gui.Pass == Pass.Pass1Build) state.FrameChecks[id] = item.IsChecked?.Invoke() == true;
-        if (state.FrameChecks.GetValueOrDefault(id)) gui.DrawText(WidgetIcons.Check, fontSize, color);
+        if (gui.Pass == Pass.Pass1Build)
+        {
+            state.FrameChecks[id] = item.IsChecked?.Invoke() == true;
+        }
+
+        if (state.FrameChecks.GetValueOrDefault(id))
+        {
+            gui.DrawText(WidgetIcons.Check, fontSize, color);
+        }
     }
 
     static void HandleMenuKeyboard(Gui gui, MenuBarState state, List<FlyoutItem> root)
@@ -374,9 +484,17 @@ public static partial class ControlsExtensions
 
         var items = KeyboardMenu(state, root);
         StepMenuKeyboard(gui, state, items);
-        if (state.KeyboardPath.Count == 0) return;
+        if (state.KeyboardPath.Count == 0)
+        {
+            return;
+        }
+
         var index = state.KeyboardPath[^1];
-        if (index < 0 || index >= items.Count) return;
+        if (index < 0 || index >= items.Count)
+        {
+            return;
+        }
+
         HandleMenuKeyboardBranch(gui, state, items, index);
     }
 
@@ -387,7 +505,11 @@ public static partial class ControlsExtensions
         if (down || up)
         {
             state.KeyboardActive = true;
-            if (state.KeyboardPath.Count == 0) state.KeyboardPath.Add(-1);
+            if (state.KeyboardPath.Count == 0)
+            {
+                state.KeyboardPath.Add(-1);
+            }
+
             state.KeyboardPath[^1] = NextSelectableIndex(items, state.KeyboardPath[^1], down ? 1 : -1);
         }
     }
@@ -400,20 +522,31 @@ public static partial class ControlsExtensions
             state.KeyboardPath.Add(NextSelectableIndex(items[index].Submenu!, -1, 1));
         }
         else if (gui.IsNavigationPressed(FocusDirection.Left) && state.KeyboardPath.Count > 1)
+        {
             state.KeyboardPath.RemoveAt(state.KeyboardPath.Count - 1);
+        }
         else if (state.KeyboardActive
                  && (gui.IsAcceptPressed))
+        {
             ActivateMenuRow(state, items[index], state.KeyboardPath.Count - 1, index);
+        }
     }
 
     static void ActivateRow(MenuBarState state, FlyoutItem item)
     {
-        if (!item.Enabled) return;
+        if (!item.Enabled)
+        {
+            return;
+        }
 
         if (item.IsChecked is not null && item.OnCheckChanged is not null)
+        {
             item.OnCheckChanged(!item.IsChecked());
+        }
         else
+        {
             item.Action?.Invoke();
+        }
 
         ResetMenuState(state);
     }
@@ -430,14 +563,21 @@ public static partial class ControlsExtensions
     static int HoveredRowIndex(List<FlyoutItem> items, Rect groupRect, Vector2 mousePos,
         float itemHeight, float separatorHeight)
     {
-        if (!IsMouseInRect(mousePos, groupRect)) return -1;
+        if (!IsMouseInRect(mousePos, groupRect))
+        {
+            return -1;
+        }
 
         var relY = mousePos.Y - groupRect.Y;
         var accY = 0f;
         for (var i = 0; i < items.Count; i++)
         {
             var h = items[i].IsSeparator ? separatorHeight : itemHeight;
-            if (relY >= accY && relY < accY + h) return i;
+            if (relY >= accY && relY < accY + h)
+            {
+                return i;
+            }
+
             accY += h;
         }
 
@@ -450,8 +590,15 @@ public static partial class ControlsExtensions
         for (var step = 1; step <= count; step++)
         {
             var index = (from + delta * step) % count;
-            if (index < 0) index += count;
-            if (!items[index].IsSeparator && items[index].Enabled) return index;
+            if (index < 0)
+            {
+                index += count;
+            }
+
+            if (!items[index].IsSeparator && items[index].Enabled)
+            {
+                return index;
+            }
         }
 
         return -1;
@@ -461,7 +608,10 @@ public static partial class ControlsExtensions
     {
         var y = 0f;
         for (var i = 0; i < index; i++)
+        {
             y += items[i].IsSeparator ? separatorHeight : itemHeight;
+        }
+
         return y;
     }
 }

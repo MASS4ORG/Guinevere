@@ -44,14 +44,19 @@ public class TextEffectsTests
     {
         var n = 0;
         for (var i = 3; i < px.Length; i += 4)
+        {
             if (px[i] > 20)
+            {
                 n++;
+            }
+        }
+
         return n;
     }
 
     /// <summary>Empty effects render the same as no effects (the refactor is transparent).</summary>
     [Fact]
-    public void EmptyEffects_MatchPlainText()
+    public void EmptyEffectsMatchPlainText()
     {
         var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
         var empty = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White, effects: new TextEffects()));
@@ -61,7 +66,7 @@ public class TextEffectsTests
 
     /// <summary>An outline puts extra ink around the glyphs.</summary>
     [Fact]
-    public void Outline_AddsInkAroundGlyphs()
+    public void OutlineAddsInkAroundGlyphs()
     {
         var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
         var outlined = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White, effects: new TextEffects
@@ -74,14 +79,19 @@ public class TextEffectsTests
 
         var anyRed = false;
         for (var i = 0; i < outlined.Length && !anyRed; i += 4)
+        {
             if (outlined[i] > 180 && outlined[i + 1] < 80 && outlined[i + 2] < 80 && outlined[i + 3] > 150)
+            {
                 anyRed = true;
+            }
+        }
+
         Assert.True(anyRed, "the red outline color should appear");
     }
 
     /// <summary>A drop shadow adds ink and puts it down-and-right of the glyphs.</summary>
     [Fact]
-    public void DropShadow_AddsOffsetInk()
+    public void DropShadowAddsOffsetInk()
     {
         var plain = RenderFrame(gui =>
             gui.DrawText("Ag", size: Size, color: Color.White, centerInRect: false));
@@ -97,14 +107,19 @@ public class TextEffectsTests
         // Somewhere in the frame the shadow is opaque where the plain text is not.
         var newInk = false;
         for (var i = 3; i < plain.Length && !newInk; i += 4)
+        {
             if (plain[i] < 10 && shadowed[i] > 40)
+            {
                 newInk = true;
+            }
+        }
+
         Assert.True(newInk, "the shadow should paint pixels the plain text does not");
     }
 
     /// <summary>An inner shadow changes glyph pixels while remaining clipped to their coverage.</summary>
     [Fact]
-    public void InnerShadow_ChangesGlyphPixels()
+    public void InnerShadowChangesGlyphPixels()
     {
         var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
         var inner = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White,
@@ -120,7 +135,7 @@ public class TextEffectsTests
 
     /// <summary>An explicit empty effect value suppresses effects inherited from the current scope.</summary>
     [Fact]
-    public void ExplicitEmptyEffects_OverrideInheritedEffects()
+    public void ExplicitEmptyEffectsOverrideInheritedEffects()
     {
         var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
         var inherited = new TextEffects
@@ -139,7 +154,7 @@ public class TextEffectsTests
 
     /// <summary>Glyphs inherit text effects from their current scope.</summary>
     [Fact]
-    public void DrawGlyph_InheritsTextEffects()
+    public void DrawGlyphInheritsTextEffects()
     {
         var effects = new TextEffects
         {
@@ -162,7 +177,7 @@ public class TextEffectsTests
 
     /// <summary>A horizontal gradient makes the left and right of the text different colors.</summary>
     [Fact]
-    public void Gradient_VariesColorAcrossText()
+    public void GradientVariesColorAcrossText()
     {
         var px = RenderFrame(gui => gui.DrawText("MMMMMMMMMM", size: 40f, color: Color.White, centerInRect: false,
             effects: new TextEffects
@@ -176,14 +191,20 @@ public class TextEffectsTests
             long r = 0, b = 0;
             var c = 0;
             for (var y = 0; y < H; y++)
+            {
                 for (var x = x0; x < x1; x++)
                 {
                     var (pr, pb, pa) = At(px, x, y);
-                    if (pa <= 60) continue;
+                    if (pa <= 60)
+                    {
+                        continue;
+                    }
+
                     r += pr;
                     b += pb;
                     c++;
                 }
+            }
 
             return (r, b, c);
         }
@@ -199,7 +220,7 @@ public class TextEffectsTests
 
     /// <summary>Effects do not change the node's laid-out size.</summary>
     [Fact]
-    public void Effects_DoNotChangeNodeSize()
+    public void EffectsDoNotChangeNodeSize()
     {
         LayoutNode? plainNode = null;
         LayoutNode? fxNode = null;
@@ -213,7 +234,7 @@ public class TextEffectsTests
 
         Assert.NotNull(plainNode);
         Assert.NotNull(fxNode);
-        Assert.Equal(plainNode!.Rect.W, fxNode!.Rect.W, 1);
+        Assert.Equal(plainNode.Rect.W, fxNode.Rect.W, 1);
         Assert.Equal(plainNode.Rect.H, fxNode.Rect.H, 1);
     }
 }

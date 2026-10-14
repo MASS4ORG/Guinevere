@@ -14,7 +14,7 @@ public class StyleTransitionTests
 
     /// <summary>Annotations parse in seconds or milliseconds and no longer swallow the rest of the compound.</summary>
     [Fact]
-    public void Annotations_Parse()
+    public void AnnotationsParse()
     {
         var selector = Selector.Parse("Button:hover(150ms ease-in-out-sine).primary");
         Assert.Equal(0.15f, selector.Transition!.Duration, 4);
@@ -32,7 +32,7 @@ public class StyleTransitionTests
 
     /// <summary>The resolved style reports the transition of the rule that set each property.</summary>
     [Fact]
-    public void ResolvedStyle_ReportsTransitions()
+    public void ResolvedStyleReportsTransitions()
     {
         var gui = new Gui();
         gui.StyleSheets.Add(StyleSheet.Parse(FadeSheet));
@@ -45,7 +45,7 @@ public class StyleTransitionTests
 
     /// <summary>Hover eases in under its annotation, eases back out under the same one, and continues when interrupted.</summary>
     [Fact]
-    public void Hover_InterpolatesBothWays()
+    public void HoverInterpolatesBothWays()
     {
         using var harness = new FrameHarness();
         harness.Gui.StyleSheets.Add(StyleSheet.Parse(FadeSheet));
@@ -54,7 +54,11 @@ public class StyleTransitionTests
         void Draw(Gui gui)
         {
             var node = gui.StyledNode("Box");
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             opacity = Opacity(node);
             color = node.Scope.Get<LayoutNodeScopeTextColor>().Value;
         }
@@ -74,7 +78,11 @@ public class StyleTransitionTests
         Assert.Equal(0.28f, opacity, 2);
         harness.Frame(Draw);
         Assert.Equal(0.272f, opacity, 2);
-        for (var i = 0; i < 12; i++) harness.Frame(Draw);
+        for (var i = 0; i < 12; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         Assert.Equal(0.2f, opacity, 3);
         Assert.Equal(Color.Black, color);
         Assert.Equal(2, StylingExtensions.TransitionsOf(harness.Gui).TrackedCount);
@@ -82,11 +90,11 @@ public class StyleTransitionTests
 
     /// <summary>A running transition requests frames until it finishes.</summary>
     [Fact]
-    public void Transition_RequestsFramesWhileRunning()
+    public void TransitionRequestsFramesWhileRunning()
     {
         using var harness = new FrameHarness();
         harness.Gui.StyleSheets.Add(StyleSheet.Parse(FadeSheet));
-        void Draw(Gui gui) => gui.StyledNode("Box");
+        static void Draw(Gui gui) => gui.StyledNode("Box");
 
         harness.Input.MoveTo(new Vector2(300, 200));
         harness.Frame(Draw);
@@ -95,13 +103,17 @@ public class StyleTransitionTests
         harness.Frame(Draw);
         harness.Frame(Draw);
         Assert.Equal(0, harness.Gui.FrameWaitSeconds);
-        for (var i = 0; i < 14; i++) harness.Frame(Draw);
+        for (var i = 0; i < 14; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
     }
 
     /// <summary>Reduced motion applies the new values at once.</summary>
     [Fact]
-    public void ReduceMotion_Jumps()
+    public void ReduceMotionJumps()
     {
         using var harness = new FrameHarness();
         harness.Gui.StyleSheets.Add(StyleSheet.Parse(FadeSheet));
@@ -110,7 +122,10 @@ public class StyleTransitionTests
         void Draw(Gui gui)
         {
             var node = gui.StyledNode("Box");
-            if (gui.Pass == Pass.Pass2Render) opacity = Opacity(node);
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                opacity = Opacity(node);
+            }
         }
 
         harness.Input.MoveTo(new Vector2(300, 200));
@@ -122,7 +137,7 @@ public class StyleTransitionTests
 
     /// <summary>Layout properties under a semantic modifier animate in the build pass.</summary>
     [Fact]
-    public void Modifiers_AnimateLayout()
+    public void ModifiersAnimateLayout()
     {
         using var harness = new FrameHarness();
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
@@ -138,13 +153,17 @@ public class StyleTransitionTests
         harness.Frame(Draw);
         harness.Frame(Draw);
         Assert.Equal(44f, node!.Rect.W, 1);
-        for (var i = 0; i < 12; i++) harness.Frame(Draw);
+        for (var i = 0; i < 12; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         Assert.Equal(80f, node!.Rect.W);
     }
 
     /// <summary>Values whose numbers and colors sit in the same text interpolate; others jump.</summary>
     [Fact]
-    public void Channels_SplitAndFormat()
+    public void ChannelsSplitAndFormat()
     {
         Assert.True(StyleValueChannels.TryParse("0 2px 8 #00000080", out var shape, out var channels));
         Assert.Equal([0f, 2f, 8f, 0f, 0f, 0f, 128f], channels);
@@ -171,7 +190,7 @@ public class StyleTransitionTests
 
     /// <summary>Stylesheet transforms use the node's center by default and animate like any other value.</summary>
     [Fact]
-    public void TransformProperties_SetTheNodeTransform()
+    public void TransformPropertiesSetTheNodeTransform()
     {
         using var harness = new FrameHarness();
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
@@ -189,7 +208,11 @@ public class StyleTransitionTests
         Assert.Equal(Matrix3x2.Identity, node!.Transform);
 
         harness.Input.MoveTo(new Vector2(20, 20));
-        for (var i = 0; i < 14; i++) harness.Frame(gui => node = gui.StyledNode("Box"));
+        for (var i = 0; i < 14; i++)
+        {
+            harness.Frame(gui => node = gui.StyledNode("Box"));
+        }
+
         var expected = Matrix3x2.CreateScale(2f, new Vector2(20, 20))
                        * Matrix3x2.CreateRotation(MathF.PI / 2f, new Vector2(20, 20))
                        * Matrix3x2.CreateTranslation(4, 0);

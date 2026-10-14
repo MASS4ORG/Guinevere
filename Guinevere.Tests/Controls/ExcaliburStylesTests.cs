@@ -7,7 +7,7 @@ public class ExcaliburStylesTests
 {
     /// <summary>The embedded sheet loads, parses and carries its theme metadata.</summary>
     [Fact]
-    public void DefaultSheet_Loads()
+    public void DefaultSheetLoads()
     {
         Assert.Contains("button", ExcaliburStyles.DefaultSheetText);
         Assert.Equal("\"Material You Dark\"", ExcaliburStyles.DefaultSheet.Constants["theme-name"]);
@@ -17,7 +17,7 @@ public class ExcaliburStylesTests
 
     /// <summary>Drawing a control puts the default sheet first, below application sheets, even after it is moved.</summary>
     [Fact]
-    public void Controls_KeepTheDefaultSheetFirst()
+    public void ControlsKeepTheDefaultSheetFirst()
     {
         using var harness = new FrameHarness(200, 80);
         var theme = StyleSheet.Parse("button { border-radius = 0; }");
@@ -38,7 +38,7 @@ public class ExcaliburStylesTests
     [InlineData("light", "light", "#edeef4", "#20242a")]
     [InlineData("mono-light", "light", "#ebedf1", "#1b1f27")]
     [InlineData("mono-dark", "dark", "#232731", "#d7dae0")]
-    public void Themes_DefineTheirTokens(string name, string kind, string surface, string text)
+    public void ThemesDefineTheirTokens(string name, string kind, string surface, string text)
     {
         var sheet = name switch
         {
@@ -60,7 +60,7 @@ public class ExcaliburStylesTests
     /// dark (default) theme or <c>null</c> removes it.
     /// </summary>
     [Fact]
-    public void SetTheme_LayersAndReplaces()
+    public void SetThemeLayersAndReplaces()
     {
         var gui = new Gui();
         var app = StyleSheet.Parse("$text = #123456;");
@@ -87,7 +87,7 @@ public class ExcaliburStylesTests
 
     /// <summary>An unknown token reads as transparent; drop feedback follows the theme's semantic colors.</summary>
     [Fact]
-    public void TokenColorAndDroppableArea_FollowTheTheme()
+    public void TokenColorAndDroppableAreaFollowTheTheme()
     {
         var gui = new Gui();
 
@@ -99,11 +99,11 @@ public class ExcaliburStylesTests
 
     /// <summary>The Material default is a complete base sheet.</summary>
     [Fact]
-    public void DefaultSheet_IsAValidBase() => Assert.Empty(ExcaliburStyles.ValidateBaseSheet(ExcaliburStyles.DefaultSheet));
+    public void DefaultSheetIsAValidBase() => Assert.Empty(ExcaliburStyles.ValidateBaseSheet(ExcaliburStyles.DefaultSheet));
 
     /// <summary>Setting a theme hands the sheets' control sizes to the controls; sheets without them keep the defaults.</summary>
     [Fact]
-    public void ApplyMetrics_ReadsTheSheetTokens()
+    public void ApplyMetricsReadsTheSheetTokens()
     {
         using var harness = new FrameHarness(200, 80);
         float field = 0, compact = 0, indicator = 0, classicField = 0;
@@ -135,7 +135,7 @@ public class ExcaliburStylesTests
 
     /// <summary>The classic look is selectable as a complete base and keeps the pre-Material palette.</summary>
     [Fact]
-    public void Classic_IsASelectableBase()
+    public void ClassicIsASelectableBase()
     {
         var gui = new Gui();
         ExcaliburStyles.SetBaseSheet(gui, ExcaliburStyles.Classic);
@@ -146,7 +146,7 @@ public class ExcaliburStylesTests
 
     /// <summary>A theme that overrides only a Material role recolors the slots and the controls aliased to it.</summary>
     [Fact]
-    public void RoleOverrides_ReachSlotsAndControls()
+    public void RoleOverridesReachSlotsAndControls()
     {
         using var harness = new FrameHarness(200, 80);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("$md-primary = #123456; $md-on-surface = #fedcba;"));
@@ -160,7 +160,7 @@ public class ExcaliburStylesTests
 
     /// <summary>A theme written with the slot names alone still recolors the controls.</summary>
     [Fact]
-    public void SlotOverrides_StillRecolorControls()
+    public void SlotOverridesStillRecolorControls()
     {
         using var harness = new FrameHarness(200, 80);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("$accent = #abcdef;"));

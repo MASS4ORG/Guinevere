@@ -59,23 +59,38 @@ public partial class Gui
     void ApplyTransformedClips(LayoutNode node, SKCanvas canvas)
     {
         _clipAncestors.Clear();
-        for (var a = node.Parent; a is not null; a = a.Parent) _clipAncestors.Add(a);
+        for (var a = node.Parent; a is not null; a = a.Parent)
+        {
+            _clipAncestors.Add(a);
+        }
 
         var lastClip = LastClippingAncestor(node);
         for (var i = _clipAncestors.Count - 1; i >= 0; i--)
         {
             var ancestor = _clipAncestors[i];
             ConcatTransform(ancestor, canvas);
-            if (IsViewport(ancestor)) canvas.ClipRect(ViewportClipBounds(ancestor));
-            else if (i <= lastClip) ApplyPanelClip(ancestor, canvas);
+            if (IsViewport(ancestor))
+            {
+                canvas.ClipRect(ViewportClipBounds(ancestor));
+            }
+            else if (i <= lastClip)
+            {
+                ApplyPanelClip(ancestor, canvas);
+            }
         }
         ConcatTransform(node, canvas);
-        if (IsViewport(node)) canvas.ClipRect(ViewportClipBounds(node));
+        if (IsViewport(node))
+        {
+            canvas.ClipRect(ViewportClipBounds(node));
+        }
     }
 
     static void ApplyPanelClip(LayoutNode node, SKCanvas canvas)
     {
-        if (IsClipped(node) && node.Rect is { W: > 0, H: > 0 } rect) canvas.ClipRect(rect);
+        if (IsClipped(node) && node.Rect is { W: > 0, H: > 0 } rect)
+        {
+            canvas.ClipRect(rect);
+        }
     }
 
     /// <summary>
@@ -84,15 +99,28 @@ public partial class Gui
     /// </summary>
     int LastClippingAncestor(LayoutNode node)
     {
-        if (EscapesClips(node)) return -1;
+        if (EscapesClips(node))
+        {
+            return -1;
+        }
+
         for (var i = 0; i < _clipAncestors.Count; i++)
-            if (EscapesClips(_clipAncestors[i])) return i;
+        {
+            if (EscapesClips(_clipAncestors[i]))
+            {
+                return i;
+            }
+        }
+
         return _clipAncestors.Count - 1;
     }
 
     static void ConcatTransform(LayoutNode node, SKCanvas canvas)
     {
-        if (node.LocalTransform is { } transform) canvas.Concat(ToSkia(transform));
+        if (node.LocalTransform is { } transform)
+        {
+            canvas.Concat(ToSkia(transform));
+        }
     }
 
     /// <summary>The ink bounds of a node mapped to where it is drawn, as an axis-aligned box.</summary>

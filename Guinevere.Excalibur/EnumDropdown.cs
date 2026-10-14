@@ -53,7 +53,11 @@ public static partial class ControlsExtensions
         var next = gui.EnumDropdown(value, out var changes, presentation,
             display is null ? null : option => display((T)option),
             width, height, fontSize, maxVisibleItems, enabled, mixed, filePath: filePath, lineNumber: lineNumber);
-        if (changes.Count == 0) return false;
+        if (changes.Count == 0)
+        {
+            return false;
+        }
+
         value = (T)next;
         return true;
     }
@@ -87,10 +91,16 @@ public static partial class ControlsExtensions
     static void PrepareEnumValue(Gui gui, EnumChoiceState state, Enum value,
         IReadOnlyList<SelectionChange<Enum>> changes, bool multiple)
     {
-        if (gui.Pass != Pass.Pass1Build) return;
+        if (gui.Pass != Pass.Pass1Build)
+        {
+            return;
+        }
+
         state.FrameValue = value;
         foreach (var change in changes)
+        {
             state.FrameValue = multiple ? EnumSelection.Apply(state.FrameValue, change) : change.Item;
+        }
     }
 
     static void RenderEnumChoice(Gui gui, string id, ChoiceState<Enum> state, Enum[] values, Enum current,
@@ -99,15 +109,21 @@ public static partial class ControlsExtensions
         int maxVisibleItems, bool enabled)
     {
         if (presentation == EnumPresentation.ToggleButtons)
+        {
             EnumButtons(gui, id, state, values, display, selected, isMixed,
                 multiple, width, height, fontSize, enabled);
+        }
         else if (presentation == EnumPresentation.Paging)
+        {
             EnumPager(gui, id, state, values, current, display, mixed,
                 width, height, fontSize, maxVisibleItems, enabled);
+        }
         else
+        {
             DrawChoices(gui, id, state, values, display, selected, isMixed,
                 EqualityComparer<Enum>.Default, mixed ? "—" : display(current), multiple, false,
                 width, height, fontSize, maxVisibleItems, enabled);
+        }
     }
 
     static void EnumButtons(Gui gui, string id, ChoiceState<Enum> state, Enum[] values,
@@ -115,14 +131,19 @@ public static partial class ControlsExtensions
         bool multiple, float width, float height, float fontSize, bool enabled)
     {
         if (gui.Pass == Pass.Pass1Build)
+        {
             FilterChoices(state, values, display, selected, mixed, EqualityComparer<Enum>.Default,
                 height, Math.Max(1, values.Length));
+        }
+
         using (gui.Node(gui.ControlStyle.FieldWidthOr(width), gui.ControlStyle.FieldHeightOr(height), id)
                    .Direction(Axis.Horizontal).Gap(2).Enter())
         {
             for (var i = 0; i < values.Length; i++)
+            {
                 EnumToggleButton(gui, id, state, values[i], state.Labels[i], state.Checked[i], state.Mixed[i],
                     multiple, fontSize, enabled);
+            }
         }
     }
 
@@ -136,7 +157,11 @@ public static partial class ControlsExtensions
                    .Expand().BlockInput().ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
         {
             gui.DrawText((isMixed ? "— " : "") + label, gui.ControlStyle.FontSizeOr(fontSize));
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             gui.RegisterFocusable(enabled, enabled);
             if (ChoicePressed(gui, enabled))
             {
@@ -154,9 +179,12 @@ public static partial class ControlsExtensions
         {
             EnumPageButton(gui, $"{id}/previous", "‹", -1, state, values, current, height, fontSize, enabled);
             using (gui.Node(-1, height, $"{id}/center").ExpandWidth().Enter())
+            {
                 DrawChoices(gui, $"{id}/center", state, values, display, current.Equals, null,
                     EqualityComparer<Enum>.Default, mixed ? "—" : display(current), false, false,
                     0, height, fontSize, visible, enabled);
+            }
+
             EnumPageButton(gui, $"{id}/next", "›", 1, state, values, current, height, fontSize, enabled);
         }
     }
@@ -169,10 +197,22 @@ public static partial class ControlsExtensions
                    .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
         {
             gui.DrawText(label, fontSize);
-            if (gui.Pass != Pass.Pass2Render) return;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
             gui.RegisterFocusable(enabled && values.Length > 0, enabled);
-            if (!enabled || values.Length == 0) return;
-            if (!ChoicePressed(gui, enabled)) return;
+            if (!enabled || values.Length == 0)
+            {
+                return;
+            }
+
+            if (!ChoicePressed(gui, enabled))
+            {
+                return;
+            }
+
             gui.RequestFocus(FocusReason.Mouse);
             var next = NextEnumIndex(values, current, step);
             QueueChoice(state, values[next], true, false);
@@ -182,7 +222,11 @@ public static partial class ControlsExtensions
     static int NextEnumIndex(Enum[] values, Enum current, int step)
     {
         var index = Array.IndexOf(values, current);
-        if (index < 0) return step > 0 ? 0 : values.Length - 1;
+        if (index < 0)
+        {
+            return step > 0 ? 0 : values.Length - 1;
+        }
+
         return (index + step + values.Length) % values.Length;
     }
 }

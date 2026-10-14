@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Example_01;
+namespace Example01;
 
 public partial class Shared
 {
@@ -42,8 +42,10 @@ public partial class Shared
                 gui.DrawText(state.Gesture, 16, p.Accent);
             }
             if (!gui.Platform.Supports<ITouchCapability>())
+            {
                 gui.DrawText("This backend exposes tablet input through the mouse; separate touch contacts are unavailable.",
                     14, p.TextDim);
+            }
         }
     }
 
@@ -54,8 +56,15 @@ public partial class Shared
             gui.DrawText("Controller capability unavailable", 14, p.TextDim);
             return;
         }
-        if (game.Devices.Count == 0) gui.DrawText("No controllers connected", 14, p.TextDim);
-        foreach (var device in game.Devices) DrawConnectedDevice(gui, p, device);
+        if (game.Devices.Count == 0)
+        {
+            gui.DrawText("No controllers connected", 14, p.TextDim);
+        }
+
+        foreach (var device in game.Devices)
+        {
+            DrawConnectedDevice(gui, p, device);
+        }
     }
 
     static void DrawConnectedDevice(Gui gui, ColorPalette p, GameInputDevice device)
@@ -90,7 +99,11 @@ public partial class Shared
                 controls[i] = node;
                 using (node.Enter())
                 {
-                    if (gui.Pressable().Activated) state.Activations++;
+                    if (gui.Pressable().Activated)
+                    {
+                        state.Activations++;
+                    }
+
                     gui.DrawBackgroundRect(gui.HasFocus() ? p.Accent : p.SurfaceRaised, 8);
                     gui.DrawText($"Control {i + 1}", 14, gui.HasFocus() ? p.AccentText : p.Text);
                 }
@@ -103,9 +116,13 @@ public partial class Shared
     static void LinkControllerGrid(Gui gui, LayoutNode[] controls)
     {
         for (var i = 0; i < controls.Length; i++)
+        {
             for (var direction = 0; direction < ControllerGridDirections.Length; direction++)
+            {
                 gui.Focus.SetDirectionalNeighbor(controls[i].Id, ControllerGridDirections[direction],
                     controls[ControllerGridNeighbors[i, direction]].Id);
+            }
+        }
     }
 
     sealed class InputDeviceDemoState

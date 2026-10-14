@@ -41,15 +41,31 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         width = gui.ControlStyle.FieldWidthOr(width);
         height = gui.ControlStyle.CompactHeightOr(height);
-        if (fontSize is { } size) fontSize = gui.ControlStyle.CompactFontSizeOr(size);
-        if (max < min) (min, max) = (max, min);
+        if (fontSize is { } size)
+        {
+            fontSize = gui.ControlStyle.CompactFontSizeOr(size);
+        }
+
+        if (max < min)
+        {
+            (min, max) = (max, min);
+        }
+
         value = Math.Clamp(value, min, max);
         ExcaliburStyles.Ensure(gui);
 
         var node = gui.StyledNode("slider", classes, id, disabled: !enabled,
             filePath: filePath, lineNumber: lineNumber);
-        if (width >= 0) node.Width(width == 0 ? UnitValue.Expand() : UnitValue.Pixels(width));
-        if (height >= 0) node.Height(height == 0 ? UnitValue.Expand() : UnitValue.Pixels(height));
+        if (width >= 0)
+        {
+            node.Width(width == 0 ? UnitValue.Expand() : UnitValue.Pixels(width));
+        }
+
+        if (height >= 0)
+        {
+            node.Height(height == 0 ? UnitValue.Expand() : UnitValue.Pixels(height));
+        }
+
         var state = gui.ControlState(node.Id, () => new SliderState());
         using (node.Enter())
         {
@@ -58,15 +74,21 @@ public static partial class ControlsExtensions
             {
             }
             RenderSlider(gui, state, viewport.Rect, ref value, min, max, step, enabled);
-            if (showValue) gui.DrawText(FormatSliderValue(value, step),
+            if (showValue)
+            {
+                gui.DrawText(FormatSliderValue(value, step),
                 fontSize ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value, centerInRect: false);
+            }
         }
     }
 
     static void RenderSlider(Gui gui, SliderState state, Rect rect, ref float value, float min, float max,
         float step, bool enabled)
     {
-        if (gui.Pass != Pass.Pass2Render) return;
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
 
         if (enabled)
         {
@@ -74,7 +96,10 @@ public static partial class ControlsExtensions
             HandleSliderPointer(gui, state, rect, ref value, min, max, step);
             HandleSliderKeys(gui, ref value, min, max, step);
         }
-        else state.Dragging = false;
+        else
+        {
+            state.Dragging = false;
+        }
 
         DrawSliderShape(gui, rect, value, min, max);
     }
@@ -87,26 +112,52 @@ public static partial class ControlsExtensions
             gui.RequestFocus(FocusReason.Mouse);
             state.Dragging = true;
         }
-        if (!gui.Input.IsMouseButtonDown(MouseButton.Left)) state.Dragging = false;
+        if (!gui.Input.IsMouseButtonDown(MouseButton.Left))
+        {
+            state.Dragging = false;
+        }
+
         if (state.Dragging && rect.W > 0)
+        {
             value = ValueFromPointerX(gui.LocalMousePosition.X, rect, min, max, step);
+        }
     }
 
     static void HandleSliderKeys(Gui gui, ref float value, float min, float max, float step)
     {
-        if (!gui.HasFocus()) return;
+        if (!gui.HasFocus())
+        {
+            return;
+        }
+
         var delta = step > 0 ? step : 1f;
-        if (gui.Input.IsKeyPressed(KeyboardKey.Left)) value = Math.Clamp(value - delta, min, max);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Right)) value = Math.Clamp(value + delta, min, max);
-        else if (gui.Input.IsKeyPressed(KeyboardKey.Home)) value = min;
-        else if (gui.Input.IsKeyPressed(KeyboardKey.End)) value = max;
+        if (gui.Input.IsKeyPressed(KeyboardKey.Left))
+        {
+            value = Math.Clamp(value - delta, min, max);
+        }
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Right))
+        {
+            value = Math.Clamp(value + delta, min, max);
+        }
+        else if (gui.Input.IsKeyPressed(KeyboardKey.Home))
+        {
+            value = min;
+        }
+        else if (gui.Input.IsKeyPressed(KeyboardKey.End))
+        {
+            value = max;
+        }
     }
 
     static float ValueFromPointerX(float x, Rect rect, float min, float max, float step)
     {
         var fraction = (x - rect.X) / rect.W;
         var value = min + Math.Clamp(fraction, 0f, 1f) * (max - min);
-        if (step > 0) value = min + MathF.Round((value - min) / step) * step;
+        if (step > 0)
+        {
+            value = min + MathF.Round((value - min) / step) * step;
+        }
+
         return Math.Clamp(value, min, max);
     }
 

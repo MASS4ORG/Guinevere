@@ -18,7 +18,11 @@ sealed class StyleTransitions
     internal ResolvedStyle Apply(Gui gui, LayoutNode node, ResolvedStyle style)
     {
         var frame = gui.Time.Frames;
-        if (frame != _sweptFrame) Sweep(frame);
+        if (frame != _sweptFrame)
+        {
+            Sweep(frame);
+        }
+
         var key = (node.Identity, gui.Pass == Pass.Pass2Render);
         if (!_tracks.TryGetValue(key, out var track))
         {
@@ -27,7 +31,11 @@ sealed class StyleTransitions
         }
 
         track.Frame = frame;
-        if (ReferenceEquals(track.Target, style) && track.Properties.Count == 0) return style;
+        if (ReferenceEquals(track.Target, style) && track.Properties.Count == 0)
+        {
+            return style;
+        }
+
         Retarget(track, style, gui.Time.Elapsed, gui.ReduceMotion);
         track.Target = style;
         return track.Properties.Count == 0 ? style : Blend(gui, track, style);
@@ -38,15 +46,28 @@ sealed class StyleTransitions
     {
         _sweptFrame = frame;
         foreach (var (key, track) in _tracks)
-            if (track.Frame + 1 < frame) _tracks.Remove(key);
+        {
+            if (track.Frame + 1 < frame)
+            {
+                _tracks.Remove(key);
+            }
+        }
     }
 
     static void Retarget(Track track, ResolvedStyle style, float now, bool reduceMotion)
     {
         foreach (var (property, value) in style.Declarations)
+        {
             Retarget(track, style, property, value, now, reduceMotion);
+        }
+
         foreach (var property in track.Properties.Keys)
-            if (!style.Has(property)) track.Properties.Remove(property);
+        {
+            if (!style.Has(property))
+            {
+                track.Properties.Remove(property);
+            }
+        }
     }
 
     /// <summary>Starts, redirects or drops one property's transition when its target value changes.</summary>
@@ -55,10 +76,16 @@ sealed class StyleTransitions
     {
         var previous = track.Target.Get(property);
         track.Properties.TryGetValue(property, out var running);
-        if (value == (running?.TargetText ?? previous)) return;
+        if (value == (running?.TargetText ?? previous))
+        {
+            return;
+        }
+
         var transition = reduceMotion ? null : style.GetTransition(property) ?? track.Target.GetTransition(property);
         if (!TryAnimate(track, property, running, previous, value, transition, now))
+        {
             track.Properties.Remove(property);
+        }
     }
 
     static bool TryAnimate(Track track, string property, PropertyTransition? running, string? previous, string value,
@@ -71,7 +98,11 @@ sealed class StyleTransitions
     static bool Redirect(PropertyTransition? running, string shape, float[] to, string value,
         StyleTransition transition, float now)
     {
-        if (running is null || running.Shape != shape || running.Tween.Channels != to.Length) return false;
+        if (running is null || running.Shape != shape || running.Tween.Channels != to.Length)
+        {
+            return false;
+        }
+
         running.Tween.Retarget(to, now, transition.Duration, transition.Easing);
         running.TargetText = value;
         return true;
@@ -84,7 +115,10 @@ sealed class StyleTransitions
         var shown = running is null ? previous : StyleValueChannels.Format(running.Shape, running.Tween.Current);
         if (shown is null || !StyleValueChannels.TryParse(shown, out var fromShape, out var from)
             || fromShape != shape || from.Length != to.Length)
+        {
             return false;
+        }
+
         var tween = new ChannelTween(to.Length);
         tween.Snap(from);
         tween.Retarget(to, now, transition.Duration, transition.Easing);
@@ -101,11 +135,24 @@ sealed class StyleTransitions
         {
             transition.Tween.Sample(now);
             if (transition.Tween.Running)
+            {
                 merged[property] = StyleValueChannels.Format(transition.Shape, transition.Tween.Current);
-            else _finished.Add(property);
+            }
+            else
+            {
+                _finished.Add(property);
+            }
         }
-        foreach (var property in _finished) track.Properties.Remove(property);
-        if (track.Properties.Count > 0) gui.RequestFrame();
+        foreach (var property in _finished)
+        {
+            track.Properties.Remove(property);
+        }
+
+        if (track.Properties.Count > 0)
+        {
+            gui.RequestFrame();
+        }
+
         return new ResolvedStyle(merged, style.Bases) { Locals = style.Locals, Transitions = style.Transitions, Sources = style.Sources };
     }
 

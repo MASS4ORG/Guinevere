@@ -1,7 +1,7 @@
 using Guinevere;
 using JetBrains.Annotations;
 
-namespace Controls_01;
+namespace Controls01;
 
 public abstract partial class Program
 {
@@ -65,7 +65,10 @@ public abstract partial class Program
         {
             gui.ScrollY();
             if (!gui.StyleSheets.Contains(SelectionSheet))
+            {
                 gui.StyleSheets.Add(SelectionSheet);
+            }
+
             Section(gui, "Checkboxes", () => CheckboxRow(gui));
             Section(gui, "Toggles", () => ToggleRow(gui));
             Section(gui, "Radio Buttons", () => RadioButtonRow(gui));
@@ -140,13 +143,19 @@ public abstract partial class Program
         using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
         {
             var selection = gui.MultiDropdown(DropdownOptions, _multiSelection, width: 240, chips: true);
-            if (selection.Changed) _multiSelection = selection.Selected;
+            if (selection.Changed)
+            {
+                _multiSelection = selection.Selected;
+            }
+
             gui.EnumDropdown(ref _permissions, width: 200);
             gui.EnumDropdown(ref _enumMode, EnumPresentation.Paging, width: 200);
         }
 
         using (gui.Node().Height(40).Direction(Axis.Horizontal).Enter())
+        {
             gui.EnumDropdown(ref _permissions, EnumPresentation.ToggleButtons, width: 480);
+        }
     }
 
     static void ColorFieldRow(Gui gui, string label, ref Color color, ColorPickerOptions? options)
@@ -154,7 +163,10 @@ public abstract partial class Program
         using (gui.Node().ExpandWidth().Height(30).Direction(Axis.Horizontal).Gap(8).AlignContent(0f, 0.5f).Enter())
         {
             using (gui.Node().Width(70).Height(24).Enter())
+            {
                 gui.DrawText(label, 14, Token(gui, "text"), centerInRect: false);
+            }
+
             gui.ColorField(ref color, options);
         }
     }

@@ -32,7 +32,7 @@ public partial class Gui
     /// <param name="id">The identifier associated with the value. By default, this is the name of the variable passed as <paramref name="value"/>.</param>
     public void SetValue<T>(T value, [CallerArgumentExpression(nameof(value))] string id = "")
     {
-        GetStore<T>()[id] = value!;
+        GetStore<T>()[id] = value;
     }
 
     /// <summary>

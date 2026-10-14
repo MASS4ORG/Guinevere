@@ -22,7 +22,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     [InlineData(0.5f, 400f)]
     [InlineData(0.25f, 200f)]
     [InlineData(1.0f, 800f)]
-    public void WidthPercent_ResolvesAgainstParent(float fraction, float expected)
+    public void WidthPercentResolvesAgainstParent(float fraction, float expected)
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.WidthPercent(fraction).Height(50f));
@@ -32,7 +32,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
 
     /// <summary>A percentage height resolves against the parent's inner height (padding included).</summary>
     [Fact]
-    public void HeightPercent_AccountsForParentPadding()
+    public void HeightPercentAccountsForParentPadding()
     {
         var gui = CreateTestGui();
         var root = LayoutNode.CreateRoot(gui, 800f, 600f);
@@ -47,7 +47,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
 
     /// <summary>MaxWidth clamps a would-be-wider child.</summary>
     [Fact]
-    public void MaxWidth_ClampsExpandingChild()
+    public void MaxWidthClampsExpandingChild()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Expand().MaxWidth(300f));
@@ -57,7 +57,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
 
     /// <summary>MinWidth widens a would-be-narrower child.</summary>
     [Fact]
-    public void MinWidth_WidensSmallChild()
+    public void MinWidthWidensSmallChild()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(40f).Height(40f).MinWidth(120f));
@@ -67,7 +67,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
 
     /// <summary>MaxHeight clamps a percentage height that would exceed it.</summary>
     [Fact]
-    public void MaxHeight_ClampsPercentHeight()
+    public void MaxHeightClampsPercentHeight()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(100f).HeightPercent(0.9f).MaxHeight(200f));
@@ -77,7 +77,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
 
     /// <summary>Constraints on the node's own size apply when it is the root's single child filling it.</summary>
     [Fact]
-    public void HeightConstraint_AppliesToOwnSize()
+    public void HeightConstraintAppliesToOwnSize()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(100f).HeightConstraint(min: 80f, max: 150f).Height(400f));
@@ -87,7 +87,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
 
     /// <summary>An unset constraint (-1) never changes the size.</summary>
     [Fact]
-    public void UnsetConstraints_AreNoOps()
+    public void UnsetConstraintsAreNoOps()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(123f).Height(45f));
@@ -97,7 +97,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void MixedMinimum_UsesPixelsAndAvailableSpace()
+    public void MixedMinimumUsesPixelsAndAvailableSpace()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(40f).Height(40f)
@@ -110,7 +110,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     [InlineData(0f, 100f)]
     [InlineData(0.5f, 250f)]
     [InlineData(1f, 400f)]
-    public void InterpolatedMinimum_ResolvesEachContribution(float amount, float expected)
+    public void InterpolatedMinimumResolvesEachContribution(float amount, float expected)
     {
         var gui = CreateTestGui();
         var minimum = UnitValue.Lerp(UnitValue.Pixels(100f), UnitValue.Percentage(0.5f), amount);
@@ -120,7 +120,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void NegativeExpressionMaximum_ClampsToZeroInsteadOfActingUnset()
+    public void NegativeExpressionMaximumClampsToZeroInsteadOfActingUnset()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(40f).Height(20f).MaxWidth(UnitValue.Pixels(-10f)));
@@ -129,7 +129,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void ComposedHeightMinimum_UsesAvailableHeight()
+    public void ComposedHeightMinimumUsesAvailableHeight()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(40f).Height(20f)
@@ -139,7 +139,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void ConflictingHeightExpressions_KeepTheMinimum()
+    public void ConflictingHeightExpressionsKeepTheMinimum()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(40f).Height(40f)
@@ -149,7 +149,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void RatioMinimum_UsesResolvedPerpendicularSize()
+    public void RatioMinimumUsesResolvedPerpendicularSize()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(20f).Height(50f).MinWidth(UnitValue.Ratio(2f)));
@@ -158,7 +158,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void FitLargestMinimum_UsesLargestChild()
+    public void FitLargestMinimumUsesLargestChild()
     {
         var gui = CreateTestGui();
         var root = LayoutNode.CreateRoot(gui, 800f, 600f);
@@ -174,7 +174,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void AddAndLerpMinimum_PreserveBothTerms()
+    public void AddAndLerpMinimumPreserveBothTerms()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(20f).Height(20f).MinWidth(20f)
@@ -185,7 +185,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void ConflictingExpressions_KeepTheMinimum()
+    public void ConflictingExpressionsKeepTheMinimum()
     {
         var gui = CreateTestGui();
         var child = Tree(gui, c => c.Width(40f).Height(40f)
@@ -195,7 +195,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void FitParent_AccountsForChildExpressionMinimum()
+    public void FitParentAccountsForChildExpressionMinimum()
     {
         var gui = CreateTestGui();
         var root = LayoutNode.CreateRoot(gui, 800f, 600f);
@@ -212,7 +212,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     }
 
     [Fact]
-    public void WrappedRow_UsesExpressionMinimumWhenBreakingLines()
+    public void WrappedRowUsesExpressionMinimumWhenBreakingLines()
     {
         var gui = CreateTestGui(100, 200);
         var root = LayoutNode.CreateRoot(gui, 100f, 200f);
@@ -232,7 +232,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
 
     /// <summary>A wrapped row breaks children onto new lines and stacks the lines on the cross axis.</summary>
     [Fact]
-    public void WrappedRow_BreaksChildrenIntoLines()
+    public void WrappedRowBreaksChildrenIntoLines()
     {
         var gui = CreateTestGui(250, 400);
         var root = LayoutNode.CreateRoot(gui, 250f, 400f);
@@ -265,7 +265,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     /// inside its inner box instead of overflowing (the "content spills past the card" bug).
     /// </summary>
     [Fact]
-    public void ContentSizedContainer_IncludesOwnPadding()
+    public void ContentSizedContainerIncludesOwnPadding()
     {
         var gui = CreateTestGui();
         var root = LayoutNode.CreateRoot(gui, 800f, 600f);

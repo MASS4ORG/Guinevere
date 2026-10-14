@@ -13,10 +13,20 @@ public abstract class DockNode
     {
         yield return this;
 
-        if (this is not DockSplit split) yield break;
+        if (this is not DockSplit split)
+        {
+            yield break;
+        }
 
-        foreach (var node in split.First.Descend()) yield return node;
-        foreach (var node in split.Second.Descend()) yield return node;
+        foreach (var node in split.First.Descend())
+        {
+            yield return node;
+        }
+
+        foreach (var node in split.Second.Descend())
+        {
+            yield return node;
+        }
     }
 
     /// <summary>

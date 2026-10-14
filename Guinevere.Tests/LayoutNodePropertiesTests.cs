@@ -14,7 +14,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(10f)]
     [InlineData(0f)]
     [InlineData(25f)]
-    public void MarginProperties_WithUniformMargin_ReturnCorrectValues(float margin)
+    public void MarginPropertiesWithUniformMarginReturnCorrectValues(float margin)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -34,7 +34,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(5f, 10f)]
     [InlineData(0f, 15f)]
     [InlineData(20f, 0f)]
-    public void MarginProperties_WithHorizontalVertical_ReturnCorrectValues(float horizontal, float vertical)
+    public void MarginPropertiesWithHorizontalVerticalReturnCorrectValues(float horizontal, float vertical)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -54,7 +54,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(1f, 2f, 3f, 4f)]
     [InlineData(0f, 5f, 10f, 15f)]
     [InlineData(25f, 20f, 15f, 10f)]
-    public void MarginProperties_WithIndividualValues_ReturnCorrectValues(float top, float right, float bottom,
+    public void MarginPropertiesWithIndividualValuesReturnCorrectValues(float top, float right, float bottom,
         float left)
     {
         // Arrange
@@ -72,7 +72,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that margin properties have default values of zero.
     /// </summary>
     [Fact]
-    public void MarginProperties_DefaultValues_ReturnZero()
+    public void MarginPropertiesDefaultValuesReturnZero()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -95,7 +95,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(8f)]
     [InlineData(0f)]
     [InlineData(15f)]
-    public void PaddingProperties_WithUniformPadding_ReturnCorrectValues(float padding)
+    public void PaddingPropertiesWithUniformPaddingReturnCorrectValues(float padding)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -115,7 +115,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(6f, 12f)]
     [InlineData(0f, 8f)]
     [InlineData(15f, 0f)]
-    public void PaddingProperties_WithHorizontalVertical_ReturnCorrectValues(float horizontal, float vertical)
+    public void PaddingPropertiesWithHorizontalVerticalReturnCorrectValues(float horizontal, float vertical)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -135,7 +135,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(2f, 4f, 6f, 8f)]
     [InlineData(0f, 3f, 6f, 9f)]
     [InlineData(20f, 15f, 10f, 5f)]
-    public void PaddingProperties_WithIndividualValues_ReturnCorrectValues(float top, float right, float bottom,
+    public void PaddingPropertiesWithIndividualValuesReturnCorrectValues(float top, float right, float bottom,
         float left)
     {
         // Arrange
@@ -153,7 +153,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that padding properties have default values of zero.
     /// </summary>
     [Fact]
-    public void PaddingProperties_DefaultValues_ReturnZero()
+    public void PaddingPropertiesDefaultValuesReturnZero()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -176,7 +176,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(100f, 100f, 200f, 150f, 10f)]
     [InlineData(50f, 75f, 120f, 80f, 5f)]
     [InlineData(0f, 0f, 100f, 100f, 0f)]
-    public void InnerRect_WithUniformPadding_CalculatesCorrectly(float x, float y, float w, float h, float padding)
+    public void InnerRectWithUniformPaddingCalculatesCorrectly(float x, float y, float w, float h, float padding)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -203,7 +203,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [Theory]
     [InlineData(50f, 60f, 150f, 120f, 5f, 10f, 15f, 20f)]
     [InlineData(0f, 0f, 100f, 100f, 2f, 4f, 6f, 8f)]
-    public void InnerRect_WithAsymmetricPadding_CalculatesCorrectly(float x, float y, float w, float h,
+    public void InnerRectWithAsymmetricPaddingCalculatesCorrectly(float x, float y, float w, float h,
         float paddingTop, float paddingRight, float paddingBottom, float paddingLeft)
     {
         // Arrange
@@ -227,7 +227,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that the inner rect equals the original rect when padding is zero.
     /// </summary>
     [Fact]
-    public void InnerRect_WithZeroPadding_EqualsOriginalRect()
+    public void InnerRectWithZeroPaddingEqualsOriginalRect()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -253,7 +253,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(100f, 100f, 200f, 150f, 10f)]
     [InlineData(50f, 75f, 120f, 80f, 5f)]
     [InlineData(0f, 0f, 100f, 100f, 0f)]
-    public void OuterRect_WithUniformMargin_CalculatesCorrectly(float x, float y, float w, float h, float margin)
+    public void OuterRectWithUniformMarginCalculatesCorrectly(float x, float y, float w, float h, float margin)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -278,7 +278,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [Theory]
     [InlineData(50f, 60f, 150f, 120f, 5f, 10f, 15f, 20f)]
     [InlineData(0f, 0f, 100f, 100f, 2f, 4f, 6f, 8f)]
-    public void OuterRect_WithAsymmetricMargin_CalculatesCorrectly(float x, float y, float w, float h,
+    public void OuterRectWithAsymmetricMarginCalculatesCorrectly(float x, float y, float w, float h,
         float marginTop, float marginRight, float marginBottom, float marginLeft)
     {
         // Arrange
@@ -302,7 +302,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that the outer rect equals the original rect when margin is zero.
     /// </summary>
     [Fact]
-    public void OuterRect_WithZeroMargin_EqualsOriginalRect()
+    public void OuterRectWithZeroMarginEqualsOriginalRect()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -328,7 +328,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(50f, 60f, 100f, 80f)]
     [InlineData(0f, 0f, 200f, 150f)]
     [InlineData(-10f, -5f, 50f, 30f)]
-    public void Rect_ReturnsCorrectRect(float x, float y, float w, float h)
+    public void RectReturnsCorrectRect(float x, float y, float w, float h)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -349,7 +349,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(50f, 60f, 100f, 80f)]
     [InlineData(0f, 0f, 200f, 150f)]
     [InlineData(-10f, -5f, 50f, 30f)]
-    public void Center_CalculatesCorrectly(float x, float y, float w, float h)
+    public void CenterCalculatesCorrectly(float x, float y, float w, float h)
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -373,7 +373,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that the Children property returns a read-only list of child nodes.
     /// </summary>
     [Fact]
-    public void Children_ReturnsReadOnlyList()
+    public void ChildrenReturnsReadOnlyList()
     {
         // Arrange
         var parent = CreateNodeWithBuildStage();
@@ -398,7 +398,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that the Parent property returns the correct parent node.
     /// </summary>
     [Fact]
-    public void Parent_ReturnsCorrectParent()
+    public void ParentReturnsCorrectParent()
     {
         // Arrange
         var parent = CreateNodeWithBuildStage();
@@ -423,7 +423,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     [InlineData(-1)]
     [InlineData(100)]
     [InlineData(-50)]
-    public void SetZIndex_SetsAndReturnsCorrectValue(int zIndex)
+    public void SetZIndexSetsAndReturnsCorrectValue(int zIndex)
     {
         // Arrange
         var gui = CreateTestGui();
@@ -442,7 +442,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that the ZIndex has a default value of zero.
     /// </summary>
     [Fact]
-    public void ZIndex_DefaultValue_IsZero()
+    public void ZIndexDefaultValueIsZero()
     {
         // Arrange & Act
         var gui = CreateTestGui();
@@ -458,7 +458,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that the ZIndex inherits from the parent node.
     /// </summary>
     [Fact]
-    public void ZIndex_InheritsFromParent()
+    public void ZIndexInheritsFromParent()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -478,7 +478,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that a child node's ZIndex overrides the parent's ZIndex.
     /// </summary>
     [Fact]
-    public void ZIndex_ChildOverridesParent()
+    public void ZIndexChildOverridesParent()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -500,7 +500,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that ZIndex values across a complex node hierarchy are resolved and sorted correctly.
     /// </summary>
     [Fact]
-    public void ZIndex_HierarchyIntegrationTest()
+    public void ZIndexHierarchyIntegrationTest()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -571,7 +571,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that the DrawList property is initialized.
     /// </summary>
     [Fact]
-    public void DrawList_IsInitialized()
+    public void DrawListIsInitialized()
     {
         // Arrange & Act
         var node = CreateNodeWithBuildStage();
@@ -584,7 +584,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that the DrawList property can be set and retrieved.
     /// </summary>
     [Fact]
-    public void DrawList_CanBeSetAndRetrieved()
+    public void DrawListCanBeSetAndRetrieved()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -605,7 +605,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that margin and padding do not affect each other.
     /// </summary>
     [Fact]
-    public void MarginAndPadding_DoNotAffectEachOther()
+    public void MarginAndPaddingDoNotAffectEachOther()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -633,7 +633,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
     /// Verifies that negative margin and padding values produce valid rects.
     /// </summary>
     [Fact]
-    public void NegativeMarginAndPadding_ProduceValidRects()
+    public void NegativeMarginAndPaddingProduceValidRects()
     {
         // Arrange
         var node = CreateNodeWithBuildStage();
@@ -663,7 +663,9 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         var field = node.GetType().GetField("_rect",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         if (field == null)
+        {
             throw new ArgumentException("Field '_rect' not found on LayoutNode");
+        }
 
         field.SetValue(node, rect);
     }

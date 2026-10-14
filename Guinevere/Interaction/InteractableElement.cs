@@ -52,13 +52,19 @@ public readonly struct InteractableElement
         var pos = LocalPointer();
 
         if (!_shape.Contains(pos.X, pos.Y))
+        {
             return false;
+        }
 
         if (mask.HasFlag(Interactions.Hover) && OnHover())
+        {
             return true;
+        }
 
         if (mask.HasFlag(Interactions.Hold) && IsHeld())
+        {
             return true;
+        }
 
         return mask.HasFlag(Interactions.Click) && OnClick();
     }
@@ -72,12 +78,22 @@ public readonly struct InteractableElement
     /// </returns>
     public bool OnHover()
     {
-        if (_gui.IsHoverBlocked(_node)) return false;
+        if (_gui.IsHoverBlocked(_node))
+        {
+            return false;
+        }
 
         var position = _gui.Input.MousePosition;
         var local = LocalPointer();
-        if (!_shape.Contains(local.X, local.Y)) return false;
-        if (OutsideClippedAncestors(position)) return false;
+        if (!_shape.Contains(local.X, local.Y))
+        {
+            return false;
+        }
+
+        if (OutsideClippedAncestors(position))
+        {
+            return false;
+        }
 
         return true;
     }
@@ -126,7 +142,10 @@ public readonly struct InteractableElement
     public bool OnHold(out HoldArgs args)
     {
         args = default;
-        if (!IsHeld()) return false;
+        if (!IsHeld())
+        {
+            return false;
+        }
 
         args = new HoldArgs
         {
@@ -146,7 +165,10 @@ public readonly struct InteractableElement
     public bool OnDrag(out DragArgs args, MouseButton button = MouseButton.Left)
     {
         args = default;
-        if (!IsHeld(button)) return false;
+        if (!IsHeld(button))
+        {
+            return false;
+        }
 
         args = new DragArgs
         {
@@ -186,16 +208,31 @@ public readonly struct InteractableElement
         if (down)
         {
             // Still undecided. A press that goes on to be a drag must not have reported anything yet.
-            if (held) _gui.NotePressTravel(_id);
+            if (held)
+            {
+                _gui.NotePressTravel(_id);
+            }
+
             return false;
         }
 
         // The button is up, so only a press of ours counts, and only a gesture that ended here without
         // travelling. The press anchor outlives the frame the pointer is given back on, so this is true
         // whichever element resolved the hold first — the row's own drag source runs before this.
-        if (!_gui.HasPressAnchor(_id)) return false;
-        if (_gui.NotePressTravel(_id) > dragThreshold) return false;
-        if (!OnHover()) return false;
+        if (!_gui.HasPressAnchor(_id))
+        {
+            return false;
+        }
+
+        if (_gui.NotePressTravel(_id) > dragThreshold)
+        {
+            return false;
+        }
+
+        if (!OnHover())
+        {
+            return false;
+        }
 
         clickCount = _gui.RegisterClick($"{_id}:{button}");
         return true;
@@ -211,7 +248,10 @@ public readonly struct InteractableElement
     public bool OnClick(out int clickCount, MouseButton button = MouseButton.Left)
     {
         clickCount = 0;
-        if (!OnClick(button)) return false;
+        if (!OnClick(button))
+        {
+            return false;
+        }
 
         clickCount = _gui.RegisterClick($"{_id}:{button}");
         return true;
@@ -223,7 +263,10 @@ public readonly struct InteractableElement
         var isDragging = _gui.GetDragState(_id);
 
         // Stage 1: keep going while this element still holds the pointer.
-        if (isDragging && mouseDown && _gui.HoldsPointer(_id, button)) return true;
+        if (isDragging && mouseDown && _gui.HoldsPointer(_id, button))
+        {
+            return true;
+        }
 
         // Stage 2: release, and hand the pointer back.
         if (isDragging && !mouseDown)
@@ -236,11 +279,26 @@ public readonly struct InteractableElement
         // Stage 3: begin only on the press itself, and only if nothing else already owns the pointer.
         // Testing the button's level here instead of its edge is what used to let any element the
         // cursor happened to cross mid-drag start a drag of its own.
-        if (!_gui.Input.IsMouseButtonPressed(button)) return false;
-        if (!OnHover()) return false;
-        if (!_gui.TryCapturePointer(_id, button)) return false;
+        if (!_gui.Input.IsMouseButtonPressed(button))
+        {
+            return false;
+        }
 
-        if (!isDragging) _gui.SetPressAnchor(_id, _gui.Input.MousePosition, button);
+        if (!OnHover())
+        {
+            return false;
+        }
+
+        if (!_gui.TryCapturePointer(_id, button))
+        {
+            return false;
+        }
+
+        if (!isDragging)
+        {
+            _gui.SetPressAnchor(_id, _gui.Input.MousePosition, button);
+        }
+
         _gui.SetDragState(_id, true);
         return true;
     }

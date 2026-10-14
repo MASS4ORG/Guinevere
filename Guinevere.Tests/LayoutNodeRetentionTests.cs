@@ -7,7 +7,7 @@ public class LayoutNodeRetentionTests
 {
     /// <summary>A node rebuilt with the same identity is the same object, in both passes and across frames.</summary>
     [Fact]
-    public void SameIdentity_ReusesTheNode()
+    public void SameIdentityReusesTheNode()
     {
         using var harness = new FrameHarness();
         var seen = new List<(LayoutNode Parent, LayoutNode Child)>();
@@ -26,7 +26,7 @@ public class LayoutNodeRetentionTests
 
     /// <summary>A reused node starts from a new node's state: style, scope values, interaction and absolute flow.</summary>
     [Fact]
-    public void ReusedNode_StartsFromANewNodesState()
+    public void ReusedNodeStartsFromANewNodesState()
     {
         using var harness = new FrameHarness();
         var decorate = true;
@@ -68,14 +68,18 @@ public class LayoutNodeRetentionTests
 
     /// <summary>A removed node is dropped: no other element receives its object or its state.</summary>
     [Fact]
-    public void RemovedNode_IsNeverReusedForAnotherElement()
+    public void RemovedNodeIsNeverReusedForAnotherElement()
     {
         using var harness = new FrameHarness();
         var showFirst = true;
         var nodes = new List<LayoutNode>();
         void Draw(Gui gui)
         {
-            if (gui.Pass != Pass.Pass1Build) return;
+            if (gui.Pass != Pass.Pass1Build)
+            {
+                return;
+            }
+
             nodes.Clear();
             if (showFirst)
             {
@@ -83,7 +87,11 @@ public class LayoutNodeRetentionTests
                 first.Scope.SetZIndex(9);
                 nodes.Add(first);
             }
-            else nodes.Add(gui.Node(40, 20, "replacement"));
+            else
+            {
+                nodes.Add(gui.Node(40, 20, "replacement"));
+            }
+
             nodes.Add(gui.Node(40, 20, "kept"));
         }
 
@@ -102,7 +110,7 @@ public class LayoutNodeRetentionTests
 
     /// <summary>Inherited values follow the parent every frame; a value set once does not linger.</summary>
     [Fact]
-    public void InheritedValues_FollowTheParentEachFrame()
+    public void InheritedValuesFollowTheParentEachFrame()
     {
         using var harness = new FrameHarness();
         Color? parentColor = Color.Red;
@@ -112,7 +120,11 @@ public class LayoutNodeRetentionTests
         {
             using (gui.Node(100, 100, "parent").Enter())
             {
-                if (parentColor is { } color) gui.SetTextColor(color);
+                if (parentColor is { } color)
+                {
+                    gui.SetTextColor(color);
+                }
+
                 childColor = gui.Node(10, 10, "child").Scope.Get<LayoutNodeScopeTextColor>().Value;
             }
             fresh = gui.Node(10, 10, $"probe{gui.Time.Frames}").Scope.Get<LayoutNodeScopeTextColor>().Value;
@@ -130,7 +142,7 @@ public class LayoutNodeRetentionTests
 
     /// <summary>Listeners registered every frame on a reused node fire once per event.</summary>
     [Fact]
-    public void Listeners_DoNotAccumulate()
+    public void ListenersDoNotAccumulate()
     {
         using var harness = new FrameHarness();
         var clicks = 0;
@@ -139,7 +151,11 @@ public class LayoutNodeRetentionTests
             using var button = gui.Node(100, 100, "button").On<ClickEvent>(_ => clicks++).Enter();
         }
 
-        for (var i = 0; i < 10; i++) harness.Frame(Draw);
+        for (var i = 0; i < 10; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         harness.Click(Draw, new Vector2(50, 50));
         harness.Frame(Draw);
         Assert.Equal(1, clicks);
@@ -147,7 +163,7 @@ public class LayoutNodeRetentionTests
 
     /// <summary>Reordered keyed items keep their nodes and come back in the new order.</summary>
     [Fact]
-    public void ReorderedItems_KeepTheirNodes()
+    public void ReorderedItemsKeepTheirNodes()
     {
         using var harness = new FrameHarness();
         int[] order = [1, 2, 3];
@@ -166,19 +182,26 @@ public class LayoutNodeRetentionTests
         order = [3, 1, 2];
         harness.Frame(Draw);
 
-        foreach (var key in order) Assert.Same(before[key], byKey[key]);
+        foreach (var key in order)
+        {
+            Assert.Same(before[key], byKey[key]);
+        }
+
         Assert.Equal(order.Select(key => before[key]), harness.Gui.RootNode!.Children);
     }
 
     /// <summary>A node built only in the render pass is reused too.</summary>
     [Fact]
-    public void RenderOnlyNode_IsReused()
+    public void RenderOnlyNodeIsReused()
     {
         using var harness = new FrameHarness();
         var seen = new List<LayoutNode>();
         void Draw(Gui gui)
         {
-            if (gui.Pass == Pass.Pass2Render) seen.Add(gui.Node(10, 10, "overlay"));
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                seen.Add(gui.Node(10, 10, "overlay"));
+            }
         }
 
         harness.Frame(Draw);
@@ -188,21 +211,33 @@ public class LayoutNodeRetentionTests
 
     /// <summary>Rebuilding an unchanged tree allocates almost nothing per node.</summary>
     [Fact]
-    public void SteadyFrames_AllocateAlmostNothingPerNode()
+    public void SteadyFramesAllocateAlmostNothingPerNode()
     {
         const int count = 1000;
         const int frames = 20;
         using var harness = new FrameHarness();
-        void Draw(Gui gui)
+        static void Draw(Gui gui)
         {
             using (gui.Node(-1, -1, "list").Direction(Axis.Horizontal).Wrap(1).Enter())
+            {
                 for (var i = 0; i < count; i++)
+                {
                     gui.Node(4, 4);
+                }
+            }
         }
 
-        for (var i = 0; i < frames; i++) harness.Frame(Draw);
+        for (var i = 0; i < frames; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < frames; i++) harness.Frame(Draw);
+        for (var i = 0; i < frames; i++)
+        {
+            harness.Frame(Draw);
+        }
+
         var perNode = (GC.GetAllocatedBytesForCurrentThread() - before) / (double)(frames * count);
 
         Assert.True(perNode < 8, $"{perNode:F1} bytes per node per frame");

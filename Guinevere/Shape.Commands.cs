@@ -86,10 +86,17 @@ public partial class Shape
     /// <returns>A new shape with the offset fill and the current paint.</returns>
     public Shape Expand(float amount)
     {
-        if (amount == 0) return Copy();
+        if (amount == 0)
+        {
+            return Copy();
+        }
+
         var expandedPath = new SKPath();
         if (amount < 0 && -amount * 2 >= Math.Min(Path.Bounds.Width, Path.Bounds.Height))
+        {
             return new Shape(expandedPath, Paint);
+        }
+
         using var strokePaint = new SKPaint
         {
             Style = SKPaintStyle.Stroke,
@@ -111,6 +118,7 @@ public partial class Shape
         var newPath = new SKPath(Path);
         SKPaint? newPaint = null;
         if (Paint != null)
+        {
             newPaint = new SKPaint
             {
                 Color = Paint.Color,
@@ -120,14 +128,19 @@ public partial class Shape
                 Shader = Paint.Shader,
                 ImageFilter = Paint.ImageFilter
             };
+        }
 
         var shape = new Shape(newPath, newPaint ?? new SKPaint());
 
         // Copy all layers
         foreach (var (zIndex, layerList) in Layers)
+        {
             foreach (var (layerPath, layerPaint) in layerList)
             {
-                if (zIndex == 0) continue; // Skip main layer as it's already added in constructor
+                if (zIndex == 0)
+                {
+                    continue; // Skip main layer as it's already added in constructor
+                }
 
                 var copiedPath = new SKPath(layerPath);
                 var copiedPaint = new SKPaint
@@ -141,6 +154,7 @@ public partial class Shape
                 };
                 shape.AddToLayer(zIndex, copiedPath, copiedPaint);
             }
+        }
 
         shape.CopyShadows(this);
         return shape;
@@ -156,8 +170,16 @@ public partial class Shape
     /// <returns>A new <see cref="Shape"/> representing the union of the two input shapes.</returns>
     public static Shape Union(Shape shape1, Shape shape2, int smoothness)
     {
-        if (shape1.Path.IsEmpty) return shape2.Copy();
-        if (shape2.Path.IsEmpty) return shape1.Copy();
+        if (shape1.Path.IsEmpty)
+        {
+            return shape2.Copy();
+        }
+
+        if (shape2.Path.IsEmpty)
+        {
+            return shape1.Copy();
+        }
+
         if (smoothness <= 0)
         {
             var union = new SKPath();
@@ -209,13 +231,19 @@ public partial class Shape
         shape.Path.Transform(scaleMatrix);
 
         foreach (var (_, layerList) in shape.Layers)
+        {
             for (var i = 0; i < layerList.Count; i++)
             {
                 var (layerPath, layerPaint) = layerList[i];
-                if (ReferenceEquals(layerPath, shape.Path)) continue;
+                if (ReferenceEquals(layerPath, shape.Path))
+                {
+                    continue;
+                }
+
                 layerPath.Transform(scaleMatrix);
                 layerList[i] = (layerPath, layerPaint);
             }
+        }
 
         return shape;
     }
@@ -241,8 +269,16 @@ public partial class Shape
     public Shape Mix(Shape other, float amount)
     {
         amount = Math.Clamp(amount, 0, 1);
-        if (amount == 0) return Copy();
-        if (amount == 1) return other.Copy();
+        if (amount == 0)
+        {
+            return Copy();
+        }
+
+        if (amount == 1)
+        {
+            return other.Copy();
+        }
+
         var path = Path.IsEmpty || other.Path.IsEmpty
             ? new SKPath()
             : ShapeDistanceField.Blend(Path, other.Path, amount);
@@ -253,7 +289,11 @@ public partial class Shape
     SKPaint MixPaint(Shape other, float amount)
     {
         var paint = (amount < 0.5f ? Paint : other.Paint)?.Clone() ?? new SKPaint();
-        if (Paint == null || other.Paint == null) return paint;
+        if (Paint == null || other.Paint == null)
+        {
+            return paint;
+        }
+
         paint.Color = BlendColors(Paint.Color, other.Paint.Color, amount);
         paint.IsAntialias = Paint.IsAntialias || other.Paint.IsAntialias;
         paint.StrokeWidth = Paint.StrokeWidth * (1 - amount) + other.Paint.StrokeWidth * amount;
@@ -312,7 +352,10 @@ public partial class Shape
         // Transform all layers
         foreach (var (zIndex, layerList) in Layers)
         {
-            if (zIndex == 0) continue; // Skip main layer as it's already handled
+            if (zIndex == 0)
+            {
+                continue; // Skip main layer as it's already handled
+            }
 
             foreach (var (layerPath, layerPaint) in layerList)
             {
@@ -340,7 +383,10 @@ public partial class Shape
         // Transform all layers
         foreach (var (zIndex, layerList) in Layers)
         {
-            if (zIndex == 0) continue; // Skip main layer as it's already handled
+            if (zIndex == 0)
+            {
+                continue; // Skip main layer as it's already handled
+            }
 
             foreach (var (layerPath, layerPaint) in layerList)
             {
@@ -369,7 +415,10 @@ public partial class Shape
         // Transform all layers
         foreach (var (zIndex, layerList) in Layers)
         {
-            if (zIndex == 0) continue; // Skip main layer as it's already handled
+            if (zIndex == 0)
+            {
+                continue; // Skip main layer as it's already handled
+            }
 
             foreach (var (layerPath, layerPaint) in layerList)
             {

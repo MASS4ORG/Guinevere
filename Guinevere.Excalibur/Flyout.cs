@@ -30,12 +30,23 @@ public static partial class ControlsExtensions
         state.PopupId = explicitId;
         PreparePopupMenuFrame(gui, state, isOpen,
             new MenuAppearance(itemHeight, itemHeight, minWidth));
-        if (state.FrameOpenIndex < 0) return;
+        if (state.FrameOpenIndex < 0)
+        {
+            return;
+        }
 
         var builder = new FlyoutBuilder();
         buildMenu(builder);
-        if (builder.Items.Count == 0) return;
-        if (gui.Pass == Pass.Pass2Render) HandleMenuKeyboard(gui, state, builder.Items);
+        if (builder.Items.Count == 0)
+        {
+            return;
+        }
+
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            HandleMenuKeyboard(gui, state, builder.Items);
+        }
+
         using (var focusScope = gui.EnterFocusNavigationScope($"{id}/focus"))
         {
             focusScope.SetActive();
@@ -68,7 +79,10 @@ public static partial class ControlsExtensions
                 itemWidth += shortcutBounds.Width + padding;
             }
 
-            if (item.HasSubmenu) itemWidth += 20; // Space for arrow
+            if (item.HasSubmenu)
+            {
+                itemWidth += 20; // Space for arrow
+            }
 
             maxWidth = Math.Max(maxWidth, itemWidth);
         }

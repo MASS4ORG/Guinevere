@@ -43,7 +43,9 @@ public partial class Gui
         _semanticActions.Clear();
         var source = ResolveSemanticInput();
         if (source is not null)
+        {
             SampleSemanticSource(source);
+        }
         else if (_lastSemanticDevice is not null)
         {
             _activeInputDevice = new InputDevice("keyboard-mouse", InputDeviceKind.KeyboardMouse);
@@ -51,16 +53,28 @@ public partial class Gui
         }
 
         if (HasKeyboardPointerActivity())
+        {
             _activeInputDevice = new InputDevice("keyboard-mouse", InputDeviceKind.KeyboardMouse);
+        }
+
         UpdateTouchInputDevice();
     }
 
     void SampleSemanticSource(ISemanticInputCapability source)
     {
         foreach (var action in Enum.GetValues<SemanticAction>())
-            if (source.IsPressed(action)) _semanticActions.Add(action);
+        {
+            if (source.IsPressed(action))
+            {
+                _semanticActions.Add(action);
+            }
+        }
+
         if (_semanticActions.Count > 0 || _lastSemanticDevice != source.ActiveDevice)
+        {
             _activeInputDevice = source.ActiveDevice;
+        }
+
         _lastSemanticDevice = source.ActiveDevice;
     }
 
@@ -68,20 +82,34 @@ public partial class Gui
     {
         if (Platform.TryGet<ITouchCapability>(out var touch) && touch is not null
             && touch.Contacts.Any(contact => contact.Phase is TouchPhase.Began or TouchPhase.Moved))
+        {
             _activeInputDevice = new InputDevice("touch", InputDeviceKind.Touch);
+        }
     }
 
     ISemanticInputCapability? ResolveSemanticInput()
     {
-        if (Platform.TryGet<ISemanticInputCapability>(out var source)) return source;
-        if (!Platform.TryGet<IGameInputCapability>(out var game) || game is null) return null;
+        if (Platform.TryGet<ISemanticInputCapability>(out var source))
+        {
+            return source;
+        }
+
+        if (!Platform.TryGet<IGameInputCapability>(out var game) || game is null)
+        {
+            return null;
+        }
+
         ControllerNavigation.Update(game, Clock.Elapsed);
         return ControllerNavigation;
     }
 
     bool HasKeyboardPointerActivity()
     {
-        if (!HasInput) return false;
+        if (!HasInput)
+        {
+            return false;
+        }
+
         var input = RawInput;
         var moved = input.MousePosition != _promptPointerPosition;
         _promptPointerPosition = input.MousePosition;
@@ -91,10 +119,26 @@ public partial class Gui
 
     void NavigateSemanticInput()
     {
-        if (!Focus.CanNavigateDirectionally) return;
-        if (IsSemanticActionPressed(SemanticAction.Left)) Focus.Navigate(FocusDirection.Left);
-        else if (IsSemanticActionPressed(SemanticAction.Right)) Focus.Navigate(FocusDirection.Right);
-        else if (IsSemanticActionPressed(SemanticAction.Up)) Focus.Navigate(FocusDirection.Up);
-        else if (IsSemanticActionPressed(SemanticAction.Down)) Focus.Navigate(FocusDirection.Down);
+        if (!Focus.CanNavigateDirectionally)
+        {
+            return;
+        }
+
+        if (IsSemanticActionPressed(SemanticAction.Left))
+        {
+            Focus.Navigate(FocusDirection.Left);
+        }
+        else if (IsSemanticActionPressed(SemanticAction.Right))
+        {
+            Focus.Navigate(FocusDirection.Right);
+        }
+        else if (IsSemanticActionPressed(SemanticAction.Up))
+        {
+            Focus.Navigate(FocusDirection.Up);
+        }
+        else if (IsSemanticActionPressed(SemanticAction.Down))
+        {
+            Focus.Navigate(FocusDirection.Down);
+        }
     }
 }

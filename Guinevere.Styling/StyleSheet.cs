@@ -147,7 +147,11 @@ public sealed class StyleSheet
 
     internal static string Expand(string value, Func<string, string?> lookup, int depth = 0)
     {
-        if (!References(value)) return value;
+        if (!References(value))
+        {
+            return value;
+        }
+
         var expanded = VarPattern.Replace(value, m => Substitute(m.Groups[1].Value, m.Value, lookup, depth));
         return DollarVarPattern.Replace(expanded, m => Substitute($"--{m.Groups[1].Value}", m.Value, lookup, depth));
     }
@@ -155,7 +159,11 @@ public sealed class StyleSheet
     static string Substitute(string name, string original, Func<string, string?> lookup, int depth)
     {
         var raw = lookup(name);
-        if (raw is null) return original;
+        if (raw is null)
+        {
+            return original;
+        }
+
         return depth < MaxExpansionDepth ? Expand(raw, lookup, depth + 1) : raw;
     }
 }

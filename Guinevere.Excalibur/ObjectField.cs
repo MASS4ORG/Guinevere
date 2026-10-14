@@ -26,7 +26,7 @@ public readonly record struct ObjectFieldResult(ObjectFieldAction Action, object
 
 public static partial class ControlsExtensions
 {
-    /// <summary>What an <see cref="ControlsExtensions.ObjectField"/> remembers between frames.</summary>
+    /// <summary>What an <see cref="ObjectField"/> remembers between frames.</summary>
     sealed class ObjectFieldState
     {
         /// <summary>A payload dropped here, waiting to be reported.</summary>
@@ -73,8 +73,16 @@ public static partial class ControlsExtensions
 
         var eligibility = DropEligibility(gui, accept);
         var modifiers = new List<string>();
-        if (isEmpty) modifiers.Add("empty");
-        if (eligibility is { } eligible) modifiers.Add(eligible ? "accepting" : "rejecting");
+        if (isEmpty)
+        {
+            modifiers.Add("empty");
+        }
+
+        if (eligibility is { } eligible)
+        {
+            modifiers.Add(eligible ? "accepting" : "rejecting");
+        }
+
         using (gui.StyledNode("object-field", classes, id, modifiers).Height(height)
                    .ExpandWidth().Direction(Axis.Horizontal).Enter())
         {
@@ -82,7 +90,9 @@ public static partial class ControlsExtensions
 
             var interactable = gui.GetInteractable();
             if (drop.IsAccepted)
+            {
                 gui.DrawStyledBox(gui.ResolvePart("drop-outline", modifiers: ["accepted"]), gui.CurrentNode.Rect);
+            }
 
             using (gui.Node(-1, height).Expand().Padding(6, 0).ContentAlignY(0.5f).Enter())
             {
@@ -90,18 +100,28 @@ public static partial class ControlsExtensions
                 gui.DrawText(text, fontSize);
             }
 
-            if (showPick && PickButton(gui, $"{id}/pick", height)) action = ObjectFieldAction.Pick;
+            if (showPick && PickButton(gui, $"{id}/pick", height))
+            {
+                action = ObjectFieldAction.Pick;
+            }
+
             if (showClear && !isEmpty && GlyphButton(gui, $"{id}/clear", "×", height))
+            {
                 action = ObjectFieldAction.Clear;
+            }
 
             // Those buttons sit inside the box, so a click on one must not also read as a reveal.
             if (gui.Pass == Pass.Pass2Render && action == ObjectFieldAction.None && !isEmpty
                 && interactable.OnClick())
+            {
                 action = ObjectFieldAction.Reveal;
+            }
         }
 
         if (gui.Pass != Pass.Pass2Render || action != ObjectFieldAction.None || state.Dropped is not { } parked)
+        {
             return new ObjectFieldResult(action);
+        }
 
         state.Dropped = null;
         return new ObjectFieldResult(ObjectFieldAction.Drop, parked);
@@ -113,7 +133,10 @@ public static partial class ControlsExtensions
     /// </summary>
     static bool? DropEligibility(Gui gui, Func<object, bool>? accept)
     {
-        if (gui.CurrentDragPayload is not { } payload) return null;
+        if (gui.CurrentDragPayload is not { } payload)
+        {
+            return null;
+        }
 
         return accept?.Invoke(payload) ?? true;
     }

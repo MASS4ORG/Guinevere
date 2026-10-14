@@ -59,7 +59,11 @@ public static class StylingExtensions
             source.Reloaded += replacement =>
             {
                 var index = sheets.IndexOf(current);
-                if (index >= 0) sheets[index] = replacement;
+                if (index >= 0)
+                {
+                    sheets[index] = replacement;
+                }
+
                 current = replacement;
             };
         }
@@ -101,7 +105,10 @@ public static class StylingExtensions
             var parent = gui.CurrentNode;
             var node = gui.Node(-1, -1, id, filePath, lineNumber);
             var styling = StateOf(gui);
-            if (styling.Sheets.Count == 0) return node;
+            if (styling.Sheets.Count == 0)
+            {
+                return node;
+            }
 
             var state = disabled ? StyleState.Disabled : StyleState.None;
             var target = CreateStyleTarget(styling.Ancestors, parent, type, classes, id, modifiers ?? classes, state);
@@ -121,8 +128,16 @@ public static class StylingExtensions
             var liveStyle = Transition(gui, node, styling,
                 styling.Sheets.Resolve(target with { State = live }, variables, inherited));
             ApplyInherited(gui, node, liveStyle, styling, inherited);
-            if (StyleTransform.From(liveStyle, node.Rect) is { } transform) gui.SetTransform(transform, node.Scope);
-            if (StyleBox.From(liveStyle, node.Rect, gui) is { } box) node.DrawList.Add(box);
+            if (StyleTransform.From(liveStyle, node.Rect) is { } transform)
+            {
+                gui.SetTransform(transform, node.Scope);
+            }
+
+            if (StyleBox.From(liveStyle, node.Rect, gui) is { } box)
+            {
+                node.DrawList.Add(box);
+            }
+
             return node;
         }
 
@@ -195,7 +210,13 @@ public static class StylingExtensions
     {
         buffer.Clear();
         for (var current = parent; current is not null; current = current.Parent)
-            if (current.StyleTarget is { } ancestor) buffer.Add(ancestor);
+        {
+            if (current.StyleTarget is { } ancestor)
+            {
+                buffer.Add(ancestor);
+            }
+        }
+
         return new StyleTarget(type, id, classes ?? [], state, modifiers, buffer);
     }
 
@@ -207,9 +228,17 @@ public static class StylingExtensions
     static StyleState InteractionState(Gui gui, LayoutNode node, bool disabled)
     {
         var state = gui.HasFocus(node.Id) ? StyleState.Focus : StyleState.None;
-        if (disabled) return state;
+        if (disabled)
+        {
+            return state;
+        }
+
         var hovered = gui.GetInteractable(node).OnHover();
-        if (hovered) state |= StyleState.Hover;
+        if (hovered)
+        {
+            state |= StyleState.Hover;
+        }
+
         var pressed = gui.HoldsPointer(node.Id, MouseButton.Left)
                       || (hovered && !gui.IsPointerCaptured && gui.Input.IsMouseButtonDown(MouseButton.Left));
         return pressed ? state | StyleState.Active : state;
@@ -225,10 +254,21 @@ public static class StylingExtensions
     {
         PassTokens(node, style, inherited);
         ApplyCursor(node, style);
-        if (style.GetColor("color") is { } color) gui.SetTextColor(color, node.Scope);
+        if (style.GetColor("color") is { } color)
+        {
+            gui.SetTextColor(color, node.Scope);
+        }
+
         if (style.GetLength("font-size") is > 0f and var size && !style.Get("font-size")!.EndsWith('%'))
+        {
             gui.SetTextSize(size, node.Scope);
-        if (StyleBoxValues.Opacity(style.Get("opacity")) is { } opacity) gui.SetOpacity(opacity, node.Scope);
+        }
+
+        if (StyleBoxValues.Opacity(style.Get("opacity")) is { } opacity)
+        {
+            gui.SetOpacity(opacity, node.Scope);
+        }
+
         ApplyTextShadows(gui, node, style);
         ApplyFont(gui, node, style, styling);
     }
@@ -237,9 +277,13 @@ public static class StylingExtensions
     {
         var inherited = node.Parent?.Scope.Get<LayoutNodeScopeTextEffects>().Value ?? default;
         if (style.GetTextShadows(node.Scope.Get<LayoutNodeScopeTextColor>().Value) is { } shadows)
+        {
             gui.SetTextEffects(inherited with { DropShadow = null, DropShadows = shadows }, node.Scope);
+        }
         else if (node.Scope.HasLocal<LayoutNodeScopeTextEffects>())
+        {
             gui.SetTextEffects(inherited, node.Scope);
+        }
     }
 
     /// <summary>
@@ -249,12 +293,17 @@ public static class StylingExtensions
     static void PassTokens(LayoutNode node, ResolvedStyle style, StyleTokens inherited)
     {
         if (style.Locals is { Count: > 0 } || node.Scope.HasLocal<StyleTokens>())
+        {
             node.Scope.Set(inherited.With(style.Locals));
+        }
     }
 
     static void ApplyCursor(LayoutNode node, ResolvedStyle style)
     {
-        if (StyleBoxValues.Cursor(style.Get("cursor")) is { } cursor) node.Cursor(cursor);
+        if (StyleBoxValues.Cursor(style.Get("cursor")) is { } cursor)
+        {
+            node.Cursor(cursor);
+        }
     }
 
     /// <summary>A weight or style without a family restyles the inherited font; unknown families leave it as is.</summary>
@@ -263,11 +312,17 @@ public static class StylingExtensions
         var family = style.Get("font-family");
         var weight = style.Get("font-weight");
         var slant = style.Get("font-style");
-        if (family is null && weight is null && slant is null) return;
+        if (family is null && weight is null && slant is null)
+        {
+            return;
+        }
 
         var inherited = (node.Parent?.Scope ?? node.Scope).Get<LayoutNodeScopeTextFont>().Value;
         var font = ResolveInheritedFont(inherited, styling, family, weight, slant);
-        if (font is not null) gui.SetTextFont(font, node.Scope);
+        if (font is not null)
+        {
+            gui.SetTextFont(font, node.Scope);
+        }
     }
 
     static Font? ResolveInheritedFont(Font inherited, GuiStyling styling, string? family, string? weight, string? slant)
@@ -288,7 +343,11 @@ public static class StylingExtensions
             var family = style.Get("font-family");
             var weight = style.Get("font-weight");
             var slant = style.Get("font-style");
-            if (family is null && weight is null && slant is null) return inherited;
+            if (family is null && weight is null && slant is null)
+            {
+                return inherited;
+            }
+
             return ResolveInheritedFont(inherited, StateOf(gui), family, weight, slant) ?? inherited;
         }
     }

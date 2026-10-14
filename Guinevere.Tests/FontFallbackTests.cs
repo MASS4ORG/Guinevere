@@ -46,7 +46,7 @@ public class FontFallbackTests
     }
 
     [Fact]
-    public void Text_UsesWidgetFontForPrivateUseGlyphs()
+    public void TextUsesWidgetFontForPrivateUseGlyphs()
     {
         using var surface = SKSurface.Create(new SKImageInfo(100, 100));
         var fonts = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,

@@ -12,7 +12,11 @@ public class ClipOperationTests
         {
             using (gui.Node(100, 80, "box").Enter())
             {
-                if (scrolling) gui.ScrollY();
+                if (scrolling)
+                {
+                    gui.ScrollY();
+                }
+
                 using (gui.Node(100, 400, "content").Enter()) { }
             }
         }

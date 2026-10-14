@@ -30,7 +30,7 @@ public partial class Gui
         set
         {
             _input = value;
-            Platform.Register<IInputHandler>(value);
+            Platform.Register(value);
             Platform.Register<IClipboard>(value);
         }
     }
@@ -49,7 +49,10 @@ public partial class Gui
         {
             var source = RawInput;
             if (_frameInput is null || !ReferenceEquals(_frameInput.Source, source))
+            {
                 _frameInput = new FrameInput(source);
+            }
+
             return _frameInput;
         }
     }
@@ -119,7 +122,10 @@ public partial class Gui
     /// </summary>
     internal bool TryCapturePointer(string id, MouseButton button)
     {
-        if (_pointerCapture is { } held) return held.Id == id && held.Button == button;
+        if (_pointerCapture is { } held)
+        {
+            return held.Id == id && held.Button == button;
+        }
 
         _pointerCapture = (id, button);
         return true;
@@ -132,7 +138,10 @@ public partial class Gui
     /// <summary>Gives the pointer back, if this element is the one holding it.</summary>
     internal void ReleasePointer(string id)
     {
-        if (_pointerCapture?.Id == id) _pointerCapture = null;
+        if (_pointerCapture?.Id == id)
+        {
+            _pointerCapture = null;
+        }
     }
 
     /// <summary>
@@ -216,10 +225,16 @@ public partial class Gui
     /// </summary>
     internal float NotePressTravel(string id)
     {
-        if (!_pressAnchors.TryGetValue(id, out var press)) return 0f;
+        if (!_pressAnchors.TryGetValue(id, out var press))
+        {
+            return 0f;
+        }
 
         var travel = (Input.MousePosition - press.Origin).Length();
-        if (travel <= press.Travel) return press.Travel;
+        if (travel <= press.Travel)
+        {
+            return press.Travel;
+        }
 
         press.Travel = travel;
         _pressAnchors[id] = press;
@@ -248,7 +263,10 @@ public partial class Gui
     void UpdateInputBlocker()
     {
         _inputBlocker = null;
-        if (RootNode is null) return;
+        if (RootNode is null)
+        {
+            return;
+        }
 
         var pos = Input.MousePosition;
         var bestZ = int.MinValue;
@@ -266,7 +284,10 @@ public partial class Gui
                 }
             }
 
-            foreach (var child in node.ChildNodes) Visit(child);
+            foreach (var child in node.ChildNodes)
+            {
+                Visit(child);
+            }
         }
     }
 
@@ -279,11 +300,18 @@ public partial class Gui
 
     internal bool IsHoverBlocked(LayoutNode? node)
     {
-        if (_inputBlocker is null) return false;
+        if (_inputBlocker is null)
+        {
+            return false;
+        }
 
         for (var n = node; n is not null; n = n.Parent)
+        {
             if (ReferenceEquals(n, _inputBlocker))
+            {
                 return false;
+            }
+        }
 
         return true;
     }
@@ -299,8 +327,12 @@ public partial class Gui
     {
         var keysToRemove = new List<string>();
         foreach (var kvp in _dragStates)
+        {
             if (!kvp.Value)
+            {
                 keysToRemove.Add(kvp.Key);
+            }
+        }
 
         foreach (var key in keysToRemove)
         {
@@ -311,10 +343,17 @@ public partial class Gui
         // An element that never began a drag leaves no drag state behind, so its anchor can only be
         // matched against the ones that are left.
         foreach (var key in _pressAnchors.Keys)
+        {
             if (!IsMouseButtonDownFor(key))
+            {
                 keysToRemove.Add(key);
+            }
+        }
 
-        foreach (var key in keysToRemove) _pressAnchors.Remove(key);
+        foreach (var key in keysToRemove)
+        {
+            _pressAnchors.Remove(key);
+        }
     }
 
     /// <summary>
@@ -333,8 +372,15 @@ public partial class Gui
     /// </summary>
     void ReleaseFinishedCapture()
     {
-        if (_pointerCapture is not { } held) return;
-        if (Input.IsMouseButtonDown(held.Button)) return;
+        if (_pointerCapture is not { } held)
+        {
+            return;
+        }
+
+        if (Input.IsMouseButtonDown(held.Button))
+        {
+            return;
+        }
 
         _dragStates.Remove(held.Id);
         _pressAnchors.Remove(held.Id);

@@ -24,17 +24,30 @@ public sealed record FilePlace(string Label, string Path, string Icon = WidgetIc
         Add("Desktop", Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), WidgetIcons.Desktop);
         Add("Documents", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), WidgetIcons.FileLines);
         // Path is this record's own property, so System.IO's has to be named in full here.
-        if (home.Length > 0) Add("Downloads", System.IO.Path.Combine(home, "Downloads"), WidgetIcons.Download);
+        if (home.Length > 0)
+        {
+            Add("Downloads", System.IO.Path.Combine(home, "Downloads"), WidgetIcons.Download);
+        }
 
         foreach (var drive in ReadyDrives())
+        {
             Add(drive.Label, drive.Path, drive.Icon);
+        }
 
         return places;
 
         void Add(string label, string path, string icon)
         {
-            if (path.Length == 0 || !Directory.Exists(path)) return;
-            if (places.Any(place => string.Equals(place.Path, path, StringComparison.OrdinalIgnoreCase))) return;
+            if (path.Length == 0 || !Directory.Exists(path))
+            {
+                return;
+            }
+
+            if (places.Any(place => string.Equals(place.Path, path, StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
             places.Add(new FilePlace(label, path, icon));
         }
     }
@@ -70,9 +83,20 @@ public sealed record FilePlace(string Label, string Path, string Icon = WidgetIc
             string path;
             try
             {
-                if (!drive.IsReady) continue;
-                if (drive.DriveType is not (DriveType.Fixed or DriveType.Removable or DriveType.Network)) continue;
-                if (PseudoFileSystems.Contains(drive.DriveFormat)) continue;
+                if (!drive.IsReady)
+                {
+                    continue;
+                }
+
+                if (drive.DriveType is not (DriveType.Fixed or DriveType.Removable or DriveType.Network))
+                {
+                    continue;
+                }
+
+                if (PseudoFileSystems.Contains(drive.DriveFormat))
+                {
+                    continue;
+                }
 
                 path = drive.RootDirectory.FullName;
                 label = drive.VolumeLabel.Length > 0 ? drive.VolumeLabel : path;

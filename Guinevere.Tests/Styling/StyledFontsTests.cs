@@ -30,7 +30,9 @@ public class StyledFontsTests
                 var font = gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value;
                 Assert.Same(chosen.SkFont.Typeface, font.SkFont.Typeface);
                 using (gui.StyledNode("child").Enter())
+                {
                     Assert.Equal(600, gui.GetTextFont().Weight);
+                }
             }
         });
     }

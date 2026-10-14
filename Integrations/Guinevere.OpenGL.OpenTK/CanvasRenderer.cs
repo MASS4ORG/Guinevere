@@ -48,7 +48,9 @@ public class CanvasRenderer : ICanvasRenderer
     public void Resize(int width, int height)
     {
         if (_width == width && _height == height)
+        {
             return;
+        }
 
         _width = width;
         _height = height;
@@ -156,7 +158,9 @@ public class CanvasRenderer : ICanvasRenderer
         }
 
         if (_canvas == null || _surface == null)
+        {
             return;
+        }
 
         _canvas?.Clear(SKColors.Black);
         draw(_canvas!);
@@ -164,7 +168,10 @@ public class CanvasRenderer : ICanvasRenderer
 
         // The surface is read in place; it is not drawn again until the upload below has consumed it.
         using var pixels = _surface?.PeekPixels();
-        if (pixels == null) return;
+        if (pixels == null)
+        {
+            return;
+        }
 
         GL.BindTexture(TextureTarget.Texture2D, _texture);
         GL.TexSubImage2D(TextureTarget.Texture2D,
@@ -226,6 +233,8 @@ public class CanvasRenderer : ICanvasRenderer
     {
         GL.GetShader(shader, ShaderParameter.CompileStatus, out var ok);
         if (ok == 0)
+        {
             throw new Exception(GL.GetShaderInfoLog(shader));
+        }
     }
 }

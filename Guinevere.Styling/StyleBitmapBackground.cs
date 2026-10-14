@@ -9,19 +9,34 @@ sealed class StyleBitmapBackground(SKImage image, (bool X, bool Y) repeat,
 {
     internal static Insets? Slice(string? raw)
     {
-        if (raw is null || raw.Trim().Equals("none", StringComparison.OrdinalIgnoreCase)) return null;
+        if (raw is null || raw.Trim().Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
         var parts = Parts(raw);
-        if (parts.Length is < 1 or > 4) throw Syntax("slice", raw);
+        if (parts.Length is < 1 or > 4)
+        {
+            throw Syntax("slice", raw);
+        }
+
         Span<float> edges = stackalloc float[4];
         for (var i = 0; i < parts.Length; i++)
+        {
             edges[i] = SliceValue(parts[i]);
+        }
+
         return SliceInsets(edges, parts.Length);
     }
 
     static float SliceValue(string raw)
     {
         if (!StyleValue.TryLength(raw, out var value, out var percent)
-            || percent || !float.IsFinite(value) || value < 0) throw Syntax("slice", raw);
+            || percent || !float.IsFinite(value) || value < 0)
+        {
+            throw Syntax("slice", raw);
+        }
+
         return value;
     }
 
@@ -46,13 +61,21 @@ sealed class StyleBitmapBackground(SKImage image, (bool X, bool Y) repeat,
     internal static (string Mode, BackgroundLength X, BackgroundLength Y) Size(string? raw)
     {
         var parts = Parts(raw ?? "auto");
-        if (parts.Length == 1 && parts[0] is "contain" or "cover") return (parts[0], default, default);
+        if (parts.Length == 1 && parts[0] is "contain" or "cover")
+        {
+            return (parts[0], default, default);
+        }
+
         return ExplicitSize(parts, raw);
     }
 
     static (string Mode, BackgroundLength X, BackgroundLength Y) ExplicitSize(string[] parts, string? raw)
     {
-        if (parts.Length is < 1 or > 2) throw Syntax("size", raw);
+        if (parts.Length is < 1 or > 2)
+        {
+            throw Syntax("size", raw);
+        }
+
         return ("explicit", Length(parts[0], "size", true),
             parts.Length == 2 ? Length(parts[1], "size", true) : new BackgroundLength(0, false, true));
     }
@@ -60,7 +83,11 @@ sealed class StyleBitmapBackground(SKImage image, (bool X, bool Y) repeat,
     internal static (BackgroundLength X, BackgroundLength Y) Position(string? raw)
     {
         var parts = Parts(raw ?? "0% 0%");
-        if (parts.Length is < 1 or > 2) throw Syntax("position", raw);
+        if (parts.Length is < 1 or > 2)
+        {
+            throw Syntax("position", raw);
+        }
+
         var x = parts[0];
         var y = parts.Length == 2 ? parts[1] : "center";
         (x, y) = Orient(x, y);
@@ -76,16 +103,32 @@ sealed class StyleBitmapBackground(SKImage image, (bool X, bool Y) repeat,
 
     static BackgroundLength AxisCoordinate(string raw, bool horizontal)
     {
-        if (raw == (horizontal ? "left" : "top")) return new(0, true);
-        if (raw == (horizontal ? "right" : "bottom")) return new(1, true);
+        if (raw == (horizontal ? "left" : "top"))
+        {
+            return new(0, true);
+        }
+
+        if (raw == (horizontal ? "right" : "bottom"))
+        {
+            return new(1, true);
+        }
+
         return Length(raw, "position", false);
     }
 
     static BackgroundLength Length(string raw, string property, bool auto)
     {
-        if (auto && raw == "auto") return new(0, false, true);
+        if (auto && raw == "auto")
+        {
+            return new(0, false, true);
+        }
+
         if (!StyleValue.TryLength(raw, out var value, out var percent) || !float.IsFinite(value)
-            || property == "size" && value <= 0) throw Syntax(property, raw);
+            || property == "size" && value <= 0)
+        {
+            throw Syntax(property, raw);
+        }
+
         return new BackgroundLength(value, percent);
     }
 
@@ -97,7 +140,11 @@ sealed class StyleBitmapBackground(SKImage image, (bool X, bool Y) repeat,
 
     internal SKShader CreateShader(SKRect bounds)
     {
-        if (slice is { } border) return SliceShader(bounds, border);
+        if (slice is { } border)
+        {
+            return SliceShader(bounds, border);
+        }
+
         var dimensions = Dimensions(bounds);
         var x = bounds.Left + position.X.Resolve(bounds.Width - dimensions.X);
         var y = bounds.Top + position.Y.Resolve(bounds.Height - dimensions.Y);
@@ -131,11 +178,23 @@ sealed class StyleBitmapBackground(SKImage image, (bool X, bool Y) repeat,
 
     (float X, float Y) ExplicitDimensions(SKRect bounds)
     {
-        if (size.X.Auto && size.Y.Auto) return (image.Width, image.Height);
+        if (size.X.Auto && size.Y.Auto)
+        {
+            return (image.Width, image.Height);
+        }
+
         var x = size.X.Resolve(bounds.Width);
         var y = size.Y.Resolve(bounds.Height);
-        if (size.X.Auto) return (y * image.Width / image.Height, y);
-        if (size.Y.Auto) return (x, x * image.Height / image.Width);
+        if (size.X.Auto)
+        {
+            return (y * image.Width / image.Height, y);
+        }
+
+        if (size.Y.Auto)
+        {
+            return (x, x * image.Height / image.Width);
+        }
+
         return (x, y);
     }
 }

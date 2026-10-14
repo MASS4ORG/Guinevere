@@ -5,7 +5,7 @@ public class StyleResolverTests
 {
     /// <summary>Immediate-mode values override stylesheet variables using invariant formatting.</summary>
     [Fact]
-    public void ScopedVariables_OverrideStyleVariables()
+    public void ScopedVariablesOverrideStyleVariables()
     {
         var sheet = StyleSheet.Parse("$progress = 0; progress { width = $progress; }");
         var style = StyleResolver.Resolve([sheet], new StyleTarget("progress", null, []),
@@ -16,7 +16,7 @@ public class StyleResolverTests
 
     /// <summary>Inherited tags copy parent declarations and match parent hierarchy selectors.</summary>
     [Fact]
-    public void Inheritance_CopiesPropertiesAndSelectorIdentity()
+    public void InheritanceCopiesPropertiesAndSelectorIdentity()
     {
         var sheet = StyleSheet.Parse("""
             box { padding = 20; color = white; }
@@ -34,7 +34,7 @@ public class StyleResolverTests
 
     /// <summary>Inheritance cycles fail during parsing.</summary>
     [Fact]
-    public void Inheritance_RejectsCycles() => Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("""
+    public void InheritanceRejectsCycles() => Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("""
         a #inherit(b) { width = 1; }
         b #inherit(a) { width = 2; }
         """));
@@ -43,7 +43,7 @@ public class StyleResolverTests
 
     /// <summary>A more specific selector overrides a less specific one regardless of order.</summary>
     [Fact]
-    public void Specificity_IdBeatsClassBeatsType()
+    public void SpecificityIdBeatsClassBeatsType()
     {
         var style = Resolve("""
             #save { color = #ff0000; }
@@ -56,7 +56,7 @@ public class StyleResolverTests
 
     /// <summary>Equal specificity falls back to source order (last wins).</summary>
     [Fact]
-    public void SourceOrder_BreaksTies()
+    public void SourceOrderBreaksTies()
     {
         var style = Resolve("""
             .btn { color = #111111; }
@@ -68,7 +68,7 @@ public class StyleResolverTests
 
     /// <summary>A <c>:hover</c> rule only applies when the target is hovered.</summary>
     [Fact]
-    public void Modifier_AppliesOnlyInState()
+    public void ModifierAppliesOnlyInState()
     {
         const string css = """
             .btn        { background-color = #101010; }
@@ -82,7 +82,7 @@ public class StyleResolverTests
 
     /// <summary>Declarations merge across matching rules; the typed accessors parse them.</summary>
     [Fact]
-    public void Merges_Declarations_And_Expands_Variables()
+    public void MergesDeclarationsAndExpandsVariables()
     {
         var style = Resolve("""
             $pad = 12;
@@ -97,7 +97,7 @@ public class StyleResolverTests
 
     /// <summary>A later sheet's top-level token overrides an earlier sheet's token in that sheet's rules.</summary>
     [Fact]
-    public void LaterSheetToken_OverridesEarlierSheet()
+    public void LaterSheetTokenOverridesEarlierSheet()
     {
         var theme = StyleSheet.Parse("$accent = red; box { color = $accent; }");
         var overrides = StyleSheet.Parse("$accent = blue;");
@@ -108,7 +108,7 @@ public class StyleResolverTests
 
     /// <summary>A host token wins over every sheet's token.</summary>
     [Fact]
-    public void HostToken_WinsOverSheets()
+    public void HostTokenWinsOverSheets()
     {
         var sheets = new StyleSheetCollection
         {
@@ -122,7 +122,7 @@ public class StyleResolverTests
 
     /// <summary>A rule-scoped token set by a more specific rule applies to the base rule's declarations.</summary>
     [Fact]
-    public void RuleScopedToken_FromModifierRule_AppliesToBaseDeclarations()
+    public void RuleScopedTokenFromModifierRuleAppliesToBaseDeclarations()
     {
         var sheet = StyleSheet.Parse("""
             $size = 1;
@@ -142,7 +142,7 @@ public class StyleResolverTests
 
     /// <summary>Tokens referencing tokens expand transitively; self-references stop at the depth limit.</summary>
     [Fact]
-    public void Tokens_ExpandTransitively()
+    public void TokensExpandTransitively()
     {
         var sheet = StyleSheet.Parse("$base = 4; $double = $base $base; $loop = $loop; box { gap = $double; x = $loop; }");
         var style = StyleResolver.Resolve([sheet], new StyleTarget("box", null, []));
@@ -155,7 +155,7 @@ public class StyleResolverTests
 
     /// <summary>Nothing matches → the empty style.</summary>
     [Fact]
-    public void NoMatch_ReturnsEmpty()
+    public void NoMatchReturnsEmpty()
     {
         var style = Resolve(".x { color = red; }", new StyleTarget("Button", null, ["y"]));
         Assert.False(style.Has("color"));

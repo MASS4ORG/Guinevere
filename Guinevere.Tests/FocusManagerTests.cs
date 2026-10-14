@@ -56,7 +56,7 @@ public class FocusManagerTests
     /// Verifies that a new focus manager has no focused control.
     /// </summary>
     [Fact]
-    public void FocusManager_InitialState_HasNoFocus()
+    public void FocusManagerInitialStateHasNoFocus()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -71,7 +71,7 @@ public class FocusManagerTests
     /// Verifies that registering a focusable control does not immediately focus it.
     /// </summary>
     [Fact]
-    public void RegisterFocusableControl_AddsControlToSystem()
+    public void RegisterFocusableControlAddsControlToSystem()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -88,7 +88,7 @@ public class FocusManagerTests
     /// Verifies that requesting focus sets the current focused id.
     /// </summary>
     [Fact]
-    public void RequestFocus_SetsCurrentFocusedId()
+    public void RequestFocusSetsCurrentFocusedId()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -110,7 +110,7 @@ public class FocusManagerTests
     /// Verifies that requesting focus on a non-focusable control does not set focus.
     /// </summary>
     [Fact]
-    public void RequestFocus_OnNonFocusableControl_DoesNotSetFocus()
+    public void RequestFocusOnNonFocusableControlDoesNotSetFocus()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -131,7 +131,7 @@ public class FocusManagerTests
     /// Verifies that clearing focus removes focus from all controls.
     /// </summary>
     [Fact]
-    public void ClearFocus_RemovesFocusFromAllControls()
+    public void ClearFocusRemovesFocusFromAllControls()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -155,7 +155,7 @@ public class FocusManagerTests
     /// Verifies that HasFocusWithin returns true for a parent when a child has focus.
     /// </summary>
     [Fact]
-    public void HasFocusWithin_WithParentChild_ReturnsTrueForParent()
+    public void HasFocusWithinWithParentChildReturnsTrueForParent()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -178,7 +178,7 @@ public class FocusManagerTests
     /// Verifies that controls not re-registered are removed at frame end.
     /// </summary>
     [Fact]
-    public void EndFrame_RemovesUnregisteredControls()
+    public void EndFrameRemovesUnregisteredControls()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -206,7 +206,7 @@ public class FocusManagerTests
     /// Verifies that GetParentChain returns the correct parent hierarchy for a control.
     /// </summary>
     [Fact]
-    public void GetParentChain_ReturnsCorrectHierarchy()
+    public void GetParentChainReturnsCorrectHierarchy()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -228,7 +228,7 @@ public class FocusManagerTests
     /// Verifies that FocusChangedThisFrame is true only when focus actually changes.
     /// </summary>
     [Fact]
-    public void FocusChangedThisFrame_TrueWhenFocusChanges()
+    public void FocusChangedThisFrameTrueWhenFocusChanges()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -268,7 +268,7 @@ public class FocusManagerTests
     /// Verifies that Gui.Focus registration and request methods work correctly.
     /// </summary>
     [Fact]
-    public void GuiFocusMethods_WorkCorrectly()
+    public void GuiFocusMethodsWorkCorrectly()
     {
         // Arrange
         var gui = CreateTestGui();
@@ -297,7 +297,7 @@ public class FocusManagerTests
     [InlineData(FocusReason.Mouse)]
     [InlineData(FocusReason.Keyboard)]
     [InlineData(FocusReason.Programmatic)]
-    public void RequestFocus_WithDifferentReasons_WorksCorrectly(FocusReason reason)
+    public void RequestFocusWithDifferentReasonsWorksCorrectly(FocusReason reason)
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -317,7 +317,7 @@ public class FocusManagerTests
     /// Verifies that focus persists correctly across multiple frame cycles.
     /// </summary>
     [Fact]
-    public void MultipleFrameCycle_MaintainsFocusCorrectly()
+    public void MultipleFrameCycleMaintainsFocusCorrectly()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -345,7 +345,7 @@ public class FocusManagerTests
     /// Verifies that HasFocusWithin works correctly through a deep parent hierarchy.
     /// </summary>
     [Fact]
-    public void HasFocusWithin_DeepHierarchy_WorksCorrectly()
+    public void HasFocusWithinDeepHierarchyWorksCorrectly()
     {
         // Arrange
         var focusManager = new FocusManager();
@@ -377,7 +377,7 @@ public class FocusManagerTests
     }
 
     [Fact]
-    public void ActiveScope_RestrictsNavigationAndRestoresItsOpenerWhenItCloses()
+    public void ActiveScopeRestrictsNavigationAndRestoresItsOpenerWhenItCloses()
     {
         var focusManager = new FocusManager();
         focusManager.BeginFrame();
@@ -409,7 +409,7 @@ public class FocusManagerTests
     }
 
     [Fact]
-    public void Navigate_UsesExplicitLinksBeforeSpatialTargets()
+    public void NavigateUsesExplicitLinksBeforeSpatialTargets()
     {
         var focusManager = new FocusManager();
         focusManager.BeginFrame();
@@ -434,7 +434,7 @@ public class FocusManagerTests
 
     /// <summary>A control that uses the arrow keys keeps focus when they are pressed.</summary>
     [Fact]
-    public void ArrowKeys_DoNotMoveFocusAwayFromAControlThatClaimsThem()
+    public void ArrowKeysDoNotMoveFocusAwayFromAControlThatClaimsThem()
     {
         var focus = new FocusManager();
         var input = Substitute.For<IInputHandler>();
@@ -463,7 +463,7 @@ public class FocusManagerTests
 
     /// <summary>A focused text field keeps the arrow keys for moving its caret.</summary>
     [Fact]
-    public void ArrowKeys_DoNotMoveFocusAwayFromATextInput()
+    public void ArrowKeysDoNotMoveFocusAwayFromATextInput()
     {
         var focus = new FocusManager();
         var input = Substitute.For<IInputHandler>();

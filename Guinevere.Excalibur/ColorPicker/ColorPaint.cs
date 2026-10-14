@@ -35,11 +35,15 @@ public static class ColorPaint
     public static void FillGradient(Gui gui, Rect rect, ReadOnlySpan<SKColor> stops, bool vertical = false,
         float radius = 0f)
     {
-        if (gui.Pass != Pass.Pass2Render || rect.W <= 0 || rect.H <= 0) return;
+        if (gui.Pass != Pass.Pass2Render || rect.W <= 0 || rect.H <= 0)
+        {
+            return;
+        }
+
         var from = vertical ? new SKPoint(rect.X, rect.Y + rect.H) : new SKPoint(rect.X, rect.Y);
         var to = vertical ? new SKPoint(rect.X, rect.Y) : new SKPoint(rect.X + rect.W, rect.Y);
         Shade(gui.DrawRect(rect, radius).SolidColor(Color.White),
-            SKShader.CreateLinearGradient(from, to, stops.ToArray(), null, SKShaderTileMode.Clamp));
+            SKShader.CreateLinearGradient(from, to, [.. stops], null, SKShaderTileMode.Clamp));
     }
 
     /// <summary>Fills a circle with the hue circle swept around its center, red at three o'clock, clockwise.</summary>
@@ -48,7 +52,11 @@ public static class ColorPaint
     /// <param name="radius">Circle radius.</param>
     public static void FillHueWheel(Gui gui, Vector2 center, float radius)
     {
-        if (gui.Pass != Pass.Pass2Render || radius <= 0) return;
+        if (gui.Pass != Pass.Pass2Render || radius <= 0)
+        {
+            return;
+        }
+
         Shade(gui.DrawCircle(center, radius).SolidColor(Color.White),
             SKShader.CreateSweepGradient(new SKPoint(center.X, center.Y), HueColors, null));
     }
@@ -61,7 +69,11 @@ public static class ColorPaint
     /// <param name="outer">Color at the edge.</param>
     public static void FillRadial(Gui gui, Vector2 center, float radius, Color inner, Color outer)
     {
-        if (gui.Pass != Pass.Pass2Render || radius <= 0) return;
+        if (gui.Pass != Pass.Pass2Render || radius <= 0)
+        {
+            return;
+        }
+
         Shade(gui.DrawCircle(center, radius).SolidColor(Color.White),
             SKShader.CreateRadialGradient(new SKPoint(center.X, center.Y), radius, [inner, outer], null,
                 SKShaderTileMode.Clamp));
@@ -76,15 +88,24 @@ public static class ColorPaint
     /// <param name="cell">Side of one square.</param>
     public static void FillChecker(Gui gui, Rect rect, float cell = 6f)
     {
-        if (gui.Pass != Pass.Pass2Render || rect.W <= 0 || rect.H <= 0) return;
+        if (gui.Pass != Pass.Pass2Render || rect.W <= 0 || rect.H <= 0)
+        {
+            return;
+        }
+
         var style = gui.ResolvePart("checker");
         gui.DrawRect(rect, style.GetColor("background-color") ?? Color.White);
         cell = Math.Max(2f, cell);
         var builder = new SKPathBuilder();
         for (var y = 0; y * cell < rect.H; y++)
+        {
             for (var x = y % 2; x * cell < rect.W; x += 2)
+            {
                 builder.AddRect(new SKRect(rect.X + x * cell, rect.Y + y * cell,
                     rect.X + MathF.Min(rect.W, (x + 1) * cell), rect.Y + MathF.Min(rect.H, (y + 1) * cell)));
+            }
+        }
+
         var squares = new PathShape(builder.Detach());
         squares.SolidColor(style.GetColor("color") ?? Color.LightGray);
         gui.DrawShape(Vector2.Zero, squares);

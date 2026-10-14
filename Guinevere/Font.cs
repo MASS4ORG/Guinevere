@@ -81,7 +81,11 @@ public class Font
     {
         ArgumentNullException.ThrowIfNull(text);
         var runs = FontTextLayout.Create(text, this, this, this);
-        if (runs.Count == 0) return new Rect();
+        if (runs.Count == 0)
+        {
+            return new Rect();
+        }
+
         var width = 0f;
         var bounds = SKRect.Empty;
         var first = true;

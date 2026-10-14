@@ -36,7 +36,11 @@ Console.WriteLine("|---|---:|---:|---:|---:|");
 Measure("polymorphic-draw-build", count, iterations, () =>
 {
     var commands = new List<IDrawListEntry>(count);
-    for (var i = 0; i < count; i++) commands.Add(new DrawableEntry(drawable));
+    for (var i = 0; i < count; i++)
+    {
+        commands.Add(new DrawableEntry(drawable));
+    }
+
     GC.KeepAlive(commands);
 });
 
@@ -45,44 +49,71 @@ drawList.EnsureCapacity(count);
 Measure("typed-reused-draw-build", count, iterations, () =>
 {
     drawList.Clear();
-    for (var i = 0; i < count; i++) drawList.Add(drawable);
+    for (var i = 0; i < count; i++)
+    {
+        drawList.Add(drawable);
+    }
+
     GC.KeepAlive(drawList.Count);
 });
 
 Measure("text-effects-reference-copy", count, iterations, () =>
 {
-    for (var i = 0; i < count; i++) effectReferences[i] = referenceEffect;
+    for (var i = 0; i < count; i++)
+    {
+        effectReferences[i] = referenceEffect;
+    }
+
     GC.KeepAlive(effectReferences[count - 1]);
 });
 
 Measure("text-effects-value-copy", count, iterations, () =>
 {
-    for (var i = 0; i < count; i++) valueEffects[i] = effect;
+    for (var i = 0; i < count; i++)
+    {
+        valueEffects[i] = effect;
+    }
+
     checksum += valueEffects[count - 1].Outline?.Width ?? 0f;
 });
 
 Measure("text-effects-reference-create", count, iterations, () =>
 {
-    for (var i = 0; i < count; i++) effectReferences[i] = new ReferenceTextEffects(effect);
+    for (var i = 0; i < count; i++)
+    {
+        effectReferences[i] = new ReferenceTextEffects(effect);
+    }
+
     GC.KeepAlive(effectReferences[count - 1]);
 });
 
 Measure("packed-color-create", count, iterations, () =>
 {
-    for (var i = 0; i < count; i++) colors[i] = Color.FromArgb(255, i & 255, i >> 2 & 255, 255 - i & 255);
+    for (var i = 0; i < count; i++)
+    {
+        colors[i] = Color.FromArgb(255, i & 255, i >> 2 & 255, 255 - i & 255);
+    }
+
     checksum += colors[count - 1].R;
 });
 
 Measure("reference-color-create", count, iterations, () =>
 {
     for (var i = 0; i < count; i++)
+    {
         referenceColors[i] = new ReferenceColor(System.Drawing.Color.FromArgb(255, i & 255, i >> 2 & 255, 255 - i & 255));
+    }
+
     checksum += referenceColors[count - 1].Value.R;
 });
 
 Measure("color-to-skcolor", count, iterations, () =>
 {
-    for (var i = 0; i < count; i++) skColors[i] = colors[i];
+    for (var i = 0; i < count; i++)
+    {
+        skColors[i] = colors[i];
+    }
+
     checksum += skColors[count - 1].Red;
 });
 
@@ -91,14 +122,22 @@ var style = LayoutStyle.Default;
 Measure("layout-style-read", count, iterations * 4, () =>
 {
     var sum = 0f;
-    for (var i = 0; i < count; i++) sum += style.Width + style.PaddingLeft + style.MaxWidth;
+    for (var i = 0; i < count; i++)
+    {
+        sum += style.Width + style.PaddingLeft + style.MaxWidth;
+    }
+
     GC.KeepAlive(sum);
 });
 
 var styles = new LayoutStyle[count];
 Measure("layout-style-copy", count, iterations, () =>
 {
-    for (var i = 0; i < count; i++) styles[i] = style;
+    for (var i = 0; i < count; i++)
+    {
+        styles[i] = style;
+    }
+
     GC.KeepAlive(styles[count - 1]);
 });
 
@@ -107,7 +146,9 @@ var scopeGui = new Gui();
 var scopeNodes = new LayoutNode[9];
 scopeNodes[0] = new LayoutNode("scope-0", scopeGui, null);
 for (var i = 1; i < scopeNodes.Length; i++)
+{
     scopeNodes[i] = new LayoutNode($"scope-{i}", scopeGui, scopeNodes[i - 1]);
+}
 
 var rootScope = scopeNodes[0].Scope;
 var leafScope = scopeNodes[^1].Scope;
@@ -146,27 +187,43 @@ Measure("style-aggregate-8-reads", count, iterations * 4, () =>
 Measure("style-slotted-local-8-reads", count, iterations, () =>
 {
     var sum = 0f;
-    for (var i = 0; i < count; i++) sum += ReadCurrentTokens(rootScope);
+    for (var i = 0; i < count; i++)
+    {
+        sum += ReadCurrentTokens(rootScope);
+    }
+
     GC.KeepAlive(sum);
 });
 
 Measure("style-slotted-depth8-8-reads", count, iterations, () =>
 {
     var sum = 0f;
-    for (var i = 0; i < count; i++) sum += ReadCurrentTokens(leafScope);
+    for (var i = 0; i < count; i++)
+    {
+        sum += ReadCurrentTokens(leafScope);
+    }
+
     GC.KeepAlive(sum);
 });
 
 Measure("style-slotted-missing-read", count, iterations, () =>
 {
     var sum = 0;
-    for (var i = 0; i < count; i++) sum += leafScope.Get<LayoutNodeScopeScrollContainerId>().Value?.Length ?? 0;
+    for (var i = 0; i < count; i++)
+    {
+        sum += leafScope.Get<LayoutNodeScopeScrollContainerId>().Value?.Length ?? 0;
+    }
+
     GC.KeepAlive(sum);
 });
 
 var indexedRoot = new IndexedScope(null, 20);
 var indexedLeaf = indexedRoot;
-for (var i = 0; i < 8; i++) indexedLeaf = new IndexedScope(indexedLeaf, 20);
+for (var i = 0; i < 8; i++)
+{
+    indexedLeaf = new IndexedScope(indexedLeaf, 20);
+}
+
 var tokenSet = Enumerable.Range(0, 20).Select(i => (object)new BoxedToken(i)).ToArray();
 indexedRoot.Apply(tokenSet);
 
@@ -174,7 +231,13 @@ Measure("style-indexed-depth8-8-reads", count, iterations, () =>
 {
     var sum = 0;
     for (var i = 0; i < count; i++)
-        for (var slot = 0; slot < 8; slot++) sum += indexedLeaf.Get<BoxedToken>(slot, BoxedToken.Default).Value;
+    {
+        for (var slot = 0; slot < 8; slot++)
+        {
+            sum += indexedLeaf.Get(slot, BoxedToken.Default).Value;
+        }
+    }
+
     GC.KeepAlive(sum);
 });
 
@@ -184,7 +247,13 @@ Measure("style-indexed-flat-8-reads", count, iterations, () =>
 {
     var sum = 0;
     for (var i = 0; i < count; i++)
-        for (var slot = 0; slot < 8; slot++) sum += ((BoxedToken)flatTokens[slot]!).Value;
+    {
+        for (var slot = 0; slot < 8; slot++)
+        {
+            sum += ((BoxedToken)flatTokens[slot]!).Value;
+        }
+    }
+
     GC.KeepAlive(sum);
 });
 
@@ -215,13 +284,21 @@ static float ReadCurrentTokens(LayoutNodeScope scope) =>
 
 static void Measure(string name, int count, int iterations, Action action)
 {
-    for (var i = 0; i < 20; i++) action();
+    for (var i = 0; i < 20; i++)
+    {
+        action();
+    }
+
     GC.Collect();
     GC.WaitForPendingFinalizers();
     GC.Collect();
     var before = GC.GetAllocatedBytesForCurrentThread();
     var stopwatch = Stopwatch.StartNew();
-    for (var i = 0; i < iterations; i++) action();
+    for (var i = 0; i < iterations; i++)
+    {
+        action();
+    }
+
     stopwatch.Stop();
     var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
     var microseconds = stopwatch.Elapsed.TotalMicroseconds / iterations;
@@ -283,8 +360,13 @@ sealed class IndexedScope(IndexedScope? parent, int capacity)
     public T Get<T>(int slot, T fallback) where T : class
     {
         for (var current = this; current is not null; current = current.Parent)
+        {
             if (current._values[slot] is T value)
+            {
                 return value;
+            }
+        }
+
         return fallback;
     }
 

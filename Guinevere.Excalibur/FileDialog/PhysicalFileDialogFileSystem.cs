@@ -47,7 +47,10 @@ public sealed class PhysicalFileDialogFileSystem : IFileDialogFileSystem
         for (var directory = path.Length > 0 ? new DirectoryInfo(path) : null;
              directory is not null;
              directory = directory.Parent)
+        {
             crumbs.Insert(0, (directory.Parent is null ? directory.FullName : directory.Name, directory.FullName));
+        }
+
         return crumbs;
     }
 
@@ -57,9 +60,17 @@ public sealed class PhysicalFileDialogFileSystem : IFileDialogFileSystem
 
     static string? ResolveDirectory(string path)
     {
-        if (string.IsNullOrWhiteSpace(path)) return null;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
         var full = Path.GetFullPath(path);
-        if (Directory.Exists(full)) return full;
+        if (Directory.Exists(full))
+        {
+            return full;
+        }
+
         return File.Exists(full) ? Path.GetDirectoryName(full) : null;
     }
 
@@ -70,7 +81,11 @@ public sealed class PhysicalFileDialogFileSystem : IFileDialogFileSystem
         var modified = DateTime.MinValue;
         try
         {
-            if (info is FileInfo file) size = file.Length;
+            if (info is FileInfo file)
+            {
+                size = file.Length;
+            }
+
             modified = info.LastWriteTime;
         }
         catch (IOException)
@@ -84,7 +99,11 @@ public sealed class PhysicalFileDialogFileSystem : IFileDialogFileSystem
 
     static bool IsHidden(FileSystemInfo info)
     {
-        if (info.Name.StartsWith('.')) return true;
+        if (info.Name.StartsWith('.'))
+        {
+            return true;
+        }
+
         try
         {
             return (info.Attributes & FileAttributes.Hidden) != 0;

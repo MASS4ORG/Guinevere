@@ -14,21 +14,40 @@ public sealed class NineSliceLayoutTests
         var sourceArea = 0f;
         var destinationArea = 0f;
         for (var row = 0; row < 3; row++)
+        {
             for (var column = 0; column < 3; column++)
             {
                 var (source, destination) = grid.Patch(row, column);
                 sourceArea += source.W * source.H;
                 destinationArea += destination.W * destination.H;
                 Assert.True(destination.W >= 0 && destination.H >= 0);
-                if (column < 2) Assert.Equal(destination.X + destination.W, grid.Patch(row, column + 1).Destination.X);
-                if (row < 2) Assert.Equal(destination.Y + destination.H, grid.Patch(row + 1, column).Destination.Y);
+                if (column < 2)
+                {
+                    Assert.Equal(destination.X + destination.W, grid.Patch(row, column + 1).Destination.X);
+                }
+
+                if (row < 2)
+                {
+                    Assert.Equal(destination.Y + destination.H, grid.Patch(row + 1, column).Destination.Y);
+                }
             }
+        }
+
         Assert.Equal(320, sourceArea);
         Assert.Equal(width * height, destinationArea, 3);
         Assert.Equal(new Rect(3, 2, 12, 10), grid.SourceCenter);
-        if (width == 100) Assert.Equal(new Rect(13, 14, 92, 74), grid.DestinationCenter);
-        else if (width > 0) Assert.Equal(3f / 8f, grid.Patch(0, 0).Destination.W / width, 3);
-        else Assert.Equal(0, grid.Patch(0, 0).Destination.W);
+        if (width == 100)
+        {
+            Assert.Equal(new Rect(13, 14, 92, 74), grid.DestinationCenter);
+        }
+        else if (width > 0)
+        {
+            Assert.Equal(3f / 8f, grid.Patch(0, 0).Destination.W / width, 3);
+        }
+        else
+        {
+            Assert.Equal(0, grid.Patch(0, 0).Destination.W);
+        }
     }
 
     /// <summary>Invalid source dimensions and borders cannot produce overlapping or nonfinite patches.</summary>

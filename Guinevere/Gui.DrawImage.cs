@@ -64,7 +64,9 @@ public partial class Gui
         var node = Node(w, h);
 
         if (Pass == Pass.Pass2Render)
+        {
             DrawImage(image, node.Rect, null, tint, opacity, node);
+        }
 
         return node;
     }
@@ -102,25 +104,39 @@ public partial class Gui
 
     internal void DrawImage(SKImage image, Rect destination, Rect? source, Color? tint, float opacity, LayoutNode? node)
     {
-        if (Pass != Pass.Pass2Render) return;
+        if (Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         AddDraw(new ImageDrawable(image, destination, source, BuildImagePaint(tint, opacity)), node: node);
     }
 
     internal void DrawImageNineSlice(
         SKImage image, Rect destination, Insets border, Color? tint, float opacity, LayoutNode? node)
     {
-        if (Pass != Pass.Pass2Render) return;
+        if (Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
         AddDraw(new NineSliceDrawable(image, destination, border, BuildImagePaint(tint, opacity)), node: node);
     }
 
     static SKPaint? BuildImagePaint(Color? tint, float opacity)
     {
         var alpha = (byte)(Math.Clamp(opacity, 0f, 1f) * 255f + 0.5f);
-        if (tint is null && alpha == 255) return null;
+        if (tint is null && alpha == 255)
+        {
+            return null;
+        }
 
         var paint = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, alpha) };
         if (tint is { } tc)
+        {
             paint.ColorFilter = SKColorFilter.CreateBlendMode(tc, SKBlendMode.Modulate);
+        }
+
         return paint;
     }
 }

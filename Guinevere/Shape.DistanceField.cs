@@ -19,7 +19,11 @@ static class ShapeDistanceField
     {
         var bounds = SKRect.Union(first.Bounds, second.Bounds);
         var longest = Math.Max(bounds.Width, bounds.Height);
-        if (longest <= 0) return new SKPath();
+        if (longest <= 0)
+        {
+            return new SKPath();
+        }
+
         var step = Math.Max(longest / MaxCells, Math.Min(1, longest / 64));
         var padding = Math.Max(step * 3, smoothness / 4 + step * 2);
         bounds.Inflate(padding, padding);
@@ -39,7 +43,10 @@ static class ShapeDistanceField
             Sample(first, bounds, step, width, height, a, outer, inner, scratch);
             Sample(second, bounds, step, width, height, b, outer, inner, scratch);
             for (var i = 0; i < size; i++)
+            {
                 a[i] = smoothness > 0 ? SmoothMinimum(a[i], b[i], smoothness) : a[i] * (1 - amount) + b[i] * amount;
+            }
+
             return Trace(a, bounds, step, width, height);
         }
         finally
@@ -73,6 +80,7 @@ static class ShapeDistanceField
         var pixels = bitmap.GetPixelSpan();
         var rowBytes = bitmap.RowBytes;
         for (var y = 0; y < height; y++)
+        {
             for (var x = 0; x < width; x++)
             {
                 var i = y * width + x;
@@ -94,10 +102,14 @@ static class ShapeDistanceField
                     inner[i] = offset < 0 ? offset * offset : 0;
                 }
             }
+        }
+
         Distance(outer, width, height, scratch);
         Distance(inner, width, height, scratch);
         for (var i = 0; i < width * height; i++)
+        {
             field[i] = (MathF.Sqrt(outer[i]) - MathF.Sqrt(inner[i])) * step;
+        }
     }
 
     static void Distance(float[] values, int width, int height, Scratch scratch)
@@ -110,9 +122,16 @@ static class ShapeDistanceField
         }
         for (var x = 0; x < width; x++)
         {
-            for (var y = 0; y < height; y++) scratch.Input[y] = values[y * width + x];
+            for (var y = 0; y < height; y++)
+            {
+                scratch.Input[y] = values[y * width + x];
+            }
+
             Transform(scratch, height);
-            for (var y = 0; y < height; y++) values[y * width + x] = scratch.Output[y];
+            for (var y = 0; y < height; y++)
+            {
+                values[y * width + x] = scratch.Output[y];
+            }
         }
     }
 
@@ -141,7 +160,11 @@ static class ShapeDistanceField
         last = 0;
         for (var q = 0; q < count; q++)
         {
-            while (boundaries[last + 1] < q) last++;
+            while (boundaries[last + 1] < q)
+            {
+                last++;
+            }
+
             var delta = q - sites[last];
             s.Output[q] = delta * delta + input[sites[last]];
         }
@@ -166,7 +189,11 @@ static class ShapeDistanceField
             var points = new List<SKPoint>();
             for (var start = 0; start < edges; start++)
             {
-                if (next[start] < 0) continue;
+                if (next[start] < 0)
+                {
+                    continue;
+                }
+
                 points.Clear();
                 var current = start;
                 while (current >= 0)
@@ -192,6 +219,7 @@ static class ShapeDistanceField
         Span<int> ids = stackalloc int[4];
         Span<bool> enters = stackalloc bool[4];
         for (var y = 0; y < height - 1; y++)
+        {
             for (var x = 0; x < width - 1; x++)
             {
                 var i = y * width + x;
@@ -199,7 +227,10 @@ static class ShapeDistanceField
                 var tr = field[i + 1] < 0;
                 var br = field[i + width + 1] < 0;
                 var bl = field[i + width] < 0;
-                if (tl == tr && tr == br && br == bl) continue;
+                if (tl == tr && tr == br && br == bl)
+                {
+                    continue;
+                }
 
                 var count = 0;
                 AddCrossing(tl, tr, i, ids, enters, ref count);
@@ -208,19 +239,36 @@ static class ShapeDistanceField
                 AddCrossing(bl, tl, size + i, ids, enters, ref count);
                 if (count == 2)
                 {
-                    if (enters[0]) next[ids[0]] = ids[1];
-                    else next[ids[1]] = ids[0];
+                    if (enters[0])
+                    {
+                        next[ids[0]] = ids[1];
+                    }
+                    else
+                    {
+                        next[ids[1]] = ids[0];
+                    }
+
                     continue;
                 }
                 var joined = field[i] + field[i + 1] + field[i + width + 1] + field[i + width] < 0;
                 for (var j = 0; j < 4; j++)
-                    if (enters[j]) next[ids[j]] = ids[joined ? (j + 3) & 3 : (j + 1) & 3];
+                {
+                    if (enters[j])
+                    {
+                        next[ids[j]] = ids[joined ? (j + 3) & 3 : (j + 1) & 3];
+                    }
+                }
             }
+        }
     }
 
     static void AddCrossing(bool from, bool to, int edge, Span<int> ids, Span<bool> enters, ref int count)
     {
-        if (from == to) return;
+        if (from == to)
+        {
+            return;
+        }
+
         ids[count] = edge;
         enters[count++] = to;
     }
@@ -232,8 +280,15 @@ static class ShapeDistanceField
         var b = vertical ? a + width : a + 1;
         var t = field[a] / (field[a] - field[b]);
         float x = a % width, y = a / width;
-        if (vertical) y += t;
-        else x += t;
+        if (vertical)
+        {
+            y += t;
+        }
+        else
+        {
+            x += t;
+        }
+
         return new SKPoint(bounds.Left + x * step, bounds.Top + y * step);
     }
 
@@ -241,10 +296,17 @@ static class ShapeDistanceField
     static void AddContour(SKPathBuilder builder, List<SKPoint> points)
     {
         var count = points.Count;
-        if (count < 3) return;
+        if (count < 3)
+        {
+            return;
+        }
+
         builder.MoveTo(Midpoint(points[count - 1], points[0]));
         for (var i = 0; i < count; i++)
+        {
             builder.QuadTo(points[i], Midpoint(points[i], points[(i + 1) % count]));
+        }
+
         builder.Close();
     }
 

@@ -1,5 +1,4 @@
 using Silk.NET.Vulkan;
-using Silk.NET.Vulkan.Extensions.KHR;
 using SkiaSharp;
 using VkSemaphore = Silk.NET.Vulkan.Semaphore;
 
@@ -33,10 +32,15 @@ public unsafe partial class CanvasRenderer
         _usage = ImageUsageFlags.ColorAttachmentBit
                  | (capabilities.SupportedUsageFlags & (ImageUsageFlags.TransferDstBit | ImageUsageFlags.TransferSrcBit));
         if (!IsGpuAccelerated && !_usage.HasFlag(ImageUsageFlags.TransferDstBit))
+        {
             throw new InvalidOperationException("The surface cannot receive copies, which CPU rasterization needs.");
+        }
 
         var imageCount = capabilities.MinImageCount + 1;
-        if (capabilities.MaxImageCount > 0) imageCount = Math.Min(imageCount, capabilities.MaxImageCount);
+        if (capabilities.MaxImageCount > 0)
+        {
+            imageCount = Math.Min(imageCount, capabilities.MaxImageCount);
+        }
 
         var createInfo = new SwapchainCreateInfoKHR
         {
@@ -66,15 +70,23 @@ public unsafe partial class CanvasRenderer
         _khrSwapchain.GetSwapchainImages(_device, _swapchain, ref imageCount, null);
         _swapchainImages = new Image[imageCount];
         fixed (Image* images = _swapchainImages)
+        {
             _khrSwapchain.GetSwapchainImages(_device, _swapchain, ref imageCount, images);
+        }
 
         // One present semaphore per image: an image's semaphore is only reused after that image is acquired again.
         _renderFinished = new VkSemaphore[imageCount];
         var semaphoreInfo = new SemaphoreCreateInfo { SType = StructureType.SemaphoreCreateInfo };
         for (var i = 0; i < imageCount; i++)
+        {
             Check(_vk.CreateSemaphore(_device, in semaphoreInfo, null, out _renderFinished[i]), "create semaphore");
+        }
 
-        if (!IsGpuAccelerated) CreateRasterTargets();
+        if (!IsGpuAccelerated)
+        {
+            CreateRasterTargets();
+        }
+
         _swapchainStale = false;
     }
 
@@ -90,17 +102,29 @@ public unsafe partial class CanvasRenderer
         DestroyRasterTargets();
         if (_renderFinished is not null)
         {
-            foreach (var semaphore in _renderFinished) _vk.DestroySemaphore(_device, semaphore, null);
+            foreach (var semaphore in _renderFinished)
+            {
+                _vk.DestroySemaphore(_device, semaphore, null);
+            }
+
             _renderFinished = null;
         }
-        if (_swapchain.Handle != 0) _khrSwapchain.DestroySwapchain(_device, _swapchain, null);
+        if (_swapchain.Handle != 0)
+        {
+            _khrSwapchain.DestroySwapchain(_device, _swapchain, null);
+        }
+
         _swapchain = default;
         _swapchainImages = [];
     }
 
     Extent2D ChooseExtent(SurfaceCapabilitiesKHR capabilities)
     {
-        if (capabilities.CurrentExtent.Width != uint.MaxValue) return capabilities.CurrentExtent;
+        if (capabilities.CurrentExtent.Width != uint.MaxValue)
+        {
+            return capabilities.CurrentExtent;
+        }
+
         return new Extent2D(
             Math.Clamp((uint)_width, capabilities.MinImageExtent.Width, capabilities.MaxImageExtent.Width),
             Math.Clamp((uint)_height, capabilities.MinImageExtent.Height, capabilities.MaxImageExtent.Height));
@@ -110,9 +134,16 @@ public unsafe partial class CanvasRenderer
     static SurfaceFormatKHR ChooseSurfaceFormat(SurfaceFormatKHR[] formats)
     {
         foreach (var preferred in (ReadOnlySpan<Format>)[Format.B8G8R8A8Unorm, Format.R8G8B8A8Unorm])
+        {
             foreach (var format in formats)
+            {
                 if (format.Format == preferred && format.ColorSpace == ColorSpaceKHR.SpaceSrgbNonlinearKhr)
+                {
                     return format;
+                }
+            }
+        }
+
         return formats[0];
     }
 
@@ -128,13 +159,17 @@ public unsafe partial class CanvasRenderer
         _khrSurface.GetPhysicalDeviceSurfaceFormats(device, _surface, ref formatCount, null);
         details.Formats = new SurfaceFormatKHR[formatCount];
         fixed (SurfaceFormatKHR* formats = details.Formats)
+        {
             _khrSurface.GetPhysicalDeviceSurfaceFormats(device, _surface, ref formatCount, formats);
+        }
 
         uint modeCount = 0;
         _khrSurface.GetPhysicalDeviceSurfacePresentModes(device, _surface, ref modeCount, null);
         details.PresentModes = new PresentModeKHR[modeCount];
         fixed (PresentModeKHR* modes = details.PresentModes)
+        {
             _khrSurface.GetPhysicalDeviceSurfacePresentModes(device, _surface, ref modeCount, modes);
+        }
 
         return details;
     }

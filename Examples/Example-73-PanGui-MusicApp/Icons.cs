@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Example_73_PanGui_MusicApp;
+namespace Example73PanGuiMusicApp;
 
 static class Icons
 {

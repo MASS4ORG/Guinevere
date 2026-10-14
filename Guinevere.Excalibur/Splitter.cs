@@ -37,12 +37,17 @@ public static partial class ControlsExtensions
             modifiers: horizontal ? HorizontalSplitterModifier : VerticalSplitterModifier,
             filePath: filePath, lineNumber: lineNumber);
         if (thickness is { } size)
+        {
             node = horizontal ? node.Width(UnitValue.Pixels(size)) : node.Height(UnitValue.Pixels(size));
+        }
 
         using (node.Enter())
         {
             ref var anchor = ref gui.GetValue(float.NaN, $"{node.Id}/splitterAnchor");
-            if (gui.Pass != Pass.Pass2Render) return false;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return false;
+            }
 
             var interactable = gui.GetInteractable();
             var dragging = interactable.OnDrag(out var args);
@@ -55,10 +60,16 @@ public static partial class ControlsExtensions
 
             var track = gui.CurrentNode.Parent?.InnerRect;
             var span = horizontal ? track?.W ?? 0f : track?.H ?? 0f;
-            if (span <= 0f) return false;
+            if (span <= 0f)
+            {
+                return false;
+            }
 
             // Total travel keeps the divider anchored to the press position even when the pointer stops.
-            if (float.IsNaN(anchor)) anchor = fraction;
+            if (float.IsNaN(anchor))
+            {
+                anchor = fraction;
+            }
 
             var travel = horizontal ? args.TotalDelta.X : args.TotalDelta.Y;
             var updated = Math.Clamp(anchor + travel / span, min, 1f - min);

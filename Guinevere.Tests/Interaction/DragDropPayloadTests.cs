@@ -57,7 +57,9 @@ public class DragDropPayloadTests : IDisposable
         void Draw()
         {
             using (_gui.Node(50, 50, "target").Enter())
+            {
                 result = _gui.DropTarget<string>("target", tag, onDrop: value => received = value);
+            }
         }
 
         Frame(Draw);
@@ -86,7 +88,9 @@ public class DragDropPayloadTests : IDisposable
         Frame(() =>
         {
             using (_gui.Node(50, 50, "target").Enter())
+            {
                 result = _gui.DropTarget<int>("target", canAccept: value => value > 10);
+            }
         });
 
         Assert.Equal(DropTargetState.HoverRejected, result.State);
@@ -124,7 +128,9 @@ public class DragDropPayloadTests : IDisposable
         void Draw()
         {
             using (_gui.Node(50, 50, "source").Enter())
+            {
                 _gui.DragSource<object>("source", 42);
+            }
         }
 
         Frame(Draw);
@@ -147,13 +153,18 @@ public class DragDropPayloadTests : IDisposable
             using (_gui.Node(50, 50, "target").Enter())
             {
                 _gui.DropTarget<string>("target", onDrop: value => received = value);
-                if (_gui.Pass == Pass.Pass2Render) _gui.RequestFocus();
+                if (_gui.Pass == Pass.Pass2Render)
+                {
+                    _gui.RequestFocus();
+                }
             }
         });
         Frame(() =>
         {
             using (_gui.Node(50, 50, "target").Enter())
+            {
                 _gui.DropTarget<string>("target", onDrop: value => received = value);
+            }
         });
         Assert.True(_gui.HasFocus("target"));
 
@@ -161,7 +172,9 @@ public class DragDropPayloadTests : IDisposable
         Frame(() =>
         {
             using (_gui.Node(50, 50, "target").Enter())
+            {
                 _gui.DropTarget<string>("target", onDrop: value => received = value);
+            }
         });
 
         Assert.Equal("payload", received);

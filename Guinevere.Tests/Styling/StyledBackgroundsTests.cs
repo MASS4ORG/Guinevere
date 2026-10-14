@@ -72,10 +72,14 @@ public sealed class StyledBackgroundsTests
             using (g.Node().Direction(Axis.Horizontal).Gap(10).Enter())
             {
                 using (g.StyledNode("box").Enter()) { }
-                using (g.Node(20, 20).Enter()) g.DrawStyledBox(g.ResolveStyle("box"), g.CurrentNode.Rect);
+                using (g.Node(20, 20).Enter())
+                {
+                    g.DrawStyledBox(g.ResolveStyle("box"), g.CurrentNode.Rect);
+                }
             }
         });
         for (var y = 0; y < 20; y++)
+        {
             for (var x = 0; x < 20; x++)
             {
                 var node = Pixel(harness, x, y);
@@ -85,6 +89,8 @@ public sealed class StyledBackgroundsTests
                 Assert.InRange(Math.Abs(node.Blue - part.Blue), 0, 4);
                 Assert.Equal(node.Alpha, part.Alpha);
             }
+        }
+
         Assert.Equal(SKColors.White, Pixel(harness, 0, 0));
         Assert.InRange(Pixel(harness, 10, 10).Green, (byte)120, (byte)140);
         harness.Gui.ClearBackgroundImages();
@@ -130,7 +136,7 @@ public sealed class StyledBackgroundsTests
     public void SampleAssetsLoad(string id)
     {
         using var harness = new FrameHarness(120, 64);
-        harness.Gui.StyleSheets.Add(Controls_01.Program.StylingSheet);
+        harness.Gui.StyleSheets.Add(Controls01.Program.StylingSheet);
         harness.Frame(g => { using (g.StyledNode("VisualElement", ["tile"], id).Enter()) { } });
         Assert.Empty(harness.Gui.BackgroundDiagnostics);
         Assert.NotEqual(SKColors.Transparent, Pixel(harness, 60, 32));
@@ -157,7 +163,10 @@ public sealed class StyledBackgroundsTests
         {
             if (part)
             {
-                using (g.Node(20, 20).Enter()) g.DrawStyledBox(g.ResolveStyle("box"), g.CurrentNode.Rect);
+                using (g.Node(20, 20).Enter())
+                {
+                    g.DrawStyledBox(g.ResolveStyle("box"), g.CurrentNode.Rect);
+                }
             }
             else
             {

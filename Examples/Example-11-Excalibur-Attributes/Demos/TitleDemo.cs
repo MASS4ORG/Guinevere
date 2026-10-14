@@ -1,6 +1,6 @@
 using MASS4.Attributes;
 
-namespace Example_11_Excalibur_Attributes;
+namespace Example11ExcaliburAttributes;
 
 // [Title] draws a heading, optional subtitle and line above a member.
 public sealed class TitleDemo

@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Example_70_PanGui_HelloWorld;
+namespace Example70PanGuiHelloWorld;
 
 public abstract class Program
 {

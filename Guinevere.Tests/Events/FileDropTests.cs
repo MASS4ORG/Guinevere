@@ -38,6 +38,7 @@ public sealed class FileDropTests
                 gui.On<FileDropEvent>(drop => calls.Add("capture"), capture: true);
                 gui.On<FileDropEvent>(drop => calls.Add("bubble"));
                 using (gui.Node(100, 100, "child").Enter())
+                {
                     gui.On<FileDropEvent>(drop =>
                     {
                         Assert.Equal(Pass.Pass1Build, gui.Pass);
@@ -45,6 +46,7 @@ public sealed class FileDropTests
                         delivered.AddRange(drop.Paths);
                         calls.Add("target");
                     });
+                }
             }
         }
         f.Frame(Draw);

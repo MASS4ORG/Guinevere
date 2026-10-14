@@ -54,9 +54,14 @@ public static partial class ControlsExtensions
             RenderTabActions(gui, theme, idPrefix, trailing);
 
             if (overflowing && Navigation(gui, $"{idPrefix}/next", ">", visible.End < items.Count, theme))
+            {
                 state.FirstVisible = visible.End;
+            }
 
-            if (gui.Pass == Pass.Pass2Render) state.ViewportWidth = gui.CurrentNode.Rect.W;
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                state.ViewportWidth = gui.CurrentNode.Rect.W;
+            }
         }
 
         return result;
@@ -66,7 +71,9 @@ public static partial class ControlsExtensions
         float[] widths, float availableWidth, bool overflowing)
     {
         if (overflowing && Navigation(gui, $"{idPrefix}/previous", "<", state.FirstVisible > 0, theme))
+        {
             state.FirstVisible = PreviousRange(state.FirstVisible, widths, availableWidth);
+        }
     }
 
     static (float[] Widths, float Available, bool Overflowing) PrepareTabWidths(Gui gui,
@@ -74,14 +81,27 @@ public static partial class ControlsExtensions
     {
         var ancestors = new List<StyleTarget>();
         for (var parent = gui.CurrentNode; parent is not null; parent = parent.Parent)
-            if (parent.StyleTarget is { } ancestor) ancestors.Add(ancestor);
+        {
+            if (parent.StyleTarget is { } ancestor)
+            {
+                ancestors.Add(ancestor);
+            }
+        }
+
         var widths = items.Select(item => PreviewTabWidth(gui, item, theme, $"{idPrefix}/{item.Id}",
             item.Id == activeId, ancestors)).ToArray();
         var overflowing = state.ViewportWidth > 0 && widths.Sum() > state.ViewportWidth;
         var available = Math.Max(0, state.ViewportWidth - (overflowing ? NavigationButtonWidth * 2 : 0));
         var activeIndex = items.ToList().FindIndex(item => item.Id == activeId);
-        if (overflowing) EnsureActiveIsVisible(state, activeIndex, widths, available);
-        else state.FirstVisible = 0;
+        if (overflowing)
+        {
+            EnsureActiveIsVisible(state, activeIndex, widths, available);
+        }
+        else
+        {
+            state.FirstVisible = 0;
+        }
+
         return (widths, available, overflowing);
     }
 
@@ -100,7 +120,9 @@ public static partial class ControlsExtensions
     {
         using (gui.Node(-1, theme.Height, $"{idPrefix}/actions")
                    .ExpandWidth().Direction(Axis.Horizontal).ContentAlignX(1f).Enter())
+        {
             trailing?.Invoke(gui);
+        }
     }
 
     static TabStripResult RenderTab(Gui gui, TabStripItem item, bool isActive, TabStripTheme theme,
@@ -113,15 +135,24 @@ public static partial class ControlsExtensions
                    .Height(theme.Height).Direction(Axis.Horizontal).Padding(8, 0).Gap(6f).ContentAlignY(0.5f).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
+            {
                 result = HandleStripTab(gui, item, isActive, id, onDragSource, result);
+            }
 
             if (item.Icon is { } icon)
+            {
                 using (gui.Node(theme.IconSize, theme.IconSize, $"{id}/icon").Enter())
+                {
                     icon(gui);
+                }
+            }
 
             gui.DrawText(item.Label, theme.FontSize, centerInRect: false);
 
-            if (item.Closable) result = RenderClose(gui, item, theme, id, result);
+            if (item.Closable)
+            {
+                result = RenderClose(gui, item, theme, id, result);
+            }
         }
 
         return result;
@@ -136,9 +167,21 @@ public static partial class ControlsExtensions
             var rect = gui.CurrentNode.Rect;
             gui.DrawStyledBox(gui.ResolvePart("marker"), new Rect(rect.X, rect.Y, rect.W, 2));
         }
-        if (interactable.OnClick()) result = result with { Activated = item };
-        if (item.Closable && interactable.OnClick(MouseButton.Middle)) result = result with { Closed = item };
-        if (onDragSource?.Invoke(item, id) == true) result = result with { Dragged = item };
+        if (interactable.OnClick())
+        {
+            result = result with { Activated = item };
+        }
+
+        if (item.Closable && interactable.OnClick(MouseButton.Middle))
+        {
+            result = result with { Closed = item };
+        }
+
+        if (onDragSource?.Invoke(item, id) == true)
+        {
+            result = result with { Dragged = item };
+        }
+
         return result;
     }
 
@@ -153,7 +196,10 @@ public static partial class ControlsExtensions
             if (gui.Pass == Pass.Pass2Render)
             {
                 var close = gui.GetInteractable();
-                if (close.OnClick()) result = result with { Closed = item };
+                if (close.OnClick())
+                {
+                    result = result with { Closed = item };
+                }
 
                 if (item.Modified)
                 {
@@ -180,31 +226,50 @@ public static partial class ControlsExtensions
     static (int Start, int End) VisibleRange(int first, IReadOnlyList<float> widths, float available,
         bool overflowing)
     {
-        if (!overflowing) return (0, widths.Count);
+        if (!overflowing)
+        {
+            return (0, widths.Count);
+        }
 
         first = Math.Clamp(first, 0, Math.Max(0, widths.Count - 1));
         var end = first;
         var used = 0f;
-        while (end < widths.Count && (end == first || used + widths[end] <= available)) used += widths[end++];
+        while (end < widths.Count && (end == first || used + widths[end] <= available))
+        {
+            used += widths[end++];
+        }
+
         return (first, end);
     }
 
     static void EnsureActiveIsVisible(TabStripState state, int activeIndex, IReadOnlyList<float> widths,
         float available)
     {
-        if (activeIndex < 0) return;
+        if (activeIndex < 0)
+        {
+            return;
+        }
 
         var range = VisibleRange(state.FirstVisible, widths, available, overflowing: true);
-        if (activeIndex < range.Start || activeIndex >= range.End) state.FirstVisible = activeIndex;
+        if (activeIndex < range.Start || activeIndex >= range.End)
+        {
+            state.FirstVisible = activeIndex;
+        }
     }
 
     static int PreviousRange(int first, IReadOnlyList<float> widths, float available)
     {
-        if (first == 0) return 0;
+        if (first == 0)
+        {
+            return 0;
+        }
 
         var previous = first - 1;
         while (previous > 0 && VisibleRange(previous - 1, widths, available, overflowing: true).End >= first)
+        {
             previous--;
+        }
+
         return previous;
     }
 
@@ -213,7 +278,10 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("tab-nav", id: id, disabled: !enabled).Width(NavigationButtonWidth).Height(theme.Height)
                    .BlockInput().Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return false;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return false;
+            }
 
             gui.DrawText(label, theme.FontSize, centerInRect: true);
             return enabled && gui.GetInteractable().OnClick();

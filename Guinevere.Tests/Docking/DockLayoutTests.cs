@@ -93,7 +93,10 @@ public class DockLayoutTests
     {
         var layout = Seeded();
 
-        foreach (var panelId in layout.PanelIds.ToList()) layout.Remove(panelId);
+        foreach (var panelId in layout.PanelIds.ToList())
+        {
+            layout.Remove(panelId);
+        }
 
         Assert.Null(layout.Root);
         Assert.Empty(layout.PanelIds);
@@ -214,14 +217,24 @@ public class DockLayoutTests
         void Visit(DockNode node)
         {
             Assert.True(seen.Add(node), $"{node.GetType().Name} is reachable twice — the tree has a cycle.");
-            if (node is not DockSplit split) return;
+            if (node is not DockSplit split)
+            {
+                return;
+            }
 
             Visit(split.First);
             Visit(split.Second);
         }
 
-        if (layout.Root is not null) Visit(layout.Root);
-        foreach (var window in layout.Floating) Visit(window.Root);
+        if (layout.Root is not null)
+        {
+            Visit(layout.Root);
+        }
+
+        foreach (var window in layout.Floating)
+        {
+            Visit(window.Root);
+        }
     }
 
     [Theory]

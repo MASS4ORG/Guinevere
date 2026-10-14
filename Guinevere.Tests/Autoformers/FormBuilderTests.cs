@@ -277,7 +277,7 @@ public class FormBuilderTests
         readonly int _privateFrozen = 1;
         [Show] public const int Constant = 1;
         [Show] int _secret;
-        int _privateField = 0;
+        readonly int _privateField = 0;
         [Show] int SecretProperty { get; set; }
 
         public int this[int index] => index;
@@ -335,7 +335,11 @@ public class FormBuilderTests
         [Button]
         public void ResetToDefaults()
         {
-            if (Fail) throw new InvalidOperationException();
+            if (Fail)
+            {
+                throw new InvalidOperationException();
+            }
+
             Resets++;
         }
 

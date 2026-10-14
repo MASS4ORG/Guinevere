@@ -16,9 +16,19 @@ public partial class LayoutNode
         get
         {
             var world = Matrix3x2.Identity;
-            if (!_gui.TransformsUsed) return world;
+            if (!_gui.TransformsUsed)
+            {
+                return world;
+            }
+
             for (var node = this; node is not null; node = node._parent)
-                if (node.LocalTransform is { } local) world *= local;
+            {
+                if (node.LocalTransform is { } local)
+                {
+                    world *= local;
+                }
+            }
+
             return world;
         }
     }
@@ -30,9 +40,17 @@ public partial class LayoutNode
     /// <param name="screen">The point in screen coordinates.</param>
     public Vector2 ScreenToLocal(Vector2 screen)
     {
-        if (!_gui.TransformsUsed) return screen;
+        if (!_gui.TransformsUsed)
+        {
+            return screen;
+        }
+
         var world = WorldTransform;
-        if (world.IsIdentity) return screen;
+        if (world.IsIdentity)
+        {
+            return screen;
+        }
+
         return Matrix3x2.Invert(world, out var inverse) ? Vector2.Transform(screen, inverse) : new Vector2(float.NaN);
     }
 
@@ -48,9 +66,17 @@ public partial class LayoutNode
     /// <param name="local">The rect in layout coordinates.</param>
     public Rect LocalToScreen(Rect local)
     {
-        if (!_gui.TransformsUsed) return local;
+        if (!_gui.TransformsUsed)
+        {
+            return local;
+        }
+
         var world = WorldTransform;
-        if (world.IsIdentity) return local;
+        if (world.IsIdentity)
+        {
+            return local;
+        }
+
         var a = Vector2.Transform(new Vector2(local.X, local.Y), world);
         var b = Vector2.Transform(new Vector2(local.X + local.W, local.Y), world);
         var c = Vector2.Transform(new Vector2(local.X, local.Y + local.H), world);

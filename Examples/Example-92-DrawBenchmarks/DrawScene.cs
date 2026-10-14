@@ -56,7 +56,11 @@ sealed class DrawScene : IDisposable
     public void Dump(string[] args, string name)
     {
         var index = Array.IndexOf(args, "--dump");
-        if (index < 0 || index + 1 >= args.Length) return;
+        if (index < 0 || index + 1 >= args.Length)
+        {
+            return;
+        }
+
         Directory.CreateDirectory(args[index + 1]);
         using var image = _surface.Snapshot();
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);

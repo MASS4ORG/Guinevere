@@ -78,7 +78,11 @@ public static class StyledIcons
         Icon? Build(StyleSheetCollection sheets, StyleFontRegistry fonts, ResolvedStyle style)
         {
             var icon = Source(style) ?? Glyph(sheets, fonts, style);
-            if (icon is null) return null;
+            if (icon is null)
+            {
+                return null;
+            }
+
             var tint = icon.Kind == IconKind.Glyph
                        || (StyleValue.TryBool(style.Get("tint"), out var tintable) ? tintable : icon.Tintable);
             return icon with { Color = style.GetColor("color") ?? icon.Color, Tintable = tint };
@@ -86,14 +90,26 @@ public static class StyledIcons
 
         Icon? Source(ResolvedStyle style)
         {
-            if (IsNone(style.Get("src")) || style.GetUrl("src") is not { } uri) return null;
-            if (!_files.TryGetValue(uri, out var icon)) _files[uri] = icon = Load(uri);
+            if (IsNone(style.Get("src")) || style.GetUrl("src") is not { } uri)
+            {
+                return null;
+            }
+
+            if (!_files.TryGetValue(uri, out var icon))
+            {
+                _files[uri] = icon = Load(uri);
+            }
+
             return icon;
         }
 
         Icon? Load(Uri uri)
         {
-            if (StyleFonts.LocalPath(uri) is not { } path) return null;
+            if (StyleFonts.LocalPath(uri) is not { } path)
+            {
+                return null;
+            }
+
             try
             {
                 return Icon.FromFile(path, Decoders);
@@ -108,9 +124,17 @@ public static class StyledIcons
         static Icon? Glyph(StyleSheetCollection sheets, StyleFontRegistry fonts, ResolvedStyle style)
         {
             var raw = style.Get("glyph");
-            if (raw is null || IsNone(raw)) return null;
+            if (raw is null || IsNone(raw))
+            {
+                return null;
+            }
+
             var glyph = StyleValue.Unescape(StyleValue.Unquote(raw));
-            if (glyph.Length == 0) return null;
+            if (glyph.Length == 0)
+            {
+                return null;
+            }
+
             var font = fonts.Resolve(sheets, style.Get("font-family"), null,
                 StyleFonts.Weight(style.Get("font-weight")), StyleFonts.Italic(style.Get("font-style")));
             return Icon.FromGlyph(glyph, font);

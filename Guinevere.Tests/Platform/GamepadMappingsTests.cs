@@ -23,9 +23,18 @@ public class GamepadMappingsTests
         var activated = 0;
         void Draw(Gui gui)
         {
-            using (gui.Node(40, 40, "origin").Absolute(100, 100).Enter()) gui.Pressable();
+            using (gui.Node(40, 40, "origin").Absolute(100, 100).Enter())
+            {
+                gui.Pressable();
+            }
+
             using (gui.Node(40, 40, "target").Absolute(targetX, targetY).Enter())
-                if (gui.Pressable().Activated) activated++;
+            {
+                if (gui.Pressable().Activated)
+                {
+                    activated++;
+                }
+            }
         }
         void Frame()
         {
@@ -43,7 +52,11 @@ public class GamepadMappingsTests
             raw.Axes[0] = x;
             raw.Axes[1] = y;
         }
-        else raw.Hats[0] = new Vector2(x, y);
+        else
+        {
+            raw.Hats[0] = new Vector2(x, y);
+        }
+
         Frame();
         raw.Axes[0] = raw.Axes[1] = 0;
         raw.Hats[0] = Vector2.Zero;

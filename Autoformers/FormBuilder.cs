@@ -99,7 +99,10 @@ public static class FormBuilder
     /// <summary>A property getter can throw on a half-built object; such members are skipped.</summary>
     static bool CanReadSafely(MemberMetadata metadata, object target)
     {
-        if (metadata.Member is not PropertyInfo) return true;
+        if (metadata.Member is not PropertyInfo)
+        {
+            return true;
+        }
 
         try
         {

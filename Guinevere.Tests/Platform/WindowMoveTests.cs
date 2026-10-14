@@ -29,7 +29,11 @@ public sealed class WindowMoveTests
     [Fact]
     public void WindowsMoveRejectsUnsupportedOperatingSystem()
     {
-        if (OperatingSystem.IsWindows()) return;
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
         Assert.False(WindowsWindowMove.TryBegin(1));
     }
 

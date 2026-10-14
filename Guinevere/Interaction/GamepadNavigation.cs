@@ -38,34 +38,62 @@ public sealed class GamepadNavigation : ISemanticInputCapability
         ForgetDisconnected(input.Connections);
         var current = new HashSet<(string Device, SemanticAction Action)>();
         if (Enabled)
+        {
             foreach (var device in input.Devices)
-                if (device.IsMapped) UpdateDevice(device, elapsed, current);
-        foreach (var key in _repeats.Keys.Where(key => !current.Contains(key)).ToArray()) _repeats.Remove(key);
+            {
+                if (device.IsMapped)
+                {
+                    UpdateDevice(device, elapsed, current);
+                }
+            }
+        }
+
+        foreach (var key in _repeats.Keys.Where(key => !current.Contains(key)).ToArray())
+        {
+            _repeats.Remove(key);
+        }
+
         _held.Clear();
         _held.UnionWith(current);
         if (!input.Devices.Any(device => device.Id == ActiveDevice.Id))
+        {
             ActiveDevice = new InputDevice("keyboard-mouse", InputDeviceKind.KeyboardMouse);
+        }
     }
 
     void ForgetDisconnected(IReadOnlyList<GameDeviceConnection> connections)
     {
         foreach (var connection in connections)
         {
-            if (connection.Connected) continue;
+            if (connection.Connected)
+            {
+                continue;
+            }
+
             _held.RemoveWhere(key => key.Device == connection.DeviceId);
             foreach (var key in _repeats.Keys.Where(key => key.Device == connection.DeviceId).ToArray())
+            {
                 _repeats.Remove(key);
+            }
         }
     }
 
     void ValidateOptions()
     {
         if (!float.IsFinite(Options.DeadZone) || Options.DeadZone < 0 || Options.DeadZone >= 1)
+        {
             throw new ArgumentOutOfRangeException(nameof(Options));
+        }
+
         if (!double.IsFinite(Options.RepeatDelay) || Options.RepeatDelay < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(Options));
+        }
+
         if (!double.IsFinite(Options.RepeatInterval) || Options.RepeatInterval <= 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(Options));
+        }
     }
 
     void UpdateDevice(GameInputDevice device, double elapsed,
@@ -74,20 +102,36 @@ public sealed class GamepadNavigation : ISemanticInputCapability
         foreach (var (action, button) in Buttons)
         {
             var state = device.Button(button);
-            if (state.Pressed) Press(device.Id, action);
+            if (state.Pressed)
+            {
+                Press(device.Id, action);
+            }
         }
         var direction = GetDirection(device);
-        if (direction is { } navigation) UpdateRepeat(device.Id, navigation, elapsed, current);
+        if (direction is { } navigation)
+        {
+            UpdateRepeat(device.Id, navigation, elapsed, current);
+        }
     }
 
     SemanticAction? GetDirection(GameInputDevice device)
     {
         var vector = GetDpadDirection(device);
         if (vector == Vector2.Zero)
+        {
             vector = new Vector2(device.Axis(0, Options.DeadZone), device.Axis(1, Options.DeadZone));
-        if (vector == Vector2.Zero) return null;
+        }
+
+        if (vector == Vector2.Zero)
+        {
+            return null;
+        }
+
         if (MathF.Abs(vector.X) > MathF.Abs(vector.Y))
+        {
             return vector.X < 0 ? SemanticAction.Left : SemanticAction.Right;
+        }
+
         return vector.Y < 0 ? SemanticAction.Up : SemanticAction.Down;
     }
 

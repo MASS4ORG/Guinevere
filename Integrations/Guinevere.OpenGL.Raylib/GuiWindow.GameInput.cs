@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Numerics;
 using Raylib_cs;
 
 namespace Guinevere;
@@ -14,13 +13,21 @@ public partial class GuiWindow
     void PollGameInput()
     {
         _gameInput.Poll(ReadController, 4, _gameInputClock.Elapsed.TotalSeconds);
-        if (_gameInput.Changed) Pacing.NotifyInput();
+        if (_gameInput.Changed)
+        {
+            Pacing.NotifyInput();
+        }
+
         PollTouchInput();
     }
 
     GameInputSample? ReadController(int slot)
     {
-        if (!Raylib.IsGamepadAvailable(slot)) return null;
+        if (!Raylib.IsGamepadAvailable(slot))
+        {
+            return null;
+        }
+
         return new GameInputSample($"raylib:{slot}", Raylib.GetGamepadName_(slot), true,
             ReadControllerButtons(slot), ReadControllerAxes(slot), []);
     }
@@ -33,7 +40,10 @@ public partial class GuiWindow
     {
         var contacts = Enumerable.Range(0, Raylib.GetTouchPointCount()).Select(ReadTouchContact).ToArray();
         _touchInput.SynchronizeContacts(contacts);
-        if (_touchInput.Changed) Pacing.NotifyInput();
+        if (_touchInput.Changed)
+        {
+            Pacing.NotifyInput();
+        }
     }
 
     static TouchContact ReadTouchContact(int index) =>

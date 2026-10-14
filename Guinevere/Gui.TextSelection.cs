@@ -19,12 +19,22 @@ public partial class Gui
                 RequestFocus(node.Id, FocusReason.Mouse);
                 StartTextSelection(state, text, at, clicks);
             }
-            else if (state.IsSelecting) state.MoveTo(at, extend: true);
+            else if (state.IsSelecting)
+            {
+                state.MoveTo(at, extend: true);
+            }
         }
-        else state.IsSelecting = false;
+        else
+        {
+            state.IsSelecting = false;
+        }
 
         state.IsFocused = HasFocus(node.Id);
-        if (state.IsFocused) HandleTextSelectionKeys(state);
+        if (state.IsFocused)
+        {
+            HandleTextSelectionKeys(state);
+        }
+
         return state;
     }
 
@@ -32,7 +42,10 @@ public partial class Gui
     {
         state.MoveTo(at, extend: Input.IsKeyDown(KeyboardKey.LeftShift)
             || Input.IsKeyDown(KeyboardKey.RightShift));
-        if (clicks >= 3) state.SelectAll();
+        if (clicks >= 3)
+        {
+            state.SelectAll();
+        }
         else if (clicks == 2)
         {
             var (start, end) = TextEditor.WordAt(text, at);
@@ -45,7 +58,11 @@ public partial class Gui
     int TextSelectionOffset(Rect inner, Vector2 pointer, IReadOnlyList<WrappedLine> lines, Font mainFont,
         Font iconFont, float lineHeight, bool centered)
     {
-        if (lines.Count == 0) return 0;
+        if (lines.Count == 0)
+        {
+            return 0;
+        }
+
         var row = Math.Clamp((int)((pointer.Y - inner.Y) / lineHeight), 0, lines.Count - 1);
         var line = lines[row];
         float Measure(string value) => MeasureLineWidth(value, mainFont, iconFont);
@@ -55,39 +72,76 @@ public partial class Gui
 
     void HandleTextSelectionKeys(TextEditState state)
     {
-        if (HandleTextSelectionClipboard(state)) return;
+        if (HandleTextSelectionClipboard(state))
+        {
+            return;
+        }
+
         var extend = Input.IsKeyDown(KeyboardKey.LeftShift) || Input.IsKeyDown(KeyboardKey.RightShift);
-        if (Input.IsKeyPressed(KeyboardKey.Home)) state.MoveTo(0, extend);
-        else if (Input.IsKeyPressed(KeyboardKey.End)) state.MoveTo(state.Text.Length, extend);
-        else HandleTextSelectionArrow(state, extend);
+        if (Input.IsKeyPressed(KeyboardKey.Home))
+        {
+            state.MoveTo(0, extend);
+        }
+        else if (Input.IsKeyPressed(KeyboardKey.End))
+        {
+            state.MoveTo(state.Text.Length, extend);
+        }
+        else
+        {
+            HandleTextSelectionArrow(state, extend);
+        }
     }
 
     bool HandleTextSelectionClipboard(TextEditState state)
     {
         var control = Input.IsKeyDown(KeyboardKey.LeftControl) || Input.IsKeyDown(KeyboardKey.RightControl);
-        if (!control) return false;
-        if (Input.IsKeyPressed(KeyboardKey.A)) state.SelectAll();
+        if (!control)
+        {
+            return false;
+        }
+
+        if (Input.IsKeyPressed(KeyboardKey.A))
+        {
+            state.SelectAll();
+        }
         else if (Input.IsKeyPressed(KeyboardKey.C))
+        {
             Platform.Require<IClipboard>().SetClipboardText(state.HasSelection ? state.SelectedText : state.Text);
-        else return false;
+        }
+        else
+        {
+            return false;
+        }
+
         return true;
     }
 
     void HandleTextSelectionArrow(TextEditState state, bool extend)
     {
         if (Input.IsKeyPressed(KeyboardKey.Left))
+        {
             state.MoveTo(!extend && state.HasSelection ? state.SelectionStart : state.CursorPosition - 1, extend);
+        }
         else if (Input.IsKeyPressed(KeyboardKey.Right))
+        {
             state.MoveTo(!extend && state.HasSelection ? state.SelectionEnd : state.CursorPosition + 1, extend);
+        }
     }
 
     void DrawTextSelection(LayoutNode node, TextEditState state, WrappedLine line, Font mainFont, Font iconFont,
         Rect row)
     {
-        if (!state.IsFocused || !state.HasSelection) return;
+        if (!state.IsFocused || !state.HasSelection)
+        {
+            return;
+        }
+
         float Measure(string value) => MeasureLineWidth(value, mainFont, iconFont);
         if (WrappedTextLayout.SelectionOn(Measure, line, state.SelectionStart, state.SelectionEnd) is not { } run)
+        {
             return;
+        }
+
         var shape = Shape.Rectangle(run.Width, row.H).SolidColor(Color.FromArgb(110, 100, 149, 237));
         node.DrawList.Add(new ShapePos(shape.Path, shape.Paint, new Vector2(row.X + run.X, row.Y)));
     }

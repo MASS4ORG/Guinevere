@@ -41,7 +41,10 @@ public static partial class ControlsExtensions
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(items);
-        if (items.Count == 0) return;
+        if (items.Count == 0)
+        {
+            return;
+        }
 
         ExcaliburStyles.Ensure(gui);
 
@@ -51,7 +54,11 @@ public static partial class ControlsExtensions
         {
             for (var i = 0; i < items.Count; i++)
             {
-                if (i > 0) RenderBreadcrumbSeparator(gui, items[i - 1], i, font, height);
+                if (i > 0)
+                {
+                    RenderBreadcrumbSeparator(gui, items[i - 1], i, font, height);
+                }
+
                 RenderBreadcrumbCrumb(gui, items[i], i, font, height);
             }
         }
@@ -89,12 +96,19 @@ public static partial class ControlsExtensions
 
             var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
             if (gui.Pass == Pass.Pass2Render)
+            {
                 DrawBreadcrumbContent(gui, item, font.Size, color);
+            }
 
-            if (interactive && clicked) item.OnClick?.Invoke();
+            if (interactive && clicked)
+            {
+                item.OnClick?.Invoke();
+            }
 
             if (gui.Pass == Pass.Pass2Render && interactive && (hovered || clicked || gui.HasFocus()))
+            {
                 DrawBreadcrumbUnderline(gui);
+            }
         }
     }
 
@@ -126,7 +140,9 @@ public static partial class ControlsExtensions
         var cursorX = rect.X + (rect.W - totalWidth) * 0.5f;
 
         if (item.Icon is not null)
+        {
             cursorX = DrawCrumbRuns(gui, item.Icon, fontSize, color, cursorX, rect);
+        }
 
         DrawCrumbRuns(gui, item.Label, fontSize, color, cursorX, rect);
     }
@@ -207,10 +223,16 @@ public static partial class ControlsExtensions
                 gui.DrawText(Chevron, font.Size, centerInRect: true);
             }
 
-            if (clicked) state.IsOpen = !state.IsOpen;
+            if (clicked)
+            {
+                state.IsOpen = !state.IsOpen;
+            }
         }
 
-        if (!hasChildren) return;
+        if (!hasChildren)
+        {
+            return;
+        }
 
         // Menu opening is deferred by one frame: the press that opened it must not be read on that
         // same frame as a click outside the menu, which would dismiss it before it ever shows.
@@ -218,8 +240,13 @@ public static partial class ControlsExtensions
         gui.ContextMenu(ref isOpen, builder =>
         {
             foreach (var child in leftItem.Children!)
+            {
                 builder.Item(child.Label, () => child.OnClick?.Invoke());
+            }
         }, position: state.Anchor);
-        if (!clicked) state.IsOpen = isOpen;
+        if (!clicked)
+        {
+            state.IsOpen = isOpen;
+        }
     }
 }

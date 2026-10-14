@@ -1,6 +1,6 @@
 using Guinevere;
 
-namespace Example_75_PaperUI_Dashboard;
+namespace Example75PaperUIDashboard;
 
 public abstract class Program
 {

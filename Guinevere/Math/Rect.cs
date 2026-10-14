@@ -27,18 +27,18 @@ public record struct Rect
     /// <summary>
     /// Gets the position of the rectangle, represented as the coordinates of its top-left corner (X, Y).
     /// </summary>
-    public Vector2 Position => new(X, Y);
+    public readonly Vector2 Position => new(X, Y);
 
     /// <summary>
     /// Gets the size of the rectangle, represented as the width and height (W, H).
     /// </summary>
-    public Vector2 Size => new(W, H);
+    public readonly Vector2 Size => new(W, H);
 
     /// <summary>
     /// Gets the local center of the rectangle relative to its width and height.
     /// The local center is the midpoint defined by half the width and half the height of the rectangle.
     /// </summary>
-    public Vector2 LocalCenter => new(W / 2, H / 2);
+    public readonly Vector2 LocalCenter => new(W / 2, H / 2);
 
     /// <summary>
     /// Gets the absolute center of the rectangle by adding its local center to its position.
@@ -51,7 +51,7 @@ public record struct Rect
     /// Defined as the point where the rectangle's X and Width
     /// values meet its Y and Height values.
     /// </summary>
-    public Vector2 BottomRight => new(X + W, Y + H);
+    public readonly Vector2 BottomRight => new(X + W, Y + H);
 
     /// <summary>
     /// Represents a rectangle with zero-position and size.
@@ -69,7 +69,7 @@ public record struct Rect
     /// </summary>
     public float Height
     {
-        get => H;
+        readonly get => H;
         set => H = value;
     }
 
@@ -78,7 +78,7 @@ public record struct Rect
     /// </summary>
     public float Width
     {
-        get => W;
+        readonly get => W;
         set => W = value;
     }
 
@@ -100,7 +100,7 @@ public record struct Rect
     /// <param name="point">The point to check.</param>
     /// <returns>True if the point is within the rectangle's bounds; otherwise false.</returns>
     [PublicAPI]
-    public bool Contains(Vector2 point)
+    public readonly bool Contains(Vector2 point)
     {
         return point.X >= X &&
                point.X <= X + W &&
@@ -131,7 +131,7 @@ public record struct Rect
     /// Returns a string representation of the rectangle, including its position and size, formatted to one decimal place.
     /// </summary>
     /// <returns>A string in the format "Rect(x:{X}, y:{Y}, w:{W}, h:{H})", where X, Y, W, and H are the rectangle's properties.</returns>
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"Rect(x:{X:F1}, y:{Y:F1}, w:{W:F1}, h:{H:F1})";
     }
@@ -181,7 +181,9 @@ public record struct Rect
     public static Rect operator /(Rect rect, float value)
     {
         if (value == 0)
+        {
             throw new DivideByZeroException("Cannot divide rectangle components by zero.");
+        }
 
         return new Rect(rect.X / value, rect.Y / value, rect.W / value, rect.H / value);
     }
@@ -209,7 +211,7 @@ public record struct Rect
     /// <param name="y">The y-coordinate of the rectangle's top-left corner.</param>
     /// <param name="w">The width of the rectangle.</param>
     /// <param name="h">The height of the rectangle.</param>
-    public void Deconstruct(out float x, out float y, out float w, out float h)
+    public readonly void Deconstruct(out float x, out float y, out float w, out float h)
     {
         x = X;
         y = Y;

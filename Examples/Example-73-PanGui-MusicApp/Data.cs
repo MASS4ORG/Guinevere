@@ -1,9 +1,9 @@
-namespace Example_73_PanGui_MusicApp;
+namespace Example73PanGuiMusicApp;
 
 public partial class Program
 {
 
-    string[] _trackLibrary =
+    readonly string[] _trackLibrary =
     [
         "Into the Wild", "Midnight Serenade", "Echoes of Eternity", "Dreamscape", "Whispering Shadows",
         "Enchanted Journey",
@@ -12,13 +12,13 @@ public partial class Program
         "Whispers in the Wind", "Moonlit Sonata", "Sunset Serenade", "Ocean's Embrace"
     ];
 
-    string _selectedTrack = "Lost in Time";
-    float _modWheel = 0.5f;
-    int _numOctaves = 8;
-    float[] _keyPressures = new float[12 * _numOctaves];
-    PadPlayer _padPlayer = new();
-    Snapshot[] _snapshots = GenerateSnapshots();
-    Snapshot _selectedSnapshot = _snapshots[0];
+    readonly string _selectedTrack = "Lost in Time";
+    readonly float _modWheel = 0.5f;
+    readonly int _numOctaves = 8;
+    readonly float[] _keyPressures = new float[12 * _numOctaves];
+    readonly PadPlayer _padPlayer = new();
+    readonly Snapshot[] _snapshots = GenerateSnapshots();
+    readonly Snapshot _selectedSnapshot = _snapshots[0];
 
     (float left, float right) GetSimulatedOutputVolume()
     {

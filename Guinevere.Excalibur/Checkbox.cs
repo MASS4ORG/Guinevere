@@ -74,11 +74,18 @@ public static partial class ControlsExtensions
             lineNumber);
         using (row.Enter())
         {
-            if (ChoiceActivated(gui, enabled)) isChecked = !isChecked;
+            if (ChoiceActivated(gui, enabled))
+            {
+                isChecked = !isChecked;
+            }
+
             var modifiers = mixed ? MixedModifier : isChecked ? CheckedModifier : NoModifiers;
             using (ChoicePart(gui, "indicator", size, size, modifiers).Enter())
             {
-                if (gui.Pass == Pass.Pass2Render && (mixed || isChecked)) RenderCheckboxMark(gui, size, mixed);
+                if (gui.Pass == Pass.Pass2Render && (mixed || isChecked))
+                {
+                    RenderCheckboxMark(gui, size, mixed);
+                }
             }
             ChoiceLabel(gui, label, fontSize);
         }

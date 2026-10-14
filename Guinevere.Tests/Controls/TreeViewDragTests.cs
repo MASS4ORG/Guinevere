@@ -22,7 +22,7 @@ public class TreeViewDragTests : IDisposable
 
     object? _dropped;
     DropTargetState _typed = DropTargetState.None;
-    List<TreeViewEvent> _clicks = [];
+    readonly List<TreeViewEvent> _clicks = [];
 
     public TreeViewDragTests()
     {
@@ -38,7 +38,9 @@ public class TreeViewDragTests : IDisposable
         {
             _gui.TreeView(_state, Items, Theme, e => _clicks.Add(e), dragPayload: _ => new RowPayload("Row A"));
             using (_gui.Node(100, 60, "inspector").AbsoluteScreen(280, 20).Enter())
+            {
                 _typed = _gui.DropTarget<RowPayload>("inspector", onDrop: payload => _dropped = payload).State;
+            }
         }
 
         _gui.Time.Update(0.016);

@@ -49,12 +49,18 @@ public static partial class ControlsExtensions
 
         // Escape and the title bar's × write straight into isOpen, so that is how the dialog reports
         // a cancellation: the request's callback still has to hear about it.
-        if (!isOpen && state.IsOpen) state.Close(null);
+        if (!isOpen && state.IsOpen)
+        {
+            state.Close(null);
+        }
     }
 
     static void Body(Gui gui, FileDialogState state, float fontSize)
     {
-        if (state.Request is not { } request) return;
+        if (state.Request is not { } request)
+        {
+            return;
+        }
 
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(RegionGap).Enter())
         {
@@ -70,7 +76,9 @@ public static partial class ControlsExtensions
             Status(gui, state, fontSize);
 
             if (gui.Pass == Pass.Pass2Render && gui.Input.IsKeyPressed(KeyboardKey.Enter))
+            {
                 _ = ConfirmAsync(state).AsTask();
+            }
         }
     }
 
@@ -79,7 +87,10 @@ public static partial class ControlsExtensions
     {
         var named = request.Mode is FileDialogMode.SaveFile or FileDialogMode.CreateFolder;
         var filtered = request.Filters.Count > 1;
-        if (!named && !filtered) return;
+        if (!named && !filtered)
+        {
+            return;
+        }
 
         var height = RowHeight + 6f;
 
@@ -89,15 +100,22 @@ public static partial class ControlsExtensions
             if (named)
             {
                 using (gui.StyledNode("file-label").Width(52f).Height(height).ContentAlignY(0.5f).Enter())
+                {
                     gui.DrawText(request.Mode == FileDialogMode.CreateFolder ? "Folder" : "Name",
                         fontSize, centerInRect: false);
+                }
 
                 using (gui.Node().Expand().Enter())
+                {
                     state.Name = gui.TextInput(state.Name, width: 0, height: height,
                         placeholder: "Name", fontSize: fontSize, padding: 5, id: state.ControlId("name"));
+                }
             }
 
-            if (!filtered) return;
+            if (!filtered)
+            {
+                return;
+            }
 
             using (gui.Node().Expand().Enter()) { }
 
@@ -105,7 +123,10 @@ public static partial class ControlsExtensions
             gui.Dropdown([.. request.Filters.Select(filter => filter.Label)], ref index,
                 width: 200f, height: height, fontSize: fontSize);
 
-            if (index == state.FilterIndex) return;
+            if (index == state.FilterIndex)
+            {
+                return;
+            }
 
             state.FilterIndex = index;
             state.Browser.Filter = request.Filters[index];
@@ -116,24 +137,37 @@ public static partial class ControlsExtensions
     static void Status(Gui gui, FileDialogState state, float fontSize)
     {
         var message = state.Message ?? state.Browser.Error;
-        if (message is null) return;
+        if (message is null)
+        {
+            return;
+        }
 
         using (gui.StyledNode("file-status").Height(RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
+        {
             gui.DrawText(message, fontSize - 1f, centerInRect: false);
+        }
     }
 
     static readonly string[] PrimaryClass = ["primary"];
 
     static void Footer(Gui gui, FileDialogState state, float fontSize)
     {
-        if (!state.IsOpen) return;
+        if (!state.IsOpen)
+        {
+            return;
+        }
 
-        if (gui.Button("Cancel", width: 90f, height: 28f, fontSize: fontSize)) state.Close(null);
+        if (gui.Button("Cancel", width: 90f, height: 28f, fontSize: fontSize))
+        {
+            state.Close(null);
+        }
 
         var choice = state.Choice();
         if (gui.Button(state.ConfirmLabel(), width: 120f, height: 28f, fontSize: fontSize,
                 enabled: choice is not null, classes: PrimaryClass))
+        {
             _ = ConfirmAsync(state).AsTask();
+        }
     }
 
     /// <summary>
@@ -142,7 +176,10 @@ public static partial class ControlsExtensions
     /// </summary>
     internal static async ValueTask ConfirmAsync(FileDialogState state)
     {
-        if (state.Request is not { } request) return;
+        if (state.Request is not { } request)
+        {
+            return;
+        }
 
         if (state.Choice() is not { } choice)
         {
@@ -220,7 +257,9 @@ public static partial class ControlsExtensions
             Body(gui, state, fontSize);
             using (gui.Node(-1, 36f).ExpandWidth().Direction(Axis.Horizontal).Gap(RegionGap)
                        .ContentAlignX(1f).ContentAlignY(0.5f).Enter())
+            {
                 Footer(gui, state, fontSize);
+            }
         }
     }
 }

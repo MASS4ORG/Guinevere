@@ -31,8 +31,15 @@ public readonly record struct Hsva(float H, float S, float V, float A = 1f)
         b = Math.Clamp(b, 0f, 1f);
         var max = MathF.Max(r, MathF.Max(g, b));
         var chroma = max - MathF.Min(r, MathF.Min(g, b));
-        if (max <= 0f) return new Hsva(hueHint, saturationHint, 0f, alpha);
-        if (chroma <= 0f) return new Hsva(hueHint, 0f, max, alpha);
+        if (max <= 0f)
+        {
+            return new Hsva(hueHint, saturationHint, 0f, alpha);
+        }
+
+        if (chroma <= 0f)
+        {
+            return new Hsva(hueHint, 0f, max, alpha);
+        }
 
         var hue = max == r ? (g - b) / chroma
             : max == g ? 2f + (b - r) / chroma
@@ -83,7 +90,11 @@ public readonly record struct Hsva(float H, float S, float V, float A = 1f)
 
     static float WrapHue(float hue)
     {
-        if (!float.IsFinite(hue)) return 0f;
+        if (!float.IsFinite(hue))
+        {
+            return 0f;
+        }
+
         var wrapped = hue % 360f;
         return wrapped < 0f ? wrapped + 360f : wrapped;
     }

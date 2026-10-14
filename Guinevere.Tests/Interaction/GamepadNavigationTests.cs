@@ -43,8 +43,17 @@ public class GamepadNavigationTests
         void Draw(Gui gui)
         {
             using (gui.Node(40, 40, "origin").Absolute(100, 100).Enter())
-                if (gui.Pass == Pass.Pass2Render) gui.RegisterFocusable(claimsArrowKeys: claims);
-            using (gui.Node(40, 40, "target").Absolute(x, y).Enter()) gui.Pressable();
+            {
+                if (gui.Pass == Pass.Pass2Render)
+                {
+                    gui.RegisterFocusable(claimsArrowKeys: claims);
+                }
+            }
+
+            using (gui.Node(40, 40, "target").Absolute(x, y).Enter())
+            {
+                gui.Pressable();
+            }
         }
         harness.Frame(Draw);
         harness.Gui.RequestFocus("origin");
@@ -182,11 +191,18 @@ public class GamepadNavigationTests
         {
             gui.Dialog(ref open, "Controller", () =>
             {
-                using (gui.Node(80, 30, "first").Enter()) gui.Pressable();
+                using (gui.Node(80, 30, "first").Enter())
+                {
+                    gui.Pressable();
+                }
+
                 using (gui.Node(80, 30, "second").Enter())
                 {
                     gui.SetFocusDirectionalNeighbor(FocusDirection.Down, "first");
-                    if (gui.Pressable().Activated) activations++;
+                    if (gui.Pressable().Activated)
+                    {
+                        activations++;
+                    }
                 }
             }, width: 200, height: 150, id: "dialog");
         }
@@ -220,7 +236,11 @@ public class GamepadNavigationTests
         var activations = 0;
         void Draw(Gui gui)
         {
-            if (gui.Button("First", id: "first")) activations++;
+            if (gui.Button("First", id: "first"))
+            {
+                activations++;
+            }
+
             gui.Button("Second", id: "second");
         }
         harness.Frame(Draw);

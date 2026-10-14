@@ -55,7 +55,10 @@ public partial class Gui
     void DispatchInputEvents()
     {
         // Headless layout runs frames without input; there is nothing to dispatch.
-        if (!HasInput) return;
+        if (!HasInput)
+        {
+            return;
+        }
 
         var input = FrameInputView;
         input.BeginFrame();
@@ -75,28 +78,44 @@ public partial class Gui
 
         var frameDelta = PointerFrameDelta;
         if (_hasPointerLastFrame && frameDelta != Vector2.Zero && pointerTarget is not null)
+        {
             Dispatch(new PointerMoveEvent { Position = position, Delta = frameDelta }, pointerTarget);
+        }
 
         foreach (var button in AllButtons)
+        {
             DispatchButton(input, raw, root, button, position, frameDelta, pointerTarget, hit);
+        }
 
         if (raw.MouseWheelDelta != 0f && hit is not null &&
             Dispatch(new ScrollEvent { Position = position, Delta = raw.MouseWheelDelta }, hit).DefaultPrevented)
+        {
             input.SuppressWheel();
+        }
 
         var focusTarget = Focus.CurrentFocusedId is { } focused ? FindNode(root, focused) ?? root : root;
         foreach (var key in AllKeys)
         {
             if (raw.IsKeyPressed(key) && Dispatch(new KeyDownEvent { Key = key }, focusTarget).DefaultPrevented)
+            {
                 input.SuppressKeyPress(key);
+            }
 
-            if (raw.IsKeyDown(key)) _keysDownLastFrame.Add(key);
-            else if (_keysDownLastFrame.Remove(key)) Dispatch(new KeyUpEvent { Key = key }, focusTarget);
+            if (raw.IsKeyDown(key))
+            {
+                _keysDownLastFrame.Add(key);
+            }
+            else if (_keysDownLastFrame.Remove(key))
+            {
+                Dispatch(new KeyUpEvent { Key = key }, focusTarget);
+            }
         }
 
         var text = input.PeekText();
         if (text.Length > 0 && Dispatch(new TextInputEvent { Text = text }, focusTarget).DefaultPrevented)
+        {
             input.SuppressText();
+        }
     }
 
     void DispatchButton(FrameInput input, IInputHandler raw, LayoutNode root, MouseButton button,
@@ -112,7 +131,10 @@ public partial class Gui
         {
             if (Dispatch(new PointerDownEvent { Position = position, Button = button }, pointerTarget)
                 .DefaultPrevented)
+            {
                 input.SuppressPress(button);
+            }
+
             gesture = new PointerGesture(pointerTarget.Id, PathIds(pointerTarget), position);
             wasDown = true;
         }
@@ -135,29 +157,46 @@ public partial class Gui
                 Dispatch(DragArgsFor<DragStartEvent>(active, button, position, frameDelta), owner);
             }
             else if (active.Dragging && frameDelta != Vector2.Zero)
+            {
                 Dispatch(DragArgsFor<DragMoveEvent>(active, button, position, frameDelta), owner);
+            }
+
             return;
         }
 
-        if (!wasDown || down) return;
+        if (!wasDown || down)
+        {
+            return;
+        }
 
         var upTarget = pointerTarget ?? hit;
-        if (upTarget is not null) Dispatch(new PointerUpEvent { Position = position, Button = button }, upTarget);
-        if (gesture is not { } ended) return;
+        if (upTarget is not null)
+        {
+            Dispatch(new PointerUpEvent { Position = position, Button = button }, upTarget);
+        }
+
+        if (gesture is not { } ended)
+        {
+            return;
+        }
 
         gesture = null;
         if (ended.Dragging)
         {
             if (FindNode(root, ended.OwnerId) is { } owner)
+            {
                 Dispatch(DragArgsFor<DragEndEvent>(ended, button, position, frameDelta), owner);
+            }
         }
         else if (hit is not null && SharedAncestor(ended.PathIds, hit) is { } clicked)
+        {
             Dispatch(new ClickEvent
             {
                 Position = position,
                 Button = button,
                 ClickCount = RegisterClick($"event:{clicked.Id}:{button}")
             }, clicked);
+        }
     }
 
     static TEvent DragArgsFor<TEvent>(PointerGesture gesture, MouseButton button, Vector2 position,
@@ -168,13 +207,21 @@ public partial class Gui
     {
         var current = Focus.CurrentFocusedId;
         var previous = _lastFocusedId;
-        if (current == previous) return;
+        if (current == previous)
+        {
+            return;
+        }
 
         _lastFocusedId = current;
         if (previous is not null && FindNode(root, previous) is { } lost)
+        {
             Dispatch(new FocusOutEvent { RelatedTargetId = current }, lost);
+        }
+
         if (current is not null && FindNode(root, current) is { } gained)
+        {
             Dispatch(new FocusInEvent { RelatedTargetId = previous }, gained);
+        }
     }
 
     void ForgetEventState()
@@ -189,18 +236,28 @@ public partial class Gui
     TEvent Dispatch<TEvent>(TEvent e, LayoutNode target) where TEvent : GuiEvent
     {
         _eventPath.Clear();
-        for (var node = target; node is not null; node = node.Parent) _eventPath.Add(node);
+        for (var node = target; node is not null; node = node.Parent)
+        {
+            _eventPath.Add(node);
+        }
+
         e.TargetId = target.Id;
 
         for (var i = _eventPath.Count - 1; i > 0; i--)
         {
             _eventPath[i].Dispatch(e, EventPhase.Capture);
-            if (e.PropagationStopped) return e;
+            if (e.PropagationStopped)
+            {
+                return e;
+            }
         }
 
         target.Dispatch(e, EventPhase.Target);
         for (var i = 1; i < _eventPath.Count && !e.PropagationStopped; i++)
+        {
             _eventPath[i].Dispatch(e, EventPhase.Bubble);
+        }
+
         return e;
     }
 
@@ -225,9 +282,15 @@ public partial class Gui
             if (node.Style.BlocksInput && node.ContainsScreenPoint(position))
             {
                 var z = node.Scope.Get<LayoutNodeScopeZIndex>().Value;
-                if (z >= blockerZ) (blocker, blockerZ) = (node, z);
+                if (z >= blockerZ)
+                {
+                    (blocker, blockerZ) = (node, z);
+                }
             }
-            foreach (var child in node.ChildNodes) FindBlocker(child);
+            foreach (var child in node.ChildNodes)
+            {
+                FindBlocker(child);
+            }
         }
 
         void Visit(LayoutNode node)
@@ -236,9 +299,15 @@ public partial class Gui
                 && !IsOutsideClippedAncestors(node, position))
             {
                 var z = node.Scope.Get<LayoutNodeScopeZIndex>().Value;
-                if (z >= bestZ) (best, bestZ) = (node, z);
+                if (z >= bestZ)
+                {
+                    (best, bestZ) = (node, z);
+                }
             }
-            foreach (var child in node.ChildNodes) Visit(child);
+            foreach (var child in node.ChildNodes)
+            {
+                Visit(child);
+            }
         }
     }
 
@@ -249,12 +318,23 @@ public partial class Gui
     internal static bool IsOutsideClippedAncestors(LayoutNode node, Vector2 position)
     {
         var escaped = EscapesClips(node);
-        if (IsOutsideViewport(node, position)) return true;
+        if (IsOutsideViewport(node, position))
+        {
+            return true;
+        }
 
         for (var ancestor = node.Parent; ancestor is not null; ancestor = ancestor.Parent)
         {
-            if (IsOutsideViewport(ancestor, position)) return true;
-            if (!escaped && IsOutsidePanelClip(ancestor, position)) return true;
+            if (IsOutsideViewport(ancestor, position))
+            {
+                return true;
+            }
+
+            if (!escaped && IsOutsidePanelClip(ancestor, position))
+            {
+                return true;
+            }
+
             escaped |= EscapesClips(ancestor);
         }
 
@@ -267,24 +347,42 @@ public partial class Gui
     static bool PathListens<TEvent>(LayoutNode target) where TEvent : GuiEvent
     {
         for (var node = target; node is not null; node = node.Parent)
+        {
             if (node.Listens<TEvent>())
+            {
                 return true;
+            }
+        }
+
         return false;
     }
 
     static LayoutNode? FindNode(LayoutNode node, string id)
     {
-        if (node.Id == id) return node;
+        if (node.Id == id)
+        {
+            return node;
+        }
+
         foreach (var child in node.ChildNodes)
+        {
             if (FindNode(child, id) is { } found)
+            {
                 return found;
+            }
+        }
+
         return null;
     }
 
     static List<string> PathIds(LayoutNode target)
     {
         var ids = new List<string>();
-        for (var node = target; node is not null; node = node.Parent) ids.Add(node.Id);
+        for (var node = target; node is not null; node = node.Parent)
+        {
+            ids.Add(node.Id);
+        }
+
         ids.Reverse();
         return ids;
     }
@@ -293,11 +391,19 @@ public partial class Gui
     static LayoutNode? SharedAncestor(List<string> pressPath, LayoutNode releaseTarget)
     {
         var depth = 0;
-        for (var node = releaseTarget.Parent; node is not null; node = node.Parent) depth++;
+        for (var node = releaseTarget.Parent; node is not null; node = node.Parent)
+        {
+            depth++;
+        }
 
         for (var node = releaseTarget; node is not null; node = node.Parent, depth--)
+        {
             if (depth < pressPath.Count && pressPath[depth] == node.Id)
+            {
                 return node;
+            }
+        }
+
         return null;
     }
 
@@ -328,7 +434,10 @@ public partial class Gui
                 _appliedPointerMode = mode;
             }
 
-            if (mode == PointerMode.Wrapped) WrapPointer(pointer);
+            if (mode == PointerMode.Wrapped)
+            {
+                WrapPointer(pointer);
+            }
         }
 
         _requestedCursor = null;
@@ -337,14 +446,22 @@ public partial class Gui
 
     PointerCursor ResolveNodeCursor()
     {
-        if (_cursorNodeCount == 0 || RootNode is null || !HasInput) return PointerCursor.Default;
+        if (_cursorNodeCount == 0 || RootNode is null || !HasInput)
+        {
+            return PointerCursor.Default;
+        }
 
         var node = _pointerCapture is { } held
             ? FindNode(RootNode, held.Id)
             : HitTest(RootNode, RawInput.MousePosition);
         for (; node is not null; node = node.Parent)
+        {
             if (node.CursorShape is { } shape)
+            {
                 return shape;
+            }
+        }
+
         return PointerCursor.Default;
     }
 
@@ -357,19 +474,33 @@ public partial class Gui
         var size = Platform.TryGet<IDisplayCapability>(out var display) && display is not null
             ? display.LogicalSize
             : new Vector2(ScreenRect.W, ScreenRect.H);
-        if (size.X < 4f || size.Y < 4f) return;
+        if (size.X < 4f || size.Y < 4f)
+        {
+            return;
+        }
 
-        if (!HasInput) return;
+        if (!HasInput)
+        {
+            return;
+        }
+
         var position = RawInput.MousePosition;
         var wrapped = new Vector2(Wrap(position.X, size.X), Wrap(position.Y, size.Y));
-        if (wrapped == position) return;
+        if (wrapped == position)
+        {
+            return;
+        }
 
         pointer.Warp(wrapped);
         var jump = wrapped - position;
         ShiftPressAnchors(jump);
         for (var i = 0; i < _gestures.Length; i++)
+        {
             if (_gestures[i] is { } gesture)
+            {
                 gesture.Origin += jump;
+            }
+        }
 
         static float Wrap(float value, float extent) =>
             value <= 0f ? extent - 2f : value >= extent - 1f ? 1f : value;

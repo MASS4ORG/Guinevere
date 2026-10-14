@@ -103,7 +103,11 @@ public class ViewportOptionsTests
             Options with { AspectPolicy = (ViewportAspectPolicy)99 },
             Options with { Insets = new ViewportInsets(-1, 0, 0, 0) }
         ];
-        foreach (var options in invalid) Assert.Throws<ArgumentOutOfRangeException>(() => options.Resolve());
+        foreach (var options in invalid)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => options.Resolve());
+        }
+
         var layout = (Options with { Insets = new ViewportInsets(1000, 1000, 1000, 1000) }).Resolve();
         Assert.Equal(0, layout.ContentBounds.W);
         Assert.Equal(0, layout.ContentBounds.H);
@@ -136,7 +140,10 @@ public class ViewportOptionsTests
                 using (target.Enter())
                 {
                     gui.DrawBackgroundRect(Color.Red);
-                    if (gui.Pass == Pass.Pass2Render && target.OnClick()) clicks++;
+                    if (gui.Pass == Pass.Pass2Render && target.OnClick())
+                    {
+                        clicks++;
+                    }
                 }
                 gui.Node().WidthPercent(0.5f).HeightPercent(0.5f).AbsoluteScreen(0, 0);
             }
@@ -147,7 +154,10 @@ public class ViewportOptionsTests
                 Bounds = new Rect(0, 0, 400, 400),
                 ReferenceResolution = new Vector2(200),
                 TextScale = 0.8f
-            }, "left")) Assert.Equal(0.8f, gui.FontScale);
+            }, "left"))
+            {
+                Assert.Equal(0.8f, gui.FontScale);
+            }
         }
         frame.Frame(Draw);
         var initial = target!.LocalToScreen(target.Rect);
@@ -180,7 +190,10 @@ public class ViewportOptionsTests
             using var overlay = gui.Node(400, 200).AbsoluteScreen(0, 0).Enter();
             overlay.Set(new LayoutNodeScopeEscapesAncestorClips { Value = true });
             gui.DrawBackgroundRect(Color.Red);
-            if (gui.Pass == Pass.Pass2Render) hovered = overlay.Node.OnHover();
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                hovered = overlay.Node.OnHover();
+            }
         }
         frame.Input.MoveTo(new Vector2(50, 100));
         frame.Frame(Draw);

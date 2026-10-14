@@ -26,7 +26,10 @@ public partial class LayoutNode
     public LayoutNode On<TEvent>(Action<TEvent> handler, bool capture = false) where TEvent : GuiEvent
     {
         ArgumentNullException.ThrowIfNull(handler);
-        if (_gui.Pass != Pass.Pass1Build) return this;
+        if (_gui.Pass != Pass.Pass1Build)
+        {
+            return this;
+        }
 
         IsPointerInteractive = true;
         (_listeners ??= []).Add(new EventListener<TEvent>(handler, capture));
@@ -55,7 +58,10 @@ public partial class LayoutNode
     /// <returns>The current instance, for chaining.</returns>
     public LayoutNode HitTestVisible(bool visible = true)
     {
-        if (_gui.Pass != Pass.Pass1Build) return this;
+        if (_gui.Pass != Pass.Pass1Build)
+        {
+            return this;
+        }
 
         IsHitTestVisible = visible;
         return this;
@@ -64,12 +70,22 @@ public partial class LayoutNode
     /// <summary>Runs this node's listeners for <paramref name="phase"/>; capture ones first at the target.</summary>
     internal void Dispatch(GuiEvent e, EventPhase phase)
     {
-        if (_listeners is null) return;
+        if (_listeners is null)
+        {
+            return;
+        }
 
         e.CurrentTargetId = Id;
         e.Phase = phase;
-        if (phase != EventPhase.Bubble && Run(e, capture: true)) return;
-        if (phase != EventPhase.Capture) Run(e, capture: false);
+        if (phase != EventPhase.Bubble && Run(e, capture: true))
+        {
+            return;
+        }
+
+        if (phase != EventPhase.Capture)
+        {
+            Run(e, capture: false);
+        }
     }
 
     /// <summary>Runs one phase's listeners, returning whether the event was stopped outright.</summary>
@@ -77,9 +93,16 @@ public partial class LayoutNode
     {
         foreach (var listener in _listeners!)
         {
-            if (listener.Capture != capture) continue;
+            if (listener.Capture != capture)
+            {
+                continue;
+            }
+
             listener.TryInvoke(e);
-            if (e.ImmediatePropagationStopped) return true;
+            if (e.ImmediatePropagationStopped)
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -87,10 +110,19 @@ public partial class LayoutNode
     /// <summary>Whether a listener on this node would receive <typeparamref name="TEvent"/>.</summary>
     internal bool Listens<TEvent>() where TEvent : GuiEvent
     {
-        if (_listeners is null) return false;
+        if (_listeners is null)
+        {
+            return false;
+        }
+
         foreach (var listener in _listeners)
+        {
             if (listener.Accepts(typeof(TEvent)))
+            {
                 return true;
+            }
+        }
+
         return false;
     }
 
@@ -116,7 +148,10 @@ public partial class LayoutNode
 
         public override void TryInvoke(GuiEvent e)
         {
-            if (e is TEvent typed) handler(typed);
+            if (e is TEvent typed)
+            {
+                handler(typed);
+            }
         }
     }
 }

@@ -23,7 +23,10 @@ public sealed record FileDialogFilter(string Label, IReadOnlyList<string> Extens
     public bool Matches(string fileName)
     {
         ArgumentNullException.ThrowIfNull(fileName);
-        if (Extensions.Count == 0) return true;
+        if (Extensions.Count == 0)
+        {
+            return true;
+        }
 
         var extension = Path.GetExtension(fileName);
         return Extensions.Any(candidate => extension.Equals(candidate, StringComparison.OrdinalIgnoreCase));

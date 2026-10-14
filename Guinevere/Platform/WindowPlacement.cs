@@ -13,13 +13,21 @@ public static class WindowPlacement
         for (var i = 0; i < areas.Length; i++)
         {
             var area = areas[i];
-            if (area.W <= 0 || area.H <= 0) continue;
+            if (area.W <= 0 || area.H <= 0)
+            {
+                continue;
+            }
+
             var overlap = Math.Max(0, Math.Min(window.X + window.W, area.X + area.W) - Math.Max(window.X, area.X))
                 * Math.Max(0, Math.Min(window.Y + window.H, area.Y + area.H) - Math.Max(window.Y, area.Y));
             var closest = new Vector2(Math.Clamp(center.X, area.X, area.X + area.W),
                 Math.Clamp(center.Y, area.Y, area.Y + area.H));
             var distance = Vector2.DistanceSquared(center, closest);
-            if (overlap < largestOverlap || (overlap == largestOverlap && distance >= nearest)) continue;
+            if (overlap < largestOverlap || (overlap == largestOverlap && distance >= nearest))
+            {
+                continue;
+            }
+
             selected = i;
             largestOverlap = overlap;
             nearest = distance;

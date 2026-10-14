@@ -142,7 +142,10 @@ public class ToastTests
         Assert.Single(ToastsOf(gui.RootNode!));
 
         // Advance well past the 10s duration, then host again: the toast must be pruned.
-        for (var i = 0; i < 700; i++) Frame(gui);
+        for (var i = 0; i < 700; i++)
+        {
+            Frame(gui);
+        }
 
         Assert.Empty(ToastsOf(gui.RootNode!));
     }
@@ -154,10 +157,18 @@ public class ToastTests
         Frame(gui, g => g.Toast("Hello", BottomRight));
         Assert.Equal(0, gui.FrameWaitSeconds);
 
-        for (var i = 0; i < 20; i++) Frame(gui);
+        for (var i = 0; i < 20; i++)
+        {
+            Frame(gui);
+        }
+
         Assert.InRange(gui.FrameWaitSeconds, 8, BottomRight.Duration - BottomRight.FadeOutSeconds);
 
-        for (var i = 0; i < 700; i++) Frame(gui);
+        for (var i = 0; i < 700; i++)
+        {
+            Frame(gui);
+        }
+
         Assert.Equal(double.PositiveInfinity, gui.FrameWaitSeconds);
     }
 
@@ -194,7 +205,9 @@ public class ToastTests
         // The harness runs the content once per pass, so every additional frame enqueues two more
         // entries. None expire within the 3s lifetime, so the stack keeps growing.
         for (var i = 0; i < 2; i++)
+        {
             Frame(gui, g => g.Toast("Hello"));
+        }
 
         Assert.Equal(5, ToastsOf(gui.RootNode!).Count);
 

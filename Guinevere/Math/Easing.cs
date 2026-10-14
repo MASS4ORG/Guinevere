@@ -304,11 +304,20 @@ public static partial class Easing
         const float d1 = 2.75f;
 
         if (t < 1 / d1)
+        {
             return n1 * t * t;
+        }
+
         if (t < 2 / d1)
+        {
             return n1 * (t -= 1.5f / d1) * t + 0.75f;
+        }
+
         if (t < 2.5 / d1)
+        {
             return n1 * (t -= 2.25f / d1) * t + 0.9375f;
+        }
+
         return n1 * (t -= 2.625f / d1) * t + 0.984375f;
     }
 
@@ -381,8 +390,15 @@ public static partial class Easing
         dampingRatio = Math.Max(0.0001f, dampingRatio);
 
         // Don't calculate for extremes
-        if (t <= 0f) return 0f;
-        if (t >= 1f) return 1f;
+        if (t <= 0f)
+        {
+            return 0f;
+        }
+
+        if (t >= 1f)
+        {
+            return 1f;
+        }
 
         if (dampingRatio < 1.0f) // Under-damped
         {

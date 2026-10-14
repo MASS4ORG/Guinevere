@@ -1,15 +1,15 @@
 using System.Numerics;
 using Guinevere;
 
-namespace Example_01;
+namespace Example01;
 
 public partial class Shared
 {
     static readonly string[] EasingDurations = ["1s", "2s", "4s"];
     static readonly float[] EasingSeconds = [1f, 2f, 4f];
-    static int easingDuration = 1;
-    static bool blendWide;
-    static bool springTarget;
+    static int _easingDuration = 1;
+    static bool _blendWide;
+    static bool _springTarget;
 
     /// <summary>A layout unit blended between pixels and a percentage, and six easing curves racing on a loop.</summary>
     static void Easings(Gui gui, ColorPalette p)
@@ -23,14 +23,17 @@ public partial class Shared
 
     static void LayoutBlend(Gui gui, ColorPalette p)
     {
-        var progress = gui.AnimateFloat(blendWide ? 1f : 0f, 0.6f);
+        var progress = gui.AnimateFloat(_blendWide ? 1f : 0f, 0.6f);
         using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Padding(16).Gap(10).Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 12);
             using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
             {
-                if (Button(gui, p, blendWide ? "Shrink to 120px" : "Grow to 70%", id: "blend/toggle"))
-                    Later(() => blendWide = !blendWide);
+                if (Button(gui, p, _blendWide ? "Shrink to 120px" : "Grow to 70%", id: "blend/toggle"))
+                {
+                    Later(() => _blendWide = !_blendWide);
+                }
+
                 Label(gui, p, "UnitValue.Lerp(Pixels(120), Percentage(0.7), t): layout units animate like numbers");
             }
 
@@ -53,7 +56,7 @@ public partial class Shared
             ("EaseOutElastic", Easing.EaseOutElastic),
         ];
 
-        var seconds = EasingSeconds[easingDuration];
+        var seconds = EasingSeconds[_easingDuration];
         var time = gui.Time.Elapsed % seconds / seconds;
         gui.RequestFrame();
 
@@ -63,7 +66,7 @@ public partial class Shared
             using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
             {
                 Label(gui, p, "Loop duration");
-                Choice(gui, p, "easing-duration", EasingDurations, easingDuration, index => easingDuration = index);
+                Choice(gui, p, "easing-duration", EasingDurations, _easingDuration, index => _easingDuration = index);
             }
 
             for (var i = 0; i < curves.Length; i++)
@@ -74,7 +77,11 @@ public partial class Shared
                 using (gui.Node().ExpandWidth().Height(26).Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f)
                            .Enter())
                 {
-                    using (gui.Node(width: 120).Enter()) Label(gui, p, name);
+                    using (gui.Node(width: 120).Enter())
+                    {
+                        Label(gui, p, name);
+                    }
+
                     using (gui.Node(height: 10).Expand().Enter())
                     {
                         var track = gui.CurrentNode.Rect;
@@ -106,18 +113,24 @@ public partial class Shared
             gui.DrawBackgroundRect(p.SurfaceRaised, 12);
             using (gui.Node().Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f).Enter())
             {
-                if (Button(gui, p, "Flip target", id: "spring/flip")) Later(() => springTarget = !springTarget);
+                if (Button(gui, p, "Flip target", id: "spring/flip"))
+                {
+                    Later(() => _springTarget = !_springTarget);
+                }
+
                 if (Button(gui, p, gui.ReduceMotion ? "Reduce motion: on" : "Reduce motion: off", gui.ReduceMotion,
                         "spring/reduce"))
+                {
                     Later(() => gui.ReduceMotion = !gui.ReduceMotion);
+                }
             }
 
-            var target = springTarget ? 1f : 0f;
+            var target = _springTarget ? 1f : 0f;
             Follower(gui, p, "Smoothdamp", gui.Smoothdamp(target, 8f), 0);
             Follower(gui, p, "AnimateSpring (bouncy)", gui.AnimateSpring(target, 14f, 0.25f), 1);
             Follower(gui, p, "AnimateFloat (sine)", gui.AnimateFloat(target, 0.6f, Easing.EaseInOutSine), 2);
 
-            var color = gui.SmoothdampColor(springTarget ? p.Warning : p.Accent, 6f);
+            var color = gui.SmoothdampColor(_springTarget ? p.Warning : p.Accent, 6f);
             var pointer = gui.Smoothdamp(gui.LocalMousePosition, 10f);
             using (gui.Node().Expand().Padding(8).Enter())
             {
@@ -136,10 +149,18 @@ public partial class Shared
         using var key = gui.ItemKey(label);
         using (gui.Node().ExpandWidth().Height(22).Direction(Axis.Horizontal).Gap(12).Enter())
         {
-            using (gui.Node(190, 22).Enter()) Label(gui, p, label);
+            using (gui.Node(190, 22).Enter())
+            {
+                Label(gui, p, label);
+            }
+
             using (gui.Node().Expand().Enter())
             {
-                if (gui.Pass != Pass.Pass2Render) return;
+                if (gui.Pass != Pass.Pass2Render)
+                {
+                    return;
+                }
+
                 var bar = gui.CurrentNode.Rect;
                 gui.DrawRect(bar, p.Track, 4);
                 gui.DrawCircle(new Vector2(bar.X + 9 + (bar.W - 18) * value, bar.Y + bar.H * 0.5f), 8, p.Pick(index));
@@ -179,7 +200,10 @@ public partial class Shared
             if (gui.Pass == Pass.Pass2Render)
             {
                 hovered = node.OnHover();
-                if (node.OnClick()) spins++;
+                if (node.OnClick())
+                {
+                    spins++;
+                }
             }
 
             gui.DrawRect(node.Rect, Color.Lerp(p.Pick(index), p.AccentText, hovered ? 0.2f : 0f), 18);

@@ -51,7 +51,10 @@ public static partial class ControlsExtensions
         var node = StyledButton(gui, ImageClass, classes, id, enabled, filePath, lineNumber);
         using (node.Width(width > 0 ? width : normal.Width).Height(height > 0 ? height : normal.Height).Enter())
         {
-            if (gui.Pass != Pass.Pass2Render) return false;
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return false;
+            }
 
             // The image is the background: queue it under the sheet's border and focus ring.
             var image = enabled ? StateImage(gui, normal, hover, pressed) : disabled ?? normal;
@@ -79,7 +82,11 @@ public static partial class ControlsExtensions
     /// </summary>
     static void DrawCaption(Gui gui, LayoutNode node, Text? text, float? fontSize)
     {
-        if (string.IsNullOrEmpty(text?.Label)) return;
+        if (string.IsNullOrEmpty(text?.Label))
+        {
+            return;
+        }
+
         gui.RenderCenteredText(text, fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value);
     }
 }

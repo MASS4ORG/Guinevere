@@ -2,7 +2,7 @@ using System.Numerics;
 using Guinevere;
 using static System.MathF;
 
-namespace Example_71_PanGui_HelloTriangle;
+namespace Example71PanGuiHelloTriangle;
 
 public abstract class Program
 {
