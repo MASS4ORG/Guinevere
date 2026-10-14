@@ -121,7 +121,7 @@ public static partial class ControlsExtensions
         if (state.Visible.Count == 0) return;
 
         var usedHeight = new Dictionary<ToastCorner, float>();
-        var screen = gui.ScreenRect;
+        var screen = gui.LayoutBounds;
         var toRemove = new List<ToastEntry>();
 
         foreach (var entry in state.Visible)

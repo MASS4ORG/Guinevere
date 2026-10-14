@@ -200,7 +200,7 @@ public static partial class ControlsExtensions
         var listHeight = visible * rowHeight;
         var top = buttonRect.Y + buttonRect.H + 2;
 
-        if (top + listHeight > gui.ScreenRect.H) top = Math.Max(0, buttonRect.Y - listHeight - 2);
+        if (top + listHeight > gui.LayoutBounds.H) top = Math.Max(0, buttonRect.Y - listHeight - 2);
 
         var chosen = -1;
 

@@ -113,7 +113,7 @@ public static partial class ControlsExtensions
         [CallerLineNumber] int lineNumber = 0)
     {
         gui.Popup(ref isOpen, content, width, height, title,
-            position ?? new Vector2(gui.ScreenRect.W * 0.5f - width * 0.5f, gui.ScreenRect.H * 0.5f - height * 0.5f),
+            position ?? new Vector2(gui.LayoutBounds.W * 0.5f - width * 0.5f, gui.LayoutBounds.H * 0.5f - height * 0.5f),
             true, true, true,
             titleBarHeight, classes, id, filePath, lineNumber);
     }
@@ -303,8 +303,8 @@ public static partial class ControlsExtensions
     static void RenderOverlay(Gui gui, bool isOpen, int zIndex, string id)
     {
         using var overlay = gui.StyledNode("overlay", id: id, modifiers: isOpen ? [] : ["closed"])
-            .Width(gui.ScreenRect.W).Height(gui.ScreenRect.H)
-            .AbsoluteScreen(gui.ScreenRect.X, gui.ScreenRect.Y)
+            .Width(gui.LayoutBounds.W).Height(gui.LayoutBounds.H)
+            .AbsoluteScreen(gui.LayoutBounds.X, gui.LayoutBounds.Y)
             .BlockInput(isOpen).HitTestVisible(isOpen).Enter();
         gui.SetZIndex(zIndex);
         gui.SetEscapesAncestorClips();
@@ -312,7 +312,7 @@ public static partial class ControlsExtensions
 
     static Vector2 ConstrainToScreen(Gui gui, Vector2 position, float width, float height)
     {
-        var screen = gui.ScreenRect;
+        var screen = gui.LayoutBounds;
         const float windowBorder = 2f;
         var left = screen.X + windowBorder;
         var top = screen.Y + windowBorder;

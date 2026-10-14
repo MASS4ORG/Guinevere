@@ -91,7 +91,7 @@ public static partial class ControlsExtensions
     {
         var width = CalculateFlyoutWidth(items, fontSize, padding, minWidth, items.Any(item => item.IsChecked != null));
         var right = parent.X + parent.W;
-        var x = right + width > gui.ScreenRect.X + gui.ScreenRect.W && parent.X - width >= gui.ScreenRect.X
+        var x = right + width > gui.LayoutBounds.X + gui.LayoutBounds.W && parent.X - width >= gui.LayoutBounds.X
             ? parent.X - width : right;
         return new Vector2(x, parent.Y + rowOffset);
     }

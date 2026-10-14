@@ -11,11 +11,11 @@ public static partial class ControlsExtensions
     {
         var rows = Math.Max(1, Math.Min(visible, state.Filtered.Count));
         var popupHeight = (rows + (multiple ? 2 : 1)) * rowHeight;
-        var x = Math.Clamp(state.Anchor.X, gui.ScreenRect.X,
-            Math.Max(gui.ScreenRect.X, gui.ScreenRect.X + gui.ScreenRect.W - state.Anchor.W));
+        var x = Math.Clamp(state.Anchor.X, gui.LayoutBounds.X,
+            Math.Max(gui.LayoutBounds.X, gui.LayoutBounds.X + gui.LayoutBounds.W - state.Anchor.W));
         var y = state.Anchor.Y + state.Anchor.H + 2;
-        if (y + popupHeight > gui.ScreenRect.Y + gui.ScreenRect.H)
-            y = Math.Max(gui.ScreenRect.Y, state.Anchor.Y - popupHeight - 2);
+        if (y + popupHeight > gui.LayoutBounds.Y + gui.LayoutBounds.H)
+            y = Math.Max(gui.LayoutBounds.Y, state.Anchor.Y - popupHeight - 2);
         using (gui.StyledNode("listbox", id: $"{id}/popup").Width(state.Anchor.W).Height(popupHeight)
                    .AbsoluteScreen(x, y).BlockInput().Direction(Axis.Vertical).Enter())
         {

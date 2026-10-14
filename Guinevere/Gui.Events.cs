@@ -248,17 +248,21 @@ public partial class Gui
     /// </summary>
     internal static bool IsOutsideClippedAncestors(LayoutNode node, Vector2 position)
     {
-        if (EscapesClips(node)) return false;
+        var escaped = EscapesClips(node);
+        if (IsOutsideViewport(node, position)) return true;
 
         for (var ancestor = node.Parent; ancestor is not null; ancestor = ancestor.Parent)
         {
-            if (IsClipped(ancestor) && ancestor.Rect is { W: > 0, H: > 0 } && !ancestor.ContainsScreenPoint(position))
-                return true;
-            if (EscapesClips(ancestor)) break;
+            if (IsOutsideViewport(ancestor, position)) return true;
+            if (!escaped && IsOutsidePanelClip(ancestor, position)) return true;
+            escaped |= EscapesClips(ancestor);
         }
 
         return false;
     }
+
+    static bool IsOutsidePanelClip(LayoutNode node, Vector2 position) =>
+        IsClipped(node) && node.Rect is { W: > 0, H: > 0 } && !node.ContainsScreenPoint(position);
 
     static bool PathListens<TEvent>(LayoutNode target) where TEvent : GuiEvent
     {

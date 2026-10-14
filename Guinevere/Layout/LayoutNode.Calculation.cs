@@ -370,7 +370,7 @@ public partial class LayoutNode
             if (!child.Style.IsAbsolute) continue;
 
             var isScreen = child.Style.AbsoluteOrigin == AbsoluteOrigin.Screen;
-            var box = isScreen ? _gui.ScreenRect : contentRect;
+            var box = isScreen ? _gui.BoundsFor(child.Scope) : contentRect;
 
             var width = child.CalculateWidth(box.W);
             var height = child.CalculateHeight(box.H);

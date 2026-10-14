@@ -66,9 +66,16 @@ public partial class Gui
         {
             var ancestor = _clipAncestors[i];
             ConcatTransform(ancestor, canvas);
-            if (i <= lastClip && IsClipped(ancestor) && ancestor.Rect is { W: > 0, H: > 0 } rect) canvas.ClipRect(rect);
+            if (IsViewport(ancestor)) canvas.ClipRect(ViewportClipBounds(ancestor));
+            else if (i <= lastClip) ApplyPanelClip(ancestor, canvas);
         }
         ConcatTransform(node, canvas);
+        if (IsViewport(node)) canvas.ClipRect(ViewportClipBounds(node));
+    }
+
+    static void ApplyPanelClip(LayoutNode node, SKCanvas canvas)
+    {
+        if (IsClipped(node) && node.Rect is { W: > 0, H: > 0 } rect) canvas.ClipRect(rect);
     }
 
     /// <summary>

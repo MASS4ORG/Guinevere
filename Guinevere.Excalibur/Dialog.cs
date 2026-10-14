@@ -73,8 +73,8 @@ public static partial class ControlsExtensions
         var hasFooter = footer is not null;
         var totalHeight = titleBarHeight + height + (hasFooter ? footerHeight : 0);
         var centered = new Vector2(
-            gui.ScreenRect.X + (gui.ScreenRect.W - width) * 0.5f,
-            gui.ScreenRect.Y + (gui.ScreenRect.H - totalHeight) * 0.5f);
+            gui.LayoutBounds.X + (gui.LayoutBounds.W - width) * 0.5f,
+            gui.LayoutBounds.Y + (gui.LayoutBounds.H - totalHeight) * 0.5f);
         var position = ConstrainToScreen(gui, centered + state.DragOffset, width, totalHeight);
 
         if (gui.Pass == Pass.Pass2Render && isOpen && draggable)

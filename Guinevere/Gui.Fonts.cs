@@ -2,15 +2,20 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    /// <summary>Display scaling applied to text sizes in framebuffer coordinates.</summary>
-    public float FontScale { get; private set; } = 1f;
+    /// <summary>Text scaling in layout coordinates; viewport geometry applies its uniform scale separately.</summary>
+    public float FontScale => LayoutNodeScopeStack.TryPeek(out var scope) ? FontScaleFor(scope) : _fontScale;
+
+    float _fontScale = 1f;
+
+    float FontScaleFor(LayoutNodeScope scope) =>
+        scope.Get<LayoutNodeScopeViewport>().Value?.TextScale ?? _fontScale;
 
     /// <summary>Returns the scope font at the requested logical size, including display scaling and fallback.</summary>
     public Font GetTextFont(float size = 0, LayoutNodeScope? scope = null)
     {
         scope ??= CurrentNodeScope;
         var effectiveSize = size > 0 ? size : scope.Get<LayoutNodeScopeTextSize>().Value;
-        return scope.Get<LayoutNodeScopeTextFont>().Value.Resized(effectiveSize * FontScale);
+        return scope.Get<LayoutNodeScopeTextFont>().Value.Resized(effectiveSize * FontScaleFor(scope));
     }
 
     /// <summary>Measures text with the same scope font, display scale and glyph fallback used by DrawText.</summary>
@@ -40,6 +45,6 @@ public partial class Gui
         scale = float.IsFinite(scale) && scale > 0f ? scale : 1f;
         var matrix = Canvas!.TotalMatrix;
         var canvasScale = MathF.Sqrt(matrix.ScaleX * matrix.ScaleX + matrix.SkewY * matrix.SkewY);
-        FontScale = canvasScale > 0f ? scale / canvasScale : scale;
+        _fontScale = canvasScale > 0f ? scale / canvasScale : scale;
     }
 }
