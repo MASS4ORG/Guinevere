@@ -75,8 +75,9 @@ public static class StyledBackgrounds
                 var repeat = StyleBitmapBackground.Repeat(style.Get("background-repeat"));
                 var size = StyleBitmapBackground.Size(style.Get("background-size"));
                 var position = StyleBitmapBackground.Position(style.Get("background-position"));
+                var slice = StyleBitmapBackground.Slice(style.Get("background-slice"));
                 var image = Image(style, property, uri);
-                return new StyleBitmapBackground(image, repeat, size, position);
+                return new StyleBitmapBackground(image, repeat, size, position, slice);
             }
             catch (BackgroundSyntaxException exception)
             {

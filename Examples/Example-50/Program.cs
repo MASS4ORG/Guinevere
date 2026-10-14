@@ -16,7 +16,7 @@ public abstract partial class Program
     static Action? _pendingLayout;
 
     static readonly DockTheme DockTheme = new();
-    static readonly string[] CenterPanels = ["navigation", "feedback", "styling", "dialog", "selection"];
+    static readonly string[] CenterPanels = ["navigation", "feedback", "styling", "nine-slice", "dialog", "selection"];
     static DockLayout _layout = SeedLayout();
     static string? _saved;
     static string? _menuPanelId;
@@ -30,6 +30,7 @@ public abstract partial class Program
         ["feedback"] = "Feedback",
         ["scrolling"] = "Scrolling",
         ["styling"] = "Styling",
+        ["nine-slice"] = "9-slice",
         ["dialog"] = "Dialog"
     };
 
@@ -42,6 +43,7 @@ public abstract partial class Program
         ["feedback"] = FeedbackContent,
         ["scrolling"] = ScrollingContent,
         ["styling"] = StylingContent,
+        ["nine-slice"] = NineSliceContent,
         ["dialog"] = DialogContent
     };
 

@@ -45,3 +45,5 @@ brings a closed panel back.
 - **Menu bar**: click a title to drop its menu; **hover** another title to switch menus; **Escape**
   or clicking outside dismisses.
 - **File browsers**: navigate with the toolbar, filter or search the listing, then choose a file or folder.
+
+The **9-slice** dock panel provides draggable source guides, numeric pixel insets, an adjustable destination preview and wide, tall and tiny comparison previews. It shows the corresponding `.pss` `background-slice` declaration for the edited border.

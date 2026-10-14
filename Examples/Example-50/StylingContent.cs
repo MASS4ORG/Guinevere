@@ -52,6 +52,7 @@ public abstract partial class Program
                          #luna { background-image = url("luna.png"); background-size = auto 100%; background-repeat = repeat-x; }
                          #aqua { background-image = url("aqua.png"); color = #102030; }
                          #crt { background-color = #10251a; background-image = url("scanlines.png"); color = $phosphor; }
+                         #sliced { background-image = url("panel.png"); background-slice = 8; }
 
                          #root {
                              flex-direction = column;
@@ -73,9 +74,16 @@ public abstract partial class Program
     public static readonly StyleSheet StylingSheet = StyleSheet.Parse(Style, new StyleSheetOptions
     {
         SourceName = "StylingContent.pss",
-        ResourceResolver = uri => typeof(Program).Assembly.GetManifestResourceStream(
-            "Example_50.Backgrounds." + uri.OriginalString),
+        ResourceResolver = OpenBackground,
     });
+
+    static Stream? OpenBackground(Uri uri)
+    {
+        if (uri.OriginalString != "panel.png")
+            return typeof(Program).Assembly.GetManifestResourceStream("Example_50.Backgrounds." + uri.OriginalString);
+        using var data = SliceTexture.Value.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+        return new MemoryStream(data.ToArray());
+    }
 
     // The element hovered in the last render pass, used by both passes of this frame so they agree.
     static StyleTarget? _hovered;
@@ -110,6 +118,7 @@ public abstract partial class Program
                     StyledTile(gui, "luna", "Luna skin");
                     StyledTile(gui, "aqua", "Aqua stripes");
                     StyledTile(gui, "crt", "CRT scanlines");
+                    StyledTile(gui, "sliced", "9-slice skin");
                 }
 
                 using (gui.StyledNode("VisualElement", ["card"]).Expand().Enter())

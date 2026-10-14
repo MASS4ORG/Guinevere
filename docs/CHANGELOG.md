@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: 9-slice editor and preview controls #98.
 - Added: bitmap backgrounds via .pss #187.
 - Added: safe and responsive viewports #105.
 

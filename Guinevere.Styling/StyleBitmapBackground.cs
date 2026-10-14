@@ -5,8 +5,35 @@ namespace Guinevere;
 /// <summary>A cached bitmap with logical sizing, positioning and independent repeat axes.</summary>
 sealed class StyleBitmapBackground(SKImage image, (bool X, bool Y) repeat,
     (string Mode, BackgroundLength X, BackgroundLength Y) size,
-    (BackgroundLength X, BackgroundLength Y) position)
+    (BackgroundLength X, BackgroundLength Y) position, Insets? slice = null)
 {
+    internal static Insets? Slice(string? raw)
+    {
+        if (raw is null || raw.Trim().Equals("none", StringComparison.OrdinalIgnoreCase)) return null;
+        var parts = Parts(raw);
+        if (parts.Length is < 1 or > 4) throw Syntax("slice", raw);
+        Span<float> edges = stackalloc float[4];
+        for (var i = 0; i < parts.Length; i++)
+            edges[i] = SliceValue(parts[i]);
+        return SliceInsets(edges, parts.Length);
+    }
+
+    static float SliceValue(string raw)
+    {
+        if (!StyleValue.TryLength(raw, out var value, out var percent)
+            || percent || !float.IsFinite(value) || value < 0) throw Syntax("slice", raw);
+        return value;
+    }
+
+    static Insets SliceInsets(ReadOnlySpan<float> edges, int count)
+    {
+        var top = edges[0];
+        var right = count > 1 ? edges[1] : top;
+        var bottom = count > 2 ? edges[2] : top;
+        var left = count > 3 ? edges[3] : right;
+        return new Insets(left, top, right, bottom);
+    }
+
     internal static (bool X, bool Y) Repeat(string? raw) => raw?.Trim().ToLowerInvariant() switch
     {
         null or "repeat" => (true, true),
@@ -70,12 +97,24 @@ sealed class StyleBitmapBackground(SKImage image, (bool X, bool Y) repeat,
 
     internal SKShader CreateShader(SKRect bounds)
     {
+        if (slice is { } border) return SliceShader(bounds, border);
         var dimensions = Dimensions(bounds);
         var x = bounds.Left + position.X.Resolve(bounds.Width - dimensions.X);
         var y = bounds.Top + position.Y.Resolve(bounds.Height - dimensions.Y);
         var matrix = SKMatrix.CreateScaleTranslation(dimensions.X / image.Width, dimensions.Y / image.Height, x, y);
         return image.ToShader(repeat.X ? SKShaderTileMode.Repeat : SKShaderTileMode.Decal,
             repeat.Y ? SKShaderTileMode.Repeat : SKShaderTileMode.Decal, matrix);
+    }
+
+    SKShader SliceShader(SKRect bounds, Insets border)
+    {
+        using var recorder = new SKPictureRecorder();
+        var local = new SKRect(0, 0, Math.Max(0, bounds.Width), Math.Max(0, bounds.Height));
+        var canvas = recorder.BeginRecording(local);
+        NineSliceDrawable.Draw(canvas, image, new Rect(0, 0, local.Width, local.Height), border);
+        using var picture = recorder.EndRecording();
+        return picture.ToShader(SKShaderTileMode.Clamp, SKShaderTileMode.Clamp,
+            SKFilterMode.Nearest, SKMatrix.CreateTranslation(bounds.Left, bounds.Top), local);
     }
 
     (float X, float Y) Dimensions(SKRect bounds)

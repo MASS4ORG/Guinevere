@@ -391,6 +391,21 @@ gui.DockSpace(layout,
     renderPanel: (id, g) => g.DrawText(id));
 ```
 
+## Nine-slice authoring
+
+`gui.NineSliceEditor(image, ref border)` edits caller-owned `Insets` with source-image guides and numeric fields. Dragging a guide captures the pointer; values remain in source pixels and stop at the opposite guide. `enabled: false` disables editing. Give repeated instances distinct `id` values or item scopes, and call the controls from the same sites in both passes. The caller owns and disposes the `SKImage` and persists the insets in its asset metadata.
+
+```csharp
+if (gui.NineSliceEditor(image, ref border, id: "panel-slices"))
+    SaveAssetBorder(border);
+gui.NineSlicePreview(image, border, width: 320, height: 100, guides: true);
+gui.DrawImageNineSlice(image, destination, border);
+```
+
+Keep `border` between frames. The editor returns true when that invocation changes the insets. Guide edits arrive in the build pass; numeric commits arrive in the render pass. The preview draws a transparency checkerboard and optional guides at the destination size. `NineSliceLayout` exposes the normalized border, source/destination center rectangles and corresponding patches for integrations such as Turian's asset inspector. `Insets` constructor order is left/top/right/bottom; stylesheet `background-slice` order is top/right/bottom/left.
+
+Example 50's **9-slice** dock panel demonstrates editing and wide, tall and tiny destinations. Its Styling panel also includes a bitmap `background-slice` skin.
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.

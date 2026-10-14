@@ -108,7 +108,7 @@ The following vocabulary is provisional Guinevere syntax: PanGui's [published st
 - `background-size`: `auto` (default, one bitmap pixel per logical unit), `contain`, `cover`, or one/two positive pixel or percentage lengths with `auto` allowed per axis. One explicit length sets width and preserves aspect ratio; percentages refer to the box dimensions.
 - `background-position`: one/two pixel or percentage lengths or `left`, `center`, `right`, `top`, `bottom` (default `0% 0%`). One value centers the other axis. Percentages position within the remaining space after sizing; negative offsets are allowed.
 
-Images paint above the solid fill and below inset shadows and borders, clipped to the rounded border box. Transparent pixels reveal the fill. Node and part opacity, ancestor clips and canvas transforms apply normally. Dimensions are logical units; display/viewport scaling uses the same canvas transform as other geometry. Image layers, `space`/`round` repetition, four-value edge offsets, atlas regions and nine-slice background syntax are unsupported and produce diagnostics when a bitmap background is resolved.
+Images paint above the solid fill and below inset shadows and borders, clipped to the rounded border box. Transparent pixels reveal the fill. Node and part opacity, ancestor clips and canvas transforms apply normally. Dimensions are logical units; display/viewport scaling uses the same canvas transform as other geometry. Image layers, `space`/`round` repetition, four-value edge offsets and atlas regions are unsupported and produce diagnostics when a bitmap background is resolved.
 
 Decoded images (including failed loads) are cached per GUI by URI and resolver, and resolved bitmap settings are cached with their styles. Sheet reloads/replacements and host token changes dispose and invalidate that cache; file changes alone do not reload it. Call `gui.ClearBackgroundImages()` between frames to refresh changed assets or release them at GUI shutdown. Native image wrappers are reclaimed with the GUI if no explicit cleanup is performed. Diagnostics are deduplicated until invalidation. Resolve/render a background before reading its diagnostics.
 
@@ -124,3 +124,16 @@ panel {
 ```
 
 Example 50's Styling page includes embedded bitmap Win95 patterns, Luna and Aqua skins, and transparent CRT scanlines, selected entirely by stylesheet declarations.
+
+### Nine-slice backgrounds
+
+Set `background-slice` alongside a bitmap `background-image` to stretch the center and edges while preserving the corners. Values are nonnegative source pixels, with optional `px`, in top/right/bottom/left order; one, two or three values expand like CSS edge values. `none` restores ordinary bitmap sizing and repetition.
+
+```pss
+.panel {
+    background-image = url("panel.png");
+    background-slice = 8 12 8 12;
+}
+```
+
+A sliced image fills the border box; `background-size`, `background-position` and `background-repeat` do not change its slice placement. Insets clamp to the source image, and corners shrink proportionally if the destination is smaller than their combined size. Rounded clipping, solid fills beneath transparent pixels, shadows, borders, opacity and transforms apply as for other bitmap backgrounds. Invalid slice values produce located background diagnostics.
