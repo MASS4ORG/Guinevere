@@ -181,19 +181,21 @@ sealed class StyleSheetParser
         var ownOrder = _order++;
         var declarations = new Dictionary<string, string>(StringComparer.Ordinal);
         var lines = new List<int> { LineOf(selectorOffset) };
+        var sources = new Dictionary<string, StylePropertySource>(StringComparer.Ordinal);
         while (true)
         {
             if (!SkipTrivia(ref i)) throw Error(i, "Unterminated rule block: missing '}'");
             if (_text[i] == '}') { i++; break; }
-            i = ParseBlockStatement(i, selectorTexts, declarations, lines);
+            i = ParseBlockStatement(i, selectorTexts, declarations, lines, sources);
         }
 
         if (declarations.Count > 0)
-            _ownRules.Add(CreateRule(selectorTexts, declarations, ownOrder, selectorOffset, lines));
+            _ownRules.Add(CreateRule(selectorTexts, declarations, ownOrder, selectorOffset, lines, sources));
         return i;
     }
 
-    int ParseBlockStatement(int i, string[] selectorTexts, Dictionary<string, string> declarations, List<int> lines)
+    int ParseBlockStatement(int i, string[] selectorTexts, Dictionary<string, string> declarations, List<int> lines,
+        Dictionary<string, StylePropertySource> sources)
     {
         if (_text[i] == '@') return ParseAtRule(i, topLevel: false);
         var end = StyleSheetLexer.FindBoundary(_text, i);
@@ -211,16 +213,18 @@ sealed class StyleSheetParser
         var next = _text[end] == ';' ? end + 1 : end;
         if (StartsWithKeyword(head, "shape")) return Defer(StyleDeferredKind.Shape, i);
         if (IsBackgroundShape(head)) return Defer(StyleDeferredKind.BackgroundShape, i);
-        AddDeclaration(head, i, declarations, lines);
+        AddDeclaration(head, i, declarations, lines, sources);
         return next;
     }
 
     /// <summary>Records a <c>name = value</c> declaration and the source line it is on.</summary>
-    void AddDeclaration(string head, int offset, Dictionary<string, string> declarations, List<int> lines)
+    void AddDeclaration(string head, int offset, Dictionary<string, string> declarations, List<int> lines,
+        Dictionary<string, StylePropertySource> sources)
     {
         var (property, value) = SplitDeclaration(head, offset);
         declarations[property] = value;
         var line = LineOf(offset);
+        sources[property] = new StylePropertySource(Options, line, offset - _lineStarts![line - 1] + 1);
         if (lines[^1] != line) lines.Add(line);
     }
 
@@ -352,7 +356,7 @@ sealed class StyleSheetParser
     }
 
     StyleRule CreateRule(string[] selectorTexts, Dictionary<string, string> declarations, int order, int offset,
-        List<int> lines)
+        List<int> lines, Dictionary<string, StylePropertySource> sources)
     {
         var selectors = new Selector[selectorTexts.Length];
         for (var s = 0; s < selectors.Length; s++)
@@ -373,6 +377,7 @@ sealed class StyleSheetParser
             Order = order,
             BaseUri = Options.BaseUri,
             Lines = lines,
+            Sources = sources,
         };
     }
 
@@ -464,6 +469,7 @@ sealed class StyleSheetParser
         Order = order,
         BaseUri = rule.BaseUri,
         Lines = rule.Lines,
+        Sources = rule.Sources,
     };
 
     StyleSheetException Error(int offset, string message)

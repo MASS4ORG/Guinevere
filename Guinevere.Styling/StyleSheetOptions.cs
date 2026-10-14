@@ -20,6 +20,9 @@ public sealed record StyleSheetOptions
     /// Intended for migration tools; shipped sheets use the PanGui <c>=</c> syntax.
     /// </summary>
     public bool AllowCssSyntax { get; init; }
+
+    /// <summary>Opens bitmap resources by resolved URI; returned streams are disposed after decoding.</summary>
+    public Func<Uri, Stream?>? ResourceResolver { get; init; }
 }
 
 /// <summary>Sheet text returned by a <see cref="StyleSheetOptions.ImportResolver"/>.</summary>

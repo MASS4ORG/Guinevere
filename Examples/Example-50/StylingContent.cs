@@ -48,6 +48,11 @@ public abstract partial class Program
                              text-shadow = 0 0 2px #a8ffd0, 0 0 7px #32e878, 0 0 14px #08783d;
                          }
 
+                         #win95 { background-image = url("win95.png"); border-radius = 0; color = #000000; }
+                         #luna { background-image = url("luna.png"); background-size = auto 100%; background-repeat = repeat-x; }
+                         #aqua { background-image = url("aqua.png"); color = #102030; }
+                         #crt { background-color = #10251a; background-image = url("scanlines.png"); color = $phosphor; }
+
                          #root {
                              flex-direction = column;
                              gap = 16;
@@ -65,7 +70,12 @@ public abstract partial class Program
                          """;
 
     /// <summary>The styling page's sheet, parsed once; its rules' source lines drive the highlight below.</summary>
-    public static readonly StyleSheet StylingSheet = StyleSheet.Parse(Style);
+    public static readonly StyleSheet StylingSheet = StyleSheet.Parse(Style, new StyleSheetOptions
+    {
+        SourceName = "StylingContent.pss",
+        ResourceResolver = uri => typeof(Program).Assembly.GetManifestResourceStream(
+            "Example_50.Backgrounds." + uri.OriginalString),
+    });
 
     // The element hovered in the last render pass, used by both passes of this frame so they agree.
     static StyleTarget? _hovered;
@@ -88,6 +98,7 @@ public abstract partial class Program
             {
                 using (gui.StyledNode("VisualElement", ["card"]).Direction(Axis.Vertical).Enter())
                 {
+                    gui.ScrollY();
                     StyledTile(gui, "corners", "Per-corner radius");
                     StyledTile(gui, "gradient", "Gradient");
                     StyledTile(gui, "shadow", "Shadows");
@@ -95,6 +106,10 @@ public abstract partial class Program
                     StyledTile(gui, "bold", "Bold italic");
                     StyledTile(gui, "phosphor", "PHOSPHOR");
                     _ = gui.Button("GLOW", classes: ["phosphor-button"]);
+                    StyledTile(gui, "win95", "Win95 pattern");
+                    StyledTile(gui, "luna", "Luna skin");
+                    StyledTile(gui, "aqua", "Aqua stripes");
+                    StyledTile(gui, "crt", "CRT scanlines");
                 }
 
                 using (gui.StyledNode("VisualElement", ["card"]).Expand().Enter())

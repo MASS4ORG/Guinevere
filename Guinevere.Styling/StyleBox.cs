@@ -5,7 +5,7 @@ namespace Guinevere;
 
 /// <summary>
 /// The visual part of a styled node: a per-corner rounded <see cref="Shape"/> with its background (color or
-/// gradient) and CSS shadows, then the border and the outline.
+/// gradient or bitmap) and CSS shadows, then the border and the outline.
 /// </summary>
 sealed class StyleBox : IDrawable, IInkBounds
 {
@@ -35,20 +35,34 @@ sealed class StyleBox : IDrawable, IInkBounds
     /// <summary>
     /// Builds the box for a resolved style over <paramref name="rect"/>, or <c>null</c> when the style draws nothing.
     /// </summary>
-    public static StyleBox? From(ResolvedStyle style, Rect rect)
+    public static StyleBox? From(ResolvedStyle style, Rect rect, Gui? gui = null)
     {
         var bounds = new SKRect(rect.X, rect.Y, rect.X + rect.W, rect.Y + rect.H);
         var (fill, opaqueGradient) = Fill(style, bounds);
+        var bitmap = gui is null ? null : StyledBackgrounds.Resolve(gui, style);
+        fill = BitmapFill(fill, bitmap, bounds);
         var shadows = StyleBoxValues.Shadows(style.Get("box-shadow"));
         var border = StyleBoxValues.Border(style);
         var outline = StyleBoxValues.Outline(style);
-        if (fill is null && shadows.Count == 0 && border is null && outline is null) return null;
+        if (fill is null && bitmap is null && shadows.Count == 0 && border is null && outline is null) return null;
 
         var box = new SKRoundRect();
         box.SetRectRadii(bounds, StyleBoxValues.Radii(style.Get("border-radius"), rect));
         var shape = Shaped(box, fill, shadows);
         if (opaqueGradient) shape.OpaqueFill = true;
         return new StyleBox(shape, box, border, outline);
+    }
+
+    static SKPaint? BitmapFill(SKPaint? fill, StyleBitmapBackground? bitmap, SKRect bounds)
+    {
+        if (bitmap is null) return fill;
+        using var background = fill?.Shader ?? SKShader.CreateColor(fill?.Color ?? SKColors.Transparent);
+        using var image = bitmap.CreateShader(bounds);
+        return new SKPaint
+        {
+            IsAntialias = true,
+            Shader = SKShader.CreateCompose(background, image, SKBlendMode.SrcOver),
+        };
     }
 
     /// <summary>The rounded box as a <see cref="Shape"/> with its fill (transparent when none) and CSS shadows.</summary>

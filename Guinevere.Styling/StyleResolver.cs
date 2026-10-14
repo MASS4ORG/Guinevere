@@ -24,6 +24,8 @@ public sealed class ResolvedStyle
 
     internal Dictionary<string, Uri>? Bases { get; }
 
+    internal Dictionary<string, StylePropertySource>? Sources { get; init; }
+
     /// <summary>The rule-scoped tokens of the matched rules, which a styled node passes down to its subtree.</summary>
     internal Dictionary<string, string>? Locals { get; init; }
 
@@ -149,35 +151,45 @@ public static class StyleResolver
     /// Applies matched rules in cascade order: properties with their sheet base and the transition annotation of the
     /// selector that set them, and rule-scoped tokens.
     /// </summary>
-    static (Dictionary<string, (string Value, Uri? Base, StyleTransition? Transition)> Raw,
+    static (Dictionary<string, (string Value, Uri? Base, StyleTransition? Transition, StylePropertySource? Source)> Raw,
         Dictionary<string, string>? Locals) Merge(List<RuleMatch> matches)
     {
-        var raw = new Dictionary<string, (string Value, Uri? Base, StyleTransition? Transition)>(StringComparer.Ordinal);
+        var raw = new Dictionary<string,
+            (string Value, Uri? Base, StyleTransition? Transition, StylePropertySource? Source)>(StringComparer.Ordinal);
         Dictionary<string, string>? locals = null;
         foreach (var (_, _, _, rule, transition) in matches)
             foreach (var (prop, value) in rule.Declarations)
                 if (prop.StartsWith("--", StringComparison.Ordinal)) (locals ??= new(StringComparer.Ordinal))[prop] = value;
-                else raw[prop] = (value, rule.BaseUri, transition);
+                else raw[prop] = (value, rule.BaseUri, transition, rule.Sources.GetValueOrDefault(prop));
         return (raw, locals);
     }
 
-    static StyleCacheEntry Expand(Dictionary<string, (string Value, Uri? Base, StyleTransition? Transition)> raw,
+    static StyleCacheEntry Expand(Dictionary<string,
+            (string Value, Uri? Base, StyleTransition? Transition, StylePropertySource? Source)> raw,
         Dictionary<string, string>? locals, IReadOnlyDictionary<string, string> globals)
     {
         var merged = new Dictionary<string, string>(raw.Count, StringComparer.Ordinal);
         Dictionary<string, Uri>? bases = null;
         Dictionary<string, string>? referencing = null;
         Dictionary<string, StyleTransition>? transitions = null;
+        Dictionary<string, StylePropertySource>? sources = null;
         Func<string, string?> lookup = name => locals?.GetValueOrDefault(name) ?? globals.GetValueOrDefault(name);
-        foreach (var (prop, (value, baseUri, transition)) in raw)
+        foreach (var (prop, (value, baseUri, transition, source)) in raw)
         {
             merged[prop] = StyleSheet.Compute(value, lookup);
+            RecordSource(prop, source, ref sources);
             if (baseUri is not null) (bases ??= new(StringComparer.Ordinal))[prop] = baseUri;
             if (transition is not null) (transitions ??= new(StringComparer.Ordinal))[prop] = transition;
             if (StyleSheet.References(value)) (referencing ??= new(StringComparer.Ordinal))[prop] = value;
         }
-        var style = new ResolvedStyle(merged, bases) { Locals = locals, Transitions = transitions };
+        var style = new ResolvedStyle(merged, bases) { Locals = locals, Transitions = transitions, Sources = sources };
         return new StyleCacheEntry(style, referencing, locals);
+    }
+
+    static void RecordSource(string property, StylePropertySource? source,
+        ref Dictionary<string, StylePropertySource>? sources)
+    {
+        if (source is not null) (sources ??= new(StringComparer.Ordinal))[property] = source;
     }
 
     /// <summary>
@@ -204,7 +216,12 @@ public static class StyleResolver
             ?? inherited?.GetValueOrDefault(name) ?? globals.GetValueOrDefault(name);
         var merged = new Dictionary<string, string>(entry.Style.DeclarationMap, StringComparer.Ordinal);
         foreach (var (prop, value) in referencing) merged[prop] = StyleSheet.Compute(value, lookup);
-        return new ResolvedStyle(merged, entry.Style.Bases) { Locals = locals, Transitions = entry.Style.Transitions };
+        return new ResolvedStyle(merged, entry.Style.Bases)
+        {
+            Locals = locals,
+            Transitions = entry.Style.Transitions,
+            Sources = entry.Style.Sources,
+        };
     }
 
     static Dictionary<string, string>? CallerTokens(IReadOnlyList<StyleVariable>? scoped)

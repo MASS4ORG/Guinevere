@@ -17,12 +17,17 @@ public sealed class StyleRule
     /// <summary>Base for relative <c>url()</c> values, taken from the sheet that declared the rule.</summary>
     internal Uri? BaseUri { get; init; }
 
+    internal IReadOnlyDictionary<string, StylePropertySource> Sources { get; init; } =
+        new Dictionary<string, StylePropertySource>();
+
     /// <summary>
     /// 1-based source lines of the rule's selector and of its own declarations (not those of nested rules), so tools
     /// can point at the text a matched rule came from.
     /// </summary>
     public IReadOnlyList<int> Lines { get; init; } = [];
 }
+
+sealed record StylePropertySource(StyleSheetOptions Options, int Line, int Column);
 
 /// <summary>A <c>@font-face</c> the host should load, with its source resolved against the sheet location.</summary>
 /// <param name="Family">The <c>font-family</c> name declarations refer to.</param>

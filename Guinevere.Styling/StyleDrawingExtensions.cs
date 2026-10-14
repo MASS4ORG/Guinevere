@@ -15,7 +15,7 @@ public static class StyleDrawingExtensions
     public static void DrawStyledBox(this Gui gui, ResolvedStyle style, Rect rect)
     {
         if (gui.Pass != Pass.Pass2Render || rect.W <= 0 || rect.H <= 0) return;
-        if (StyleBox.From(style, rect) is not { } box) return;
+        if (StyleBox.From(style, rect, gui) is not { } box) return;
         var opacity = StyleBoxValues.Opacity(style.Get("opacity")) ?? 1f;
         gui.CurrentNode.DrawList.Add(opacity == 1f ? box : new PartBox(box, opacity));
     }

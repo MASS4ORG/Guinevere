@@ -97,3 +97,30 @@ Call `UseFontRole` from the same call site in both passes. `font-family` lists f
 Custom controls can resolve declarations with `gui.ResolveStyle` and obtain their face with `gui.GetStyleFont(style, scope)`. This preserves inherited weight and slant when a rule omits them, and retains fallback families.
 
 The registry owns faces loaded from files/streams and fonts returned by lookup. Dispose `gui.Fonts` when the GUI is no longer used. Fonts passed to `Register`, `ConfigureFonts` or `BeginFrame` remain caller-owned. Shaping and ligatures are outside this API.
+
+## Bitmap backgrounds
+
+`background-image = url("tile.png");` (also accepted on `background`) loads a raster asset relative to the declaring sheet's `BaseUri`, including imported sheets. Files load directly; set `StyleSheetOptions.ResourceResolver` to open embedded resources or custom URI schemes. The resolver receives the resolved URI, and the returned stream is disposed after decoding. Unsupported or missing assets leave the solid background visible and appear in `gui.BackgroundDiagnostics` with the winning declaration's source, line and column.
+
+The following vocabulary is provisional Guinevere syntax: PanGui's [published styling overview](https://www.pangui.io/blog/03-immediate-mode-styling/) establishes the `=` declaration and resource conventions but does not specify bitmap background properties.
+
+- `background-repeat`: `repeat` (default), `repeat-x`, `repeat-y`, `no-repeat`.
+- `background-size`: `auto` (default, one bitmap pixel per logical unit), `contain`, `cover`, or one/two positive pixel or percentage lengths with `auto` allowed per axis. One explicit length sets width and preserves aspect ratio; percentages refer to the box dimensions.
+- `background-position`: one/two pixel or percentage lengths or `left`, `center`, `right`, `top`, `bottom` (default `0% 0%`). One value centers the other axis. Percentages position within the remaining space after sizing; negative offsets are allowed.
+
+Images paint above the solid fill and below inset shadows and borders, clipped to the rounded border box. Transparent pixels reveal the fill. Node and part opacity, ancestor clips and canvas transforms apply normally. Dimensions are logical units; display/viewport scaling uses the same canvas transform as other geometry. Image layers, `space`/`round` repetition, four-value edge offsets, atlas regions and nine-slice background syntax are unsupported and produce diagnostics when a bitmap background is resolved.
+
+Decoded images (including failed loads) are cached per GUI by URI and resolver, and resolved bitmap settings are cached with their styles. Sheet reloads/replacements and host token changes dispose and invalidate that cache; file changes alone do not reload it. Call `gui.ClearBackgroundImages()` between frames to refresh changed assets or release them at GUI shutdown. Native image wrappers are reclaimed with the GUI if no explicit cleanup is performed. Diagnostics are deduplicated until invalidation. Resolve/render a background before reading its diagnostics.
+
+```css
+panel {
+    background-color = #203040;
+    background-image = url("surface.png");
+    background-repeat = no-repeat;
+    background-size = cover;
+    background-position = center;
+    border-radius = 8;
+}
+```
+
+Example 50's Styling page includes embedded bitmap Win95 patterns, Luna and Aqua skins, and transparent CRT scanlines, selected entirely by stylesheet declarations.

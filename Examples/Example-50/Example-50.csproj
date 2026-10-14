@@ -11,6 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="Backgrounds/*.png" />
         <EmbeddedResource Include="../../docs/guinevere-badge.png" LogicalName="Controls_01.guinevere-badge.png" />
         <InternalsVisibleTo Include="Guinevere.Tests" />
         <ProjectReference Include="../../Guinevere/Guinevere.csproj" />

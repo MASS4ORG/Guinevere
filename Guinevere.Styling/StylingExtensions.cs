@@ -122,7 +122,7 @@ public static class StylingExtensions
                 styling.Sheets.Resolve(target with { State = live }, variables, inherited));
             ApplyInherited(gui, node, liveStyle, styling, inherited);
             if (StyleTransform.From(liveStyle, node.Rect) is { } transform) gui.SetTransform(transform, node.Scope);
-            if (StyleBox.From(liveStyle, node.Rect) is { } box) node.DrawList.Add(box);
+            if (StyleBox.From(liveStyle, node.Rect, gui) is { } box) node.DrawList.Add(box);
             return node;
         }
 

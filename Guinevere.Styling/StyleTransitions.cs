@@ -106,7 +106,7 @@ sealed class StyleTransitions
         }
         foreach (var property in _finished) track.Properties.Remove(property);
         if (track.Properties.Count > 0) gui.RequestFrame();
-        return new ResolvedStyle(merged, style.Bases) { Locals = style.Locals, Transitions = style.Transitions };
+        return new ResolvedStyle(merged, style.Bases) { Locals = style.Locals, Transitions = style.Transitions, Sources = style.Sources };
     }
 
     sealed class Track(ResolvedStyle target)

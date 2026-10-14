@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: bitmap backgrounds via .pss #187.
 - Added: safe and responsive viewports #105.
 
 ## [6.1.0] - 2026-10-13
