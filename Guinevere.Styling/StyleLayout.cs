@@ -17,7 +17,7 @@ public static class StyleLayout
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(style);
 
-        var text = new TextStyle(node.Scope.Get<LayoutNodeScopeTextLayout>().Value);
+        var text = new StyleTextLayout(node.Scope.Get<LayoutNodeScopeTextLayout>().Value);
 
         foreach (var (prop, raw) in style.DeclarationMap)
         {
@@ -30,18 +30,45 @@ public static class StyleLayout
         }
         if (text.Changed)
         {
-            node.Scope.Set(new LayoutNodeScopeTextLayout { Value = text.Build() });
+            node.Scope.Set(new LayoutNodeScopeTextLayout { Value = text.Options });
         }
     }
 
-    static void ApplyDeclaration(LayoutNode node, string prop, string value, ref TextStyle text)
+    static void ApplyDeclaration(LayoutNode node, string prop, string value, ref StyleTextLayout text)
     {
-        switch (prop[0])
+        if (!text.Apply(prop, value))
         {
-            case 'f' or 'a' or 'g' or 'j': ApplyFlow(node, prop, value); break;
-            case 'w' or 'h' or 'p': ApplySize(node, prop, value); break;
-            case 'm': ApplyM(node, prop, value, ref text); break;
-            case 't' or 'l': text.Apply(prop, value); break;
+            ApplyLayout(node, prop, value);
+        }
+    }
+
+    /// <summary>Which layout group a property belongs to, by its first letter: 1 flow, 2 size, 3 min/max and margin.</summary>
+    static readonly byte[] LayoutGroups = CreateLayoutGroups();
+
+    static byte[] CreateLayoutGroups()
+    {
+        var groups = new byte[128];
+        foreach (var letter in "fagj")
+        {
+            groups[letter] = 1;
+        }
+
+        foreach (var letter in "whp")
+        {
+            groups[letter] = 2;
+        }
+
+        groups['m'] = 3;
+        return groups;
+    }
+
+    static void ApplyLayout(LayoutNode node, string prop, string value)
+    {
+        switch (LayoutGroups[prop[0] & 127])
+        {
+            case 1: ApplyFlow(node, prop, value); break;
+            case 2: ApplySize(node, prop, value); break;
+            case 3: ApplyM(node, prop, value); break;
         }
     }
 
@@ -85,7 +112,7 @@ public static class StyleLayout
         }
     }
 
-    static void ApplyM(LayoutNode node, string prop, string value, ref TextStyle text)
+    static void ApplyM(LayoutNode node, string prop, string value)
     {
         switch (prop)
         {
@@ -118,80 +145,7 @@ public static class StyleLayout
                 }
 
                 break;
-            case "max-lines" when int.TryParse(value, out var maxLines) && maxLines >= 0:
-                text.SetMaxLines(maxLines);
-                break;
         }
-    }
-
-    struct TextStyle(TextLayoutOptions options)
-    {
-        TextWrapMode _wrapMode = options.WrapMode;
-        float _lineHeight = options.LineHeight;
-        int _maxLines = options.MaxLines;
-        string _ellipsis = options.Ellipsis;
-
-        public bool Changed { get; private set; }
-
-        public void SetLineHeight(float value)
-        {
-            if (_lineHeight == value)
-            {
-                return;
-            }
-
-            _lineHeight = value;
-            Changed = true;
-        }
-
-        public void SetMaxLines(int value)
-        {
-            if (_maxLines == value)
-            {
-                return;
-            }
-
-            _maxLines = value;
-            Changed = true;
-        }
-
-        public void Apply(string prop, string value)
-        {
-            switch (prop)
-            {
-                case "text-wrap" when Enum.TryParse<TextWrapMode>(
-                    value.Replace("-", "", StringComparison.Ordinal), true, out var mode):
-                    if (_wrapMode == mode)
-                    {
-                        break;
-                    }
-
-                    _wrapMode = mode;
-                    Changed = true;
-                    break;
-                case "text-ellipsis":
-                    var ellipsis = value.Trim('"', '\'');
-                    if (_ellipsis == ellipsis)
-                    {
-                        break;
-                    }
-
-                    _ellipsis = ellipsis;
-                    Changed = true;
-                    break;
-                case "line-height" when StyleValue.TryFloat(value, out var lineHeight) && lineHeight > 0f:
-                    SetLineHeight(lineHeight);
-                    break;
-            }
-        }
-
-        public readonly TextLayoutOptions Build() => new()
-        {
-            WrapMode = _wrapMode,
-            LineHeight = _lineHeight,
-            MaxLines = _maxLines,
-            Ellipsis = _ellipsis
-        };
     }
 
     static void ApplyLength(LayoutNode node, string value, bool width)

@@ -22,7 +22,9 @@ public enum TextAlignment
     /// <summary>Lines are centered.</summary>
     Center,
     /// <summary>Lines end at the right edge.</summary>
-    End
+    End,
+    /// <summary>Spaces stretch so wrapped lines fill the width; the last line follows the last-line policy.</summary>
+    Justify
 }
 
 /// <summary>
@@ -49,6 +51,14 @@ public readonly record struct TextSpanStyle
     public Color? Background { get; init; }
     /// <summary>Logical pixels the span is raised above the baseline; negative values lower it.</summary>
     public float? BaselineShift { get; init; }
+    /// <summary>Extra space after every character in ems, or null to inherit the block's.</summary>
+    public float? LetterSpacing { get; init; }
+    /// <summary>Extra space added to every space character in ems, or null to inherit the block's.</summary>
+    public float? WordSpacing { get; init; }
+    /// <summary>Letter case drawn without changing the source, or null to inherit the block's.</summary>
+    public TextCase? Case { get; init; }
+    /// <summary>Whether pair kerning applies, or null to inherit the block's.</summary>
+    public bool? Kerning { get; init; }
 
     /// <summary>Bold text.</summary>
     public static TextSpanStyle Bold => new() { Weight = 700 };
@@ -74,6 +84,10 @@ public readonly record struct TextSpanStyle
         DecorationColor = Pick(over.DecorationColor, DecorationColor),
         Background = Pick(over.Background, Background),
         BaselineShift = Pick(over.BaselineShift, BaselineShift),
+        LetterSpacing = Pick(over.LetterSpacing, LetterSpacing),
+        WordSpacing = Pick(over.WordSpacing, WordSpacing),
+        Case = Pick(over.Case, Case),
+        Kerning = Pick(over.Kerning, Kerning),
     };
 
     static T? Pick<T>(T? over, T? under) where T : struct => over ?? under;

@@ -28,15 +28,16 @@ public static partial class ControlsExtensions
         var labelScope = gui.CurrentNode.Scope;
         var color = labelScope.Get<LayoutNodeScopeTextColor>().Value;
         var options = labelScope.Get<LayoutNodeScopeTextLayout>().Value;
+        var alignment = options.Alignment ?? TextAlignment.Start;
         var (node, layout) = gui.TextBlock(RichTextContent.Plain(text), font, size, TextLayoutOptions.FillWidth,
-            options, TextAlignment.Start);
+            options, alignment);
         var state = TextEditor.State(gui, $"{gui.CurrentNode.Id}/wrappedLabelText", text);
         if (gui.Pass != Pass.Pass2Render)
         {
             return state;
         }
 
-        var origin = node.InnerRect.Position;
+        var origin = Gui.TextOrigin(node, layout, alignment);
         Select(gui, state, layout, origin, viewport);
         if (copyable)
         {

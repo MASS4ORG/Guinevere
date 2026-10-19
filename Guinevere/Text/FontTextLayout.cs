@@ -4,8 +4,11 @@ namespace Guinevere;
 
 readonly record struct FontRun(string Text, Font Font);
 
-/// <summary>A source range drawn with one font; hidden ranges are kept for offsets but never drawn.</summary>
-readonly record struct FontRange(int Start, int End, Font Font, bool Hidden);
+/// <summary>
+/// A source range drawn with one font; hidden ranges are kept for offsets but never drawn, and missing ranges hold
+/// characters no font can render.
+/// </summary>
+readonly record struct FontRange(int Start, int End, Font Font, bool Hidden, bool Missing = false);
 
 /// <summary>Splits Unicode scalars into shared drawing and measurement runs without shaping.</summary>
 static class FontTextLayout
@@ -44,37 +47,61 @@ static class FontTextLayout
 
     /// <summary>
     /// Splits <c>text[start..end]</c> by fallback font while keeping source offsets: variation selectors become
-    /// hidden zero-width ranges instead of being removed.
+    /// hidden zero-width ranges instead of being removed, and characters no font has become missing ranges.
     /// </summary>
     internal static void AppendRanges(List<FontRange> ranges, string text, int start, int end, Font mainFont,
         Font widgetFont, Font iconFont)
     {
         Font[]? fallbackFonts = null;
-        Font? currentFont = null;
-        var currentHidden = false;
-        var runStart = start;
+        FontRange? current = null;
         var offset = start;
         foreach (var rune in text.AsSpan(start, end - start).EnumerateRunes())
         {
-            var hidden = IsVariationSelector(rune);
-            var selected = hidden ? currentFont ?? mainFont
-                : SelectFont(rune, mainFont, ref fallbackFonts, widgetFont, iconFont);
-            if (currentFont is not null && (selected != currentFont || hidden != currentHidden))
-            {
-                ranges.Add(new FontRange(runStart, offset, currentFont, currentHidden));
-                runStart = offset;
-            }
-
-            currentFont = selected;
-            currentHidden = hidden;
+            var next = Classify(rune, offset, current?.Font ?? mainFont, mainFont, ref fallbackFonts, widgetFont,
+                iconFont);
+            current = Extend(ranges, current, next);
             offset += rune.Utf16SequenceLength;
         }
 
-        if (currentFont is not null)
+        if (current is { } last)
         {
-            ranges.Add(new FontRange(runStart, end, currentFont, currentHidden));
+            ranges.Add(last with { End = end });
         }
     }
+
+    /// <summary>The empty range a rune would start: its font, and whether it is hidden or missing.</summary>
+    static FontRange Classify(Rune rune, int offset, Font previous, Font mainFont, ref Font[]? fallbacks,
+        Font widgetFont, Font iconFont)
+    {
+        if (IsVariationSelector(rune))
+        {
+            return new FontRange(offset, offset, previous, true);
+        }
+
+        var selected = SelectFont(rune, mainFont, ref fallbacks, widgetFont, iconFont);
+        var missing = !Rune.IsControl(rune) && selected.SkFont.GetGlyph(rune.Value) == 0;
+        return new FontRange(offset, offset, selected, false, missing);
+    }
+
+    /// <summary>Keeps the current range when the next rune matches it, else closes it and starts the next.</summary>
+    static FontRange Extend(List<FontRange> ranges, FontRange? current, FontRange next)
+    {
+        if (current is not { } run)
+        {
+            return next;
+        }
+
+        if (SameKind(run, next))
+        {
+            return run;
+        }
+
+        ranges.Add(run with { End = next.Start });
+        return next;
+    }
+
+    static bool SameKind(FontRange run, FontRange next) =>
+        run.Font == next.Font && run.Hidden == next.Hidden && run.Missing == next.Missing;
 
     static Font[] FallbackFonts(Font primary, Font widget, Font emoji)
     {

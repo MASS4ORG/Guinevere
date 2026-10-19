@@ -86,7 +86,7 @@ public partial class Gui
     {
         var color = cfg.Color ?? CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         var options = cfg.Layout ?? CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
-        var alignment = cfg.Center ? TextAlignment.Center : TextAlignment.Start;
+        var alignment = options.Alignment ?? (cfg.Center ? TextAlignment.Center : TextAlignment.Start);
         var (node, layout) = TextBlock(RichTextContent.Plain(cfg.Text), cfg.Font, cfg.Size, cfg.WrapWidth, options,
             alignment);
         if (cfg.Selectable)

@@ -45,5 +45,6 @@
     <Project Path="Guinevere.Styling/Guinevere.Styling.csproj"/>
     <Project Path="Guinevere.Svg/Guinevere.Svg.csproj"/>
     <Project Path="Guinevere.Tests/Guinevere.Tests.csproj"/>
+    <Project Path="Guinevere.TextShaping/Guinevere.TextShaping.csproj"/>
     <Project Path="Guinevere/Guinevere.csproj"/>
 </Solution>

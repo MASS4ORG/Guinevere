@@ -10,8 +10,10 @@ namespace Guinevere;
 /// <param name="Options">Wrapping and truncation options.</param>
 /// <param name="Alignment">Horizontal placement of each line.</param>
 /// <param name="FontsVersion">Font registry version, so registering faces relayouts styled spans.</param>
+/// <param name="Shaper">Turns font runs into glyphs.</param>
 readonly record struct TextLayoutRequest(RichTextContent Content, FontKey Font, SKTypeface Emoji, Font Widget,
-    float Scale, float MaxWidth, TextLayoutOptions Options, TextAlignment Alignment, int FontsVersion);
+    float Scale, float MaxWidth, TextLayoutOptions Options, TextAlignment Alignment, int FontsVersion,
+    ITextShaper Shaper);
 
 /// <summary>Value identity of a face at a size; fonts are otherwise recreated per call.</summary>
 /// <param name="Font">The face, at any size.</param>
@@ -34,19 +36,32 @@ readonly record struct FontKey(Font Font, float Size)
     public override int GetHashCode() => HashCode.Combine(Font.SkFont.Typeface, Size);
 }
 
-/// <summary>Builds a <see cref="TextLayout"/> from styled content: font selection, advances, wrapping and runs.</summary>
-static class TextLayoutEngine
+/// <summary>
+/// Builds a <see cref="TextLayout"/> from styled content: font selection, shaping, spacing, wrapping, tabs,
+/// indents, justification and runs.
+/// </summary>
+static partial class TextLayoutEngine
 {
-    readonly record struct Piece(int Start, int End, Font Font, int Range, bool Hidden);
+    enum PieceKind { Text, Hidden, Image, Missing }
 
-    sealed class Build(TextLayoutRequest request, FontRegistry? fonts)
+    /// <summary>A source range shaped with one font; <see cref="Shaped"/> is null for images and hidden ranges.</summary>
+    readonly record struct Piece(int Start, int End, Font Font, int Range, PieceKind Kind, ShapedText? Shaped);
+
+    /// <summary>Per-range spacing in pixels and kerning, after inheriting the block's options.</summary>
+    readonly record struct RangeSpacing(float Letter, float Word, bool Kerning);
+
+    sealed partial class Build(TextLayoutRequest request, FontRegistry? fonts)
     {
         readonly Font _base = request.Font.Resolve();
         readonly string _text = request.Content.Text;
         readonly StyledRange[] _ranges = request.Content.Ranges;
+        readonly TextLayoutOptions _options = request.Options;
         readonly Dictionary<float, Font> _emoji = [];
         readonly List<Piece> _pieces = [];
+        readonly List<int> _tabs = [];
         Font[] _rangeFonts = [];
+        string _display = "";
+        float[] _advance = [];
         float[] _prefix = [];
 
         internal TextLayout Run()
@@ -55,11 +70,17 @@ static class TextLayoutEngine
             for (var i = 0; i < _ranges.Length; i++)
             {
                 _rangeFonts[i] = ResolveFont(_ranges[i].Style);
+            }
+
+            _display = DisplayText();
+            _advance = new float[_text.Length];
+            for (var i = 0; i < _ranges.Length; i++)
+            {
                 AppendPieces(i);
             }
 
-            _prefix = Advances();
-            var ranges = WrappedTextLayout.WrapRanges(_text, request.MaxWidth, Measure, request.Options);
+            _prefix = Prefix();
+            var ranges = WrappedTextLayout.WrapRanges(_text, request.MaxWidth, Measure, _options);
             return Lay(ranges);
         }
 
@@ -90,59 +111,141 @@ static class TextLayoutEngine
             return font;
         }
 
+        /// <summary>The source with each range's letter case applied character by character, keeping offsets.</summary>
+        string DisplayText()
+        {
+            char[]? chars = null;
+            foreach (var range in _ranges)
+            {
+                var textCase = range.Style.Case ?? _options.Case;
+                if (textCase == TextCase.None)
+                {
+                    continue;
+                }
+
+                chars ??= _text.ToCharArray();
+                for (var i = range.Start; i < range.End; i++)
+                {
+                    chars[i] = Cased(chars[i], textCase, i);
+                }
+            }
+
+            return chars is null ? _text : new string(chars);
+        }
+
+        char Cased(char value, TextCase textCase, int offset) => textCase switch
+        {
+            TextCase.Upper => char.ToUpperInvariant(value),
+            TextCase.Lower => char.ToLowerInvariant(value),
+            _ => offset == 0 || !char.IsLetterOrDigit(_text[offset - 1]) ? char.ToUpperInvariant(value) : value
+        };
+
+        RangeSpacing Spacing(int index)
+        {
+            var style = _ranges[index].Style;
+            var size = _rangeFonts[index].Size;
+            return new RangeSpacing((style.LetterSpacing ?? _options.LetterSpacing) * size,
+                (style.WordSpacing ?? _options.WordSpacing) * size, style.Kerning ?? _options.Kerning);
+        }
+
         void AppendPieces(int index)
         {
             var range = _ranges[index];
             var font = _rangeFonts[index];
-            if (range.Image is not null)
+            if (range.Image is { } image)
             {
-                _pieces.Add(new Piece(range.Start, range.End, font, index, false));
+                _pieces.Add(new Piece(range.Start, range.End, font, index, PieceKind.Image, null));
+                if (range.End > range.Start)
+                {
+                    _advance[range.Start] = image.Width * request.Scale;
+                }
+
                 return;
             }
 
             var fontRanges = new List<FontRange>();
-            FontTextLayout.AppendRanges(fontRanges, _text, range.Start, range.End, font, request.Widget,
+            FontTextLayout.AppendRanges(fontRanges, _display, range.Start, range.End, font, request.Widget,
                 EmojiAt(font.Size));
+            var spacing = Spacing(index);
             foreach (var fontRange in fontRanges)
             {
-                _pieces.Add(new Piece(fontRange.Start, fontRange.End, fontRange.Font, index, fontRange.Hidden));
+                _pieces.Add(Shape(fontRange, index, spacing));
             }
         }
 
-        /// <summary>Running advance sums, so any source range measures in constant time.</summary>
-        float[] Advances()
+        Piece Shape(FontRange range, int index, RangeSpacing spacing)
         {
-            var prefix = new float[_text.Length + 1];
-            foreach (var piece in _pieces)
+            if (range.Hidden)
             {
-                if (piece.Hidden)
-                {
-                    continue;
-                }
-
-                if (_ranges[piece.Range].Image is { } image)
-                {
-                    prefix[piece.Start + 1] = image.Width * request.Scale;
-                    continue;
-                }
-
-                var span = _text.AsSpan(piece.Start, piece.End - piece.Start);
-                var widths = piece.Font.SkFont.GetGlyphWidths(span, null);
-                var glyph = 0;
-                var offset = piece.Start;
-                foreach (var rune in span.EnumerateRunes())
-                {
-                    prefix[offset + 1] = glyph < widths.Length
-                        ? widths[glyph]
-                        : piece.Font.SkFont.MeasureText(_text.AsSpan(offset, rune.Utf16SequenceLength));
-                    glyph++;
-                    offset += rune.Utf16SequenceLength;
-                }
+                return new Piece(range.Start, range.End, range.Font, index, PieceKind.Hidden, null);
             }
 
-            for (var i = 1; i < prefix.Length; i++)
+            var missing = range.Missing && _options.MissingGlyph is { Length: > 0 };
+            var shaped = missing
+                ? Placeholders(range)
+                : request.Shaper.Shape(range.Font, _display, range.Start, range.End - range.Start, spacing.Kerning);
+            AddAdvances(range.Start, shaped, spacing);
+            return new Piece(range.Start, range.End, range.Font, index, missing ? PieceKind.Missing : PieceKind.Text,
+                shaped);
+        }
+
+        /// <summary>The missing-glyph placeholder shaped once per unrenderable character.</summary>
+        ShapedText Placeholders(FontRange range)
+        {
+            var placeholder = _options.MissingGlyph!;
+            var font = range.Font.SkFont.GetGlyph(char.ConvertToUtf32(placeholder, 0)) != 0
+                ? range.Font
+                : EmojiAt(range.Font.Size);
+            var one = request.Shaper.Shape(font, placeholder, 0, placeholder.Length, false);
+            var glyphs = new List<ushort>();
+            var advances = new List<float>();
+            var clusters = new List<int>();
+            var offset = 0;
+            foreach (var rune in _display.AsSpan(range.Start, range.End - range.Start).EnumerateRunes())
             {
-                prefix[i] += prefix[i - 1];
+                glyphs.AddRange(one.Glyphs);
+                advances.AddRange(one.Advances);
+                clusters.AddRange(Enumerable.Repeat(offset, one.Glyphs.Length));
+                offset += rune.Utf16SequenceLength;
+            }
+
+            return new ShapedText([.. glyphs], [.. advances], [.. clusters]);
+        }
+
+        /// <summary>Adds glyph advances to their source characters, with letter and word spacing.</summary>
+        void AddAdvances(int start, ShapedText shaped, RangeSpacing spacing)
+        {
+            var previousCluster = -1;
+            for (var g = 0; g < shaped.Glyphs.Length; g++)
+            {
+                var offset = start + shaped.Clusters[g];
+                if (char.IsControl(_display[offset]))
+                {
+                    continue;
+                }
+
+                _advance[offset] += shaped.Advances[g];
+                if (shaped.Clusters[g] == previousCluster)
+                {
+                    continue;
+                }
+
+                previousCluster = shaped.Clusters[g];
+                _advance[offset] += spacing.Letter + (_display[offset] is ' ' or ' ' ? spacing.Word : 0f);
+            }
+        }
+
+        /// <summary>Running advance sums, so any tab-free range measures in constant time.</summary>
+        float[] Prefix()
+        {
+            var prefix = new float[_text.Length + 1];
+            for (var i = 0; i < _text.Length; i++)
+            {
+                prefix[i + 1] = prefix[i] + _advance[i];
+                if (_text[i] == '\t')
+                {
+                    _tabs.Add(i);
+                }
             }
 
             return prefix;
@@ -150,7 +253,7 @@ static class TextLayoutEngine
 
         float Measure(int start, int end, string suffix)
         {
-            var width = _prefix[end] - _prefix[start];
+            var width = LineX(start, end);
             if (suffix.Length == 0)
             {
                 return width;
@@ -158,10 +261,21 @@ static class TextLayoutEngine
 
             foreach (var marker in MarkerRuns(suffix, end))
             {
-                width += marker.Font.SkFont.MeasureText(marker.Text);
+                width += Sum(marker.Shaped.Advances);
             }
 
             return width;
+        }
+
+        static float Sum(float[] values)
+        {
+            var total = 0f;
+            foreach (var value in values)
+            {
+                total += value;
+            }
+
+            return total;
         }
 
         int RangeAt(int offset)
@@ -177,135 +291,18 @@ static class TextLayoutEngine
             return _ranges.Length > 0 ? 0 : -1;
         }
 
-        List<FontRun> MarkerRuns(string marker, int end)
+        /// <summary>A truncation marker split by fallback font and shaped in the style of the text before it.</summary>
+        List<(string Text, Font Font, ShapedText Shaped)> MarkerRuns(string marker, int end)
         {
             var range = RangeAt(end);
             var font = range >= 0 ? _rangeFonts[range] : _base;
-            return FontTextLayout.Create(marker, font, request.Widget, EmojiAt(font.Size));
-        }
-
-        TextLayout Lay(List<LineRange> lineRanges)
-        {
-            var lines = new TextLayoutLine[lineRanges.Count];
-            var runs = new List<TextLayoutRun>();
-            var y = 0f;
-            var widest = 0f;
-            var piece = 0;
-            for (var index = 0; index < lineRanges.Count; index++)
+            var runs = new List<(string, Font, ShapedText)>();
+            foreach (var run in FontTextLayout.Create(marker, font, request.Widget, EmojiAt(font.Size)))
             {
-                var range = lineRanges[index];
-                while (piece < _pieces.Count && _pieces[piece].End <= range.Start && _pieces[piece].End < _text.Length)
-                {
-                    piece++;
-                }
-
-                var line = LayLine(range, piece, runs, y);
-                lines[index] = line;
-                y += line.Height;
-                widest = Math.Max(widest, line.Width);
+                runs.Add((run.Text, run.Font, request.Shaper.Shape(run.Font, run.Text, 0, run.Text.Length, false)));
             }
 
-            var width = request.MaxWidth > 0f && request.Options.WrapMode != TextWrapMode.None
-                ? Math.Min(widest, request.MaxWidth)
-                : widest;
-            Align(lines, runs, width);
-            return new TextLayout(_text, lines, [.. runs], request.Content.Links, width, y);
-        }
-
-        /// <summary>
-        /// Adds one line's runs, then places their baselines on the line box. Until then a run's baseline holds its
-        /// shift, which the line box needs first.
-        /// </summary>
-        TextLayoutLine LayLine(LineRange range, int firstPiece, List<TextLayoutRun> runs, float y)
-        {
-            var first = runs.Count;
-            var metrics = new LineMetrics();
-            var x = AppendSourceRuns(range, firstPiece, runs, ref metrics);
-            x = AppendMarkerRuns(range, runs, x);
-            if (!metrics.Any)
-            {
-                var fallback = RangeAt(range.Start);
-                metrics.Add(fallback >= 0 ? _rangeFonts[fallback] : _base, null, 0f, request);
-            }
-
-            for (var i = first; i < runs.Count; i++)
-            {
-                runs[i] = runs[i] with { Baseline = y + metrics.Above - runs[i].Baseline };
-            }
-
-            return new TextLayoutLine(range.Start, range.End, 0f, y, x, metrics.Above + metrics.Below, metrics.Above,
-                first, runs.Count - first);
-        }
-
-        float AppendSourceRuns(LineRange range, int firstPiece, List<TextLayoutRun> runs, ref LineMetrics metrics)
-        {
-            var x = 0f;
-            for (var p = firstPiece; p < _pieces.Count && _pieces[p].Start < range.End; p++)
-            {
-                var piece = _pieces[p];
-                var start = Math.Max(piece.Start, range.Start);
-                var end = Math.Min(piece.End, range.End);
-                if (start >= end)
-                {
-                    continue;
-                }
-
-                var styled = _ranges[piece.Range];
-                var shift = (styled.Style.BaselineShift ?? 0f) * request.Scale;
-                var width = _prefix[end] - _prefix[start];
-                var text = piece.Hidden || styled.Image is not null ? "" : _text[start..end];
-                runs.Add(new TextLayoutRun(start, end, text, x, width, shift, piece.Font, styled.Style, styled.Link,
-                    styled.Image, false));
-                metrics.Add(_rangeFonts[piece.Range], styled.Image, shift, request);
-                x += width;
-            }
-
-            return x;
-        }
-
-        float AppendMarkerRuns(LineRange range, List<TextLayoutRun> runs, float x)
-        {
-            if (range.Marker.Length == 0)
-            {
-                return x;
-            }
-
-            var styleRange = RangeAt(range.End);
-            var style = styleRange >= 0 ? _ranges[styleRange].Style : default;
-            foreach (var marker in MarkerRuns(range.Marker, range.End))
-            {
-                var width = marker.Font.SkFont.MeasureText(marker.Text);
-                runs.Add(new TextLayoutRun(range.End, range.End, marker.Text, x, width, 0f, marker.Font, style, -1,
-                    null, true));
-                x += width;
-            }
-
-            return x;
-        }
-
-        void Align(TextLayoutLine[] lines, List<TextLayoutRun> runs, float width)
-        {
-            var factor = request.Alignment switch
-            {
-                TextAlignment.Center => 0.5f,
-                TextAlignment.End => 1f,
-                _ => 0f
-            };
-            if (factor == 0f)
-            {
-                return;
-            }
-
-            for (var index = 0; index < lines.Length; index++)
-            {
-                var line = lines[index];
-                var dx = Math.Max(0f, (width - line.Width) * factor);
-                lines[index] = line with { X = dx };
-                for (var i = line.FirstRun; i < line.FirstRun + line.RunCount; i++)
-                {
-                    runs[i] = runs[i] with { X = runs[i].X + dx };
-                }
-            }
+            return runs;
         }
     }
 

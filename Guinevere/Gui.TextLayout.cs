@@ -15,6 +15,16 @@ public partial class Gui
     internal int TextLayoutBuilds => _textLayouts.Builds;
 
     /// <summary>
+    /// Turns text into glyphs for every text layout of this GUI; replace it with a full shaper for ligatures and
+    /// complex scripts. Changing it relayouts all text.
+    /// </summary>
+    public ITextShaper TextShaper
+    {
+        get;
+        set => field = value ?? throw new ArgumentNullException(nameof(value));
+    } = BasicTextShaper.Instance;
+
+    /// <summary>
     /// Lays out rich text with this scope's font, size, glyph fallback and layout options. Unchanged input returns the
     /// cached result, so measuring, drawing and hit testing share one layout.
     /// </summary>
@@ -23,15 +33,20 @@ public partial class Gui
     /// <param name="size">Logical font size, or zero for the scope's.</param>
     /// <param name="font">Font, or null for the scope's.</param>
     /// <param name="options">Wrapping and truncation, or null for the scope's.</param>
-    /// <param name="alignment">Horizontal placement of each line.</param>
+    /// <param name="alignment">Line placement, or null for the options' alignment or the start edge.</param>
     public TextLayout LayoutText(RichText text, float maxWidth = 0, float size = 0, Font? font = null,
-        TextLayoutOptions? options = null, TextAlignment alignment = TextAlignment.Start)
+        TextLayoutOptions? options = null, TextAlignment? alignment = null)
     {
         ArgumentNullException.ThrowIfNull(text);
         var scope = CurrentNodeScope;
-        return LayoutText(TextRequest(text.Content, font, size, Math.Max(0f, maxWidth),
-            options ?? scope.Get<LayoutNodeScopeTextLayout>().Value, alignment, scope));
+        options ??= scope.Get<LayoutNodeScopeTextLayout>().Value;
+        return LayoutText(TextRequest(text.Content, font, size, Math.Max(0f, maxWidth), options,
+            AlignmentOf(alignment, options), scope));
     }
+
+    /// <summary>The requested alignment, else the options', else the start edge.</summary>
+    static TextAlignment AlignmentOf(TextAlignment? requested, TextLayoutOptions options) =>
+        requested ?? options.Alignment ?? TextAlignment.Start;
 
     /// <summary>
     /// Draws rich text as a node and reports link hover and clicks. With <paramref name="wrapWidth"/> set to
@@ -42,17 +57,18 @@ public partial class Gui
     /// <param name="size">Logical font size, or zero for the scope's.</param>
     /// <param name="color">Color for spans without one, or null for the scope's.</param>
     /// <param name="font">Font for spans without one, or null for the scope's.</param>
-    /// <param name="alignment">Horizontal placement of each line.</param>
+    /// <param name="alignment">Line placement, or null for the options' alignment or the start edge.</param>
     /// <param name="layout">Wrapping and truncation, or null for the scope's.</param>
     /// <param name="effects">Shadows, outline or gradient applied to every span.</param>
     public RichTextResult DrawRichText(RichText text, float wrapWidth = 0, float size = 0, Color? color = null,
-        Font? font = null, TextAlignment alignment = TextAlignment.Start, TextLayoutOptions? layout = null,
+        Font? font = null, TextAlignment? alignment = null, TextLayoutOptions? layout = null,
         TextEffects? effects = null)
     {
         ArgumentNullException.ThrowIfNull(text);
         var scope = CurrentNodeScope;
         var options = layout ?? scope.Get<LayoutNodeScopeTextLayout>().Value;
-        var (node, textLayout) = TextBlock(text.Content, font, size, wrapWidth, options, alignment);
+        var align = AlignmentOf(alignment, options);
+        var (node, textLayout) = TextBlock(text.Content, font, size, wrapWidth, options, align);
         var links = textLayout.Links.Count > 0;
         if (links)
         {
@@ -64,7 +80,7 @@ public partial class Gui
             return new RichTextResult(node, textLayout, null, null);
         }
 
-        var origin = TextOrigin(node, textLayout, alignment);
+        var origin = TextOrigin(node, textLayout, align);
         var hovered = links ? HoveredLink(node, textLayout, origin) : null;
         var clicked = hovered is not null && Input.IsMouseButtonPressed(MouseButton.Left) ? hovered : null;
         DrawTextLayout(textLayout, origin, color ?? scope.Get<LayoutNodeScopeTextColor>().Value,
@@ -94,7 +110,8 @@ public partial class Gui
         return new TextLayoutRequest(content,
             new FontKey(font ?? scope.Get<LayoutNodeScopeTextFont>().Value, logical * scale),
             scope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface,
-            scope.Get<LayoutNodeScopeWidgetIconFont>().Value, scale, maxWidth, options, alignment, Fonts.Version);
+            scope.Get<LayoutNodeScopeWidgetIconFont>().Value, scale, maxWidth, options, alignment, Fonts.Version,
+            TextShaper);
     }
 
     /// <summary>
@@ -178,14 +195,14 @@ public partial class Gui
                     continue;
                 }
 
-                if (run.Text.Length == 0)
+                if (run.Glyphs?.Blob(run.Font.SkFont) is not { } blob)
                 {
                     continue;
                 }
 
                 var (paint, offset) = PaintsFor(run.Style.Color ?? color)[layer];
-                AddDraw(new Text(run.Text, origin + new Vector2(run.X, run.Baseline) + offset, run.Font.SkFont, paint,
-                    effects), clip, node);
+                AddDraw(new Text(blob, run.Text, origin + new Vector2(run.X, run.Baseline) + offset, run.Font.SkFont,
+                    paint, effects), clip, node);
             }
         }
 

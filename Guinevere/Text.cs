@@ -11,18 +11,23 @@ public class Text(string label, Vector2? position = null, SKFont? font = null, S
     internal Text(string label, Vector2? position, SKFont? font, SKPaint? paint, TextEffects? effects)
         : this(label, position, font, paint) => Effects = effects;
 
+    /// <summary>Draws positioned glyphs, so spacing, kerning and justification match the layout exactly.</summary>
+    internal Text(SKTextBlob blob, string label, Vector2 position, SKFont font, SKPaint paint, TextEffects? effects)
+        : this(label, position, font, paint, effects) => Blob = blob;
+
     internal TextEffects? Effects { get; }
+
+    internal SKTextBlob? Blob { get; }
 
     /// <inheritdoc/>
     SKRect? IInkBounds.InkBounds(LayoutNode node)
     {
-        if (string.IsNullOrEmpty(Label))
+        if (Blob is null && string.IsNullOrEmpty(Label))
         {
             return SKRect.Empty;
         }
 
-        var measured = Font ?? new SKFont();
-        measured.MeasureText(Label, out var glyphs);
+        var glyphs = Blob?.Bounds ?? MeasureLabel();
         glyphs.Offset(Position.X, Position.Y);
         var ink = SKRect.Inflate(glyphs, 1f, 1f);
         if (Effects is not { } value)
@@ -31,6 +36,13 @@ public class Text(string label, Vector2? position = null, SKFont? font = null, S
         }
 
         return WithTextEffects(ink, glyphs, Paint, value);
+    }
+
+    SKRect MeasureLabel()
+    {
+        var measured = Font ?? new SKFont();
+        measured.MeasureText(Label, out var glyphs);
+        return glyphs;
     }
 
     static SKRect? WithTextEffects(SKRect ink, SKRect glyphs, SKPaint? paint, TextEffects effects)
@@ -141,6 +153,12 @@ public class Text(string label, Vector2? position = null, SKFont? font = null, S
     /// <param name="canvas">The canvas onto which the text will be drawn.</param>
     public void Render(Gui gui, LayoutNode node, SKCanvas canvas)
     {
+        if (Blob is not null)
+        {
+            canvas.DrawText(Blob, Position.X, Position.Y, Paint ?? new SKPaint());
+            return;
+        }
+
         canvas.DrawText(Label, Position, SKTextAlign.Left, Font, Paint);
     }
 

@@ -28,7 +28,59 @@ public readonly record struct TextLayoutLine(int Start, int End, float X, float 
 /// <param name="Image">Inline image drawn instead of text, or null.</param>
 /// <param name="IsMarker">Whether the run is a truncation marker rather than source text.</param>
 public readonly record struct TextLayoutRun(int Start, int End, string Text, float X, float Width, float Baseline,
-    Font Font, TextSpanStyle Style, int LinkIndex, RichTextImage? Image, bool IsMarker);
+    Font Font, TextSpanStyle Style, int LinkIndex, RichTextImage? Image, bool IsMarker)
+{
+    /// <summary>Caret x of every source offset from <see cref="Start"/> to <see cref="End"/>, relative to the run.</summary>
+    internal float[] Offsets { get; init; } = [];
+
+    /// <summary>The positioned glyphs the run draws, or null for images and hidden characters.</summary>
+    internal RunGlyphs? Glyphs { get; init; }
+}
+
+/// <summary>A run's glyph ids and their positions relative to the run, built into a text blob once.</summary>
+/// <param name="ids">Glyph ids.</param>
+/// <param name="x">X position of each glyph.</param>
+/// <param name="y">Downward shift of each glyph from the baseline, or null when every glyph sits on it.</param>
+sealed class RunGlyphs(ushort[] ids, float[] x, float[]? y = null)
+{
+    SKTextBlob? _blob;
+
+    /// <summary>Glyph ids.</summary>
+    internal ushort[] Ids { get; } = ids;
+
+    /// <summary>X position of each glyph relative to the run.</summary>
+    internal float[] X { get; } = x;
+
+    /// <summary>Downward shift of each glyph from the baseline, or null.</summary>
+    internal float[]? Y { get; } = y;
+
+    /// <summary>The glyphs as a blob with its baseline at zero, or null when there are none.</summary>
+    internal SKTextBlob? Blob(SKFont font)
+    {
+        if (_blob is not null || Ids.Length == 0)
+        {
+            return _blob;
+        }
+
+        using var builder = new SKTextBlobBuilder();
+        if (Y is { } y)
+        {
+            var points = new SKPoint[Ids.Length];
+            for (var i = 0; i < points.Length; i++)
+            {
+                points[i] = new SKPoint(X[i], y[i]);
+            }
+
+            builder.AddPositionedRun(Ids, font, points);
+        }
+        else
+        {
+            builder.AddHorizontalRun(Ids, font, X, 0f);
+        }
+
+        return _blob = builder.Build();
+    }
+}
 
 /// <summary>
 /// The single measured layout of a text block: lines, styled runs and glyph positions. Measuring, drawing, selection
@@ -245,46 +297,29 @@ public sealed class TextLayout
         return line.X;
     }
 
-    static float PrefixWidth(TextLayoutRun run, int length)
-    {
-        if (length <= 0)
-        {
-            return 0f;
-        }
+    static float PrefixWidth(TextLayoutRun run, int length) =>
+        length <= 0 ? 0f : length < run.Offsets.Length ? run.Offsets[length] : run.Width;
 
-        if (run.Image is not null || run.Text.Length == 0)
-        {
-            return run.Image is null ? 0f : run.Width;
-        }
-
-        return length >= run.Text.Length ? run.Width : run.Font.SkFont.MeasureText(run.Text.AsSpan(0, length));
-    }
-
-    static int OffsetInRun(TextLayoutRun run, float x)
+    int OffsetInRun(TextLayoutRun run, float x)
     {
         if (run.Image is not null)
         {
             return x < run.Width * 0.5f ? run.Start : run.End;
         }
 
-        if (run.Text.Length == 0)
+        var previous = run.Start;
+        var previousX = 0f;
+        while (previous < run.End)
         {
-            return run.Start;
-        }
-
-        var previous = 0;
-        var previousWidth = 0f;
-        while (previous < run.Text.Length)
-        {
-            var next = previous + StringInfo.GetNextTextElementLength(run.Text, previous);
-            var width = PrefixWidth(run, next);
-            if (x < (previousWidth + width) * 0.5f)
+            var next = Math.Min(run.End, previous + StringInfo.GetNextTextElementLength(Text, previous));
+            var nextX = PrefixWidth(run, next - run.Start);
+            if (x < (previousX + nextX) * 0.5f)
             {
-                return run.Start + previous;
+                return previous;
             }
 
             previous = next;
-            previousWidth = width;
+            previousX = nextX;
         }
 
         return run.End;
