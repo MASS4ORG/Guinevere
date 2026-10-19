@@ -23,7 +23,7 @@ public class GuiFontsTests
             Assert.Equal(new[] { "A", "😀", "B" }, runs.Select(run => run.Text));
             Assert.Equal(font.Fallbacks[0].FamilyName, runs[1].Font.FamilyName);
             var measured = gui.MeasureTextWidth("A😀B", 18);
-            Assert.Equal(measured, primary.MeasureText("A😀B").W);
+            Assert.Equal(measured, gui.LayoutText("A😀B", size: 18).Width);
             var node = gui.DrawText("A😀B", 18);
             Assert.Equal(measured, node.Style.Width);
         });

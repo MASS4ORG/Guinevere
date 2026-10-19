@@ -39,6 +39,7 @@ public partial class LayoutNode
         }
 
         StyleTarget = null;
+        ContentMeasure = null;
         ResetLayoutState();
         Pass2NodeCount = 0;
         DrawList.Clear();
@@ -94,6 +95,7 @@ public partial class LayoutNode
         _intrinsicContentHeight = 0f;
         _ancestorScrollOffset = Vector2.Zero;
         _resolvedWidthForHeightPass = 0f;
+        _hasMeasuredContent = false;
     }
 
     /// <summary>

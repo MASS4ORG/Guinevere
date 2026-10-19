@@ -2,8 +2,7 @@ namespace Guinevere;
 
 public partial class Gui
 {
-    TextEditState ProcessTextSelection(LayoutNode node, string text, IReadOnlyList<WrappedLine> lines,
-        Font mainFont, Font iconFont, float lineHeight, bool centered)
+    TextEditState ProcessTextSelection(LayoutNode node, string text, TextLayout layout, Vector2 origin)
     {
         var state = TextEditor.State(this, $"{node.Id}/selection", text);
         Focus.RegisterFocusableControl(node.Id, node.Parent?.Id, true, true, node.Center);
@@ -12,8 +11,7 @@ public partial class Gui
         var held = interaction.OnHold();
         if (held)
         {
-            var at = TextSelectionOffset(node.InnerRect, LocalPointer(node), lines, mainFont, iconFont, lineHeight,
-                centered);
+            var at = layout.OffsetAt(LocalPointer(node) - origin);
             if (interaction.OnClick(out var clicks))
             {
                 RequestFocus(node.Id, FocusReason.Mouse);
@@ -53,21 +51,6 @@ public partial class Gui
             state.MoveTo(end, extend: true);
         }
         state.IsSelecting = clicks == 1;
-    }
-
-    int TextSelectionOffset(Rect inner, Vector2 pointer, IReadOnlyList<WrappedLine> lines, Font mainFont,
-        Font iconFont, float lineHeight, bool centered)
-    {
-        if (lines.Count == 0)
-        {
-            return 0;
-        }
-
-        var row = Math.Clamp((int)((pointer.Y - inner.Y) / lineHeight), 0, lines.Count - 1);
-        var line = lines[row];
-        float Measure(string value) => MeasureLineWidth(value, mainFont, iconFont);
-        var origin = inner.X + (centered ? Math.Max(0, (inner.W - Measure(line.Text)) * 0.5f) : 0);
-        return line.Start + WrappedTextLayout.PositionInLine(Measure, line.Text, pointer.X - origin);
     }
 
     void HandleTextSelectionKeys(TextEditState state)
@@ -128,21 +111,17 @@ public partial class Gui
         }
     }
 
-    void DrawTextSelection(LayoutNode node, TextEditState state, WrappedLine line, Font mainFont, Font iconFont,
-        Rect row)
+    static void DrawTextSelection(LayoutNode node, TextEditState state, TextLayout layout, Vector2 origin)
     {
         if (!state.IsFocused || !state.HasSelection)
         {
             return;
         }
 
-        float Measure(string value) => MeasureLineWidth(value, mainFont, iconFont);
-        if (WrappedTextLayout.SelectionOn(Measure, line, state.SelectionStart, state.SelectionEnd) is not { } run)
+        foreach (var rect in layout.RangeBounds(state.SelectionStart, state.SelectionEnd))
         {
-            return;
+            AddTextRect(node, Color.FromArgb(110, 100, 149, 237), origin.X + rect.X, origin.Y + rect.Y, rect.W,
+                rect.H);
         }
-
-        var shape = Shape.Rectangle(run.Width, row.H).SolidColor(Color.FromArgb(110, 100, 149, 237));
-        node.DrawList.Add(new ShapePos(shape.Path, shape.Paint, new Vector2(row.X + run.X, row.Y)));
     }
 }

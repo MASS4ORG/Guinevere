@@ -14,6 +14,12 @@ public readonly record struct WrappedLine(string Text, int Start);
 /// <param name="End">The first character after the run.</param>
 public readonly record struct LineSelection(float X, float Width, int Start, int End);
 
+/// <summary>A visual line as a source range plus the marker drawn after it, such as a truncation ellipsis.</summary>
+readonly record struct LineRange(int Start, int End, string Marker);
+
+/// <summary>Width of a source range followed by a suffix that is not part of the source.</summary>
+delegate float RangeMeasure(int start, int end, string suffix);
+
 /// <summary>
 /// Lays a message out into visual lines: greedy word wrap to a width, and the coordinate/offset
 /// mappings that let a pane implement drag-to-select over the wrapped result. Kept free of GUI types
@@ -52,88 +58,117 @@ public static class WrappedTextLayout
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(measure);
+        var ranges = WrapRanges(text, maxWidth, (start, end, suffix) => measure(text[start..end] + suffix),
+            options);
+        var lines = new List<WrappedLine>(ranges.Count);
+        foreach (var range in ranges)
+        {
+            lines.Add(new WrappedLine(text[range.Start..range.End] + range.Marker, range.Start));
+        }
+
+        return lines;
+    }
+
+    /// <summary>
+    /// The wrapping and truncation rules over source offsets, so styled text whose width depends on where a
+    /// range sits can share them with plain text.
+    /// </summary>
+    internal static List<LineRange> WrapRanges(string text, float maxWidth, RangeMeasure measure,
+        TextLayoutOptions options)
+    {
         ArgumentNullException.ThrowIfNull(options);
-        if (options.LineHeight <= 0f)
+        if (options.LineHeight <= 0f || options.MaxLines < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
 
-        if (options.MaxLines < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options));
-        }
-
-        if (maxWidth <= 0f || options.WrapMode == TextWrapMode.None)
-        {
-            var unwrapped = new List<WrappedLine>();
-            var start = 0;
-            foreach (var line in text.Split('\n'))
-            {
-                unwrapped.Add(new WrappedLine(line, start));
-                start += line.Length + 1;
-            }
-            return LimitLines(unwrapped, maxWidth, measure, options);
-        }
-
-        var lines = new List<WrappedLine>();
+        var mode = maxWidth > 0f ? options.WrapMode : TextWrapMode.None;
+        var lines = new List<LineRange>();
         var paragraphStart = 0;
-
-        foreach (var paragraph in text.Split('\n'))
+        while (true)
         {
-            if (options.WrapMode == TextWrapMode.Character)
+            var newline = text.IndexOf('\n', paragraphStart);
+            var paragraphEnd = newline < 0 ? text.Length : newline;
+            AppendLines(lines, text, paragraphStart, paragraphEnd, measure, maxWidth, mode);
+            if (newline < 0)
             {
-                AppendCharacters(lines, paragraph, paragraphStart, measure, maxWidth);
+                break;
+            }
+
+            paragraphStart = newline + 1;
+        }
+
+        if (mode == TextWrapMode.WordThenCharacter)
+        {
+            lines = SplitWideLines(lines, text, measure, maxWidth);
+        }
+
+        return LimitLines(lines, text, maxWidth, measure, options);
+    }
+
+    static void AppendLines(List<LineRange> lines, string text, int start, int end, RangeMeasure measure,
+        float maxWidth, TextWrapMode mode)
+    {
+        switch (mode)
+        {
+            case TextWrapMode.None:
+                lines.Add(new LineRange(start, end, ""));
+                break;
+            case TextWrapMode.Character:
+                AppendCharacters(lines, text, start, end, measure, maxWidth);
+                break;
+            default:
+                AppendParagraph(lines, text, start, end, measure, maxWidth);
+                break;
+        }
+    }
+
+    static List<LineRange> SplitWideLines(List<LineRange> lines, string text, RangeMeasure measure, float maxWidth)
+    {
+        var split = new List<LineRange>(lines.Count);
+        foreach (var line in lines)
+        {
+            if (measure(line.Start, line.End, "") > maxWidth)
+            {
+                AppendCharacters(split, text, line.Start, line.End, measure, maxWidth);
             }
             else
             {
-                AppendParagraph(lines, paragraph, paragraphStart, measure, maxWidth);
+                split.Add(line);
             }
-
-            paragraphStart += paragraph.Length + 1;
         }
 
-        if (options.WrapMode == TextWrapMode.WordThenCharacter)
-        {
-            var split = new List<WrappedLine>();
-            foreach (var line in lines)
-            {
-                if (measure(line.Text) > maxWidth)
-                {
-                    AppendCharacters(split, line.Text, line.Start, measure, maxWidth);
-                }
-                else
-                {
-                    split.Add(line);
-                }
-            }
-            lines = split;
-        }
-
-        return LimitLines(lines, maxWidth, measure, options);
+        return split;
     }
 
-    static void AppendCharacters(List<WrappedLine> lines, string text, int start,
-        Func<string, float> measure, float maxWidth)
+    static void AppendCharacters(List<LineRange> lines, string text, int start, int end, RangeMeasure measure,
+        float maxWidth)
     {
-        if (text.Length == 0) { lines.Add(new WrappedLine("", start)); return; }
-        var boundaries = StringInfo.ParseCombiningCharacters(text);
+        if (start == end)
+        {
+            lines.Add(new LineRange(start, start, ""));
+            return;
+        }
+
+        var boundaries = StringInfo.ParseCombiningCharacters(text[start..end]);
         var lineStart = 0;
         for (var i = 1; i < boundaries.Length; i++)
         {
-            var end = i + 1 < boundaries.Length ? boundaries[i + 1] : text.Length;
-            if (measure(text[lineStart..end]) <= maxWidth)
+            var next = i + 1 < boundaries.Length ? boundaries[i + 1] : end - start;
+            if (measure(start + lineStart, start + next, "") <= maxWidth)
             {
                 continue;
             }
 
-            lines.Add(new WrappedLine(text[lineStart..boundaries[i]], start + lineStart));
+            lines.Add(new LineRange(start + lineStart, start + boundaries[i], ""));
             lineStart = boundaries[i];
         }
-        lines.Add(new WrappedLine(text[lineStart..], start + lineStart));
+
+        lines.Add(new LineRange(start + lineStart, end, ""));
     }
 
-    static IReadOnlyList<WrappedLine> LimitLines(List<WrappedLine> lines, float maxWidth,
-        Func<string, float> measure, TextLayoutOptions options)
+    static List<LineRange> LimitLines(List<LineRange> lines, string text, float maxWidth, RangeMeasure measure,
+        TextLayoutOptions options)
     {
         if (options.MaxLines == 0 || lines.Count <= options.MaxLines)
         {
@@ -143,80 +178,102 @@ public static class WrappedTextLayout
         var visible = lines.GetRange(0, options.MaxLines);
         var last = visible[^1];
         var marker = options.Ellipsis ?? "";
-        if (maxWidth > 0f)
-        {
-            while (marker.Length > 0 && measure(marker) > maxWidth)
-            {
-                marker = marker[..^1];
-            }
-
-            while (last.Text.Length > 0 && measure(last.Text + marker) > maxWidth)
-            {
-                last = last with { Text = last.Text[..^1] };
-            }
-        }
-        visible[^1] = last with { Text = last.Text + marker };
+        visible[^1] = maxWidth > 0f ? FitMarker(last, marker, text, maxWidth, measure) : last with { Marker = marker };
         return visible;
     }
 
-    static void AppendParagraph(List<WrappedLine> lines, string paragraph, int paragraphStart,
-        Func<string, float> measure, float maxWidth)
+    /// <summary>Shortens the marker, then the line, until both fit the width.</summary>
+    static LineRange FitMarker(LineRange line, string marker, string text, float maxWidth, RangeMeasure measure)
     {
-        if (paragraph.Length == 0)
+        var end = line.End;
+        while (marker.Length > 0 && measure(end, end, marker) > maxWidth)
         {
-            lines.Add(new WrappedLine("", paragraphStart));
+            marker = marker[..^1];
+        }
+
+        while (end > line.Start && measure(line.Start, end, marker) > maxWidth)
+        {
+            // Never split a surrogate pair, so the truncated line still draws its last full character.
+            end -= end - 2 >= line.Start && char.IsLowSurrogate(text[end - 1])
+                && char.IsHighSurrogate(text[end - 2]) ? 2 : 1;
+        }
+
+        return line with { End = end, Marker = marker };
+    }
+
+    static void AppendParagraph(List<LineRange> lines, string text, int paragraphStart, int paragraphEnd,
+        RangeMeasure measure, float maxWidth)
+    {
+        if (paragraphStart == paragraphEnd)
+        {
+            lines.Add(new LineRange(paragraphStart, paragraphStart, ""));
             return;
         }
 
-        var current = "";
+        var added = lines.Count;
         var currentStart = paragraphStart;
-        var searchFrom = 0;
-
-        foreach (var word in paragraph.Split(' '))
+        var currentEnd = paragraphStart;
+        var wordStart = paragraphStart;
+        while (true)
         {
-            var relative = paragraph.IndexOf(word, searchFrom, StringComparison.Ordinal);
-            var wordStart = paragraphStart + relative;
-            searchFrom = relative + word.Length + 1;
-
-            if (current.Length == 0)
+            var space = text.IndexOf(' ', wordStart, paragraphEnd - wordStart);
+            var wordEnd = space < 0 ? paragraphEnd : space;
+            AppendWord(lines, measure, maxWidth, wordStart, wordEnd, ref currentStart, ref currentEnd);
+            if (space < 0)
             {
-                if (measure(word) <= maxWidth)
-                {
-                    current = word;
-                    currentStart = wordStart;
-                }
-                else
-                {
-                    // A single word wider than the pane still gets a line of its own.
-                    lines.Add(new WrappedLine(word, wordStart));
-                }
-
-                continue;
+                break;
             }
 
-            var candidate = current + " " + word;
-            if (measure(candidate) <= maxWidth)
+            wordStart = space + 1;
+        }
+
+        if (currentEnd > currentStart)
+        {
+            lines.Add(new LineRange(currentStart, currentEnd, ""));
+        }
+
+        // A paragraph of only spaces still occupies a line.
+        if (lines.Count == added)
+        {
+            lines.Add(new LineRange(paragraphStart, paragraphStart, ""));
+        }
+    }
+
+    static void AppendWord(List<LineRange> lines, RangeMeasure measure, float maxWidth, int wordStart, int wordEnd,
+        ref int currentStart, ref int currentEnd)
+    {
+        if (currentEnd == currentStart)
+        {
+            if (measure(wordStart, wordEnd, "") <= maxWidth)
             {
-                current = candidate;
+                currentStart = wordStart;
+                currentEnd = wordEnd;
             }
             else
             {
-                lines.Add(new WrappedLine(current, currentStart));
-                current = measure(word) <= maxWidth ? word : "";
-                if (current.Length > 0)
-                {
-                    currentStart = wordStart;
-                }
-                else
-                {
-                    lines.Add(new WrappedLine(word, wordStart));
-                }
+                // A single word wider than the pane still gets a line of its own.
+                lines.Add(new LineRange(wordStart, wordEnd, ""));
             }
+
+            return;
         }
 
-        if (current.Length > 0)
+        if (measure(currentStart, wordEnd, "") <= maxWidth)
         {
-            lines.Add(new WrappedLine(current, currentStart));
+            currentEnd = wordEnd;
+            return;
+        }
+
+        lines.Add(new LineRange(currentStart, currentEnd, ""));
+        if (measure(wordStart, wordEnd, "") <= maxWidth)
+        {
+            currentStart = wordStart;
+            currentEnd = wordEnd;
+        }
+        else
+        {
+            currentStart = currentEnd = wordEnd;
+            lines.Add(new LineRange(wordStart, wordEnd, ""));
         }
     }
 

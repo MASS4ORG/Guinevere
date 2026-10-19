@@ -4,6 +4,9 @@ namespace Guinevere;
 
 readonly record struct FontRun(string Text, Font Font);
 
+/// <summary>A source range drawn with one font; hidden ranges are kept for offsets but never drawn.</summary>
+readonly record struct FontRange(int Start, int End, Font Font, bool Hidden);
+
 /// <summary>Splits Unicode scalars into shared drawing and measurement runs without shaping.</summary>
 static class FontTextLayout
 {
@@ -37,6 +40,40 @@ static class FontTextLayout
         }
 
         return runs;
+    }
+
+    /// <summary>
+    /// Splits <c>text[start..end]</c> by fallback font while keeping source offsets: variation selectors become
+    /// hidden zero-width ranges instead of being removed.
+    /// </summary>
+    internal static void AppendRanges(List<FontRange> ranges, string text, int start, int end, Font mainFont,
+        Font widgetFont, Font iconFont)
+    {
+        Font[]? fallbackFonts = null;
+        Font? currentFont = null;
+        var currentHidden = false;
+        var runStart = start;
+        var offset = start;
+        foreach (var rune in text.AsSpan(start, end - start).EnumerateRunes())
+        {
+            var hidden = IsVariationSelector(rune);
+            var selected = hidden ? currentFont ?? mainFont
+                : SelectFont(rune, mainFont, ref fallbackFonts, widgetFont, iconFont);
+            if (currentFont is not null && (selected != currentFont || hidden != currentHidden))
+            {
+                ranges.Add(new FontRange(runStart, offset, currentFont, currentHidden));
+                runStart = offset;
+            }
+
+            currentFont = selected;
+            currentHidden = hidden;
+            offset += rune.Utf16SequenceLength;
+        }
+
+        if (currentFont is not null)
+        {
+            ranges.Add(new FontRange(runStart, end, currentFont, currentHidden));
+        }
     }
 
     static Font[] FallbackFonts(Font primary, Font widget, Font emoji)

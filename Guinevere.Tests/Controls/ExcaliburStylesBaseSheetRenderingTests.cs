@@ -69,7 +69,6 @@ public class ExcaliburStylesBaseSheetRenderingTests
         var model = FormBuilder.Build(new FormSettings());
         using var surface = SKSurface.Create(new SKImageInfo(16, 16));
         using var image = surface.Snapshot();
-        using var font = new SKFont();
         Action<Gui>[] controls =
         [
             g => g.Button("Button"),
@@ -102,7 +101,7 @@ public class ExcaliburStylesBaseSheetRenderingTests
             g => g.DockSpace(dock, _ => new("Panel"), (_, gui) => gui.Label("Content")),
             g => g.Breadcrumb([new("Home", () => { }), new("Page", IsCurrent: true)]),
             g => g.Label("Label"),
-            g => g.WrappedLabel("Wrapped label", 14, font),
+            g => g.WrappedLabel("Wrapped label", 14),
             g => g.MenuBar(menu => menu.Menu("File", items => items.Item("Open", () => { }))),
             g => g.Flyout(ref flag, new Vector2(20), menu => menu.Item("Open", () => { })),
             g => g.CascadeMenu(ref flag, new Vector2(20), menu => menu.Item("Open", () => { })),

@@ -5,6 +5,7 @@ public partial class Gui
     /// <summary>
     /// Draws text as a layout node: in Pass1Build phase, creates a node sized to the text; in Pass2Render phase, draws the text in the node's rect.
     /// Returns the node for layout chaining; selectable text supports pointer selection and copying without editing.
+    /// A <paramref name="wrapWidth"/> of <see cref="TextLayoutOptions.FillWidth"/> wraps to the node's laid-out width.
     /// </summary>
     public LayoutNode DrawText(
         string text,
@@ -69,19 +70,6 @@ public partial class Gui
         return inherited == default ? null : inherited;
     }
 
-    /// <summary>
-    /// Where a line's baseline sits inside its line box, centring the ascent and descent. Placing it
-    /// at the bottom of the box left every glyph sitting low with no room for descenders.
-    /// </summary>
-    static float Baseline(Font font, float lineHeight)
-    {
-        var metrics = font.SkFont.Metrics;
-        var ascent = -metrics.Ascent;
-        var descent = metrics.Descent;
-
-        return ((lineHeight - (ascent + descent)) / 2f) + ascent;
-    }
-
     record struct DrawConfig(
         string Text,
         Font Font,
@@ -96,43 +84,11 @@ public partial class Gui
 
     LayoutNode DrawTextOrGlyph(DrawConfig cfg)
     {
-        var size = (cfg.Size > 0 ? cfg.Size : CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value) * FontScale;
         var color = cfg.Color ?? CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-
-        var mainFont = cfg.Font.Resized(size);
-        var iconFont =
-            new Font(new SKFont(CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface, size));
-
-        // Handle text wrapping if wrapWidth is specified
-        var layout = cfg.Layout ?? CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
-        var wrappedLines = WrappedTextLayout.Wrap(cfg.Text, cfg.WrapWidth,
-            line => MeasureLineWidth(line, mainFont, iconFont), layout);
-
-        var maxWidth = 0f;
-        var lineHeight = size * layout.LineHeight;
-
-        foreach (var wrappedLine in wrappedLines)
-        {
-            var lineWidth = MeasureLineWidth(wrappedLine.Text, mainFont, iconFont);
-            maxWidth = Math.Max(maxWidth, lineWidth);
-        }
-
-        // If wrapping is enabled, use the wrap width as max width
-        if (cfg.WrapWidth > 0 && layout.WrapMode != TextWrapMode.None)
-        {
-            maxWidth = Math.Min(maxWidth, cfg.WrapWidth);
-        }
-
-        var totalHeight = wrappedLines.Count * lineHeight;
-
-        var node = Node(maxWidth, totalHeight);
-        RenderTextNode(cfg, node, wrappedLines, mainFont, iconFont, lineHeight, color);
-        return node;
-    }
-
-    void RenderTextNode(DrawConfig cfg, LayoutNode node, IReadOnlyList<WrappedLine> wrappedLines,
-        Font mainFont, Font iconFont, float lineHeight, Color color)
-    {
+        var options = cfg.Layout ?? CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
+        var alignment = cfg.Center ? TextAlignment.Center : TextAlignment.Start;
+        var (node, layout) = TextBlock(RichTextContent.Plain(cfg.Text), cfg.Font, cfg.Size, cfg.WrapWidth, options,
+            alignment);
         if (cfg.Selectable)
         {
             node.Cursor(PointerCursor.Text);
@@ -140,37 +96,17 @@ public partial class Gui
 
         if (Pass != Pass.Pass2Render)
         {
-            return;
+            return node;
         }
 
-        var selection = cfg.Selectable
-            ? ProcessTextSelection(node, cfg.Text, wrappedLines, mainFont, iconFont, lineHeight, cfg.Center)
-            : null;
-        var layers = BuildTextPaints(color, cfg.Effects, node.InnerRect);
-
-        // Draw each line
-        for (var i = 0; i < wrappedLines.Count; i++)
+        var origin = TextOrigin(node, layout, alignment);
+        if (cfg.Selectable)
         {
-            var line = wrappedLines[i].Text;
-            var lineWidth = MeasureLineWidth(line, mainFont, iconFont);
-
-            var pos = node.InnerRect.Position;
-            pos.Y += (i * lineHeight) + Baseline(mainFont, lineHeight);
-
-            if (cfg.Center)
-            {
-                pos.X += Math.Max((node.InnerRect.W - lineWidth) * 0.5f, 0f);
-            }
-
-            if (selection is not null)
-            {
-                DrawTextSelection(node, selection, wrappedLines[i], mainFont, iconFont,
-                    new Rect(pos.X, node.InnerRect.Y + i * lineHeight, lineWidth, lineHeight));
-            }
-
-            DrawLineWithFallback(line, pos, mainFont, iconFont, layers, cfg.Effects, cfg.Clip, node);
+            DrawTextSelection(node, ProcessTextSelection(node, cfg.Text, layout, origin), layout, origin);
         }
 
+        DrawTextLayout(layout, origin, color, cfg.Effects, cfg.Clip, node);
+        return node;
     }
 
     /// <summary>
@@ -302,38 +238,9 @@ public partial class Gui
 
         foreach (var run in runs)
         {
-            run.Font.SkFont.MeasureText(run.Text, out var bounds);
-            totalWidth += bounds.Width;
+            totalWidth += run.Font.SkFont.MeasureText(run.Text);
         }
 
         return totalWidth;
     }
-
-    /// <summary>
-    /// Draws a line of text with font fallback support.
-    /// </summary>
-    void DrawLineWithFallback(string line, Vector2 startPos, Font mainFont, Font iconFont,
-        IReadOnlyList<(SKPaint Paint, Vector2 Offset)> layers, TextEffects? effects, bool clip, LayoutNode node)
-    {
-        var runs = CreateFontRuns(line, mainFont, iconFont);
-
-        // Precompute each run's x once, then draw the whole line per layer (back to front).
-        var positions = new Vector2[runs.Count];
-        var currentX = startPos.X;
-        for (var i = 0; i < runs.Count; i++)
-        {
-            positions[i] = new Vector2(currentX, startPos.Y);
-            runs[i].Font.SkFont.MeasureText(runs[i].Text, out var bounds);
-            currentX += bounds.Width;
-        }
-
-        foreach (var (paint, offset) in layers)
-        {
-            for (var i = 0; i < runs.Count; i++)
-            {
-                AddDraw(new Text(runs[i].Text, positions[i] + offset, runs[i].Font.SkFont, paint, effects), clip, node);
-            }
-        }
-    }
-
 }

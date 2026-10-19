@@ -50,15 +50,33 @@ public partial class LayoutNode
             childScrollOffset += Scope.Get<LayoutNodeScopeLocalScrollOffset>().Value;
         }
 
+        _hasMeasuredContent = ContentMeasure is not null;
         foreach (var child in ChildNodes)
         {
             child.PrepareIntrinsicMeasurements(childScrollOffset);
+            _hasMeasuredContent |= child._hasMeasuredContent;
         }
 
+        MeasureIntrinsicContent();
+    }
+
+    /// <summary>Sizes this node from its children's intrinsic sizes, or from its measured content as a leaf.</summary>
+    void MeasureIntrinsicContent()
+    {
         var horizontalPadding = Style.PaddingLeft + Style.PaddingRight;
         var verticalPadding = Style.PaddingTop + Style.PaddingBottom;
         _intrinsicWidthValid = !Style.Wrap || Style.Direction != Axis.Horizontal;
         _intrinsicHeightValid = !Style.Wrap;
+
+        if (FlowChildren.Count == 0 && ContentMeasure is { } measure)
+        {
+            var natural = measure(0f);
+            _intrinsicContentWidth = natural.X + horizontalPadding;
+            _intrinsicContentHeight = natural.Y + verticalPadding;
+            _intrinsicWidthValid = false;
+            _intrinsicHeightValid = false;
+            return;
+        }
 
         if (FlowChildren.Count == 0)
         {
@@ -67,6 +85,11 @@ public partial class LayoutNode
             return;
         }
 
+        AccumulateIntrinsicChildren(horizontalPadding, verticalPadding);
+    }
+
+    void AccumulateIntrinsicChildren(float horizontalPadding, float verticalPadding)
+    {
         var width = Style.Direction == Axis.Horizontal ? (FlowChildren.Count - 1) * Style.Gap : 0f;
         var height = Style.Direction == Axis.Vertical ? (FlowChildren.Count - 1) * Style.Gap : 0f;
         foreach (var child in FlowChildren)
@@ -163,6 +186,9 @@ public partial class LayoutNode
     // Width is resolved before height; a wrapped horizontal container needs it to know how many
     // lines its children break into when computing its own content height.
     float _resolvedWidthForHeightPass;
+
+    // Whether this node or a descendant sizes its height from a width through ContentMeasure.
+    bool _hasMeasuredContent;
 
     void InitializeChildLayout()
     {
@@ -296,7 +322,7 @@ public partial class LayoutNode
         var largest = 0f;
         foreach (var child in FlowChildren)
         {
-            largest = Math.Max(largest, GetChildTotalHeight(child, availableHeight));
+            largest = Math.Max(largest, GetChildTotalHeight(child, availableHeight, _resolvedWidthForHeightPass));
         }
 
         return largest + Style.PaddingTop + Style.PaddingBottom;
@@ -313,7 +339,9 @@ public partial class LayoutNode
 
         if (FlowChildren.Count == 0)
         {
-            return (_rect.W > 0 ? _rect.W : 10f) + padding;
+            return ContentMeasure is { } measure
+                ? measure(Math.Max(0f, availableWidth - padding)).X + padding
+                : (_rect.W > 0 ? _rect.W : 10f) + padding;
         }
 
         var inner = Math.Max(0f, availableWidth - padding);
@@ -370,14 +398,16 @@ public partial class LayoutNode
 
         if (FlowChildren.Count == 0)
         {
-            return (_rect.H > 0 ? _rect.H : 10f) + padding;
+            return ContentMeasure is { } measure
+                ? MeasuredContentHeight(measure, outerWidthForWrap) + padding
+                : (_rect.H > 0 ? _rect.H : 10f) + padding;
         }
 
         var inner = Math.Max(0f, availableHeight - padding);
         float content;
         if (Style.Direction == Axis.Vertical)
         {
-            content = CalculateVerticalContentHeight(inner);
+            content = CalculateVerticalContentHeight(inner, WidthForChildren(outerWidthForWrap));
         }
         else if (Style.Wrap)
         {
@@ -387,36 +417,48 @@ public partial class LayoutNode
         }
         else
         {
-            content = CalculateHorizontalContentHeight(inner);
+            content = CalculateHorizontalContentHeight(inner, WidthForChildren(outerWidthForWrap));
         }
 
         return content + padding;
     }
 
-    float CalculateVerticalContentHeight(float availableHeight)
+    /// <summary>
+    /// The outer width descendants' heights are measured against. Measured content can be asked for its height
+    /// before this node's own width pass, so it uses the fixed width or the width the parent offers.
+    /// </summary>
+    float WidthForChildren(float outerWidthForWrap) => !_hasMeasuredContent ? _resolvedWidthForHeightPass
+        : Style.Width >= 0f ? Style.Width
+        : outerWidthForWrap >= 0f ? outerWidthForWrap
+        : _resolvedWidthForHeightPass;
+
+    float MeasuredContentHeight(Func<float, Vector2> measure, float outerWidthForWrap) =>
+        measure(Math.Max(0f, WidthForChildren(outerWidthForWrap) - Style.PaddingLeft - Style.PaddingRight)).Y;
+
+    float CalculateVerticalContentHeight(float availableHeight, float width)
     {
         var totalGap = (FlowChildren.Count - 1) * Style.Gap;
         var total = totalGap;
         foreach (var child in FlowChildren)
         {
-            total += GetChildTotalHeight(child, availableHeight);
+            total += GetChildTotalHeight(child, availableHeight, width);
         }
 
         return total;
     }
 
-    float CalculateHorizontalContentHeight(float availableHeight)
+    float CalculateHorizontalContentHeight(float availableHeight, float width)
     {
         var largest = 10f;
         foreach (var child in FlowChildren)
         {
-            largest = Math.Max(largest, GetChildTotalHeight(child, availableHeight));
+            largest = Math.Max(largest, GetChildTotalHeight(child, availableHeight, width));
         }
 
         return largest;
     }
 
-    float GetChildTotalHeight(LayoutNode child, float availableHeight)
+    float GetChildTotalHeight(LayoutNode child, float availableHeight, float width)
     {
         var marginHeight = child.Style.MarginTop + child.Style.MarginBottom;
         var contentHeight = child.Style.HeightExpression is { } expression
@@ -424,7 +466,7 @@ public partial class LayoutNode
             : child.Style.Height >= 0
             ? child.Style.Height
             : Math.Max(child.CalculateContentHeight(availableHeight,
-                Math.Max(0f, _resolvedWidthForHeightPass - Style.PaddingLeft - Style.PaddingRight)
+                Math.Max(0f, width - Style.PaddingLeft - Style.PaddingRight)
                 - child.Style.MarginLeft - child.Style.MarginRight), 10f);
 
         return marginHeight + child.ClampResolvedHeight(contentHeight, availableHeight,
@@ -630,7 +672,7 @@ public partial class LayoutNode
                 ? context.AvailableHeight * child.Style.HeightPercent
             : child.Style.Height >= 0
             ? child.Style.Height
-            : child.ChildNodes.Count == 0 && child.Rect.H > 0
+            : HasSettledLeafHeight(child)
                 ? child.Rect.H
                 : child.CalculateContentHeight(context.AvailableHeight,
                     context.ContentWidth - child.Style.MarginLeft - child.Style.MarginRight);
@@ -648,10 +690,7 @@ public partial class LayoutNode
 
         if (child.Style.HeightExpression is { } expression)
         {
-            var share = expression.ExpandContribution != 0f && context.TotalExpandPercentage > 0f
-                ? remainingHeight / context.TotalExpandPercentage
-                : 0f;
-            return child.ResolveHeight(expression, context.AvailableHeight, context.ContentWidth, share);
+            return ResolveExpressionHeight(child, expression, context, remainingHeight);
         }
 
         if (child.Style.HeightPercent >= 0f)
@@ -664,7 +703,7 @@ public partial class LayoutNode
             return child.Style.Height;
         }
 
-        if (child.ChildNodes.Count == 0 && child.Rect.H > 0)
+        if (HasSettledLeafHeight(child))
         {
             return child.Rect.H;
         }
@@ -672,6 +711,22 @@ public partial class LayoutNode
         return child.CalculateContentHeight(context.AvailableHeight,
             context.ContentWidth - child.Style.MarginLeft - child.Style.MarginRight);
     }
+
+    static float ResolveExpressionHeight(LayoutNode child, UnitValue expression, VerticalLayoutContext context,
+        float remainingHeight)
+    {
+        var share = expression.ExpandContribution != 0f && context.TotalExpandPercentage > 0f
+            ? remainingHeight / context.TotalExpandPercentage
+            : 0f;
+        return child.ResolveHeight(expression, context.AvailableHeight, context.ContentWidth, share);
+    }
+
+    /// <summary>
+    /// Whether an unsized leaf keeps the height it already has; measured content is excluded because its height
+    /// depends on the width it is laid out at.
+    /// </summary>
+    static bool HasSettledLeafHeight(LayoutNode child) =>
+        child.ChildNodes.Count == 0 && child.ContentMeasure is null && child.Rect.H > 0;
 
     float CalculateExpandingChildHeight(LayoutNode child, VerticalLayoutContext context, float remainingHeight,
         float defaultHeight)

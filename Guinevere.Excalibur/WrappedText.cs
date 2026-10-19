@@ -11,76 +11,48 @@ public static partial class ControlsExtensions
     /// </summary>
     /// <param name="gui">The GUI instance.</param>
     /// <param name="text">The message to lay out.</param>
-    /// <param name="size">The font size the label is drawn at.</param>
-    /// <param name="measureFont">The font measuring glyphs for wrap and hit-testing — Skia's, since the
-    /// draw font keeps its own internal to Guinevere. Must be the same typeface and size as
-    /// <paramref name="drawFont"/> for the selection to line up with the glyphs.</param>
+    /// <param name="size">The logical font size, or zero for the scope's.</param>
+    /// <param name="font">The font to draw with, or null for the scope's.</param>
+    /// <param name="copyable">Whether Ctrl+C copies the selection, or the whole text when nothing is selected.</param>
     /// <param name="classes">Stylesheet classes for the label.</param>
     /// <param name="id">Stable stylesheet identity.</param>
-    /// <param name="drawFont">The font to draw with, or null for the GUI's default.</param>
-    /// <param name="copyable">Whether Ctrl+C copies the selection, or the whole text when nothing is selected.</param>
     /// <returns>The message's selection state.</returns>
-    public static TextEditState WrappedLabel(this Gui gui, string text, float size, SKFont measureFont,
-        Font? drawFont = null, bool copyable = true, IReadOnlyList<string>? classes = null, string? id = null)
+    public static TextEditState WrappedLabel(this Gui gui, string text, float size = 0, Font? font = null,
+        bool copyable = true, IReadOnlyList<string>? classes = null, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(text);
-        ArgumentNullException.ThrowIfNull(measureFont);
         ExcaliburStyles.Ensure(gui);
 
-        var nodeId = gui.CurrentNode.Id;
-        var inner = gui.CurrentNode.InnerRect;
-        var layout = gui.CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
-        var lineHeight = size * layout.LineHeight;
+        var viewport = gui.CurrentNode.InnerRect;
         using var scope = gui.StyledNode("wrapped-label", classes, id).ExpandWidth().Enter();
-        var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
-
-        // The width the frame lays out with. Captured during the render pass, when the inner rect is
-        // final; the build pass then reuses the last captured value, so both passes wrap to the same
-        // width and produce the same node tree.
-        ref var width = ref gui.GetValue(200f, $"{nodeId}/wrappedLabelWidth");
-        if (gui.Pass == Pass.Pass2Render)
+        var labelScope = gui.CurrentNode.Scope;
+        var color = labelScope.Get<LayoutNodeScopeTextColor>().Value;
+        var options = labelScope.Get<LayoutNodeScopeTextLayout>().Value;
+        var (node, layout) = gui.TextBlock(RichTextContent.Plain(text), font, size, TextLayoutOptions.FillWidth,
+            options, TextAlignment.Start);
+        var state = TextEditor.State(gui, $"{gui.CurrentNode.Id}/wrappedLabelText", text);
+        if (gui.Pass != Pass.Pass2Render)
         {
-            width = Math.Max(200f, inner.W);
+            return state;
         }
 
-        var primary = new Font(new SKFont(drawFont?.SkFont.Typeface ?? measureFont.Typeface, size));
-        var emoji = new Font(new SKFont(
-            gui.CurrentNodeScope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface, size));
-        float Measure(string value)
+        var origin = node.InnerRect.Position;
+        Select(gui, state, layout, origin, viewport);
+        if (copyable)
         {
-            var total = 0f;
-            foreach (var run in gui.CreateTextRuns(value, primary, emoji))
-            {
-                total += run.Font.SkFont.MeasureText(run.Text);
-            }
-
-            return total;
+            HandleLabelShortcuts(gui, state, text);
         }
 
-        var lines = WrappedTextLayout.Wrap(text, width, Measure, layout);
-        var state = TextEditor.State(gui, $"{nodeId}/wrappedLabelText", text);
-        var offsetY = gui.GetScrollState(nodeId)?.ScrollOffset.Y ?? 0f;
-
-        if (gui.Pass == Pass.Pass2Render)
+        if (state.HasSelection)
         {
-            Select(gui, state, lines, Measure, inner, offsetY, lineHeight);
-            if (copyable)
+            var highlight = gui.ResolvePart("selection");
+            foreach (var rect in layout.RangeBounds(state.SelectionStart, state.SelectionEnd))
             {
-                HandleLabelShortcuts(gui, state, text);
+                gui.DrawStyledBox(highlight, new Rect(origin.X + rect.X, origin.Y + rect.Y, rect.W, rect.H));
             }
         }
 
-        var highlight = gui.ResolvePart("selection");
-        for (var index = 0; index < lines.Count; index++)
-        {
-            var top = inner.Y - offsetY + (index * lineHeight);
-            using (gui.Node(-1, lineHeight, $"{nodeId}/wrappedLabelLine/{index}").ExpandWidth().Enter())
-            {
-                DrawWrappedLine(gui, state, lines[index], Measure, new Rect(inner.X, top, inner.W, lineHeight),
-                    size, color, highlight, drawFont);
-            }
-        }
-
+        gui.DrawTextLayout(layout, origin, color, null, false, node);
         return state;
     }
 
@@ -102,63 +74,28 @@ public static partial class ControlsExtensions
         }
     }
 
-    /// <summary>Draws one wrapped line into the current node, under its share of the selection highlight.</summary>
-    static void DrawWrappedLine(Gui gui, TextEditState state, WrappedLine line, Func<string, float> measure, Rect row,
-        float size, Color color, ResolvedStyle highlight, Font? drawFont)
-    {
-        if (gui.Pass == Pass.Pass2Render && state.HasSelection &&
-            WrappedTextLayout.SelectionOn(measure, line, state.SelectionStart, state.SelectionEnd) is { } run)
-        {
-            gui.DrawStyledBox(highlight, new Rect(row.X + run.X, row.Y, run.Width, row.H));
-        }
-
-        if (line.Text.Length > 0)
-        {
-            gui.DrawText(line.Text, size, color, drawFont, centerInRect: false, clip: true);
-        }
-    }
-
     /// <summary>
     /// Pointer select: a press inside the pane anchors the selection, a drag extends it, a release
     /// ends it. No text-field focus is registered, so surrounding shortcuts keep their meaning.
     /// </summary>
-    static void Select(Gui gui, TextEditState state, IReadOnlyList<WrappedLine> lines,
-        Func<string, float> measure, Rect inner, float offsetY, float lineHeight)
+    static void Select(Gui gui, TextEditState state, TextLayout layout, Vector2 origin, Rect viewport)
     {
-        var mouse = gui.LocalMousePosition;
-        var inside = gui.IsPointerIn(inner);
+        var at = layout.OffsetAt(gui.LocalMousePosition - origin);
         var left = MouseButton.Left;
 
-        if (gui.Input.IsMouseButtonPressed(left) && inside)
+        if (gui.Input.IsMouseButtonPressed(left) && gui.IsPointerIn(viewport))
         {
-            state.MoveTo(OffsetAt(lines, measure, mouse, inner, offsetY, lineHeight), extend: false);
+            state.MoveTo(at, extend: false);
             state.IsSelecting = true;
         }
         else if (state.IsSelecting && gui.Input.IsMouseButtonDown(left))
         {
-            state.MoveTo(OffsetAt(lines, measure, mouse, inner, offsetY, lineHeight), extend: true);
+            state.MoveTo(at, extend: true);
         }
         else if (state.IsSelecting && !gui.Input.IsMouseButtonDown(left))
         {
             state.IsSelecting = false;
         }
-    }
-
-    /// <summary>The message offset nearest a screen point, from the wrapped lines' geometry.</summary>
-    static int OffsetAt(IReadOnlyList<WrappedLine> lines, Func<string, float> measure, Vector2 point,
-        Rect inner, float offsetY, float lineHeight)
-    {
-        if (lines.Count == 0)
-        {
-            return 0;
-        }
-
-        var row = (int)Math.Floor((point.Y - inner.Y + offsetY) / lineHeight);
-        row = Math.Clamp(row, 0, lines.Count - 1);
-
-        var line = lines[row];
-        var column = WrappedTextLayout.PositionInLine(measure, line.Text, point.X - inner.X);
-        return Math.Clamp(line.Start + column, line.Start, line.Start + line.Text.Length);
     }
 
     static bool IsControlDown(Gui gui) =>

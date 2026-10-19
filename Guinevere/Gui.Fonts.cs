@@ -18,13 +18,15 @@ public partial class Gui
         return scope.Get<LayoutNodeScopeTextFont>().Value.Resized(effectiveSize * FontScaleFor(scope));
     }
 
-    /// <summary>Measures text with the same scope font, display scale and glyph fallback used by DrawText.</summary>
+    static readonly TextLayoutOptions UnwrappedText = new() { WrapMode = TextWrapMode.None };
+
+    /// <summary>Measures text with the same scope font, display scale, glyph fallback and layout as DrawText.</summary>
     public float MeasureTextWidth(string text, float size = 0, LayoutNodeScope? scope = null)
     {
+        ArgumentNullException.ThrowIfNull(text);
         scope ??= CurrentNodeScope;
-        var font = GetTextFont(size, scope);
-        var emoji = scope.Get<LayoutNodeScopeIconFont>().Value.Resized(font.Size);
-        return MeasureLineWidth(text, font, emoji, scope);
+        return LayoutText(TextRequest(RichTextContent.Plain(text), null, size, 0f, UnwrappedText,
+            TextAlignment.Start, scope)).Width;
     }
 
     List<FontRun> CreateFontRuns(string text, Font mainFont, Font iconFont, LayoutNodeScope? scope = null)

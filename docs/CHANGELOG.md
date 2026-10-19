@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Changed: cached `TextLayout` measured by glyph advances #131.
+- Added: `gui.DrawRichText` #44.
+
 ## [6.3.0] - 2026-10-15
 
 - Added: game HUD primitives #100.

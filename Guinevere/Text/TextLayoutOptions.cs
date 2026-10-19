@@ -16,6 +16,9 @@ public enum TextWrapMode
 /// <summary>Display layout options shared by measurement and drawing.</summary>
 public sealed record TextLayoutOptions
 {
+    /// <summary>Wrap width that wraps text to the width layout gives its node, reflowing in the same frame.</summary>
+    public const float FillWidth = -1f;
+
     /// <summary>Wrapping behavior when a positive width is supplied.</summary>
     public TextWrapMode WrapMode { get; init; } = TextWrapMode.Word;
     /// <summary>Line box height as a multiple of font size.</summary>

@@ -640,4 +640,96 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
     }
 
     #endregion
+
+    #region Measured Content Tests
+
+    /// <summary>An unmeasured leaf retains its settled height when its explicit height is removed.</summary>
+    [Fact]
+    public void UnmeasuredLeafPreservesItsSettledHeight()
+    {
+        var gui = CreateTestGui();
+        var root = LayoutNode.CreateRoot(gui, 800f, 600f).Direction(Axis.Vertical);
+        var child = CreateTestLayoutNode(gui, root, 100f, 40f);
+        root.AddChild(child);
+        root.CalculateLayout();
+
+        child.Height(-1f);
+        root.CalculateLayout();
+
+        Assert.Equal(40f, child.Rect.H);
+    }
+
+    /// <summary>Content 300px wide when unwrapped, adding a 20px line each time it wraps.</summary>
+    static Vector2 WrapTo(float width) => width <= 0f || width >= 300f
+        ? new Vector2(300f, 20f)
+        : new Vector2(width, 20f * MathF.Ceiling(300f / width));
+
+    /// <summary>
+    /// Verifies that a measured leaf takes its height from the width its fixed-width parent gives it, and the
+    /// parent grows to fit it in the same layout pass.
+    /// </summary>
+    [Fact]
+    public void MeasuredLeafHeightFollowsTheWidthItIsGiven()
+    {
+        // Arrange
+        var gui = CreateTestGui();
+        var root = LayoutNode.CreateRoot(gui, 800f, 600f);
+        var parent = CreateTestLayoutNode(gui, root, 100f);
+        root.AddChild(parent);
+        var text = CreateTestLayoutNode(gui, parent);
+        text.ContentMeasure = WrapTo;
+        parent.AddChild(text);
+        var after = CreateTestLayoutNode(gui, parent, 10f, 10f);
+        parent.AddChild(after);
+
+        // Act
+        root.CalculateLayout();
+
+        // Assert
+        AssertRectValues(text.Rect, 0f, 0f, 100f, 60f);
+        Assert.Equal(70f, parent.Rect.H);
+        Assert.Equal(60f, after.Rect.Y);
+    }
+
+    /// <summary>Verifies that an unsized measured leaf in a fit-content row takes its natural width.</summary>
+    [Fact]
+    public void MeasuredLeafInARowUsesItsNaturalWidthWhenItFits()
+    {
+        // Arrange
+        var gui = CreateTestGui();
+        var root = LayoutNode.CreateRoot(gui, 800f, 600f);
+        var row = CreateTestLayoutNode(gui, root).Direction(Axis.Horizontal).Height(100f);
+        root.AddChild(row);
+        var text = CreateTestLayoutNode(gui, row);
+        text.ContentMeasure = WrapTo;
+        row.AddChild(text);
+
+        // Act
+        root.CalculateLayout();
+
+        // Assert
+        Assert.Equal(300f, text.Rect.W);
+    }
+
+    /// <summary>Verifies that padding is excluded from the width offered to measured content.</summary>
+    [Fact]
+    public void MeasuredLeafIsMeasuredInsideItsPadding()
+    {
+        // Arrange
+        var gui = CreateTestGui();
+        var root = LayoutNode.CreateRoot(gui, 800f, 600f);
+        var parent = CreateTestLayoutNode(gui, root, 120f);
+        root.AddChild(parent);
+        var text = CreateTestLayoutNode(gui, parent).Padding(10f);
+        text.ContentMeasure = WrapTo;
+        parent.AddChild(text);
+
+        // Act
+        root.CalculateLayout();
+
+        // Assert
+        Assert.Equal(60f + 20f, text.Rect.H);
+    }
+
+    #endregion
 }

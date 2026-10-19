@@ -112,6 +112,7 @@ public partial class Gui
         BeginIdentityPass();
         BeginFrameRequests();
         _dataFrame++;
+        _textLayouts.NextFrame();
         Canvas = canvas;
         if (Platform.TryGet<IAccessibilityCapability>(out var accessibility))
         {

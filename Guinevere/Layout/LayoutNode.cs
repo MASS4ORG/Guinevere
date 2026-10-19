@@ -18,6 +18,12 @@ public partial class LayoutNode : IDisposable
 {
     internal StyleTarget? StyleTarget { get; set; }
 
+    /// <summary>
+    /// Content size of an unsized leaf for a given content width, such as wrapped text; layout calls it with the
+    /// final width so height follows width within the same frame. A width of zero asks for the natural size.
+    /// </summary>
+    internal Func<float, Vector2>? ContentMeasure { get; set; }
+
     readonly Gui _gui;
     readonly LayoutNode? _parent;
     Rect _rect = Rect.Zero;
