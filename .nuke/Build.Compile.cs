@@ -25,6 +25,7 @@ sealed partial class Build
         });
 
     Target Restore => td => td
+        .DependsOn(RestoreDependencies)
         .After(Clean)
         .Executes(() =>
         {
@@ -32,7 +33,7 @@ sealed partial class Build
         });
 
     Target Compile => td => td
-        .After(Restore)
+        .DependsOn(Restore)
         .Executes(() =>
         {
             Log.Debug("Config {Config}", Config);

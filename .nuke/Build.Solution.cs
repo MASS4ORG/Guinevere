@@ -6,10 +6,10 @@ namespace Build;
 /// </summary>
 sealed partial class Build
 {
-    [Parameter("Config to build - Default is 'Debug' (local) or 'Release' (server)")]
+    [Parameter("Config to build (default set by the project)")]
     readonly string Configuration;
 
-    string Config => Configuration ?? (IsLocalBuild ? ConfigurationOptions.Debug : ConfigurationOptions.Release);
+    string Config => Configuration ?? DefaultConfiguration;
 
     [Solution(GenerateProjects = true)]
     private readonly Solution Solution;

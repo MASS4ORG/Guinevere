@@ -17,7 +17,7 @@ sealed partial class Build
 
     Target Test => td =>
         td
-            .After(Restore, Compile)
+            .DependsOn(Compile)
             .Produces(CoverageResultFile)
             .Executes(() =>
             {
@@ -31,7 +31,8 @@ sealed partial class Build
                         "--coverage",
                         "--coverage-settings", CoverageSettingsFile, // Excludes source generated files
                         "--coverage-output-format", "cobertura",
-                        "--report-xunit-trx", // Consumed by tools/slow-tests.cs
+                        TestReportArgument,
+                        "--minimum-expected-tests", "1",
                         "--results-directory", CoverageDirectory)));
 
                 var reportDirectory = CoverageMergedDirectory.DirectoryExists() ? CoverageMergedDirectory : CoverageDirectory;

@@ -26,6 +26,7 @@
       "enum": [
         "BuildExamples",
         "CheckNewCommits",
+        "CheckSharedBuild",
         "Clean",
         "CleanExamples",
         "Compile",
@@ -123,7 +124,7 @@
       "properties": {
         "Configuration": {
           "type": "string",
-          "description": "Config to build - Default is 'Debug' (local) or 'Release' (server)"
+          "description": "Config to build (default set by the project)"
         },
         "ExampleRuntimes": {
           "type": "array",
@@ -190,6 +191,13 @@
         "RuntimeIdentifier": {
           "type": "string",
           "description": "Runtime identifier for the build (e.g., win-x64, linux-x64, osx-x64) (default: linux-x64)"
+        },
+        "SharedBuildDirectories": {
+          "type": "array",
+          "description": "Project directories whose shared NUKE files must match this checkout",
+          "items": {
+            "type": "string"
+          }
         },
         "Solution": {
           "type": "string",

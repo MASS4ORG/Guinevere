@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added: typography controls and optional text shaping #140.
 - Added: `gui.DrawRichText` #44.
 - Changed: cached `TextLayout` measured by glyph advances #131.
+- Changed: standardized NUKE build targets.
 
 ## [6.3.0] - 2026-10-15
 

@@ -6,6 +6,8 @@ namespace, so it drops into an existing Guinevere app with a single package refe
 
 ![Guinevere Excalibur controls](../docs/guinevere-excalibur-examples.webp)
 
+The optional [TextEditor](../Guinevere.Excalibur.TextEditor/README.md) package adds syntax highlighting, multiple carets, folding, find and replace, completion and diagnostics. Example-50 includes a dockable shader editor and a large-document demo.
+
 ## Install
 
 ```
