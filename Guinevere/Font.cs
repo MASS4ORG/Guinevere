@@ -111,7 +111,17 @@ public class Font
 
     /// <summary>The same typeface at another size, keeping synthesized bold (embolden) and italic (skew).</summary>
     internal Font Resized(float size) =>
-        new(new SKFont(_skFont.Typeface, size) { Embolden = _skFont.Embolden, SkewX = _skFont.SkewX })
+        new(new SKFont(_skFont.Typeface, size, _skFont.ScaleX, _skFont.SkewX)
+        {
+            Embolden = _skFont.Embolden,
+            Edging = _skFont.Edging,
+            Hinting = _skFont.Hinting,
+            Subpixel = _skFont.Subpixel,
+            LinearMetrics = _skFont.LinearMetrics,
+            BaselineSnap = _skFont.BaselineSnap,
+            EmbeddedBitmaps = _skFont.EmbeddedBitmaps,
+            ForceAutoHinting = _skFont.ForceAutoHinting,
+        })
         {
             Families = Families,
             RequestedWeight = RequestedWeight,

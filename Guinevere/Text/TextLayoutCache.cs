@@ -1,13 +1,17 @@
 namespace Guinevere;
 
 /// <summary>
-/// Reuses text layouts across passes and frames. Entries live for the frame that used them and the next, so unchanged
-/// text never relayouts while text that disappears is dropped without a size limit to tune.
+/// Reuses text layouts across passes and frames within two bounded generations. Eviction releases cache references;
+/// retained layouts and queued draw commands keep their fonts and glyph blobs alive independently.
 /// </summary>
 sealed class TextLayoutCache
 {
+    internal const int MaxEntries = 4096;
+    internal const long MaxWeight = 524288;
+
     Dictionary<TextLayoutRequest, TextLayout> _current = [];
     Dictionary<TextLayoutRequest, TextLayout> _previous = [];
+    long _currentWeight;
 
     /// <summary>Number of layouts built rather than reused.</summary>
     internal int Builds { get; private set; }
@@ -25,7 +29,13 @@ sealed class TextLayoutCache
             Builds++;
         }
 
-        _current[request] = layout;
+        var weight = request.Weight;
+        if (_current.Count < MaxEntries && weight <= MaxWeight - _currentWeight)
+        {
+            _current[request] = layout;
+            _currentWeight += weight;
+        }
+
         return layout;
     }
 
@@ -34,5 +44,6 @@ sealed class TextLayoutCache
     {
         (_previous, _current) = (_current, _previous);
         _current.Clear();
+        _currentWeight = 0;
     }
 }

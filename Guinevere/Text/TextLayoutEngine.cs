@@ -3,7 +3,7 @@ namespace Guinevere;
 /// <summary>Fonts and constraints a text block is laid out with; compares by value so it can key the cache.</summary>
 /// <param name="Content">The styled source.</param>
 /// <param name="Font">Inherited font at its display-scaled size.</param>
-/// <param name="Emoji">Last-resort fallback typeface.</param>
+/// <param name="Emoji">Last-resort fallback font.</param>
 /// <param name="Widget">Icon font consulted during fallback.</param>
 /// <param name="Scale">Display scale applied to logical sizes in span styles.</param>
 /// <param name="MaxWidth">Wrap width, or zero or less for none.</param>
@@ -11,29 +11,14 @@ namespace Guinevere;
 /// <param name="Alignment">Horizontal placement of each line.</param>
 /// <param name="FontsVersion">Font registry version, so registering faces relayouts styled spans.</param>
 /// <param name="Shaper">Turns font runs into glyphs.</param>
-readonly record struct TextLayoutRequest(RichTextContent Content, FontKey Font, SKTypeface Emoji, Font Widget,
+readonly record struct TextLayoutRequest(TextLayoutContent Content, FontKey Font, FontKey Emoji, FontKey Widget,
     float Scale, float MaxWidth, TextLayoutOptions Options, TextAlignment Alignment, int FontsVersion,
-    ITextShaper Shaper);
-
-/// <summary>Value identity of a face at a size; fonts are otherwise recreated per call.</summary>
-/// <param name="Font">The face, at any size.</param>
-/// <param name="Size">The display-scaled size it is laid out at.</param>
-readonly record struct FontKey(Font Font, float Size)
+    ITextShaper Shaper)
 {
-    /// <summary>The face at <see cref="Size"/>.</summary>
-    internal Font Resolve() => Font.Size == Size ? Font : Font.Resized(Size);
+    internal long Weight => Content.Weight + Options.TabStops.Count * 2L + Font.Weight + Emoji.Weight + Widget.Weight;
 
     /// <inheritdoc />
-    public bool Equals(FontKey other)
-    {
-        var a = Font.SkFont;
-        var b = other.Font.SkFont;
-        return Size == other.Size && (ReferenceEquals(Font, other.Font) || (a.Typeface == b.Typeface
-            && a.Embolden == b.Embolden && a.SkewX == b.SkewX && Font.Fallbacks == other.Font.Fallbacks));
-    }
-
-    /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(Font.SkFont.Typeface, Size);
+    public override int GetHashCode() => HashCode.Combine(Content, Font, Scale, MaxWidth, Options, FontsVersion);
 }
 
 /// <summary>
@@ -53,6 +38,7 @@ static partial class TextLayoutEngine
     sealed partial class Build(TextLayoutRequest request, FontRegistry? fonts)
     {
         readonly Font _base = request.Font.Resolve();
+        readonly Font _widget = request.Widget.Resolve();
         readonly string _text = request.Content.Text;
         readonly StyledRange[] _ranges = request.Content.Ranges;
         readonly TextLayoutOptions _options = request.Options;
@@ -105,7 +91,7 @@ static partial class TextLayoutEngine
         {
             if (!_emoji.TryGetValue(size, out var font))
             {
-                _emoji[size] = font = new Font(new SKFont(request.Emoji, size));
+                _emoji[size] = font = request.Emoji.Resolve(size);
             }
 
             return font;
@@ -164,7 +150,7 @@ static partial class TextLayoutEngine
             }
 
             var fontRanges = new List<FontRange>();
-            FontTextLayout.AppendRanges(fontRanges, _display, range.Start, range.End, font, request.Widget,
+            FontTextLayout.AppendRanges(fontRanges, _display, range.Start, range.End, font, _widget,
                 EmojiAt(font.Size));
             var spacing = Spacing(index);
             foreach (var fontRange in fontRanges)
@@ -297,7 +283,7 @@ static partial class TextLayoutEngine
             var range = RangeAt(end);
             var font = range >= 0 ? _rangeFonts[range] : _base;
             var runs = new List<(string, Font, ShapedText)>();
-            foreach (var run in FontTextLayout.Create(marker, font, request.Widget, EmojiAt(font.Size)))
+            foreach (var run in FontTextLayout.Create(marker, font, _widget, EmojiAt(font.Size)))
             {
                 runs.Add((run.Text, run.Font, request.Shaper.Shape(run.Font, run.Text, 0, run.Text.Length, false)));
             }

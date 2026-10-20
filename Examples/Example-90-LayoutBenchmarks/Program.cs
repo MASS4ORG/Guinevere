@@ -9,6 +9,12 @@ var articleScale = args.Contains("--quick") ? 100 : 1_000;
 Console.WriteLine("| Scenario | Nodes | Mean ms | ns/node | Alloc B/op |");
 Console.WriteLine("|---|---:|---:|---:|---:|");
 
+if (args.Contains("--text-only"))
+{
+    TextLayoutBenchmarks.Run();
+    return;
+}
+
 if (args.Contains("--deep-only"))
 {
     foreach (var depth in new[] { 64, 128, 256, 512, 1_024 })
@@ -38,6 +44,7 @@ foreach (var depth in new[] { 64, 128, 256, 512 })
 Run(args.Contains("--quick") ? "pangui-fit-nesting-scaled" : "pangui-fit-nesting",
     BuildFitNesting(args.Contains("--quick") ? 10 : 100));
 Run("text-measurements-1000", BuildText(1_000));
+TextLayoutBenchmarks.Run();
 Run("pangui-expand-with-max", BuildExpandConstraint(articleScale, useMin: false));
 Run("pangui-expand-with-min", BuildExpandConstraint(articleScale, useMin: true));
 Run("pangui-flex-expand-equal", BuildEqualExpand(args.Contains("--quick") ? 1_500 : 15_000));

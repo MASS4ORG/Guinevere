@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added: streaming Markdown and syntax highlighting #45.
 - Added: typography controls and optional text shaping #140.
 - Added: `gui.DrawRichText` #44.
+- Improved: bounded text layout caching and font invalidation #169.
 - Changed: cached `TextLayout` measured by glyph advances #131.
 - Changed: standardized NUKE build targets.
 

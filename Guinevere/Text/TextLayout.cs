@@ -86,6 +86,10 @@ sealed class RunGlyphs(ushort[] ids, float[] x, float[]? y = null)
 /// The single measured layout of a text block: lines, styled runs and glyph positions. Measuring, drawing, selection
 /// and hit testing all read this result, so they agree on line breaks and positions.
 /// </summary>
+/// <remarks>
+/// Layouts retain their resolved fonts and native glyph blobs independently of cache eviction; Skia releases those
+/// native resources when their managed owners are collected. Caller-provided typefaces and inline images remain caller-owned.
+/// </remarks>
 public sealed class TextLayout
 {
     readonly TextLayoutLine[] _lines;

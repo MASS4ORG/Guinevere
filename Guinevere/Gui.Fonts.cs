@@ -25,7 +25,7 @@ public partial class Gui
     {
         ArgumentNullException.ThrowIfNull(text);
         scope ??= CurrentNodeScope;
-        return LayoutText(TextRequest(RichTextContent.Plain(text), null, size, 0f, UnwrappedText,
+        return LayoutText(TextRequest(text, null, size, 0f, UnwrappedText,
             TextAlignment.Start, scope)).Width;
     }
 

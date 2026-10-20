@@ -102,15 +102,18 @@ public partial class Gui
 
     TextLayout LayoutText(TextLayoutRequest request) => _textLayouts.Get(request, Fonts);
 
-    TextLayoutRequest TextRequest(RichTextContent content, Font? font, float size, float maxWidth,
+    TextLayoutRequest TextRequest(TextLayoutContent content, Font? font, float size, float maxWidth,
         TextLayoutOptions options, TextAlignment alignment, LayoutNodeScope scope)
     {
         var scale = FontScaleFor(scope);
         var logical = size > 0 ? size : scope.Get<LayoutNodeScopeTextSize>().Value;
         return new TextLayoutRequest(content,
             new FontKey(font ?? scope.Get<LayoutNodeScopeTextFont>().Value, logical * scale),
-            scope.Get<LayoutNodeScopeIconFont>().Value.SkFont.Typeface,
-            scope.Get<LayoutNodeScopeWidgetIconFont>().Value, scale, maxWidth, options, alignment, Fonts.Version,
+            new FontKey(scope.Get<LayoutNodeScopeIconFont>().Value, logical * scale),
+            new FontKey(scope.Get<LayoutNodeScopeWidgetIconFont>().Value, logical * scale), scale, maxWidth,
+            options.TabStops is float[] { Length: 0 }
+                ? options : options with { TabStops = options.TabStops.ToArray() },
+            alignment, Fonts.Version,
             TextShaper);
     }
 
@@ -118,7 +121,7 @@ public partial class Gui
     /// Creates the node for a text block and returns the layout to draw. A fixed or zero wrap width sizes the node to
     /// the text; <see cref="TextLayoutOptions.FillWidth"/> lets layout measure height from the node's final width.
     /// </summary>
-    internal (LayoutNode Node, TextLayout Layout) TextBlock(RichTextContent content, Font? font, float size,
+    internal (LayoutNode Node, TextLayout Layout) TextBlock(TextLayoutContent content, Font? font, float size,
         float wrapWidth, TextLayoutOptions options, TextAlignment alignment)
     {
         var request = TextRequest(content, font, size, Math.Max(0f, wrapWidth), options, alignment,
