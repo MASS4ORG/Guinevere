@@ -25,6 +25,8 @@ public partial class Shared(Gui gui)
         new("Text", "Effects", "TextEffects: outline, shadows and gradients, with live edits.", Effects),
         new("Text", "Rich Text", "Styled spans, links, inline images and highlighted code in one layout.",
             RichTextDemo),
+        new("Text", "Markdown", "A streamed Markdown answer: lists, quotes, links, images and highlighted code.",
+            MarkdownDemo),
         new("Text", "Scrolling", "ScrollY over long and mixed-size content.", Scrolling),
         new("Motion", "Easing & Blend", "Composable layout units and easing curves racing on a loop.", Easings),
         new("Motion", "Springs", "Keyed springs and tweens, plus transform cards that grow, tilt and spin.", Motion),

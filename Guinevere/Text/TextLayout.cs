@@ -279,6 +279,26 @@ public sealed class TextLayout
         return null;
     }
 
+    /// <summary>The inline image under a point relative to the layout's top-left, or null.</summary>
+    public RichTextImage? ImageAt(Vector2 point)
+    {
+        if (point.Y < 0f || point.Y >= Height)
+        {
+            return null;
+        }
+
+        var line = _lines[LineAt(point.Y)];
+        for (var i = line.FirstRun; i < line.FirstRun + line.RunCount; i++)
+        {
+            if (_runs[i].Image is { } image && Covers(_runs[i], point.X))
+            {
+                return image;
+            }
+        }
+
+        return null;
+    }
+
     static bool Covers(TextLayoutRun run, float x) => x >= run.X && x < run.X + run.Width;
 
     float XInLine(int index, int offset)
