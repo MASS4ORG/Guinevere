@@ -49,6 +49,7 @@
     <ItemGroup>
         <InternalsVisibleTo Include="Guinevere.Tests" />
         <InternalsVisibleTo Include="Guinevere.Excalibur" />
+        <InternalsVisibleTo Include="Guinevere.Excalibur.TextEditor" />
         <InternalsVisibleTo Include="Guinevere.Styling" />
         <InternalsVisibleTo Include="Guinevere.TextShaping" />
     </ItemGroup>

@@ -5,6 +5,37 @@ namespace Guinevere.Tests;
 /// </summary>
 public class FocusManagerTests
 {
+    /// <summary>A control retains Tab while it claims the key and resumes navigation when it releases it.</summary>
+    [Fact]
+    public void TabClaimCanBeReleasedWithoutChangingTheFocusedControl()
+    {
+        var focus = new FocusManager();
+        var input = Substitute.For<IInputHandler>();
+        input.IsKeyPressed(KeyboardKey.Tab).Returns(true);
+        focus.BeginFrame();
+        focus.RegisterFocusableControl("editor");
+        focus.RegisterFocusableControl("next");
+        focus.SetClaimsTab("missing", true);
+        focus.SetClaimsTab("editor", true);
+        focus.RequestFocus("editor");
+        focus.EndFrame();
+        focus.BeginFrame();
+        focus.RegisterFocusableControl("editor");
+        focus.RegisterFocusableControl("next");
+        focus.HandleKeyboardNavigation(input);
+        focus.EndFrame();
+        focus.BeginFrame();
+        focus.RegisterFocusableControl("editor");
+        focus.RegisterFocusableControl("next");
+        Assert.Equal("editor", focus.CurrentFocusedId);
+
+        focus.SetClaimsTab("editor", false);
+        focus.HandleKeyboardNavigation(input);
+        focus.EndFrame();
+        focus.BeginFrame();
+        Assert.Equal("next", focus.CurrentFocusedId);
+    }
+
     [Fact]
     public void TabAndShiftTabCycleThroughRegisteredControls()
     {

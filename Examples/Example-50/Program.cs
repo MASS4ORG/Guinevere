@@ -31,6 +31,7 @@ public abstract partial class Program
         ["scrolling"] = "Scrolling",
         ["styling"] = "Styling",
         ["nine-slice"] = "9-slice",
+        ["code-editor"] = "Text Editor",
         ["dialog"] = "Dialog"
     };
 
@@ -44,6 +45,7 @@ public abstract partial class Program
         ["scrolling"] = ScrollingContent,
         ["styling"] = StylingContent,
         ["nine-slice"] = NineSliceContent,
+        ["code-editor"] = TextEditorContent,
         ["dialog"] = DialogContent
     };
 
@@ -71,6 +73,7 @@ public abstract partial class Program
             layout.DockAtEdge(panelId, DockZone.Center);
         }
 
+        layout.DockAtEdge("code-editor", DockZone.Center);
         layout.DockAtEdge("text-inputs", DockZone.Right, 0.24f);
         layout.DockAtEdge("scrolling", DockZone.Bottom, 0.3f);
         layout.DockAtEdge("buttons", DockZone.Left, 0.2f);

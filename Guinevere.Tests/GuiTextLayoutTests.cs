@@ -8,8 +8,10 @@ public class GuiTextLayoutTests
     const string Sentence = "The quick brown fox jumps over the lazy dog, again and again.";
 
     /// <summary>Text layout drawing queues commands only during the render pass.</summary>
-    [Fact]
-    public void DrawingALayoutDoesNotQueueCommandsDuringBuild()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DrawingALayoutDoesNotQueueCommandsDuringBuild(bool publicOverload)
     {
         using var harness = new FrameHarness();
         harness.Frame(gui =>
@@ -19,7 +21,14 @@ public class GuiTextLayoutTests
             var layout = gui.LayoutText("text", size: 14);
             var before = node.DrawList.Count;
 
-            gui.DrawTextLayout(layout, Vector2.Zero, Color.Red, null, false, node);
+            if (publicOverload)
+            {
+                gui.DrawTextLayout(layout, Vector2.Zero);
+            }
+            else
+            {
+                gui.DrawTextLayout(layout, Vector2.Zero, Color.Red, null, false, node);
+            }
 
             Assert.Equal(before + (gui.Pass == Pass.Pass2Render ? 1 : 0), node.DrawList.Count);
         });

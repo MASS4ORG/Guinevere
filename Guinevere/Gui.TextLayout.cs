@@ -157,6 +157,23 @@ public partial class Gui
     }
 
     /// <summary>
+    /// Draws a layout from <see cref="LayoutText(RichText, float, float, Font?, TextLayoutOptions?, TextAlignment?)"/>
+    /// into the current node with its top-left at
+    /// <paramref name="origin"/>, for controls that place text themselves, such as editors. Only the render pass draws.
+    /// </summary>
+    /// <param name="layout">The layout to draw.</param>
+    /// <param name="origin">Top-left of the layout in screen space.</param>
+    /// <param name="color">Color for runs without one, or null for the scope's.</param>
+    /// <param name="effects">Shadows, outline or gradient applied to every run.</param>
+    public void DrawTextLayout(TextLayout layout, Vector2 origin, Color? color = null, TextEffects? effects = null)
+    {
+        ArgumentNullException.ThrowIfNull(layout);
+        var scope = CurrentNodeScope;
+        DrawTextLayout(layout, origin, color ?? scope.Get<LayoutNodeScopeTextColor>().Value,
+            ResolveTextEffects(effects, scope), false, CurrentNode);
+    }
+
+    /// <summary>
     /// Queues a layout's backgrounds, inline images, glyph layers and decorations into a node, back to front; runs
     /// without a color use <paramref name="color"/>.
     /// </summary>

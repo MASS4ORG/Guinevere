@@ -11,7 +11,7 @@
         <!-- NuGet Package Properties -->
         <Title>Guinevere - Excalibur TextEditor</Title>
         <PackageId>MASS4.Guinevere.Excalibur.TextEditor</PackageId>
-        <Description>Persistent text buffers, document history and text navigation for Guinevere.</Description>
+        <Description>A virtualized text editor for Guinevere with immutable SumTree buffers, syntax highlighting, multiple carets, folding and language providers.</Description>
         <Company>MASS4</Company>
         <Product>Guinevere</Product>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -33,6 +33,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../Guinevere/Guinevere.csproj" />
+        <ProjectReference Include="../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
     </ItemGroup>
 
     <ItemGroup>

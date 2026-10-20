@@ -122,6 +122,7 @@ public class TextBufferTests
 
         Assert.Equal("Guinevere.Excalibur.TextEditor", assembly.GetName().Name);
         Assert.Equal(assembly, typeof(TextEditorState).Assembly);
+        Assert.Equal(assembly, typeof(TextEditorGui).Assembly);
         Assert.Equal(assembly, typeof(SumTreeTextBuffer).Assembly);
         Assert.DoesNotContain(typeof(Gui).Assembly.GetReferencedAssemblies(), name => name.Name == "SumTree");
         Assert.DoesNotContain(typeof(ExcaliburStyles).Assembly.GetReferencedAssemblies(), name => name.Name == "SumTree");

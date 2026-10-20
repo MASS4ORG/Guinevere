@@ -1,20 +1,19 @@
 # Guinevere.Excalibur.TextEditor
 
-Persistent text buffers, document history and text navigation for Guinevere.
+A virtualized text editor with optional language services for [Guinevere](https://github.com/MASS4ORG/Guinevere).
 
-The package uses `com.BrunoMassa.SumTree` 2.0.0 for immutable buffers with shared storage. Core Guinevere defines `ITextBuffer` and provides `StringTextBuffer` for small texts; the SumTree dependency belongs to this separate package.
+Install `MASS4.Guinevere.Excalibur.TextEditor` to use the control and its SumTree v2 persistent buffer. Public types and GUI extensions use the `Guinevere` namespace.
 
 ```csharp
-using Guinevere;
+var editor = new TextEditorState(source, LanguageServices.ForLanguage("glsl"));
 
-var document = new TextDocument(new SumTreeTextBuffer("hello"));
-document.Apply([new TextEdit(5, 0, " world")], [TextSelection.At(11)]);
-document.Undo();
-document.Redo();
+// every frame
+gui.TextEditor(editor);
 ```
 
-Offsets and columns count UTF-16 code units, and line numbers are zero-based. Buffers normalize line endings to `\n`; `TextDocument.Load` remembers the original line-ending style for `ToFileText`. `TextNavigation` moves by grapheme boundaries, words and visual tab columns.
-
-`TextEditorState` retains a document, language services, key bindings, find state and provider results. Configure `LanguageServices` with optional diagnostics, folding, completion and hover providers; they receive immutable `TextSnapshot` values. Call `state.Update(monotonicSeconds)` to advance debounced requests and apply current results. Switching languages cancels pending requests and clears results from the previous language.
-
-Call `state.Type(text)` to insert text at every caret, or `state.Execute(commandName)` for movement, selection, clipboard, indentation, line operations, undo/redo, search, folding and completion commands. `EditorCommands.Names` lists the registered commands; `EditorCommands.Register` adds or replaces an action. Editing commands respect `state.Settings.ReadOnly`.
+- Only visible lines are laid out and drawn, over `SumTreeTextBuffer`, a persistent rope with O(log n) edits and line lookups, so large documents stay responsive. Any `ITextBuffer` works, such as core's `StringTextBuffer` for small texts.
+- Gutter with line numbers and fold markers, current-line highlight, bracket matching, find and replace (plain, whole word, regex), multiple carets (`Alt`+click, `Ctrl`+`Alt`+arrows, `Ctrl`+`D`), indentation, line comments, line moves, auto-closing pairs and undo/redo with typing groups.
+- Every action is a named command (`state.Execute("deleteLeft")`) bound through an `EditorKeymap`, so menus, scripts and tests run exactly what keys run.
+- Language logic comes from `LanguageServices`: an `ISyntaxHighlighter` (shared with Markdown code blocks) and asynchronous `IDiagnosticsProvider`, `IFoldingProvider`, `ICompletionProvider` and `IHoverProvider` that read immutable snapshots, so they can run on any thread.
+- Caret steps and deletions never split a grapheme cluster, and measuring, drawing and hit testing use the shared text layout and shaper.
+- Input-method composition is drawn at the caret when the integration provides `ITextCompositionCapability`. Bidirectional text is not supported yet.

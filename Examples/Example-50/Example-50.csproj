@@ -5,6 +5,8 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
         <RootNamespace>$(MSBuildProjectName.Replace("-", "_"))</RootNamespace>
         <IsPackable>false</IsPackable>
         <Version>5.4.0</Version>
@@ -16,6 +18,7 @@
         <InternalsVisibleTo Include="Guinevere.Tests" />
         <ProjectReference Include="../../Guinevere/Guinevere.csproj" />
         <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+        <ProjectReference Include="../../Guinevere.Excalibur.TextEditor/Guinevere.Excalibur.TextEditor.csproj" />
         <ProjectReference Include="../../Guinevere.Styling/Guinevere.Styling.csproj" />
     </ItemGroup>
 

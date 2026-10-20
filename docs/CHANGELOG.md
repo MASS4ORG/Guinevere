@@ -6,9 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-- Added: editor commands and multiple carets
-- Added: editor state and asynchronous language services #110.
-- Added: persistent text buffers and document history #110.
+- Added: TextEditor control and language services #110.
 - Added: streaming Markdown and syntax highlighting #45.
 - Added: typography controls and optional text shaping #140.
 - Added: `gui.DrawRichText` #44.

@@ -42,6 +42,10 @@ public partial class FocusManager
         _currentFocusedId is not null && _focusableControls.TryGetValue(_currentFocusedId, out var control)
         && control.ClaimsArrowKeys;
 
+    bool FocusedClaimsTab =>
+        _currentFocusedId is not null && _focusableControls.TryGetValue(_currentFocusedId, out var control)
+        && control.ClaimsTab;
+
     internal bool CanNavigateDirectionally => !IsTextInputFocused && !FocusedClaimsArrowKeys;
 
     /// <summary>Marks a focusable control as a text editor.</summary>
@@ -187,6 +191,18 @@ public partial class FocusManager
         if (_focusableControls.TryGetValue(controlId, out var control))
         {
             control.ClaimsArrowKeys = claims;
+        }
+    }
+
+    /// <summary>
+    /// Marks a control that uses Tab itself, such as a code editor, so pressing Tab while it has focus indents
+    /// instead of moving focus. Call it after registering the control.
+    /// </summary>
+    public void SetClaimsTab(string controlId, bool claims)
+    {
+        if (_focusableControls.TryGetValue(controlId, out var control))
+        {
+            control.ClaimsTab = claims;
         }
     }
 
@@ -337,7 +353,7 @@ public partial class FocusManager
     /// <param name="input">The input handler to check for key presses</param>
     public void HandleKeyboardNavigation(IInputHandler input)
     {
-        if (input.IsKeyPressed(KeyboardKey.Tab))
+        if (input.IsKeyPressed(KeyboardKey.Tab) && !FocusedClaimsTab)
         {
             var focusableIds = GetNavigableIds();
 
@@ -526,6 +542,8 @@ public class FocusableControl
     public Vector2? NavigationPosition { get; set; }
     /// <summary>Whether the control uses the arrow keys itself, so they never move focus away from it.</summary>
     public bool ClaimsArrowKeys { get; set; }
+    /// <summary>Whether the control uses Tab itself, such as a code editor indenting, so Tab never moves focus.</summary>
+    public bool ClaimsTab { get; set; }
 }
 
 class FocusNavigationScopeState

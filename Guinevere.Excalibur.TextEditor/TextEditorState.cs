@@ -1,8 +1,9 @@
 namespace Guinevere;
 
 /// <summary>
-/// The document, language services, settings, search, folds, provider results and scroll position retained
-/// between editor updates.
+/// Everything a text editor keeps between frames: the document, the language services, settings, find, folds,
+/// provider results and scroll position. Commands run against it directly, so editing can be scripted and tested
+/// without drawing; <see cref="TextEditorGui.TextEditor"/> draws it and feeds it input.
 /// </summary>
 public sealed class TextEditorState
 {
@@ -115,23 +116,25 @@ public sealed class TextEditorState
 
     internal FoldingState Folds { get; } = new();
 
+    internal TextEditorViewState View { get; } = new();
+
     /// <summary>Set by commands that move the caret, so the control scrolls it into view.</summary>
     internal bool RevealCaret { get; set; }
 
     /// <summary>The line text copied by a copy of whole lines, so pasting it inserts lines above the caret.</summary>
     internal string? LineClipboard { get; set; }
 
-    /// <summary>Folds or unfolds the region starting on a line; returns whether one starts there.</summary>
-    public bool ToggleFold(int line) => Folds.Toggle(line);
-
-    /// <summary>Whether the region starting on a line is folded.</summary>
-    public bool IsFolded(int line) => Folds.Folded.ContainsKey(line);
-
     /// <summary>Runs a command by name, such as <c>deleteLeft</c> or <c>undo</c>; returns false when unknown.</summary>
     public bool Execute(string command) => EditorCommands.Run(command, this);
 
     /// <summary>Types text at every caret, with auto-closing and over-typing of brackets and quotes.</summary>
     public void Type(string text) => EditorCommands.Type(this, text);
+
+    /// <summary>Folds or unfolds the region starting on a line; returns whether one starts there.</summary>
+    public bool ToggleFold(int line) => Folds.Toggle(line);
+
+    /// <summary>Whether the region starting on a line is folded.</summary>
+    public bool IsFolded(int line) => Folds.Folded.ContainsKey(line);
 
     /// <summary>
     /// Advances time-based work: starts debounced diagnostics and folding requests and takes finished results.
