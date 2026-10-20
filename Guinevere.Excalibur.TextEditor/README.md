@@ -14,3 +14,5 @@ document.Redo();
 ```
 
 Offsets and columns count UTF-16 code units, and line numbers are zero-based. Buffers normalize line endings to `\n`; `TextDocument.Load` remembers the original line-ending style for `ToFileText`. `TextNavigation` moves by grapheme boundaries, words and visual tab columns.
+
+`TextEditorState` retains a document, language services, key bindings, find state and provider results. Configure `LanguageServices` with optional diagnostics, folding, completion and hover providers; they receive immutable `TextSnapshot` values. Call `state.Update(monotonicSeconds)` to advance debounced requests and apply current results. Switching languages cancels pending requests and clears results from the previous language.
