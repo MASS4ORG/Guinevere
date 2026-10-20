@@ -60,7 +60,7 @@ public static partial class EditorCommands
         var text = TextBufferText.NormalizeLineBreaks(raw);
         var document = state.Document;
         var buffer = document.Buffer;
-        var parts = text.TrimEnd('\n').Split('\n');
+        var parts = PasteParts(text, document.Selections.Count);
         var spread = document.Selections.Count > 1 && parts.Length == document.Selections.Count;
         var asLines = !spread && text == state.LineClipboard;
         var index = 0;
@@ -75,6 +75,13 @@ public static partial class EditorCommands
 
             return (new TextEdit(selection.Start, selection.Length, part), TextSelection.At(selection.Start + part.Length));
         });
+    }
+
+    /// <summary>Keeps empty selection rows, allowing one final line terminator from an external clipboard.</summary>
+    static string[] PasteParts(string text, int selections)
+    {
+        var parts = text.Split('\n');
+        return parts.Length == selections + 1 && parts[^1].Length == 0 ? parts[..^1] : parts;
     }
 
     static void RegisterFind()

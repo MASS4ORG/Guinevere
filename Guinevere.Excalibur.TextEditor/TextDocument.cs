@@ -35,8 +35,8 @@ public sealed class TextDocument
     TextSelection[] _selections = [TextSelection.At(0)];
 
     /// <summary>One undo step: the state before and after it, and the first line it touched.</summary>
-    sealed record HistoryEntry(ITextBuffer Before, TextSelection[] SelectionsBefore, ITextBuffer After,
-        TextSelection[] SelectionsAfter, EditKind Kind, DateTime Time, int FirstLine);
+    sealed record HistoryEntry(ITextBuffer Before, TextSelection[] SelectionsBefore, int PrimaryBefore, ITextBuffer After,
+        TextSelection[] SelectionsAfter, int PrimaryAfter, EditKind Kind, DateTime Time, int FirstLine);
 
     /// <summary>Creates a document over a buffer.</summary>
     public TextDocument(ITextBuffer buffer) => Buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
@@ -122,6 +122,7 @@ public sealed class TextDocument
 
         var before = Buffer;
         var selectionsBefore = _selections;
+        var primaryBefore = PrimaryIndex;
         var buffer = before;
         for (var i = sorted.Count - 1; i >= 0; i--)
         {
@@ -131,7 +132,8 @@ public sealed class TextDocument
         Buffer = buffer;
         SetSelections(selections, primary);
         var firstLine = before.LineOf(sorted[0].Start);
-        Record(new HistoryEntry(before, selectionsBefore, buffer, _selections, kind, DateTime.UtcNow, firstLine));
+        Record(new HistoryEntry(before, selectionsBefore, primaryBefore, buffer, _selections, PrimaryIndex, kind,
+            DateTime.UtcNow, firstLine));
         Commit(before, firstLine, sorted);
         return true;
     }
@@ -166,7 +168,8 @@ public sealed class TextDocument
         var previous = Buffer;
         Buffer = undo ? entry.Before : entry.After;
         var selections = undo ? entry.SelectionsBefore : entry.SelectionsAfter;
-        (_selections, PrimaryIndex) = Normalize(selections, selections[^1]);
+        var primary = undo ? entry.PrimaryBefore : entry.PrimaryAfter;
+        (_selections, PrimaryIndex) = Normalize(selections, selections[primary]);
         Commit(previous, entry.FirstLine, []);
         return true;
     }
@@ -180,6 +183,7 @@ public sealed class TextDocument
             {
                 After = entry.After,
                 SelectionsAfter = entry.SelectionsAfter,
+                PrimaryAfter = entry.PrimaryAfter,
                 Time = entry.Time,
                 FirstLine = Math.Min(_undo[^1].FirstLine, entry.FirstLine)
             };

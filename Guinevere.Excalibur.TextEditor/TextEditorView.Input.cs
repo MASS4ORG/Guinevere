@@ -64,7 +64,7 @@ sealed partial class TextEditorView
     /// <summary>A press: on the gutter it folds or selects lines, on the scrollbar it grabs the thumb.</summary>
     void Press(Vector2 point, int clicks)
     {
-        var input = _gui.Input;
+        EndSelectionDrag();
         if (point.X >= Right - ScrollbarWidth)
         {
             var thumb = ThumbRect();
@@ -82,29 +82,7 @@ sealed partial class TextEditorView
             return;
         }
 
-        var shift = input.IsKeyDown(KeyboardKey.LeftShift) || input.IsKeyDown(KeyboardKey.RightShift);
-        var alt = input.IsKeyDown(KeyboardKey.LeftAlt) || input.IsKeyDown(KeyboardKey.RightAlt);
-        if (clicks == 2)
-        {
-            var (start, end) = TextNavigation.WordAt(Buffer, offset);
-            document.SetSelections([start == end ? TextSelection.At(offset) : new TextSelection(start, end)]);
-        }
-        else if (clicks >= 3)
-        {
-            var line = Buffer.LineOf(offset);
-            document.SetSelections([new TextSelection(Buffer.LineStart(line),
-                line + 1 < Buffer.LineCount ? Buffer.LineStart(line + 1) : Buffer.Length)]);
-        }
-        else if (alt)
-        {
-            document.SetSelections([.. document.Selections, TextSelection.At(offset)]);
-        }
-        else
-        {
-            document.SetSelections([shift ? document.Primary.MoveTo(offset, true) : TextSelection.At(offset)]);
-            _view.Selecting = true;
-        }
-
+        SelectAt(point, offset, clicks);
         document.BreakUndoGroup();
         RestartBlink();
     }
@@ -118,8 +96,7 @@ sealed partial class TextEditorView
             return;
         }
 
-        _state.Document.SetSelections([new TextSelection(Buffer.LineStart(line),
-            line + 1 < Buffer.LineCount ? Buffer.LineStart(line + 1) : Buffer.Length)]);
+        SelectPointerLine(offset);
     }
 
     /// <summary>Extends the selection or moves the thumb while the button stays down, scrolling at the edges.</summary>
@@ -127,7 +104,7 @@ sealed partial class TextEditorView
     {
         if (!input.IsMouseButtonDown(MouseButton.Left))
         {
-            _view.Selecting = false;
+            EndSelectionDrag();
             _view.ThumbGrab = null;
             return;
         }
@@ -144,17 +121,15 @@ sealed partial class TextEditorView
             return;
         }
 
-        if (point.Y < Inner.Y)
+        if (_view.BoxAnchor is { } anchor)
         {
-            _state.ScrollY -= LineHeight;
+            DragBoxSelection(point, anchor);
         }
-        else if (point.Y > Bottom)
+        else
         {
-            _state.ScrollY += LineHeight;
+            DragTextSelection(point);
         }
 
-        var document = _state.Document;
-        document.SetSelections([document.Primary.MoveTo(OffsetAt(point), true)]);
         _gui.RequestFrame();
     }
 

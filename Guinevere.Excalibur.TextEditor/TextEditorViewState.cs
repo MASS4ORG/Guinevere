@@ -12,6 +12,9 @@ sealed class TextEditorViewState
     /// <summary>Whether the pointer is dragging out a selection.</summary>
     internal bool Selecting;
 
+    /// <summary>Document line, rendered x and document version fixed when a rectangular drag starts.</summary>
+    internal (int Line, float X, int Version)? BoxAnchor;
+
     /// <summary>Whether the pointer is dragging the scrollbar thumb, and where on the thumb it grabbed.</summary>
     internal float? ThumbGrab;
 
