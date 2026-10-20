@@ -121,4 +121,21 @@ public class ProviderLifecycleTests
         Assert.False(state.IsWaitingForProviders);
     }
 
+    /// <summary>Replacing the document removes fold headers from the previous text and clears undo history.</summary>
+    [Fact]
+    public void LoadingTextClearsStaleFoldingRanges()
+    {
+        var state = new TextEditorState("a\nb", NoProviders);
+        state.Folds.SetRanges([new(0, 1)]);
+        state.ToggleFold(0);
+        state.Type("x");
+
+        state.Text = "new";
+
+        Assert.Equal("new", state.Text);
+        Assert.Empty(state.FoldingRanges);
+        Assert.Empty(state.Folds.Folded);
+        Assert.False(state.ToggleFold(0));
+        Assert.False(state.Document.CanUndo);
+    }
 }

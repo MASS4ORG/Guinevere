@@ -127,6 +127,12 @@ public sealed class TextEditorState
     /// <summary>Whether the region starting on a line is folded.</summary>
     public bool IsFolded(int line) => Folds.Folded.ContainsKey(line);
 
+    /// <summary>Runs a command by name, such as <c>deleteLeft</c> or <c>undo</c>; returns false when unknown.</summary>
+    public bool Execute(string command) => EditorCommands.Run(command, this);
+
+    /// <summary>Types text at every caret, with auto-closing and over-typing of brackets and quotes.</summary>
+    public void Type(string text) => EditorCommands.Type(this, text);
+
     /// <summary>
     /// Advances time-based work: starts debounced diagnostics and folding requests and takes finished results.
     /// The editor control calls it every frame with the GUI clock.

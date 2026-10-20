@@ -1,8 +1,24 @@
+using static Guinevere.Tests.CodeEditing.EditorTestText;
+
 namespace Guinevere.Tests.CodeEditing;
 
-/// <summary>Language providers, token caches and fold mappings independent of editor commands.</summary>
 public class LanguageProviderTests
 {
+    /// <summary>A provider whose answers the test releases, to check versions and debouncing.</summary>
+    sealed class ManualDiagnostics : IDiagnosticsProvider
+    {
+        internal readonly List<(TextSnapshot Snapshot, TaskCompletionSource<IReadOnlyList<TextDiagnostic>> Answer)>
+            Requests = [];
+
+        public Task<IReadOnlyList<TextDiagnostic>> GetDiagnosticsAsync(TextSnapshot snapshot,
+            CancellationToken cancellation)
+        {
+            var answer = new TaskCompletionSource<IReadOnlyList<TextDiagnostic>>();
+            Requests.Add((snapshot, answer));
+            return answer.Task;
+        }
+    }
+
     sealed class FixedHover(HoverInfo? info) : IHoverProvider
     {
         internal int Calls;
@@ -53,10 +69,89 @@ public class LanguageProviderTests
     }
 
     [Fact]
+    public async Task DiagnosticsWaitForTypingToPauseAndStaleAnswersAreDropped()
+    {
+        var provider = new ManualDiagnostics();
+        var state = Editor("ab|", LanguageServices.PlainText with { Diagnostics = provider });
+
+        state.Update(0.0);
+        Assert.Single(provider.Requests);
+        state.Type("c");
+        state.Update(0.1);
+        Assert.Single(provider.Requests);
+        provider.Requests[0].Answer.SetResult([new TextDiagnostic(0, 1, DiagnosticSeverity.Error, "old")]);
+        await provider.Requests[0].Answer.Task;
+        state.Update(0.2);
+        Assert.Empty(state.Diagnostics);
+        state.Update(0.5);
+        Assert.Equal(2, provider.Requests.Count);
+        Assert.Equal("abc", provider.Requests[1].Snapshot.Buffer.Text);
+        provider.Requests[1].Answer.SetResult([new TextDiagnostic(1, 2, DiagnosticSeverity.Warning, "new")]);
+        await provider.Requests[1].Answer.Task;
+        state.Update(0.6);
+        Assert.Equal("new", state.Diagnostics.Single().Message);
+        await WaitFor(() =>
+        {
+            state.Update(0.6);
+            return !state.IsWaitingForProviders;
+        });
+    }
+
+    [Fact]
+    public async Task DiagnosticsMoveWithEditsUntilTheProviderAnswersAgain()
+    {
+        var provider = new ManualDiagnostics();
+        var state = Editor("|abc", LanguageServices.PlainText with { Diagnostics = provider });
+        state.Update(0);
+        provider.Requests[0].Answer.SetResult([new TextDiagnostic(1, 2, DiagnosticSeverity.Error, "x")]);
+        await provider.Requests[0].Answer.Task;
+        state.Update(0);
+
+        state.Type("12");
+
+        Assert.Equal(new TextDiagnostic(3, 2, DiagnosticSeverity.Error, "x"), state.Diagnostics.Single());
+    }
+
+    [Fact]
+    public async Task CompletionOpensFiltersAsYouTypeAndAccepts()
+    {
+        var state = Editor("counter country\nco|", settings: new TextEditorSettings());
+        state.Language = state.Language with { Completion = WordCompletionProvider.Instance };
+
+        state.Type("u");
+        await WaitFor(() => { state.Update(0); return state.Completion is not null; });
+        Assert.Equal(["counter", "country"], state.Completion!.Items.Select(item => item.Label).Order());
+        state.Type("n");
+        state.Update(0);
+        state.Execute("nextSuggestion");
+        state.Execute("previousSuggestion");
+        Assert.Equal(2, state.Completion!.Items.Count);
+        state.Type("tr");
+        state.Update(0);
+        Assert.Equal(["country"], state.Completion!.Items.Select(item => item.Label));
+        state.Execute("acceptSuggestion");
+        Assert.Equal("counter country\ncountry|", Show(state));
+        Assert.Null(state.Completion);
+    }
+
+    [Fact]
+    public async Task CompletionClosesWhenTheCaretLeavesTheWord()
+    {
+        var state = Editor("alpha\nal|");
+        state.TriggerCompletion();
+        await WaitFor(() => { state.Update(0); return state.Completion is not null; });
+
+        state.Execute("cursorUp");
+        state.Update(0);
+
+        Assert.Null(state.Completion);
+    }
+
+    [Fact]
     public async Task HoverAsksOncePerRangeAndClears()
     {
         var provider = new FixedHover(new HoverInfo(0, 3, "**doc**"));
-        var state = new TextEditorState("abc", LanguageServices.PlainText with { Hover = provider });
+        var state = Editor("abc", LanguageServices.PlainText with { Hover = provider });
 
         state.RequestHover(1);
         await WaitFor(() => { state.Update(0); return state.Hover is not null; });
@@ -69,7 +164,7 @@ public class LanguageProviderTests
     [Fact]
     public async Task ProviderFailuresAreIgnored()
     {
-        var state = new TextEditorState("a", LanguageServices.PlainText with { Folding = new ThrowingFolding() });
+        var state = Editor("a", LanguageServices.PlainText with { Folding = new ThrowingFolding() });
 
         state.Update(1);
         await Task.Yield();
@@ -99,7 +194,7 @@ public class LanguageProviderTests
     [Fact]
     public void FoldsMapRowsToLinesAndFollowEdits()
     {
-        var state = new TextEditorState("{\n a\n b\n}\n{\n c\n}");
+        var state = Editor("{\n a\n b\n}\n{\n c\n}");
         var folds = state.Folds;
         folds.SetRanges([new FoldingRange(0, 2), new FoldingRange(4, 5), new FoldingRange(9, 8)]);
 
@@ -113,6 +208,19 @@ public class LanguageProviderTests
         Assert.True(state.IsFolded(0));
         Assert.True(folds.IsHidden(3));
         Assert.True(folds.Reveal(2));
+        Assert.False(state.IsFolded(0));
+    }
+
+    [Fact]
+    public void FoldCommandsFoldTheRegionAroundTheCaret()
+    {
+        var state = Editor("{\n a|\n}");
+        state.Folds.SetRanges([new FoldingRange(0, 1)]);
+
+        state.Execute("fold");
+        Assert.True(state.IsFolded(0));
+        Assert.Equal("{|\n a\n}", Show(state));
+        state.Execute("unfold");
         Assert.False(state.IsFolded(0));
     }
 
