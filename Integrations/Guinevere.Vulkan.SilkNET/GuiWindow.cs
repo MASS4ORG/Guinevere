@@ -75,6 +75,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         _renderer = new CanvasRenderer(logger);
         _gui.Platform.Register<ICanvasRenderer>(_renderer);
+        _gui.Platform.Register<IGpuEffectsCapability>(SkiaEffectsCapability.Instance);
 
         // Create window options with Vulkan API
         var options = WindowOptions.Default;

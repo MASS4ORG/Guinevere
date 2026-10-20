@@ -17,10 +17,12 @@ public partial class Gui
     {
         var (z, sequence, end, node) = _renderNodes[index];
         CloseOpacityGroups(z, sequence);
-        if (node.Scope.HasLocal<LayoutNodeScopeOpacity>() && !Hidden())
+        if ((node.Scope.HasLocal<LayoutNodeScopeOpacity>()
+            || node.Scope.HasLocal<LayoutNodeScopeRenderEffects>()) && !Hidden())
         {
-            var opacity = node.Scope.Get<LayoutNodeScopeOpacity>().Value;
-            var save = opacity is > 0f and < 1f ? SaveOpacityLayer(GroupInkBounds(index), opacity) : -1;
+            var opacity = node.Scope.HasLocal<LayoutNodeScopeOpacity>()
+                ? node.Scope.Get<LayoutNodeScopeOpacity>().Value : 1f;
+            var save = opacity > 0 ? SaveCompositeLayer(index, node, opacity) : -1;
             _opacityGroups.Add(new OpacityGroup(node, z, end, opacity > 0f ? save : int.MinValue));
         }
         return Hidden() ? 0f : UngroupedOpacity(node);
@@ -36,6 +38,10 @@ public partial class Gui
         for (var i = index; i < _renderNodes.Count && _renderNodes[i].Z == z && _renderNodes[i].Sequence <= end; i++)
         {
             var member = _renderNodes[i].Node;
+            if (member.Scope.HasLocal<LayoutNodeScopeRenderEffects>())
+            {
+                return null;
+            }
             if (member.DrawList.InkBounds(member) is not { } bounds)
             {
                 return null;

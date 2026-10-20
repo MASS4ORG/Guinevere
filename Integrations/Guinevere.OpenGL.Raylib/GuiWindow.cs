@@ -65,6 +65,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         PlaceInitialWindow();
         _canvasRenderer = new CanvasRenderer();
         _gui.Platform.Register(_canvasRenderer);
+        _gui.Platform.Register<IGpuEffectsCapability>(SkiaEffectsCapability.Instance);
         _canvasRenderer.Initialize(_width, _height);
     }
 

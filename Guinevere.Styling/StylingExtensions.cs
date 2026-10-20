@@ -269,6 +269,7 @@ public static class StylingExtensions
             gui.SetOpacity(opacity, node.Scope);
         }
 
+        StyledRenderEffects.Apply(gui, node, style);
         ApplyTextShadows(gui, node, style);
         ApplyFont(gui, node, style, styling);
     }

@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: ordered render effects #130.
 - Added: TextEditor control and language services #110.
 - Added: streaming Markdown and syntax highlighting #45.
 - Added: typography controls and optional text shaping #140.

@@ -111,6 +111,13 @@ public interface ITextureCapability : IPlatformCapability
 /// <summary>Optional GPU effect support advertised by a renderer.</summary>
 public interface IGpuEffectsCapability : IPlatformCapability
 {
+    /// <summary>Whether the renderer can capture and composite offscreen layers.</summary>
+    bool SupportsRenderTargets => false;
+
+    /// <summary>Whether the renderer permits compiling SkSL color filters at runtime.</summary>
+    bool SupportsRuntimeShaderCompilation => false;
+
+    /// <summary>Whether the renderer supports the named effect family.</summary>
     bool Supports(string effect);
 }
 

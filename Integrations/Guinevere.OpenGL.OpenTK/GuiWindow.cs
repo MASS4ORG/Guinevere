@@ -65,6 +65,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         _canvasRenderer = new CanvasRenderer();
         _gui.Platform.Register(_canvasRenderer);
+        _gui.Platform.Register<IGpuEffectsCapability>(SkiaEffectsCapability.Instance);
         PlaceInitialWindow();
         _width = ClientSize.X;
         _height = ClientSize.Y;

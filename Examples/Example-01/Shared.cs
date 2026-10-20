@@ -28,6 +28,8 @@ public partial class Shared(Gui gui)
         new("Text", "Markdown", "A streamed Markdown answer: lists, quotes, links, images and highlighted code.",
             MarkdownDemo),
         new("Text", "Scrolling", "ScrollY over long and mixed-size content.", Scrolling),
+        new("Drawing", "Render Effects", "Ordered postprocess filters over panels, text, shapes and images.",
+            RenderEffectsDemo),
         new("Motion", "Easing & Blend", "Composable layout units and easing curves racing on a loop.", Easings),
         new("Motion", "Springs", "Keyed springs and tweens, plus transform cards that grow, tilt and spin.", Motion),
         new("Game UI", "HUD", "Health, shield, cooldown, masked charge and targeting primitives.", Hud),
@@ -50,7 +52,7 @@ public partial class Shared(Gui gui)
         gui.On<KeyDownEvent>(e =>
         {
             var step = e.Key switch { KeyboardKey.PageDown => 1, KeyboardKey.PageUp => -1, _ => 0 };
-            if (step == 0)
+            if (step == 0 || gui.Focus.IsTextInputFocused)
             {
                 return;
             }

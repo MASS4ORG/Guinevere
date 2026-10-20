@@ -73,6 +73,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         _renderer = new CanvasRenderer();
         _gui.Platform.Register<ICanvasRenderer>(_renderer);
+        _gui.Platform.Register<IGpuEffectsCapability>(SkiaEffectsCapability.Instance);
 
         // Create windowHandler options with more explicit settings
         var options = WindowOptions.Default;
