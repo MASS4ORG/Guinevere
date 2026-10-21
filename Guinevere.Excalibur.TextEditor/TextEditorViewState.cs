@@ -3,6 +3,9 @@ namespace Guinevere;
 /// <summary>What the editor control remembers between frames that is not part of the editing state.</summary>
 sealed class TextEditorViewState
 {
+    /// <summary>Bounded long-line metrics retained independently of the shared text-layout cache.</summary>
+    internal EditorLineCache Lines { get; } = new();
+
     /// <summary>Seconds since the caret last changed visibility.</summary>
     internal double BlinkTimer;
 

@@ -266,6 +266,7 @@ public sealed class TextEditorState
     void OnChanged(DocumentChange change)
     {
         _changedAt = _now;
+        View.Lines.Invalidate();
         Tokens.Invalidate(change.FirstLine);
         Folds.Shift(change.FirstLine, change.LineDelta);
         Hover = null;

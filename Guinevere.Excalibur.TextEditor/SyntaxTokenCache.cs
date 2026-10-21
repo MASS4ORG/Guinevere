@@ -2,8 +2,7 @@ namespace Guinevere;
 
 /// <summary>
 /// The highlighter state at the start of each line, kept across frames and edits. An edit drops only the states
-/// after its first line, and tokenizing forward is spread over frames by a line budget, so jumping deep into a large
-/// document never stalls a frame.
+/// after its first line. Tokenizing forward is spread over frames by a character budget; a single line is atomic.
 /// </summary>
 sealed class SyntaxTokenCache
 {
@@ -35,7 +34,7 @@ sealed class SyntaxTokenCache
     }
 
     /// <summary>
-    /// Appends the tokens of a line, tokenizing the lines before it within <paramref name="budget"/> lines.
+    /// Appends the tokens of a line, spending <paramref name="budget"/> source characters on preceding lines.
     /// Returns false, adding nothing, when the budget runs out first.
     /// </summary>
     internal bool TryTokenize(ITextBuffer buffer, int line, ref int budget, List<SyntaxToken> tokens)
@@ -53,9 +52,11 @@ sealed class SyntaxTokenCache
             }
 
             var known = _states.Count - 1;
+            var text = buffer.Line(known);
             _scratch.Clear();
-            _states.Add(highlighter.Tokenize(buffer.Line(known), _states[known], _scratch));
-            budget--;
+            _states.Add(highlighter.Tokenize(text, _states[known], _scratch));
+            // Line lookups and highlighter calls have a cost even for empty or very short lines.
+            budget -= Math.Max(64, text.Length);
         }
 
         highlighter.Tokenize(buffer.Line(line), _states[line], tokens);

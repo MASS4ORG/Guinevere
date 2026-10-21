@@ -20,6 +20,11 @@ public static class TextNavigation
             return buffer.Length;
         }
 
+        if (SimpleAscii(buffer[offset]) && (offset + 1 == buffer.Length || buffer[offset + 1] < 128))
+        {
+            return offset + 1;
+        }
+
         var line = buffer.LineOf(offset);
         var start = buffer.LineStart(line);
         var text = buffer.Line(line);
@@ -34,6 +39,11 @@ public static class TextNavigation
         if (offset <= 0)
         {
             return 0;
+        }
+
+        if (SimpleAscii(buffer[offset - 1]) && (offset == 1 || buffer[offset - 2] < 128))
+        {
+            return offset - 1;
         }
 
         var line = buffer.LineOf(offset);
@@ -203,4 +213,6 @@ public static class TextNavigation
     }
 
     static int Kind(char value) => IsWordChar(value) ? 1 : 2;
+
+    static bool SimpleAscii(char value) => value is >= ' ' and <= '~' or '\t';
 }

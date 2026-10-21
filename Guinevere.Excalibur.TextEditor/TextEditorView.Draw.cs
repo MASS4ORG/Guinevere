@@ -26,7 +26,7 @@ sealed partial class TextEditorView
             var line = _state.Folds.LineOfRow(row);
             var layout = LineLayout(line);
             _view.WidestLine = Math.Max(_view.WidestLine, layout.Width);
-            _gui.DrawTextLayout(layout, new Vector2(origin, RowY(row)), _theme.Text);
+            layout.Draw(_gui, new Vector2(origin, RowY(row)), _theme.Text, _state.ScrollX, TextWidth);
             if (_state.IsFolded(line))
             {
                 DrawFoldedMarker(origin + layout.Width, RowY(row));
@@ -46,21 +46,11 @@ sealed partial class TextEditorView
         var firstLine = Buffer.LineOf(Math.Max(start, 0));
         var lastLine = Buffer.LineOf(Math.Min(end, Buffer.Length));
         var origin = TextLeft - _state.ScrollX;
-        for (var line = firstLine; line <= lastLine; line++)
+        for (var row = first; row < first + count; row++)
         {
-            if (_state.Folds.IsHidden(line))
+            var line = _state.Folds.LineOfRow(row);
+            if (line < firstLine || line > lastLine)
             {
-                continue;
-            }
-
-            var row = _state.Folds.RowOfLine(line);
-            if (row < first || row >= first + count)
-            {
-                if (row >= first + count)
-                {
-                    break;
-                }
-
                 continue;
             }
 
@@ -177,6 +167,14 @@ sealed partial class TextEditorView
 
     void Squiggle(Rect rect, Color color)
     {
+        var left = Math.Max(rect.X, TextLeft);
+        var right = Math.Min(rect.X + rect.W, Right);
+        if (right <= left)
+        {
+            return;
+        }
+
+        rect = new Rect(left, rect.Y, right - left, rect.H);
         var step = Math.Max(2f, LineHeight * 0.12f);
         var y = rect.Y + LineHeight - step - 1f;
         var width = Math.Max(rect.W, step * 2f);

@@ -8,7 +8,7 @@ sealed partial class TextEditorView
 {
     const float TextPadding = 6f;
     const float ScrollbarWidth = 10f;
-    const int TokenBudget = 20_000;
+    const int TokenBudget = 4_096;
 
     readonly Gui _gui;
     readonly TextEditorState _state;
@@ -17,7 +17,7 @@ sealed partial class TextEditorView
     readonly LayoutNode _node;
     readonly TextEditorViewState _view;
     readonly List<SyntaxToken> _tokens = [];
-    readonly Dictionary<int, TextLayout> _lineLayouts = [];
+    readonly Dictionary<int, EditorLineLayout> _lineLayouts = [];
     TextLayoutOptions _layoutOptions = new();
     Font _font = null!;
     float _size;
@@ -126,9 +126,9 @@ sealed partial class TextEditorView
 
     /// <summary>
     /// The layout of a line with its syntax colors, or a plain layout while the highlighter is still catching up
-    /// within its per-frame budget.
+    /// within its per-frame budget. Very long ASCII lines use sparse geometry without syntax styling.
     /// </summary>
-    internal TextLayout LineLayout(int line)
+    internal EditorLineLayout LineLayout(int line)
     {
         if (_layoutsVersion != _state.Document.Version)
         {
@@ -141,8 +141,34 @@ sealed partial class TextEditorView
             return cached;
         }
 
+        var layout = LargeLine(line) ?? StyledLine(line);
+        _lineLayouts[line] = layout;
+        return layout;
+    }
+
+    EditorLineLayout? LargeLine(int line)
+    {
+        if (Buffer.LineLength(line) > EditorLineCache.LongLineThreshold
+            && _gui.TextShaper == BasicTextShaper.Instance
+            && _view.Lines.Get(Buffer, line, new FontKey(_font, _size * _gui.FontScale),
+                _layoutOptions.TabSize, LineHeight) is { } large)
+        {
+            return new EditorLineLayout(large);
+        }
+
+        return null;
+    }
+
+    EditorLineLayout StyledLine(int line)
+    {
         var text = Buffer.Line(line);
         var rich = new RichText(text);
+        StyleLine(rich, text, line);
+        return new EditorLineLayout(Layout(rich));
+    }
+
+    void StyleLine(RichText rich, string text, int line)
+    {
         _tokens.Clear();
         if (_state.Tokens.TryTokenize(Buffer, line, ref _tokenBudget, _tokens))
         {
@@ -159,10 +185,6 @@ sealed partial class TextEditorView
         {
             _gui.RequestFrame();
         }
-
-        var layout = Layout(rich);
-        _lineLayouts[line] = layout;
-        return layout;
     }
 
     /// <summary>The offset under a point relative to the node's coordinate space, clamped to the text.</summary>
@@ -194,8 +216,13 @@ sealed partial class TextEditorView
             return null;
         }
 
-        var caret = LineLayout(line).CaretBounds(offset - Buffer.LineStart(line));
         var row = _state.Folds.RowOfLine(line);
+        if (RowY(row) + LineHeight < Inner.Y || RowY(row) > Bottom)
+        {
+            return null;
+        }
+
+        var caret = LineLayout(line).CaretBounds(offset - Buffer.LineStart(line));
         return new Rect(TextLeft - _state.ScrollX + caret.X, RowY(row), 2f, LineHeight);
     }
 
