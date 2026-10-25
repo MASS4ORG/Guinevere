@@ -13,7 +13,8 @@ readonly record struct FontRange(int Start, int End, Font Font, bool Hidden, boo
 /// <summary>Splits Unicode scalars into shared drawing and measurement runs without shaping.</summary>
 static class FontTextLayout
 {
-    internal static List<FontRun> Create(string text, Font mainFont, Font widgetFont, Font iconFont)
+    internal static List<FontRun> Create(string text, Font mainFont, Font widgetFont, Font iconFont,
+        FontCache? cache = null)
     {
         text = WithoutVariationSelectors(text);
         if (text.Length == 0)
@@ -28,7 +29,7 @@ static class FontTextLayout
         var offset = 0;
         foreach (var rune in text.EnumerateRunes())
         {
-            var selected = SelectFont(rune, mainFont, ref fallbackFonts, widgetFont, iconFont);
+            var selected = SelectFont(rune, mainFont, ref fallbackFonts, widgetFont, iconFont, cache);
             if (currentFont is not null && selected != currentFont)
             {
                 runs.Add(new FontRun(text[start..offset], currentFont));
@@ -50,7 +51,7 @@ static class FontTextLayout
     /// hidden zero-width ranges instead of being removed, and characters no font has become missing ranges.
     /// </summary>
     internal static void AppendRanges(List<FontRange> ranges, string text, int start, int end, Font mainFont,
-        Font widgetFont, Font iconFont)
+        Font widgetFont, Font iconFont, FontCache? cache = null)
     {
         Font[]? fallbackFonts = null;
         FontRange? current = null;
@@ -58,7 +59,7 @@ static class FontTextLayout
         foreach (var rune in text.AsSpan(start, end - start).EnumerateRunes())
         {
             var next = Classify(rune, offset, current?.Font ?? mainFont, mainFont, ref fallbackFonts, widgetFont,
-                iconFont);
+                iconFont, cache);
             current = Extend(ranges, current, next);
             offset += rune.Utf16SequenceLength;
         }
@@ -71,14 +72,14 @@ static class FontTextLayout
 
     /// <summary>The empty range a rune would start: its font, and whether it is hidden or missing.</summary>
     static FontRange Classify(Rune rune, int offset, Font previous, Font mainFont, ref Font[]? fallbacks,
-        Font widgetFont, Font iconFont)
+        Font widgetFont, Font iconFont, FontCache? cache)
     {
         if (IsVariationSelector(rune))
         {
             return new FontRange(offset, offset, previous, true);
         }
 
-        var selected = SelectFont(rune, mainFont, ref fallbacks, widgetFont, iconFont);
+        var selected = SelectFont(rune, mainFont, ref fallbacks, widgetFont, iconFont, cache);
         var missing = !Rune.IsControl(rune) && selected.SkFont.GetGlyph(rune.Value) == 0;
         return new FontRange(offset, offset, selected, false, missing);
     }
@@ -103,37 +104,38 @@ static class FontTextLayout
     static bool SameKind(FontRange run, FontRange next) =>
         run.Font == next.Font && run.Hidden == next.Hidden && run.Missing == next.Missing;
 
-    static Font[] FallbackFonts(Font primary, Font widget, Font emoji)
+    static Font[] FallbackFonts(Font primary, Font widget, Font emoji, FontCache? cache)
     {
         var fonts = new List<Font>(primary.Fallbacks.Count + widget.Fallbacks.Count + emoji.Fallbacks.Count + 2);
         foreach (var font in primary.Fallbacks)
         {
-            fonts.Add(font.Resized(primary.Size));
+            fonts.Add(font.Resized(primary.Size, cache));
         }
 
-        fonts.Add(widget.Resized(primary.Size));
+        fonts.Add(widget.Resized(primary.Size, cache));
         foreach (var font in widget.Fallbacks)
         {
-            fonts.Add(font.Resized(primary.Size));
+            fonts.Add(font.Resized(primary.Size, cache));
         }
 
         fonts.Add(emoji);
         foreach (var font in emoji.Fallbacks)
         {
-            fonts.Add(font.Resized(primary.Size));
+            fonts.Add(font.Resized(primary.Size, cache));
         }
 
         return [.. fonts];
     }
 
-    static Font SelectFont(Rune rune, Font primary, ref Font[]? fallbacks, Font widget, Font lastResort)
+    static Font SelectFont(Rune rune, Font primary, ref Font[]? fallbacks, Font widget, Font lastResort,
+        FontCache? cache)
     {
         if (primary.SkFont.GetGlyph(rune.Value) != 0)
         {
             return primary;
         }
 
-        fallbacks ??= FallbackFonts(primary, widget, lastResort);
+        fallbacks ??= FallbackFonts(primary, widget, lastResort, cache);
         foreach (var fallback in fallbacks)
         {
             if (fallback.SkFont.GetGlyph(rune.Value) != 0)

@@ -100,7 +100,7 @@ public partial class Gui
         return hovered;
     }
 
-    TextLayout LayoutText(TextLayoutRequest request) => _textLayouts.Get(request, Fonts);
+    TextLayout LayoutText(TextLayoutRequest request) => _textLayouts.Get(request, Fonts, _textFonts);
 
     TextLayoutRequest TextRequest(TextLayoutContent content, Font? font, float size, float maxWidth,
         TextLayoutOptions options, TextAlignment alignment, LayoutNodeScope scope)

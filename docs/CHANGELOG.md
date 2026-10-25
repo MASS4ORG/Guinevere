@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Improved: font reuse across text layouts and frames #222.
+
 ## [6.4.0] - 2026-10-21
 
 - Added: ordered render effects #130.

@@ -6,6 +6,10 @@ public partial class Gui
     public float FontScale => LayoutNodeScopeStack.TryPeek(out var scope) ? FontScaleFor(scope) : _fontScale;
 
     float _fontScale = 1f;
+    readonly FontCache _textFonts = new();
+
+    /// <summary>Number of native fonts constructed by the bounded GUI font cache.</summary>
+    internal int TextFontBuilds => _textFonts.Builds;
 
     float FontScaleFor(LayoutNodeScope scope) =>
         scope.Get<LayoutNodeScopeViewport>().Value?.TextScale ?? _fontScale;
@@ -15,7 +19,7 @@ public partial class Gui
     {
         scope ??= CurrentNodeScope;
         var effectiveSize = size > 0 ? size : scope.Get<LayoutNodeScopeTextSize>().Value;
-        return scope.Get<LayoutNodeScopeTextFont>().Value.Resized(effectiveSize * FontScaleFor(scope));
+        return scope.Get<LayoutNodeScopeTextFont>().Value.Resized(effectiveSize * FontScaleFor(scope), _textFonts);
     }
 
     static readonly TextLayoutOptions UnwrappedText = new() { WrapMode = TextWrapMode.None };
@@ -33,13 +37,13 @@ public partial class Gui
     {
         scope ??= CurrentNodeScope;
         return FontTextLayout.Create(text, mainFont,
-            scope.Get<LayoutNodeScopeWidgetIconFont>().Value, iconFont);
+            scope.Get<LayoutNodeScopeWidgetIconFont>().Value, iconFont, _textFonts);
     }
 
     /// <summary>Splits text by Unicode scalar into the same font runs used for measurement and drawing.</summary>
     internal IReadOnlyList<(string Text, Font Font)> CreateTextRuns(string text, Font mainFont, Font iconFont,
         LayoutNodeScope? scope = null) =>
-        CreateFontRuns(text, mainFont, iconFont, scope).Select(run => (run.Text, run.Font)).ToArray();
+        CreateFontRuns(text, mainFont, iconFont, scope).Select(static run => (run.Text, run.Font)).ToArray();
 
     void ApplyFontScale()
     {

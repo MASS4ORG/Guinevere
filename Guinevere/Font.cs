@@ -8,7 +8,9 @@ namespace Guinevere;
 /// </summary>
 public class Font
 {
-    readonly SKFont _skFont;
+    SKFont _skFont;
+    bool _shared;
+    bool _disposed;
 
     /// <summary>
     ///
@@ -38,13 +40,27 @@ public class Font
         _skFont = skFont;
     }
 
+    internal Font(SKFont skFont, bool shared) : this(skFont) => _shared = shared;
+
     /// <summary>
     /// Gets or sets the size of the font in points.
     /// </summary>
     public float Size
     {
-        get => _skFont.Size;
-        set => _skFont.Size = value;
+        get => ActiveFont.Size;
+        set
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_shared)
+            {
+                _skFont = Resized(value)._skFont;
+                _shared = false;
+            }
+            else
+            {
+                ActiveFont.Size = value;
+            }
+        }
     }
 
     /// <summary>
@@ -58,14 +74,23 @@ public class Font
     /// </summary>
     internal SKFont SkFont => _skFont;
 
+    SKFont ActiveFont
+    {
+        get
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            return _skFont;
+        }
+    }
+
     /// <summary>The underlying face's family name.</summary>
-    public string FamilyName => _skFont.Typeface.FamilyName;
+    public string FamilyName => ActiveFont.Typeface.FamilyName;
 
     /// <summary>The requested numeric weight, or the face's intrinsic weight.</summary>
-    public int Weight => RequestedWeight ?? _skFont.Typeface.FontWeight;
+    public int Weight => RequestedWeight ?? ActiveFont.Typeface.FontWeight;
 
     /// <summary>Whether the requested or intrinsic face is slanted.</summary>
-    public bool Italic => RequestedItalic ?? (_skFont.Typeface.FontSlant != SKFontStyleSlant.Upright);
+    public bool Italic => RequestedItalic ?? (ActiveFont.Typeface.FontSlant != SKFontStyleSlant.Upright);
 
     internal string? Families { get; set; }
     internal int? RequestedWeight { get; set; }
@@ -80,6 +105,7 @@ public class Font
     public Rect MeasureText(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var runs = FontTextLayout.Create(text, this, this, this);
         if (runs.Count == 0)
         {
@@ -111,16 +137,16 @@ public class Font
 
     /// <summary>The same typeface at another size, keeping synthesized bold (embolden) and italic (skew).</summary>
     internal Font Resized(float size) =>
-        new(new SKFont(_skFont.Typeface, size, _skFont.ScaleX, _skFont.SkewX)
+        new(new SKFont(ActiveFont.Typeface, size, ActiveFont.ScaleX, ActiveFont.SkewX)
         {
-            Embolden = _skFont.Embolden,
-            Edging = _skFont.Edging,
-            Hinting = _skFont.Hinting,
-            Subpixel = _skFont.Subpixel,
-            LinearMetrics = _skFont.LinearMetrics,
-            BaselineSnap = _skFont.BaselineSnap,
-            EmbeddedBitmaps = _skFont.EmbeddedBitmaps,
-            ForceAutoHinting = _skFont.ForceAutoHinting,
+            Embolden = ActiveFont.Embolden,
+            Edging = ActiveFont.Edging,
+            Hinting = ActiveFont.Hinting,
+            Subpixel = ActiveFont.Subpixel,
+            LinearMetrics = ActiveFont.LinearMetrics,
+            BaselineSnap = ActiveFont.BaselineSnap,
+            EmbeddedBitmaps = ActiveFont.EmbeddedBitmaps,
+            ForceAutoHinting = ActiveFont.ForceAutoHinting,
         })
         {
             Families = Families,
@@ -129,13 +155,29 @@ public class Font
             Fallbacks = Fallbacks,
         };
 
-    internal Font Restyled(int weight, bool italic)
+    internal Font Resized(float size, FontCache? cache)
     {
-        var font = Resized(Size);
-        font.RequestedWeight = weight;
-        font.RequestedItalic = italic;
-        font.SkFont.Embolden = weight >= 600 && _skFont.Typeface.FontWeight < 600;
-        font.SkFont.SkewX = italic && _skFont.Typeface.FontSlant == SKFontStyleSlant.Upright ? -0.25f : 0f;
+        if (cache is null)
+        {
+            return Resized(size);
+        }
+
+        var font = new FontKey.Face(this).Resolve(size, cache);
+        font.Fallbacks = Fallbacks;
+        return font;
+    }
+
+    internal Font Restyled(int weight, bool italic, FontCache? cache = null)
+    {
+        var face = new FontKey.Face(this) with
+        {
+            Weight = weight,
+            Italic = italic,
+            Embolden = weight >= 600 && ActiveFont.Typeface.FontWeight < 600,
+            SkewX = italic && ActiveFont.Typeface.FontSlant == SKFontStyleSlant.Upright ? -0.25f : 0f,
+        };
+        var font = face.Resolve(Size, cache);
+        font.Fallbacks = Fallbacks;
         return font;
     }
 
@@ -191,7 +233,12 @@ public class Font
     /// </summary>
     public void Dispose()
     {
-        _skFont.Dispose();
+        if (!_disposed && !_shared)
+        {
+            _skFont.Dispose();
+        }
+
+        _disposed = true;
     }
 
     /// <summary>

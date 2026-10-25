@@ -16,7 +16,7 @@ sealed class TextLayoutCache
     /// <summary>Number of layouts built rather than reused.</summary>
     internal int Builds { get; private set; }
 
-    internal TextLayout Get(TextLayoutRequest request, FontRegistry fonts)
+    internal TextLayout Get(TextLayoutRequest request, FontRegistry fonts, FontCache? cache = null)
     {
         if (_current.TryGetValue(request, out var layout))
         {
@@ -25,7 +25,7 @@ sealed class TextLayoutCache
 
         if (!_previous.Remove(request, out layout))
         {
-            layout = TextLayoutEngine.Create(request, fonts);
+            layout = TextLayoutEngine.Create(request, fonts, cache);
             Builds++;
         }
 
