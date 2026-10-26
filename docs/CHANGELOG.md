@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [6.4.1] - 2026-10-26
+
 - Improved: font reuse across text layouts and frames #222.
 
 ## [6.4.0] - 2026-10-21
@@ -247,7 +249,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - First Commit
 
-[Unreleased]: https://github.com/MASS4ORG/Guinevere/compare/v6.4.0...HEAD
+[Unreleased]: https://github.com/MASS4ORG/Guinevere/compare/v6.4.1...HEAD
+[6.4.1]: https://github.com/MASS4ORG/Guinevere/compare/v6.4.0...v6.4.1
 [6.4.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.3.0...v6.4.0
 [6.3.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.2.0...v6.3.0
 [6.2.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.1.0...v6.2.0

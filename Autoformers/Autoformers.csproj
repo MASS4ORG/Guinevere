@@ -20,7 +20,7 @@
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <Version>6.4.0</Version>
+        <Version>6.4.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
