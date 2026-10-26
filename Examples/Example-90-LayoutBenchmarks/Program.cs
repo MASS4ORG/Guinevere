@@ -21,6 +21,12 @@ if (args.Contains("--text-only"))
     return;
 }
 
+if (args.Contains("--font-only"))
+{
+    FontCacheBenchmarks.Run();
+    return;
+}
+
 if (args.Contains("--deep-only"))
 {
     foreach (var depth in new[] { 64, 128, 256, 512, 1_024 })

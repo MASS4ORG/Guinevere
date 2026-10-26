@@ -35,10 +35,10 @@ static partial class TextLayoutEngine
     /// <summary>Per-range spacing in pixels and kerning, after inheriting the block's options.</summary>
     readonly record struct RangeSpacing(float Letter, float Word, bool Kerning);
 
-    sealed partial class Build(TextLayoutRequest request, FontRegistry? fonts)
+    sealed partial class Build(TextLayoutRequest request, FontRegistry? fonts, FontCache? cache)
     {
-        readonly Font _base = request.Font.Resolve();
-        readonly Font _widget = request.Widget.Resolve();
+        readonly Font _base = request.Font.Resolve(cache: cache);
+        readonly Font _widget = request.Widget.Resolve(cache: cache);
         readonly string _text = request.Content.Text;
         readonly StyledRange[] _ranges = request.Content.Ranges;
         readonly TextLayoutOptions _options = request.Options;
@@ -76,7 +76,7 @@ static partial class TextLayoutEngine
             var size = style.Size is { } logical ? logical * request.Scale : _base.Size;
             if (style.Weight is null && style.Italic is null)
             {
-                return font.Size == size ? font : font.Resized(size);
+                return font.Size == size ? font : font.Resized(size, cache);
             }
 
             return Restyle(font, size, Math.Clamp(style.Weight ?? font.Weight, 1, 1000), style.Italic ?? font.Italic);
@@ -85,13 +85,13 @@ static partial class TextLayoutEngine
         /// <summary>A registered face for the weight and slant, or the face synthesized when none is registered.</summary>
         Font Restyle(Font font, float size, int weight, bool italic) =>
             fonts?.Resolve(font.Families ?? $"\"{font.FamilyName}\"", size, weight, italic)
-            ?? font.Resized(size).Restyled(weight, italic);
+            ?? font.Resized(size, cache).Restyled(weight, italic, cache);
 
         Font EmojiAt(float size)
         {
             if (!_emoji.TryGetValue(size, out var font))
             {
-                _emoji[size] = font = request.Emoji.Resolve(size);
+                _emoji[size] = font = request.Emoji.Resolve(size, cache);
             }
 
             return font;
@@ -151,7 +151,7 @@ static partial class TextLayoutEngine
 
             var fontRanges = new List<FontRange>();
             FontTextLayout.AppendRanges(fontRanges, _display, range.Start, range.End, font, _widget,
-                EmojiAt(font.Size));
+                EmojiAt(font.Size), cache);
             var spacing = Spacing(index);
             foreach (var fontRange in fontRanges)
             {
@@ -283,7 +283,7 @@ static partial class TextLayoutEngine
             var range = RangeAt(end);
             var font = range >= 0 ? _rangeFonts[range] : _base;
             var runs = new List<(string, Font, ShapedText)>();
-            foreach (var run in FontTextLayout.Create(marker, font, _widget, EmojiAt(font.Size)))
+            foreach (var run in FontTextLayout.Create(marker, font, _widget, EmojiAt(font.Size), cache))
             {
                 runs.Add((run.Text, run.Font, request.Shaper.Shape(run.Font, run.Text, 0, run.Text.Length, false)));
             }
@@ -325,6 +325,6 @@ static partial class TextLayoutEngine
     }
 
     /// <summary>Lays out <paramref name="request"/>; <paramref name="fonts"/> supplies real bold and italic faces.</summary>
-    internal static TextLayout Create(TextLayoutRequest request, FontRegistry? fonts) =>
-        new Build(request, fonts).Run();
+    internal static TextLayout Create(TextLayoutRequest request, FontRegistry? fonts, FontCache? cache = null) =>
+        new Build(request, fonts, cache).Run();
 }

@@ -24,8 +24,8 @@ readonly struct FontKey : IEquatable<FontKey>
         _size = size;
     }
 
-    /// <summary>Creates a layout-owned font without borrowing the caller's mutable native font.</summary>
-    internal Font Resolve(float? size = null) => _snapshot.Resolve(size ?? _size);
+    /// <summary>Creates an independent wrapper, optionally borrowing a cached native font.</summary>
+    internal Font Resolve(float? size = null, FontCache? cache = null) => _snapshot.Resolve(size ?? _size, cache);
 
     /// <inheritdoc />
     public bool Equals(FontKey other) => _size == other._size && (ReferenceEquals(_snapshot, other._snapshot)
@@ -79,15 +79,15 @@ readonly struct FontKey : IEquatable<FontKey>
         internal bool SameValue(Snapshot other) => _face == other._face
             && _fallbacks.AsSpan().SequenceEqual(other._fallbacks);
 
-        internal Font Resolve(float size)
+        internal Font Resolve(float size, FontCache? cache)
         {
-            var font = _face.Resolve(size);
+            var font = _face.Resolve(size, cache);
             if (_fallbacks.Length > 0)
             {
                 var fallbacks = new Font[_fallbacks.Length];
                 for (var i = 0; i < fallbacks.Length; i++)
                 {
-                    fallbacks[i] = _fallbacks[i].Resolve(size);
+                    fallbacks[i] = _fallbacks[i].Resolve(size, cache);
                 }
 
                 font.Fallbacks = fallbacks;
@@ -97,7 +97,7 @@ readonly struct FontKey : IEquatable<FontKey>
         }
     }
 
-    readonly record struct Face(SKTypeface Typeface, bool Embolden, float SkewX, float ScaleX, string? Families,
+    internal readonly record struct Face(SKTypeface Typeface, bool Embolden, float SkewX, float ScaleX, string? Families,
         int? Weight, bool? Italic, SKFontEdging Edging, SKFontHinting Hinting, bool Subpixel, bool LinearMetrics,
         bool BaselineSnap, bool EmbeddedBitmaps, bool ForceAutoHinting)
     {
@@ -107,7 +107,7 @@ readonly struct FontKey : IEquatable<FontKey>
             font.SkFont.EmbeddedBitmaps, font.SkFont.ForceAutoHinting)
         { }
 
-        internal Font Resolve(float size) => new(new SKFont(Typeface, size, ScaleX, SkewX)
+        internal SKFont Create(float size) => new(Typeface, size, ScaleX, SkewX)
         {
             Embolden = Embolden,
             Edging = Edging,
@@ -117,7 +117,10 @@ readonly struct FontKey : IEquatable<FontKey>
             BaselineSnap = BaselineSnap,
             EmbeddedBitmaps = EmbeddedBitmaps,
             ForceAutoHinting = ForceAutoHinting,
-        })
+        };
+
+        internal Font Resolve(float size, FontCache? cache) => new(cache?.Get(this, size) ?? Create(size),
+            cache is not null)
         {
             Families = Families,
             RequestedWeight = Weight,
