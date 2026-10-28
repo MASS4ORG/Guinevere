@@ -24,6 +24,7 @@
         </Project>
         <Project Path="Examples/Example-74-PanGui-Heart/Example-74-PanGui-Heart.csproj"/>
         <Project Path="Examples/Example-75-PaperUI-Dashboard/Example-75-PaperUI-Dashboard.csproj"/>
+        <Project Path="Examples/Example-05-GraphCanvas/Example-05-GraphCanvas.csproj"/>
         <Project Path="Examples/Example-90-LayoutBenchmarks/Example-90-LayoutBenchmarks.csproj"/>
         <Project Path="Examples/Example-91-TypeBenchmarks/Example-91-TypeBenchmarks.csproj"/>
         <Project Path="Examples/Example-92-DrawBenchmarks/Example-92-DrawBenchmarks.csproj"/>
@@ -42,6 +43,7 @@
     <Project Path="Autoformers.Excalibur/Autoformers.Excalibur.csproj"/>
     <Project Path="Guinevere.Excalibur/Guinevere.Excalibur.csproj"/>
     <Project Path="Guinevere.Excalibur.TextEditor/Guinevere.Excalibur.TextEditor.csproj"/>
+    <Project Path="Guinevere.Graphs/Guinevere.Graphs.csproj"/>
     <Project Path="Guinevere.Scripting/Guinevere.Scripting.csproj"/>
     <Project Path="Guinevere.Styling/Guinevere.Styling.csproj"/>
     <Project Path="Guinevere.Svg/Guinevere.Svg.csproj"/>
