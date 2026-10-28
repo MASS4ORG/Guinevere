@@ -107,7 +107,7 @@ public sealed partial class GraphDocumentView
         var edges = new List<GraphElementView>();
         foreach (var edge in Editor.Document.Edges)
         {
-            var connector = new GraphConnector(_ports[edge.Source], _ports[edge.Target]);
+            var connector = new GraphConnector(_ports[edge.Source], _ports[edge.Target], Routing);
             var key = edge.Id.ToString();
             _connectors.Add(key, connector);
             edges.Add(new GraphElementView(key, GraphElementRole.Edge, connector.Bounds, "Connection",
@@ -120,11 +120,9 @@ public sealed partial class GraphDocumentView
     void AddNodeViews(GraphNode node)
     {
         var position = EnsurePosition(node.Id);
-        var inputs = node.Ports.Count(static port => port.Direction == PortDirection.Input);
-        var rows = Math.Max(inputs, node.Ports.Count - inputs);
         var (title, error) = DescribeNode(node);
         var view = new GraphElementView(node.Id.ToString(), GraphElementRole.Node,
-            new GraphBounds(position.X, position.Y, 220, 56 + rows * 28), title,
+            new GraphBounds(position.X, position.Y, NodeWidth, NodeHeight(node)), title,
             Error: error);
         _nodes.Add(view);
         _views.Add(view);
@@ -162,12 +160,14 @@ public sealed partial class GraphDocumentView
     void AddPortView(GraphPort port, GraphPoint position, int row)
     {
         var input = port.Direction == PortDirection.Input;
-        var point = new GraphPoint(position.X + (input ? 0 : 220), position.Y + 54 + row * 28);
+        var point = new GraphPoint(position.X + (input ? 0 : NodeWidth), position.Y + 54 + row * RowHeight);
         _ports.Add(port.Id, point);
         var typeName = Editor.Document.Registry.PortTypes.TryResolve(port.TypeId, out var portType)
             ? portType.DisplayName : "Unknown type";
+        // Ports keep a usable on-screen target when zoomed out, without overlapping neighboring rows.
+        var size = Math.Clamp(24 / Canvas.Camera.Zoom, 18, RowHeight);
         _views.Add(new GraphElementView(port.Id.ToString(), GraphElementRole.Port,
-            new GraphBounds(point.X - 9, point.Y - 9, 18, 18), port.Declaration.Name,
+            new GraphBounds(point.X - size / 2, point.Y - size / 2, size, size), port.Declaration.Name,
             ParentKey: port.NodeId.ToString(), TypeName: typeName));
     }
 

@@ -4,6 +4,22 @@ public sealed partial class GraphCanvas
 {
     GraphMinimap? _minimapMapping;
 
+    void DrawOverlays(Gui gui)
+    {
+        if (Overlays.Count == 0 || _frameSize.X <= 0 || _frameSize.Y <= 0)
+        {
+            return;
+        }
+        var node = gui.Node(_frameSize.X, _frameSize.Y).Absolute(0, 0).HitTestVisible(false);
+        using var scope = node.Enter();
+        var context = new GraphOverlayContext(this, gui.Pass, node.Rect.Position, _frameCamera.Zoom,
+            _frameCamera.VisibleBounds(_frameSize), Detail);
+        foreach (var overlay in Overlays)
+        {
+            overlay.Draw(gui, context);
+        }
+    }
+
     void DrawMinimap(Gui gui)
     {
         var width = Math.Min(180, _frameSize.X - 16);

@@ -229,7 +229,7 @@ public sealed class GraphEditingInteractionTests
         Action<Gui> draw = playground.Draw;
         harness.Frame(draw);
         harness.Frame(draw);
-        Assert.False(playground.ShowScenarioTabs);
+        Assert.False(playground.ShowPendingScenarios);
         const string resourceName = "GuinevereDemos.guinevere-badge.png";
         using var resource = typeof(GraphPlayground).Assembly.GetManifestResourceStream(resourceName);
         Assert.NotNull(resource);
@@ -250,6 +250,25 @@ public sealed class GraphEditingInteractionTests
         GraphCanvasTests.Key(harness, draw, KeyboardKey.Enter);
         harness.Frame(draw);
         Assert.True(playground.Sandbox.Canvas.ShowMinimap);
+        harness.Gui.Focus.RequestFocus("toggle-theme");
+        harness.Frame(draw);
+        GraphCanvasTests.Key(harness, draw, KeyboardKey.Space);
+        harness.Frame(draw);
+        Assert.True(playground.LightTheme);
+        Assert.Same(GraphTheme.Light, playground.Flow.Sandbox.View.Theme);
+        Assert.Same(GraphTheme.Light.Canvas, playground.Sandbox.Canvas.Style);
+        harness.Gui.Focus.RequestFocus("cycle-routing");
+        harness.Frame(draw);
+        GraphCanvasTests.Key(harness, draw, KeyboardKey.Enter);
+        harness.Frame(draw);
+        Assert.Equal(GraphLinkRouting.Straight, playground.Flow.Sandbox.View.Routing);
+        var edge = playground.Sandbox.Graph.Editor.Document.Edges.First();
+        Assert.Equal(GraphLinkRouting.Straight, playground.Sandbox.View.Connector(edge.Id).Routing);
+        playground.CycleRouting();
+        playground.CycleRouting();
+        playground.ToggleTheme();
+        Assert.Equal(GraphLinkRouting.Bezier, playground.Sandbox.View.Routing);
+        Assert.False(playground.LightTheme);
     }
 
     static void Drag(FrameHarness harness, Action<Gui> draw, Vector2 start, Vector2 end)

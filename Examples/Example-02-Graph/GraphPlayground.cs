@@ -1,4 +1,5 @@
 using Guinevere;
+using Guinevere.Graphs;
 using GuinevereDemos;
 
 namespace Example02;
@@ -15,10 +16,16 @@ public sealed class GraphPlayground
 
     /// <summary>The active scenario: sandbox, running flow, or organizers.</summary>
     public int Scenario { get; private set; }
-    /// <summary>Shows the optional scenario navigation and pending scenario panels.</summary>
-    public bool ShowScenarioTabs { get; set; }
+    /// <summary>Also shows tabs for scenarios whose features have not landed yet.</summary>
+    public bool ShowPendingScenarios { get; set; }
     /// <summary>The real dataflow sandbox and its independent view layout.</summary>
     public SandboxScene Sandbox { get; } = new();
+    /// <summary>A separate arithmetic document evaluated in the background and drawn with a flow overlay.</summary>
+    public FlowScene Flow { get; } = new();
+    /// <summary>Whether both scenarios use the light theme.</summary>
+    public bool LightTheme => Sandbox.View.Theme == GraphTheme.Light;
+
+    int TabCount => ShowPendingScenarios ? Titles.Length : 2;
 
     /// <summary>Chooses an existing scenario.</summary>
     public void SelectScenario(int index)
@@ -42,33 +49,56 @@ public sealed class GraphPlayground
         using var root = gui.Node().Expand().Direction(Axis.Vertical).Padding(20).Gap(12).Enter();
         gui.DrawBackgroundRect(Background);
         DemoHeader.Header(gui, "Graph Playground");
-        if (ShowScenarioTabs)
+        using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Enter())
         {
-            using var tabs = gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Enter();
-            for (var i = 0; i < Titles.Length; i++)
+            for (var i = 0; i < TabCount; i++)
             {
                 DrawTab(gui, i);
             }
         }
         using var stage = gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter();
-        if (_frameScenario == 0)
+        Action<string, string, Action> button = (label, id, action) => Button(gui, label, id, action);
+        switch (_frameScenario)
         {
-            Sandbox.Draw(gui, (label, id, action) => Button(gui, label, id, action));
-            DrawOptions(gui);
-        }
-        else
-        {
-            DrawPendingScenario(gui);
+            case 0:
+                Sandbox.Draw(gui, button);
+                DrawOptions(gui, Sandbox);
+                break;
+            case 1:
+                Flow.Draw(gui, button);
+                DrawOptions(gui, Flow.Sandbox);
+                break;
+            default:
+                DrawPendingScenario(gui);
+                break;
         }
     }
 
-    void DrawOptions(Gui gui)
+    /// <summary>Switches both scenarios between the dark and light themes.</summary>
+    public void ToggleTheme()
+    {
+        var theme = LightTheme ? GraphTheme.Dark : GraphTheme.Light;
+        Sandbox.View.Theme = theme;
+        Flow.Sandbox.View.Theme = theme;
+    }
+
+    /// <summary>Cycles both scenarios through Bézier, straight and orthogonal link routing.</summary>
+    public void CycleRouting()
+    {
+        var routing = (GraphLinkRouting)(((int)Sandbox.View.Routing + 1) % 3);
+        Sandbox.View.Routing = routing;
+        Flow.Sandbox.View.Routing = routing;
+    }
+
+    void DrawOptions(Gui gui, SandboxScene scene)
     {
         using var options = gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(20).Wrap(1).Enter();
-        Toggle(gui, "Minimap", "toggle-minimap", Sandbox.Canvas.ShowMinimap,
-            () => Sandbox.Canvas.ShowMinimap = !Sandbox.Canvas.ShowMinimap);
-        Toggle(gui, "Avoid replacing connections", "protect-connections", Sandbox.View.AvoidReplacingConnections,
-            () => Sandbox.View.AvoidReplacingConnections = !Sandbox.View.AvoidReplacingConnections);
+        Toggle(gui, "Minimap", "toggle-minimap", scene.Canvas.ShowMinimap,
+            () => scene.Canvas.ShowMinimap = !scene.Canvas.ShowMinimap);
+        Toggle(gui, "Avoid replacing connections", "protect-connections", scene.View.AvoidReplacingConnections,
+            () => scene.View.AvoidReplacingConnections = !scene.View.AvoidReplacingConnections);
+        Toggle(gui, "Light theme", "toggle-theme", LightTheme, ToggleTheme);
+        Button(gui, "Links: " + scene.View.Routing, "cycle-routing", CycleRouting);
     }
 
     void Toggle(Gui gui, string label, string id, bool value, Action action)
@@ -105,12 +135,13 @@ public sealed class GraphPlayground
 
     void NavigateTabs(Gui gui, KeyDownEvent e, int current)
     {
+        var count = TabCount;
         var next = e.Key switch
         {
-            KeyboardKey.Right => (current + 1) % Titles.Length,
-            KeyboardKey.Left => (current + Titles.Length - 1) % Titles.Length,
+            KeyboardKey.Right => (current + 1) % count,
+            KeyboardKey.Left => (current + count - 1) % count,
             KeyboardKey.Home => 0,
-            KeyboardKey.End => Titles.Length - 1,
+            KeyboardKey.End => count - 1,
             _ => -1
         };
         if (next < 0)
@@ -141,10 +172,7 @@ public sealed class GraphPlayground
         using var panel = gui.Node().Expand().Direction(Axis.Vertical).Padding(28).Gap(16).Enter();
         gui.DrawBackgroundRect(Panel, 12);
         gui.DrawText(Titles[_frameScenario], 24, Color.White);
-        var description = _frameScenario == 1
-            ? "Live graph activity will appear here when evaluation is connected."
-            : "Groups, notes and collapsed containers will have their own scenario here.";
-        gui.DrawText(description, 16, Accent);
+        gui.DrawText("Groups, notes and collapsed containers will have their own scenario here.", 16, Accent);
         gui.DrawText("The Sandbox is available now for graph editing and layout interaction.", 14, Color.White);
         Button(gui, "Open Sandbox", "open-sandbox", () => SelectScenario(0));
     }

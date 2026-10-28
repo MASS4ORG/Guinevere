@@ -61,8 +61,6 @@ terminal {
 terminal .crisp { text-shadow = none; }
 ```
 
-Example 50's styling page demonstrates this Terminal Green glow on a label and button. `ResolvedStyle.GetTextShadows(defaultColor)` exposes the typed list for custom controls. PanGui's [published effects vocabulary](https://www.pangui.io/blog/03-immediate-mode-styling/#effects) includes `innerShadow` on shapes, but does not specify its text binding. Inner text effect syntax is deferred; shape effect blocks remain available in `StyleSheet.Deferred`, and core callers can use `TextEffects.InnerShadow` directly.
-
 ## Font registration and roles
 
 Register faces through `gui.Fonts`, or declare them in an active sheet. Numeric weights and italic faces are selected before synthetic bold or italic is applied. Later sheets replace matching family/weight/style descriptors; removing a sheet restores earlier faces. Missing files and unsupported remote sources leave other fallback families usable.
@@ -122,8 +120,6 @@ panel {
     border-radius = 8;
 }
 ```
-
-Example 50's Styling page includes embedded bitmap Win95 patterns, Luna and Aqua skins, and transparent CRT scanlines, selected entirely by stylesheet declarations.
 
 ### Nine-slice backgrounds
 

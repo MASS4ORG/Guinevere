@@ -1,64 +1,244 @@
 namespace Guinevere.Graphs;
 
-/// <summary>A cubic connector with conservative culling bounds and scale-independent world geometry.</summary>
-public readonly record struct GraphConnector(GraphPoint Source, GraphPoint Target)
+/// <summary>How a link travels between its source and target attachment points.</summary>
+public enum GraphLinkRouting
 {
+    /// <summary>A horizontal-tangent cubic curve.</summary>
+    Bezier,
+    /// <summary>A single straight segment.</summary>
+    Straight,
+    /// <summary>Horizontal and vertical segments, with stubs around backward links.</summary>
+    Orthogonal
+}
+
+/// <summary>A routed connector with conservative culling bounds and scale-independent world geometry.</summary>
+public readonly record struct GraphConnector(
+    GraphPoint Source,
+    GraphPoint Target,
+    GraphLinkRouting Routing = GraphLinkRouting.Bezier)
+{
+    const int CurveSegments = 32;
+    const double Stub = 24;
+
     double Tangent => Math.Max(60, Math.Abs(Target.X - Source.X) / 2);
 
-    /// <summary>Bounds enclosing the endpoints and both control points.</summary>
+    /// <summary>Bounds enclosing the endpoints, the route and any curve control points.</summary>
     public GraphBounds Bounds
     {
         get
         {
-            var left = Math.Min(Source.X, Target.X - Tangent);
-            var right = Math.Max(Target.X, Source.X + Tangent);
-            return new GraphBounds(left - 4, Math.Min(Source.Y, Target.Y) - 4,
-                right - left + 8, Math.Abs(Target.Y - Source.Y) + 8);
+            double left = Math.Min(Source.X, Target.X), right = Math.Max(Source.X, Target.X);
+            double top = Math.Min(Source.Y, Target.Y), bottom = Math.Max(Source.Y, Target.Y);
+            if (Routing == GraphLinkRouting.Bezier)
+            {
+                left = Math.Min(left, Target.X - Tangent);
+                right = Math.Max(right, Source.X + Tangent);
+            }
+            else if (Routing == GraphLinkRouting.Orthogonal)
+            {
+                left = Math.Min(left, Target.X - Stub);
+                right = Math.Max(right, Source.X + Stub);
+            }
+            return new GraphBounds(left - 4, top - 4, right - left + 8, bottom - top + 8);
         }
     }
 
-    /// <summary>Returns a point on the curve, clamping the parameter to its endpoints.</summary>
+    /// <summary>The route as connected world points; curves are sampled finely enough for drawing and hit tests.</summary>
+    public GraphPoint[] Polyline()
+    {
+        switch (Routing)
+        {
+            case GraphLinkRouting.Straight:
+                return [Source, Target];
+            case GraphLinkRouting.Orthogonal:
+                return OrthogonalRoute();
+            default:
+                var points = new GraphPoint[CurveSegments + 1];
+                for (var i = 0; i <= CurveSegments; i++)
+                {
+                    points[i] = CurvePoint((double)i / CurveSegments);
+                }
+                return points;
+        }
+    }
+
+    /// <summary>The route's world length.</summary>
+    public double Length
+    {
+        get
+        {
+            var points = Polyline();
+            var length = 0d;
+            for (var i = 1; i < points.Length; i++)
+            {
+                length += Distance(points[i - 1], points[i]);
+            }
+            return length;
+        }
+    }
+
+    /// <summary>Returns a point on the route, clamping the parameter to its endpoints.</summary>
+    /// <remarks>Curves use their cubic parameter; segmented routes use the fraction of their length.</remarks>
     public GraphPoint Point(double t)
     {
         t = Math.Clamp(t, 0, 1);
+        return Routing == GraphLinkRouting.Bezier ? CurvePoint(t) : PointAlong(Polyline(), t);
+    }
+
+    /// <summary>Distance from a point to the route, independent of stroke width, for pointer selection.</summary>
+    public double Distance(GraphPoint point)
+    {
+        var points = Polyline();
+        var best = Distance(point, points[0]);
+        for (var i = 1; i < points.Length; i++)
+        {
+            best = Math.Min(best, SegmentDistance(point, points[i - 1], points[i]));
+        }
+        return best;
+    }
+
+    /// <summary>Draws a solid connector in the current world-scaled scope relative to its bounds.</summary>
+    public void Draw(Gui gui, Color color, float thickness = 2) => Draw(gui, new GraphLinkStyle(color, thickness));
+
+    /// <summary>Draws a styled connector, optionally dashed and arrowed, relative to the current scope's bounds.</summary>
+    public void Draw(Gui gui, GraphLinkStyle style)
+    {
+        var origin = gui.CurrentNode.Rect.Position;
+        var bounds = Bounds;
+        var points = Polyline();
+        var local = new Vector2[points.Length];
+        for (var i = 0; i < points.Length; i++)
+        {
+            local[i] = new Vector2((float)(points[i].X - bounds.X), (float)(points[i].Y - bounds.Y)) + origin;
+        }
+        if (style.Dash > 0)
+        {
+            DrawDashed(gui, local, style);
+        }
+        else
+        {
+            for (var i = 1; i < local.Length; i++)
+            {
+                gui.DrawLine(local[i - 1], local[i], style.Color, style.Thickness);
+            }
+        }
+        if (style.Arrow)
+        {
+            DrawArrow(gui, local, style);
+        }
+    }
+
+    GraphPoint CurvePoint(double t)
+    {
         var u = 1 - t;
         return new GraphPoint(u * u * u * Source.X + 3 * u * u * t * (Source.X + Tangent)
             + 3 * u * t * t * (Target.X - Tangent) + t * t * t * Target.X,
             u * u * u * Source.Y + 3 * u * u * t * Source.Y + 3 * u * t * t * Target.Y + t * t * t * Target.Y);
     }
 
-    /// <summary>Approximates distance to the curve for pointer selection.</summary>
-    public double Distance(GraphPoint point)
+    GraphPoint[] OrthogonalRoute()
     {
-        var best = double.PositiveInfinity;
-        var previous = Source;
-        for (var i = 1; i <= 32; i++)
+        if (Target.X - Source.X >= Stub * 2)
         {
-            var next = Point(i / 32d);
-            var dx = next.X - previous.X;
-            var dy = next.Y - previous.Y;
-            var length = dx * dx + dy * dy;
-            var t = length > 0 ? Math.Clamp(((point.X - previous.X) * dx
-                + (point.Y - previous.Y) * dy) / length, 0, 1) : 0;
-            best = Math.Min(best, Math.Sqrt(Math.Pow(point.X - previous.X - t * dx, 2)
-                + Math.Pow(point.Y - previous.Y - t * dy, 2)));
-            previous = next;
+            var middle = (Source.X + Target.X) / 2;
+            return [Source, new(middle, Source.Y), new(middle, Target.Y), Target];
         }
-        return best;
+        var y = (Source.Y + Target.Y) / 2;
+        var exit = Source.X + Stub;
+        var entry = Target.X - Stub;
+        return [Source, new(exit, Source.Y), new(exit, y), new(entry, y), new(entry, Target.Y), Target];
     }
 
-    /// <summary>Draws a connector in the current world-scaled scope relative to its bounds.</summary>
-    public void Draw(Gui gui, Color color, float thickness = 2)
+    static GraphPoint PointAlong(GraphPoint[] points, double t)
     {
-        var origin = gui.CurrentNode.Rect.Position;
-        var bounds = Bounds;
-        var previous = new Vector2((float)(Source.X - bounds.X), (float)(Source.Y - bounds.Y)) + origin;
-        for (var i = 1; i <= 32; i++)
+        var total = 0d;
+        for (var i = 1; i < points.Length; i++)
         {
-            var point = Point(i / 32d);
-            var next = new Vector2((float)(point.X - bounds.X), (float)(point.Y - bounds.Y)) + origin;
-            gui.DrawLine(previous, next, color, thickness);
-            previous = next;
+            total += Distance(points[i - 1], points[i]);
+        }
+        var remaining = total * t;
+        for (var i = 1; i < points.Length; i++)
+        {
+            var segment = Distance(points[i - 1], points[i]);
+            if (remaining <= segment && segment > 0)
+            {
+                var f = remaining / segment;
+                return new GraphPoint(points[i - 1].X + (points[i].X - points[i - 1].X) * f,
+                    points[i - 1].Y + (points[i].Y - points[i - 1].Y) * f);
+            }
+            remaining -= segment;
+        }
+        return points[^1];
+    }
+
+    static void DrawDashed(Gui gui, Vector2[] points, GraphLinkStyle style)
+    {
+        var period = style.Dash * 2;
+        var phase = ((-style.DashOffset % period) + period) % period;
+        for (var i = 1; i < points.Length; i++)
+        {
+            var start = points[i - 1];
+            var direction = points[i] - start;
+            var length = direction.Length();
+            if (length <= 0)
+            {
+                continue;
+            }
+            direction /= length;
+            for (var at = -phase; at < length; at += period)
+            {
+                var from = Math.Max(0, at);
+                var to = Math.Min(length, at + style.Dash);
+                if (to > from)
+                {
+                    gui.DrawLine(start + direction * from, start + direction * to, style.Color, style.Thickness);
+                }
+            }
+            phase = (phase + length) % period;
         }
     }
+
+    static void DrawArrow(Gui gui, Vector2[] points, GraphLinkStyle style)
+    {
+        var tip = points[^1];
+        var index = points.Length - 2;
+        while (index > 0 && Vector2.DistanceSquared(points[index], tip) < 1e-6f)
+        {
+            index--;
+        }
+        var direction = tip - points[index];
+        if (direction.LengthSquared() < 1e-6f)
+        {
+            return;
+        }
+        direction = Vector2.Normalize(direction);
+        var size = 6 + style.Thickness * 2;
+        var normal = new Vector2(-direction.Y, direction.X) * size * 0.5f;
+        var back = tip - direction * size;
+        gui.DrawTriangleFilled(tip, back + normal, back - normal, style.Color);
+    }
+
+    static double SegmentDistance(GraphPoint point, GraphPoint a, GraphPoint b)
+    {
+        var dx = b.X - a.X;
+        var dy = b.Y - a.Y;
+        var length = dx * dx + dy * dy;
+        var t = length > 0 ? Math.Clamp(((point.X - a.X) * dx + (point.Y - a.Y) * dy) / length, 0, 1) : 0;
+        return Distance(point, new GraphPoint(a.X + t * dx, a.Y + t * dy));
+    }
+
+    static double Distance(GraphPoint a, GraphPoint b) => Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
 }
+
+/// <summary>Stroke appearance of a link; dash and offset are in world units, so a moving offset animates flow.</summary>
+/// <param name="Color">The stroke and arrow color.</param>
+/// <param name="Thickness">The stroke width in world units.</param>
+/// <param name="Arrow">Draws an arrowhead at the target.</param>
+/// <param name="Dash">Dash and gap length; zero draws a solid stroke.</param>
+/// <param name="DashOffset">Distance the dash pattern has advanced toward the target.</param>
+public readonly record struct GraphLinkStyle(
+    Color Color,
+    float Thickness = 2,
+    bool Arrow = false,
+    float Dash = 0,
+    float DashOffset = 0);

@@ -6,7 +6,7 @@ namespace, so it drops into an existing Guinevere app with a single package refe
 
 ![Guinevere Excalibur controls](../docs/guinevere-excalibur-examples.webp)
 
-The optional [TextEditor](../Guinevere.Excalibur.TextEditor/README.md) package adds syntax highlighting, multiple carets, folding, find and replace, completion and diagnostics. Example-50 includes a dockable shader editor and a large-document demo.
+The optional [TextEditor](../Guinevere.Excalibur.TextEditor/README.md) package adds syntax highlighting, multiple carets, folding, find and replace, completion and diagnostics.
 
 ## Install
 
@@ -405,8 +405,6 @@ gui.DrawImageNineSlice(image, destination, border);
 ```
 
 Keep `border` between frames. The editor returns true when that invocation changes the insets. Guide edits arrive in the build pass; numeric commits arrive in the render pass. The preview draws a transparency checkerboard and optional guides at the destination size. `NineSliceLayout` exposes the normalized border, source/destination center rectangles and corresponding patches for integrations such as Turian's asset inspector. `Insets` constructor order is left/top/right/bottom; stylesheet `background-slice` order is top/right/bottom/left.
-
-Example 50's **9-slice** dock panel demonstrates editing and wide, tall and tiny destinations. Its Styling panel also includes a bitmap `background-slice` skin.
 
 ## License
 

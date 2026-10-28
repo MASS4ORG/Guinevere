@@ -19,7 +19,7 @@
     </PropertyGroup>
     <ItemGroup>
         <None Include="README.md" Pack="true" PackagePath="/" />
-        <PackageReference Include="MASS4.Graph" Version="1.0.0" />
+        <PackageReference Include="MASS4.Graph" Version="[1.0.0]" />
         <ProjectReference Include="../Guinevere/Guinevere.csproj" />
     </ItemGroup>
 </Project>

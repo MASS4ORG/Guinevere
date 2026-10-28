@@ -8,14 +8,23 @@ namespace Example02;
 /// <summary>An editable real dataflow graph with separate view layout and selection.</summary>
 public sealed class SandboxScene
 {
+    readonly Queue<Action> _pending = new();
     bool _paletteOpen;
     string _query = "";
 
     /// <summary>Creates the arithmetic graph and its initial connections.</summary>
-    public SandboxScene()
+    public SandboxScene(string name = "Playground sandbox", string canvasId = "sandbox-canvas")
     {
-        View = new GraphDocumentView(Graph.Editor,
-            new GraphCanvas { ShowMinimap = true, Name = "Playground sandbox" }) { NodeTitle = Graph.Describe };
+        CanvasId = canvasId;
+        View = new GraphDocumentView(Graph.Editor, new GraphCanvas { ShowMinimap = true, Name = name })
+        {
+            NodeTitle = Graph.Describe,
+            ContentHeight = static node => node.TypeId == ArithmeticGraph.Number.Id ? 30 : 0,
+            NodePresenter = DrawNumberStepper,
+            NodeBadges = static node => node.TypeId == ArithmeticGraph.Result.Id ? ["result"] : [],
+            PortShape = static port => port.Direction == PortDirection.Output ? GraphPortShape.Triangle
+                : GraphPortShape.Circle
+        };
         var first = View.AddNode(ArithmeticGraph.Number, new GraphPoint(40, 40), 2f);
         var second = View.AddNode(ArithmeticGraph.Number, new GraphPoint(40, 240), 3f);
         var multiply = View.AddNode(ArithmeticGraph.Multiply, new GraphPoint(360, 120));
@@ -30,6 +39,8 @@ public sealed class SandboxScene
 
     /// <summary>The sample's real arithmetic domain.</summary>
     public ArithmeticGraph Graph { get; } = new();
+    /// <summary>The focusable canvas identifier.</summary>
+    public string CanvasId { get; }
     /// <summary>The reusable real-document adapter.</summary>
     public GraphDocumentView View { get; }
     /// <summary>The canvas with view-only camera and navigation.</summary>
@@ -49,6 +60,13 @@ public sealed class SandboxScene
     /// <summary>Draws node creation, history controls, diagnostics and the editable document.</summary>
     public void Draw(Gui gui, Action<string, string, Action> button)
     {
+        if (gui.Pass == Pass.Pass1Build)
+        {
+            while (_pending.TryDequeue(out var action))
+            {
+                action();
+            }
+        }
         using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Enter())
         {
             button("Add node", "add-node", () => _paletteOpen = !_paletteOpen);
@@ -68,7 +86,42 @@ public sealed class SandboxScene
         }
         var host = gui.Node().Expand().On<KeyDownEvent>(e => Nudge(gui, e), capture: true);
         using var scope = host.Enter();
-        View.Draw(gui, "sandbox-canvas");
+        View.Draw(gui, CanvasId);
+    }
+
+    /// <summary>Changes a Number node's payload through the real editor, as one undoable step.</summary>
+    public CommandResult Step(ElementId node, float delta)
+    {
+        var value = Graph.Editor.Document.GetNode(node).Payload is float current ? current : 0;
+        return Graph.Editor.Execute(new SetPayloadCommand(node, value + delta));
+    }
+
+    void DrawNumberStepper(Gui gui, GraphNodeVisual visual)
+    {
+        using var row = gui.Node().Expand().Direction(Axis.Horizontal).Gap(8).ContentAlignY(0.5f).Enter();
+        StepButton(gui, visual, "-", "decrement", -1);
+        using (gui.Node().Expand().AlignContent(0.5f, 0.5f).Enter())
+        {
+            var value = visual.Node.Payload is float number ? number : 0;
+            gui.DrawText(value.ToString(System.Globalization.CultureInfo.InvariantCulture), 15, visual.Theme.Title);
+        }
+        StepButton(gui, visual, "+", "increment", 1);
+    }
+
+    void StepButton(Gui gui, GraphNodeVisual visual, string label, string id, float delta)
+    {
+        using var scope = gui.Node(30, 26, id).AlignContent(0.5f, 0.5f).Enter();
+        var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button,
+            Label: $"{(delta < 0 ? "Decrease" : "Increase")} {visual.View.Name}"));
+        gui.CurrentNode.On<PointerDownEvent>(static e => e.StopPropagation());
+        if (result.Activated)
+        {
+            _pending.Enqueue(() => Step(visual.Node.Id, delta));
+            gui.RequestFrame();
+        }
+        gui.DrawBackgroundRect(result.Is(ControlVisualState.Hovered) ? visual.Theme.NodeSelected
+            : visual.Theme.NodeHeader, 6);
+        gui.DrawText(label, 16, visual.Theme.Title);
     }
 
     void DrawPalette(Gui gui, Action<string, string, Action> button)
@@ -106,7 +159,7 @@ public sealed class SandboxScene
         if (!id.IsEmpty)
         {
             Canvas.Navigation.Select(id.ToString());
-            gui.Focus.RequestFocus("sandbox-canvas");
+            gui.Focus.RequestFocus(CanvasId);
         }
         _paletteOpen = false;
     }
@@ -137,7 +190,7 @@ public sealed class SandboxScene
 
     void Nudge(Gui gui, KeyDownEvent e)
     {
-        if (e.TargetId != "sandbox-canvas" || !ShiftHeld(gui))
+        if (e.TargetId != CanvasId || !ShiftHeld(gui))
         {
             return;
         }

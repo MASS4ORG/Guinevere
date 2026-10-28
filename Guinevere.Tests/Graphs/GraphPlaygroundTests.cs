@@ -10,7 +10,7 @@ public sealed class GraphPlaygroundTests
     public void ScenarioTabsPublishSemanticsAndSupportKeyboardNavigation()
     {
         using var harness = new FrameHarness(1000, 700);
-        var scene = new GraphPlayground { ShowScenarioTabs = true };
+        var scene = new GraphPlayground { ShowPendingScenarios = true };
         var sink = new SemanticsSink();
         harness.Gui.ControlSemantics = sink;
         void Draw(Gui gui)
@@ -42,6 +42,11 @@ public sealed class GraphPlaygroundTests
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
         harness.Frame(Draw);
         Assert.Equal(1, scene.Scenario);
+        Assert.Contains(sink.Controls, static control => control.Id == "flow-canvas");
+        Focus(harness, Draw, "scenario-2");
+        GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
+        harness.Frame(Draw);
+        Assert.Equal(2, scene.Scenario);
         Focus(harness, Draw, "open-sandbox");
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
         harness.Frame(Draw);

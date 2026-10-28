@@ -45,6 +45,19 @@ public sealed partial class GraphCanvas
     public GraphBounds VisibleBounds => Camera.VisibleBounds(_viewportSize);
     /// <summary>The number of descriptors whose controls are built in the current frame.</summary>
     public int VisibleCount => _visible.Count;
+    /// <summary>Descriptors whose controls are built in the current frame, for visible-only hit testing.</summary>
+    public IReadOnlyList<GraphElementView> VisibleElements => _visible;
+    /// <summary>Visual layers drawn above elements in the render pass.</summary>
+    public IList<IGraphOverlay> Overlays { get; } = new List<IGraphOverlay>();
+    /// <summary>Below this zoom, elements render with <see cref="GraphLevelOfDetail.Compact"/> detail.</summary>
+    public double CompactZoom { get; set; } = 0.6;
+    /// <summary>Below this zoom, elements render with <see cref="GraphLevelOfDetail.Outline"/> detail.</summary>
+    public double OutlineZoom { get; set; } = 0.3;
+    /// <summary>The zoom of the current frame's camera snapshot.</summary>
+    public double FrameZoom => _frameCamera.Zoom;
+    /// <summary>The level of detail for the current frame's camera snapshot.</summary>
+    public GraphLevelOfDetail Detail => FrameZoom < OutlineZoom ? GraphLevelOfDetail.Outline
+        : FrameZoom < CompactZoom ? GraphLevelOfDetail.Compact : GraphLevelOfDetail.Full;
 
     /// <summary>Maps the current camera's world point through the last laid-out host transform.</summary>
     public Vector2 WorldToScreen(GraphPoint point) => Vector2.Transform(Camera.WorldToView(point), _viewToScreen);
@@ -87,6 +100,7 @@ public sealed partial class GraphCanvas
         {
             BuildVisibleElement(gui, canvas, item, buildElement);
         }
+        DrawOverlays(gui);
         DrawMinimap(gui);
         if (gui.Pass == Pass.Pass2Render)
         {

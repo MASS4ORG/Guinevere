@@ -12,6 +12,13 @@ public sealed partial class GraphDocumentView
     /// <summary>Returns the curve drawn for an existing edge.</summary>
     public GraphConnector Connector(ElementId edge) => _connectors[edge.ToString()];
 
+    /// <summary>Finds a port's attachment point as of the last refresh.</summary>
+    public bool TryGetPortPosition(ElementId port, out GraphPoint position) => _ports.TryGetValue(port, out position);
+
+    /// <summary>Finds an edge's routed connector as of the last refresh.</summary>
+    public bool TryGetConnector(ElementId edge, out GraphConnector connector) =>
+        _connectors.TryGetValue(edge.ToString(), out connector);
+
     /// <summary>Moves selected nodes, or the focused node, without mutating semantic graph state.</summary>
     public void MoveSelection(GraphPoint delta)
     {
@@ -54,7 +61,7 @@ public sealed partial class GraphDocumentView
         if (ElementId.TryParse(Canvas.Navigation.ConnectionSourceKey, out var source)
             && _ports.TryGetValue(source, out var position))
         {
-            var connector = new GraphConnector(position, _pointer);
+            var connector = new GraphConnector(position, _pointer, Routing);
             _connectors.Add(PreviewKey, connector);
             _views.Add(new GraphElementView(PreviewKey, GraphElementRole.Edge, connector.Bounds,
                 "Connection preview", Enabled: false));
@@ -67,9 +74,7 @@ public sealed partial class GraphDocumentView
         {
             case GraphElementRole.Edge:
                 gui.CurrentNode.HitTestVisible(false);
-                var selected = Canvas.Navigation.SelectedKeys.Contains(element.Key)
-                    || Canvas.Navigation.FocusedKey == element.Key;
-                _connectors[element.Key].Draw(gui, selected ? Color.Gold : Color.LightSkyBlue);
+                DrawLink(gui, element);
                 break;
             case GraphElementRole.Node:
                 DrawNode(gui, element);
@@ -107,17 +112,18 @@ public sealed partial class GraphDocumentView
         node.On<DragStartEvent>(BeginNodeDrag);
         node.On<DragMoveEvent>(DragNodes);
         node.On<DragEndEvent>(EndNodeDrag);
-        var selected = Canvas.Navigation.SelectedKeys.Contains(element.Key);
-        gui.DrawRectFilled(node.Rect, selected ? new Color(0x315c83ff) : new Color(0x29384eff), 10);
-        using var title = gui.Node(194, 26).Absolute(13, 10).Enter();
-        gui.DrawText(element.Name, 16, Color.White);
+        DrawNodeCard(gui, element);
     }
 
     void DrawPort(Gui gui, GraphElementView element)
     {
-        var port = Editor.Document.GetPort(ElementId.Parse(element.Key));
-        var input = port.Direction == PortDirection.Input;
         var node = gui.CurrentNode;
+        if (Canvas.Detail == GraphLevelOfDetail.Outline)
+        {
+            node.HitTestVisible(false);
+            return;
+        }
+        var port = Editor.Document.GetPort(ElementId.Parse(element.Key));
         node.Cursor(PointerCursor.Crosshair).On<PointerDownEvent>(e =>
         {
             if (e.Button == MouseButton.Left)
@@ -132,10 +138,7 @@ public sealed partial class GraphDocumentView
         node.On<DragStartEvent>(static e => e.StopPropagation());
         node.On<DragMoveEvent>(static e => e.StopPropagation());
         node.On<DragEndEvent>(EndConnection);
-        gui.DrawCircleFilled(node.Rect.Center, 7, input ? Color.LightSkyBlue : Color.MediumAquamarine);
-        using var label = gui.Node(185, 20).Absolute(input ? 24 : -191, -2)
-            .ContentAlignX(input ? 0 : 1).Enter();
-        gui.DrawText(element.Name, 13, Color.LightSteelBlue);
+        DrawPortMarker(gui, element, port);
     }
 
     void DragNodes(DragEvent e)
@@ -155,11 +158,10 @@ public sealed partial class GraphDocumentView
         {
             return;
         }
-        var point = Canvas.ScreenToWorld(e.Position);
-        var nearest = _ports.MinBy(port => SquaredDistance(point, port.Value));
-        if (SquaredDistance(point, nearest.Value) <= Math.Pow(18 / Canvas.Camera.Zoom, 2))
+        var target = HitPort(Canvas.ScreenToWorld(e.Position), PortHitRadius / Canvas.Camera.Zoom);
+        if (target is not null)
         {
-            Canvas.Navigation.Focus(nearest.Key.ToString());
+            Canvas.Navigation.Focus(target);
             Canvas.Navigation.Activate();
         }
         else
@@ -167,6 +169,23 @@ public sealed partial class GraphDocumentView
             Canvas.Navigation.Back();
         }
         e.StopPropagation();
+    }
+
+    /// <summary>Returns the visible port nearest a world point within a world radius.</summary>
+    public string? HitPort(GraphPoint point, double radius)
+    {
+        string? best = null;
+        var distance = radius * radius;
+        foreach (var item in Canvas.VisibleElements)
+        {
+            if (item.Role == GraphElementRole.Port && _ports.TryGetValue(ElementId.Parse(item.Key), out var port)
+                && SquaredDistance(point, port) <= distance)
+            {
+                best = item.Key;
+                distance = SquaredDistance(point, port);
+            }
+        }
+        return best;
     }
 
     void SelectConnection(LayoutNode canvas, PointerDownEvent e)
@@ -181,16 +200,37 @@ public sealed partial class GraphDocumentView
             return;
         }
         var point = Canvas.ScreenToWorld(e.Position);
-        var closest = Editor.Document.Edges.MinBy(edge => _connectors[edge.Id.ToString()].Distance(point));
-        if (closest is not null && _connectors[closest.Id.ToString()].Distance(point) <= 9 / Canvas.Camera.Zoom)
+        var edge = HitLink(point, LinkHitTolerance / Canvas.Camera.Zoom);
+        if (edge is not null)
         {
-            Canvas.Navigation.Select(closest.Id.ToString());
+            Canvas.Navigation.Select(edge);
         }
         else
         {
             Canvas.Navigation.ClearSelection();
         }
     }
+
+    /// <summary>Returns the visible link nearest a world point within a world tolerance, ignoring stroke width.</summary>
+    public string? HitLink(GraphPoint point, double tolerance)
+    {
+        string? best = null;
+        var distance = tolerance;
+        foreach (var item in Canvas.VisibleElements)
+        {
+            if (item.Role == GraphElementRole.Edge && item.Key != PreviewKey && Near(item.Bounds, point, tolerance)
+                && _connectors.TryGetValue(item.Key, out var connector) && connector.Distance(point) <= distance)
+            {
+                best = item.Key;
+                distance = connector.Distance(point);
+            }
+        }
+        return best;
+    }
+
+    static bool Near(GraphBounds bounds, GraphPoint point, double tolerance) =>
+        point.X >= bounds.X - tolerance && point.X <= bounds.Right + tolerance
+        && point.Y >= bounds.Y - tolerance && point.Y <= bounds.Bottom + tolerance;
 
     void HandleEditorKey(Gui gui, LayoutNode canvas, KeyDownEvent e)
     {
