@@ -81,7 +81,7 @@ public partial class Gui
     void UpdateTouchInputDevice()
     {
         if (Platform.TryGet<ITouchCapability>(out var touch) && touch is not null
-            && touch.Contacts.Any(contact => contact.Phase is TouchPhase.Began or TouchPhase.Moved))
+            && touch.Contacts.Any(static contact => contact.Phase is TouchPhase.Began or TouchPhase.Moved))
         {
             _activeInputDevice = new InputDevice("touch", InputDeviceKind.Touch);
         }

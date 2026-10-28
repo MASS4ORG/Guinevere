@@ -4,24 +4,24 @@ public static partial class EditorCommands
 {
     static void RegisterMovement()
     {
-        Movement("cursorLeft", (state, selection, extend) => !extend && !selection.IsEmpty
+        Movement("cursorLeft", static (state, selection, extend) => !extend && !selection.IsEmpty
             ? selection.Start
             : TextNavigation.PreviousBoundary(state.Document.Buffer, selection.Caret));
-        Movement("cursorRight", (state, selection, extend) => !extend && !selection.IsEmpty
+        Movement("cursorRight", static (state, selection, extend) => !extend && !selection.IsEmpty
             ? selection.End
             : TextNavigation.NextBoundary(state.Document.Buffer, selection.Caret));
-        Movement("cursorWordLeft", (state, selection, _) =>
+        Movement("cursorWordLeft", static (state, selection, _) =>
             TextNavigation.WordLeft(state.Document.Buffer, selection.Caret));
-        Movement("cursorWordRight", (state, selection, _) =>
+        Movement("cursorWordRight", static (state, selection, _) =>
             TextNavigation.WordRight(state.Document.Buffer, selection.Caret));
-        Movement("cursorHome", (state, selection, _) => SmartHome(state.Document.Buffer, selection.Caret));
-        Movement("cursorEnd", (state, selection, _) => LineEnd(state.Document.Buffer, selection.Caret));
-        Movement("cursorTop", (_, _, _) => 0);
-        Movement("cursorBottom", (state, _, _) => state.Document.Buffer.Length);
-        Vertical("cursorUp", _ => -1);
-        Vertical("cursorDown", _ => 1);
-        Vertical("cursorPageUp", state => -Math.Max(1, state.PageRows - 1));
-        Vertical("cursorPageDown", state => Math.Max(1, state.PageRows - 1));
+        Movement("cursorHome", static (state, selection, _) => SmartHome(state.Document.Buffer, selection.Caret));
+        Movement("cursorEnd", static (state, selection, _) => LineEnd(state.Document.Buffer, selection.Caret));
+        Movement("cursorTop", static (_, _, _) => 0);
+        Movement("cursorBottom", static (state, _, _) => state.Document.Buffer.Length);
+        Vertical("cursorUp", static _ => -1);
+        Vertical("cursorDown", static _ => 1);
+        Vertical("cursorPageUp", static state => -Math.Max(1, state.PageRows - 1));
+        Vertical("cursorPageDown", static state => Math.Max(1, state.PageRows - 1));
     }
 
     /// <summary>Registers a horizontal movement and its selecting variant, which keeps the anchor.</summary>

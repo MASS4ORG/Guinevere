@@ -5,10 +5,10 @@ public static partial class EditorCommands
     static void RegisterLines()
     {
         Register("deleteLines", Editing(DeleteLines));
-        Register("copyLinesDown", Editing(state => CopyLines(state, down: true)));
-        Register("copyLinesUp", Editing(state => CopyLines(state, down: false)));
-        Register("moveLinesUp", Editing(state => MoveLines(state, up: true)));
-        Register("moveLinesDown", Editing(state => MoveLines(state, up: false)));
+        Register("copyLinesDown", Editing(static state => CopyLines(state, down: true)));
+        Register("copyLinesUp", Editing(static state => CopyLines(state, down: false)));
+        Register("moveLinesUp", Editing(static state => MoveLines(state, up: true)));
+        Register("moveLinesDown", Editing(static state => MoveLines(state, up: false)));
         Register("toggleLineComment", Editing(ToggleLineComment));
     }
 

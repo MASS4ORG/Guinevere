@@ -17,7 +17,7 @@ public partial class Shared
         new("release", "Cut the release", true),
     ];
 
-    static readonly Dictionary<string, int> Placement = WorkItems.ToDictionary(item => item.Id, _ => 0);
+    static readonly Dictionary<string, int> Placement = WorkItems.ToDictionary(static item => item.Id, static _ => 0);
     static readonly DragDropTag BoardTag = new("demo/board");
     static string? _boardMessage;
 

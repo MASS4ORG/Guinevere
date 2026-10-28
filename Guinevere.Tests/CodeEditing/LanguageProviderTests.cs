@@ -42,7 +42,7 @@ public class LanguageProviderTests
         var ranges = IndentationFoldingProvider.Find(new StringTextBuffer("def a():\n    x\n\n    y\nz\n  w"),
             TestContext.Current.CancellationToken);
 
-        Assert.Equal([new FoldingRange(0, 3), new FoldingRange(4, 5)], ranges.OrderBy(range => range.StartLine));
+        Assert.Equal([new FoldingRange(0, 3), new FoldingRange(4, 5)], ranges.OrderBy(static range => range.StartLine));
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class LanguageProviderTests
 
         Assert.NotNull(list);
         Assert.Equal(buffer.Length - 3, list!.ReplaceStart);
-        Assert.Equal(["counter", "count", "country"], list.Items.Select(item => item.Label));
+        Assert.Equal(["counter", "count", "country"], list.Items.Select(static item => item.Label));
         Assert.Null(WordCompletionProvider.Complete(buffer, 0));
     }
 

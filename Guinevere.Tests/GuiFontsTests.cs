@@ -78,7 +78,8 @@ public class GuiFontsTests
         using var frame = new FrameHarness();
         frame.Gui.Fonts.RegisterFile("Brand", FontRegistryTests.FontPath());
         frame.Gui.Fonts.SetRole(FontRole.Ui, "Brand, monospace");
-        frame.Frame(gui => Assert.Equal("Roboto", gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.FamilyName));
+        frame.Frame(
+            static gui => Assert.Equal("Roboto", gui.CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value.FamilyName));
     }
 
     /// <summary>An existing canvas scale is accounted for when applying display scaling.</summary>
@@ -102,11 +103,11 @@ public class GuiFontsTests
     public void VariationSelectorsDoNotAddMissingGlyphs()
     {
         using var frame = new FrameHarness();
-        frame.Frame(gui =>
+        frame.Frame(static gui =>
         {
             var font = gui.GetTextFont();
             var runs = gui.CreateTextRuns("A\ufe0fB\U000e0100C", font, font);
-            Assert.Equal("ABC", string.Concat(runs.Select(run => run.Text)));
+            Assert.Equal("ABC", string.Concat(runs.Select(static run => run.Text)));
             Assert.Empty(gui.CreateTextRuns("", font, font));
         });
     }

@@ -90,17 +90,18 @@ public sealed class GameInputState : IGameInputCapability
     readonly HashSet<string> _seen = [];
 
     /// <inheritdoc />
-    public IReadOnlyList<GameInputDevice> Devices => _devices.Values.Select(state => state.Sample).ToArray();
+    public IReadOnlyList<GameInputDevice> Devices => _devices.Values.Select(static state => state.Sample).ToArray();
     /// <inheritdoc />
     public IReadOnlyList<GameDeviceConnection> Connections => _connections.AsReadOnly();
     /// <summary>Whether a poll changed state or has an unconsumed edge.</summary>
     public bool Changed { get; private set; }
     /// <summary>Whether any controller button is held.</summary>
-    public bool AnyButtonDown => _devices.Values.Any(state => state.Sample.Buttons.Any(button => button.Down));
+    public bool AnyButtonDown => _devices.Values.Any(static state => state.Sample.Buttons.Any(
+        static button => button.Down));
 
     /// <summary>Whether a mapped stick is displaced enough to request continuous input frames.</summary>
-    public bool AnyStickDown => _devices.Values.Any(state => state.Sample.IsMapped
-        && state.Sample.Axes.Take(4).Any(axis => MathF.Abs(axis) > 0.2f));
+    public bool AnyStickDown => _devices.Values.Any(static state => state.Sample.IsMapped
+        && state.Sample.Axes.Take(4).Any(static axis => MathF.Abs(axis) > 0.2f));
 
     /// <summary>Decodes the GLFW hat bitmask to a direction with downward-positive Y.</summary>
     public static Vector2 DecodeHat(byte hat) => new(
@@ -251,7 +252,7 @@ public sealed class GameInputState : IGameInputCapability
             state.Sample = state.Sample with
             {
                 Buttons = Array.AsReadOnly([
-                    .. state.Sample.Buttons.Select(button => button with
+                    .. state.Sample.Buttons.Select(static button => button with
                     {
                         Pressed = false, Released = false
                     })

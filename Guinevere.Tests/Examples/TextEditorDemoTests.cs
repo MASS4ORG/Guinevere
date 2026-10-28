@@ -21,10 +21,10 @@ public class TextEditorDemoTests
         var editor = Controls01.Program.TextEditorDemoState!;
         Assert.Contains("sin(time * 2)", editor.Text);
         Assert.Equal("2", editor.Document.Buffer.GetText(editor.Diagnostics.Single().Start, 1));
-        Assert.Contains(editor.FoldingRanges, range => range.StartLine == 7);
+        Assert.Contains(editor.FoldingRanges, static range => range.StartLine == 7);
         using var image = harness.Snapshot();
         using var pixmap = image.PeekPixels();
-        Assert.Contains(pixmap.GetPixelSpan().ToArray().Chunk(4), pixel => pixel[3] > 0);
+        Assert.Contains(pixmap.GetPixelSpan().ToArray().Chunk(4), static pixel => pixel[3] > 0);
         Assert.NotEmpty(harness.Gui.RootNode!.Children);
     }
 }

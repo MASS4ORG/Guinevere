@@ -209,7 +209,7 @@ public sealed class TextDocument
     List<TextEdit> Sorted(IReadOnlyList<TextEdit> edits)
     {
         var sorted = new List<TextEdit>(edits.Count);
-        foreach (var edit in edits.OrderBy(edit => edit.Start).ThenBy(edit => edit.Length))
+        foreach (var edit in edits.OrderBy(static edit => edit.Start).ThenBy(static edit => edit.Length))
         {
             if (edit.Start < 0 || edit.End > Buffer.Length)
             {
@@ -238,7 +238,7 @@ public sealed class TextDocument
     (TextSelection[] Selections, int Primary) Normalize(IReadOnlyList<TextSelection> selections,
         TextSelection followed)
     {
-        var sorted = selections.Select(Clamp).OrderBy(selection => selection.Start).ToList();
+        var sorted = selections.Select(Clamp).OrderBy(static selection => selection.Start).ToList();
         var merged = new List<TextSelection>(sorted.Count);
         var primary = 0;
         foreach (var selection in sorted)

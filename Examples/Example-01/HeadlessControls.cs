@@ -18,7 +18,7 @@ public partial class Shared
             using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
             {
                 Label(gui, p, "Skin");
-                Choice(gui, p, "skin", SkinNames, _skin, index => _skin = index);
+                Choice(gui, p, "skin", SkinNames, _skin, static index => _skin = index);
             }
 
             using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Padding(20).Gap(16).Enter())
@@ -27,7 +27,7 @@ public partial class Shared
                 CustomToggle(gui, p, "Arm launch", ref _armed);
                 if (CustomButton(gui, p, "Launch", _armed))
                 {
-                    Later(() => _launches++);
+                    Later(static () => _launches++);
                 }
 
                 gui.DrawText($"Launches: {_launches}", 16, p.TextDim);

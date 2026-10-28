@@ -85,7 +85,7 @@ public class ProgressBarTests
                 background-color = $fill; border-radius = 0; border-width = 2; border-color = #000000; opacity = 0.5;
             }
             """));
-        harness.Frame(g =>
+        harness.Frame(static g =>
         {
             g.DrawBackgroundRect(Color.White);
             g.SetStyleToken("fill", Color.Red);
@@ -112,7 +112,7 @@ public class ProgressBarTests
             """));
         for (var i = 0; i < 30; i++)
         {
-            harness.Frame(g => g.ProgressBar(null, width: 200));
+            harness.Frame(static g => g.ProgressBar(null, width: 200));
         }
 
         using var image = harness.Snapshot();
@@ -126,9 +126,9 @@ public class ProgressBarTests
     public void OnlyIndeterminateProgressRequestsFrames()
     {
         using var harness = new FrameHarness(200, 40);
-        harness.Frame(g => g.ProgressBar(0.5f, width: 200));
+        harness.Frame(static g => g.ProgressBar(0.5f, width: 200));
         Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
-        harness.Frame(g => g.ProgressBar(null, width: 200));
+        harness.Frame(static g => g.ProgressBar(null, width: 200));
         Assert.Equal(0, harness.Gui.FrameWaitSeconds);
     }
 

@@ -52,14 +52,14 @@ public abstract partial class Program
     // Cached: the tab resolver runs once per tab per pass, so build the icon delegates once.
     static readonly Dictionary<string, Action<Gui>> PanelIcons = new()
     {
-        ["buttons"] = g => TabGlyph(g, TabGlyphKind.Button, Color.FromArgb(255, 120, 170, 255)),
-        ["selection"] = g => TabGlyph(g, TabGlyphKind.Check, Color.FromArgb(255, 120, 210, 150)),
-        ["text-inputs"] = g => TabGlyph(g, TabGlyphKind.Cursor, Color.FromArgb(255, 235, 190, 110)),
-        ["navigation"] = g => TabGlyph(g, TabGlyphKind.Menu, Color.FromArgb(255, 220, 130, 200)),
-        ["feedback"] = g => TabGlyph(g, TabGlyphKind.Toast, Color.FromArgb(255, 100, 200, 180)),
-        ["scrolling"] = g => TabGlyph(g, TabGlyphKind.Scroll, Color.FromArgb(255, 180, 160, 255)),
-        ["styling"] = g => TabGlyph(g, TabGlyphKind.Swatch, Color.FromArgb(255, 255, 160, 112)),
-        ["dialog"] = g => TabGlyph(g, TabGlyphKind.Button, Color.FromArgb(255, 255, 160, 112))
+        ["buttons"] = static g => TabGlyph(g, TabGlyphKind.Button, Color.FromArgb(255, 120, 170, 255)),
+        ["selection"] = static g => TabGlyph(g, TabGlyphKind.Check, Color.FromArgb(255, 120, 210, 150)),
+        ["text-inputs"] = static g => TabGlyph(g, TabGlyphKind.Cursor, Color.FromArgb(255, 235, 190, 110)),
+        ["navigation"] = static g => TabGlyph(g, TabGlyphKind.Menu, Color.FromArgb(255, 220, 130, 200)),
+        ["feedback"] = static g => TabGlyph(g, TabGlyphKind.Toast, Color.FromArgb(255, 100, 200, 180)),
+        ["scrolling"] = static g => TabGlyph(g, TabGlyphKind.Scroll, Color.FromArgb(255, 180, 160, 255)),
+        ["styling"] = static g => TabGlyph(g, TabGlyphKind.Swatch, Color.FromArgb(255, 255, 160, 112)),
+        ["dialog"] = static g => TabGlyph(g, TabGlyphKind.Button, Color.FromArgb(255, 255, 160, 112))
     };
 
     /// <summary>Adds the gallery's styling sheet; hosts call this before the first frame.</summary>

@@ -21,13 +21,13 @@ public class DeviceInputScriptTests
                 Steps = [new InputScriptStep { Action = InputAction.Tree },
                     new InputScriptStep { Action = InputAction.Dump, Path = path }]
             };
-            Assert.True(new InputScriptPlayer(input, messages.Add).Play(script, gui, target =>
+            Assert.True(new InputScriptPlayer(input, messages.Add).Play(script, gui, static target =>
             {
                 using var node = target.Node(40, 40, "surface").Enter();
                 target.DrawBackgroundRect(Color.White);
             }));
             Assert.True(File.Exists(path));
-            Assert.Contains(messages, message => message.Contains("surface", StringComparison.Ordinal));
+            Assert.Contains(messages, static message => message.Contains("surface", StringComparison.Ordinal));
         }
         finally
         {

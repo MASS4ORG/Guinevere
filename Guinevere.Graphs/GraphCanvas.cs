@@ -199,7 +199,8 @@ public sealed partial class GraphCanvas
         using var scope = node.Enter();
         gui.SetTransform(Matrix3x2.CreateScale((float)_frameCamera.Zoom, node.Rect.Position));
         buildElement?.Invoke(gui, item);
-        if (gui.Pass == Pass.Pass2Render && Navigation.FocusedKey == item.Key && gui.HasFocus(canvas.Id))
+        if (gui.Pass == Pass.Pass2Render && Navigation.FocusedKey == item.Key && gui.HasFocus(canvas.Id)
+            && item.Role != GraphElementRole.Edge)
         {
             gui.DrawRect(node.Rect).Stroke(Style.Focus, (float)(2 / _frameCamera.Zoom));
         }

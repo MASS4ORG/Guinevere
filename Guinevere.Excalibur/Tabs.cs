@@ -135,7 +135,7 @@ public static partial class ControlsExtensions
             () => new TabsState { ActiveTabIndex = initialActiveIndex, TabBarHeight = tabBarHeight });
 
     static float CalculateTabsHeight(TabsState state, float tabBarHeight) =>
-        tabBarHeight + (state.Tabs.Any(t => t.Content != null) ? 200 : 0);
+        tabBarHeight + (state.Tabs.Any(static t => t.Content != null) ? 200 : 0);
 
     /// <summary>A styled <c>tab</c> node: <c>:selected</c> when active, <c>:disabled</c> when the tab is.</summary>
     static LayoutNode TabNode(Gui gui, TabInfo tab, bool isActive) =>

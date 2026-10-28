@@ -20,18 +20,18 @@ public class ExcaliburStylesBaseSheetTests
         harness.Gui.StyleSheets.Add(app);
         ExcaliburStyles.SetBaseSheet(harness.Gui, sheet);
 
-        harness.Frame(g => g.Button("Save"));
+        harness.Frame(static g => g.Button("Save"));
         Assert.Equal([sheet, app], harness.Gui.StyleSheets);
         Assert.Equal(Color.ParseHex("#112233"),
             harness.Gui.StyleSheets.Resolve(new("button", null, [])).GetColor("color"));
 
         harness.Gui.StyleSheets.Remove(sheet);
         harness.Gui.StyleSheets.Add(sheet);
-        harness.Frame(g => g.Button("Save"));
+        harness.Frame(static g => g.Button("Save"));
         Assert.Equal([sheet, app], harness.Gui.StyleSheets);
 
         harness.Gui.StyleSheets.Clear();
-        harness.Frame(g => g.Button("Save"));
+        harness.Frame(static g => g.Button("Save"));
         Assert.Equal([sheet], harness.Gui.StyleSheets);
         Assert.DoesNotContain(ExcaliburStyles.DefaultSheet, harness.Gui.StyleSheets);
     }
@@ -198,10 +198,10 @@ public class ExcaliburStylesBaseSheetTests
     [Fact]
     public void BaseApisCheckArguments()
     {
-        Assert.Throws<ArgumentNullException>(() => ExcaliburStyles.GetBaseSheet(null!));
-        Assert.Throws<ArgumentNullException>(() => ExcaliburStyles.SetBaseSheet(null!, null));
-        Assert.Throws<ArgumentNullException>(() => ExcaliburStyles.Ensure(null!));
-        Assert.Throws<ArgumentNullException>(() => ExcaliburStyles.ValidateBaseSheet(null!));
+        Assert.Throws<ArgumentNullException>(static () => ExcaliburStyles.GetBaseSheet(null!));
+        Assert.Throws<ArgumentNullException>(static () => ExcaliburStyles.SetBaseSheet(null!, null));
+        Assert.Throws<ArgumentNullException>(static () => ExcaliburStyles.Ensure(null!));
+        Assert.Throws<ArgumentNullException>(static () => ExcaliburStyles.ValidateBaseSheet(null!));
     }
 
     static StyleSheet Replacement(string text = "#123456") =>

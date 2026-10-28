@@ -124,15 +124,16 @@ public class TextBufferTests
         Assert.Equal(assembly, typeof(TextEditorState).Assembly);
         Assert.Equal(assembly, typeof(TextEditorGui).Assembly);
         Assert.Equal(assembly, typeof(SumTreeTextBuffer).Assembly);
-        Assert.DoesNotContain(typeof(Gui).Assembly.GetReferencedAssemblies(), name => name.Name == "SumTree");
-        Assert.DoesNotContain(typeof(ExcaliburStyles).Assembly.GetReferencedAssemblies(), name => name.Name == "SumTree");
+        Assert.DoesNotContain(typeof(Gui).Assembly.GetReferencedAssemblies(), static name => name.Name == "SumTree");
+        Assert.DoesNotContain(typeof(ExcaliburStyles).Assembly.GetReferencedAssemblies(),
+            static name => name.Name == "SumTree");
     }
 
     [Fact]
     public void TreeBufferMatchesAStringUnderRandomEdits()
     {
         var random = new Random(3);
-        var model = string.Join("\n", Enumerable.Range(0, 300).Select(i => $"line {i}"));
+        var model = string.Join("\n", Enumerable.Range(0, 300).Select(static i => $"line {i}"));
         ITextBuffer tree = new SumTreeTextBuffer(model);
         for (var i = 0; i < 400; i++)
         {
@@ -156,7 +157,7 @@ public class TextBufferTests
     [Fact]
     public void TreeBufferEditsLargeDocumentsQuickly()
     {
-        var text = string.Join("\n", Enumerable.Range(0, 200_000).Select(i => $"    value_{i} = compute({i});"));
+        var text = string.Join("\n", Enumerable.Range(0, 200_000).Select(static i => $"    value_{i} = compute({i});"));
         ITextBuffer buffer = new SumTreeTextBuffer(text);
         var watch = System.Diagnostics.Stopwatch.StartNew();
         for (var i = 0; i < 1000; i++)

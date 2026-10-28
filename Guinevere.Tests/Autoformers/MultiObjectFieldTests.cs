@@ -65,7 +65,8 @@ public sealed class MultiObjectFieldTests
         var first = new Model { Vector = new Vector3(1, 2, 3) };
         var second = new Model { Vector = new Vector3(4, 5, 6) };
         var shared = FormField.Combine([Field(first, nameof(Model.Vector)), Field(second, nameof(Model.Vector))]);
-        var x = shared.Project<Vector3, float>("X", value => value.X, (value, part) => value with { X = part });
+        var x = shared.Project<Vector3, float>("X", static value => value.X,
+            static (value, part) => value with { X = part });
         Assert.Equal("X", x.Label);
         Assert.Equal(typeof(float), x.ValueType);
         Assert.True(x.HasMixedValue);

@@ -10,10 +10,10 @@ public class RenderEffectsDemoTests
     public void GalleryRendersAllBuiltInFilters()
     {
         using var frame = new FrameHarness(1200, 1600);
-        frame.Frame(gui => Example01.Shared.RenderEffectsDemo(gui, Example01.ColorPalette.Dark));
+        frame.Frame(static gui => Example01.Shared.RenderEffectsDemo(gui, Example01.ColorPalette.Dark));
         Assert.NotEmpty(frame.Gui.RootNode!.Children);
         using var image = frame.Snapshot();
         using var bitmap = SKBitmap.FromImage(image);
-        Assert.Contains(bitmap.Pixels, pixel => pixel.Alpha > 0);
+        Assert.Contains(bitmap.Pixels, static pixel => pixel.Alpha > 0);
     }
 }

@@ -85,7 +85,7 @@ public class FontCacheTests
     public void LayoutFontMutationDoesNotChangeOtherResults()
     {
         using var harness = new FrameHarness();
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             var first = gui.LayoutText("first", size: 14);
             var second = gui.LayoutText("second", size: 14);

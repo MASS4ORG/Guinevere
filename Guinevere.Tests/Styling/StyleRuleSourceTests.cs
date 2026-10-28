@@ -19,8 +19,8 @@ public class StyleRuleSourceTests
             }
             """);
 
-        var button = sheet.Rules.Single(r => r.Selectors[0].Modifier == StyleState.None);
-        var hover = sheet.Rules.Single(r => r.Selectors[0].Modifier == StyleState.Hover);
+        var button = sheet.Rules.Single(static r => r.Selectors[0].Modifier == StyleState.None);
+        var hover = sheet.Rules.Single(static r => r.Selectors[0].Modifier == StyleState.Hover);
 
         Assert.Equal([2, 3, 8], button.Lines);
         Assert.Equal([5, 6], hover.Lines);
@@ -32,12 +32,12 @@ public class StyleRuleSourceTests
     {
         var options = new StyleSheetOptions
         {
-            ImportResolver = id => id == "base" ? new StyleSheetText("\n\nlabel { color = #000000; }") : null,
+            ImportResolver = static id => id == "base" ? new StyleSheetText("\n\nlabel { color = #000000; }") : null,
         };
         var sheet = StyleSheet.Parse("@import \"base\";\nbox { width = 1; }", options);
 
-        Assert.Equal([3], sheet.Rules.Single(r => r.Declarations.ContainsKey("color")).Lines);
-        Assert.Equal([2], sheet.Rules.Single(r => r.Declarations.ContainsKey("width")).Lines);
+        Assert.Equal([3], sheet.Rules.Single(static r => r.Declarations.ContainsKey("color")).Lines);
+        Assert.Equal([2], sheet.Rules.Single(static r => r.Declarations.ContainsKey("width")).Lines);
     }
 
     /// <summary>Matched rules come with their sheet, in cascade order (specificity, then sheet, then rule order).</summary>
@@ -52,9 +52,9 @@ public class StyleRuleSourceTests
 
         var matches = gui.StyleSheets.MatchedRules(new StyleTarget("button", null, ["primary"]));
 
-        Assert.Equal([low, high, low], matches.Select(m => m.Sheet));
+        Assert.Equal([low, high, low], matches.Select(static m => m.Sheet));
         Assert.Equal(["button", "button", "button.primary"],
-            matches.Select(m => m.Rule.Declarations["color"] switch
+            matches.Select(static m => m.Rule.Declarations["color"] switch
             {
                 "#00ff00" => "button",
                 "#0000ff" => "button",
@@ -66,7 +66,7 @@ public class StyleRuleSourceTests
     [Fact]
     public void LinesScaleToLargeSheets()
     {
-        var text = string.Join('\n', Enumerable.Range(0, 5000).Select(i => $"r{i} {{ width = {i}; }}"));
+        var text = string.Join('\n', Enumerable.Range(0, 5000).Select(static i => $"r{i} {{ width = {i}; }}"));
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var sheet = StyleSheet.Parse(text);
 

@@ -25,7 +25,7 @@ public sealed class StyledNineSliceTests
     {
         using var harness = new FrameHarness(120, 64);
         harness.Gui.StyleSheets.Add(Controls01.Program.StylingSheet);
-        harness.Frame(g => { using (g.StyledNode("VisualElement", ["tile"], "sliced").Enter()) { } });
+        harness.Frame(static g => { using (g.StyledNode("VisualElement", ["tile"], "sliced").Enter()) { } });
         using var snapshot = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(snapshot);
         Assert.NotEqual(pixels.GetPixel(2, 32), pixels.GetPixel(60, 32));
@@ -146,7 +146,7 @@ public sealed class StyledNineSliceTests
             + "background-slice = " + value + "; }", new StyleSheetOptions
             {
                 SourceName = "slice.pss",
-                ResourceResolver = _ => new MemoryStream(Texture()),
+                ResourceResolver = static _ => new MemoryStream(Texture()),
             }));
         static void Draw(Gui g) { using (g.StyledNode("box").Enter()) { } }
         harness.Frame(Draw);

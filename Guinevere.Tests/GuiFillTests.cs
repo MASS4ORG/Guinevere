@@ -69,7 +69,7 @@ public class GuiFillTests
     [Fact]
     public void SegmentsKeepGapsAndPartialCells()
     {
-        using var pixels = Render(gui => gui.DrawFill(new Rect(10, 10, 80, 20), 0.375f,
+        using var pixels = Render(static gui => gui.DrawFill(new Rect(10, 10, 80, 20), 0.375f,
             new FillOptions { Kind = FillKind.Segmented, Segments = 4, Gap = 4 }));
         Assert.Equal(255, pixels.GetPixel(15, 20).Alpha);
         Assert.Equal(0, pixels.GetPixel(28, 20).Alpha);
@@ -109,7 +109,7 @@ public class GuiFillTests
     [Fact]
     public void PartialSweepAndRotatedOriginRespectRange()
     {
-        using var pixels = Render(gui => gui.DrawFill(new Rect(10, 10, 80, 80), 1,
+        using var pixels = Render(static gui => gui.DrawFill(new Rect(10, 10, 80, 80), 1,
             new FillOptions { Kind = FillKind.Radial, StartAngle = 0, SweepAngle = 90 }));
         Assert.Equal(255, pixels.GetPixel(70, 70).Alpha);
         Assert.Equal(0, pixels.GetPixel(70, 30).Alpha);
@@ -182,7 +182,7 @@ public class GuiFillTests
     [Fact]
     public void HealthDamageAndShieldAreOrderedLayers()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             var rect = new Rect(10, 10, 80, 20);
             gui.DrawFill(rect, 0.5f, new FillLayers
@@ -202,7 +202,7 @@ public class GuiFillTests
     [Fact]
     public void PresentersAcceptMinimalAndCustomSkins()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             gui.DrawFill(new Rect(10, 10, 80, 10), 1, new FillLayers());
             gui.DrawFill(new Rect(10, 30, 20, 20), 1,
@@ -221,7 +221,7 @@ public class GuiFillTests
     [Fact]
     public void ReticleAndDirectionUseHostCoordinates()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             gui.DrawReticle(new Vector2(50, 50), Color.White, dotRadius: 2);
             gui.DrawDirection(new Vector2(50, 50), 0, 35, Color.Red);
@@ -261,7 +261,7 @@ public class GuiFillTests
     [Fact]
     public void EmptyBoundsZeroSweepAndFullDiskAreSafe()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             gui.DrawFill(new Rect(0, 0, 0, 10), 1);
             gui.DrawFill(new Rect(0, 0, 10, 0), 1);
@@ -277,7 +277,7 @@ public class GuiFillTests
     [Fact]
     public void FillsRespectNodeClipOpacityAndTransform()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             using (gui.Node(30, 30).Enter())
             {
@@ -302,7 +302,7 @@ public class GuiFillTests
     public void HudGalleryRendersOffscreen()
     {
         using var harness = new FrameHarness(800, 900);
-        harness.Frame(gui => Example01.Shared.Hud(gui, Example01.ColorPalette.Dark));
+        harness.Frame(static gui => Example01.Shared.Hud(gui, Example01.ColorPalette.Dark));
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);
         Assert.True(harness.Gui.RootNode!.Children.Single().Children.Count > 10);
@@ -381,7 +381,7 @@ public class GuiFillTests
     [Fact]
     public void ExplicitLayersDrawBackgroundGhostAndFillInOrder()
     {
-        using var pixels = Render(gui => gui.DrawFill(new Rect(10, 10, 80, 20), 50, new FillLayers
+        using var pixels = Render(static gui => gui.DrawFill(new Rect(10, 10, 80, 20), 50, new FillLayers
         {
             Background = new FillOptions { Color = Color.Blue, Normalizer = static _ => 0 },
             Ghost = new FillOptions { Maximum = 100, Color = Color.Red },
@@ -396,7 +396,7 @@ public class GuiFillTests
     [Fact]
     public void GhostLayerIsOptional()
     {
-        using var pixels = Render(gui => gui.DrawFill(new Rect(10, 10, 80, 20), 0.5f, new FillLayers
+        using var pixels = Render(static gui => gui.DrawFill(new Rect(10, 10, 80, 20), 0.5f, new FillLayers
         {
             Background = new FillOptions { Color = Color.Blue },
             Ghost = new FillOptions { Color = Color.Red }

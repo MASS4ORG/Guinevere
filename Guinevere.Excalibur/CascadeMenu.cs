@@ -39,7 +39,7 @@ public static partial class ControlsExtensions
         var explicitId = id;
         id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
-        var state = gui.ControlState(id, () => new MenuBarState());
+        var state = gui.ControlState(id, static () => new MenuBarState());
         state.Classes = classes;
         state.StyleId = id;
         state.PopupId = explicitId;

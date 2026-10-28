@@ -42,7 +42,7 @@ public class FormGroupsTests
     {
         var seen = new Dictionary<string, int>();
         var drawers = new FormDrawers();
-        using var _ = drawers.Add(field => field.ValueType == typeof(int), new DepthProbe(seen));
+        using var _ = drawers.Add(static field => field.ValueType == typeof(int), new DepthProbe(seen));
         var target = new Outer();
 
         Render(new FormRenderContext { Drawers = drawers }, Field(target, nameof(Outer.Top)),

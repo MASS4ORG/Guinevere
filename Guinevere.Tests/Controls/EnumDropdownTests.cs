@@ -59,9 +59,9 @@ public sealed class EnumDropdownTests
         Assert.Equal(Ordinary.First, EnumSelection.Apply(Ordinary.First, new(Ordinary.Second, false)));
         Assert.True(EnumSelection.Contains(Ordinary.First, Ordinary.First));
         Assert.False(EnumSelection.Contains(Ordinary.First, Ordinary.Second));
-        Assert.Throws<ArgumentException>(() => EnumSelection.Contains(Flags.A, Ordinary.First));
-        Assert.Throws<ArgumentNullException>(() => EnumSelection.Contains(null!, Flags.A));
-        Assert.Throws<ArgumentNullException>(() => EnumSelection.Apply(Flags.A, new(null!, true)));
+        Assert.Throws<ArgumentException>(static () => EnumSelection.Contains(Flags.A, Ordinary.First));
+        Assert.Throws<ArgumentNullException>(static () => EnumSelection.Contains(null!, Flags.A));
+        Assert.Throws<ArgumentNullException>(static () => EnumSelection.Apply(Flags.A, new(null!, true)));
     }
 
     /// <summary>Every signed and unsigned enum backing width retains its high bit.</summary>

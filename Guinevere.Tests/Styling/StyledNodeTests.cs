@@ -52,7 +52,7 @@ public class StyledNodeTests
         var px = RenderFrame(
             ".panel { flex-grow = 1; background-color = #ff0000; }",
             MouseAt(-100, -100),
-            gui =>
+            static gui =>
             {
                 using (gui.StyledNode("VisualElement", ["panel"]).Enter()) { }
             });
@@ -68,7 +68,7 @@ public class StyledNodeTests
         var px = RenderFrame(
             "Box { flex-grow = 1; background-color = #00ff00; }",
             MouseAt(-100, -100),
-            gui =>
+            static gui =>
             {
                 using (gui.StyledNode("Box").Enter()) { }
             });
@@ -86,9 +86,9 @@ public class StyledNodeTests
             """;
 
         var idle = RenderFrame(css, MouseAt(-100, -100),
-            gui => { using (gui.StyledNode("Button", ["btn"]).Enter()) { } });
+            static gui => { using (gui.StyledNode("Button", ["btn"]).Enter()) { } });
         var hot = RenderFrame(css, MouseAt(Size / 2f, Size / 2f),
-            gui => { using (gui.StyledNode("Button", ["btn"]).Enter()) { } });
+            static gui => { using (gui.StyledNode("Button", ["btn"]).Enter()) { } });
 
         Assert.True(At(idle, Size / 2, Size / 2) is { R: < 40, G: < 40, B: < 40 }, "idle should be dark");
         Assert.True(At(hot, Size / 2, Size / 2).B > 180, "hover should be blue");
@@ -125,7 +125,7 @@ public class StyledNodeTests
                 flex-grow = 1;
                 > Button:checked { flex-grow = 1; background-color = #00ff00; }
             }
-            """, MouseAt(-100, -100), gui =>
+            """, MouseAt(-100, -100), static gui =>
             {
                 using (gui.StyledNode("Panel").Enter())
                 using (gui.StyledNode("Button", ["checked"]).Enter()) { }
@@ -139,7 +139,7 @@ public class StyledNodeTests
     public void PanGuiBackgroundAliasApplies()
     {
         var px = RenderFrame("box { width = expand; height = expand; bg-color = #ff0000; }",
-            MouseAt(-100, -100), gui => { using (gui.StyledNode("box").Enter()) { } });
+            MouseAt(-100, -100), static gui => { using (gui.StyledNode("box").Enter()) { } });
 
         Assert.True(At(px, Size / 2, Size / 2).R > 200);
     }
@@ -155,7 +155,7 @@ public class StyledNodeTests
             """;
 
         var px = RenderFrame(css, MouseAt(10, Size / 2f),
-            gui => { using (gui.StyledNode("Button", ["btn"], disabled: true).Enter()) { } });
+            static gui => { using (gui.StyledNode("Button", ["btn"], disabled: true).Enter()) { } });
 
         Assert.True(At(px, 10, Size / 2) is { R: > 200, B: < 60 }, "disabled should not show hover");
         Assert.True(At(px, 50, Size / 2).R > 200, "disabled width should come from the build pass");

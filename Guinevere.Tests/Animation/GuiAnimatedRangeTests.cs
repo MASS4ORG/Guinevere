@@ -144,7 +144,7 @@ public class GuiAnimatedRangeTests
     public void SharedIdentitySamplesOncePerFrame()
     {
         using var harness = new FrameHarness();
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             var first = gui.AnimatedRange(-10, id: "shared");
             var second = gui.AnimatedRange(-20, id: "shared");

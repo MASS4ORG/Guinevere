@@ -28,7 +28,7 @@ public class LayoutNodeScopeTests
     [Fact]
     public void RenderPassParentValueReachesChildrenThatSetOtherValues()
     {
-        var scope = Frame((gui, render) =>
+        var scope = Frame(static (gui, render) =>
         {
             using (gui.Node(40, 40).Enter())
             {
@@ -52,7 +52,7 @@ public class LayoutNodeScopeTests
     [Fact]
     public void UnitValueNodesReinheritInTheRenderPass()
     {
-        var scope = Frame((gui, render) =>
+        var scope = Frame(static (gui, render) =>
         {
             using (gui.Node(UnitValue.Pixels(40), UnitValue.Pixels(40)).Enter())
             {
@@ -72,7 +72,7 @@ public class LayoutNodeScopeTests
     [Fact]
     public void ChildValueWinsOverParent()
     {
-        var scope = Frame((gui, render) =>
+        var scope = Frame(static (gui, render) =>
         {
             using (gui.Node(40, 40).Enter())
             {

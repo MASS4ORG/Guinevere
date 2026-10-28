@@ -104,7 +104,7 @@ public class CascadeMenuTests
         h.Frame();
         Assert.True(h.IsOpen);
         Assert.NotEmpty(h.Nodes());
-        Assert.All(h.Nodes(), node => Assert.True(node.Rect is { W: > 0, H: > 0 }));
+        Assert.All(h.Nodes(), static node => Assert.True(node.Rect is { W: > 0, H: > 0 }));
     }
 
     /// <summary>Clicking an item runs it and closes the menu.</summary>

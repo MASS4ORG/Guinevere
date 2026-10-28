@@ -11,7 +11,7 @@ public sealed class FileDropQueue : IFileDropCapability
     public void Enqueue(IEnumerable<string> paths, Vector2 position)
     {
         ArgumentNullException.ThrowIfNull(paths);
-        var copied = paths.Where(path => !string.IsNullOrWhiteSpace(path)).ToArray();
+        var copied = paths.Where(static path => !string.IsNullOrWhiteSpace(path)).ToArray();
         if (copied.Length > 0)
         {
             _pending.Enqueue(new FileDrop(position, Array.AsReadOnly(copied)));

@@ -52,5 +52,5 @@ public class GuiOpacityTests
     /// <summary>Values outside 0..1 are clamped.</summary>
     [Fact]
     public void OpacityIsClamped() =>
-        Assert.Equal(255, Alpha(Render(g => Filled(g, 3f)), 20, 20));
+        Assert.Equal(255, Alpha(Render(static g => Filled(g, 3f)), 20, 20));
 }

@@ -36,7 +36,7 @@ public static partial class ControlsExtensions
         theme ??= TabStripTheme.Default;
         ExcaliburStyles.Ensure(gui);
         var result = TabStripResult.None;
-        var state = gui.ControlState($"{idPrefix}/overflow", () => new TabStripState());
+        var state = gui.ControlState($"{idPrefix}/overflow", static () => new TabStripState());
         using (gui.StyledNode("tabstrip", classes, id: idPrefix, filePath: filePath, lineNumber: lineNumber)
                    .Height(theme.Height).ExpandWidth().Direction(Axis.Horizontal).Enter())
         {

@@ -26,15 +26,20 @@ permissions:
 
 jobs:
     release:
-        if: ${{ vars.RELEASE_REPOSITORY != '' }}
+        if: ${{ vars.RELEASE_REPOSITORY != '' && startsWith(github.ref, 'refs/tags/v') }}
         runs-on: ubuntu-26.04
         steps:
             - uses: actions/checkout@v7
               with:
                   fetch-depth: 0
+                  fetch-tags: true
+            - name: Validate release tag and checkout
+              run: bash .github/scripts/validate-release-tag.sh
             - uses: actions/setup-dotnet@v6
               with:
                   dotnet-version: "10.0.x"
+            - name: Test release checkout
+              run: ./build.sh TestReport --configuration Release --verbosity minimal
             - name: "NuGet login (OIDC -> short-lived API key)"
               uses: NuGet/login@v1
               id: nuget-login
@@ -43,6 +48,7 @@ jobs:
             - name: "Run: PushNuGet, GitHubCreateRelease"
               run: |
                   ./build.sh PushNuGet GitHubCreateRelease \
+                    --configuration Release \
                     --github-repository "${{ github.repository }}" \
                     --github-token "${{ secrets.GITHUB_TOKEN }}" \
                     --verbosity minimal

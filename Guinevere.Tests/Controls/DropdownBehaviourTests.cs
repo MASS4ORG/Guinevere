@@ -179,7 +179,7 @@ public class DropdownBehaviorTests
     [Fact]
     public void LongListScrollsToLastOption()
     {
-        var harness = new Harness([.. Enumerable.Range(0, 32).Select(index => $"Layer {index}")]);
+        var harness = new Harness([.. Enumerable.Range(0, 32).Select(static index => $"Layer {index}")]);
         harness.Frame(OnButton, pressed: true);
         harness.Frame(OnButton);
         var list = Find(harness.Gui.RootNode!, "/list");

@@ -43,7 +43,7 @@ public static partial class ControlsExtensions
         using (node.Enter())
         {
             var inputId = node.Id + "/text";
-            var state = gui.ControlState(inputId, () => new ColorHexState());
+            var state = gui.ControlState(inputId, static () => new ColorHexState());
             if (gui.Pass == Pass.Pass2Render)
             {
                 value = TrackHexEditing(gui, state, inputId, alpha, value);

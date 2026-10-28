@@ -45,7 +45,7 @@ public static partial class ControlsExtensions
             }
 
             var rect = node.InnerRect;
-            var drag = gui.ControlState(node.Id, () => new ColorDragState());
+            var drag = gui.ControlState(node.Id, static () => new ColorDragState());
             if (enabled)
             {
                 value = EditArea(gui, drag, shape, rect, value);
@@ -97,7 +97,7 @@ public static partial class ControlsExtensions
             }
 
             var rect = node.InnerRect;
-            var drag = gui.ControlState(node.Id, () => new ColorDragState());
+            var drag = gui.ControlState(node.Id, static () => new ColorDragState());
             if (enabled)
             {
                 value = EditStrip(gui, drag, rect, value, channel, vertical);

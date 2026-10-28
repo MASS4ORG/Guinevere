@@ -32,7 +32,7 @@ public class AbsolutePositioningTests
     [Fact]
     public void AbsoluteChildIsPlacedRelativeToTheParentContentBox()
     {
-        var gui = RunLayout(g =>
+        var gui = RunLayout(static g =>
         {
             using (g.Node(200, 100, "host").Left(50).Top(20).Padding(10).Enter())
             {
@@ -51,7 +51,7 @@ public class AbsolutePositioningTests
     [Fact]
     public void AbsoluteScreenChildIgnoresWhereItSitsInTheTree()
     {
-        var gui = RunLayout(g =>
+        var gui = RunLayout(static g =>
         {
             using (g.Node(200, 100, "host").Left(50).Top(20).Padding(10).Enter())
             {
@@ -67,7 +67,7 @@ public class AbsolutePositioningTests
     [Fact]
     public void AbsoluteChildDoesNotTakeSpaceFromItsFlowSiblings()
     {
-        var gui = RunLayout(g =>
+        var gui = RunLayout(static g =>
         {
             using (g.Node(200, 300, "host").Enter())
             {
@@ -85,7 +85,7 @@ public class AbsolutePositioningTests
     [Fact]
     public void AbsoluteChildSizesAgainstTheBoxItIsPositionedIn()
     {
-        var gui = RunLayout(g =>
+        var gui = RunLayout(static g =>
         {
             using (g.Node(200, 100, "host").Enter())
             {
@@ -103,7 +103,7 @@ public class AbsolutePositioningTests
     [Fact]
     public void AbsoluteChildIsNotCarriedByAnAncestorScrollOffset()
     {
-        var gui = RunLayout(g =>
+        var gui = RunLayout(static g =>
         {
             using (g.Node(200, 100, "scroller").Enter())
             {
@@ -121,7 +121,7 @@ public class AbsolutePositioningTests
     [Fact]
     public void ParentWithOnlyAbsoluteChildrenStillLaysThemOut()
     {
-        var gui = RunLayout(g =>
+        var gui = RunLayout(static g =>
         {
             using (g.Node(200, 100, "host").Left(10).Top(10).Enter())
             {
@@ -136,7 +136,7 @@ public class AbsolutePositioningTests
     [Fact]
     public void LeftAndTopMarkTheNodeAbsolute()
     {
-        var gui = RunLayout(g =>
+        var gui = RunLayout(static g =>
         {
             using (g.Node(200, 100, "host").Enter())
             {

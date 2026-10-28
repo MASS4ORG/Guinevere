@@ -242,8 +242,8 @@ public class DockSpaceRenderTests
         var plain = new DockLayout { Root = new DockLeaf("scene") };
 
         var iconGui = RenderDock(withIcon, out _,
-            panelInfo: _ => new DockPanelInfo("Scene", Icon: g => g.DrawBackgroundRect(Color.Red)));
-        var plainGui = RenderDock(plain, out _, panelInfo: _ => new DockPanelInfo("Scene"));
+            panelInfo: static _ => new DockPanelInfo("Scene", Icon: static g => g.DrawBackgroundRect(Color.Red)));
+        var plainGui = RenderDock(plain, out _, panelInfo: static _ => new DockPanelInfo("Scene"));
 
         var iconWidth = RectOf(iconGui, "dock:root/tabs/scene").W;
         var plainWidth = RectOf(plainGui, "dock:root/tabs/scene").W;
@@ -279,7 +279,7 @@ public class DockSpaceRenderTests
     {
         var layout = new DockLayout { Root = new DockLeaf("scene") };
 
-        var gui = RenderDock(layout, out _, tabStripActions: (_, g) =>
+        var gui = RenderDock(layout, out _, tabStripActions: static (_, g) =>
         {
             using (g.Node(20, 20, "dock:test/menuButton").Enter())
             {

@@ -34,11 +34,11 @@ public class DragDropPayloadTests : IDisposable
         var files = new DragDropTag("files");
         var tabs = new DragDropTag("tabs");
         _gui.BeginDrag("source", "readme.md", files);
-        Frame(() => { });
+        Frame(static () => { });
 
         Assert.True(_gui.TryPeekPayload<string>(out var payload, files));
         Assert.Equal("readme.md", payload);
-        Assert.True(_gui.CanAccept<string>(files, value => value.EndsWith(".md")));
+        Assert.True(_gui.CanAccept<string>(files, static value => value.EndsWith(".md")));
         Assert.False(_gui.CanAccept<string>(tabs));
         Assert.False(_gui.CanAccept<int>(files));
     }

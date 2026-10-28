@@ -66,7 +66,7 @@ public static partial class ControlsExtensions
             node.Height(height == 0 ? UnitValue.Expand() : UnitValue.Pixels(height));
         }
 
-        var state = gui.ControlState(node.Id, () => new SliderState());
+        var state = gui.ControlState(node.Id, static () => new SliderState());
         using (node.Enter())
         {
             var viewport = gui.Node().Expand();

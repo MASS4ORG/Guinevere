@@ -58,7 +58,7 @@ public partial class Gui
         }
 
         using var _ = node.Enter();
-        var state = ControlState($"{node.Id}/markdown", () => new MarkdownState());
+        var state = ControlState($"{node.Id}/markdown", static () => new MarkdownState());
         RefreshMarkdown(state, source, context, images);
         var hits = new MarkdownHits();
         DrawMarkdownBlocks(state, 0, state.Blocks.Count, 0, ref hits);

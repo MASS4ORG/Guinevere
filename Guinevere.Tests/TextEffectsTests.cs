@@ -58,8 +58,9 @@ public class TextEffectsTests
     [Fact]
     public void EmptyEffectsMatchPlainText()
     {
-        var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
-        var empty = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White, effects: new TextEffects()));
+        var plain = RenderFrame(static gui => gui.DrawText("Ag", size: Size, color: Color.White));
+        var empty = RenderFrame(
+            static gui => gui.DrawText("Ag", size: Size, color: Color.White, effects: new TextEffects()));
 
         Assert.Equal(plain, empty);
     }
@@ -68,11 +69,12 @@ public class TextEffectsTests
     [Fact]
     public void OutlineAddsInkAroundGlyphs()
     {
-        var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
-        var outlined = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White, effects: new TextEffects
-        {
-            Outline = new TextEffects.TextOutline(Color.FromArgb(255, 255, 0, 0), 4f),
-        }));
+        var plain = RenderFrame(static gui => gui.DrawText("Ag", size: Size, color: Color.White));
+        var outlined = RenderFrame(
+            static gui => gui.DrawText("Ag", size: Size, color: Color.White, effects: new TextEffects
+            {
+                Outline = new TextEffects.TextOutline(Color.FromArgb(255, 255, 0, 0), 4f),
+            }));
 
         Assert.True(OpaqueCount(outlined) > OpaqueCount(plain) + 200,
             $"outline should add coverage (plain {OpaqueCount(plain)}, outlined {OpaqueCount(outlined)})");
@@ -93,9 +95,9 @@ public class TextEffectsTests
     [Fact]
     public void DropShadowAddsOffsetInk()
     {
-        var plain = RenderFrame(gui =>
+        var plain = RenderFrame(static gui =>
             gui.DrawText("Ag", size: Size, color: Color.White, centerInRect: false));
-        var shadowed = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White, centerInRect: false,
+        var shadowed = RenderFrame(static gui => gui.DrawText("Ag", size: Size, color: Color.White, centerInRect: false,
             effects: new TextEffects
             {
                 DropShadow = new TextEffects.TextShadow(
@@ -121,8 +123,8 @@ public class TextEffectsTests
     [Fact]
     public void InnerShadowChangesGlyphPixels()
     {
-        var plain = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White));
-        var inner = RenderFrame(gui => gui.DrawText("Ag", size: Size, color: Color.White,
+        var plain = RenderFrame(static gui => gui.DrawText("Ag", size: Size, color: Color.White));
+        var inner = RenderFrame(static gui => gui.DrawText("Ag", size: Size, color: Color.White,
             effects: new TextEffects
             {
                 InnerShadow = new TextEffects.TextShadow(

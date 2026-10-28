@@ -74,7 +74,7 @@ public class ToastTests
     public void QueuedToastRendersFromTheNextFrame()
     {
         var gui = CreateGui();
-        Frame(gui, g => g.Toast("Hello"));
+        Frame(gui, static g => g.Toast("Hello"));
 
         Assert.Single(ToastsOf(gui.RootNode!));
     }
@@ -83,7 +83,7 @@ public class ToastTests
     public void IdenticalMessagesStackLikeAnyOther()
     {
         var gui = CreateGui();
-        Frame(gui, g =>
+        Frame(gui, static g =>
         {
             g.Toast("Hello");
             g.Toast("Hello");
@@ -96,7 +96,7 @@ public class ToastTests
     public void DistinctMessagesStackAboveEachOther()
     {
         var gui = CreateGui();
-        Frame(gui, g =>
+        Frame(gui, static g =>
         {
             g.Toast("First");
             g.Toast("Second");
@@ -116,7 +116,7 @@ public class ToastTests
     public void ToastPinsToTheRequestedCorner()
     {
         var gui = CreateGui();
-        Frame(gui, g =>
+        Frame(gui, static g =>
         {
             g.Toast("Bottom right", BottomRight);
             g.Toast("Top left", TopLeft);
@@ -125,8 +125,8 @@ public class ToastTests
         var toasts = ToastsOf(gui.RootNode!);
         Assert.Equal(2, toasts.Count);
 
-        var bottomRight = toasts.First(n => n.Rect.Y > Height / 2f);
-        var topLeft = toasts.First(n => n.Rect.Y < Height / 2f);
+        var bottomRight = toasts.First(static n => n.Rect.Y > Height / 2f);
+        var topLeft = toasts.First(static n => n.Rect.Y < Height / 2f);
 
         Assert.Equal(Width - BottomRight.Margin - bottomRight.Rect.W, bottomRight.Rect.X, 1f);
         Assert.Equal(Height - BottomRight.Margin - bottomRight.Rect.H, bottomRight.Rect.Y, 1f);
@@ -138,7 +138,7 @@ public class ToastTests
     public void ExpiredToastsDisappear()
     {
         var gui = CreateGui();
-        Frame(gui, g => g.Toast("Short lived", BottomRight));
+        Frame(gui, static g => g.Toast("Short lived", BottomRight));
         Assert.Single(ToastsOf(gui.RootNode!));
 
         // Advance well past the 10s duration, then host again: the toast must be pruned.
@@ -154,7 +154,7 @@ public class ToastTests
     public void FadingToastsRequestFramesAndSteadyOnesRequestTheFadeOut()
     {
         var gui = CreateGui();
-        Frame(gui, g => g.Toast("Hello", BottomRight));
+        Frame(gui, static g => g.Toast("Hello", BottomRight));
         Assert.Equal(0, gui.FrameWaitSeconds);
 
         for (var i = 0; i < 20; i++)
@@ -176,10 +176,10 @@ public class ToastTests
     public void ClearToastsAnnulsTheQueue()
     {
         var gui = CreateGui();
-        Frame(gui, g => g.Toast("Hello"));
+        Frame(gui, static g => g.Toast("Hello"));
         Assert.Single(ToastsOf(gui.RootNode!));
 
-        Frame(gui, g => g.ClearToasts());
+        Frame(gui, static g => g.ClearToasts());
 
         Assert.Empty(ToastsOf(gui.RootNode!));
     }
@@ -188,7 +188,7 @@ public class ToastTests
     public void ToastRendersAboveRegularContent()
     {
         var gui = CreateGui();
-        Frame(gui, g => g.Toast("Hello"));
+        Frame(gui, static g => g.Toast("Hello"));
 
         var toast = Assert.Single(ToastsOf(gui.RootNode!));
         Assert.True(toast.Scope.Get<LayoutNodeScopeZIndex>().Value > 0,
@@ -199,14 +199,14 @@ public class ToastTests
     public void RepeatingTheSameMessageStacksANewEntryEachTime()
     {
         var gui = CreateGui();
-        Frame(gui, g => g.Toast("Hello"));
+        Frame(gui, static g => g.Toast("Hello"));
         Assert.Single(ToastsOf(gui.RootNode!));
 
         // The harness runs the content once per pass, so every additional frame enqueues two more
         // entries. None expire within the 3s lifetime, so the stack keeps growing.
         for (var i = 0; i < 2; i++)
         {
-            Frame(gui, g => g.Toast("Hello"));
+            Frame(gui, static g => g.Toast("Hello"));
         }
 
         Assert.Equal(5, ToastsOf(gui.RootNode!).Count);
@@ -221,7 +221,7 @@ public class ToastTests
     public void TextNodeIsBuiltDuringPass1SoItLaysOutInsideTheToast()
     {
         var gui = CreateGui();
-        Frame(gui, g => g.Toast("Hello"));
+        Frame(gui, static g => g.Toast("Hello"));
 
         // The text must be a measured layout node inside the toast, not a node created during Pass2
         // after CalculateLayout already ran (which would give it a (0,0,0,0) rect and draw it at the

@@ -45,7 +45,7 @@ public class ClipEscapeNestingTests
     {
         using var surface = NewSurface();
 
-        RunFrame(surface, gui =>
+        RunFrame(surface, static gui =>
         {
             using (gui.Node(60, 60, "escaping").AbsoluteScreen(20, 20).Enter())
             {

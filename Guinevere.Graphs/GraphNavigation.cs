@@ -211,6 +211,39 @@ public sealed class GraphNavigation
         return true;
     }
 
+    /// <summary>Selects an element exclusively, or toggles membership in a multi-selection.</summary>
+    public bool Select(string key, bool toggle = false)
+    {
+        if (!Focus(key))
+        {
+            return false;
+        }
+        if (toggle)
+        {
+            return ToggleSelection();
+        }
+        foreach (var previous in _selected.Where(previous => previous != key).ToArray())
+        {
+            _selected.Remove(previous);
+            Emit(GraphSemanticEventKind.SelectionChanged, previous, null, "Deselected.");
+        }
+        if (_selected.Add(key))
+        {
+            Emit(GraphSemanticEventKind.SelectionChanged, key, null, "Selected.");
+        }
+        return true;
+    }
+
+    /// <summary>Clears view selection without changing logical focus or the graph document.</summary>
+    public void ClearSelection()
+    {
+        foreach (var key in _selected.ToArray())
+        {
+            _selected.Remove(key);
+            Emit(GraphSemanticEventKind.SelectionChanged, key, null, "Deselected.");
+        }
+    }
+
     /// <summary>Enters a node's ports, starts a connection, or asks the adapter to complete one.</summary>
     public bool Activate()
     {
@@ -242,8 +275,19 @@ public sealed class GraphNavigation
     }
 
     /// <summary>Requests deletion of the focused element; the adapter owns validation, undo, and rollback.</summary>
-    public bool Delete() => FocusedKey is not null && IsEnabled(FocusedKey)
-        && RequestEdit(new GraphEditRequest(GraphEditKind.Delete, FocusedKey));
+    public bool Delete()
+    {
+        if (FocusedKey is null || !IsEnabled(FocusedKey)
+            || !RequestEdit(new GraphEditRequest(GraphEditKind.Delete, FocusedKey)))
+        {
+            return false;
+        }
+        if (ConnectionSourceKey is not null)
+        {
+            CancelConnection();
+        }
+        return true;
+    }
 
     /// <summary>Requests a searchable surface without inventing node registrations or a command model.</summary>
     public void Search(GraphSearchKind kind)

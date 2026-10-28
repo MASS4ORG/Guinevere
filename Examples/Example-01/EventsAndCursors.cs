@@ -24,7 +24,7 @@ public partial class Shared
     static void EventsAndCursors(Gui gui, ColorPalette p)
     {
         // Nothing has focus, so keys target the root: app-wide shortcuts listen there.
-        gui.On<KeyDownEvent>(e =>
+        gui.On<KeyDownEvent>(static e =>
         {
             if (e.Key != KeyboardKey.Escape)
             {
@@ -64,7 +64,7 @@ public partial class Shared
         using (gui.Node(190).ExpandHeight().Direction(Axis.Vertical).Gap(6).Enter())
         {
             Label(gui, p, "Click bubbles to the list");
-            gui.On<ClickEvent>(e =>
+            gui.On<ClickEvent>(static e =>
             {
                 var fruit = e.TargetId.StartsWith("fruit/", StringComparison.Ordinal) ? e.TargetId[6..] : null;
                 if (fruit is null)
@@ -102,14 +102,14 @@ public partial class Shared
         using (gui.Node(-1, 56, "scrub").ExpandWidth().AlignContent(0.5f, 0.5f).Cursor(PointerCursor.ResizeHorizontal)
                    .Enter())
         {
-            gui.On<DragStartEvent>(_ =>
+            gui.On<DragStartEvent>(static _ =>
             {
                 _scrubbing = true;
                 _scrubStart = _scrubValue;
                 Record("scrub: pointer wraps at the window edges");
             });
-            gui.On<DragMoveEvent>(e => _scrubValue = _scrubStart + e.TotalDelta.X * 0.1f);
-            gui.On<DragEndEvent>(_ =>
+            gui.On<DragMoveEvent>(static e => _scrubValue = _scrubStart + e.TotalDelta.X * 0.1f);
+            gui.On<DragEndEvent>(static _ =>
             {
                 _scrubbing = false;
                 Record($"scrub: released at {_scrubValue:0.0}");
@@ -125,7 +125,7 @@ public partial class Shared
     {
         using (gui.Node(-1, 96, "orbit").ExpandWidth().AlignContent(0.5f, 0.5f).Cursor(PointerCursor.Crosshair).Enter())
         {
-            gui.On<PointerDownEvent>(e =>
+            gui.On<PointerDownEvent>(static e =>
             {
                 if (e.Button != MouseButton.Right)
                 {
@@ -136,14 +136,14 @@ public partial class Shared
                 Record("orbit: pointer locked");
                 e.PreventDefault();
             });
-            gui.On<PointerMoveEvent>(e =>
+            gui.On<PointerMoveEvent>(static e =>
             {
                 if (_orbiting)
                 {
                     _orbit += e.Delta;
                 }
             });
-            gui.On<PointerUpEvent>(e =>
+            gui.On<PointerUpEvent>(static e =>
             {
                 if (e.Button != MouseButton.Right || !_orbiting)
                 {

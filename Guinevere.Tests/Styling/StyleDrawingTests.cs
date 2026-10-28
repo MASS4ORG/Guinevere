@@ -18,7 +18,7 @@ public class StyleDrawingTests
                 background = linear-gradient(to right, #ff0000, #00ff00); opacity = {{opacity}};
                 outline = 2px solid #000000; outline-offset = 2; box-shadow = 0 2px 3px #00000080; }
             """));
-        harness.Frame(g =>
+        harness.Frame(static g =>
         {
             g.DrawBackgroundRect(Color.White);
             using (g.Node(100, 60).Padding(10).Direction(Axis.Horizontal).Gap(20).Enter())

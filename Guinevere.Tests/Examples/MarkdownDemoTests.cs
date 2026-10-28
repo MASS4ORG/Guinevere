@@ -19,7 +19,7 @@ public class MarkdownDemoTests
         Assert.NotEmpty(harness.Gui.RootNode!.Children);
         using var image = harness.Snapshot();
         using var pixmap = image.PeekPixels();
-        Assert.Contains(pixmap.GetPixelSpan().ToArray().Chunk(4), pixel => pixel[3] > 0);
+        Assert.Contains(pixmap.GetPixelSpan().ToArray().Chunk(4), static pixel => pixel[3] > 0);
     }
 
     [Fact]

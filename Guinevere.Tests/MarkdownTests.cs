@@ -5,7 +5,7 @@ namespace Guinevere.Tests;
 /// <summary>Markdown parsing, incremental reparsing and drawing as rich text.</summary>
 public class MarkdownTests
 {
-    static string Text(MarkdownBlock block) => string.Concat(block.Spans.Select(s => s.Text));
+    static string Text(MarkdownBlock block) => string.Concat(block.Spans.Select(static s => s.Text));
 
     /// <summary>Each block kind is recognized with its level, marker and quote depth.</summary>
     [Fact]
@@ -33,7 +33,7 @@ public class MarkdownTests
             [MarkdownBlockKind.Heading, MarkdownBlockKind.Paragraph, MarkdownBlockKind.ListItem,
                 MarkdownBlockKind.ListItem, MarkdownBlockKind.Paragraph, MarkdownBlockKind.Code, MarkdownBlockKind.Rule,
                 MarkdownBlockKind.Code],
-            doc.Blocks.Select(b => b.Kind));
+            doc.Blocks.Select(static b => b.Kind));
         Assert.Equal(2, doc.Blocks[0].Level);
         Assert.Equal("First line same paragraph.", Text(doc.Blocks[1]));
         Assert.Equal(("•", "one continued"), (doc.Blocks[2].Marker, Text(doc.Blocks[2])));
@@ -50,11 +50,12 @@ public class MarkdownTests
     {
         var spans = MarkdownDocument.ParseInline("a **b *c*** `d` [e](http://x) ~~f~~ \\*g 2*3 *open");
 
-        Assert.Contains(spans, s => s is { Text: "b ", Style: MarkdownSpanStyle.Bold });
-        Assert.Contains(spans, s => s is { Text: "c", Style: MarkdownSpanStyle.Bold | MarkdownSpanStyle.Italic });
-        Assert.Contains(spans, s => s is { Text: "d", Style: MarkdownSpanStyle.Code });
-        Assert.Contains(spans, s => s is { Text: "e", Style: MarkdownSpanStyle.Link, Url: "http://x" });
-        Assert.Contains(spans, s => s is { Text: "f", Style: MarkdownSpanStyle.Strike });
+        Assert.Contains(spans, static s => s is { Text: "b ", Style: MarkdownSpanStyle.Bold });
+        Assert.Contains(spans,
+            static s => s is { Text: "c", Style: MarkdownSpanStyle.Bold | MarkdownSpanStyle.Italic });
+        Assert.Contains(spans, static s => s is { Text: "d", Style: MarkdownSpanStyle.Code });
+        Assert.Contains(spans, static s => s is { Text: "e", Style: MarkdownSpanStyle.Link, Url: "http://x" });
+        Assert.Contains(spans, static s => s is { Text: "f", Style: MarkdownSpanStyle.Strike });
         Assert.EndsWith(" *g 2*3 *open", spans[^1].Text);
     }
 
@@ -102,7 +103,7 @@ public class MarkdownTests
             null, new TextLayoutOptions()), null);
 
         Assert.Contains(text.Text.Content.Ranges,
-            range => range.Style.Decoration == (TextDecoration.Underline | TextDecoration.Strikethrough));
+            static range => range.Style.Decoration == (TextDecoration.Underline | TextDecoration.Strikethrough));
     }
 
     [Fact]
@@ -110,8 +111,8 @@ public class MarkdownTests
     {
         var spans = MarkdownDocument.ParseInline("see ![logo](logo.png) and [![badge](b.svg)](https://x)");
 
-        Assert.Contains(spans, s => s is { Text: "logo", Style: MarkdownSpanStyle.Image, Image: "logo.png" });
-        Assert.Contains(spans, s => s is
+        Assert.Contains(spans, static s => s is { Text: "logo", Style: MarkdownSpanStyle.Image, Image: "logo.png" });
+        Assert.Contains(spans, static s => s is
         {
             Text: "badge", Style: MarkdownSpanStyle.Image | MarkdownSpanStyle.Link, Image: "b.svg", Url: "https://x"
         });
@@ -132,7 +133,7 @@ public class MarkdownTests
     {
         var doc = MarkdownDocument.Parse("| a | b |\n|---|---|\n\n<div>x</div>\n\n[unclosed](link");
 
-        Assert.All(doc.Blocks, block => Assert.Equal(MarkdownBlockKind.Paragraph, block.Kind));
+        Assert.All(doc.Blocks, static block => Assert.Equal(MarkdownBlockKind.Paragraph, block.Kind));
         Assert.Equal("| a | b | |---|---|", Text(doc.Blocks[0]));
         Assert.Equal("<div>x</div>", Text(doc.Blocks[1]));
         Assert.Equal("[unclosed](link", Text(doc.Blocks[2]));
@@ -147,7 +148,7 @@ public class MarkdownTests
 
         Assert.Same(first.Blocks[0], grown.Blocks[0]);
         Assert.Equal(fresh.Blocks.Select(Text), grown.Blocks.Select(Text));
-        Assert.Equal(fresh.Blocks.Select(b => b.SourceStart), grown.Blocks.Select(b => b.SourceStart));
+        Assert.Equal(fresh.Blocks.Select(static b => b.SourceStart), grown.Blocks.Select(static b => b.SourceStart));
         Assert.Same(grown, MarkdownDocument.Parse("# Title\n\nOne paragraph that grew\n\n- item", grown));
         Assert.NotSame(first.Blocks[0], MarkdownDocument.Parse("# Other", first).Blocks[0]);
     }

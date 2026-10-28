@@ -13,7 +13,8 @@ public sealed partial class GraphCanvas
         [KeyboardKey.F] = static canvas => canvas.FitSelection(),
         [KeyboardKey.Enter] = static canvas => canvas.Navigation.Activate(),
         [KeyboardKey.Space] = static canvas => canvas.Navigation.ToggleSelection(),
-        [KeyboardKey.Delete] = static canvas => canvas.Navigation.Delete()
+        [KeyboardKey.Delete] = static canvas => canvas.Navigation.Delete(),
+        [KeyboardKey.Backspace] = static canvas => canvas.Navigation.Delete()
     };
 
     readonly Queue<Action> _pendingInput = new();

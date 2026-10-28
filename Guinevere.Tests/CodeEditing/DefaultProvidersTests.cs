@@ -19,7 +19,7 @@ public class DefaultProvidersTests
 
         Assert.Equal([new FoldingRange(0, 2)], indentFolds);
         Assert.Equal([new FoldingRange(0, 1)], bracketFolds);
-        Assert.Equal(["alpha", "alphabet"], completions!.Items.Select(item => item.Label));
+        Assert.Equal(["alpha", "alphabet"], completions!.Items.Select(static item => item.Label));
     }
 
     /// <summary>A mismatched closing bracket cannot terminate a different opening delimiter.</summary>
@@ -55,7 +55,7 @@ public class DefaultProvidersTests
         var buffer = new StringTextBuffer("root\n\tchild\n\t\tvalue\n\tend\n\nnext\n\n");
         Assert.Equal([new FoldingRange(0, 3), new FoldingRange(1, 2)],
             IndentationFoldingProvider.Find(buffer, TestContext.Current.CancellationToken)
-                .OrderBy(range => range.StartLine));
+                .OrderBy(static range => range.StartLine));
         Assert.Empty(IndentationFoldingProvider.Find(new StringTextBuffer(" \n\t\n"),
             TestContext.Current.CancellationToken));
     }
@@ -66,7 +66,7 @@ public class DefaultProvidersTests
     {
         var buffer = new StringTextBuffer("Alpine, alpha; alphabet alphabet! beta al\nal");
         var list = WordCompletionProvider.Complete(buffer, buffer.Length)!;
-        Assert.Equal(["alphabet", "Alpine", "alpha"], list.Items.Select(item => item.Label));
+        Assert.Equal(["alphabet", "Alpine", "alpha"], list.Items.Select(static item => item.Label));
         Assert.Null(WordCompletionProvider.Complete(new StringTextBuffer("only"), 4));
         Assert.Null(WordCompletionProvider.Complete(new StringTextBuffer("word "), 5));
     }

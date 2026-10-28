@@ -25,7 +25,7 @@ public class AttributeTourTests
     [Fact]
     public void EveryShownSourceIsTheCompiledDemoClass()
     {
-        foreach (var page in DemoPages.All.Where(page => page.IsAvailable))
+        foreach (var page in DemoPages.All.Where(static page => page.IsAvailable))
         {
             var source = page.Source();
 
@@ -37,7 +37,8 @@ public class AttributeTourTests
     [Fact]
     public void ComingSoonPagesHaveNoSource()
     {
-        Assert.All(DemoPages.All.Where(page => !page.IsAvailable), page => Assert.Equal("", page.Source()));
+        Assert.All(DemoPages.All.Where(static page => !page.IsAvailable),
+            static page => Assert.Equal("", page.Source()));
     }
 
     [Fact]
@@ -56,7 +57,7 @@ public class AttributeTourTests
     public void ButtonPageRunsItsMethodOncePerClick()
     {
         using var harness = new FrameHarness(1280, 860);
-        var page = DemoPages.All.Single(page => page.Demo == typeof(ButtonDemo));
+        var page = DemoPages.All.Single(static page => page.Demo == typeof(ButtonDemo));
         var tour = new AttributeTour { Selected = DemoPages.All.ToList().IndexOf(page) };
         var demo = (ButtonDemo)tour.TargetOf(page);
 

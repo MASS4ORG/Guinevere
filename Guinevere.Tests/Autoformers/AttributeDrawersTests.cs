@@ -76,7 +76,7 @@ public class AttributeDrawersTests
     {
         var seen = new List<(Color Text, Color Surface)>();
         var drawers = new FormDrawers();
-        using var _ = drawers.Add(field => field.Name == nameof(Model.Tinted), new Probe(seen));
+        using var _ = drawers.Add(static field => field.Name == nameof(Model.Tinted), new Probe(seen));
 
         Render(new FormRenderContext { Drawers = drawers }, Field(new Model(), nameof(Model.Tinted)));
 
@@ -113,7 +113,7 @@ public class AttributeDrawersTests
     {
         var seen = new List<(string Name, bool ReadOnly)>();
         var drawers = new FormDrawers();
-        using var _ = drawers.Add(field => field.ValueType == typeof(int) || field.ValueType == typeof(string),
+        using var _ = drawers.Add(static field => field.ValueType == typeof(int) || field.ValueType == typeof(string),
             new ReadOnlyProbe(seen));
         var target = new Model { Tags = ["a"] };
         var options = new FormOptions { ReadOnly = true };
@@ -123,7 +123,7 @@ public class AttributeDrawersTests
 
         Assert.Contains((nameof(Inner.Value), true), seen);
         Assert.Contains(("[0]", true), seen);
-        Assert.DoesNotContain(seen, entry => !entry.ReadOnly);
+        Assert.DoesNotContain(seen, static entry => !entry.ReadOnly);
     }
 
     [Fact]

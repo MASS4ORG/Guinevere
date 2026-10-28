@@ -34,7 +34,7 @@ public sealed class FileBrowserTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    string Names() => string.Join(",", _browser.Entries.Select(entry => entry.Name));
+    string Names() => string.Join(",", _browser.Entries.Select(static entry => entry.Name));
 
     /// <summary>Directories lead whatever the column, and hidden entries are left out.</summary>
     [Fact]

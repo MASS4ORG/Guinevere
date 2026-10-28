@@ -369,7 +369,7 @@ public class GuiIdentityTests
     public void InputWrappersForwardCallerIdentity()
     {
         using var harness = new FrameHarness();
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             gui.TextInput("plain");
             gui.PasswordInput("secret");
@@ -378,8 +378,8 @@ public class GuiIdentityTests
             gui.NumberField(ref number);
         });
         var nodes = harness.Gui.RootNode!.ChildNodes;
-        Assert.Equal(4, nodes.Select(node => node.Identity).Distinct().Count());
-        Assert.All(nodes, node => Assert.Contains(nameof(GuiIdentityTests), node.Id));
+        Assert.Equal(4, nodes.Select(static node => node.Identity).Distinct().Count());
+        Assert.All(nodes, static node => Assert.Contains(nameof(GuiIdentityTests), node.Id));
     }
 
     /// <summary>Automatic tabs in a loop keep activation requests separate and apply them on the next build pass.</summary>

@@ -36,7 +36,7 @@ public abstract class Program
         _gui = new Gui();
         _win = new GuiWindow(_gui, 1100, 850);
 
-        _win.RunGui(() =>
+        _win.RunGui(static () =>
         {
             // The dashboard's charts animate continuously.
             _gui.RequestFrame();

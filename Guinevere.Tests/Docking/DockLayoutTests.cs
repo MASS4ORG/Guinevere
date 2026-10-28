@@ -135,7 +135,7 @@ public class DockLayoutTests
 
         Assert.Single(layout.Floating);
         Assert.Equal(["inspector"], Assert.IsType<DockLeaf>(window.Root).PanelIds);
-        Assert.DoesNotContain("inspector", layout.Root!.Leaves().SelectMany(l => l.PanelIds));
+        Assert.DoesNotContain("inspector", layout.Root!.Leaves().SelectMany(static l => l.PanelIds));
         // Still part of the layout: it is findable and counted among the panels.
         Assert.True(layout.Contains("inspector"));
     }
@@ -159,7 +159,7 @@ public class DockLayoutTests
         layout.EnsurePanel("tree", DockZone.Left);
         layout.EnsurePanel("output", DockZone.Bottom, 0.3f);
 
-        Assert.Single(layout.PanelIds, id => id == "tree");
+        Assert.Single(layout.PanelIds, static id => id == "tree");
         Assert.True(layout.Contains("output"));
     }
 

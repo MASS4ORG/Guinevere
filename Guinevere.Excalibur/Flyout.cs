@@ -24,7 +24,7 @@ public static partial class ControlsExtensions
         var explicitId = id;
         id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
-        var state = gui.ControlState(id, () => new MenuBarState());
+        var state = gui.ControlState(id, static () => new MenuBarState());
         state.Classes = classes;
         state.StyleId = id;
         state.PopupId = explicitId;
@@ -68,7 +68,7 @@ public static partial class ControlsExtensions
         var maxWidth = minWidth;
         var checkColumnWidth = hasCheckColumn ? 18f : 0f;
 
-        foreach (var item in items.Where(i => !i.IsSeparator))
+        foreach (var item in items.Where(static i => !i.IsSeparator))
         {
             font.MeasureText(item.Text, out var textBounds);
             var itemWidth = textBounds.Width + padding * 2 + checkColumnWidth;

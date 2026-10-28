@@ -95,7 +95,7 @@ public class IconTests
     /// <summary>A missing icon reserves its square and draws nothing.</summary>
     [Fact]
     public void IconNullDrawsNothing() =>
-        Assert.Equal((byte)0, Ink(Render(gui => gui.Icon(null, Surface))).Strongest.A);
+        Assert.Equal((byte)0, Ink(Render(static gui => gui.Icon(null, Surface))).Strongest.A);
 
     /// <summary>Images keep their aspect ratio, centred in the square.</summary>
     [Fact]
@@ -261,9 +261,9 @@ public class IconTests
     [Fact]
     public void FactoriesValidate()
     {
-        Assert.Throws<ArgumentException>(() => Icon.FromGlyph(""));
-        Assert.Throws<ArgumentNullException>(() => Icon.FromImage(null!));
-        Assert.Throws<ArgumentNullException>(() => Icon.FromPicture(null!));
+        Assert.Throws<ArgumentException>(static () => Icon.FromGlyph(""));
+        Assert.Throws<ArgumentNullException>(static () => Icon.FromImage(null!));
+        Assert.Throws<ArgumentNullException>(static () => Icon.FromPicture(null!));
         Assert.True(Icon.FromGlyph("a").Tintable);
     }
 

@@ -109,7 +109,7 @@ public class FormBuilderTests
     {
         var members = FormBuilder.EditableMembers(typeof(Ordered));
 
-        Assert.Equal(FormBuilder.EditableMetadata(typeof(Ordered)).Select(m => m.Member), members);
+        Assert.Equal(FormBuilder.EditableMetadata(typeof(Ordered)).Select(static m => m.Member), members);
         Assert.Same(members, FormBuilder.EditableMembers(typeof(Ordered)));
         Assert.Same(FormBuilder.EditableMetadata(typeof(Ordered)), FormBuilder.EditableMetadata(typeof(Ordered)));
     }
@@ -117,10 +117,10 @@ public class FormBuilderTests
     [Fact]
     public void NullArgumentsAreRejected()
     {
-        Assert.Throws<ArgumentNullException>(() => FormBuilder.Build(null!));
-        Assert.Throws<ArgumentNullException>(() => FormBuilder.Section(null!, "x"));
-        Assert.Throws<ArgumentNullException>(() => FormBuilder.EditableMembers(null!));
-        Assert.Throws<ArgumentNullException>(() => FormBuilder.EditableMetadata(null!));
+        Assert.Throws<ArgumentNullException>(static () => FormBuilder.Build(null!));
+        Assert.Throws<ArgumentNullException>(static () => FormBuilder.Section(null!, "x"));
+        Assert.Throws<ArgumentNullException>(static () => FormBuilder.EditableMembers(null!));
+        Assert.Throws<ArgumentNullException>(static () => FormBuilder.EditableMetadata(null!));
     }
 
     [Fact]
@@ -150,8 +150,8 @@ public class FormBuilderTests
         var target = new Throwing { Fail = true };
         var section = FormBuilder.Section(target, "S");
 
-        Assert.DoesNotContain(section.Fields, field => field.Name == nameof(Throwing.Value));
-        Assert.Contains(section.Fields, field => field.Name == nameof(Throwing.Fail));
+        Assert.DoesNotContain(section.Fields, static field => field.Name == nameof(Throwing.Value));
+        Assert.Contains(section.Fields, static field => field.Name == nameof(Throwing.Fail));
     }
 
     [Fact]
@@ -224,8 +224,8 @@ public class FormBuilderTests
     [Fact]
     public void ButtonHonoursCanInvoke()
     {
-        Assert.False(new Button("B", () => { }, () => false).IsEnabled);
-        Assert.True(new Button("B", () => { }, () => true).IsEnabled);
+        Assert.False(new Button("B", static () => { }, static () => false).IsEnabled);
+        Assert.True(new Button("B", static () => { }, static () => true).IsEnabled);
     }
 
     [Fact]
@@ -260,7 +260,7 @@ public class FormBuilderTests
         Assert.Same(target, inspection.Model.Target);
     }
 
-    static List<string> Names(Type type) => [.. FormBuilder.EditableMembers(type).Select(member => member.Name)];
+    static List<string> Names(Type type) => [.. FormBuilder.EditableMembers(type).Select(static member => member.Name)];
 
     sealed class InjectedAttribute : HideAttribute;
 

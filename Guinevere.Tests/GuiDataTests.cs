@@ -40,7 +40,7 @@ public class GuiDataTests
     public void NodeScopesInheritAndRestoreData()
     {
         using var harness = new FrameHarness();
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             gui.SetData(1, "count");
             var rootColor = gui.Pass == Pass.Pass1Build ? Color.Green : Color.Red;
@@ -172,7 +172,7 @@ public class GuiDataTests
     public void ReferencesRemainStableUntilExplicitClear()
     {
         using var harness = new FrameHarness();
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             ref var value = ref gui.GetData(1, "original");
             for (var i = 0; i < 1000; i++)
@@ -241,7 +241,7 @@ public class GuiDataTests
     public void WarmDataAccessDoesNotAllocate()
     {
         using var harness = new FrameHarness();
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             for (var i = 0; i < 100; i++)
             {

@@ -35,9 +35,9 @@ sealed class FoldingState
     }
 
     static FoldingRange[] Normalize(IReadOnlyList<FoldingRange> ranges) =>
-        [.. ranges.Where(range => range.StartLine >= 0 && range.EndLine > range.StartLine)
-            .OrderBy(range => range.StartLine).ThenByDescending(range => range.EndLine)
-            .DistinctBy(range => range.StartLine)];
+        [.. ranges.Where(static range => range.StartLine >= 0 && range.EndLine > range.StartLine)
+            .OrderBy(static range => range.StartLine).ThenByDescending(static range => range.EndLine)
+            .DistinctBy(static range => range.StartLine)];
 
     /// <summary>The foldable range starting on a line, or null.</summary>
     internal FoldingRange? RangeAt(int line)

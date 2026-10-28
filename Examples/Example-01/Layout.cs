@@ -39,9 +39,9 @@ public partial class Shared
                     Label(gui, p, "AlignContent: click a cell. Direction:");
                     Choice(gui, p, "align-direction", ["Horizontal", "Vertical"],
                         _alignDirection == Axis.Horizontal ? 0 : 1,
-                        index => _alignDirection = index == 0 ? Axis.Horizontal : Axis.Vertical);
-                    Stepper(gui, p, "align-gap", "Gap", _alignGap, 0, 40, value => _alignGap = value);
-                    Stepper(gui, p, "align-count", "Children", _alignCount, 1, 8, value => _alignCount = value);
+                        static index => _alignDirection = index == 0 ? Axis.Horizontal : Axis.Vertical);
+                    Stepper(gui, p, "align-gap", "Gap", _alignGap, 0, 40, static value => _alignGap = value);
+                    Stepper(gui, p, "align-count", "Children", _alignCount, 1, 8, static value => _alignCount = value);
                 }
             }
 
@@ -120,7 +120,8 @@ public partial class Shared
             using (gui.Node().Expand().Direction(Axis.Horizontal).Enter())
             {
                 SizingContainer(gui, p);
-                ResizeHandle(gui, p, "sizing/handle", () => _containerWidth, value => _containerWidth = value, 160f,
+                ResizeHandle(gui, p, "sizing/handle", static () => _containerWidth,
+                    static value => _containerWidth = value, 160f,
                     1100f);
             }
         }

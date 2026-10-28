@@ -244,7 +244,7 @@ public class EditorCommandsTests
     public void UnknownCommandsAreReportedAndCustomOnesRun()
     {
         var state = Editor("a|");
-        EditorCommands.Register("test.shout", s => s.Type("!"));
+        EditorCommands.Register("test.shout", static s => s.Type("!"));
 
         Assert.False(state.Execute("no-such-command"));
         Assert.True(state.Execute("test.shout"));

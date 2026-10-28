@@ -99,5 +99,5 @@ public class AnimationManager
     /// <summary>
     /// Gets the number of currently running boolean animations.
     /// </summary>
-    public int RunningAnimationCount => _boolAnimations.Values.Count(state => state.Animation.IsAnimating);
+    public int RunningAnimationCount => _boolAnimations.Values.Count(static state => state.Animation.IsAnimating);
 }

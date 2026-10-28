@@ -76,7 +76,8 @@ public class InputDevicesTests
         harness.Input.Touch(new TouchContact(1, position, null, TouchPhase.Ended));
         harness.Frame(Draw);
         Assert.Null(harness.Gui.TouchCapture(1));
-        var grid = harness.Gui.RootNode!.Children.Single().Children.Single(node => node.Id == "controller-navigation-grid");
+        var grid = harness.Gui.RootNode!.Children.Single().Children.Single(
+            static node => node.Id == "controller-navigation-grid");
         var firstControl = grid.Children.First();
         harness.Gui.RequestFocus(firstControl.Id);
         harness.Input.SetControllerButton("pad", GameButton.South, false);

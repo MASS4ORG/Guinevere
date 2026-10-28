@@ -25,7 +25,8 @@ public class PanGuiCorpusTests
     static ResolvedStyle Resolve(string fixture, StyleTarget target) => StyleResolver.Resolve([Load(fixture)], target);
 
     static StyleTarget Target(string type, IReadOnlyList<string>? modifiers = null, params string[] ancestors) =>
-        new(type, null, [], Modifiers: modifiers, Ancestors: [.. ancestors.Select(a => new StyleTarget(a, null, []))]);
+        new(type, null, [], Modifiers: modifiers, Ancestors: [.. ancestors.Select(
+            static a => new StyleTarget(a, null, []))]);
 
     /// <summary>The corpus holds every PanGui blog example.</summary>
     [Fact]
@@ -45,7 +46,7 @@ public class PanGuiCorpusTests
 
         Assert.Equal(("60", "ratio(2)"), (style.Get("height"), style.Get("width")));
         Assert.Equal(6, sheet.Deferred.Count);
-        Assert.Contains(sheet.Deferred, d => d.Kind == StyleDeferredKind.BackgroundShape);
+        Assert.Contains(sheet.Deferred, static d => d.Kind == StyleDeferredKind.BackgroundShape);
     }
 
     /// <summary>Descendant, direct-child and nested selectors from the toolbar example.</summary>
@@ -103,7 +104,7 @@ public class PanGuiCorpusTests
         Assert.Equal(("50", "50"), (Resolve("spinner", Target("loading-spinner")).Get("width"),
             Resolve("spinner", Target("loading-spinner")).Get("height")));
         Assert.Equal("true", Resolve("node-example", Target("nodeExample")).Get("clip-content"));
-        Assert.Contains(Load("elevated-gradient").Deferred, d => d.Kind == StyleDeferredKind.Effect);
+        Assert.Contains(Load("elevated-gradient").Deferred, static d => d.Kind == StyleDeferredKind.Effect);
     }
 
     /// <summary><c>@const</c> values substitute and are exposed to the host.</summary>

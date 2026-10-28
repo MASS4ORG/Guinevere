@@ -52,7 +52,7 @@ public class TextLayoutTests
         Assert.True(layout.Lines.Count > 1);
         var rebuilt = string.Join(" ", Enumerable.Range(0, layout.Lines.Count).Select(layout.LineText));
         Assert.Equal(Sentence, rebuilt);
-        Assert.All(layout.Lines, line => Assert.True(line.Width <= 90f + 0.01f));
+        Assert.All(layout.Lines, static line => Assert.True(line.Width <= 90f + 0.01f));
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class TextLayoutTests
         var layout = Layout("A️B");
 
         Assert.Equal(3, layout.OffsetAt(new Vector2(500, 1)));
-        Assert.DoesNotContain(layout.Runs, run => run.Text.Contains('️'));
+        Assert.DoesNotContain(layout.Runs, static run => run.Text.Contains('️'));
         Assert.Equal(layout.CaretBounds(1).X, layout.CaretBounds(2).X, 3);
     }
 

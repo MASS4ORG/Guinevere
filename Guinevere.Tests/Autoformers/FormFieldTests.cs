@@ -223,8 +223,8 @@ public class FormFieldTests
     public void AcceptsNullOverridesDefaultRule()
     {
         var target = new Model();
-        var allowStrings = new FormOptions { AcceptsNull = type => type == typeof(string) };
-        var allowNothing = new FormOptions { AcceptsNull = _ => false };
+        var allowStrings = new FormOptions { AcceptsNull = static type => type == typeof(string) };
+        var allowNothing = new FormOptions { AcceptsNull = static _ => false };
 
         Assert.False(Field(target, nameof(Model.Optional), allowNothing).SetValue(null));
         Assert.True(Field(target, nameof(Model.Name), allowStrings).SetValue(null));

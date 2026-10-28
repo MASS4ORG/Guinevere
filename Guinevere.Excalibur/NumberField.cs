@@ -64,7 +64,7 @@ public static partial class ControlsExtensions
         var node = FieldNode(gui, NumberClass, classes, id, enabled, width, height, padding,
             filePath, lineNumber);
         var nodeId = node.Id;
-        var field = gui.ControlState(nodeId, () => new NumberFieldState());
+        var field = gui.ControlState(nodeId, static () => new NumberFieldState());
 
         var original = value;
         if (gui.Pass == Pass.Pass2Render)

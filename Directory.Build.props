@@ -1,0 +1,11 @@
+<Project>
+    <PropertyGroup>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <Mass4EnforcedDiagnostics>IDE0011;IDE0001;IDE0002;IDE0004;IDE0005;IDE0018;IDE0044</Mass4EnforcedDiagnostics>
+        <Mass4EnforcedDiagnostics>$(Mass4EnforcedDiagnostics);IDE0062;IDE0250;IDE0251;IDE0320</Mass4EnforcedDiagnostics>
+        <Mass4EnforcedDiagnostics>$(Mass4EnforcedDiagnostics);IDE0370;IDE0380;CA1707;IDE1006</Mass4EnforcedDiagnostics>
+        <WarningsAsErrors Condition="'$(CI)' == 'true'">$(WarningsAsErrors);$(Mass4EnforcedDiagnostics)</WarningsAsErrors>
+        <AnalysisLevel>10.0</AnalysisLevel>
+    </PropertyGroup>
+</Project>

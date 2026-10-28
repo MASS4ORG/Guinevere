@@ -158,7 +158,7 @@ public sealed class TextEditorViewTests : IDisposable
     [Fact]
     public void TheWheelScrollsWithinTheDocumentAndCaretMovesRevealThemselves()
     {
-        var state = Editor("|" + string.Join("\n", Enumerable.Range(0, 500).Select(i => $"line {i}")));
+        var state = Editor("|" + string.Join("\n", Enumerable.Range(0, 500).Select(static i => $"line {i}")));
         Frame(state);
         _harness.Input.MoveTo(new Vector2(300, 200));
 
@@ -177,7 +177,7 @@ public sealed class TextEditorViewTests : IDisposable
     [Fact]
     public void LargeDocumentsLayOutOnlyTheVisibleLines()
     {
-        var text = string.Join("\n", Enumerable.Range(0, 100_000).Select(i => $"int value{i} = {i} * 2; // n"));
+        var text = string.Join("\n", Enumerable.Range(0, 100_000).Select(static i => $"int value{i} = {i} * 2; // n"));
         var state = new TextEditorState(text, LanguageServices.ForLanguage("csharp"));
         Frame(state);
         state.ScrollY = 50_000 * 20;
@@ -389,7 +389,7 @@ public sealed class TextEditorViewTests : IDisposable
 
         Assert.Equal(hover, state.Hover);
         Frame(state);
-        Assert.NotNull(FindNode(_node!, node => node.Rect.W >= 300));
+        Assert.NotNull(FindNode(_node!, static node => node.Rect.W >= 300));
     }
 
     sealed class StaticHover(HoverInfo info) : IHoverProvider

@@ -190,8 +190,8 @@ public abstract partial class Program
         return
         [
             .. gui.StyleSheets.MatchedRules(target)
-                .Where(match => ReferenceEquals(match.Sheet, StylingSheet))
-                .SelectMany(match => match.Rule.Lines),
+                .Where(static match => ReferenceEquals(match.Sheet, StylingSheet))
+                .SelectMany(static match => match.Rule.Lines),
         ];
     }
 

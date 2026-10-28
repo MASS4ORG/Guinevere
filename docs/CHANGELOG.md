@@ -6,8 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-- Added: virtualized graph canvas, camera, adaptive grid and minimap #83.
-- Added: graph keyboard navigation and accessibility adapter contracts #87.
+- Added: `Graph` library #62 #83 #84 #85 #87.
 
 ## [6.4.1] - 2026-10-26
 

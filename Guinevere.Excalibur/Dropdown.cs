@@ -152,7 +152,7 @@ public static partial class ControlsExtensions
     }
 
     static DropdownState DropdownStateFor(Gui gui, string id) =>
-        gui.ControlState(id, () => new DropdownState());
+        gui.ControlState(id, static () => new DropdownState());
 
     static void DrawButton(Gui gui, string id, string[] options, int selectedIndex, float width, float height,
         string placeholder, float fontSize, float padding, DropdownState state, bool enabled,

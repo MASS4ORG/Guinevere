@@ -28,7 +28,7 @@ public class RichTextTests
 
         var ranges = text.Content.Ranges;
 
-        Assert.Equal([(0, 2), (2, 4), (4, 6)], ranges.Select(range => (range.Start, range.End)));
+        Assert.Equal([(0, 2), (2, 4), (4, 6)], ranges.Select(static range => (range.Start, range.End)));
         Assert.Equal(Color.Red, ranges[0].Style.Color);
         Assert.Equal(Color.Blue, ranges[1].Style.Color);
         Assert.Equal(700, ranges[1].Style.Weight);
@@ -90,7 +90,7 @@ public class RichTextTests
     {
         var text = new RichText().Append("see ").AppendLink("docs", "https://example.com").Append(" now");
         var layout = Layout(text);
-        var link = layout.Runs.Single(run => run.LinkIndex >= 0);
+        var link = layout.Runs.Single(static run => run.LinkIndex >= 0);
 
         var hit = layout.LinkAt(new Vector2(link.X + link.Width * 0.5f, 2f));
 
@@ -105,7 +105,7 @@ public class RichTextTests
     {
         using var image = Image(20, 30);
         var layout = Layout(new RichText().Append("a").AppendImage(image, 20, 30).Append("b"));
-        var run = layout.Runs.Single(value => value.Image is not null);
+        var run = layout.Runs.Single(static value => value.Image is not null);
 
         Assert.Equal(20f, run.Width, 3);
         Assert.True(layout.Height >= 30f);
@@ -120,7 +120,7 @@ public class RichTextTests
         using var image = Image(4, 4);
         var text = new RichText("abcd").Image(1, 2, image, 4, 4).Style(0, 2, TextSpanStyle.Bold);
 
-        Assert.DoesNotContain(text.Content.Ranges, range => range.Start == 2);
+        Assert.DoesNotContain(text.Content.Ranges, static range => range.Start == 2);
     }
 
     [Fact]

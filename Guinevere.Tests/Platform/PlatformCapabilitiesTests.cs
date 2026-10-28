@@ -76,10 +76,10 @@ public class PlatformCapabilitiesTests
 
         var failures = PlatformConformance.Validate(platform);
 
-        Assert.Contains(failures, failure => failure.Contains(nameof(IInputHandler)));
-        Assert.Contains(failures, failure => failure.Contains(nameof(ICanvasRenderer)));
-        Assert.Contains(failures, failure => failure.Contains(nameof(IDisplayCapability.ScaleFactor)));
-        Assert.Contains(failures, failure => failure.Contains(nameof(IDisplayCapability.LogicalSize)));
-        Assert.Contains(failures, failure => failure.Contains(nameof(IDisplayCapability.FramebufferSize)));
+        Assert.Contains(failures, static failure => failure.Contains(nameof(IInputHandler)));
+        Assert.Contains(failures, static failure => failure.Contains(nameof(ICanvasRenderer)));
+        Assert.Contains(failures, static failure => failure.Contains(nameof(IDisplayCapability.ScaleFactor)));
+        Assert.Contains(failures, static failure => failure.Contains(nameof(IDisplayCapability.LogicalSize)));
+        Assert.Contains(failures, static failure => failure.Contains(nameof(IDisplayCapability.FramebufferSize)));
     }
 }

@@ -31,7 +31,7 @@ public partial class Shared
             {
                 if (Button(gui, p, _blendWide ? "Shrink to 120px" : "Grow to 70%", id: "blend/toggle"))
                 {
-                    Later(() => _blendWide = !_blendWide);
+                    Later(static () => _blendWide = !_blendWide);
                 }
 
                 Label(gui, p, "UnitValue.Lerp(Pixels(120), Percentage(0.7), t): layout units animate like numbers");
@@ -66,7 +66,8 @@ public partial class Shared
             using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
             {
                 Label(gui, p, "Loop duration");
-                Choice(gui, p, "easing-duration", EasingDurations, _easingDuration, index => _easingDuration = index);
+                Choice(gui, p, "easing-duration", EasingDurations, _easingDuration,
+                    static index => _easingDuration = index);
             }
 
             for (var i = 0; i < curves.Length; i++)

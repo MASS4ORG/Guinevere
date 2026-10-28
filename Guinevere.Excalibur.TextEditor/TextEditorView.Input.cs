@@ -150,7 +150,7 @@ sealed partial class TextEditorView
             return;
         }
 
-        foreach (var key in _state.Keymap.Bindings.Keys.Select(chord => chord.Key).Distinct())
+        foreach (var key in _state.Keymap.Bindings.Keys.Select(static chord => chord.Key).Distinct())
         {
             if (input.IsKeyPressed(key) && _state.Keymap.CommandFor(new KeyChord(key, modifiers)) is { } command)
             {
@@ -188,7 +188,7 @@ sealed partial class TextEditorView
             return;
         }
 
-        var text = new string([.. typed.Where(c => c >= ' ' && c != '\x7f')]);
+        var text = new string([.. typed.Where(static c => c >= ' ' && c != '\x7f')]);
         if (text.Length > 0)
         {
             _state.Type(text);

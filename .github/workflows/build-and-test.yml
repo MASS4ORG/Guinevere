@@ -37,7 +37,7 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Restore, compile and test
-        run: ./build.sh Restore Compile TestReport --configuration "Debug" --verbosity minimal
+        run: ./build.sh TestReport --configuration Release --verbosity minimal
 
       - name: Upload coverage report
         if: always()

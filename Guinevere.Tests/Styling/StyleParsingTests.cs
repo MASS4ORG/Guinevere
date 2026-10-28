@@ -156,9 +156,9 @@ public class StyleParsingTests
     [Fact]
     public void SelectorRejectsMalformedCombinators()
     {
-        Assert.Throws<FormatException>(() => Selector.Parse("> Button"));
-        Assert.Throws<FormatException>(() => Selector.Parse("Panel >"));
-        Assert.Throws<FormatException>(() => Selector.Parse("Panel >> Button"));
+        Assert.Throws<FormatException>(static () => Selector.Parse("> Button"));
+        Assert.Throws<FormatException>(static () => Selector.Parse("Panel >"));
+        Assert.Throws<FormatException>(static () => Selector.Parse("Panel >> Button"));
     }
 
     /// <summary>
@@ -232,6 +232,6 @@ public class StyleParsingTests
     [Fact]
     public void SheetUnterminatedRuleThrows()
     {
-        Assert.Throws<StyleSheetException>(() => StyleSheet.Parse(".x { color = red "));
+        Assert.Throws<StyleSheetException>(static () => StyleSheet.Parse(".x { color = red "));
     }
 }

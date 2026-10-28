@@ -12,8 +12,8 @@ public class TextLayoutOptionsTests
         var lines = WrappedTextLayout.Wrap("abcdefgh", 3f, Measure,
             new TextLayoutOptions { WrapMode = TextWrapMode.WordThenCharacter });
 
-        Assert.Equal(["abc", "def", "gh"], lines.Select(line => line.Text));
-        Assert.Equal([0, 3, 6], lines.Select(line => line.Start));
+        Assert.Equal(["abc", "def", "gh"], lines.Select(static line => line.Text));
+        Assert.Equal([0, 3, 6], lines.Select(static line => line.Start));
     }
 
     [Fact]
@@ -32,8 +32,8 @@ public class TextLayoutOptionsTests
         var lines = WrappedTextLayout.Wrap("🙂🙂", 2f, Measure,
             new TextLayoutOptions { WrapMode = TextWrapMode.Character });
 
-        Assert.Equal(["🙂", "🙂"], lines.Select(line => line.Text));
-        Assert.Equal([0, 2], lines.Select(line => line.Start));
+        Assert.Equal(["🙂", "🙂"], lines.Select(static line => line.Text));
+        Assert.Equal([0, 2], lines.Select(static line => line.Start));
     }
 
     [Fact]
@@ -41,8 +41,8 @@ public class TextLayoutOptionsTests
     {
         var lines = WrappedTextLayout.Wrap("a\n  \nb", 10f, Measure);
 
-        Assert.Equal(["a", "", "b"], lines.Select(line => line.Text));
-        Assert.Equal([0, 2, 5], lines.Select(line => line.Start));
+        Assert.Equal(["a", "", "b"], lines.Select(static line => line.Text));
+        Assert.Equal([0, 2, 5], lines.Select(static line => line.Start));
     }
 
     [Fact]
@@ -68,15 +68,15 @@ public class TextLayoutOptionsTests
     {
         var lines = WrappedTextLayout.Wrap("a  b c", 4f, Measure);
 
-        Assert.Equal(["a  b", "c"], lines.Select(line => line.Text));
+        Assert.Equal(["a  b", "c"], lines.Select(static line => line.Text));
     }
 
     [Fact]
     public void InvalidOptionsThrow()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<ArgumentOutOfRangeException>(static () =>
             WrappedTextLayout.Wrap("a", 1f, Measure, new TextLayoutOptions { LineHeight = 0f }));
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<ArgumentOutOfRangeException>(static () =>
             WrappedTextLayout.Wrap("a", 1f, Measure, new TextLayoutOptions { MaxLines = -1 }));
     }
 
@@ -85,7 +85,7 @@ public class TextLayoutOptionsTests
     {
         var lines = WrappedTextLayout.Wrap("one\ntwo", 0f, Measure);
 
-        Assert.Equal([0, 4], lines.Select(line => line.Start));
+        Assert.Equal([0, 4], lines.Select(static line => line.Start));
     }
 
     [Fact]

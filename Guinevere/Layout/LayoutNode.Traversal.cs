@@ -130,8 +130,8 @@ public partial class LayoutNode
         return GetAncestors()
             .Reverse()
             .Append(this)
-            .Select(node => node.Id)
-            .Aggregate((path, id) => $"{path}/{id}");
+            .Select(static node => node.Id)
+            .Aggregate(static (path, id) => $"{path}/{id}");
     }
 
     /// <summary>

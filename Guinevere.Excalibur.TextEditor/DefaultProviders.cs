@@ -212,8 +212,9 @@ public sealed class WordCompletionProvider : ICompletionProvider
         var prefix = buffer.GetText(start, offset - start);
         var (from, text) = Window(buffer, offset);
         var counts = CountMatches(text, from, start, prefix);
-        var items = counts.OrderByDescending(pair => pair.Value).ThenBy(pair => pair.Key, StringComparer.Ordinal)
-            .Take(MaxItems).Select(pair => new CompletionItem(pair.Key)).ToList();
+        var items = counts.OrderByDescending(static pair => pair.Value).ThenBy(
+            static pair => pair.Key, StringComparer.Ordinal)
+            .Take(MaxItems).Select(static pair => new CompletionItem(pair.Key)).ToList();
         return items.Count == 0 ? null : new CompletionList(start, items);
     }
 

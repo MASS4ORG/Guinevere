@@ -1,7 +1,7 @@
 using Guinevere;
 using Guinevere.Graphs;
 
-namespace Example05;
+namespace Example93;
 
 /// <summary>A view-only stress sample with 10,000 tiles and no semantic graph document.</summary>
 public static class Program

@@ -13,7 +13,7 @@ public class DemoHeaderTests
         using var resource = typeof(DemoHeader).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png");
         Assert.NotNull(resource);
         using var frame = new FrameHarness();
-        frame.Frame(gui => DemoHeader.Header(gui, "Demo"));
-        frame.Frame(gui => DemoHeader.Header(gui, "Demo"));
+        frame.Frame(static gui => DemoHeader.Header(gui, "Demo"));
+        frame.Frame(static gui => DemoHeader.Header(gui, "Demo"));
     }
 }

@@ -15,10 +15,10 @@ public class GuiFrameRequestsTests
         harness.Gui.RequestFrame();
         Assert.Equal(0, harness.Gui.FrameWaitSeconds);
 
-        harness.Frame(_ => { });
+        harness.Frame(static _ => { });
         Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
 
-        harness.Frame(gui => gui.RequestFrame());
+        harness.Frame(static gui => gui.RequestFrame());
         Assert.Equal(0, harness.Gui.FrameWaitSeconds);
     }
 
@@ -38,13 +38,13 @@ public class GuiFrameRequestsTests
         gui.RequestFrameIn(5);
         Assert.InRange(gui.FrameWaitSeconds, 0.5, 1);
 
-        harness.Frame(_ => { });
+        harness.Frame(static _ => { });
         Assert.InRange(gui.FrameWaitSeconds, 0.5, 1);
 
         gui.RequestFrameIn(0.001);
         Thread.Sleep(5);
         Assert.Equal(0, gui.FrameWaitSeconds);
-        harness.Frame(_ => { });
+        harness.Frame(static _ => { });
         Assert.Equal(double.PositiveInfinity, gui.FrameWaitSeconds);
 
         gui.RequestFrameIn(0);

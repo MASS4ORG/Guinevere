@@ -420,10 +420,10 @@ public class ColorPickerTests
     [Fact]
     public void ExtensionPointsHaveNames()
     {
-        Assert.Equal(["RGB", "HSV", "HSL"], ColorPickerModes.Default.Select(mode => mode.Name));
+        Assert.Equal(["RGB", "HSV", "HSL"], ColorPickerModes.Default.Select(static mode => mode.Name));
         Assert.Equal("Linear", ColorPickerModes.Linear.Name);
-        Assert.Equal(["Rectangle", "Wheel"], ColorPickerShapes.All.Select(shape => shape.Name));
-        Assert.Equal([HsvChannel.Hue, HsvChannel.Value], ColorPickerShapes.All.Select(shape => shape.Companion));
+        Assert.Equal(["Rectangle", "Wheel"], ColorPickerShapes.All.Select(static shape => shape.Name));
+        Assert.Equal([HsvChannel.Hue, HsvChannel.Value], ColorPickerShapes.All.Select(static shape => shape.Companion));
     }
 
     /// <summary>Per-GUI defaults apply when no options are passed and can be reset.</summary>

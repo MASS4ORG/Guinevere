@@ -56,7 +56,7 @@ public class FormRendererTests
         var (typed, predicate) = (new Recording(), new Recording());
         var drawers = new FormDrawers();
         using var a = drawers.Add(typeof(int), typed);
-        using var b = drawers.Add(_ => true, predicate);
+        using var b = drawers.Add(static _ => true, predicate);
 
         Render(new FormRenderContext { Drawers = drawers }, Field(new Settings(), nameof(Settings.Count)));
 
@@ -70,7 +70,7 @@ public class FormRendererTests
         var (typed, predicate) = (new Recording(), new Recording());
         var drawers = new FormDrawers();
         using var a = drawers.Add(typeof(int), typed);
-        using var b = drawers.Add(_ => true, predicate);
+        using var b = drawers.Add(static _ => true, predicate);
 
         Render(new FormRenderContext { Drawers = drawers }, Field(new Settings(), nameof(Settings.Locked)));
 
@@ -98,7 +98,11 @@ public class FormRendererTests
     [Fact]
     public void CanInlineFalseDrawsTheNestedObjectAsASummary()
     {
-        var gui = Render(new FormRenderContext { CanInline = _ => false }, Field(new Settings(), nameof(Settings.Inner)));
+        var gui = Render(new FormRenderContext
+        {
+            CanInline =
+            static _ => false
+        }, Field(new Settings(), nameof(Settings.Inner)));
 
         Assert.Null(Find(gui, "f0/body"));
         Assert.NotNull(Find(gui, "f0/label"));
@@ -170,7 +174,7 @@ public class FormRendererTests
     {
         var target = new Settings();
         var drawers = new FormDrawers();
-        using var _ = drawers.Add(_ => true, new Writing(42));
+        using var _ = drawers.Add(static _ => true, new Writing(42));
 
         Render(new FormRenderContext { Drawers = drawers },
             Field(target, nameof(Settings.Inner), new FormOptions { ReadOnly = true }));
@@ -213,7 +217,7 @@ public class FormRendererTests
     public void ModifiedFieldsDrawTheirRows()
     {
         var target = new Settings();
-        var gui = Render(new FormRenderContext { IsModified = _ => true }, Field(target, nameof(Settings.Count)),
+        var gui = Render(new FormRenderContext { IsModified = static _ => true }, Field(target, nameof(Settings.Count)),
             Field(target, nameof(Settings.Names)), Field(target, nameof(Settings.Inner)));
 
         Assert.NotNull(Find(gui, "f0/label"));

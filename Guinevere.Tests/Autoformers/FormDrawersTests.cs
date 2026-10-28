@@ -17,9 +17,10 @@ public class FormDrawersTests
         Assert.NotNull(FormDrawers.Default.AttributeDrawer(typeof(TooltipAttribute)));
         Assert.Null(FormDrawers.Default.TypeDrawer(typeof(int)));
 
-        Assert.Throws<InvalidOperationException>(() => FormDrawers.Default.Add(typeof(int), new Recording()));
-        Assert.Throws<InvalidOperationException>(() => FormDrawers.Default.Add(_ => true, new Recording()));
-        Assert.Throws<InvalidOperationException>(() => FormDrawers.Default.Add<RangeAttribute>(new Decorator()));
+        Assert.Throws<InvalidOperationException>(static () => FormDrawers.Default.Add(typeof(int), new Recording()));
+        Assert.Throws<InvalidOperationException>(static () => FormDrawers.Default.Add(
+            static _ => true, new Recording()));
+        Assert.Throws<InvalidOperationException>(static () => FormDrawers.Default.Add<RangeAttribute>(new Decorator()));
     }
 
     [Fact]
@@ -85,13 +86,13 @@ public class FormDrawersTests
         var parentEarly = new Recording();
         var childLate = new Recording();
         var parentLate = new Recording();
-        var field = FormField.Display("x", new object(), () => 1);
+        var field = FormField.Display("x", new object(), static () => 1);
 
-        using var a = parent.Add(_ => true, parentLate, order: 1);
-        using var b = child.Add(_ => true, childLate, order: 1);
+        using var a = parent.Add(static _ => true, parentLate, order: 1);
+        using var b = child.Add(static _ => true, childLate, order: 1);
         Assert.Same(childLate, child.PredicateDrawer(field));
 
-        var c = parent.Add(_ => true, parentEarly, order: -1);
+        var c = parent.Add(static _ => true, parentEarly, order: -1);
         Assert.Same(parentEarly, child.PredicateDrawer(field));
 
         c.Dispose();
@@ -102,9 +103,9 @@ public class FormDrawersTests
     public void PredicateThatRejectsIsSkipped()
     {
         var drawers = new FormDrawers();
-        using var _ = drawers.Add(field => field.ValueType == typeof(string), new Recording());
+        using var _ = drawers.Add(static field => field.ValueType == typeof(string), new Recording());
 
-        Assert.Null(drawers.PredicateDrawer(FormField.Display("x", new object(), () => 1)));
+        Assert.Null(drawers.PredicateDrawer(FormField.Display("x", new object(), static () => 1)));
     }
 
     [Fact]
@@ -194,8 +195,8 @@ public class FormDrawersTests
             }
             """;
         var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(assembly => !assembly.IsDynamic && assembly.Location.Length > 0)
-            .Select(assembly => MetadataReference.CreateFromFile(assembly.Location));
+            .Where(static assembly => !assembly.IsDynamic && assembly.Location.Length > 0)
+            .Select(static assembly => MetadataReference.CreateFromFile(assembly.Location));
         var compilation = CSharpCompilation.Create("FormsPlugin", [CSharpSyntaxTree.ParseText(source)], references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 

@@ -31,7 +31,7 @@ public sealed record DemoPage(string Group, string Title, string Summary, Type? 
 
         using var reader = new StreamReader(stream);
         var lines = reader.ReadToEnd().ReplaceLineEndings("\n").Split('\n')
-            .SkipWhile(line => line.StartsWith("using ", StringComparison.Ordinal)
+            .SkipWhile(static line => line.StartsWith("using ", StringComparison.Ordinal)
                                || line.StartsWith("namespace ", StringComparison.Ordinal)
                                || line.Length == 0);
         return string.Join('\n', lines).TrimEnd();

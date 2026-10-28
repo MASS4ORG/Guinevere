@@ -126,7 +126,7 @@ public sealed class TextLayout
     public IReadOnlyList<TextLink> Links => _links;
 
     /// <summary>Whether lines were removed by the line limit.</summary>
-    public bool IsTruncated => _runs.Length > 0 && Array.Exists(_runs, run => run.IsMarker);
+    public bool IsTruncated => _runs.Length > 0 && Array.Exists(_runs, static run => run.IsMarker);
 
     /// <summary>The drawn characters of one line, including a truncation marker.</summary>
     public string LineText(int line)

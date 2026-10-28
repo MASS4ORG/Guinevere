@@ -21,7 +21,7 @@ public sealed class Selector
     Selector(Part[] parts)
     {
         _parts = parts;
-        Specificity = parts.Sum(p => (p.Id is null ? 0 : 100)
+        Specificity = parts.Sum(static p => (p.Id is null ? 0 : 100)
                                      + (p.Classes.Length + p.Modifiers.Length + PopCount(p.State)) * 10
                                      + (p.Type is null or "*" ? 0 : 1));
     }
