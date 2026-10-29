@@ -21,6 +21,8 @@ public sealed partial class GraphDocumentView
         Editor = editor;
         Canvas = canvas ?? new GraphCanvas();
         Canvas.Navigation.EditRequested = EditFromNavigation;
+        Canvas.Navigation.GroupActivated = key => SetGroupCollapsed(ElementId.Parse(key),
+            !Editor.Document.CollapsedGroups.Contains(ElementId.Parse(key)));
         Canvas.EditorActionRequested = HandleAccessibilityAction;
         Canvas.EditorActions = EditorSemanticActions;
         Canvas.Overlays.Add(new MarqueeOverlay(this));
@@ -104,15 +106,31 @@ public sealed partial class GraphDocumentView
         _nodes.Clear();
         _ports.Clear();
         _connectors.Clear();
+        PrepareGroups();
         foreach (var node in Editor.Document.Nodes)
         {
-            AddNodeViews(node);
+            if (Editor.Document.CollapsedContainer(node.Id) is null)
+            {
+                AddNodeViews(node);
+            }
         }
+        AddBoundaryPorts();
+        AddEdgeViews();
+        Canvas.Navigation.Update(_views);
+    }
+
+    void AddEdgeViews()
+    {
         var edges = new List<GraphElementView>();
         foreach (var edge in Editor.Document.Edges)
         {
+            if (InternalCollapsedEdge(edge))
+            {
+                continue;
+            }
             var connector = new GraphConnector(_ports[edge.Source], _ports[edge.Target], Routing);
-            if (RouteLink is { } route && CanPresent(Editor.Document.GetNode(Editor.Document.GetPort(edge.Source).NodeId), out _)
+            if (RouteLink is { } route && !HasCollapsedEndpoint(edge)
+                && CanPresent(Editor.Document.GetNode(Editor.Document.GetPort(edge.Source).NodeId), out _)
                 && CanPresent(Editor.Document.GetNode(Editor.Document.GetPort(edge.Target).NodeId), out _))
             {
                 connector = route(edge, connector);
@@ -123,20 +141,13 @@ public sealed partial class GraphDocumentView
                 TypeName: "Connection", Error: DiagnosticText(id => id == edge.Id),
                 SourceKey: edge.Source.ToString(), TargetKey: edge.Target.ToString()));
         }
-        _views.InsertRange(0, edges);
-        Canvas.Navigation.Update(_views);
+        _views.InsertRange(_views.Count(static item => item.Role == GraphElementRole.Group), edges);
     }
 
     void AddNodeViews(GraphNode node)
     {
         var position = EnsurePosition(node.Id);
-        var (title, error) = DescribeNode(node);
-        var known = CanPresent(node, out var type);
-        var view = new GraphElementView(node.Id.ToString(), GraphElementRole.Node,
-            new GraphBounds(position.X, position.Y, NodeWidth(node), NodeHeight(node)), title,
-            TypeName: type?.DisplayName ?? "Unavailable node",
-            Error: error ?? DiagnosticText(id => NamesNode(node.Id, id)),
-            StateDescription: known ? NodeState?.Invoke(node) : "Unavailable; authored data preserved.");
+        var view = NodeView(node, position);
         _nodes.Add(view);
         _views.Add(view);
         var input = 0;
@@ -147,6 +158,19 @@ public sealed partial class GraphDocumentView
             var row = isInput ? input++ : output++;
             AddPortView(port, position, row);
         }
+    }
+
+    GraphElementView NodeView(GraphNode node, GraphPoint position)
+    {
+        var (title, error) = DescribeNode(node);
+        var known = CanPresent(node, out var type);
+        var view = new GraphElementView(node.Id.ToString(), GraphElementRole.Node,
+            new GraphBounds(position.X, position.Y, NodeWidth(node), NodeHeight(node)), title,
+            ParentKey: Editor.Document.GroupOf(node.Id)?.ToString(),
+            TypeName: type?.DisplayName ?? "Unavailable node",
+            Error: error ?? DiagnosticText(id => NamesNode(node.Id, id)),
+            StateDescription: known ? NodeState?.Invoke(node) : "Unavailable; authored data preserved.");
+        return view;
     }
 
     GraphPoint EnsurePosition(ElementId node)
@@ -252,6 +276,10 @@ public sealed partial class GraphDocumentView
 
     CommandResult Delete(ElementId key)
     {
+        if (Editor.Document.TryGetGroup(key, out _))
+        {
+            return Accept(Editor.Execute(new RemoveGroupCommand(key)));
+        }
         if (Editor.Document.TryGetEdge(key, out _))
         {
             return Accept(Editor.Execute(new DisconnectCommand(key)));

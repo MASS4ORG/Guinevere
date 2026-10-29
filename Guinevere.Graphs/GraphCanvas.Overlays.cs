@@ -56,13 +56,15 @@ public sealed partial class GraphCanvas
         var tile = gui.ResolvePart("graph-minimap-node");
         foreach (var item in _items)
         {
-            if (item.Role == GraphElementRole.Node)
+            if (MinimapTile(item))
             {
                 gui.DrawRectFilled(mapping.Map(item.Bounds), GraphStyles.Color(tile, "background-color"));
             }
         }
         gui.DrawStyledBox(gui.ResolvePart("graph-minimap-viewport"), mapping.Viewport);
     }
+
+    static bool MinimapTile(GraphElementView item) => item.Role is GraphElementRole.Node or GraphElementRole.Group;
 
     void MoveMinimap(LayoutNode node, DragEvent e)
     {

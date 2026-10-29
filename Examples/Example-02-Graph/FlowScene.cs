@@ -67,7 +67,9 @@ public sealed class FlowScene
         }
     }
 
-    void MarkDirty(GraphDocument document, IReadOnlyList<GraphChange> changes) => _dirty = true;
+    void MarkDirty(GraphDocument document, IReadOnlyList<GraphChange> changes) =>
+        _dirty |= changes.Any(static change => change.Kind is not (GraphChangeKind.LayoutChanged
+            or GraphChangeKind.GroupAdded or GraphChangeKind.GroupRemoved or GraphChangeKind.GroupChanged));
 
     void AttachDocument()
     {

@@ -250,6 +250,7 @@ public static partial class ControlsExtensions
             }
 
             UpdateMenuBarTitle(state, index, hovered, clicked || MenuKeyboardActivated(gui));
+            PublishMenuSemantics(gui, menu.Title, true, false);
         }
         gui.DrawText(menu.Title, fontSize, centerInRect: false);
     }
@@ -379,6 +380,7 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render)
         {
             HandleMenuRow(gui, state, item, index, depth);
+            PublishMenuSemantics(gui, item.Text, item.Enabled, item.IsChecked?.Invoke() == true);
         }
 
         RenderMenuRowContent(gui, state, item, hasCheckColumn, fontSize);

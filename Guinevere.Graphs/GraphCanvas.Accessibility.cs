@@ -108,6 +108,7 @@ public sealed partial class GraphCanvas
         {
             GraphElementRole.Graph => [.. SurfaceActions, .. EditorActions?.Invoke() ?? []],
             GraphElementRole.Node => NodeActions,
+            GraphElementRole.Group => NodeActions,
             GraphElementRole.Port => PortActions,
             _ => ItemActions
         };

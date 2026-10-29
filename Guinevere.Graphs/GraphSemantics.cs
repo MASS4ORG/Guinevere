@@ -10,7 +10,9 @@ public enum GraphElementRole
     /// <summary>A connection endpoint owned by a node.</summary>
     Port,
     /// <summary>A connection between two endpoints.</summary>
-    Edge
+    Edge,
+    /// <summary>An authored frame containing nodes and nested groups.</summary>
+    Group
 }
 
 /// <summary>

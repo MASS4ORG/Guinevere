@@ -191,6 +191,8 @@ Default tokens: `$base-background`, `$surface`, `$surface-hover`, `$surface-acti
 
 ## Buttons and selection
 
+`IconButton(icon, "Readable action name")` accepts a core `Icon` containing a glyph, image or vector picture. Tintable pictures follow the button's PSS text color without depending on a particular icon font. The readable name is published to the control semantics sink. Menu titles/items also publish labels and checked/disabled state; dropdowns publish their label, value and open state and support Enter/Space, Up/Down, Home/End and Escape from the keyboard.
+
 ```csharp
 if (gui.Button("Build")) Build();
 gui.Checkbox(ref _enabled, "Enable feature");

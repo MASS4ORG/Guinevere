@@ -93,6 +93,8 @@ public sealed partial class GraphDocumentView
 
     void ResolveGeometry(Gui gui)
     {
+        _groupStyle = gui.ResolvePart("graph-group");
+        _groupHeaderStyle = gui.ResolvePart("graph-group-header");
         _headerStyle = gui.ResolvePart("graph-header");
         _contentStyle = gui.ResolvePart("graph-content");
         _nodeStyles.Clear();

@@ -11,11 +11,14 @@ public sealed partial class GraphDocumentView
     /// <summary>Copies selected nodes and their internal links using the core's payload serializers and format.</summary>
     public string CopySelection()
     {
-        var selected = SelectedNodes().Select(static node => node.Id).ToHashSet();
+        var selected = Editor.Document.Nodes.Where(node => MovesWithSelection(node.Id))
+            .Select(static node => node.Id).ToHashSet();
         var root = JsonNode.Parse(Serialize())!.AsObject();
         FilterClipboardNodes(root, selected);
-        var ports = SelectedNodes().SelectMany(static node => node.Ports).Select(static port => port.Id).ToHashSet();
+        var ports = Editor.Document.Nodes.Where(node => selected.Contains(node.Id))
+            .SelectMany(static node => node.Ports).Select(static port => port.Id).ToHashSet();
         FilterClipboardEdges(root, ports);
+        FilterClipboardGroups(root, selected);
         root.Remove("guinevere");
         return root.ToJsonString();
     }
@@ -54,7 +57,7 @@ public sealed partial class GraphDocumentView
         {
             return Accept(new CommandResult(false, loaded.Diagnostics));
         }
-        if (source.Nodes.Count == 0)
+        if (source.Nodes.Count == 0 && source.Groups.Count == 0)
         {
             return Accept(new CommandResult(false, []));
         }
@@ -70,7 +73,9 @@ public sealed partial class GraphDocumentView
         var identities = ClipboardIdentities(source, additions);
         var steps = PasteCommands(source, additions, identities, offset);
         return ExecuteEdit(new CompositeCommand("Paste nodes", steps),
-            [.. additions.Values.Select(static add => add.NodeId.ToString())]);
+            [.. source.ChildGroups(null).Select(group => identities[group.Id].ToString()),
+                .. source.Nodes.Where(node => source.GroupOf(node.Id) is null)
+                    .Select(node => additions[node.Id].NodeId.ToString())]);
     }
 
     string? ClipboardProblem(GraphDocument source)
@@ -87,9 +92,16 @@ public sealed partial class GraphDocumentView
         {
             return "The selection contains preserved ports that the insertion API cannot recreate.";
         }
-        return source.Variables.Any(variable => !Editor.Document.TryGetVariable(variable.Id, out var existing)
-            || existing != variable) ? "The selection references variables not present in this document." : null;
+        if (source.Groups.Any(static group => group.Extensions.Count > 0))
+        {
+            return "The selection contains group extensions that the insertion API cannot preserve.";
+        }
+        return ClipboardVariablesProblem(source);
     }
+
+    string? ClipboardVariablesProblem(GraphDocument source) =>
+        source.Variables.Any(variable => !Editor.Document.TryGetVariable(variable.Id, out var existing)
+            || existing != variable) ? "The selection references variables not present in this document." : null;
 
     static bool UnsupportedClipboardData(GraphNode node) => node.Payload is UnknownPayload
         || node.Extensions.Count > 0 || node.Annotations.Values.Any(static value => value is UnknownPayload);
@@ -123,6 +135,7 @@ public sealed partial class GraphDocumentView
                 [new LayoutEdit(add.NodeId, default, position)]));
         }
         steps.AddRange(source.Edges.Select(edge => new ConnectCommand(identities[edge.Source], identities[edge.Target], identities[edge.Id])));
+        AddPasteGroups(source, identities, steps);
         return steps;
     }
 
@@ -143,6 +156,10 @@ public sealed partial class GraphDocumentView
         {
             identities.Add(edge.Id, ElementId.New());
         }
+        foreach (var group in source.Groups)
+        {
+            identities.Add(group.Id, ElementId.New());
+        }
         return identities;
     }
 
@@ -151,7 +168,19 @@ public sealed partial class GraphDocumentView
     {
         ArgumentNullException.ThrowIfNull(writeClipboard);
         writeClipboard(CopySelection());
-        return DeleteSelection();
+        var keys = SelectionOrFocus().Concat(ClipboardGroupIds().Select(static id => id.ToString()))
+            .Concat(Editor.Document.Nodes.Where(node => MovesWithSelection(node.Id))
+                .Select(static node => node.Id.ToString())).ToArray();
+        var steps = DeletionCommands(keys);
+        if (steps.Count == 0)
+        {
+            return Accept(new CommandResult(false, []));
+        }
+        if (Canvas.Navigation.ConnectionSourceKey is not null)
+        {
+            Canvas.Navigation.Back();
+        }
+        return ExecuteEdit(new CompositeCommand("Cut selection", steps), []);
     }
 
     /// <summary>Duplicates selected cards and their internal links with an optional world offset.</summary>

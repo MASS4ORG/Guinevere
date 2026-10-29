@@ -63,7 +63,6 @@ public sealed partial class SandboxScene
             button("Undo", "undo", () => View.Undo());
             button("Redo", "redo", () => View.Redo());
             button("Frame all", "frame-all", Canvas.FitAll);
-            button("Reset layout", "reset-layout", ResetLayout);
         }
         DrawEditingOptions(gui, button);
         if (_paletteOpen)
@@ -101,39 +100,20 @@ public sealed partial class SandboxScene
 
     void StepButton(Gui gui, GraphNodeVisual visual, string label, string id, float delta)
     {
-        using var scope = gui.StyledNode("graph-stepper", id: id).Width(30).Height(26).AlignContent(0.5f, 0.5f).Enter();
-        var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button,
-            Label: $"{(delta < 0 ? "Decrease" : "Increase")} {visual.View.Name}"));
+        using var scope = gui.Node().Width(30).Height(26).Enter();
         gui.CurrentNode.On<PointerDownEvent>(static e => e.StopPropagation());
-        if (result.Activated)
+        var name = $"{(delta < 0 ? "Decrease" : "Increase")} {visual.View.Name}";
+        if (gui.IconButton(DemoIcons.Actions[delta < 0 ? "Decrease" : "Add node"], name, size: 26, id: id))
         {
             _pending.Enqueue(() => Step(visual.Node.Id, delta));
             gui.RequestFrame();
         }
-        gui.DrawText(label);
     }
 
     void DrawPalette(Gui gui, Action<string, string, Action> button)
     {
         using var box = gui.Node().ExpandWidth().Direction(Axis.Vertical).Gap(8).Enter();
-        using (var search = gui.StyledNode("graph-search", id: "node-search").Width(360).Height(32).Padding(8).Enter())
-        {
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                gui.RegisterFocusable();
-                gui.ControlSemantics?.Publish(new ControlSemantics("node-search", ControlRole.None,
-                    "Search node types", _query, gui.CurrentNode.Rect,
-                    gui.HasFocus() ? ControlVisualState.Focused : ControlVisualState.None));
-            }
-            gui.CurrentNode.On<PointerDownEvent>(_ => gui.Focus.RequestFocus("node-search"));
-            gui.CurrentNode.On<TextInputEvent>(e =>
-            {
-                _query += e.Text;
-                e.PreventDefault();
-            });
-            gui.CurrentNode.On<KeyDownEvent>(e => SearchKey(gui, e));
-            gui.DrawText(_query.Length == 0 ? "Search node types…" : _query);
-        }
+        DemoControls.TextInput(gui, ref _query, "Search node types", "node-search", onKey: e => SearchKey(gui, e));
         using var choices = gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter();
         foreach (var type in View.Palette(_query))
         {
@@ -156,9 +136,6 @@ public sealed partial class SandboxScene
     {
         switch (e.Key)
         {
-            case KeyboardKey.Backspace when _query.Length > 0:
-                _query = _query[..StringInfo.ParseCombiningCharacters(_query)[^1]];
-                break;
             case KeyboardKey.Escape:
                 _paletteOpen = false;
                 break;

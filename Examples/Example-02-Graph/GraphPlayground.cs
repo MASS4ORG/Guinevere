@@ -1,31 +1,41 @@
 namespace Example02;
 
-/// <summary>The scenario shell for the graph-only playground.</summary>
+/// <summary>The Excalibur application shell for the graph playground.</summary>
 public sealed class GraphPlayground
 {
-    static readonly string[] Titles = ["Sandbox", "Running flow", "State machine", "Organizers"];
-    StyleSheet? _appliedStyle;
+    static readonly string[] Titles = ["Sandbox", "Running flow", "State machine", "Groups"];
+    static readonly string[] Routings = ["Bézier", "Straight", "Orthogonal"];
+    static readonly Bitmap Badge = LoadBadge();
     readonly Queue<Action> _pending = new();
+    StyleSheet? _appliedStyle;
     int _frameScenario;
 
-    /// <summary>The active scenario: sandbox, running flow, state machine, or organizers.</summary>
+    /// <summary>The active sandbox, flow, State or Groups scenario.</summary>
     public int Scenario { get; private set; }
-    /// <summary>Also shows tabs for scenarios whose features have not landed yet.</summary>
+    /// <summary>Retained for consumers that previously enabled unfinished scenarios; all scenarios are available.</summary>
     public bool ShowPendingScenarios { get; set; }
-    /// <summary>The real dataflow sandbox and its independent view layout.</summary>
+    /// <summary>The real dataflow sandbox and its independent layout.</summary>
     public SandboxScene Sandbox { get; } = new();
-    /// <summary>A separate arithmetic document evaluated in the background and drawn with a flow overlay.</summary>
+    /// <summary>A background-evaluated arithmetic document with an observation overlay.</summary>
     public FlowScene Flow { get; } = new();
-    /// <summary>A cyclic State editor with a many-instance observer and typed signals.</summary>
+    /// <summary>A cyclic State editor with independent observed instances.</summary>
     public FsmScene Fsm { get; } = new();
+    /// <summary>A nested-group document sharing the ordinary editing and persistence APIs.</summary>
+    public GroupsScene Groups { get; } = new();
     /// <summary>The selected application's stylesheet index.</summary>
     public int StyleIndex { get; private set; }
     /// <summary>The style name shown by the selector.</summary>
     public string StyleName => GraphDemoStyles.Names[StyleIndex];
 
-    int TabCount => ShowPendingScenarios ? Titles.Length : 3;
+    GraphDocumentView ActiveView => _frameScenario switch
+    {
+        0 => Sandbox.View,
+        1 => Flow.Sandbox.View,
+        2 => Fsm.View,
+        _ => Groups.Sandbox.View
+    };
 
-    /// <summary>Chooses an existing scenario.</summary>
+    /// <summary>Chooses one of the available scenarios.</summary>
     public void SelectScenario(int index)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);
@@ -33,7 +43,7 @@ public sealed class GraphPlayground
         Scenario = index;
     }
 
-    /// <summary>Draws one immediate-mode pass.</summary>
+    /// <summary>Draws compact application chrome and one scenario in both immediate-mode passes.</summary>
     public void Draw(Gui gui)
     {
         if (gui.Pass == Pass.Pass1Build)
@@ -45,38 +55,22 @@ public sealed class GraphPlayground
             _frameScenario = Scenario;
         }
         ApplyStyle(gui);
+        ActiveView.Canvas.ProcessInput(gui);
         using var root = gui.StyledNode("graph-playground").Expand().Direction(Axis.Vertical).Enter();
         DrawHeader(gui);
-        using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Enter())
-        {
-            for (var i = 0; i < TabCount; i++)
-            {
-                DrawTab(gui, i);
-            }
-        }
-        using var stage = gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter();
+        using var stage = gui.Node().Expand().Direction(Axis.Vertical).Gap(6).Enter();
         Action<string, string, Action> button = (label, id, action) => Button(gui, label, id, action);
+        Groups.DrawInspector(gui, ActiveView, button);
         switch (_frameScenario)
         {
-            case 0:
-                Sandbox.Draw(gui, button);
-                DrawOptions(gui, Sandbox.View);
-                break;
-            case 1:
-                Flow.Draw(gui, button);
-                DrawOptions(gui, Flow.Sandbox.View);
-                break;
-            case 2:
-                Fsm.Draw(gui, button);
-                DrawOptions(gui, Fsm.View);
-                break;
-            default:
-                DrawPendingScenario(gui);
-                break;
+            case 0: Sandbox.Draw(gui, button); break;
+            case 1: Flow.Draw(gui, button); break;
+            case 2: Fsm.Draw(gui, button); break;
+            default: Groups.Draw(gui, button); break;
         }
     }
 
-    /// <summary>Selects a complete PSS sheet for every scenario and its surrounding controls.</summary>
+    /// <summary>Selects a complete application PSS sheet.</summary>
     public void SelectStyle(int index)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);
@@ -87,9 +81,21 @@ public sealed class GraphPlayground
     /// <summary>Cycles Blueprint, Paper and High contrast.</summary>
     public void CycleStyle() => SelectStyle((StyleIndex + 1) % GraphDemoStyles.Sheets.Count);
 
+    /// <summary>Cycles Bézier, straight and orthogonal routing across scenarios.</summary>
+    public void CycleRouting() => SelectRouting((GraphLinkRouting)(((int)Sandbox.View.Routing + 1) % 3));
+
+    void SelectRouting(GraphLinkRouting routing)
+    {
+        Sandbox.View.Routing = routing;
+        Flow.Sandbox.View.Routing = routing;
+        Fsm.View.Routing = routing;
+        Groups.Sandbox.View.Routing = routing;
+    }
+
     void ApplyStyle(Gui gui)
     {
         GraphStyles.Ensure(gui);
+        ExcaliburStyles.Ensure(gui);
         var sheet = GraphDemoStyles.Sheets[StyleIndex];
         if (_appliedStyle != sheet)
         {
@@ -102,112 +108,96 @@ public sealed class GraphPlayground
         }
     }
 
-    static readonly Bitmap Badge = LoadBadge();
-
-    static void DrawHeader(Gui gui)
+    void DrawHeader(Gui gui)
     {
-        using var heading = gui.StyledNode("graph-heading").ExpandWidth().Height(40)
-            .Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(8).Enter();
-        gui.Image(Badge, width: 26, height: 26);
-        gui.DrawText("Graph Playground");
-        gui.Node().Expand();
-        gui.DrawText($"{gui.Time.SmoothFps:N0} FPS");
-    }
-
-    static Bitmap LoadBadge()
-    {
-        using var stream = typeof(GraphPlayground).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png")!;
-        return Bitmap.FromStream(stream);
-    }
-
-    /// <summary>Cycles graph scenarios through Bézier, straight and orthogonal link routing.</summary>
-    public void CycleRouting()
-    {
-        var routing = (GraphLinkRouting)(((int)Sandbox.View.Routing + 1) % 3);
-        Sandbox.View.Routing = routing;
-        Flow.Sandbox.View.Routing = routing;
-        Fsm.View.Routing = routing;
-    }
-
-    void DrawOptions(Gui gui, GraphDocumentView view)
-    {
-        using var options = gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(20).Wrap(1).Enter();
-        Toggle(gui, "Minimap", "toggle-minimap", view.Canvas.ShowMinimap,
-            () => view.Canvas.ShowMinimap = !view.Canvas.ShowMinimap);
-        Toggle(gui, "Avoid replacing connections", "protect-connections", view.AvoidReplacingConnections,
-            () => view.AvoidReplacingConnections = !view.AvoidReplacingConnections);
-        Button(gui, "Style: " + StyleName, "select-style", CycleStyle);
-        Button(gui, "Links: " + view.Routing, "cycle-routing", CycleRouting);
-    }
-
-    void Toggle(Gui gui, string label, string id, bool value, Action action)
-    {
-        using var scope = gui.StyledNode("graph-toggle", id: id).Width(280).Height(32).Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f).Enter();
-        var result = gui.Toggleable(value, new ControlBehaviorOptions(Role: ControlRole.Switch, Label: label));
-        if (result.Activated)
+        using var heading = gui.StyledNode("graph-heading", id: "playground-header").ExpandWidth()
+            .Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(8).Wrap(1).Enter();
+        gui.Image(Badge, width: 24, height: 24);
+        using (gui.Node().Width(270).Height(28).Enter())
         {
-            Queue(gui, action);
+            gui.MenuBar(menus => BuildMenus(gui, menus), height: 28, fontSize: 13, padding: 8, id: "playground-main-menu");
         }
-        using (gui.StyledNode("graph-toggle-indicator", modifiers: value ? ["checked"] : []).Width(20).Height(20).Enter())
+        var scenario = _frameScenario;
+        gui.Dropdown(Titles, ref scenario, width: 160, height: 28, placeholder: "Scenario", classes: ["scenario-picker"]);
+        if (gui.Pass == Pass.Pass1Build && scenario != _frameScenario)
         {
-
+            Queue(gui, () => SelectScenario(scenario));
         }
-        gui.DrawText(label);
+        var style = StyleIndex;
+        gui.Dropdown([.. GraphDemoStyles.Names], ref style, width: 150, height: 28, placeholder: "Style", classes: ["style-picker"]);
+        if (gui.Pass == Pass.Pass1Build && style != StyleIndex)
+        {
+            Queue(gui, () => SelectStyle(style));
+        }
     }
 
-    void DrawTab(Gui gui, int index)
+    void BuildMenus(Gui gui, MenuBarBuilder menus)
     {
-        using var scope = gui.StyledNode("graph-tab", id: TabId(index), modifiers: _frameScenario == index ? ["selected"] : []).Width(156).Height(42).AlignContent(0.5f, 0.5f).Enter();
-        gui.CurrentNode.On<KeyDownEvent>(e => NavigateTabs(gui, e, index));
-        var selected = _frameScenario == index;
-        var result = gui.Selectable(selected,
-            new ControlBehaviorOptions(Role: ControlRole.Tab, Label: Titles[index]));
-        if (result.Activated)
+        var commands = Commands(gui);
+        foreach (var group in commands.GroupBy(static command => command.Menu))
         {
-            Queue(gui, () => SelectScenario(index));
+            menus.Menu(group.Key, menu =>
+            {
+                foreach (var command in group)
+                {
+                    menu.Item(command.Label, () => Queue(gui, command.Run));
+                }
+            });
         }
-        gui.DrawText(Titles[index]);
+        menus.Menu("View", menu =>
+        {
+            var view = ActiveView;
+            menu.CheckItem("Minimap", () => view.Canvas.ShowMinimap,
+                value => Queue(gui, () => view.Canvas.ShowMinimap = value));
+            menu.CheckItem("Avoid replacing connections", () => view.AvoidReplacingConnections,
+                value => Queue(gui, () => view.AvoidReplacingConnections = value));
+            menu.Submenu("Link routing", options =>
+            {
+                for (var i = 0; i < Routings.Length; i++)
+                {
+                    var routing = (GraphLinkRouting)i;
+                    options.CheckItem(Routings[i], () => view.Routing == routing,
+                        _ => Queue(gui, () => SelectRouting(routing)));
+                }
+            });
+        });
+        menus.Menu("Groups", menu => BuildGroupMenu(gui, menu));
     }
 
-    void NavigateTabs(Gui gui, KeyDownEvent e, int current)
+    IReadOnlyList<DemoCommand> Commands(Gui gui) => _frameScenario switch
     {
-        var count = TabCount;
-        var next = e.Key switch
+        0 => Sandbox.Commands(gui),
+        1 => Flow.Sandbox.Commands(gui),
+        2 => Fsm.Commands(gui),
+        _ => Groups.Sandbox.Commands(gui)
+    };
+
+    void BuildGroupMenu(Gui gui, FlyoutBuilder menu)
+    {
+        var view = ActiveView;
+        menu.Item("Group selected nodes", () => Queue(gui, () => view.GroupSelection("New group")));
+        foreach (var group in view.Editor.Document.Groups.OrderBy(static group => group.Title))
         {
-            KeyboardKey.Right => (current + 1) % count,
-            KeyboardKey.Left => (current + count - 1) % count,
-            KeyboardKey.Home => 0,
-            KeyboardKey.End => count - 1,
-            _ => -1
-        };
-        if (next < 0)
-        {
-            return;
+            menu.Submenu(group.Title, child =>
+            {
+                child.Item("Select frame", () => Queue(gui, () => view.Canvas.Navigation.Select(group.Id.ToString())));
+                child.CheckItem("Collapsed", () => view.Editor.Document.CollapsedGroups.Contains(group.Id),
+                    value => Queue(gui, () => view.SetGroupCollapsed(group.Id, value)));
+                child.Item("Move selected nodes here", () => Queue(gui, () => view.MoveSelectionToGroup(group.Id)));
+                child.Item("Nest selection here", () => Queue(gui, () => view.GroupSelection("Nested group", group.Id)));
+                child.Item("Move frame to top level", () => Queue(gui, () => view.ReparentGroup(group.Id, null)));
+                child.Item("Ungroup", () => Queue(gui, () => view.Ungroup(group.Id)));
+            });
         }
-        SelectScenario(next);
-        gui.Focus.RequestFocus(TabId(next), FocusReason.Keyboard);
-        e.PreventDefault();
-        e.StopPropagation();
+        menu.Item("Remove selected nodes from groups", () => Queue(gui, () => view.MoveSelectionToGroup(null)));
     }
 
     void Button(Gui gui, string label, string id, Action action)
     {
-        using var scope = gui.StyledNode("graph-button", id: id).Width(156).Height(36).AlignContent(0.5f, 0.5f).Enter();
-        var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: label));
-        if (result.Activated)
+        if (DemoControls.Button(gui, label, id))
         {
             Queue(gui, action);
         }
-        gui.DrawText(label);
-    }
-
-    void DrawPendingScenario(Gui gui)
-    {
-        using var panel = gui.Node().Expand().Direction(Axis.Vertical).Padding(28).Gap(16).Enter();
-        gui.DrawText(Titles[_frameScenario]);
-        gui.DrawText("Groups, notes and collapsed containers will have their own scenario here.");
-        gui.DrawText("The Sandbox is available now for graph editing and layout interaction.");
-        Button(gui, "Open Sandbox", "open-sandbox", () => SelectScenario(0));
     }
 
     void Queue(Gui gui, Action action)
@@ -216,5 +206,9 @@ public sealed class GraphPlayground
         gui.RequestFrame();
     }
 
-    static string TabId(int index) => $"scenario-{index}";
+    static Bitmap LoadBadge()
+    {
+        using var stream = typeof(GraphPlayground).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png")!;
+        return Bitmap.FromStream(stream);
+    }
 }

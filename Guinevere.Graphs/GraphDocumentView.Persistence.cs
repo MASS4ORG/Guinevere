@@ -109,6 +109,15 @@ public sealed partial class GraphDocumentView
             saved["y"] = position.Y;
             return (JsonNode)saved;
         }).ToArray());
+        if (Editor.Document.CollapsedGroups.Count > 0)
+        {
+            root["collapsed"] = new JsonArray(Editor.Document.CollapsedGroups.Order()
+                .Select(static id => (JsonNode)JsonValue.Create(id.ToString())!).ToArray());
+        }
+        else
+        {
+            root.Remove("collapsed");
+        }
         return root;
     }
 
@@ -126,6 +135,27 @@ public sealed partial class GraphDocumentView
             ReadPosition(item, seen);
         }
         _layoutExtensions = root.DeepClone().AsObject();
+        ReadCollapsedGroups(root);
+    }
+
+    void ReadCollapsedGroups(JsonObject root)
+    {
+        var collapsed = root["collapsed"]?.AsArray() ?? [];
+        var ids = collapsed.Select(item => ElementId.Parse(item?.GetValue<string>()
+            ?? throw new FormatException("A collapsed group requires an identity."))).ToArray();
+        if (ids.Distinct().Count() != ids.Length || ids.Any(id => !Editor.Document.TryGetGroup(id, out _)))
+        {
+            throw new FormatException("Collapsed groups must name distinct existing groups.");
+        }
+        foreach (var id in Editor.Document.CollapsedGroups.Except(ids).ToArray())
+        {
+            Editor.Execute(new SetGroupCollapsedCommand(id, false));
+        }
+        foreach (var id in ids)
+        {
+            Editor.Execute(new SetGroupCollapsedCommand(id, true));
+        }
+        Editor.ClearHistory();
     }
 
     void ReadPosition(JsonNode? item, HashSet<ElementId> seen)

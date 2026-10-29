@@ -162,29 +162,34 @@ public static partial class ControlsExtensions
         using (Sized(gui.StyledNode("dropdown", classes, $"{id}/button", modifiers, disabled: !enabled), width, height)
                    .Direction(Axis.Horizontal).Padding(padding, 0).ContentAlignY(0.5f).Enter())
         {
+            gui.CurrentNode.On<KeyDownEvent>(e => DropdownKey(gui, e, id, options.Length, selectedIndex, state, enabled));
             if (gui.Pass == Pass.Pass2Render)
             {
-                var rect = gui.CurrentNode.Rect;
-                state.ButtonRect = rect;
-                if (state.Anchor.W <= 0)
-                {
-                    state.Anchor = rect;
-                }
-
-                gui.RegisterFocusable();
-                var interactable = gui.GetInteractable();
-
-                if (enabled && interactable.OnClick())
-                {
-                    gui.RequestFocus(FocusReason.Mouse);
-                    state.RequestedOpen = !state.IsOpen;
-                }
-
-                DrawArrow(gui, rect, padding);
+                DropdownButtonInput(gui, state, enabled);
+                DrawArrow(gui, gui.CurrentNode.Rect, padding);
+                PublishDropdown(gui, placeholder, selectedIndex >= 0 && selectedIndex < options.Length
+                    ? options[selectedIndex] : "", enabled, state.IsOpen);
             }
 
             var label = selectedIndex >= 0 && selectedIndex < options.Length ? options[selectedIndex] : "";
             DrawInputText(gui, label, placeholder, fontSize, enabled, clip: false);
+        }
+    }
+
+    static void DropdownButtonInput(Gui gui, DropdownState state, bool enabled)
+    {
+        var rect = gui.CurrentNode.Rect;
+        state.ButtonRect = rect;
+        if (state.Anchor.W <= 0)
+        {
+            state.Anchor = rect;
+        }
+        gui.RegisterFocusable(canReceiveFocus: enabled, claimsArrowKeys: true);
+        var interactable = gui.GetInteractable();
+        if (enabled && interactable.OnClick())
+        {
+            gui.RequestFocus(FocusReason.Mouse);
+            state.RequestedOpen = !state.IsOpen;
         }
     }
 
@@ -238,6 +243,8 @@ public static partial class ControlsExtensions
                 using (gui.StyledNode("option", id: $"{id}/list/{i}", modifiers: modifiers).Height(rowHeight)
                            .ExpandWidth().Padding(padding, 0).ContentAlignY(0.5f).Enter())
                 {
+                    var option = i;
+                    gui.CurrentNode.On<KeyDownEvent>(e => DropdownOptionKey(gui, e, id, options.Length, option, state));
                     if (DropdownOptionInput(gui, id))
                     {
                         chosen = i;
@@ -260,7 +267,7 @@ public static partial class ControlsExtensions
 
         gui.RegisterFocusable(parentId: $"{id}/button");
         var interactable = gui.GetInteractable();
-        if (!interactable.OnClick())
+        if (!interactable.OnClick() && !(gui.HasFocus() && gui.IsAcceptPressed))
         {
             return false;
         }

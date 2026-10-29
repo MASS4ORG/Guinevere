@@ -231,7 +231,7 @@ public sealed class FsmSceneTests
         Assert.Equal(1, scene.SelectedInstance);
         Activate(harness, draw, "fsm-previous");
         Assert.Equal(0, scene.SelectedInstance);
-        Activate(harness, draw, "fsm-signal");
+        scene.SelectSignal(scene.Domain.Signals[1]);
         var transition = scene.Domain.Editor.Document.Nodes.First(static node => node.TypeId == StateNodes.Transition.Id);
         scene.View.Canvas.Navigation.Focus(transition.Id.ToString());
         Activate(harness, draw, "fsm-assign");
@@ -301,6 +301,11 @@ public sealed class FsmSceneTests
 
     static void Activate(FrameHarness harness, Action<Gui> draw, string id)
     {
+        if (draw.Target is GraphPlayground playground && playground.Fsm.Commands(harness.Gui).Any(command => command.Id == id))
+        {
+            GraphPlaygroundInput.Command(harness, playground, id);
+            return;
+        }
         harness.Gui.Focus.RequestFocus(id);
         harness.Frame(draw);
         GraphCanvasTests.Key(harness, draw, KeyboardKey.Enter);

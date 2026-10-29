@@ -130,7 +130,9 @@ public sealed partial class FsmScene
         : $"Active in {_frame.States.Count(id => id == node.Id)} of {FsmSimulation.InstanceCount} instances."
             + (node.Id == FrameActiveState ? $" Selected instance {SelectedInstance} is active here." : "");
 
-    void DocumentChanged(GraphDocument document, IReadOnlyList<GraphChange> changes) => _dirty = true;
+    void DocumentChanged(GraphDocument document, IReadOnlyList<GraphChange> changes) =>
+        _dirty |= changes.Any(static change => change.Kind is not (GraphChangeKind.LayoutChanged
+            or GraphChangeKind.GroupAdded or GraphChangeKind.GroupRemoved or GraphChangeKind.GroupChanged));
 
     void Pump(Gui gui)
     {

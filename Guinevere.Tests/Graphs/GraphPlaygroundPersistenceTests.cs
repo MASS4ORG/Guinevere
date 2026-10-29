@@ -53,7 +53,6 @@ public sealed class GraphPlaygroundPersistenceTests
         Activate(harness, draw, "load-json");
         Assert.NotSame(original, playground.Sandbox.View.Editor);
         playground.Sandbox.View.SelectAll();
-        Activate(harness, draw, "edit-actions");
         Activate(harness, draw, "copy-selection");
         Activate(harness, draw, "paste-selection");
         Assert.Equal(8, playground.Sandbox.Graph.Editor.Document.Nodes.Count);
@@ -77,11 +76,6 @@ public sealed class GraphPlaygroundPersistenceTests
         Assert.Same(before, playground.Sandbox.View.Editor);
     }
 
-    static void Activate(FrameHarness harness, Action<Gui> draw, string id)
-    {
-        harness.Gui.Focus.RequestFocus(id);
-        harness.Frame(draw);
-        GraphCanvasTests.Key(harness, draw, KeyboardKey.Enter);
-        harness.Frame(draw);
-    }
+    static void Activate(FrameHarness harness, Action<Gui> draw, string id) =>
+        GraphPlaygroundInput.Command(harness, (GraphPlayground)draw.Target!, id);
 }

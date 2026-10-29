@@ -1,5 +1,3 @@
-using GraphPoint = Guinevere.Graphs.GraphPoint;
-
 namespace Example02;
 
 public sealed partial class SandboxScene
@@ -64,36 +62,26 @@ public sealed partial class SandboxScene
 
     void DrawEditingOptions(Gui gui, Action<string, string, Action> button)
     {
-        using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
-        {
-            button("Edit actions", "edit-actions", () => _actionsOpen = !_actionsOpen);
-            button("Copy JSON", "save-json", () => WithClipboard(gui, c => c.SetClipboardText(View.Serialize())));
-            button("Load JSON", "load-json", () => WithClipboard(gui, c => Load(c.GetClipboardText())));
-        }
         if (_actionsOpen)
         {
-            DrawActions(gui, button);
+            gui.MenuBar(menus => menus.Menu("Selection actions", menu =>
+            {
+                foreach (var command in Commands(gui).Where(static command => command.Menu is "Edit" or "Layout"))
+                {
+                    menu.Item(command.Label, () =>
+                    {
+                        _pending.Enqueue(command.Run);
+                        _actionsOpen = false;
+                        gui.RequestFrame();
+                    });
+                }
+            }), height: 28, id: "sandbox-selection-menu");
         }
         if (_status is { } status)
         {
             using var text = gui.StyledNode("graph-message").Enter();
             gui.DrawText(status);
         }
-    }
-
-    void DrawActions(Gui gui, Action<string, string, Action> button)
-    {
-        using var actions = gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter();
-        button("Copy", "copy-selection", () => WithClipboard(gui, c => c.SetClipboardText(View.CopySelection())));
-        button("Cut", "cut-selection", () => WithClipboard(gui, c => View.CutSelection(c.SetClipboardText)));
-        button("Paste", "paste-selection", () => WithClipboard(gui, c => View.Paste(c.GetClipboardText(), new GraphPoint(16, 16))));
-        button("Duplicate", "duplicate-selection", () => View.DuplicateSelection(new GraphPoint(16, 16)));
-        button("Delete", "delete-selection", () => View.DeleteSelection());
-        button("Align left", "align-left", () => View.AlignSelection(GraphAlignment.Left));
-        button("Align top", "align-top", () => View.AlignSelection(GraphAlignment.Top));
-        button("Distribute X", "distribute-x", () => View.DistributeSelection(horizontal: true));
-        button("Distribute Y", "distribute-y", () => View.DistributeSelection(horizontal: false));
-        button("Snap to grid", "snap-grid", View.SnapSelection);
     }
 
     void WithClipboard(Gui gui, Action<IClipboard> action)

@@ -23,16 +23,6 @@ public sealed partial class FsmScene
         }
         DrawInspector(gui, button);
         DrawPalette(gui, button);
-        using (gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
-        {
-            button("Undo", "fsm-undo", () => View.Undo());
-            button("Redo", "fsm-redo", () => View.Redo());
-            button("Add state", "fsm-add-state", AddState);
-            button("Add transition", "fsm-add-transition", AddTransition);
-            button("Copy JSON", "fsm-save", () => WithClipboard(gui, c => c.SetClipboardText(View.Serialize())));
-            button("Load JSON", "fsm-load", () => WithClipboard(gui, c => Load(c.GetClipboardText())));
-            button("Rename + reload", "fsm-rename", () => Load(View.Serialize(), renamed: true));
-        }
         DrawStatus(gui);
         using var host = gui.Node().Expand().Enter();
         View.Draw(gui, "fsm-canvas");
@@ -52,16 +42,9 @@ public sealed partial class FsmScene
         gui.DrawText($"Instance {SelectedInstance} / {FsmSimulation.InstanceCount} · {state} · tick {_frame.Tick}");
         using (gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Horizontal).Gap(8).Enter())
         {
-            button("Signal: " + SelectedSignal.DisplayName, "fsm-signal", () => _signalIndex = (_signalIndex + 1) % Domain.Signals.Count);
+            gui.Dropdown([.. Domain.Signals.Select(static signal => signal.DisplayName)], ref _signalIndex,
+                width: 210, height: 28, placeholder: "Signal");
             button("Send to instance", "fsm-send", RaiseSelected);
-            button("Assign trigger", "fsm-assign", () => AssignTrigger());
-            button("Clear trigger", "fsm-clear-trigger", () =>
-            {
-                if (InspectedTransition() is { } transition)
-                {
-                    Domain.SetTrigger(View, transition.Id, null);
-                }
-            });
         }
         var transitionNode = InspectedTransition();
         gui.DrawText(transitionNode is null ? "No transition selected." : $"Transition inspector: {Domain.Title(transitionNode)}");

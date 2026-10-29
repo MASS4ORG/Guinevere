@@ -1,4 +1,4 @@
-graph-playground { background-color = #000000; color = #ffffff; font-size = 16; padding = 20; gap = 12; }
+graph-playground { background-color = #000000; color = #ffffff; font-size = 16; padding = 12; gap = 8; }
 graph-heading { color = #ffffff; }
 graph-button, graph-tab, graph-stepper, graph-search {
     background-color = #000000; color = #ffffff; border-color = #ffffff; border-width = 2; border-radius = 0; font-size = 16;
@@ -38,3 +38,16 @@ graph-marquee { background-color = #ffff0022; border-color = #ffff00; border-wid
 .fsm graph-title { font-size = 14; }
 .fsm graph-node.fsm-active { background-color = #222222; border-color = #ffff00; border-width = 3; }
 fsm-inspector { background-color = #000000; color = #ffffff; height = fit; padding = 8; border-radius = 6; }
+
+// Compact Excalibur application chrome and authored group frames.
+graph-playground button, graph-playground dropdown, graph-playground listbox, graph-playground menu {
+    background-color = #000000; color = #ffffff; border-color = #ffffff; border-width = 1; border-radius = 4;
+}
+graph-playground menubar, graph-playground menu-title, graph-playground menu-item,
+graph-playground option, graph-playground value, graph-playground placeholder { color = #ffffff; }
+graph-playground button:focus, graph-playground dropdown:focus, graph-playground option:focus,
+graph-playground menu-item:highlighted { outline-color = #ffff00; outline-width = 2; }
+graph-group { background-color = transparent; border-color = #ffffff; border-width = 1; border-radius = 6; }
+graph-group:selected { border-color = #ffff00; border-width = 2; }
+graph-group:collapsed, graph-group-header { background-color = #000000; color = #ffffff; }
+graph-playground button.icon { color = #ffffff; }

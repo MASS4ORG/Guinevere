@@ -12,19 +12,8 @@ public sealed partial class FsmScene
             return;
         }
         using var palette = gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Vertical).Gap(6).Enter();
-        using (var search = gui.StyledNode("graph-search", id: "fsm-node-search").Width(360).Height(32).Padding(8).Enter())
-        {
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                gui.RegisterFocusable();
-                gui.ControlSemantics?.Publish(new ControlSemantics("fsm-node-search", ControlRole.None,
-                    "Search registered FSM node types", _query, gui.CurrentNode.Rect, ControlVisualState.None));
-            }
-            gui.CurrentNode.On<PointerDownEvent>(_ => gui.Focus.RequestFocus("fsm-node-search"));
-            gui.CurrentNode.On<TextInputEvent>(e => { _query += e.Text; e.PreventDefault(); });
-            gui.CurrentNode.On<KeyDownEvent>(e => SearchKey(gui, e));
-            gui.DrawText(_query.Length == 0 ? "Search node types…" : _query);
-        }
+        DemoControls.TextInput(gui, ref _query, "Search registered FSM node types", "fsm-node-search",
+            onKey: e => SearchKey(gui, e));
         using var choices = gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter();
         foreach (var type in View.Palette(_query))
         {
@@ -36,9 +25,6 @@ public sealed partial class FsmScene
     {
         switch (e.Key)
         {
-            case KeyboardKey.Backspace when _query.Length > 0:
-                _query = _query[..StringInfo.ParseCombiningCharacters(_query)[^1]];
-                break;
             case KeyboardKey.Escape:
                 _paletteOpen = false;
                 break;

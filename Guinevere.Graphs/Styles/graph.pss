@@ -44,3 +44,7 @@ graph-flow-label {
     left = 10; top = -26;
 }
 graph-marquee { background-color = #66b3ff22; border-color = #66b3ff; border-width = 1; }
+graph-group { background-color = #28445c33; border-color = #66738c; border-width = 1; border-radius = 8; padding-left = 24; min-width = 240; gap = 28; }
+graph-group:selected { border-color = #66b3ff; border-width = 2; }
+graph-group:collapsed { background-color = #29384e; }
+graph-group-header { height = 32; background-color = #213047; color = #ffffff; padding-left = 10; font-size = 14; }

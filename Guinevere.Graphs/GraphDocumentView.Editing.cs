@@ -101,6 +101,8 @@ public sealed partial class GraphDocumentView
         var steps = Editor.Document.Edges.Where(edge => DisconnectsSelection(edge, ids, ports))
             .Select(static edge => (IGraphCommand)new DisconnectCommand(edge.Id)).ToList();
         steps.AddRange(nodes.Select(static node => (IGraphCommand)new RemoveNodeCommand(node.Id)));
+        steps.AddRange(Editor.Document.Groups.Where(group => ids.Contains(group.Id))
+            .Select(static group => (IGraphCommand)new RemoveGroupCommand(group.Id)));
         return steps;
     }
 

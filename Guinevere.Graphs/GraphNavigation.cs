@@ -19,6 +19,8 @@ public sealed class GraphNavigation
     public long FocusRevision { get; private set; }
     /// <summary>Executes edits through the consumer's reversible graph editor.</summary>
     public Func<GraphEditRequest, GraphEditResult>? EditRequested { get; set; }
+    /// <summary>Activates an authored frame, usually toggling saved collapse state.</summary>
+    public Action<string>? GroupActivated { get; set; }
     /// <summary>Opens a consumer-owned searchable command or registry-backed node palette.</summary>
     public Action<GraphSearchKind>? SearchRequested { get; set; }
     /// <summary>Emits focus, selection, connection, and validation announcements.</summary>
@@ -98,7 +100,7 @@ public sealed class GraphNavigation
         var current = CurrentNode();
         if (current is null)
         {
-            var first = _ordered.FirstOrDefault(static item => item.Role == GraphElementRole.Node && item.Enabled);
+            var first = _ordered.FirstOrDefault(static item => item.Role is GraphElementRole.Node or GraphElementRole.Group && item.Enabled);
             return first is not null && Focus(first.Key);
         }
 
@@ -130,7 +132,7 @@ public sealed class GraphNavigation
         direction is FocusDirection.Left or FocusDirection.Right or FocusDirection.Up or FocusDirection.Down;
 
     static bool IsSpatialCandidate(GraphElementView candidate, string currentKey) =>
-        candidate.Role == GraphElementRole.Node && candidate.Enabled && candidate.Key != currentKey;
+        candidate.Role is GraphElementRole.Node or GraphElementRole.Group && candidate.Enabled && candidate.Key != currentKey;
 
     static bool IsBetterCandidate(GraphElementView candidate, GraphElementView? best, double distance, double score) =>
         double.IsFinite(distance) && (distance < score || distance == score && best is not null
@@ -184,7 +186,7 @@ public sealed class GraphNavigation
 
     bool ReturnToOwner(GraphElementView item)
     {
-        if (item.Role == GraphElementRole.Port && item.ParentKey is not null)
+        if (item.ParentKey is not null)
         {
             return Focus(item.ParentKey);
         }
@@ -273,13 +275,9 @@ public sealed class GraphNavigation
         {
             return Move(FocusDirection.Right);
         }
-        if (item.Role == GraphElementRole.Node)
-        {
-            return MovePort();
-        }
         if (item.Role != GraphElementRole.Port)
         {
-            return false;
+            return ActivateContainer(item);
         }
         if (ConnectionSourceKey is null)
         {
@@ -293,6 +291,20 @@ public sealed class GraphNavigation
         {
             ConnectionSourceKey = null;
         }
+        return true;
+    }
+
+    bool ActivateContainer(GraphElementView item)
+    {
+        if (item.Role == GraphElementRole.Node)
+        {
+            return MovePort();
+        }
+        if (item.Role != GraphElementRole.Group)
+        {
+            return false;
+        }
+        GroupActivated?.Invoke(item.Key);
         return true;
     }
 
@@ -364,7 +376,7 @@ public sealed class GraphNavigation
         {
             return null;
         }
-        return item.Role == GraphElementRole.Node ? item
+        return item.Role is GraphElementRole.Node or GraphElementRole.Group ? item
             : item.ParentKey is not null && _items.TryGetValue(item.ParentKey, out var parent) ? parent : null;
     }
 

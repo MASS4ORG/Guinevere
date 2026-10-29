@@ -7,52 +7,31 @@ namespace Guinevere.Tests.Graphs;
 public sealed class GraphPlaygroundTests
 {
     [Fact]
-    public void ScenarioTabsPublishSemanticsAndSupportKeyboardNavigation()
+    public void ScenarioDropdownUsesExcaliburAndSupportsKeyboardNavigation()
     {
         using var harness = new FrameHarness(1000, 700);
-        var scene = new GraphPlayground { ShowPendingScenarios = true };
+        var scene = new GraphPlayground();
         var sink = new SemanticsSink();
         harness.Gui.ControlSemantics = sink;
-        void Draw(Gui gui)
-        {
-            if (gui.Pass == Pass.Pass1Build)
-            {
-                sink.Controls.Clear();
-            }
-            scene.Draw(gui);
-        }
-        harness.Frame(Draw);
-        harness.Frame(Draw);
-        var tabs = sink.Controls.Where(static control => control.Role == ControlRole.Tab).ToArray();
-        Assert.Equal(["Sandbox", "Running flow", "State machine", "Organizers"], tabs.Select(static tab => tab.Label));
-        Assert.True(tabs[0].State.HasFlag(ControlVisualState.Selected));
-        Focus(harness, Draw, "scenario-0");
-        GraphCanvasTests.Key(harness, Draw, KeyboardKey.Right);
-        Assert.Equal(1, scene.Scenario);
-        Assert.Equal("scenario-1", harness.Gui.Focus.CurrentFocusedId);
-        GraphCanvasTests.Key(harness, Draw, KeyboardKey.End);
+        harness.Frame(scene.Draw);
+        harness.Frame(scene.Draw);
+        var picker = sink.Controls.Last(static control => control.Label == "Scenario");
+        Assert.Contains("Sandbox", picker.Value, StringComparison.Ordinal);
+        Focus(harness, scene.Draw, picker.Id);
+        GraphCanvasTests.Key(harness, scene.Draw, KeyboardKey.Enter);
+        harness.Frame(scene.Draw);
+        GraphCanvasTests.Key(harness, scene.Draw, KeyboardKey.End);
+        GraphCanvasTests.Key(harness, scene.Draw, KeyboardKey.Enter);
+        harness.Frame(scene.Draw);
+        harness.Frame(scene.Draw);
         Assert.Equal(3, scene.Scenario);
-        GraphCanvasTests.Key(harness, Draw, KeyboardKey.Home);
-        Assert.Equal(0, scene.Scenario);
-        GraphCanvasTests.Key(harness, Draw, KeyboardKey.Left);
-        Assert.Equal(3, scene.Scenario);
-        GraphCanvasTests.Key(harness, Draw, KeyboardKey.F10);
-        Assert.Equal(3, scene.Scenario);
-        Focus(harness, Draw, "scenario-1");
-        GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
-        harness.Frame(Draw);
-        Assert.Equal(1, scene.Scenario);
-        Assert.Contains(sink.Controls, static control => control.Id == "flow-canvas");
-        Focus(harness, Draw, "scenario-3");
-        GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
-        harness.Frame(Draw);
-        Assert.Equal(3, scene.Scenario);
-        Focus(harness, Draw, "open-sandbox");
-        GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
-        harness.Frame(Draw);
-        Assert.Equal(0, scene.Scenario);
+        Assert.NotEmpty(scene.Groups.Sandbox.View.Editor.Document.Groups);
         Assert.Throws<ArgumentOutOfRangeException>(() => scene.SelectScenario(-1));
         Assert.Throws<ArgumentOutOfRangeException>(() => scene.SelectScenario(4));
+        Assert.Contains(typeof(GraphPlayground).Assembly.GetReferencedAssemblies(), static assembly =>
+            assembly.Name == "Guinevere.Excalibur");
+        Assert.DoesNotContain(typeof(GraphCanvas).Assembly.GetReferencedAssemblies(), static assembly =>
+            assembly.Name!.Contains("Excalibur", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -91,9 +70,7 @@ public sealed class GraphPlaygroundTests
         GraphCanvasTests.Key(harness, draw, KeyboardKey.Delete);
         Assert.Equal(4, scene.Sandbox.Nodes.Count);
         Assert.NotNull(scene.Sandbox.Canvas.Navigation.EditRequested);
-        Focus(harness, draw, "reset-layout");
-        GraphCanvasTests.Key(harness, draw, KeyboardKey.Enter);
-        harness.Frame(draw);
+        GraphPlaygroundInput.Command(harness, scene, "reset-layout");
         Assert.Equal(4, scene.Sandbox.Nodes.Count);
     }
 
@@ -168,7 +145,7 @@ public sealed class GraphPlaygroundTests
         scene.SelectScenario(0);
         harness.Frame(draw);
         Assert.All(cards, static card => Assert.Equal(GraphElementRole.Node, card.Role));
-        Assert.DoesNotContain(typeof(GraphPlayground).Assembly.GetReferencedAssemblies(), static assembly =>
+        Assert.DoesNotContain(typeof(GraphCanvas).Assembly.GetReferencedAssemblies(), static assembly =>
             assembly.Name!.Contains("Excalibur", StringComparison.Ordinal));
     }
 

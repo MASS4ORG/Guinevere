@@ -5,6 +5,7 @@ namespace Guinevere.Graphs;
 public sealed partial class GraphDocumentView
 {
     bool _togglePress;
+    string _canvasId = "graph-document";
 
     /// <summary>Returns a real port's current view attachment point.</summary>
     public GraphPoint PortPosition(ElementId port) => _ports[port];
@@ -26,10 +27,7 @@ public sealed partial class GraphDocumentView
         var before = _dragStart is null ? SnapshotLayout() : null;
         foreach (var node in Editor.Document.Nodes)
         {
-            var selected = Canvas.Navigation.SelectedKeys;
-            var move = selected.Count > 0 ? selected.Contains(node.Id.ToString())
-                : Canvas.Navigation.FocusedKey == node.Id.ToString();
-            if (move)
+            if (MovesWithSelection(node.Id))
             {
                 var position = Position(node.Id);
                 SetPosition(node.Id, new GraphPoint(position.X + delta.X, position.Y + delta.Y));
@@ -44,10 +42,15 @@ public sealed partial class GraphDocumentView
     /// <summary>Draws real nodes, labeled ports, connectors, and a transient link preview.</summary>
     public LayoutNode Draw(Gui gui, string id = "graph-document")
     {
+        _canvasId = id;
         GraphStyles.Ensure(gui);
         using var editor = gui.StyledNode("graph-editor", classes: StyleClasses).Expand().Enter();
         if (gui.Pass == Pass.Pass1Build)
         {
+            while (_groupToggles.TryDequeue(out var group))
+            {
+                SetGroupCollapsed(group, !Editor.Document.CollapsedGroups.Contains(group));
+            }
             ResolveGeometry(gui);
             _pointer = Canvas.ScreenToWorld(gui.Input.MousePosition);
             Refresh();
@@ -85,6 +88,9 @@ public sealed partial class GraphDocumentView
                 break;
             case GraphElementRole.Port:
                 DrawPort(gui, element);
+                break;
+            case GraphElementRole.Group:
+                DrawGroup(gui, element);
                 break;
         }
     }
