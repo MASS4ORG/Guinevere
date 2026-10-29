@@ -1,9 +1,6 @@
-using Guinevere;
-using SkiaSharp;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     const string CodeSample = """
         // Rich text spans share one cached layout.

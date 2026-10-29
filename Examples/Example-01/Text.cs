@@ -1,9 +1,6 @@
-using System.Numerics;
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     const string TextShort = "Guinevere GUI çãóé⚙️☀️▶️❤️😀";
 

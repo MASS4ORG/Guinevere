@@ -2,83 +2,63 @@ using MASS4.Graph;
 
 namespace Guinevere.Graphs;
 
-/// <summary>What a domain presenter may draw in a known node's content slot.</summary>
+/// <summary>A known node's domain content slot, inheriting its PSS font, color, effects and tokens.</summary>
 /// <param name="Node">The real document node; its payload stays domain-owned.</param>
 /// <param name="Type">The node's registered type.</param>
 /// <param name="View">The node's view description.</param>
-/// <param name="Selected">Whether the node is in the view selection.</param>
+/// <param name="Selected">Whether the node is selected.</param>
 /// <param name="Detail">The frame's level of detail.</param>
-/// <param name="Theme">The view's active theme.</param>
-public sealed record GraphNodeVisual(
-    GraphNode Node,
-    NodeType Type,
-    GraphElementView View,
-    bool Selected,
-    GraphLevelOfDetail Detail,
-    GraphTheme Theme);
+/// <param name="Style">The node's resolved PSS declarations.</param>
+public sealed record GraphNodeVisual(GraphNode Node, NodeType Type, GraphElementView View, bool Selected,
+    GraphLevelOfDetail Detail, ResolvedStyle Style);
 
-/// <summary>What a link renderer draws: the routed geometry and the view's default style for it.</summary>
-/// <param name="Key">The edge key, or the preview key for an unfinished connection.</param>
-/// <param name="Connector">The routed world geometry; draw relative to the current scope's bounds.</param>
-/// <param name="Style">The default style for the link's state, theme and level of detail.</param>
+/// <summary>A routed link and the PSS stroke resolved for its current state.</summary>
+/// <param name="Key">The edge key, or the transient preview key.</param>
+/// <param name="Connector">World geometry drawn relative to the current scope.</param>
+/// <param name="Style">The resolved stroke.</param>
 /// <param name="Selected">Whether the link is selected or focused.</param>
-/// <param name="Preview">Whether this is the transient connection preview.</param>
+/// <param name="Preview">Whether this is an unfinished connection.</param>
 /// <param name="Detail">The frame's level of detail.</param>
-public sealed record GraphLinkVisual(
-    string Key,
-    GraphConnector Connector,
-    GraphLinkStyle Style,
-    bool Selected,
-    bool Preview,
-    GraphLevelOfDetail Detail);
+public sealed record GraphLinkVisual(string Key, GraphConnector Connector, GraphLinkStyle Style, bool Selected,
+    bool Preview, GraphLevelOfDetail Detail);
 
 public sealed partial class GraphDocumentView
 {
-    const double NodeWidth = 220;
-    const double RowHeight = 28;
-    GraphTheme _theme = GraphTheme.Dark;
+    readonly Dictionary<ElementId, ResolvedStyle> _nodeStyles = [];
+    ResolvedStyle _headerStyle = GraphStyles.Defaults("graph-header");
+    ResolvedStyle _contentStyle = GraphStyles.Defaults("graph-content");
 
-    /// <summary>Colors for nodes, ports and links; also applies its canvas style.</summary>
-    public GraphTheme Theme
-    {
-        get => _theme;
-        set
-        {
-            _theme = value;
-            Canvas.Style = value.Canvas;
-        }
-    }
-
+    /// <summary>Application classes on the editor scope, available to every graph part and presenter.</summary>
+    public IReadOnlyList<string> StyleClasses { get; set; } = [];
+    /// <summary>Optional domain classes for known nodes; never called for unavailable node types.</summary>
+    public Func<GraphNode, IReadOnlyList<string>>? NodeClasses { get; set; }
     /// <summary>How links travel between ports.</summary>
     public GraphLinkRouting Routing { get; set; }
     /// <summary>Draws arrowheads at link targets in full detail.</summary>
     public bool ShowArrows { get; set; } = true;
-    /// <summary>Optional domain body drawn in a known node's content slot; unknown nodes never reach it.</summary>
+    /// <summary>Optional domain body in a known node's content slot.</summary>
     public Action<Gui, GraphNodeVisual>? NodePresenter { get; set; }
-    /// <summary>Height of a known node's content slot in world units; none when absent or zero.</summary>
+    /// <summary>Height of a known node's domain content slot in world units.</summary>
     public Func<GraphNode, double>? ContentHeight { get; set; }
-    /// <summary>Optional domain badges for known nodes, drawn in the header.</summary>
+    /// <summary>Optional domain badges for known nodes.</summary>
     public Func<GraphNode, IEnumerable<string>>? NodeBadges { get; set; }
-    /// <summary>Optional port marker shape; circles when absent.</summary>
+    /// <summary>Optional marker shape for known nodes' ports; circles when absent.</summary>
     public Func<GraphPort, GraphPortShape>? PortShape { get; set; }
-    /// <summary>Optional link renderer replacing the default styled stroke; hit testing is unchanged.</summary>
+    /// <summary>Optional replacement for the PSS link stroke; hit testing is unchanged.</summary>
     public Action<Gui, GraphLinkVisual>? LinkRenderer { get; set; }
-    /// <summary>Additional diagnostics, such as compile results, shown on the elements they name.</summary>
+    /// <summary>Additional diagnostics, such as compilation findings.</summary>
     public IReadOnlyList<Diagnostic> Validation { get; set; } = [];
-    /// <summary>Pointer distance in logical screen units that still selects a link, independent of stroke width.</summary>
+    /// <summary>Link selection tolerance in logical screen units, independent of stroke and zoom.</summary>
     public double LinkHitTolerance { get; set; } = 9;
-    /// <summary>Pointer radius in logical screen units that still targets a port when finishing a drag.</summary>
+    /// <summary>Port drop radius in logical screen units.</summary>
     public double PortHitRadius { get; set; } = 18;
 
-    /// <summary>
-    /// The most severe diagnostic naming a node, one of its ports or an attached edge, from the last edit or
-    /// <see cref="Validation"/>.
-    /// </summary>
+    /// <summary>The worst diagnostic naming a node, one of its ports or an attached edge.</summary>
     public DiagnosticSeverity? NodeSeverity(ElementId node) => Severity(element => element == node
         || Editor.Document.TryGetPort(element, out var port) && port.NodeId == node
         || Editor.Document.TryGetEdge(element, out var edge) && (Owner(edge.Source) == node || Owner(edge.Target) == node));
 
-    /// <summary>The most severe diagnostic naming an edge, from the last edit or <see cref="Validation"/>.</summary>
+    /// <summary>The worst diagnostic naming an edge.</summary>
     public DiagnosticSeverity? EdgeSeverity(ElementId edge) => Severity(element => element == edge);
 
     DiagnosticSeverity? Severity(Func<ElementId, bool> names)
@@ -96,40 +76,87 @@ public sealed partial class GraphDocumentView
 
     ElementId? Owner(ElementId port) => Editor.Document.TryGetPort(port, out var found) ? found.NodeId : null;
 
+    IReadOnlyList<string> Classes(GraphNode node) => CanPresent(node, out _)
+        ? NodeClasses?.Invoke(node) ?? [] : [];
+
+    ResolvedStyle NodeStyle(GraphNode node) => _nodeStyles.GetValueOrDefault(node.Id)
+        ?? GraphStyles.Defaults("graph-node");
+    double NodeWidth(GraphNode node) => GraphStyles.Length(NodeStyle(node), "width");
+    double RowHeight(GraphNode node) => GraphStyles.Length(NodeStyle(node), "graph-port-spacing");
+    double HeaderHeight => GraphStyles.Length(_headerStyle, "height");
+
+    void ResolveGeometry(Gui gui)
+    {
+        _headerStyle = gui.ResolvePart("graph-header");
+        _contentStyle = gui.ResolvePart("graph-content");
+        _nodeStyles.Clear();
+        foreach (var node in Editor.Document.Nodes)
+        {
+            _nodeStyles[node.Id] = gui.ResolvePart("graph-node", classes: Classes(node));
+        }
+    }
+
     double NodeHeight(GraphNode node)
     {
-        var content = Editor.Document.TryGetNodeType(node, out _) ? ContentHeight?.Invoke(node) ?? 0 : 0;
+        var content = CanPresent(node, out _) ? ContentHeight?.Invoke(node) ?? 0 : 0;
         GraphBounds.RequireFinite(content);
-        return 56 + Rows(node) * RowHeight + (content > 0 ? content + 8 : 0);
+        var style = NodeStyle(node);
+        return HeaderHeight + Rows(node) * RowHeight(node) + GraphStyles.Length(style, "padding-top")
+            + GraphStyles.Length(style, "padding-bottom")
+            + (content > 0 ? content + GraphStyles.Length(_contentStyle, "margin-top") : 0);
+    }
+
+    List<string> NodeModifiers(GraphNode node, bool selected, bool unknown)
+    {
+        var modifiers = new List<string>();
+        if (selected)
+        {
+            modifiers.Add("selected");
+        }
+        AddSeverity(modifiers, unknown ? DiagnosticSeverity.Error : NodeSeverity(node.Id));
+        return modifiers;
+    }
+
+    static void AddSeverity(List<string> modifiers, DiagnosticSeverity? severity)
+    {
+        if (severity >= DiagnosticSeverity.Warning)
+        {
+            modifiers.Add(severity == DiagnosticSeverity.Error ? "error" : "warning");
+        }
     }
 
     void DrawNodeCard(Gui gui, GraphElementView element)
     {
-        var rect = gui.CurrentNode.Rect;
         var node = Editor.Document.GetNode(ElementId.Parse(element.Key));
         var selected = Canvas.Navigation.SelectedKeys.Contains(element.Key);
-        gui.DrawRectFilled(rect, selected ? _theme.NodeSelected : _theme.NodeBody, 10);
-        var severity = element.Error is null ? NodeSeverity(node.Id) : DiagnosticSeverity.Error;
-        gui.DrawRect(rect, 10).Stroke(SeverityColor(severity, _theme.NodeBorder), severity is null ? 1 : 2.5f);
+        var modifiers = NodeModifiers(node, selected, element.Error is not null);
+        var style = gui.ResolvePart("graph-node", modifiers: modifiers, classes: Classes(node));
+        using var card = gui.StyledNode("graph-node", classes: Classes(node), modifiers: modifiers)
+            .Expand().Padding(0).HitTestVisible(false).Enter();
         if (Canvas.Detail == GraphLevelOfDetail.Outline)
         {
             return;
         }
-        gui.DrawRectFilled(new Rect(rect.X, rect.Y, rect.W, 40), _theme.NodeHeader, 10, Corner.Top);
-        using (gui.Node(194, 26).Absolute(13, 10).Enter())
+        using (gui.StyledNode("graph-header").Width((float)element.Bounds.Width).Height((float)HeaderHeight)
+                   .Absolute(0, 0).HitTestVisible(false).Enter())
         {
-            gui.DrawText(element.Name, 16, _theme.Title);
+            var title = gui.ResolvePart("graph-title");
+            using var text = gui.StyledNode("graph-title")
+                .Width((float)element.Bounds.Width - GraphStyles.Length(title, "left") * 2)
+                .Absolute(GraphStyles.Length(title, "left"), GraphStyles.Length(title, "top"))
+                .HitTestVisible(false).Enter();
+            gui.DrawText(element.Name).HitTestVisible(false);
         }
-        DrawBadges(gui, node, severity);
+        DrawBadges(gui, node, element.Error is not null ? DiagnosticSeverity.Error : NodeSeverity(node.Id));
         if (Canvas.Detail == GraphLevelOfDetail.Full)
         {
-            DrawContent(gui, node, element, selected);
+            DrawContent(gui, node, element, selected, style);
         }
     }
 
-    void DrawContent(Gui gui, GraphNode node, GraphElementView element, bool selected)
+    void DrawContent(Gui gui, GraphNode node, GraphElementView element, bool selected, ResolvedStyle style)
     {
-        if (NodePresenter is not { } presenter || !Editor.Document.TryGetNodeType(node, out var type))
+        if (NodePresenter is not { } presenter || !CanPresent(node, out var type))
         {
             return;
         }
@@ -138,17 +165,14 @@ public sealed partial class GraphDocumentView
         {
             return;
         }
-        using var content = gui.Node((float)(NodeWidth - 24), (float)height)
-            .Absolute(12, (float)(48 + Rows(node) * RowHeight)).Enter();
-        presenter(gui, new GraphNodeVisual(node, type, element, selected, Canvas.Detail, _theme));
+        var left = GraphStyles.Length(style, "padding-left");
+        var right = GraphStyles.Length(style, "padding-right");
+        using var content = gui.StyledNode("graph-content").Width((float)NodeWidth(node) - left - right)
+            .Height((float)height).Margin(0).Absolute(left,
+                (float)(HeaderHeight + Rows(node) * RowHeight(node) + GraphStyles.Length(style, "padding-top")))
+            .Enter();
+        presenter(gui, new GraphNodeVisual(node, type, element, selected, Canvas.Detail, style));
     }
-
-    Color SeverityColor(DiagnosticSeverity? severity, Color fallback) => severity switch
-    {
-        DiagnosticSeverity.Error => _theme.Error,
-        DiagnosticSeverity.Warning => _theme.Warning,
-        _ => fallback
-    };
 
     static int Rows(GraphNode node)
     {
@@ -158,71 +182,107 @@ public sealed partial class GraphDocumentView
 
     void DrawBadges(Gui gui, GraphNode node, DiagnosticSeverity? severity)
     {
-        var badges = new List<(string Text, Color Color)>();
-        if (severity is { } level and >= DiagnosticSeverity.Warning)
+        var badges = new List<(string Text, string[] Modifiers)>();
+        if (severity >= DiagnosticSeverity.Warning)
         {
-            badges.Add(("!", level == DiagnosticSeverity.Error ? _theme.Error : _theme.Warning));
+            badges.Add(("!", [severity == DiagnosticSeverity.Error ? "error" : "warning"]));
         }
-        if (NodeBadges is { } domain && Editor.Document.TryGetNodeType(node, out _))
+        if (NodeBadges is { } domain && CanPresent(node, out _))
         {
-            badges.AddRange(domain(node).Select(text => (text, _theme.Badge)));
+            badges.AddRange(domain(node).Select(static text => (text, Array.Empty<string>())));
         }
-        // Build-pass rectangles are not laid out yet, so placement uses the fixed card width.
-        var right = (float)NodeWidth - 10;
-        foreach (var (text, color) in badges)
+        var right = (float)NodeWidth(node) - GraphStyles.Length(gui.ResolvePart("graph-badge"), "right");
+        foreach (var (text, modifiers) in badges)
         {
-            var width = Math.Max(18, gui.MeasureTextWidth(text, 11) + 10);
+            var style = gui.ResolvePart("graph-badge", modifiers: modifiers);
+            var height = GraphStyles.Length(style, "height");
+            var badge = gui.StyledNode("graph-badge", modifiers: modifiers).Height(height)
+                .Padding(0).AlignContent(0.5f, 0.5f).HitTestVisible(false);
+            using var scope = badge.Enter();
+            var width = Math.Max(GraphStyles.Length(style, "min-width"),
+                gui.MeasureTextWidth(text)
+                + GraphStyles.Length(style, "padding-left") + GraphStyles.Length(style, "padding-right"));
             right -= width;
-            using var badge = gui.Node(width, 18).Absolute(right, -9).AlignContent(0.5f, 0.5f).Enter();
-            gui.DrawBackgroundRect(color, 9);
-            gui.DrawText(text, 11, _theme.BadgeText);
-            right -= 4;
+            badge.Width(width).Absolute(right, -height / 2);
+            gui.DrawText(text).HitTestVisible(false);
+            right -= GraphStyles.Length(style, "gap");
         }
     }
 
     void DrawPortMarker(Gui gui, GraphElementView element, GraphPort port)
     {
         var input = port.Direction == PortDirection.Input;
-        var color = input ? _theme.InputPort : _theme.OutputPort;
-        var center = gui.CurrentNode.Rect.Center;
-        const float r = 7;
-        switch (PortShape?.Invoke(port) ?? GraphPortShape.Circle)
+        var modifiers = new List<string> { input ? "input" : "output" };
+        if (Canvas.Navigation.ConnectionSourceKey is { } source && source != element.Key)
         {
-            case GraphPortShape.Square:
-                gui.DrawRectFilled(new Rect(center.X - r, center.Y - r, r * 2, r * 2), color, 2);
-                break;
-            case GraphPortShape.Diamond:
-                gui.DrawTriangleFilled(center - new Vector2(r, 0), center - new Vector2(0, r), center + new Vector2(r, 0),
-                    color);
-                gui.DrawTriangleFilled(center - new Vector2(r, 0), center + new Vector2(0, r), center + new Vector2(r, 0),
-                    color);
-                break;
-            case GraphPortShape.Triangle:
-                gui.DrawTriangleFilled(center + new Vector2(r, 0), center + new Vector2(-r, -r),
-                    center + new Vector2(-r, r), color);
-                break;
-            default:
-                gui.DrawCircleFilled(center, r, color);
-                break;
+            modifiers.Add(CanConnect(ElementId.Parse(source), port.Id) ? "compatible" : "incompatible");
         }
-        if (Canvas.Detail != GraphLevelOfDetail.Full)
+        var style = gui.ResolvePart("graph-port", modifiers: modifiers);
+        var r = GraphStyles.Length(style, "width") / 2;
+        var owner = Editor.Document.GetNode(port.NodeId);
+        var shape = CanPresent(owner, out _) ? PortShape?.Invoke(port) : null;
+        DrawMarker(gui, (float)element.Bounds.Width / 2, r, shape ?? GraphPortShape.Circle, style);
+        if (Canvas.Detail == GraphLevelOfDetail.Full)
+        {
+            DrawPortLabel(gui, element, input);
+        }
+    }
+
+    static void DrawMarker(Gui gui, float half, float r, GraphPortShape shape, ResolvedStyle style)
+    {
+        var marker = gui.Node(r * 2, r * 2).Absolute(half - r, half - r).HitTestVisible(false);
+        using var scope = marker.Enter();
+        if (gui.Pass != Pass.Pass2Render)
         {
             return;
         }
-        // Labels extend over the card, so they pass the pointer through to the node beneath.
+        var clip = MarkerClip(shape, r);
+        if (clip is not null)
+        {
+            gui.SetClipArea(marker, clip);
+        }
+        gui.DrawStyledBox(style, marker.Rect);
+        var border = GraphStyles.Length(style, "border-width");
+        if (border > 0 && clip is not null)
+        {
+            gui.DrawShape(marker.Rect.Center, clip).Stroke(GraphStyles.Color(style, "border-color"), border * 2);
+        }
+    }
+
+    static Shape? MarkerClip(GraphPortShape shape, float radius) => shape switch
+    {
+        GraphPortShape.Square => null,
+        GraphPortShape.Diamond => Shape.Rect(-radius / MathF.Sqrt(2), -radius / MathF.Sqrt(2),
+            radius / MathF.Sqrt(2), radius / MathF.Sqrt(2)).Rotate(45),
+        GraphPortShape.Triangle => Shape.Triangle(radius, 0, -radius, -radius, -radius, radius),
+        _ => Shape.Circle(radius)
+    };
+
+    static void DrawPortLabel(Gui gui, GraphElementView element, bool input)
+    {
+        var style = gui.ResolvePart("graph-port-label");
+        var width = GraphStyles.Length(style, "width");
+        var height = GraphStyles.Length(style, "height");
+        var gap = GraphStyles.Length(style, "margin");
         var half = (float)element.Bounds.Width / 2;
-        using var label = gui.Node(185, 20).Absolute(input ? half + 15 : half - 200, half - 11)
+        using var label = gui.StyledNode("graph-port-label").Margin(0).Width(width).Height(height)
+            .Absolute(input ? half + gap : half - width - gap, half - height / 2)
             .ContentAlignX(input ? 0 : 1).HitTestVisible(false).Enter();
-        gui.DrawText(element.Name, 13, _theme.PortLabel).HitTestVisible(false);
+        gui.DrawText(element.Name).HitTestVisible(false);
     }
 
     void DrawLink(Gui gui, GraphElementView element)
     {
         var preview = element.Key == PreviewKey;
-        var selected = Canvas.Navigation.SelectedKeys.Contains(element.Key)
-            || Canvas.Navigation.FocusedKey == element.Key;
-        var visual = new GraphLinkVisual(element.Key, _connectors[element.Key], LinkStyle(element, preview, selected),
-            selected, preview, Canvas.Detail);
+        var selected = Canvas.Navigation.SelectedKeys.Contains(element.Key) || Canvas.Navigation.FocusedKey == element.Key;
+        var modifiers = LinkModifiers(element, preview, selected);
+        var style = gui.ResolvePart("graph-link", modifiers: modifiers);
+        using var scope = gui.StyledNode("graph-link", modifiers: modifiers).Expand().HitTestVisible(false).Enter();
+        var stroke = new GraphLinkStyle(GraphStyles.Color(style, "stroke"), GraphStyles.Length(style, "stroke-width"),
+            !preview && ShowArrows && Canvas.Detail == GraphLevelOfDetail.Full,
+            GraphStyles.Length(style, "stroke-dasharray"), GraphStyles.Length(style, "stroke-dashoffset"),
+            GraphStyles.Dashes(style), GraphStyles.Length(style, "marker-width"));
+        var visual = new GraphLinkVisual(element.Key, _connectors[element.Key], stroke, selected, preview, Canvas.Detail);
         if (LinkRenderer is { } renderer)
         {
             renderer(gui, visual);
@@ -233,15 +293,25 @@ public sealed partial class GraphDocumentView
         }
     }
 
-    GraphLinkStyle LinkStyle(GraphElementView element, bool preview, bool selected)
+    List<string> LinkModifiers(GraphElementView element, bool preview, bool selected)
     {
-        var detail = Canvas.Detail;
+        var modifiers = new List<string>();
+        if (selected)
+        {
+            modifiers.Add("selected");
+        }
         if (preview)
         {
-            return new GraphLinkStyle(_theme.LinkPreview, detail == GraphLevelOfDetail.Outline ? 1.5f : 2, Dash: 6);
+            modifiers.Add("preview");
         }
-        var color = selected ? _theme.LinkSelected : SeverityColor(EdgeSeverity(ElementId.Parse(element.Key)), _theme.Link);
-        var thickness = detail == GraphLevelOfDetail.Outline ? 1.5f : selected ? 3 : 2;
-        return new GraphLinkStyle(color, thickness, ShowArrows && detail == GraphLevelOfDetail.Full);
+        if (Canvas.Detail == GraphLevelOfDetail.Outline)
+        {
+            modifiers.Add("outline");
+        }
+        if (!preview)
+        {
+            AddSeverity(modifiers, EdgeSeverity(ElementId.Parse(element.Key)));
+        }
+        return modifiers;
     }
 }

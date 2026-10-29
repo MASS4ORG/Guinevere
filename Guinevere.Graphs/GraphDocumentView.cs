@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MASS4.Graph;
 
 namespace Guinevere.Graphs;
@@ -20,6 +21,7 @@ public sealed partial class GraphDocumentView
         Editor = editor;
         Canvas = canvas ?? new GraphCanvas();
         Canvas.Navigation.EditRequested = Edit;
+        Canvas.Overlays.Add(new MarqueeOverlay(this));
         Refresh();
     }
 
@@ -122,7 +124,7 @@ public sealed partial class GraphDocumentView
         var position = EnsurePosition(node.Id);
         var (title, error) = DescribeNode(node);
         var view = new GraphElementView(node.Id.ToString(), GraphElementRole.Node,
-            new GraphBounds(position.X, position.Y, NodeWidth, NodeHeight(node)), title,
+            new GraphBounds(position.X, position.Y, NodeWidth(node), NodeHeight(node)), title,
             Error: error);
         _nodes.Add(view);
         _views.Add(view);
@@ -150,22 +152,36 @@ public sealed partial class GraphDocumentView
 
     (string Title, string? Error) DescribeNode(GraphNode node)
     {
-        if (!Editor.Document.TryGetNodeType(node, out var type))
+        if (!CanPresent(node, out var type))
         {
             return ("Unknown node", "The node type is unavailable; its data is preserved.");
         }
         return (NodeTitle?.Invoke(node) ?? type.DisplayName, null);
     }
 
+    bool CanPresent(GraphNode node, [NotNullWhen(true)] out NodeType? type)
+    {
+        if (Editor.Document.TryGetNodeType(node, out type) && node.TypeVersion == type.Version
+            && node.Payload is not UnknownPayload)
+        {
+            return true;
+        }
+        type = null;
+        return false;
+    }
+
     void AddPortView(GraphPort port, GraphPoint position, int row)
     {
         var input = port.Direction == PortDirection.Input;
-        var point = new GraphPoint(position.X + (input ? 0 : NodeWidth), position.Y + 54 + row * RowHeight);
+        var node = Editor.Document.GetNode(port.NodeId);
+        var spacing = RowHeight(node);
+        var point = new GraphPoint(position.X + (input ? 0 : NodeWidth(node)),
+            position.Y + HeaderHeight + spacing / 2 + row * spacing);
         _ports.Add(port.Id, point);
         var typeName = Editor.Document.Registry.PortTypes.TryResolve(port.TypeId, out var portType)
             ? portType.DisplayName : "Unknown type";
         // Ports keep a usable on-screen target when zoomed out, without overlapping neighboring rows.
-        var size = Math.Clamp(24 / Canvas.Camera.Zoom, 18, RowHeight);
+        var size = Math.Min(PortHitRadius * 2 / Canvas.Camera.Zoom, spacing);
         _views.Add(new GraphElementView(port.Id.ToString(), GraphElementRole.Port,
             new GraphBounds(point.X - size / 2, point.Y - size / 2, size, size), port.Declaration.Name,
             ParentKey: port.NodeId.ToString(), TypeName: typeName));

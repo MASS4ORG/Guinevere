@@ -1,0 +1,33 @@
+graph-playground { background-color = #000000; color = #ffffff; font-size = 16; padding = 20; gap = 12; }
+graph-heading { color = #ffffff; }
+graph-button, graph-tab, graph-stepper, graph-search {
+    background-color = #000000; color = #ffffff; border-color = #ffffff; border-width = 2; border-radius = 0; font-size = 16;
+}
+graph-button:hover, graph-tab:selected, graph-stepper:hover { background-color = #333333; border-color = #ffff00; }
+graph-button:focus, graph-tab:focus, graph-toggle:focus { outline-color = #ffff00; outline-width = 3; }
+graph-toggle { color = #ffffff; font-size = 16; }
+graph-toggle-indicator { background-color = #000000; border-color = #ffffff; border-width = 2; border-radius = 0; }
+graph-toggle-indicator:checked { background-color = #ffff00; }
+graph-message { color = #ffff00; font-size = 16; }
+graph-message:error { color = #ff8f8f; }
+graph-canvas { background-color = #000000; }
+graph-grid { stroke = #242424; }
+graph-grid:major { stroke = #555555; }
+graph-grid:axis { stroke = #ffffff; }
+graph-node { background-color = #000000; border-color = #ffffff; border-width = 2; border-radius = 0; color = #ffffff; }
+graph-node:selected { background-color = #222222; border-color = #ffff00; border-width = 3; }
+graph-header { background-color = #222222; border-radius = 0; }
+graph-title { color = #ffffff; font-size = 18; font-weight = 700; }
+graph-port-label { color = #ffffff; font-size = 14; }
+graph-port { background-color = #00ffff; width = 18; height = 18; }
+graph-port:output { background-color = #ffff00; }
+graph-link { stroke = #00ffff; stroke-width = 3; }
+graph-link:selected { stroke = #ffff00; stroke-width = 5; }
+graph-link:preview { stroke = #ffffff; stroke-dasharray = 10; }
+graph-badge { background-color = #ffffff; color = #000000; border-radius = 0; font-weight = 700; }
+graph-flow { background-color = #ffff00; width = 10; }
+graph-flow-label { background-color = #000000; color = #ffff00; border-color = #ffff00; border-width = 2; border-radius = 0; }
+graph-minimap { background-color = #000000; border-color = #ffffff; border-width = 2; }
+graph-minimap-node { background-color = #ffffff; }
+graph-minimap-viewport, graph-focus { border-color = #ffff00; border-width = 3; }
+graph-marquee { background-color = #ffff0022; border-color = #ffff00; border-width = 2; }

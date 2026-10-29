@@ -1,9 +1,6 @@
-using System.Numerics;
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly string[] EasingDurations = ["1s", "2s", "4s"];
     static readonly float[] EasingSeconds = [1f, 2f, 4f];
@@ -31,7 +28,7 @@ public partial class Shared
             {
                 if (Button(gui, p, _blendWide ? "Shrink to 120px" : "Grow to 70%", id: "blend/toggle"))
                 {
-                    Later(static () => _blendWide = !_blendWide);
+                    Common.Later(static () => _blendWide = !_blendWide);
                 }
 
                 Label(gui, p, "UnitValue.Lerp(Pixels(120), Percentage(0.7), t): layout units animate like numbers");
@@ -116,13 +113,13 @@ public partial class Shared
             {
                 if (Button(gui, p, "Flip target", id: "spring/flip"))
                 {
-                    Later(() => _springTarget = !_springTarget);
+                    Common.Later(() => _springTarget = !_springTarget);
                 }
 
                 if (Button(gui, p, gui.ReduceMotion ? "Reduce motion: on" : "Reduce motion: off", gui.ReduceMotion,
                         "spring/reduce"))
                 {
-                    Later(() => gui.ReduceMotion = !gui.ReduceMotion);
+                    Common.Later(() => gui.ReduceMotion = !gui.ReduceMotion);
                 }
             }
 

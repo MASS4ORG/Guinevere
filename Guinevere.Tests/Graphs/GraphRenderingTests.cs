@@ -156,9 +156,9 @@ public sealed class GraphRenderingTests
         Assert.Equal(GraphSeverity.Warning, view.NodeSeverity(node.Id));
         Assert.Equal(GraphSeverity.Error, view.NodeSeverity(other.Id));
         Assert.Null(view.NodeSeverity(scene.Graph.Editor.Document.Nodes.ElementAt(2).Id));
-        view.Theme = GraphTheme.Light;
+        harness.Gui.StyleSheets.Add(GraphDemoStyles.Sheets[1]);
         harness.Frame(Draw);
-        Assert.Same(GraphTheme.Light.Canvas, view.Canvas.Style);
+        Assert.Equal(Color.ParseHex("#faf6ec"), harness.Gui.ResolveStyle("graph-canvas").GetColor("background-color"));
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public sealed class GraphRenderingTests
         using var harness = new FrameHarness(1100, 700);
         var scene = new SandboxScene();
         scene.Canvas.ShowMinimap = false;
-        scene.View.Theme = GraphTheme.Light;
+        harness.Gui.StyleSheets.Add(GraphDemoStyles.Sheets[1]);
         void Draw(Gui gui) => scene.View.Draw(gui);
         harness.Frame(Draw);
         harness.Frame(Draw);

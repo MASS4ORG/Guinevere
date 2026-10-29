@@ -244,6 +244,28 @@ public sealed class GraphNavigation
         }
     }
 
+    /// <summary>Replaces selection with enabled catalog keys while retaining focus unless a key is supplied.</summary>
+    public void SetSelection(IEnumerable<string> keys, string? focus = null)
+    {
+        var next = keys.Where(IsEnabled).ToHashSet(StringComparer.Ordinal);
+        foreach (var key in _selected.Except(next).ToArray())
+        {
+            _selected.Remove(key);
+            Emit(GraphSemanticEventKind.SelectionChanged, key, null, "Deselected.");
+        }
+        foreach (var key in next)
+        {
+            if (_selected.Add(key))
+            {
+                Emit(GraphSemanticEventKind.SelectionChanged, key, null, "Selected.");
+            }
+        }
+        if (focus is not null)
+        {
+            Focus(focus);
+        }
+    }
+
     /// <summary>Enters a node's ports, starts a connection, or asks the adapter to complete one.</summary>
     public bool Activate()
     {

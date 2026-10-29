@@ -302,7 +302,7 @@ public class GuiFillTests
     public void HudGalleryRendersOffscreen()
     {
         using var harness = new FrameHarness(800, 900);
-        harness.Frame(static gui => Example01.Shared.Hud(gui, Example01.ColorPalette.Dark));
+        harness.Frame(static gui => Example01.Example01.Hud(gui, Shared.ColorPalette.Dark));
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);
         Assert.True(harness.Gui.RootNode!.Children.Single().Children.Count > 10);
@@ -314,7 +314,7 @@ public class GuiFillTests
     public void HudGalleryControlsDriveImageLayers()
     {
         using var harness = new FrameHarness(800, 900);
-        static void Draw(Gui gui) => Example01.Shared.Hud(gui, Example01.ColorPalette.Dark);
+        static void Draw(Gui gui) => Example01.Example01.Hud(gui, Shared.ColorPalette.Dark);
         Vector2 ButtonCenter(int index) => FrameHarness.Center(
             harness.Gui.RootNode!.Children.Single().Children.First().Children[index]);
         SKColor BarPixel()

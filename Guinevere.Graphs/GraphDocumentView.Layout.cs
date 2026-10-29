@@ -32,8 +32,27 @@ public sealed partial class GraphDocumentView
     {
         if (e.Button == MouseButton.Left && _dragStart is { } before)
         {
+            if (SnapToGrid && !_duplicateDrag)
+            {
+                SnapSelectedPositions();
+            }
             _dragStart = null;
-            CommitLayout("Move nodes", before);
+            if (_duplicateDrag)
+            {
+                var node = SelectedNodes().FirstOrDefault();
+                var offset = node is null ? default
+                    : new GraphPoint(_positions[node.Id].X - before[node.Id].X, _positions[node.Id].Y - before[node.Id].Y);
+                foreach (var (id, position) in before)
+                {
+                    _positions[id] = position;
+                }
+                DuplicateSelection(offset);
+                _duplicateDrag = false;
+            }
+            else
+            {
+                CommitLayout("Move nodes", before);
+            }
             e.StopPropagation();
         }
     }
@@ -52,6 +71,7 @@ public sealed partial class GraphDocumentView
             foreach (var edit in edits)
             {
                 view._positions[edit.Node] = edit.After;
+                view._initialPositions.TryAdd(edit.Node, edit.After);
             }
             return true;
         }

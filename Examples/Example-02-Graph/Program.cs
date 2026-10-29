@@ -1,6 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using Guinevere;
-
 namespace Example02;
 
 /// <summary>Runs the graph-only playground through the Silk.NET host.</summary>

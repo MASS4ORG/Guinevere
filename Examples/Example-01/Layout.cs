@@ -1,8 +1,6 @@
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly float[] AlignStops = [0f, 0.5f, 1f];
     static float _alignX = 0.5f;
@@ -79,7 +77,7 @@ public partial class Shared
             hovered = node.OnHover();
             if (node.OnClick())
             {
-                Later(() =>
+                Common.Later(() =>
                 {
                     _alignX = cellX;
                     _alignY = cellY;

@@ -4,6 +4,28 @@ namespace Guinevere.Graphs;
 
 public sealed partial class GraphDocumentView
 {
+    /// <summary>Checks direction and registered port-type compatibility without modifying the document or history.</summary>
+    public bool CanConnect(ElementId first, ElementId second)
+    {
+        var document = Editor.Document;
+        if (!document.TryGetPort(first, out var a) || !document.TryGetPort(second, out var b)
+            || a.Direction == b.Direction || a.NodeId == b.NodeId)
+        {
+            return false;
+        }
+        var source = a.Direction == PortDirection.Output ? a : b;
+        var target = a.Direction == PortDirection.Input ? a : b;
+        return Compatible(source, target);
+    }
+
+    bool Compatible(GraphPort source, GraphPort target)
+    {
+        var document = Editor.Document;
+        return document.Registry.PortTypes.TryResolve(source.TypeId, out var sourceType)
+            && document.Registry.PortTypes.TryResolve(target.TypeId, out var targetType)
+            && Editor.Compatibility.Check(sourceType, targetType).Kind != PortCompatibilityKind.Incompatible;
+    }
+
     CommandResult ConnectPorts(ElementId source, ElementId target)
     {
         var document = Editor.Document;

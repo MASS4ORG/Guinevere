@@ -8,7 +8,7 @@ public class MarkdownDemoTests
     public void PageStreamsTheSampleToItsFullDocument()
     {
         using var harness = new FrameHarness(800, 1200);
-        static void Draw(Gui gui) => Example01.Shared.MarkdownDemo(gui, Example01.ColorPalette.Light);
+        static void Draw(Gui gui) => Example01.Example01.MarkdownDemo(gui, Shared.ColorPalette.Light);
 
         harness.Frame(Draw, 0.5);
         var partial = harness.Gui.TextLayoutBuilds;
@@ -25,7 +25,7 @@ public class MarkdownDemoTests
     [Fact]
     public void BadgeImageResolvesAndOthersShowAltText()
     {
-        Assert.NotNull(Example01.Shared.MarkdownImage("badge"));
-        Assert.Null(Example01.Shared.MarkdownImage("other"));
+        Assert.NotNull(Example01.Example01.MarkdownImage("badge"));
+        Assert.Null(Example01.Example01.MarkdownImage("other"));
     }
 }

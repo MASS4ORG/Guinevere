@@ -44,14 +44,18 @@ public sealed partial class GraphDocumentView
     /// <summary>Draws real nodes, labeled ports, connectors, and a transient link preview.</summary>
     public LayoutNode Draw(Gui gui, string id = "graph-document")
     {
+        GraphStyles.Ensure(gui);
+        using var editor = gui.StyledNode("graph-editor", classes: StyleClasses).Expand().Enter();
         if (gui.Pass == Pass.Pass1Build)
         {
+            ResolveGeometry(gui);
             _pointer = Canvas.ScreenToWorld(gui.Input.MousePosition);
             Refresh();
             AddPreview();
         }
         var node = Canvas.Draw(gui, _views, DrawElement, id: id);
-        node.On<PointerDownEvent>(e => SelectConnection(node, e));
+        node.On<PointerDownEvent>(e => SelectConnection(gui, node, e));
+        AttachEditingGestures(gui, node);
         node.On<KeyDownEvent>(e => HandleEditorKey(gui, node, e), capture: true);
         return node;
     }
@@ -90,12 +94,20 @@ public sealed partial class GraphDocumentView
         var node = gui.CurrentNode;
         node.Cursor(PointerCursor.Move).On<PointerDownEvent>(e =>
         {
+            if (e.Button == MouseButton.Right && !Canvas.Navigation.SelectedKeys.Contains(element.Key))
+            {
+                Canvas.Navigation.Select(element.Key);
+            }
             if (e.Button != MouseButton.Left)
             {
                 return;
             }
-            _togglePress = ControlHeld(gui);
-            if (_togglePress || !Canvas.Navigation.SelectedKeys.Contains(element.Key))
+            _togglePress = ControlHeld(gui) || ShiftHeld(gui);
+            if (ShiftHeld(gui))
+            {
+                Canvas.Navigation.SetSelection(Canvas.Navigation.SelectedKeys.Append(element.Key), element.Key);
+            }
+            else if (_togglePress || !Canvas.Navigation.SelectedKeys.Contains(element.Key))
             {
                 Canvas.Navigation.Select(element.Key, _togglePress);
             }
@@ -109,7 +121,7 @@ public sealed partial class GraphDocumentView
                 Canvas.Navigation.Select(element.Key);
             }
         });
-        node.On<DragStartEvent>(BeginNodeDrag);
+        node.On<DragStartEvent>(e => StartNodeDrag(gui, e));
         node.On<DragMoveEvent>(DragNodes);
         node.On<DragEndEvent>(EndNodeDrag);
         DrawNodeCard(gui, element);
@@ -143,7 +155,7 @@ public sealed partial class GraphDocumentView
 
     void DragNodes(DragEvent e)
     {
-        if (e.Button == MouseButton.Left)
+        if (e.Button == MouseButton.Left && !_cancelledDrag)
         {
             var current = Canvas.ScreenToWorld(e.Position);
             var previous = Canvas.ScreenToWorld(e.Position - e.FrameDelta);
@@ -188,7 +200,7 @@ public sealed partial class GraphDocumentView
         return best;
     }
 
-    void SelectConnection(LayoutNode canvas, PointerDownEvent e)
+    void SelectConnection(Gui gui, LayoutNode canvas, PointerDownEvent e)
     {
         if (e.Button != MouseButton.Left || e.TargetId != canvas.Id)
         {
@@ -203,11 +215,23 @@ public sealed partial class GraphDocumentView
         var edge = HitLink(point, LinkHitTolerance / Canvas.Camera.Zoom);
         if (edge is not null)
         {
-            Canvas.Navigation.Select(edge);
+            SelectLink(gui, edge);
+        }
+        else if (!ControlHeld(gui) && !ShiftHeld(gui))
+        {
+            Canvas.Navigation.ClearSelection();
+        }
+    }
+
+    void SelectLink(Gui gui, string edge)
+    {
+        if (ShiftHeld(gui))
+        {
+            Canvas.Navigation.SetSelection(Canvas.Navigation.SelectedKeys.Append(edge), edge);
         }
         else
         {
-            Canvas.Navigation.ClearSelection();
+            Canvas.Navigation.Select(edge, ControlHeld(gui));
         }
     }
 
@@ -234,19 +258,11 @@ public sealed partial class GraphDocumentView
 
     void HandleEditorKey(Gui gui, LayoutNode canvas, KeyDownEvent e)
     {
-        if (e.TargetId != canvas.Id || !ControlHeld(gui))
+        if (e.TargetId != canvas.Id)
         {
             return;
         }
-        if (e.Key == KeyboardKey.Z)
-        {
-            Undo();
-        }
-        else if (e.Key == KeyboardKey.Y)
-        {
-            Redo();
-        }
-        else
+        if (!HandleEditingKey(gui, e.Key))
         {
             return;
         }
@@ -259,6 +275,9 @@ public sealed partial class GraphDocumentView
 
     static bool ControlHeld(Gui gui) => gui.Input.IsKeyDown(KeyboardKey.LeftControl)
         || gui.Input.IsKeyDown(KeyboardKey.RightControl);
+
+    static bool ShiftHeld(Gui gui) => gui.Input.IsKeyDown(KeyboardKey.LeftShift)
+        || gui.Input.IsKeyDown(KeyboardKey.RightShift);
 
     static double SquaredDistance(GraphPoint a, GraphPoint b) =>
         (a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y);

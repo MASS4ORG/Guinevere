@@ -1,8 +1,6 @@
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly string[] SkinNames = ["Arcade", "Outline", "Pill"];
     static int _skin;
@@ -27,7 +25,7 @@ public partial class Shared
                 CustomToggle(gui, p, "Arm launch", ref _armed);
                 if (CustomButton(gui, p, "Launch", _armed))
                 {
-                    Later(static () => _launches++);
+                    Common.Later(static () => _launches++);
                 }
 
                 gui.DrawText($"Launches: {_launches}", 16, p.TextDim);

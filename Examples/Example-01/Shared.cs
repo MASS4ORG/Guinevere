@@ -1,13 +1,10 @@
-using Guinevere;
-using GuinevereDemos;
-
 namespace Example01;
 
 /// <summary>
 /// The tour shell: a header, a grouped navigation (a sidebar, or a wrapping strip on narrow windows) and a stage
 /// that hosts the selected demo. Every demo receives the active <see cref="ColorPalette"/>.
 /// </summary>
-public partial class Shared(Gui gui)
+public partial class Example01(Gui gui)
 {
     const float NarrowWidth = 700f;
 
@@ -41,7 +38,6 @@ public partial class Shared(Gui gui)
     ];
 
     static int _demoIndex;
-    static ColorPalette _palette = ColorPalette.Dark;
     static ColorPalette? _appliedPalette;
 
     /// <summary>Draws one frame of the tour; call it from both passes.</summary>
@@ -64,8 +60,8 @@ public partial class Shared(Gui gui)
         var narrow = gui.ScreenRect.W < NarrowWidth;
         using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
         {
-            gui.DrawBackgroundRect(_palette.Background);
-            DemoHeader.Header(gui, "Guinevere", _palette.Text);
+            gui.DrawBackgroundRect(Common.Palette.Background);
+            Common.Header(gui, "Guinevere", Common.Palette.Text);
 
             using (gui.Node().Expand().Direction(narrow ? Axis.Vertical : Axis.Horizontal).Padding(12).Gap(12).Enter())
             {
@@ -86,7 +82,7 @@ public partial class Shared(Gui gui)
     /// <summary>Registers the stylesheet once, then reloads it whenever the palette changes.</summary>
     void ApplyPalette()
     {
-        if (ReferenceEquals(_appliedPalette, _palette))
+        if (ReferenceEquals(_appliedPalette, Common.Palette))
         {
             return;
         }
@@ -100,17 +96,17 @@ public partial class Shared(Gui gui)
             Stylesheet.TryReload();
         }
 
-        _appliedPalette = _palette;
+        _appliedPalette = Common.Palette;
     }
 
     void Sidebar()
     {
         using (gui.Node(190).ExpandHeight().Direction(Axis.Vertical).Padding(10).Gap(2).Enter())
         {
-            gui.DrawBackgroundRect(_palette.Surface, 12);
+            gui.DrawBackgroundRect(Common.Palette.Surface, 12);
             using (gui.Node().Expand().Direction(Axis.Vertical).Gap(2).Enter())
             {
-                gui.ScrollY(_palette.Track, _palette.Border);
+                gui.ScrollY(Common.Palette.Track, Common.Palette.Border);
                 string? group = null;
                 for (var i = 0; i < Demos.Length; i++)
                 {
@@ -119,19 +115,19 @@ public partial class Shared(Gui gui)
                         group = Demos[i].Group;
                         using (gui.Node().ExpandWidth().Padding(14, 0).Margin(i == 0 ? 2 : 12, 0, 4, 0).Enter())
                         {
-                            gui.DrawText(group.ToUpperInvariant(), 11, _palette.TextDim);
+                            gui.DrawText(group.ToUpperInvariant(), 11, Common.Palette.TextDim);
                         }
                     }
 
                     var index = i;
-                    if (NavItem(gui, _palette, Demos[i].Title, i == _demoIndex, compact: false))
+                    if (NavItem(gui, Common.Palette, Demos[i].Title, i == _demoIndex, compact: false))
                     {
-                        Later(() => _demoIndex = index);
+                        Common.Later(() => _demoIndex = index);
                     }
                 }
             }
 
-            ThemeSwitch(gui, _palette, compact: false);
+            // ThemeSwitch(gui, _palette, compact: false);
         }
     }
 
@@ -139,17 +135,17 @@ public partial class Shared(Gui gui)
     {
         using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Wrap(1).Padding(8).Gap(6).Enter())
         {
-            gui.DrawBackgroundRect(_palette.Surface, 12);
+            gui.DrawBackgroundRect(Common.Palette.Surface, 12);
             for (var i = 0; i < Demos.Length; i++)
             {
                 var index = i;
-                if (NavItem(gui, _palette, Demos[i].Title, i == _demoIndex, compact: true))
+                if (NavItem(gui, Common.Palette, Demos[i].Title, i == _demoIndex, compact: true))
                 {
-                    Later(() => _demoIndex = index);
+                    Common.Later(() => _demoIndex = index);
                 }
             }
 
-            ThemeSwitch(gui, _palette, compact: true);
+            // ThemeSwitch(gui, Common.Palette, compact: true);
         }
     }
 
@@ -158,17 +154,17 @@ public partial class Shared(Gui gui)
         var demo = Demos[_demoIndex];
         using (gui.Node().Expand().Direction(Axis.Vertical).Padding(20).Gap(10).Enter())
         {
-            gui.DrawBackgroundRect(_palette.Surface, 12);
-            gui.DrawText(demo.Title, 24, _palette.Text);
-            gui.DrawText(demo.Summary, 13, _palette.TextDim);
+            gui.DrawBackgroundRect(Common.Palette.Surface, 12);
+            gui.DrawText(demo.Title, 24, Common.Palette.Text);
+            gui.DrawText(demo.Summary, 13, Common.Palette.TextDim);
             using (gui.Node().ExpandWidth().Height(1).Margin(0, 4).Enter())
             {
-                gui.DrawBackgroundRect(_palette.Border);
+                gui.DrawBackgroundRect(Common.Palette.Border);
             }
 
             using (gui.Node().Expand().Enter())
             {
-                demo.Draw(gui, _palette);
+                demo.Draw(gui, Common.Palette);
             }
         }
     }

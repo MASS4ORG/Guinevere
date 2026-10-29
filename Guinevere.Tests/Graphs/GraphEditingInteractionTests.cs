@@ -250,13 +250,12 @@ public sealed class GraphEditingInteractionTests
         GraphCanvasTests.Key(harness, draw, KeyboardKey.Enter);
         harness.Frame(draw);
         Assert.True(playground.Sandbox.Canvas.ShowMinimap);
-        harness.Gui.Focus.RequestFocus("toggle-theme");
+        harness.Gui.Focus.RequestFocus("select-style");
         harness.Frame(draw);
         GraphCanvasTests.Key(harness, draw, KeyboardKey.Space);
         harness.Frame(draw);
-        Assert.True(playground.LightTheme);
-        Assert.Same(GraphTheme.Light, playground.Flow.Sandbox.View.Theme);
-        Assert.Same(GraphTheme.Light.Canvas, playground.Sandbox.Canvas.Style);
+        Assert.Equal(1, playground.StyleIndex);
+        Assert.Contains(GraphDemoStyles.Sheets[1], harness.Gui.StyleSheets);
         harness.Gui.Focus.RequestFocus("cycle-routing");
         harness.Frame(draw);
         GraphCanvasTests.Key(harness, draw, KeyboardKey.Enter);
@@ -266,9 +265,10 @@ public sealed class GraphEditingInteractionTests
         Assert.Equal(GraphLinkRouting.Straight, playground.Sandbox.View.Connector(edge.Id).Routing);
         playground.CycleRouting();
         playground.CycleRouting();
-        playground.ToggleTheme();
+        playground.CycleStyle();
+        playground.CycleStyle();
         Assert.Equal(GraphLinkRouting.Bezier, playground.Sandbox.View.Routing);
-        Assert.False(playground.LightTheme);
+        Assert.Equal(0, playground.StyleIndex);
     }
 
     static void Drag(FrameHarness harness, Action<Gui> draw, Vector2 start, Vector2 end)

@@ -1,16 +1,10 @@
-using Guinevere;
-using Guinevere.Graphs;
-using GuinevereDemos;
-
 namespace Example02;
 
 /// <summary>The scenario shell for the graph-only playground.</summary>
 public sealed class GraphPlayground
 {
     static readonly string[] Titles = ["Sandbox", "Running flow", "Organizers"];
-    static readonly Color Background = new(0x10151fff);
-    static readonly Color Panel = new(0x1c2535ff);
-    static readonly Color Accent = new(0x70c4ffff);
+    StyleSheet? _appliedStyle;
     readonly Queue<Action> _pending = new();
     int _frameScenario;
 
@@ -22,8 +16,10 @@ public sealed class GraphPlayground
     public SandboxScene Sandbox { get; } = new();
     /// <summary>A separate arithmetic document evaluated in the background and drawn with a flow overlay.</summary>
     public FlowScene Flow { get; } = new();
-    /// <summary>Whether both scenarios use the light theme.</summary>
-    public bool LightTheme => Sandbox.View.Theme == GraphTheme.Light;
+    /// <summary>The selected application's stylesheet index.</summary>
+    public int StyleIndex { get; private set; }
+    /// <summary>The style name shown by the selector.</summary>
+    public string StyleName => GraphDemoStyles.Names[StyleIndex];
 
     int TabCount => ShowPendingScenarios ? Titles.Length : 2;
 
@@ -46,9 +42,9 @@ public sealed class GraphPlayground
             }
             _frameScenario = Scenario;
         }
-        using var root = gui.Node().Expand().Direction(Axis.Vertical).Padding(20).Gap(12).Enter();
-        gui.DrawBackgroundRect(Background);
-        DemoHeader.Header(gui, "Graph Playground");
+        ApplyStyle(gui);
+        using var root = gui.StyledNode("graph-playground").Expand().Direction(Axis.Vertical).Enter();
+        DrawHeader(gui);
         using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Enter())
         {
             for (var i = 0; i < TabCount; i++)
@@ -74,12 +70,48 @@ public sealed class GraphPlayground
         }
     }
 
-    /// <summary>Switches both scenarios between the dark and light themes.</summary>
-    public void ToggleTheme()
+    /// <summary>Selects a complete PSS sheet for every scenario and its surrounding controls.</summary>
+    public void SelectStyle(int index)
     {
-        var theme = LightTheme ? GraphTheme.Dark : GraphTheme.Light;
-        Sandbox.View.Theme = theme;
-        Flow.Sandbox.View.Theme = theme;
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, GraphDemoStyles.Sheets.Count);
+        StyleIndex = index;
+    }
+
+    /// <summary>Cycles Blueprint, Paper and High contrast.</summary>
+    public void CycleStyle() => SelectStyle((StyleIndex + 1) % GraphDemoStyles.Sheets.Count);
+
+    void ApplyStyle(Gui gui)
+    {
+        GraphStyles.Ensure(gui);
+        var sheet = GraphDemoStyles.Sheets[StyleIndex];
+        if (_appliedStyle != sheet)
+        {
+            if (_appliedStyle is not null)
+            {
+                gui.StyleSheets.Remove(_appliedStyle);
+            }
+            gui.StyleSheets.Add(sheet);
+            _appliedStyle = sheet;
+        }
+    }
+
+    static readonly Bitmap Badge = LoadBadge();
+
+    static void DrawHeader(Gui gui)
+    {
+        using var heading = gui.StyledNode("graph-heading").ExpandWidth().Height(40)
+            .Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(8).Enter();
+        gui.Image(Badge, width: 26, height: 26);
+        gui.DrawText("Graph Playground");
+        gui.Node().Expand();
+        gui.DrawText($"{gui.Time.SmoothFps:N0} FPS");
+    }
+
+    static Bitmap LoadBadge()
+    {
+        using var stream = typeof(GraphPlayground).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png")!;
+        return Bitmap.FromStream(stream);
     }
 
     /// <summary>Cycles both scenarios through Bézier, straight and orthogonal link routing.</summary>
@@ -97,29 +129,28 @@ public sealed class GraphPlayground
             () => scene.Canvas.ShowMinimap = !scene.Canvas.ShowMinimap);
         Toggle(gui, "Avoid replacing connections", "protect-connections", scene.View.AvoidReplacingConnections,
             () => scene.View.AvoidReplacingConnections = !scene.View.AvoidReplacingConnections);
-        Toggle(gui, "Light theme", "toggle-theme", LightTheme, ToggleTheme);
+        Button(gui, "Style: " + StyleName, "select-style", CycleStyle);
         Button(gui, "Links: " + scene.View.Routing, "cycle-routing", CycleRouting);
     }
 
     void Toggle(Gui gui, string label, string id, bool value, Action action)
     {
-        using var scope = gui.Node(280, 32, id).Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f).Enter();
+        using var scope = gui.StyledNode("graph-toggle", id: id).Width(280).Height(32).Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f).Enter();
         var result = gui.Toggleable(value, new ControlBehaviorOptions(Role: ControlRole.Switch, Label: label));
         if (result.Activated)
         {
             Queue(gui, action);
         }
-        FocusRing(gui);
-        using (gui.Node(20, 20).Enter())
+        using (gui.StyledNode("graph-toggle-indicator", modifiers: value ? ["checked"] : []).Width(20).Height(20).Enter())
         {
-            gui.DrawBackgroundRect(value ? Accent : Panel, 4);
+
         }
-        gui.DrawText(label, 14, Color.White);
+        gui.DrawText(label);
     }
 
     void DrawTab(Gui gui, int index)
     {
-        using var scope = gui.Node(156, 42, TabId(index)).AlignContent(0.5f, 0.5f).Enter();
+        using var scope = gui.StyledNode("graph-tab", id: TabId(index), modifiers: _frameScenario == index ? ["selected"] : []).Width(156).Height(42).AlignContent(0.5f, 0.5f).Enter();
         gui.CurrentNode.On<KeyDownEvent>(e => NavigateTabs(gui, e, index));
         var selected = _frameScenario == index;
         var result = gui.Selectable(selected,
@@ -128,9 +159,7 @@ public sealed class GraphPlayground
         {
             Queue(gui, () => SelectScenario(index));
         }
-        gui.DrawBackgroundRect(selected ? new Color(0x294c70ff) : Panel, 8);
-        FocusRing(gui);
-        gui.DrawText(Titles[index], 16, selected ? Color.White : Accent);
+        gui.DrawText(Titles[index]);
     }
 
     void NavigateTabs(Gui gui, KeyDownEvent e, int current)
@@ -156,24 +185,21 @@ public sealed class GraphPlayground
 
     void Button(Gui gui, string label, string id, Action action)
     {
-        using var scope = gui.Node(156, 36, id).AlignContent(0.5f, 0.5f).Enter();
+        using var scope = gui.StyledNode("graph-button", id: id).Width(156).Height(36).AlignContent(0.5f, 0.5f).Enter();
         var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: label));
         if (result.Activated)
         {
             Queue(gui, action);
         }
-        gui.DrawBackgroundRect(result.Is(ControlVisualState.Hovered) ? new Color(0x294c70ff) : Panel, 6);
-        FocusRing(gui);
-        gui.DrawText(label, 14, Color.White);
+        gui.DrawText(label);
     }
 
     void DrawPendingScenario(Gui gui)
     {
         using var panel = gui.Node().Expand().Direction(Axis.Vertical).Padding(28).Gap(16).Enter();
-        gui.DrawBackgroundRect(Panel, 12);
-        gui.DrawText(Titles[_frameScenario], 24, Color.White);
-        gui.DrawText("Groups, notes and collapsed containers will have their own scenario here.", 16, Accent);
-        gui.DrawText("The Sandbox is available now for graph editing and layout interaction.", 14, Color.White);
+        gui.DrawText(Titles[_frameScenario]);
+        gui.DrawText("Groups, notes and collapsed containers will have their own scenario here.");
+        gui.DrawText("The Sandbox is available now for graph editing and layout interaction.");
         Button(gui, "Open Sandbox", "open-sandbox", () => SelectScenario(0));
     }
 
@@ -181,14 +207,6 @@ public sealed class GraphPlayground
     {
         _pending.Enqueue(action);
         gui.RequestFrame();
-    }
-
-    static void FocusRing(Gui gui)
-    {
-        if (gui.HasFocus())
-        {
-            gui.DrawRectBorder(gui.CurrentNode.Rect, Accent, 2);
-        }
     }
 
     static string TabId(int index) => $"scenario-{index}";

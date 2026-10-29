@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 namespace Guinevere.Graphs;
 
 /// <summary>
-/// A core-only infinite canvas that builds controls solely for visible view descriptors.
+/// A PSS-styled infinite canvas that builds controls solely for visible view descriptors.
 /// Keep one instance per canvas and call Draw from the same site in both Guinevere passes.
 /// </summary>
 public sealed partial class GraphCanvas
@@ -39,8 +39,6 @@ public sealed partial class GraphCanvas
     public bool ShowMinimap { get; set; }
     /// <summary>The accessible name of the graph surface.</summary>
     public string Name { get; set; } = "Graph";
-    /// <summary>Colors supplied directly or adapted from an optional theme.</summary>
-    public GraphCanvasStyle Style { get; set; } = GraphCanvasStyle.Default;
     /// <summary>The last laid-out viewport's visible world bounds.</summary>
     public GraphBounds VisibleBounds => Camera.VisibleBounds(_viewportSize);
     /// <summary>The number of descriptors whose controls are built in the current frame.</summary>
@@ -74,7 +72,17 @@ public sealed partial class GraphCanvas
         Action<Gui, GraphElementView>? buildElement = null, float width = 0, float height = 0, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        var canvas = gui.Node(width, height, id, filePath, lineNumber).BlockInput();
+        GraphStyles.Ensure(gui);
+        var canvas = gui.StyledNode("graph-canvas", id: id, filePath: filePath, lineNumber: lineNumber)
+            .Expand().BlockInput();
+        if (width > 0)
+        {
+            canvas.Width(width);
+        }
+        if (height > 0)
+        {
+            canvas.Height(height);
+        }
         using var scope = canvas.Enter();
         gui.SetClipped(true);
         AttachInput(gui, canvas);
@@ -91,7 +99,6 @@ public sealed partial class GraphCanvas
                 _viewportSize = canvas.Rect.Size;
                 gui.RequestFrame();
             }
-            gui.DrawRectFilled(canvas.Rect, Style.Background);
             DrawGrid(gui, canvas);
             ReadSemanticInput(gui);
         }
@@ -216,7 +223,9 @@ public sealed partial class GraphCanvas
         if (gui.Pass == Pass.Pass2Render && Navigation.FocusedKey == item.Key && gui.HasFocus(canvas.Id)
             && item.Role != GraphElementRole.Edge)
         {
-            gui.DrawRect(node.Rect).Stroke(Style.Focus, (float)(2 / _frameCamera.Zoom));
+            var style = gui.ResolvePart("graph-focus");
+            gui.DrawRect(node.Rect).Stroke(GraphStyles.Color(style, "border-color"),
+                (float)(GraphStyles.Length(style, "border-width") / _frameCamera.Zoom));
         }
     }
 
@@ -226,10 +235,18 @@ public sealed partial class GraphCanvas
         {
             return;
         }
-        foreach (var line in GraphGrid.Lines(_frameCamera, canvas.Rect.Size, ShowAxes))
+        var grid = gui.ResolvePart("graph-grid");
+        var spacing = GraphStyles.Length(grid, "gap");
+        var major = (int)GraphStyles.Length(grid, "graph-major-every");
+        if (spacing <= 0 || major <= 0)
         {
-            var color = line.Axis ? Style.Axis : line.Major ? Style.MajorGrid : Style.MinorGrid;
-            gui.DrawLine(canvas.Rect.Position + line.Start, canvas.Rect.Position + line.End, color);
+            return;
+        }
+        foreach (var line in GraphGrid.Lines(_frameCamera, canvas.Rect.Size, ShowAxes, spacing, major))
+        {
+            var style = gui.ResolvePart("graph-grid", modifiers: line.Axis ? ["axis"] : line.Major ? ["major"] : []);
+            gui.DrawLine(canvas.Rect.Position + line.Start, canvas.Rect.Position + line.End,
+                GraphStyles.Color(style, "stroke"), GraphStyles.Length(style, "stroke-width"));
         }
     }
 

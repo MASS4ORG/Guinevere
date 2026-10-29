@@ -27,8 +27,6 @@ public sealed class GraphFlowOverlay(GraphDocumentView view) : IGraphOverlay
     public bool Animate { get; set; } = true;
     /// <summary>Pulse speed in world units per second.</summary>
     public double Speed { get; set; } = 90;
-    /// <summary>Distance between pulses in world units.</summary>
-    public double Spacing { get; set; } = 48;
     /// <summary>Formats an observed value for its label; formattable values use the invariant culture by default.</summary>
     public Func<object, string> Format { get; set; } = static value =>
         value is IFormattable formattable ? formattable.ToString(null, CultureInfo.InvariantCulture)
@@ -124,7 +122,7 @@ public sealed class GraphFlowOverlay(GraphDocumentView view) : IGraphOverlay
             if (_frame.ContainsKey(edge.Source) && view.TryGetConnector(edge.Id, out var connector)
                 && connector.Bounds.Intersects(context.VisibleBounds))
             {
-                DrawPulses(gui, context, connector, time, view.Theme.Flow);
+                DrawPulses(gui, context, connector, time);
             }
         }
         if (Animate)
@@ -140,34 +138,41 @@ public sealed class GraphFlowOverlay(GraphDocumentView view) : IGraphOverlay
             if (view.TryGetPortPosition(element, out var point)
                 && context.VisibleBounds.Intersects(new GraphBounds(point.X, point.Y, 0, 0)))
             {
-                DrawLabel(gui, element, context.Offset(point), Format(value), view.Theme);
+                DrawLabel(gui, element, context.Offset(point), Format(value));
             }
         }
     }
 
-    void DrawPulses(Gui gui, GraphOverlayContext context, GraphConnector connector, double time, Color color)
+    void DrawPulses(Gui gui, GraphOverlayContext context, GraphConnector connector, double time)
     {
-        var count = Math.Max(1, (int)Math.Round(connector.Length / Spacing));
-        var phase = time * Speed / Spacing % 1;
-        var radius = (float)Math.Clamp(3.5 * context.Zoom, 1.5, 6);
+        var style = gui.ResolvePart("graph-flow");
+        var color = GraphStyles.Color(style, "background-color");
+        var spacing = GraphStyles.Length(style, "gap");
+        if (spacing <= 0)
+        {
+            return;
+        }
+        var count = Math.Max(1, (int)Math.Round(connector.Length / spacing));
+        var phase = time * Speed / spacing % 1;
+        var radius = (float)Math.Clamp(GraphStyles.Length(style, "width") * context.Zoom,
+            GraphStyles.Length(style, "min-width"), GraphStyles.Length(style, "max-width")) / 2;
         for (var i = 0; i < count; i++)
         {
             gui.DrawCircleFilled(context.ToLocal(connector.Point((i + phase) / count)), radius, color);
         }
     }
 
-    static void DrawLabel(Gui gui, ElementId element, Vector2 anchor, string text, GraphTheme theme)
+    static void DrawLabel(Gui gui, ElementId element, Vector2 anchor, string text)
     {
         using var key = gui.ItemKey(element.ToString());
-        var width = gui.MeasureTextWidth(text, 12) + 12;
-        var label = gui.Node(width, 18).Absolute(anchor.X + 10, anchor.Y - 26).AlignContent(0.5f, 0.5f)
+        var style = gui.ResolvePart("graph-flow-label");
+        var label = gui.StyledNode("graph-flow-label").Height(GraphStyles.Length(style, "height"))
+            .Padding(0).Absolute(anchor.X + GraphStyles.Length(style, "left"), anchor.Y + GraphStyles.Length(style, "top"))
+            .AlignContent(0.5f, 0.5f)
             .HitTestVisible(false);
         using var scope = label.Enter();
-        if (gui.Pass == Pass.Pass2Render)
-        {
-            gui.DrawRectFilled(label.Rect, theme.Badge, 9);
-            gui.DrawRect(label.Rect, 9).Stroke(theme.Flow, 1);
-        }
-        gui.DrawText(text, 12, theme.BadgeText).HitTestVisible(false);
+        label.Width(gui.MeasureTextWidth(text)
+            + GraphStyles.Length(style, "padding-left") + GraphStyles.Length(style, "padding-right"));
+        gui.DrawText(text).HitTestVisible(false);
     }
 }

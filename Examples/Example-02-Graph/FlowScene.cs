@@ -1,8 +1,3 @@
-using Guinevere;
-using Guinevere.Graphs;
-using MASS4.Graph;
-using MASS4.Graph.Interpreter;
-
 namespace Example02;
 
 /// <summary>
@@ -18,20 +13,21 @@ public sealed class FlowScene
     InstanceHandle _instance;
     bool _dirty = true;
     bool _observe;
+    bool _rebind;
+    GraphDocument? _document;
 
     /// <summary>Creates a separate document with the same arithmetic domain and a flow overlay.</summary>
     public FlowScene()
     {
         _interpreter = new GraphInterpreter(Sandbox.Graph.Semantics, null, null);
-        Flow = new GraphFlowOverlay(Sandbox.View);
-        Sandbox.Canvas.Overlays.Add(Flow);
-        Sandbox.Graph.Editor.Document.Changed += (_, _) => _dirty = true;
+        AttachDocument();
+        Sandbox.DocumentLoaded += () => _rebind = true;
     }
 
     /// <summary>The editable document whose evaluation is visualized.</summary>
     public SandboxScene Sandbox { get; } = new("Running flow", "flow-canvas");
     /// <summary>The overlay drawing observed values and moving pulses.</summary>
-    public GraphFlowOverlay Flow { get; }
+    public GraphFlowOverlay Flow { get; private set; } = null!;
 
     /// <summary>Compiles after document changes and starts background observation, then draws the sandbox.</summary>
     public void Draw(Gui gui, Action<string, string, Action> button)
@@ -43,12 +39,22 @@ public sealed class FlowScene
         Sandbox.Draw(gui, button);
         if (Flow.Error is { } error)
         {
-            gui.DrawText(error.Message, 13, Sandbox.View.Theme.Error);
+            using var message = gui.StyledNode("graph-message", modifiers: ["error"]).Enter();
+            gui.DrawText(error.Message);
         }
     }
 
     void Pump(Gui gui)
     {
+        if (_rebind)
+        {
+            if (Flow.Running)
+            {
+                return;
+            }
+            AttachDocument();
+            _rebind = false;
+        }
         if (_dirty)
         {
             _dirty = false;
@@ -59,6 +65,21 @@ public sealed class FlowScene
         {
             _observe = false;
         }
+    }
+
+    void MarkDirty(GraphDocument document, IReadOnlyList<GraphChange> changes) => _dirty = true;
+
+    void AttachDocument()
+    {
+        if (_document is not null)
+        {
+            _document.Changed -= MarkDirty;
+        }
+        _document = Sandbox.Graph.Editor.Document;
+        _document.Changed += MarkDirty;
+        Flow = new GraphFlowOverlay(Sandbox.View);
+        Sandbox.Canvas.Overlays.Add(Flow);
+        _dirty = true;
     }
 
     // Compiling reads the live document, so it stays on the UI thread; the artifact is independent of later edits.

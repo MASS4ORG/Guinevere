@@ -1,32 +1,21 @@
-using System.Numerics;
-using Guinevere;
-
 namespace Example01;
 
 /// <summary>Small palette-driven controls built from plain nodes; Excalibur has its own showcase.</summary>
-public partial class Shared
+public partial class Example01
 {
-    static readonly List<Action> Pending = [];
-
-    /// <summary>
-    /// Queues a state change for the start of the next frame. Clicks are seen while rendering, and changing
-    /// anything that shapes the tree there would make the two passes disagree.
-    /// </summary>
-    static void Later(Action change) => Pending.Add(change);
-
     static void ApplyPending(Gui gui)
     {
-        if (gui.Pass != Pass.Pass1Build || Pending.Count == 0)
+        if (gui.Pass != Pass.Pass1Build || Common.Pending.Count == 0)
         {
             return;
         }
 
-        foreach (var change in Pending)
+        foreach (var change in Common.Pending)
         {
             change();
         }
 
-        Pending.Clear();
+        Common.Pending.Clear();
     }
 
     static void Label(Gui gui, ColorPalette p, string text) => gui.DrawText(text, 12, p.TextDim);
@@ -60,7 +49,7 @@ public partial class Shared
                 var index = i;
                 if (Button(gui, p, options[i], i == value, $"{id}/{i}"))
                 {
-                    Later(() => set(index));
+                    Common.Later(() => set(index));
                 }
             }
         }
@@ -78,7 +67,7 @@ public partial class Shared
 
             if (Button(gui, p, "-", id: $"{id}/dec"))
             {
-                Later(() => set(Math.Max(min, value - step)));
+                Common.Later(() => set(Math.Max(min, value - step)));
             }
 
             using (gui.Node(width: 28).ContentAlignY(0.5f).Enter())
@@ -88,7 +77,7 @@ public partial class Shared
 
             if (Button(gui, p, "+", id: $"{id}/inc"))
             {
-                Later(() => set(Math.Min(max, value + step)));
+                Common.Later(() => set(Math.Min(max, value + step)));
             }
         }
     }
@@ -118,37 +107,37 @@ public partial class Shared
         }
     }
 
-    static void ThemeSwitch(Gui gui, ColorPalette p, bool compact)
-    {
-        var dark = ReferenceEquals(p, ColorPalette.Dark);
-        var knob = gui.AnimateFloat(dark ? 0f : 1f, 0.2f);
-        var node = gui.Node().Height(36).Padding(14, 0).Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f)
-            .Cursor(PointerCursor.Hand);
-        if (compact)
-        {
-            node.Width(170);
-        }
-        else
-        {
-            node.ExpandWidth();
-        }
+    // static void ThemeSwitch(Gui gui, ColorPalette p, bool compact)
+    // {
+    //     var dark = ReferenceEquals(p, ColorPalette.Dark);
+    //     var knob = gui.AnimateFloat(dark ? 0f : 1f, 0.2f);
+    //     var node = gui.Node().Height(36).Padding(14, 0).Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f)
+    //         .Cursor(PointerCursor.Hand);
+    //     if (compact)
+    //     {
+    //         node.Width(170);
+    //     }
+    //     else
+    //     {
+    //         node.ExpandWidth();
+    //     }
 
-        using (node.Enter())
-        {
-            gui.DrawText($"{p.Name} theme", 13, p.TextDim);
-            gui.Node().Expand();
-            using (gui.Node(40, 22).Enter())
-            {
-                var track = gui.CurrentNode.Rect;
-                gui.DrawBackgroundRect(Color.Lerp(p.Border, p.Accent, knob), 11);
-                gui.DrawCircle(new Vector2(track.X + 11 + knob * (track.W - 22), track.Y + track.H * 0.5f), 8,
-                    p.AccentText);
-            }
+    //     using (node.Enter())
+    //     {
+    //         gui.DrawText($"{p.Name} theme", 13, p.TextDim);
+    //         gui.Node().Expand();
+    //         using (gui.Node(40, 22).Enter())
+    //         {
+    //             var track = gui.CurrentNode.Rect;
+    //             gui.DrawBackgroundRect(Color.Lerp(p.Border, p.Accent, knob), 11);
+    //             gui.DrawCircle(new Vector2(track.X + 11 + knob * (track.W - 22), track.Y + track.H * 0.5f), 8,
+    //                 p.AccentText);
+    //         }
 
-            if (gui.Pass == Pass.Pass2Render && node.OnClick())
-            {
-                Later(() => _palette = dark ? ColorPalette.Light : ColorPalette.Dark);
-            }
-        }
-    }
+    //         if (gui.Pass == Pass.Pass2Render && node.OnClick())
+    //         {
+    //             Common.Later(() => _palette = dark ? ColorPalette.Light : ColorPalette.Dark);
+    //         }
+    //     }
+    // }
 }

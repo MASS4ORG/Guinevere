@@ -1,9 +1,6 @@
-using System.Numerics;
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly string[] Fruits = ["Apple", "Banana", "Cherry", "Durian"];
     static readonly (string Name, PointerCursor Cursor)[] CursorShelf =

@@ -1,0 +1,39 @@
+$ink = #302c27; $surface = #eee8da; $accent = #365f8b;
+graph-playground { background-color = #e8e2d5; color = $ink; font-size = 14; padding = 20; gap = 12; }
+graph-heading { color = $ink; }
+graph-button, graph-tab, graph-stepper, graph-search {
+    background-color = $surface; color = $ink; border-color = #b6aa92; border-width = 1; border-radius = 2; font-size = 14;
+}
+graph-button:hover, graph-tab:selected, graph-stepper:hover { background-color = #d7e3e8; }
+graph-button:focus, graph-tab:focus, graph-toggle:focus { outline-color = $accent; outline-width = 2; }
+graph-toggle { color = $ink; font-size = 14; }
+graph-toggle-indicator { background-color = $surface; border-color = #b6aa92; border-width = 1; border-radius = 2; }
+graph-toggle-indicator:checked { background-color = $accent; }
+graph-message { color = $accent; font-size = 14; }
+graph-message:error { color = #a62d2a; }
+graph-canvas { background-color = #faf6ec; }
+graph-grid { stroke = #eae3d2; }
+graph-grid:major { stroke = #d9cfb9; }
+graph-grid:axis { stroke = #aca086; }
+graph-node { background-color = #fffdf6; border-color = #8b7e67; border-radius = 2; color = $ink; }
+graph-node:selected { background-color = #e0eaf0; border-color = $accent; }
+graph-node:warning { border-color = #9d6800; }
+graph-node:error { border-color = #a62d2a; }
+graph-header { background-color = #eee8da; border-radius = 2 2 0 0; }
+graph-title, graph-port-label { color = $ink; }
+graph-port { background-color = #365f8b; }
+graph-port:output { background-color = #31775f; }
+graph-link { stroke = #6c6252; stroke-width = 1.5; stroke-dasharray = 7 3 2 3; }
+graph-link:selected { stroke = #a62d2a; stroke-width = 3; }
+graph-link:warning { stroke = #9d6800; }
+graph-link:error { stroke = #a62d2a; }
+graph-link:preview { stroke = #365f8b; stroke-dasharray = 8; }
+graph-badge { background-color = #302c27; color = #fffdf6; border-radius = 2; }
+graph-badge:warning { background-color = #9d6800; }
+graph-badge:error { background-color = #a62d2a; }
+graph-flow { background-color = #31775f; }
+graph-flow-label { background-color = #fffdf6; color = $ink; border-color = #31775f; border-radius = 2; }
+graph-minimap { background-color = #fffdf6ee; border-color = #b6aa92; border-width = 1; }
+graph-minimap-node { background-color = #b6aa92; }
+graph-minimap-viewport, graph-focus { border-color = $accent; }
+graph-marquee { background-color = #365f8b22; border-color = $accent; }

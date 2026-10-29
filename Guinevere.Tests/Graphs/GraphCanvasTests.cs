@@ -373,7 +373,7 @@ public sealed class GraphCanvasTests
     }
 
     [Fact]
-    public void PackageHasNoStylingOrEngineDependencies()
+    public void PackageUsesPssWithoutExcaliburOrEngineDependencies()
     {
         var references = typeof(GraphCanvas).Assembly.GetReferencedAssemblies();
         Assert.DoesNotContain(references, static reference =>
@@ -381,6 +381,7 @@ public sealed class GraphCanvasTests
             || reference.Name.Contains("Turian", StringComparison.Ordinal)
             || reference.Name.Contains("Gaya", StringComparison.Ordinal));
         Assert.Contains(references, static reference => reference.Name == "Guinevere");
+        Assert.Contains(references, static reference => reference.Name == "Guinevere.Styling");
     }
 
     internal static void Key(FrameHarness harness, Action<Gui> draw, KeyboardKey key, KeyboardKey? modifier = null)

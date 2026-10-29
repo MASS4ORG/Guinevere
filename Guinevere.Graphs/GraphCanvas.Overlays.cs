@@ -22,13 +22,15 @@ public sealed partial class GraphCanvas
 
     void DrawMinimap(Gui gui)
     {
-        var width = Math.Min(180, _frameSize.X - 16);
-        var height = Math.Min(120, _frameSize.Y - 16);
+        var style = gui.ResolvePart("graph-minimap");
+        var margin = GraphStyles.Length(style, "margin");
+        var width = Math.Min(GraphStyles.Length(style, "width"), _frameSize.X - margin * 2);
+        var height = Math.Min(GraphStyles.Length(style, "height"), _frameSize.Y - margin * 2);
         if (!ShowMinimap || width <= 0 || height <= 0)
         {
             return;
         }
-        var node = gui.Node(width, height).Absolute(_frameSize.X - width - 8, _frameSize.Y - height - 8)
+        var node = gui.Node(width, height).Absolute(_frameSize.X - width - margin, _frameSize.Y - height - margin)
             .BlockInput();
         using var scope = node.Enter();
         gui.SetClipped(true);
@@ -50,15 +52,16 @@ public sealed partial class GraphCanvas
         var visible = _frameCamera.VisibleBounds(_frameSize);
         var mapping = new GraphMinimap(_contentBounds ?? visible, visible, node.Rect);
         _minimapMapping = mapping;
-        gui.DrawRectFilled(node.Rect, Style.MinimapBackground);
+        gui.DrawStyledBox(style, node.Rect);
+        var tile = gui.ResolvePart("graph-minimap-node");
         foreach (var item in _items)
         {
             if (item.Role == GraphElementRole.Node)
             {
-                gui.DrawRectFilled(mapping.Map(item.Bounds), Style.MinimapNode);
+                gui.DrawRectFilled(mapping.Map(item.Bounds), GraphStyles.Color(tile, "background-color"));
             }
         }
-        gui.DrawRect(mapping.Viewport).Stroke(Style.MinimapViewport, 1);
+        gui.DrawStyledBox(gui.ResolvePart("graph-minimap-viewport"), mapping.Viewport);
     }
 
     void MoveMinimap(LayoutNode node, DragEvent e)

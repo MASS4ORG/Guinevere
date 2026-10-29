@@ -1,12 +1,9 @@
-using Guinevere;
-using Guinevere.Graphs;
-using MASS4.Graph;
 using GraphPoint = Guinevere.Graphs.GraphPoint;
 
 namespace Example02;
 
 /// <summary>An editable real dataflow graph with separate view layout and selection.</summary>
-public sealed class SandboxScene
+public sealed partial class SandboxScene
 {
     readonly Queue<Action> _pending = new();
     bool _paletteOpen;
@@ -16,15 +13,7 @@ public sealed class SandboxScene
     public SandboxScene(string name = "Playground sandbox", string canvasId = "sandbox-canvas")
     {
         CanvasId = canvasId;
-        View = new GraphDocumentView(Graph.Editor, new GraphCanvas { ShowMinimap = true, Name = name })
-        {
-            NodeTitle = Graph.Describe,
-            ContentHeight = static node => node.TypeId == ArithmeticGraph.Number.Id ? 30 : 0,
-            NodePresenter = DrawNumberStepper,
-            NodeBadges = static node => node.TypeId == ArithmeticGraph.Result.Id ? ["result"] : [],
-            PortShape = static port => port.Direction == PortDirection.Output ? GraphPortShape.Triangle
-                : GraphPortShape.Circle
-        };
+        View = CreateView(Graph.Editor, new GraphCanvas { ShowMinimap = true, Name = name });
         var first = View.AddNode(ArithmeticGraph.Number, new GraphPoint(40, 40), 2f);
         var second = View.AddNode(ArithmeticGraph.Number, new GraphPoint(40, 240), 3f);
         var multiply = View.AddNode(ArithmeticGraph.Multiply, new GraphPoint(360, 120));
@@ -34,7 +23,7 @@ public sealed class SandboxScene
         View.Connect(Port(multiply, ArithmeticGraph.ValueKey), Port(result, ArithmeticGraph.AKey));
         Graph.Editor.ClearHistory();
         View.Refresh();
-        Canvas.Navigation.SearchRequested = _ => _paletteOpen = true;
+        ConfigureActions();
     }
 
     /// <summary>The sample's real arithmetic domain.</summary>
@@ -42,7 +31,7 @@ public sealed class SandboxScene
     /// <summary>The focusable canvas identifier.</summary>
     public string CanvasId { get; }
     /// <summary>The reusable real-document adapter.</summary>
-    public GraphDocumentView View { get; }
+    public GraphDocumentView View { get; private set; }
     /// <summary>The canvas with view-only camera and navigation.</summary>
     public GraphCanvas Canvas => View.Canvas;
     /// <summary>Current real-node descriptions.</summary>
@@ -75,16 +64,17 @@ public sealed class SandboxScene
             button("Frame all", "frame-all", Canvas.FitAll);
             button("Reset layout", "reset-layout", ResetLayout);
         }
+        DrawEditingOptions(gui, button);
         if (_paletteOpen)
         {
             DrawPalette(gui, button);
         }
         if (View.Diagnostics.Count > 0)
         {
-            gui.DrawText(string.Join("; ", View.Diagnostics.Select(static d => $"{d.Id}: {d.Message}")),
-                13, Color.Gold);
+            using var message = gui.StyledNode("graph-message").Enter();
+            gui.DrawText(string.Join("; ", View.Diagnostics.Select(static d => $"{d.Id}: {d.Message}")));
         }
-        var host = gui.Node().Expand().On<KeyDownEvent>(e => Nudge(gui, e), capture: true);
+        var host = gui.Node().Expand();
         using var scope = host.Enter();
         View.Draw(gui, CanvasId);
     }
@@ -103,14 +93,14 @@ public sealed class SandboxScene
         using (gui.Node().Expand().AlignContent(0.5f, 0.5f).Enter())
         {
             var value = visual.Node.Payload is float number ? number : 0;
-            gui.DrawText(value.ToString(System.Globalization.CultureInfo.InvariantCulture), 15, visual.Theme.Title);
+            gui.DrawText(value.ToString(CultureInfo.InvariantCulture));
         }
         StepButton(gui, visual, "+", "increment", 1);
     }
 
     void StepButton(Gui gui, GraphNodeVisual visual, string label, string id, float delta)
     {
-        using var scope = gui.Node(30, 26, id).AlignContent(0.5f, 0.5f).Enter();
+        using var scope = gui.StyledNode("graph-stepper", id: id).Width(30).Height(26).AlignContent(0.5f, 0.5f).Enter();
         var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button,
             Label: $"{(delta < 0 ? "Decrease" : "Increase")} {visual.View.Name}"));
         gui.CurrentNode.On<PointerDownEvent>(static e => e.StopPropagation());
@@ -119,17 +109,14 @@ public sealed class SandboxScene
             _pending.Enqueue(() => Step(visual.Node.Id, delta));
             gui.RequestFrame();
         }
-        gui.DrawBackgroundRect(result.Is(ControlVisualState.Hovered) ? visual.Theme.NodeSelected
-            : visual.Theme.NodeHeader, 6);
-        gui.DrawText(label, 16, visual.Theme.Title);
+        gui.DrawText(label);
     }
 
     void DrawPalette(Gui gui, Action<string, string, Action> button)
     {
         using var box = gui.Node().ExpandWidth().Direction(Axis.Vertical).Gap(8).Enter();
-        using (var search = gui.Node(360, 32, "node-search").Padding(8).Enter())
+        using (var search = gui.StyledNode("graph-search", id: "node-search").Width(360).Height(32).Padding(8).Enter())
         {
-            gui.DrawBackgroundRect(new Color(0x29384eff), 6);
             if (gui.Pass == Pass.Pass2Render)
             {
                 gui.RegisterFocusable();
@@ -144,7 +131,7 @@ public sealed class SandboxScene
                 e.PreventDefault();
             });
             gui.CurrentNode.On<KeyDownEvent>(e => SearchKey(gui, e));
-            gui.DrawText(_query.Length == 0 ? "Search node types…" : _query, 14, Color.White);
+            gui.DrawText(_query.Length == 0 ? "Search node types…" : _query);
         }
         using var choices = gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter();
         foreach (var type in View.Palette(_query))
@@ -169,7 +156,7 @@ public sealed class SandboxScene
         switch (e.Key)
         {
             case KeyboardKey.Backspace when _query.Length > 0:
-                _query = _query[..System.Globalization.StringInfo.ParseCombiningCharacters(_query)[^1]];
+                _query = _query[..StringInfo.ParseCombiningCharacters(_query)[^1]];
                 break;
             case KeyboardKey.Escape:
                 _paletteOpen = false;
@@ -188,31 +175,18 @@ public sealed class SandboxScene
         e.StopPropagation();
     }
 
-    void Nudge(Gui gui, KeyDownEvent e)
-    {
-        if (e.TargetId != CanvasId || !ShiftHeld(gui))
-        {
-            return;
-        }
-        var delta = e.Key switch
-        {
-            KeyboardKey.Left => new GraphPoint(-16, 0),
-            KeyboardKey.Right => new GraphPoint(16, 0),
-            KeyboardKey.Up => new GraphPoint(0, -16),
-            KeyboardKey.Down => new GraphPoint(0, 16),
-            _ => default
-        };
-        if (delta == default)
-        {
-            return;
-        }
-        MoveSelection(delta);
-        e.PreventDefault();
-        e.StopPropagation();
-    }
-
     ElementId Port(ElementId node, StableId key) => Graph.Editor.Document.GetNode(node).GetPort(key).Id;
 
-    static bool ShiftHeld(Gui gui) => gui.Input.IsKeyDown(KeyboardKey.LeftShift)
-        || gui.Input.IsKeyDown(KeyboardKey.RightShift);
+    GraphDocumentView CreateView(GraphEditor editor, GraphCanvas canvas)
+    {
+        return new GraphDocumentView(editor, canvas)
+        {
+            NodeTitle = Graph.Describe,
+            ContentHeight = static node => node.TypeId == ArithmeticGraph.Number.Id ? 30 : 0,
+            NodePresenter = DrawNumberStepper,
+            NodeBadges = static node => node.TypeId == ArithmeticGraph.Result.Id ? ["result"] : [],
+            PortShape = static port => port.Direction == PortDirection.Output ? GraphPortShape.Triangle
+                : GraphPortShape.Circle
+        };
+    }
 }

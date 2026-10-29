@@ -111,7 +111,7 @@ public readonly record struct GraphConnector(
         {
             local[i] = new Vector2((float)(points[i].X - bounds.X), (float)(points[i].Y - bounds.Y)) + origin;
         }
-        if (style.Dash > 0)
+        if (style.Dash > 0 || style.DashPattern is { Count: > 0 })
         {
             DrawDashed(gui, local, style);
         }
@@ -173,7 +173,13 @@ public readonly record struct GraphConnector(
 
     static void DrawDashed(Gui gui, Vector2[] points, GraphLinkStyle style)
     {
-        var period = style.Dash * 2;
+        var pattern = style.DashPattern ?? [style.Dash, style.Dash];
+        if (pattern.Any(static value => !float.IsFinite(value) || value < 0) || pattern.Sum() <= 0)
+        {
+            return;
+        }
+        var count = pattern.Count % 2 == 0 ? pattern.Count : pattern.Count * 2;
+        var period = pattern.Sum() * (count / pattern.Count);
         var phase = ((-style.DashOffset % period) + period) % period;
         for (var i = 1; i < points.Length; i++)
         {
@@ -185,16 +191,28 @@ public readonly record struct GraphConnector(
                 continue;
             }
             direction /= length;
-            for (var at = -phase; at < length; at += period)
+            DrawDashSegment(gui, start, direction, length, phase, period, count, pattern, style);
+            phase = (phase + length) % period;
+        }
+    }
+
+    static void DrawDashSegment(Gui gui, Vector2 start, Vector2 direction, float length, float phase,
+        float period, int count, IReadOnlyList<float> pattern, GraphLinkStyle style)
+    {
+        for (var at = -phase; at < length; at += period)
+        {
+            var position = at;
+            for (var dash = 0; dash < count; dash++)
             {
-                var from = Math.Max(0, at);
-                var to = Math.Min(length, at + style.Dash);
-                if (to > from)
+                var next = position + pattern[dash % pattern.Count];
+                var from = Math.Max(0, position);
+                var to = Math.Min(length, next);
+                if (dash % 2 == 0 && to > from)
                 {
                     gui.DrawLine(start + direction * from, start + direction * to, style.Color, style.Thickness);
                 }
+                position = next;
             }
-            phase = (phase + length) % period;
         }
     }
 
@@ -212,7 +230,7 @@ public readonly record struct GraphConnector(
             return;
         }
         direction = Vector2.Normalize(direction);
-        var size = 6 + style.Thickness * 2;
+        var size = style.ArrowSize;
         var normal = new Vector2(-direction.Y, direction.X) * size * 0.5f;
         var back = tip - direction * size;
         gui.DrawTriangleFilled(tip, back + normal, back - normal, style.Color);
@@ -236,9 +254,13 @@ public readonly record struct GraphConnector(
 /// <param name="Arrow">Draws an arrowhead at the target.</param>
 /// <param name="Dash">Dash and gap length; zero draws a solid stroke.</param>
 /// <param name="DashOffset">Distance the dash pattern has advanced toward the target.</param>
+/// <param name="DashPattern">Alternating dash/gap lengths, with odd patterns repeated as in SVG.</param>
+/// <param name="ArrowSize">Arrowhead length in world units.</param>
 public readonly record struct GraphLinkStyle(
     Color Color,
     float Thickness = 2,
     bool Arrow = false,
     float Dash = 0,
-    float DashOffset = 0);
+    float DashOffset = 0,
+    IReadOnlyList<float>? DashPattern = null,
+    float ArrowSize = 10);

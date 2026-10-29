@@ -1,8 +1,6 @@
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly string[] ResponsiveNames = ["Mobile", "Tablet", "Desktop"];
     static readonly string[] ResponsiveTabs = ["Home", "Search", "Profile", "Settings"];
@@ -98,7 +96,7 @@ public partial class Shared
             var index = i;
             if (Button(gui, p, ResponsiveTabs[i], i == _responsiveTab, $"responsive/{i}"))
             {
-                Later(() => _responsiveTab = index);
+                Common.Later(() => _responsiveTab = index);
             }
         }
     }

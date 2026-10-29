@@ -1,5 +1,4 @@
-using System.Globalization;
-using MASS4.Graph;
+using System.Text.Json.Serialization;
 using MASS4.Graph.Dataflow;
 
 namespace Example02;
@@ -17,7 +16,11 @@ public sealed class ArithmeticGraph
     public static StableId BKey { get; } = Id(4);
     /// <summary>A constant numeric value.</summary>
     public static NodeType Number { get; } = new(Id(5), "Number",
-        [PortDeclaration.Output(ValueKey, "Value", NumberType.Id)]) { DefaultPayload = static () => 1f };
+        [PortDeclaration.Output(ValueKey, "Value", NumberType.Id)])
+    {
+        DefaultPayload = static () => 1f,
+        PayloadSerializer = new JsonTypeInfoSerializer<float>(ArithmeticJson.Default.Single)
+    };
     /// <summary>Adds two numeric inputs.</summary>
     public static NodeType Add { get; } = Binary(6, "Add");
     /// <summary>Multiplies two numeric inputs.</summary>
@@ -47,7 +50,10 @@ public sealed class ArithmeticGraph
     /// <summary>The actual dataflow behaviors and validation rules.</summary>
     public DataflowSemantics Semantics { get; }
     /// <summary>The sole mutation entry point for the document.</summary>
-    public GraphEditor Editor { get; }
+    public GraphEditor Editor { get; private set; }
+
+    /// <summary>Adopts a loaded editor using this domain's registry and validation rules.</summary>
+    public void UseEditor(GraphEditor editor) => Editor = editor;
 
     /// <summary>Domain-owned presentation of numeric payloads.</summary>
     public string Describe(GraphNode node) => node.TypeId == Number.Id && node.Payload is float value
@@ -60,3 +66,6 @@ public sealed class ArithmeticGraph
 
     static StableId Id(int number) => StableId.Parse($"5193d7a0-8a7d-4f7e-9238-{number:000000000000}");
 }
+
+[JsonSerializable(typeof(float))]
+sealed partial class ArithmeticJson : JsonSerializerContext;
