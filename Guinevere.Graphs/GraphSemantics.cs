@@ -27,7 +27,8 @@ public sealed record GraphElementView(
     string? Error = null,
     string? SourceKey = null,
     string? TargetKey = null,
-    bool Enabled = true);
+    bool Enabled = true,
+    string? StateDescription = null);
 
 /// <summary>A logical graph element, including virtualized elements which have no layout control.</summary>
 public sealed record GraphElementSemantics(
@@ -41,7 +42,8 @@ public sealed record GraphElementSemantics(
     bool Selected,
     bool Virtualized,
     int Position,
-    int Count);
+    int Count,
+    IReadOnlyList<GraphActionKind>? Actions = null);
 
 /// <summary>Semantic changes and announcements available to automation and platform accessibility adapters.</summary>
 public enum GraphSemanticEventKind
@@ -61,11 +63,18 @@ public enum GraphSemanticEventKind
     /// <summary>An edit was rejected or has no registered handler.</summary>
     ValidationFailed,
     /// <summary>A searchable command or node creation surface was requested.</summary>
-    SearchRequested
+    SearchRequested,
+    /// <summary>An editor command, including history or layout, completed.</summary>
+    CommandCompleted,
+    /// <summary>The editor's validation findings changed or were cleared.</summary>
+    ValidationChanged,
+    /// <summary>A domain's observed state changed.</summary>
+    StateChanged
 }
 
 /// <summary>A semantic change with optional related element and an accessible announcement.</summary>
-public sealed record GraphSemanticEvent(GraphSemanticEventKind Kind, string? Key, string? RelatedKey, string Message);
+public sealed record GraphSemanticEvent(GraphSemanticEventKind Kind, string? Key, string? RelatedKey, string Message,
+    string? GraphId = null);
 
 /// <summary>
 /// Optional richer graph metadata layered on Guinevere's existing control semantics capability.
@@ -92,8 +101,8 @@ public enum GraphEditKind
 /// <summary>An edit intent; the canvas never applies model mutations itself.</summary>
 public sealed record GraphEditRequest(GraphEditKind Kind, string Key, string? TargetKey = null);
 
-/// <summary>The adapter's command outcome, including validation or MG diagnostic text for announcement.</summary>
-public sealed record GraphEditResult(bool Succeeded, string Message);
+/// <summary>The adapter's command outcome; successful no-ops can suppress announcements, while failures are always announced.</summary>
+public sealed record GraphEditResult(bool Succeeded, string Message, bool Announce = true);
 
 /// <summary>Search surfaces requested by keyboard or application commands.</summary>
 public enum GraphSearchKind

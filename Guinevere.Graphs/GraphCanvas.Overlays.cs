@@ -81,13 +81,8 @@ public sealed partial class GraphCanvas
             _announcements.Clear();
             return;
         }
-        var state = gui.HasFocus() ? ControlVisualState.Focused : ControlVisualState.None;
-        sink.Publish(new ControlSemantics(canvas.Id, ControlRole.None, Name, null,
-            ScreenBounds(canvas, canvas.Rect), state));
+        PublishSurface(gui, canvas, sink);
         var graphSink = sink as IGraphSemanticsSink;
-        graphSink?.PublishGraph(new GraphElementSemantics(canvas.Id, null, null, null,
-            new GraphElementView("", GraphElementRole.Graph, _frameCamera.VisibleBounds(_frameSize), Name),
-            ScreenBounds(canvas, canvas.Rect), gui.HasFocus(), false, false, 0, _items.Length));
         var position = 0;
         foreach (var item in _items)
         {
@@ -95,9 +90,25 @@ public sealed partial class GraphCanvas
         }
         foreach (var change in _announcements)
         {
-            graphSink?.Announce(change);
+            graphSink?.Announce(change with { GraphId = canvas.Id });
         }
         _announcements.Clear();
+    }
+
+    void PublishSurface(Gui gui, LayoutNode canvas, IControlSemanticsSink sink)
+    {
+        var state = gui.HasFocus() ? ControlVisualState.Focused : ControlVisualState.None;
+        var summary = $"{_items.Count(static item => item.Role == GraphElementRole.Node)} nodes, "
+            + $"{_items.Count(static item => item.Role == GraphElementRole.Edge && item.Enabled)} links; "
+            + $"{Navigation.SelectedKeys.Count} selected.";
+        var surface = new GraphElementView("", GraphElementRole.Graph, _frameCamera.VisibleBounds(_frameSize), Name,
+            StateDescription: summary);
+        sink.Publish(new ControlSemantics(canvas.Id, ControlRole.None, Name, summary,
+            ScreenBounds(canvas, canvas.Rect), state));
+        var graphSink = sink as IGraphSemanticsSink;
+        graphSink?.PublishGraph(new GraphElementSemantics(canvas.Id, null, null, null,
+            surface, ScreenBounds(canvas, canvas.Rect), gui.HasFocus(), false, false, 0, _items.Length,
+            AvailableActions(surface)));
     }
 
     static IControlSemanticsSink? ResolveSemanticsSink(Gui gui)
@@ -120,13 +131,14 @@ public sealed partial class GraphCanvas
         var state = ElementState(focused, selected, item.Enabled);
         var id = ElementId(canvas.Id, item.Key);
         sink.Publish(new ControlSemantics(id, ControlRole.None, item.Name,
-            string.Join(" ", new[] { item.TypeName, item.Error }.Where(static text => !string.IsNullOrEmpty(text))),
+            string.Join(" ", new[] { item.TypeName, item.StateDescription, item.Error }
+                .Where(static text => !string.IsNullOrEmpty(text))),
             bounds, state));
         (sink as IGraphSemanticsSink)?.PublishGraph(new GraphElementSemantics(id,
             item.ParentKey is null ? canvas.Id : ElementId(canvas.Id, item.ParentKey),
             item.SourceKey is null ? null : ElementId(canvas.Id, item.SourceKey),
             item.TargetKey is null ? null : ElementId(canvas.Id, item.TargetKey), item, bounds,
-            focused, selected, !_visibleKeys.Contains(item.Key), position, _items.Length));
+            focused, selected, !_visibleKeys.Contains(item.Key), position, _items.Length, AvailableActions(item)));
     }
 
     static ControlVisualState ElementState(bool focused, bool selected, bool enabled) =>

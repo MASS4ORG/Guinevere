@@ -19,6 +19,18 @@ public readonly record struct GraphConnector(
 {
     const int CurveSegments = 32;
     const double Stub = 24;
+    readonly GraphPoint[]? _route;
+
+    /// <summary>Creates an explicit segmented route, shared by drawing, culling, interpolation and hit testing.</summary>
+    public GraphConnector(GraphPoint source, GraphPoint target, IEnumerable<GraphPoint> waypoints)
+        : this(source, target, GraphLinkRouting.Orthogonal)
+    {
+        _route = [source, .. waypoints, target];
+        foreach (var point in _route)
+        {
+            GraphBounds.RequireFinite(point.X, point.Y);
+        }
+    }
 
     double Tangent => Math.Max(60, Math.Abs(Target.X - Source.X) / 2);
 
@@ -27,6 +39,13 @@ public readonly record struct GraphConnector(
     {
         get
         {
+            if (_route is not null)
+            {
+                var routeLeft = _route.Min(static p => p.X);
+                var routeTop = _route.Min(static p => p.Y);
+                return new GraphBounds(routeLeft - 4, routeTop - 4, _route.Max(static p => p.X) - routeLeft + 8,
+                    _route.Max(static p => p.Y) - routeTop + 8);
+            }
             double left = Math.Min(Source.X, Target.X), right = Math.Max(Source.X, Target.X);
             double top = Math.Min(Source.Y, Target.Y), bottom = Math.Max(Source.Y, Target.Y);
             if (Routing == GraphLinkRouting.Bezier)
@@ -46,6 +65,10 @@ public readonly record struct GraphConnector(
     /// <summary>The route as connected world points; curves are sampled finely enough for drawing and hit tests.</summary>
     public GraphPoint[] Polyline()
     {
+        if (_route is not null)
+        {
+            return [.. _route];
+        }
         switch (Routing)
         {
             case GraphLinkRouting.Straight:
@@ -82,7 +105,7 @@ public readonly record struct GraphConnector(
     public GraphPoint Point(double t)
     {
         t = Math.Clamp(t, 0, 1);
-        return Routing == GraphLinkRouting.Bezier ? CurvePoint(t) : PointAlong(Polyline(), t);
+        return _route is null && Routing == GraphLinkRouting.Bezier ? CurvePoint(t) : PointAlong(Polyline(), t);
     }
 
     /// <summary>Distance from a point to the route, independent of stroke width, for pointer selection.</summary>

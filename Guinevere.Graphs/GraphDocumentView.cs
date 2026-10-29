@@ -20,7 +20,9 @@ public sealed partial class GraphDocumentView
     {
         Editor = editor;
         Canvas = canvas ?? new GraphCanvas();
-        Canvas.Navigation.EditRequested = Edit;
+        Canvas.Navigation.EditRequested = EditFromNavigation;
+        Canvas.EditorActionRequested = HandleAccessibilityAction;
+        Canvas.EditorActions = EditorSemanticActions;
         Canvas.Overlays.Add(new MarqueeOverlay(this));
         Refresh();
     }
@@ -91,9 +93,9 @@ public sealed partial class GraphDocumentView
     }
 
     /// <summary>Undoes the last document or layout command without replacing view identities.</summary>
-    public CommandResult Undo() => Accept(Editor.Undo());
+    public CommandResult Undo() => Accept(Editor.Undo(), "Undo completed.");
     /// <summary>Redoes the last document or layout command.</summary>
-    public CommandResult Redo() => Accept(Editor.Redo());
+    public CommandResult Redo() => Accept(Editor.Redo(), "Redo completed.");
 
     /// <summary>Rebuilds immutable view descriptions from the real document and current layout.</summary>
     public void Refresh()
@@ -110,9 +112,15 @@ public sealed partial class GraphDocumentView
         foreach (var edge in Editor.Document.Edges)
         {
             var connector = new GraphConnector(_ports[edge.Source], _ports[edge.Target], Routing);
+            if (RouteLink is { } route && CanPresent(Editor.Document.GetNode(Editor.Document.GetPort(edge.Source).NodeId), out _)
+                && CanPresent(Editor.Document.GetNode(Editor.Document.GetPort(edge.Target).NodeId), out _))
+            {
+                connector = route(edge, connector);
+            }
             var key = edge.Id.ToString();
             _connectors.Add(key, connector);
-            edges.Add(new GraphElementView(key, GraphElementRole.Edge, connector.Bounds, "Connection",
+            edges.Add(new GraphElementView(key, GraphElementRole.Edge, connector.Bounds, EdgeName(edge),
+                TypeName: "Connection", Error: DiagnosticText(id => id == edge.Id),
                 SourceKey: edge.Source.ToString(), TargetKey: edge.Target.ToString()));
         }
         _views.InsertRange(0, edges);
@@ -123,9 +131,12 @@ public sealed partial class GraphDocumentView
     {
         var position = EnsurePosition(node.Id);
         var (title, error) = DescribeNode(node);
+        var known = CanPresent(node, out var type);
         var view = new GraphElementView(node.Id.ToString(), GraphElementRole.Node,
             new GraphBounds(position.X, position.Y, NodeWidth(node), NodeHeight(node)), title,
-            Error: error);
+            TypeName: type?.DisplayName ?? "Unavailable node",
+            Error: error ?? DiagnosticText(id => NamesNode(node.Id, id)),
+            StateDescription: known ? NodeState?.Invoke(node) : "Unavailable; authored data preserved.");
         _nodes.Add(view);
         _views.Add(view);
         var input = 0;
@@ -184,13 +195,32 @@ public sealed partial class GraphDocumentView
         var size = Math.Min(PortHitRadius * 2 / Canvas.Camera.Zoom, spacing);
         _views.Add(new GraphElementView(port.Id.ToString(), GraphElementRole.Port,
             new GraphBounds(point.X - size / 2, point.Y - size / 2, size, size), port.Declaration.Name,
-            ParentKey: port.NodeId.ToString(), TypeName: typeName));
+            ParentKey: port.NodeId.ToString(), TypeName: typeName,
+            Error: DiagnosticText(id => id == port.Id), StateDescription: PortState(port)));
     }
 
-    CommandResult Accept(CommandResult result)
+    CommandResult Accept(CommandResult result, string? message = null, bool announce = true)
     {
         Diagnostics = result.Diagnostics;
+        if (announce)
+        {
+            AnnounceResult(result, message);
+        }
+
         return result;
+    }
+
+    GraphEditResult EditFromNavigation(GraphEditRequest request)
+    {
+        _navigationEdit = true;
+        try
+        {
+            return Edit(request);
+        }
+        finally
+        {
+            _navigationEdit = false;
+        }
     }
 
     GraphEditResult Edit(GraphEditRequest request)
@@ -199,6 +229,7 @@ public sealed partial class GraphDocumentView
         {
             return new GraphEditResult(false, "Unknown graph element.");
         }
+        var previous = Editor.NextUndo;
         CommandResult result;
         if (request.Kind == GraphEditKind.Connect)
         {
@@ -216,7 +247,7 @@ public sealed partial class GraphDocumentView
             ? string.Join("; ", result.Diagnostics.Select(static diagnostic =>
                 $"{diagnostic.Id}: {diagnostic.Message}"))
             : result.Succeeded ? "Graph command completed." : "No graph edit was available.";
-        return new GraphEditResult(result.Succeeded, message);
+        return new GraphEditResult(result.Succeeded, message, !ReferenceEquals(previous, Editor.NextUndo));
     }
 
     CommandResult Delete(ElementId key)

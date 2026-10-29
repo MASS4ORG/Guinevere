@@ -296,6 +296,25 @@ public sealed class GraphNavigation
         return true;
     }
 
+    /// <summary>Requests a direct connection between enabled logical ports through the attached editor.</summary>
+    public bool Connect(string? source, string? target)
+    {
+        if (source is null || target is null || !IsPort(source) || !IsPort(target))
+        {
+            Emit(GraphSemanticEventKind.ValidationFailed, source, target, "Two available ports are required.");
+            return false;
+        }
+        var succeeded = RequestEdit(new GraphEditRequest(GraphEditKind.Connect, source, target));
+        if (succeeded)
+        {
+            ConnectionSourceKey = null;
+        }
+        return succeeded;
+    }
+
+    bool IsPort(string key) => _items.TryGetValue(key, out var item) && item.Enabled
+        && item.Role == GraphElementRole.Port;
+
     /// <summary>Requests deletion of the focused element; the adapter owns validation, undo, and rollback.</summary>
     public bool Delete()
     {
@@ -324,8 +343,11 @@ public sealed class GraphNavigation
         var result = EditRequested?.Invoke(request) ?? new GraphEditResult(false, "No graph editor is attached.");
         var successKind = request.Kind == GraphEditKind.Connect
             ? GraphSemanticEventKind.ConnectionCreated : GraphSemanticEventKind.ElementDeleted;
-        Emit(result.Succeeded ? successKind : GraphSemanticEventKind.ValidationFailed,
-            request.Key, request.TargetKey, result.Message);
+        if (!result.Succeeded || result.Announce)
+        {
+            Emit(result.Succeeded ? successKind : GraphSemanticEventKind.ValidationFailed,
+                request.Key, request.TargetKey, result.Message);
+        }
         return result.Succeeded;
     }
 

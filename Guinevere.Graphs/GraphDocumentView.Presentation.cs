@@ -47,16 +47,22 @@ public sealed partial class GraphDocumentView
     /// <summary>Optional replacement for the PSS link stroke; hit testing is unchanged.</summary>
     public Action<Gui, GraphLinkVisual>? LinkRenderer { get; set; }
     /// <summary>Additional diagnostics, such as compilation findings.</summary>
-    public IReadOnlyList<Diagnostic> Validation { get; set; } = [];
+    public IReadOnlyList<Diagnostic> Validation
+    {
+        get => _validation;
+        set => SetValidation(value);
+    }
+    /// <summary>Optional domain state description for a known node, exposed to assistive technology.</summary>
+    public Func<GraphNode, string?>? NodeState { get; set; }
+    /// <summary>Optional domain routing; the returned connector also controls culling and hit testing.</summary>
+    public Func<GraphEdge, GraphConnector, GraphConnector>? RouteLink { get; set; }
     /// <summary>Link selection tolerance in logical screen units, independent of stroke and zoom.</summary>
     public double LinkHitTolerance { get; set; } = 9;
     /// <summary>Port drop radius in logical screen units.</summary>
     public double PortHitRadius { get; set; } = 18;
 
     /// <summary>The worst diagnostic naming a node, one of its ports or an attached edge.</summary>
-    public DiagnosticSeverity? NodeSeverity(ElementId node) => Severity(element => element == node
-        || Editor.Document.TryGetPort(element, out var port) && port.NodeId == node
-        || Editor.Document.TryGetEdge(element, out var edge) && (Owner(edge.Source) == node || Owner(edge.Target) == node));
+    public DiagnosticSeverity? NodeSeverity(ElementId node) => Severity(element => NamesNode(node, element));
 
     /// <summary>The worst diagnostic naming an edge.</summary>
     public DiagnosticSeverity? EdgeSeverity(ElementId edge) => Severity(element => element == edge);
@@ -129,7 +135,8 @@ public sealed partial class GraphDocumentView
     {
         var node = Editor.Document.GetNode(ElementId.Parse(element.Key));
         var selected = Canvas.Navigation.SelectedKeys.Contains(element.Key);
-        var modifiers = NodeModifiers(node, selected, element.Error is not null);
+        var unknown = !CanPresent(node, out _);
+        var modifiers = NodeModifiers(node, selected, unknown);
         var style = gui.ResolvePart("graph-node", modifiers: modifiers, classes: Classes(node));
         using var card = gui.StyledNode("graph-node", classes: Classes(node), modifiers: modifiers)
             .Expand().Padding(0).HitTestVisible(false).Enter();
@@ -147,7 +154,7 @@ public sealed partial class GraphDocumentView
                 .HitTestVisible(false).Enter();
             gui.DrawText(element.Name).HitTestVisible(false);
         }
-        DrawBadges(gui, node, element.Error is not null ? DiagnosticSeverity.Error : NodeSeverity(node.Id));
+        DrawBadges(gui, node, unknown ? DiagnosticSeverity.Error : NodeSeverity(node.Id));
         if (Canvas.Detail == GraphLevelOfDetail.Full)
         {
             DrawContent(gui, node, element, selected, style);

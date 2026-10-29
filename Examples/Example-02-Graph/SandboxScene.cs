@@ -49,6 +49,7 @@ public sealed partial class SandboxScene
     /// <summary>Draws node creation, history controls, diagnostics and the editable document.</summary>
     public void Draw(Gui gui, Action<string, string, Action> button)
     {
+        Canvas.ProcessInput(gui);
         if (gui.Pass == Pass.Pass1Build)
         {
             while (_pending.TryDequeue(out var action))
@@ -83,7 +84,7 @@ public sealed partial class SandboxScene
     public CommandResult Step(ElementId node, float delta)
     {
         var value = Graph.Editor.Document.GetNode(node).Payload is float current ? current : 0;
-        return Graph.Editor.Execute(new SetPayloadCommand(node, value + delta));
+        return View.Execute(new SetPayloadCommand(node, value + delta));
     }
 
     void DrawNumberStepper(Gui gui, GraphNodeVisual visual)

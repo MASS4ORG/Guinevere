@@ -35,7 +35,7 @@ public sealed partial class GraphDocumentView
         }
         if (document.GetEdges(source).Any(edge => edge.Source == source && edge.Target == target))
         {
-            return Accept(new CommandResult(true, []));
+            return Accept(new CommandResult(true, []), announce: false);
         }
         var displaced = OccupiedConnections(ports.From).Concat(OccupiedConnections(ports.To)).Distinct().ToArray();
         var connection = Editor.CreateConnection(source, target);

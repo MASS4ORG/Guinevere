@@ -24,35 +24,35 @@ public sealed class GraphPlaygroundTests
         harness.Frame(Draw);
         harness.Frame(Draw);
         var tabs = sink.Controls.Where(static control => control.Role == ControlRole.Tab).ToArray();
-        Assert.Equal(["Sandbox", "Running flow", "Organizers"], tabs.Select(static tab => tab.Label));
+        Assert.Equal(["Sandbox", "Running flow", "State machine", "Organizers"], tabs.Select(static tab => tab.Label));
         Assert.True(tabs[0].State.HasFlag(ControlVisualState.Selected));
         Focus(harness, Draw, "scenario-0");
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.Right);
         Assert.Equal(1, scene.Scenario);
         Assert.Equal("scenario-1", harness.Gui.Focus.CurrentFocusedId);
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.End);
-        Assert.Equal(2, scene.Scenario);
+        Assert.Equal(3, scene.Scenario);
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.Home);
         Assert.Equal(0, scene.Scenario);
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.Left);
-        Assert.Equal(2, scene.Scenario);
+        Assert.Equal(3, scene.Scenario);
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.F10);
-        Assert.Equal(2, scene.Scenario);
+        Assert.Equal(3, scene.Scenario);
         Focus(harness, Draw, "scenario-1");
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
         harness.Frame(Draw);
         Assert.Equal(1, scene.Scenario);
         Assert.Contains(sink.Controls, static control => control.Id == "flow-canvas");
-        Focus(harness, Draw, "scenario-2");
+        Focus(harness, Draw, "scenario-3");
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
         harness.Frame(Draw);
-        Assert.Equal(2, scene.Scenario);
+        Assert.Equal(3, scene.Scenario);
         Focus(harness, Draw, "open-sandbox");
         GraphCanvasTests.Key(harness, Draw, KeyboardKey.Enter);
         harness.Frame(Draw);
         Assert.Equal(0, scene.Scenario);
         Assert.Throws<ArgumentOutOfRangeException>(() => scene.SelectScenario(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => scene.SelectScenario(3));
+        Assert.Throws<ArgumentOutOfRangeException>(() => scene.SelectScenario(4));
     }
 
     [Fact]

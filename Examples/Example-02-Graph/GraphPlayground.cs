@@ -3,12 +3,12 @@ namespace Example02;
 /// <summary>The scenario shell for the graph-only playground.</summary>
 public sealed class GraphPlayground
 {
-    static readonly string[] Titles = ["Sandbox", "Running flow", "Organizers"];
+    static readonly string[] Titles = ["Sandbox", "Running flow", "State machine", "Organizers"];
     StyleSheet? _appliedStyle;
     readonly Queue<Action> _pending = new();
     int _frameScenario;
 
-    /// <summary>The active scenario: sandbox, running flow, or organizers.</summary>
+    /// <summary>The active scenario: sandbox, running flow, state machine, or organizers.</summary>
     public int Scenario { get; private set; }
     /// <summary>Also shows tabs for scenarios whose features have not landed yet.</summary>
     public bool ShowPendingScenarios { get; set; }
@@ -16,12 +16,14 @@ public sealed class GraphPlayground
     public SandboxScene Sandbox { get; } = new();
     /// <summary>A separate arithmetic document evaluated in the background and drawn with a flow overlay.</summary>
     public FlowScene Flow { get; } = new();
+    /// <summary>A cyclic State editor with a many-instance observer and typed signals.</summary>
+    public FsmScene Fsm { get; } = new();
     /// <summary>The selected application's stylesheet index.</summary>
     public int StyleIndex { get; private set; }
     /// <summary>The style name shown by the selector.</summary>
     public string StyleName => GraphDemoStyles.Names[StyleIndex];
 
-    int TabCount => ShowPendingScenarios ? Titles.Length : 2;
+    int TabCount => ShowPendingScenarios ? Titles.Length : 3;
 
     /// <summary>Chooses an existing scenario.</summary>
     public void SelectScenario(int index)
@@ -58,11 +60,15 @@ public sealed class GraphPlayground
         {
             case 0:
                 Sandbox.Draw(gui, button);
-                DrawOptions(gui, Sandbox);
+                DrawOptions(gui, Sandbox.View);
                 break;
             case 1:
                 Flow.Draw(gui, button);
-                DrawOptions(gui, Flow.Sandbox);
+                DrawOptions(gui, Flow.Sandbox.View);
+                break;
+            case 2:
+                Fsm.Draw(gui, button);
+                DrawOptions(gui, Fsm.View);
                 break;
             default:
                 DrawPendingScenario(gui);
@@ -114,23 +120,24 @@ public sealed class GraphPlayground
         return Bitmap.FromStream(stream);
     }
 
-    /// <summary>Cycles both scenarios through Bézier, straight and orthogonal link routing.</summary>
+    /// <summary>Cycles graph scenarios through Bézier, straight and orthogonal link routing.</summary>
     public void CycleRouting()
     {
         var routing = (GraphLinkRouting)(((int)Sandbox.View.Routing + 1) % 3);
         Sandbox.View.Routing = routing;
         Flow.Sandbox.View.Routing = routing;
+        Fsm.View.Routing = routing;
     }
 
-    void DrawOptions(Gui gui, SandboxScene scene)
+    void DrawOptions(Gui gui, GraphDocumentView view)
     {
         using var options = gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(20).Wrap(1).Enter();
-        Toggle(gui, "Minimap", "toggle-minimap", scene.Canvas.ShowMinimap,
-            () => scene.Canvas.ShowMinimap = !scene.Canvas.ShowMinimap);
-        Toggle(gui, "Avoid replacing connections", "protect-connections", scene.View.AvoidReplacingConnections,
-            () => scene.View.AvoidReplacingConnections = !scene.View.AvoidReplacingConnections);
+        Toggle(gui, "Minimap", "toggle-minimap", view.Canvas.ShowMinimap,
+            () => view.Canvas.ShowMinimap = !view.Canvas.ShowMinimap);
+        Toggle(gui, "Avoid replacing connections", "protect-connections", view.AvoidReplacingConnections,
+            () => view.AvoidReplacingConnections = !view.AvoidReplacingConnections);
         Button(gui, "Style: " + StyleName, "select-style", CycleStyle);
-        Button(gui, "Links: " + scene.View.Routing, "cycle-routing", CycleRouting);
+        Button(gui, "Links: " + view.Routing, "cycle-routing", CycleRouting);
     }
 
     void Toggle(Gui gui, string label, string id, bool value, Action action)

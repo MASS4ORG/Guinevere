@@ -31,3 +31,10 @@ graph-minimap { background-color = #000000; border-color = #ffffff; border-width
 graph-minimap-node { background-color = #ffffff; }
 graph-minimap-viewport, graph-focus { border-color = #ffff00; border-width = 3; }
 graph-marquee { background-color = #ffff0022; border-color = #ffff00; border-width = 2; }
+// FSM sample
+.fsm graph-node.fsm-entry { width = 110; }
+.fsm graph-node.fsm-state { width = 200; }
+.fsm graph-node.fsm-transition { width = 180; border-style = dashed; }
+.fsm graph-title { font-size = 14; }
+.fsm graph-node.fsm-active { background-color = #222222; border-color = #ffff00; border-width = 3; }
+fsm-inspector { background-color = #000000; color = #ffffff; height = fit; padding = 8; border-radius = 6; }

@@ -37,3 +37,10 @@ graph-minimap { background-color = #fffdf6ee; border-color = #b6aa92; border-wid
 graph-minimap-node { background-color = #b6aa92; }
 graph-minimap-viewport, graph-focus { border-color = $accent; }
 graph-marquee { background-color = #365f8b22; border-color = $accent; }
+// FSM sample
+.fsm graph-node.fsm-entry { width = 110; }
+.fsm graph-node.fsm-state { width = 200; }
+.fsm graph-node.fsm-transition { width = 180; border-style = dashed; }
+.fsm graph-title { font-size = 14; }
+.fsm graph-node.fsm-active { background-color = #e0eaf0; border-color = $accent; border-width = 3; }
+fsm-inspector { background-color = $surface; color = $ink; height = fit; padding = 8; border-radius = 6; }

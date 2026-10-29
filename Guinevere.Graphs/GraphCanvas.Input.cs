@@ -19,7 +19,8 @@ public sealed partial class GraphCanvas
 
     readonly Queue<Action> _pendingInput = new();
 
-    void AttachInput(Gui gui, LayoutNode canvas)
+    /// <summary>Applies queued actions before building editor-dependent toolbar or popup controls.</summary>
+    public void ProcessInput(Gui gui)
     {
         if (gui.Pass == Pass.Pass1Build)
         {
@@ -28,6 +29,11 @@ public sealed partial class GraphCanvas
                 action();
             }
         }
+    }
+
+    void AttachInput(Gui gui, LayoutNode canvas)
+    {
+        ProcessInput(gui);
         canvas.On<PointerDownEvent>(e =>
         {
             if (e.TargetId == canvas.Id || e.Button == MouseButton.Middle)

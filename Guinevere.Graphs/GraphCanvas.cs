@@ -31,6 +31,13 @@ public sealed partial class GraphCanvas
     public GraphCamera Camera { get; }
     /// <summary>The logical keyboard and assistive-technology command surface.</summary>
     public GraphNavigation Navigation { get; } = new();
+    /// <summary>Optional editor operations layered on logical canvas actions.</summary>
+    public Func<Gui, GraphAction, bool>? EditorActionRequested { get; set; }
+    /// <summary>Editor operations currently offered by the graph surface.</summary>
+    public Func<IReadOnlyList<GraphActionKind>>? EditorActions { get; set; }
+
+    /// <summary>Queues an editor or domain announcement for the next semantic publication.</summary>
+    public void Announce(GraphSemanticEvent change) => _announcements.Add(change);
     /// <summary>Draws an adaptive minor and major grid.</summary>
     public bool ShowGrid { get; set; } = true;
     /// <summary>Distinguishes graph origin axes from other grid lines.</summary>
@@ -101,6 +108,7 @@ public sealed partial class GraphCanvas
             }
             DrawGrid(gui, canvas);
             ReadSemanticInput(gui);
+            ReadAccessibilityInput(gui, canvas.Id);
         }
 
         foreach (var item in _visible)

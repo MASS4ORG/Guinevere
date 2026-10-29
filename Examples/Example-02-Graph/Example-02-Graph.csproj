@@ -10,8 +10,9 @@
 
     <ItemGroup>
         <EmbeddedResource Include="../../docs/guinevere-badge.png" LogicalName="GuinevereDemos.guinevere-badge.png" />
-        <PackageReference Include="MASS4.Graph.Dataflow" Version="[1.0.0]" />
-        <PackageReference Include="MASS4.Graph.Interpreter" Version="[1.0.0]" />
+        <PackageReference Include="MASS4.Graph.Dataflow" Version="[1.1.0]" />
+        <PackageReference Include="MASS4.Graph.Interpreter" Version="[1.1.0]" />
+        <PackageReference Include="MASS4.Graph.State" Version="[1.1.0]" />
         <ProjectReference Include="../../Guinevere.Graphs/Guinevere.Graphs.csproj" />
         <ProjectReference Include="../../Integrations/Guinevere.OpenGL.SilkNET/Guinevere.OpenGL.SilkNET.csproj" />
     </ItemGroup>
