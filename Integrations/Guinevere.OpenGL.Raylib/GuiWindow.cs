@@ -17,6 +17,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     readonly FileDropQueue _fileDrops = new();
     readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly Gui _gui;
+    readonly LinuxAccessibility? _accessibility;
     int _width;
     int _height;
     readonly StringBuilder _typedCharacters = new();
@@ -61,6 +62,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
         Raylib.SetTraceLogLevel(TraceLogLevel.Warning); // Reduce verbose logging
         Raylib.InitWindow(_width, _height, title);
+        _accessibility = LinuxAccessibility.TryRegister(_gui, title, () => Position, Raylib.SetWindowFocused);
         _title = title;
         PlaceInitialWindow();
         _canvasRenderer = new CanvasRenderer();
@@ -274,6 +276,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     /// </summary>
     public void Dispose()
     {
+        _accessibility?.Dispose();
         _desktopPointer.Dispose();
         _canvasRenderer.Dispose();
         _fontText.Dispose();

@@ -16,7 +16,15 @@ public enum ControlRole
     /// <summary>One page in a tab set.</summary>
     Tab,
     /// <summary>A bounded numeric value.</summary>
-    Slider
+    Slider,
+    /// <summary>An expandable single-choice list.</summary>
+    ComboBox,
+    /// <summary>A menu that exposes commands.</summary>
+    Menu,
+    /// <summary>A command within a menu.</summary>
+    MenuItem,
+    /// <summary>A text entry field.</summary>
+    TextInput
 }
 
 /// <summary>Composable visual state produced by a headless control behavior.</summary>

@@ -3,7 +3,7 @@ namespace Guinevere.Graphs;
 public sealed partial class GraphCanvas
 {
     static readonly GraphActionKind[] SurfaceActions =
-        [GraphActionKind.Focus, GraphActionKind.SearchCommands, GraphActionKind.CreateNode];
+        [GraphActionKind.Focus, GraphActionKind.SearchCommands, GraphActionKind.CreateNode, GraphActionKind.Cancel];
     static readonly GraphActionKind[] ItemActions =
         [GraphActionKind.Focus, GraphActionKind.Select, GraphActionKind.ToggleSelection, GraphActionKind.Delete];
     static readonly GraphActionKind[] NodeActions = [.. ItemActions, GraphActionKind.Activate];

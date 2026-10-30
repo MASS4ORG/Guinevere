@@ -5,6 +5,42 @@ namespace Guinevere.Tests.Controls;
 public sealed class DropdownKeyboardTests
 {
     [Fact]
+    public void NativeActivationOpensDropdownAndSelectsAPublishedOption()
+    {
+        using var h = new FrameHarness();
+        var controls = new List<ControlSemantics>();
+        var elements = new List<AccessibilityElement>();
+        var sink = Substitute.For<IAccessibilityCapability, IAccessibilityTreeSink>();
+        sink.When(bridge => bridge.Publish(Arg.Any<ControlSemantics>()))
+            .Do(call => controls.Add(call.Arg<ControlSemantics>()));
+        ((IAccessibilityTreeSink)sink).When(tree => tree.PublishElement(Arg.Any<AccessibilityElement>()))
+            .Do(call => elements.Add(call.Arg<AccessibilityElement>()));
+        h.Gui.Platform.Register(sink);
+        var source = Substitute.For<IControlActivationSource>();
+        h.Gui.ControlActivation = source;
+        var selected = -1;
+        void Draw(Gui gui) => gui.Dropdown(["One", "Two"], ref selected, placeholder: "Choice");
+        h.Frame(Draw);
+        h.Frame(Draw);
+        var button = controls.Last(static item => item.Label == "Choice").Id;
+        h.Gui.Focus.RequestFocus(button);
+        h.Frame(Draw);
+        source.IsActivated(button).Returns(true);
+        h.Frame(Draw);
+        source.IsActivated(button).Returns(false);
+        h.Frame(Draw);
+        Assert.True(elements.Last(static item => item.Name == "Choice").Expanded);
+        var option = controls.Last(static item => item.Label == "Two").Id;
+        h.Gui.Focus.RequestFocus(option);
+        source.IsActivated(option).Returns(true);
+        h.Frame(Draw);
+        source.IsActivated(option).Returns(false);
+        h.Frame(Draw);
+        Assert.Equal(1, selected);
+        Assert.False(elements.Last(static item => item.Name == "Choice").Expanded);
+    }
+
+    [Fact]
     public void DropdownKeyboardSelectionAndCancelAreDeferredAndKeepFocus()
     {
         using var h = new FrameHarness();

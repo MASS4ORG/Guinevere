@@ -186,7 +186,8 @@ public static partial class ControlsExtensions
         }
         gui.RegisterFocusable(canReceiveFocus: enabled, claimsArrowKeys: true);
         var interactable = gui.GetInteractable();
-        if (enabled && interactable.OnClick())
+        if (enabled && (interactable.OnClick()
+                        || gui.HasFocus() && gui.ControlActivation?.IsActivated(gui.CurrentNode.Id) == true))
         {
             gui.RequestFocus(FocusReason.Mouse);
             state.RequestedOpen = !state.IsOpen;
@@ -245,6 +246,7 @@ public static partial class ControlsExtensions
                 {
                     var option = i;
                     gui.CurrentNode.On<KeyDownEvent>(e => DropdownOptionKey(gui, e, id, options.Length, option, state));
+                    PublishMenuSemantics(gui, options[i], true, i == selectedIndex);
                     if (DropdownOptionInput(gui, id))
                     {
                         chosen = i;

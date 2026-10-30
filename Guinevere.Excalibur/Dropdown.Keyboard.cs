@@ -72,7 +72,12 @@ public static partial class ControlsExtensions
         {
             state |= ControlVisualState.Focused;
         }
-        sink?.Publish(new ControlSemantics(gui.CurrentNode.Id, ControlRole.Button, label,
+        sink?.Publish(new ControlSemantics(gui.CurrentNode.Id, ControlRole.ComboBox, label,
             $"{value}; {(open ? "expanded" : "collapsed")}", gui.CurrentNode.Rect, state));
+        if (sink is IAccessibilityTreeSink tree)
+        {
+            tree.PublishElement(new AccessibilityElement(gui.CurrentNode.Id, null, "ComboBox", label,
+                value, gui.CurrentNode.Rect, state, Actions: ["Focus", "Activate"], Expanded: open));
+        }
     }
 }

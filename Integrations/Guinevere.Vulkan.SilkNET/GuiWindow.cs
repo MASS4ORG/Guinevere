@@ -20,6 +20,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     readonly FileDropQueue _fileDrops = new();
     readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly Gui _gui;
+    readonly LinuxAccessibility? _accessibility;
     readonly IWindow _window;
     readonly CanvasRenderer _renderer;
     IInputContext _inputContext = null!;
@@ -93,6 +94,8 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
 
         ConfigureWindowPlatform();
         _window = Window.Create(options);
+        _accessibility = LinuxAccessibility.TryRegister(_gui, title, () => Position,
+            () => _glfw.FocusWindow((WindowHandle*)_window.Handle));
 
         // Hook up all necessary events
         _window.FileDrop += paths =>
@@ -366,6 +369,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     /// </summary>
     public void Dispose()
     {
+        _accessibility?.Dispose();
         _inputContext.Dispose();
         _renderer.Dispose();
         _window.Dispose();

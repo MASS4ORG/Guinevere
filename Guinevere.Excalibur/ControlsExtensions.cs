@@ -81,7 +81,7 @@ public static partial class ControlsExtensions
         gui.RegisterFocusable(canReceiveFocus: enabled, isInteractable: enabled);
         var color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         gui.DrawIcon(icon, new Rect(node.Rect.X + 6, node.Rect.Y + 6, size - 12, size - 12), color);
-        PublishMenuSemantics(gui, label, enabled, false);
+        PublishMenuSemantics(gui, label, enabled, false, ControlRole.Button);
         return enabled && Activated(gui);
     }
 
@@ -106,6 +106,7 @@ public static partial class ControlsExtensions
             }
 
             RenderCenteredText(gui, text, fontSizeEffective);
+            PublishMenuSemantics(gui, text.Label ?? "", enabled, false, ControlRole.Button);
             return enabled && Activated(gui);
         }
     }

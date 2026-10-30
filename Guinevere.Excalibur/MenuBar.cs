@@ -250,7 +250,7 @@ public static partial class ControlsExtensions
             }
 
             UpdateMenuBarTitle(state, index, hovered, clicked || MenuKeyboardActivated(gui));
-            PublishMenuSemantics(gui, menu.Title, true, false);
+            PublishMenuSemantics(gui, menu.Title, true, false, ControlRole.Menu);
         }
         gui.DrawText(menu.Title, fontSize, centerInRect: false);
     }

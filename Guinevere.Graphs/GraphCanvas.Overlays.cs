@@ -120,6 +120,11 @@ public sealed partial class GraphCanvas
         {
             sink = accessibility;
         }
+        if (sink is not IGraphSemanticsSink && sink is IAccessibilityTreeSink tree)
+        {
+            gui.Platform.TryGet<IAccessibilityActionSource>(out var actions);
+            return new GraphNativeAccessibility(tree, actions);
+        }
         return sink;
     }
 

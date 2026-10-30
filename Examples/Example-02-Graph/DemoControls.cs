@@ -35,7 +35,7 @@ public static class DemoControls
             gui.CurrentNode.On(onKey);
         }
         gui.TextInput(ref text, width: width, height: 28, placeholder: label, id: id);
-        Publish(gui, id, label, text, ControlRole.None);
+        Publish(gui, id, label, text, ControlRole.TextInput);
     }
 
     static void Publish(Gui gui, string id, string label, string? value, ControlRole role)
