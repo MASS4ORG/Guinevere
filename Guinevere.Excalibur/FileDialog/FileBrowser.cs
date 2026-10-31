@@ -360,7 +360,7 @@ public sealed class FileBrowser
             // Directories lead regardless of the column, which is what every file manager does.
             var ordered = visible.OrderBy(entry => entry.IsDirectory ? 0 : 1);
 
-            Entries = [.. _sort switch
+            ordered = _sort switch
             {
                 FileSortColumn.Size => _ascending
                     ? ordered.ThenBy(entry => entry.Size)
@@ -368,10 +368,13 @@ public sealed class FileBrowser
                 FileSortColumn.Modified => _ascending
                     ? ordered.ThenBy(entry => entry.Modified)
                     : ordered.ThenByDescending(entry => entry.Modified),
-                _ => _ascending
-                    ? ordered.ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
-                    : ordered.ThenByDescending(entry => entry.Name, StringComparer.OrdinalIgnoreCase),
-            }];
+                _ => ordered,
+            };
+
+            // Name breaks ties, so equal sizes or dates never depend on the provider's enumeration order.
+            Entries = [.. _ascending
+                ? ordered.ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+                : ordered.ThenByDescending(entry => entry.Name, StringComparer.OrdinalIgnoreCase)];
         }
     }
 
