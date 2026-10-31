@@ -7,21 +7,21 @@ public static partial class EditorCommands
 
     static void RegisterSelection()
     {
-        Register("selectAll", state =>
+        Register("selectAll", static state =>
             state.Document.SetSelections([new TextSelection(0, state.Document.Buffer.Length)]));
         Register("selectLine", SelectLine);
-        Register("addCursorAbove", state => AddCursor(state, -1));
-        Register("addCursorBelow", state => AddCursor(state, 1));
+        Register("addCursorAbove", static state => AddCursor(state, -1));
+        Register("addCursorBelow", static state => AddCursor(state, 1));
         Register("selectNextOccurrence", SelectNextOccurrence);
         Register("selectAllOccurrences", SelectAllOccurrences);
         Register("cancel", Cancel);
         Register("jumpToBracket", JumpToBracket);
-        Register("fold", state => FoldAtCaret(state, fold: true));
-        Register("unfold", state => FoldAtCaret(state, fold: false));
-        Register("triggerSuggest", state => state.TriggerCompletion());
+        Register("fold", static state => FoldAtCaret(state, fold: true));
+        Register("unfold", static state => FoldAtCaret(state, fold: false));
+        Register("triggerSuggest", static state => state.TriggerCompletion());
         Register("acceptSuggestion", Editing(AcceptCompletion));
-        Register("nextSuggestion", state => state.Completion?.MoveSelection(1));
-        Register("previousSuggestion", state => state.Completion?.MoveSelection(-1));
+        Register("nextSuggestion", static state => state.Completion?.MoveSelection(1));
+        Register("previousSuggestion", static state => state.Completion?.MoveSelection(-1));
     }
 
     /// <summary>Selects each caret's whole line with its break; a selection already covering lines grows by one.</summary>

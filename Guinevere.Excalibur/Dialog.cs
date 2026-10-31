@@ -62,7 +62,7 @@ public static partial class ControlsExtensions
     {
         ExcaliburStyles.Ensure(gui);
         id ??= gui.AutomaticId(filePath, lineNumber);
-        var state = gui.ControlState(id, () => new DialogState());
+        var state = gui.ControlState(id, static () => new DialogState());
 
         UpdateDialogState(gui, state, ref isOpen, closeOnEscape);
 

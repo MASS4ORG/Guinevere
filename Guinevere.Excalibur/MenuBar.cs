@@ -79,7 +79,7 @@ public static partial class ControlsExtensions
 
         id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
-        var state = gui.ControlState(id, () => new MenuBarState());
+        var state = gui.ControlState(id, static () => new MenuBarState());
         state.Classes = classes;
         state.StyleId = id;
         state.PopupId = null;
@@ -126,7 +126,7 @@ public static partial class ControlsExtensions
     {
         if (state.TitleRects.Count != builder.Menus.Count)
         {
-            state.TitleRects = [.. builder.Menus.Select(_ => new Rect())];
+            state.TitleRects = [.. builder.Menus.Select(static _ => new Rect())];
         }
 
         if (builder.CollapsedLabel is not null && !state.FrameExpanded)
@@ -250,6 +250,7 @@ public static partial class ControlsExtensions
             }
 
             UpdateMenuBarTitle(state, index, hovered, clicked || MenuKeyboardActivated(gui));
+            PublishMenuSemantics(gui, menu.Title, true, false, ControlRole.Menu);
         }
         gui.DrawText(menu.Title, fontSize, centerInRect: false);
     }
@@ -379,6 +380,7 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass2Render)
         {
             HandleMenuRow(gui, state, item, index, depth);
+            PublishMenuSemantics(gui, item.Text, item.Enabled, item.IsChecked?.Invoke() == true);
         }
 
         RenderMenuRowContent(gui, state, item, hasCheckColumn, fontSize);

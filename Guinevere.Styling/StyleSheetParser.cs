@@ -626,12 +626,12 @@ sealed class StyleSheetParser
 
     void LayerImports()
     {
-        Layer(Variables, sheet => sheet.Variables);
-        Layer(Inheritance, sheet => sheet.Inheritance);
-        Layer(PropertyInheritance, sheet => sheet.PropertyInheritance);
-        Layer(SelectorInheritance, sheet => sheet.SelectorInheritance);
-        FontFaces.InsertRange(0, _imports.SelectMany(sheet => sheet.FontFaces));
-        Deferred.InsertRange(0, _imports.SelectMany(sheet => sheet.Deferred));
+        Layer(Variables, static sheet => sheet.Variables);
+        Layer(Inheritance, static sheet => sheet.Inheritance);
+        Layer(PropertyInheritance, static sheet => sheet.PropertyInheritance);
+        Layer(SelectorInheritance, static sheet => sheet.SelectorInheritance);
+        FontFaces.InsertRange(0, _imports.SelectMany(static sheet => sheet.FontFaces));
+        Deferred.InsertRange(0, _imports.SelectMany(static sheet => sheet.Deferred));
     }
 
     void Layer<T>(Dictionary<string, T> own, Func<StyleSheet, IReadOnlyDictionary<string, T>> select)

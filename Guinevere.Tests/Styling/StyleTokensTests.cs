@@ -63,7 +63,7 @@ public class StyleTokensTests
     [Fact]
     public void SetStyleTokenThemesASubtree()
     {
-        var color = Frame(gui =>
+        var color = Frame(static gui =>
         {
             using (gui.StyledNode("panel", ["danger"]).Enter())
             using (gui.Node(10, 10).Enter())

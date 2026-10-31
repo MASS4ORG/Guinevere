@@ -34,7 +34,7 @@ public class StyleResolverTests
 
     /// <summary>Inheritance cycles fail during parsing.</summary>
     [Fact]
-    public void InheritanceRejectsCycles() => Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("""
+    public void InheritanceRejectsCycles() => Assert.Throws<StyleSheetException>(static () => StyleSheet.Parse("""
         a #inherit(b) { width = 1; }
         b #inherit(a) { width = 2; }
         """));

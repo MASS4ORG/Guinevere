@@ -53,18 +53,18 @@ public class SemanticInputTests
         prompts.GetPrompt(SemanticAction.Accept, pad).Returns(new InputPrompt("A"));
         harness.Gui.Platform.Register(source);
         harness.Gui.Platform.Register(prompts);
-        harness.Frame(_ => { });
+        harness.Frame(static _ => { });
         Assert.Equal("A", harness.Gui.GetInputPrompt(SemanticAction.Accept)?.Label);
         prompts.GetPrompt(SemanticAction.Accept, pad).Returns(new InputPrompt("Cross"));
         Assert.Equal("Cross", harness.Gui.GetInputPrompt(SemanticAction.Accept)?.Label);
         harness.Input.PressKey(KeyboardKey.Tab);
-        harness.Frame(_ => { });
+        harness.Frame(static _ => { });
         Assert.Equal(InputDeviceKind.KeyboardMouse, harness.Gui.ActiveInputDevice.Kind);
         Assert.Null(harness.Gui.GetInputPrompt(SemanticAction.Accept));
-        harness.Frame(_ => { });
+        harness.Frame(static _ => { });
         Assert.Equal(InputDeviceKind.KeyboardMouse, harness.Gui.ActiveInputDevice.Kind);
         harness.Gui.Platform.Remove<ISemanticInputCapability>();
-        harness.Frame(_ => { });
+        harness.Frame(static _ => { });
         Assert.Equal(InputDeviceKind.KeyboardMouse, harness.Gui.ActiveInputDevice.Kind);
     }
 

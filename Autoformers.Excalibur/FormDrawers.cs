@@ -138,7 +138,8 @@ public sealed class FormDrawers
     internal IPropertyDrawer? PredicateDrawer(FormField field)
     {
         Refresh();
-        _predicateCache ??= [.. Predicates(0).OrderBy(p => p.Order).ThenBy(p => p.Depth).ThenBy(p => p.Sequence)];
+        _predicateCache ??= [.. Predicates(0).OrderBy(static p => p.Order).ThenBy(static p => p.Depth).ThenBy(
+            static p => p.Sequence)];
 
         foreach (var predicate in _predicateCache)
         {

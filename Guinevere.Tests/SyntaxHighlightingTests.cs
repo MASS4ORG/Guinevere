@@ -31,7 +31,7 @@ public class SyntaxHighlightingTests
         Assert.Equal(SyntaxKind.Operator, KindAt(tokens, Line, "+"));
         Assert.Equal(SyntaxKind.Punctuation, KindAt(tokens, Line, ";"));
         Assert.Equal(SyntaxKind.Comment, KindAt(tokens, Line, "// done"));
-        Assert.DoesNotContain(tokens, token => Line.Substring(token.Start, token.Length) == "name");
+        Assert.DoesNotContain(tokens, static token => Line.Substring(token.Start, token.Length) == "name");
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class SyntaxHighlightingTests
         const string Line = "var s = \"a\\\"b\" + 'c' ?? null;";
         var (tokens, _) = Tokenize(CLikeSyntax.CSharp, Line);
 
-        Assert.Contains(tokens, token => token.Kind == SyntaxKind.String && token.Length == 6);
+        Assert.Contains(tokens, static token => token.Kind == SyntaxKind.String && token.Length == 6);
         Assert.Equal(SyntaxKind.String, KindAt(tokens, Line, "'c'"));
         Assert.Equal(SyntaxKind.Constant, KindAt(tokens, Line, "null"));
     }
@@ -90,7 +90,7 @@ public class SyntaxHighlightingTests
         var (_, inDoc) = Tokenize(CLikeSyntax.Python, "\"\"\"doc");
 
         Assert.Equal(SyntaxKind.Comment, comment[^1].Kind);
-        Assert.Contains(comment, token => token.Kind == SyntaxKind.Constant);
+        Assert.Contains(comment, static token => token.Kind == SyntaxKind.Constant);
         Assert.Equal(SyntaxKind.Preprocessor, Assert.Single(decorator).Kind);
         Assert.NotEqual(0, inDoc);
     }
@@ -103,7 +103,7 @@ public class SyntaxHighlightingTests
 
         Assert.Equal(SyntaxKind.Constant, KindAt(tokens, Line, "true"));
         Assert.Equal(SyntaxKind.Number, KindAt(tokens, Line, "1.5e3"));
-        Assert.DoesNotContain(tokens, token => token.Kind == SyntaxKind.Type);
+        Assert.DoesNotContain(tokens, static token => token.Kind == SyntaxKind.Type);
     }
 
     [Fact]

@@ -11,7 +11,7 @@ sealed class AsciiFontMetrics
     internal AsciiFontMetrics(Font font)
     {
         Font = font;
-        var alphabet = new string([.. Enumerable.Range(0, 128).Select(value => (char)value)]);
+        var alphabet = new string([.. Enumerable.Range(0, 128).Select(static value => (char)value)]);
         Glyphs = font.SkFont.GetGlyphs(alphabet);
         Widths = font.SkFont.GetGlyphWidths(Glyphs, null);
         var kerning = OpenTypeKerning.For(font.SkFont.Typeface);

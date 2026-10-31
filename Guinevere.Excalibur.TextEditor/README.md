@@ -19,5 +19,3 @@ gui.TextEditor(editor);
 - Language logic comes from `LanguageServices`: an `ISyntaxHighlighter` (shared with Markdown code blocks) and asynchronous `IDiagnosticsProvider`, `IFoldingProvider`, `ICompletionProvider` and `IHoverProvider` that read immutable snapshots, so they can run on any thread.
 - Caret steps and deletions never split a grapheme cluster, and measuring, drawing and hit testing use the shared text layout and shaper.
 - Input-method composition is drawn at the caret when the integration provides `ITextCompositionCapability`. Bidirectional text is not supported yet.
-
-Run `dotnet run --project Examples/Example-90-LayoutBenchmarks -c Release -- --editor-only` for fixed-frame, rasterized large-file workloads. Document construction is outside the samples; cold first frames, idle, editing, caret movement, selection and scrolling are reported separately, with providers disabled to isolate editor work.

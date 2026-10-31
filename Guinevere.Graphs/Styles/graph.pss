@@ -1,0 +1,50 @@
+// Graph defaults. Application sheets participate in the ordinary PSS cascade.
+graph-editor, graph-canvas { color = #ffffff; font-size = 14; }
+graph-canvas { background-color = #1a1c21; }
+graph-grid { stroke = #2b3038; stroke-width = 1; gap = 24; graph-major-every = 4; }
+graph-grid:major { stroke = #3d424d; }
+graph-grid:axis { stroke = #66738c; }
+graph-focus { border-color = #66b3ff; border-width = 2; }
+graph-minimap { width = 180; height = 120; margin = 8; background-color = #0f1217; }
+graph-minimap-node { background-color = #66738c; }
+graph-minimap-viewport { border-color = #80bfff; border-width = 1; }
+graph-node {
+    width = 220; background-color = #29384e; border-color = #3d5270; border-width = 1;
+    border-radius = 10; color = #ffffff; font-size = 16;
+    padding-left = 12; padding-right = 12; padding-top = 8; padding-bottom = 8;
+    graph-port-spacing = 28;
+}
+graph-node:selected { background-color = #315c83; }
+graph-node:warning { border-color = #f2c14e; border-width = 2.5; }
+graph-node:error { border-color = #ff6b6b; border-width = 2.5; }
+graph-header { height = 40; background-color = #213047; border-radius = 10 10 0 0; }
+graph-title { left = 13; top = 10; height = 26; font-size = 16; color = #ffffff; }
+graph-content { margin-top = 8; }
+graph-port { width = 14; height = 14; background-color = #87cefa; border-radius = 2; color = #b0c4de; }
+graph-port:output { background-color = #66cdaa; }
+graph-port:compatible { background-color = #7cffc4; border-color = #ffffff; border-width = 2; }
+graph-port:incompatible { background-color = #ff6b6b; }
+graph-port-label { width = 185; height = 20; margin = 15; font-size = 13; color = #b0c4de; }
+graph-link { stroke = #87cefa; stroke-width = 2; stroke-dasharray = 0; stroke-dashoffset = 0; marker-width = 10; }
+graph-link:selected { stroke = #ffd700; stroke-width = 3; }
+graph-link:warning { stroke = #f2c14e; }
+graph-link:error { stroke = #ff6b6b; }
+graph-link:preview { stroke = #80bfff99; stroke-width = 2; stroke-dasharray = 6; }
+graph-link:outline { stroke-width = 1.5; }
+graph-badge {
+    background-color = #0f1217dd; color = #ffffff; font-size = 11; height = 18;
+    min-width = 18; padding-left = 5; padding-right = 5; border-radius = 9; gap = 4; right = 10;
+}
+graph-badge:warning { background-color = #f2c14e; }
+graph-badge:error { background-color = #ff6b6b; }
+graph-flow { background-color = #7cffc4; width = 7; min-width = 3; max-width = 12; gap = 48; }
+graph-flow-label {
+    background-color = #0f1217dd; color = #ffffff; border-color = #7cffc4; border-width = 1;
+    border-radius = 9; font-size = 12; height = 18; padding-left = 6; padding-right = 6;
+    left = 10; top = -26;
+}
+graph-marquee { background-color = #66b3ff22; border-color = #66b3ff; border-width = 1; }
+graph-group { background-color = #28445c33; border-color = #66738c; border-width = 1; border-radius = 8; padding-left = 24; min-width = 240; gap = 28; }
+graph-group:selected { border-color = #66b3ff; border-width = 2; }
+graph-group:collapsed { background-color = #29384e; }
+graph-group-header { height = 32; background-color = #213047; color = #ffffff; padding-left = 10; font-size = 14; }

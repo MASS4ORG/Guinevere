@@ -190,7 +190,7 @@ public static partial class ControlsExtensions
 
         id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
-        var state = gui.ControlState(id, () => new TooltipState());
+        var state = gui.ControlState(id, static () => new TooltipState());
         var anchorRect = state.AnchorRect;
         var show = TooltipIsVisible(gui, state, state.AnchorScreenRect, delay);
 

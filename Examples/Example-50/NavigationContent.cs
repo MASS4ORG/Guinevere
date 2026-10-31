@@ -75,50 +75,50 @@ public abstract partial class Program
 
     static void MenuBarContent(Gui gui)
     {
-        gui.MenuBar(menu =>
+        gui.MenuBar(static menu =>
         {
-            menu.Menu("File", file =>
+            menu.Menu("File", static file =>
             {
-                file.Item("New", () => _menuStatus = "File > New", "Ctrl+N");
-                file.Item("Open…", () => _menuStatus = "File > Open", "Ctrl+O");
+                file.Item("New", static () => _menuStatus = "File > New", "Ctrl+N");
+                file.Item("Open…", static () => _menuStatus = "File > Open", "Ctrl+O");
                 file.Separator();
-                file.Item("Save", () => _menuStatus = "File > Save", "Ctrl+S");
-                file.Item("Save As…", () => _menuStatus = "File > Save As", "Ctrl+Shift+S");
+                file.Item("Save", static () => _menuStatus = "File > Save", "Ctrl+S");
+                file.Item("Save As…", static () => _menuStatus = "File > Save As", "Ctrl+Shift+S");
                 file.Separator();
-                file.Item("Exit", () => _menuStatus = "File > Exit");
+                file.Item("Exit", static () => _menuStatus = "File > Exit");
             });
 
-            menu.Menu("Edit", edit =>
+            menu.Menu("Edit", static edit =>
             {
-                edit.Item("Undo", () => _menuStatus = "Edit > Undo", "Ctrl+Z");
-                edit.Item("Redo", () => _menuStatus = "Edit > Redo", "Ctrl+Y");
+                edit.Item("Undo", static () => _menuStatus = "Edit > Undo", "Ctrl+Z");
+                edit.Item("Redo", static () => _menuStatus = "Edit > Redo", "Ctrl+Y");
                 edit.Separator();
-                edit.Item("Cut", () => _menuStatus = "Edit > Cut", "Ctrl+X");
-                edit.Item("Copy", () => _menuStatus = "Edit > Copy", "Ctrl+C");
-                edit.Item("Paste", () => _menuStatus = "Edit > Paste", "Ctrl+V");
+                edit.Item("Cut", static () => _menuStatus = "Edit > Cut", "Ctrl+X");
+                edit.Item("Copy", static () => _menuStatus = "Edit > Copy", "Ctrl+C");
+                edit.Item("Paste", static () => _menuStatus = "Edit > Paste", "Ctrl+V");
             });
 
-            menu.Menu("View", view =>
+            menu.Menu("View", static view =>
             {
-                view.CheckItem("Toolbar", () => _showToolbar, value => _showToolbar = value);
-                view.CheckItem("Status Bar", () => _showStatusBar, value => _showStatusBar = value);
+                view.CheckItem("Toolbar", static () => _showToolbar, static value => _showToolbar = value);
+                view.CheckItem("Status Bar", static () => _showStatusBar, static value => _showStatusBar = value);
                 view.Separator();
-                view.Submenu("Zoom", zoom =>
+                view.Submenu("Zoom", static zoom =>
                 {
-                    zoom.Item("Zoom In", () => _menuStatus = "View > Zoom In", "Ctrl+=");
-                    zoom.Item("Zoom Out", () => _menuStatus = "View > Zoom Out", "Ctrl+-");
-                    zoom.Item("Reset Zoom", () => _menuStatus = "View > Reset Zoom", "Ctrl+0");
+                    zoom.Item("Zoom In", static () => _menuStatus = "View > Zoom In", "Ctrl+=");
+                    zoom.Item("Zoom Out", static () => _menuStatus = "View > Zoom Out", "Ctrl+-");
+                    zoom.Item("Reset Zoom", static () => _menuStatus = "View > Reset Zoom", "Ctrl+0");
                 });
                 view.Separator();
-                view.Item("Full Screen", () => _menuStatus = "View > Full Screen", "F11", enabled: false);
+                view.Item("Full Screen", static () => _menuStatus = "View > Full Screen", "F11", enabled: false);
             });
 
-            menu.Menu("Help", help =>
+            menu.Menu("Help", static help =>
             {
-                help.Item("Documentation", () => _menuStatus = "Help > Documentation", "F1");
-                help.Item("Check for Updates…", () => _menuStatus = "Help > Updates");
+                help.Item("Documentation", static () => _menuStatus = "Help > Documentation", "F1");
+                help.Item("Check for Updates…", static () => _menuStatus = "Help > Updates");
                 help.Separator();
-                help.Item("About", () => _menuStatus = "Help > About");
+                help.Item("About", static () => _menuStatus = "Help > About");
             });
         });
 

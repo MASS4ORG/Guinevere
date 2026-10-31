@@ -190,12 +190,13 @@ public static class StylingExtensions
         /// <param name="type">The part's type name.</param>
         /// <param name="state">The part's own state, such as <see cref="StyleState.Focus"/>.</param>
         /// <param name="modifiers">The part's semantic modifiers.</param>
+        /// <param name="classes">Application classes attached to the part.</param>
         /// <returns>The resolved style; cached hits do not allocate.</returns>
         public ResolvedStyle ResolvePart(string type, StyleState state = StyleState.None,
-            IReadOnlyList<string>? modifiers = null)
+            IReadOnlyList<string>? modifiers = null, IReadOnlyList<string>? classes = null)
         {
             var styling = StateOf(gui);
-            var target = CreateStyleTarget(styling.Ancestors, gui.CurrentNode, type, null, null, modifiers, state);
+            var target = CreateStyleTarget(styling.Ancestors, gui.CurrentNode, type, classes, null, modifiers, state);
             return styling.Sheets.Resolve(target, null, gui.CurrentNodeScope.Get<StyleTokens>());
         }
     }

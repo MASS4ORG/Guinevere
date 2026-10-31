@@ -9,7 +9,7 @@ public abstract class Program
     {
         var gui = new Gui();
         using var win = new GuiWindow(gui);
-        Shared shared = new(gui);
+        Example01.Example01 shared = new(gui);
         win.RunGui(shared.Draw);
     }
 }

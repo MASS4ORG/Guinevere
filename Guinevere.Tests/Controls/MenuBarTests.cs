@@ -15,10 +15,10 @@ public class MenuBarTests
     {
         using var h = new FrameHarness();
         h.Gui.StyleSheets.Add(StyleSheet.Parse("menubar { background-color = red; } menu-title:hover { background-color = blue; }"));
-        static void Draw(Gui gui) => gui.MenuBar(bar =>
+        static void Draw(Gui gui) => gui.MenuBar(static bar =>
         {
             bar.Collapsible();
-            bar.Menu("File", menu => menu.Item("Open", () => { }));
+            bar.Menu("File", static menu => menu.Item("Open", static () => { }));
         });
         h.Input.MoveTo(new Vector2(-1));
         h.Frame(Draw);
@@ -281,7 +281,8 @@ public class MenuBarTests
 
         // And by the next frame the menu is there, under its title.
         Frame(gui, log);
-        var rows = MenuNodes(gui.RootNode!).Where(node => node.Id.Contains("/i", StringComparison.Ordinal)).ToList();
+        var rows = MenuNodes(gui.RootNode!).Where(
+            static node => node.Id.Contains("/i", StringComparison.Ordinal)).ToList();
 
         Assert.NotEmpty(rows);
         foreach (var row in rows)
@@ -357,7 +358,7 @@ public class MenuBarTests
         Frame(gui, log, input: At(reopened.Children[0].Center));
 
         Assert.Equal(2, log.Count);
-        Assert.All(log, entry => Assert.Equal("copy", entry));
+        Assert.All(log, static entry => Assert.Equal("copy", entry));
     }
 
     [Fact]
@@ -444,10 +445,10 @@ public class MenuBarTests
         // Without a toggle the "Mode" check item is skipped, so the rows are
         // [Copy(0), Separator(1), Bold(2), Zoom(3)].
         Assert.Collection(group.Children,
-            n => Assert.EndsWith("/i0", n.Id),
-            n => Assert.EndsWith("/s1", n.Id),
-            n => Assert.EndsWith("/i2", n.Id),
-            n => Assert.EndsWith("/i3", n.Id));
+            static n => Assert.EndsWith("/i0", n.Id),
+            static n => Assert.EndsWith("/s1", n.Id),
+            static n => Assert.EndsWith("/i2", n.Id),
+            static n => Assert.EndsWith("/i3", n.Id));
 
         Frame(gui, log, input: At(group.Children[3].Center, pressed: false));
 

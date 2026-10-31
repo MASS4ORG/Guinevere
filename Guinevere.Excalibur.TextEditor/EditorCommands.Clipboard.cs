@@ -4,8 +4,8 @@ public static partial class EditorCommands
 {
     static void RegisterClipboard()
     {
-        Register("copy", state => Copy(state, cut: false));
-        Register("cut", Editing(state => Copy(state, cut: true)));
+        Register("copy", static state => Copy(state, cut: false));
+        Register("cut", Editing(static state => Copy(state, cut: true)));
         Register("paste", Editing(Paste));
     }
 
@@ -86,10 +86,10 @@ public static partial class EditorCommands
 
     static void RegisterFind()
     {
-        Register("find", state => OpenFind(state, replace: false));
-        Register("replace", state => OpenFind(state, replace: true));
-        Register("findNext", state => FindNext(state, forward: true));
-        Register("findPrevious", state => FindNext(state, forward: false));
+        Register("find", static state => OpenFind(state, replace: false));
+        Register("replace", static state => OpenFind(state, replace: true));
+        Register("findNext", static state => FindNext(state, forward: true));
+        Register("findPrevious", static state => FindNext(state, forward: false));
         Register("replaceOne", Editing(ReplaceOne));
         Register("replaceAll", Editing(ReplaceAll));
     }

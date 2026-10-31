@@ -122,7 +122,8 @@ public static partial class ControlsExtensions
     static Vector2 SubmenuPosition(Gui gui, List<FlyoutItem> items, Rect parent, float rowOffset,
         float fontSize, float padding, float minWidth)
     {
-        var width = CalculateFlyoutWidth(items, fontSize, padding, minWidth, items.Any(item => item.IsChecked != null));
+        var width = CalculateFlyoutWidth(items, fontSize, padding, minWidth, items.Any(
+            static item => item.IsChecked != null));
         var right = parent.X + parent.W;
         var x = right + width > gui.LayoutBounds.X + gui.LayoutBounds.W && parent.X - width >= gui.LayoutBounds.X
             ? parent.X - width : right;

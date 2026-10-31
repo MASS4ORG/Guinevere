@@ -34,7 +34,7 @@ public sealed class FileBrowserTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    string Names() => string.Join(",", _browser.Entries.Select(entry => entry.Name));
+    string Names() => string.Join(",", _browser.Entries.Select(static entry => entry.Name));
 
     /// <summary>Directories lead whatever the column, and hidden entries are left out.</summary>
     [Fact]
@@ -216,6 +216,25 @@ public sealed class FileBrowserTests : IDisposable
         Assert.True(await navigation);
         Assert.Equal("asset.png", Assert.Single(virtualBrowser.Entries).Name);
         Assert.False(virtualBrowser.IsLoading);
+    }
+
+    /// <summary>Equal sizes fall back to the name, whatever order the provider listed them in.</summary>
+    [Fact]
+    public async Task EqualSizesAreOrderedByNameNotByEnumeration()
+    {
+        var provider = new DelayedFileSystem();
+        var virtualBrowser = new FileBrowser(provider);
+        var navigation = virtualBrowser.NavigateAsync("virtual", TestContext.Current.CancellationToken);
+        provider.Complete([
+            new FileEntry("/virtual/beta", "beta", true, -1, DateTime.MinValue),
+            new FileEntry("/virtual/Alpha", "Alpha", true, -1, DateTime.MinValue),
+        ]);
+        await navigation;
+
+        virtualBrowser.SortBy(FileSortColumn.Size);
+        Assert.Equal("Alpha,beta", string.Join(",", virtualBrowser.Entries.Select(static entry => entry.Name)));
+        virtualBrowser.SortBy(FileSortColumn.Modified);
+        Assert.Equal("Alpha,beta", string.Join(",", virtualBrowser.Entries.Select(static entry => entry.Name)));
     }
 
     /// <summary>Cancellation is available as an explicit result instead of relying on a null path.</summary>

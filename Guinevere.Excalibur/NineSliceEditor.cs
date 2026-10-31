@@ -87,7 +87,7 @@ public static partial class ControlsExtensions
                    .Cursor(horizontal ? PointerCursor.ResizeHorizontal : PointerCursor.ResizeVertical).Enter())
         {
             var result = gui.Draggable(new ControlBehaviorOptions(Enabled: enabled, Focusable: false));
-            var state = gui.ControlState(gui.CurrentNode.Id, () => new SliceGuideState());
+            var state = gui.ControlState(gui.CurrentNode.Id, static () => new SliceGuideState());
             if (gui.Pass != Pass.Pass1Build)
             {
                 return;

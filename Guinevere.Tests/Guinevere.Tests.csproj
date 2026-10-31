@@ -30,6 +30,8 @@
         <ProjectReference Include="../Autoformers/Autoformers.csproj"/>
         <ProjectReference Include="../Autoformers.Excalibur/Autoformers.Excalibur.csproj"/>
         <ProjectReference Include="../Guinevere/Guinevere.csproj"/>
+        <ProjectReference Include="../Guinevere.Graphs/Guinevere.Graphs.csproj"/>
+        <ProjectReference Include="../Examples/Example-02-Graph/Example-02-Graph.csproj"/>
         <ProjectReference Include="../Guinevere.Excalibur/Guinevere.Excalibur.csproj"/>
         <ProjectReference Include="../Guinevere.Excalibur.TextEditor/Guinevere.Excalibur.TextEditor.csproj"/>
         <ProjectReference Include="../Guinevere.TextShaping/Guinevere.TextShaping.csproj"/>

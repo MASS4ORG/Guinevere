@@ -44,7 +44,7 @@ public abstract partial class Program
     static readonly ColorPickerOptions CompactPicker = new()
     {
         Width = 180,
-        Body = (Gui gui, ref Hsva value, Color? _) =>
+        Body = static (Gui gui, ref Hsva value, Color? _) =>
         {
             var changed = gui.ColorArea(ref value, width: 0, height: 150);
             changed |= gui.ColorStrip(ref value, HsvChannel.Hue, length: 0);

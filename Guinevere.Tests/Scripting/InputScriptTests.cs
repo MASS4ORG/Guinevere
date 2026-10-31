@@ -108,7 +108,7 @@ public class InputScriptTests
             }
             """;
 
-        var (passed, failures, _) = Run(json, gui =>
+        var (passed, failures, _) = Run(json, static gui =>
         {
             using (gui.Node(100, 100, "target").Enter())
             {
@@ -130,7 +130,7 @@ public class InputScriptTests
             { "steps": [ { "action": "expectCapture", "value": "nothing-holds-this" } ] }
             """;
 
-        var (passed, failures, log) = Run(json, gui =>
+        var (passed, failures, log) = Run(json, static gui =>
         {
             using (gui.Node(10, 10, "idle").Enter())
             {
@@ -139,7 +139,7 @@ public class InputScriptTests
 
         Assert.False(passed);
         Assert.Equal(1, failures);
-        Assert.Contains(log, line => line.Contains("expectCapture", StringComparison.Ordinal));
+        Assert.Contains(log, static line => line.Contains("expectCapture", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public class InputScriptTests
             }
             """;
 
-        var (passed, failures, _) = Run(json, gui =>
+        var (passed, failures, _) = Run(json, static gui =>
         {
             using (gui.Node(10, 10, "present").Enter())
             {
@@ -174,7 +174,7 @@ public class InputScriptTests
         {
             var (passed, _, _) = Run($$"""
                 { "width": 40, "height": 40, "steps": [ { "action": "dump", "path": {{System.Text.Json.JsonSerializer.Serialize(path)}} } ] }
-                """, gui => gui.DrawRect(gui.ScreenRect, Color.Red));
+                """, static gui => gui.DrawRect(gui.ScreenRect, Color.Red));
 
             Assert.True(passed);
             Assert.True(File.Exists(path));

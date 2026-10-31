@@ -48,11 +48,11 @@ public partial class GuiWindow
     (bool Mapped, bool[] Buttons, float[] Axes) ReadRawController(int slot) =>
         (false, GameInputState.CopyButtons([
             .. GLFW.GetJoystickButtons(slot).ToArray()
-                .Select(button => (byte)button)
+                .Select(static button => (byte)button)
         ]), [.. GLFW.GetJoystickAxes(slot)]);
 
     Vector2[] ReadControllerHats(int slot) => GameInputState.CopyHats([
         .. GLFW.GetJoystickHats(slot).ToArray()
-            .Select(hat => (byte)hat)
+            .Select(static hat => (byte)hat)
     ]);
 }

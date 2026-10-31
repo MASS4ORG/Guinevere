@@ -119,7 +119,7 @@ public class SystemAppearanceTests
     [Fact]
     public void MonitorSwallowsReaderFailures()
     {
-        using var monitor = new SystemAppearanceMonitor(() => throw new InvalidOperationException());
+        using var monitor = new SystemAppearanceMonitor(static () => throw new InvalidOperationException());
         Assert.Equal(SystemAppearance.NoPreference, monitor.Appearance);
     }
 

@@ -73,7 +73,7 @@ public class StyledTextEffectsTests
             none { text-shadow = none; }
             """));
 
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             using (gui.StyledNode("parent").Enter())
             {
@@ -114,7 +114,7 @@ public class StyledTextEffectsTests
 
         harness.Frame(Draw);
         harness.Gui.StyleSheets.SetToken("shadow", "#00ff00");
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             using (gui.StyledNode("box").Enter())
             {
@@ -123,7 +123,7 @@ public class StyledTextEffectsTests
             }
         });
         harness.Gui.StyleSheets.Remove(sheet);
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             using (gui.StyledNode("box").Enter())
             {
@@ -139,7 +139,7 @@ public class StyledTextEffectsTests
         using var harness = new FrameHarness(240, 80);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse(
             ".shadow { text-shadow = 18 0 0 #ff0000, 18 0 0 #0000ff; }"));
-        harness.Frame(gui => gui.Label("Styled", fontSize: 28, classes: ["shadow"]));
+        harness.Frame(static gui => gui.Label("Styled", fontSize: 28, classes: ["shadow"]));
 
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);
@@ -204,7 +204,7 @@ public class StyledTextEffectsTests
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
             box { width = expand; height = expand; opacity = 0.5; text-shadow = 16 0 0 #ff0000; }
             """));
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             using (gui.StyledNode("box").Enter())
             {
@@ -225,7 +225,7 @@ public class StyledTextEffectsTests
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("""
             host { width = 60; height = 60; text-shadow = 20 0 #ff0000; }
             """));
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             using (gui.StyledNode("host").Enter())
             {
@@ -295,7 +295,7 @@ public class StyledTextEffectsTests
             """));
         harness.Input.MoveTo(new Vector2(80, 40));
 
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             using (gui.StyledNode("label", ["label"]).Enter())
             {

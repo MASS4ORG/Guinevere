@@ -11,12 +11,12 @@ public static partial class ExcaliburStyles
 {
     const string ResourcePrefix = "Guinevere.Excalibur.";
 
-    static readonly Lazy<string> Text = new(() => LoadText("guinevere.default.pss"));
-    static readonly Lazy<StyleSheet> Sheet = new(() => Parse("guinevere.default.pss", Text.Value));
-    static readonly Lazy<StyleSheet> ClassicSheet = new(() => Load("guinevere.classic.pss"));
-    static readonly Lazy<StyleSheet> LightSheet = new(() => Load("guinevere.light.pss"));
-    static readonly Lazy<StyleSheet> MonoLightSheet = new(() => Load("guinevere.mono-light.pss"));
-    static readonly Lazy<StyleSheet> MonoDarkSheet = new(() => Load("guinevere.mono-dark.pss"));
+    static readonly Lazy<string> Text = new(static () => LoadText("guinevere.default.pss"));
+    static readonly Lazy<StyleSheet> Sheet = new(static () => Parse("guinevere.default.pss", Text.Value));
+    static readonly Lazy<StyleSheet> ClassicSheet = new(static () => Load("guinevere.classic.pss"));
+    static readonly Lazy<StyleSheet> LightSheet = new(static () => Load("guinevere.light.pss"));
+    static readonly Lazy<StyleSheet> MonoLightSheet = new(static () => Load("guinevere.mono-light.pss"));
+    static readonly Lazy<StyleSheet> MonoDarkSheet = new(static () => Load("guinevere.mono-dark.pss"));
     static readonly ConditionalWeakTable<Gui, StyleSheet> Themes = [];
 
     /// <summary>The default sheet's source, for applications that copy it as the start of their own theme.</summary>

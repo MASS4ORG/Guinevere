@@ -105,7 +105,7 @@ public static partial class ControlsExtensions
     static void DefaultPickerBody(Gui gui, ref Hsva value, ColorPickerOptions options, Color? original, bool enabled,
         string pickerId)
     {
-        var state = gui.ControlState(pickerId, () => new ColorPickerState());
+        var state = gui.ControlState(pickerId, static () => new ColorPickerState());
         SurfaceRow(gui, ref value, options, enabled);
         ChannelRows(gui, ref value, state, options, enabled, pickerId);
         SampleRow(gui, ref value, state, options, original, enabled, pickerId);

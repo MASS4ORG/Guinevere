@@ -94,7 +94,7 @@ public class StyledFontsTests
         Assert.NotNull(frame.Gui.ResolveFontRole(FontRole.Code));
         frame.Gui.StyleSheets.SetToken("font-code", "Brand");
         Assert.Equal("Roboto", frame.Gui.ResolveFontRole(FontRole.Code)!.FamilyName);
-        frame.Frame(gui =>
+        frame.Frame(static gui =>
         {
             gui.UseFontRole(FontRole.Ui);
             Assert.Equal("Roboto", gui.GetTextFont().FamilyName);

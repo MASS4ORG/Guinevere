@@ -60,7 +60,7 @@ public class TransformedControlsTests
     {
         using var harness = new FrameHarness();
         harness.Input.MoveTo(new Vector2(40, 40));
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             using (gui.Node(100, 100).Enter())
             {

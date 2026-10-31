@@ -195,9 +195,11 @@ static class FormGroups
                 return;
             }
 
-            var forms = field.Sources.Select(source => (Source: source, Value: source.GetValue()))
-                .Where(entry => entry.Value is not null)
-                .Select(entry => FormBuilder.Build(entry.Value!, NestedOptions(entry.Source, entry.Value!)).Sections[0])
+            var forms = field.Sources.Select(static source => (Source: source, Value: source.GetValue()))
+                .Where(static entry => entry.Value is not null)
+                .Select(
+                    static entry =>
+                        FormBuilder.Build(entry.Value!, NestedOptions(entry.Source, entry.Value!)).Sections[0])
                 .ToArray();
             var fields = forms.Length != field.Sources.Count ? [] : SharedFields(forms);
 

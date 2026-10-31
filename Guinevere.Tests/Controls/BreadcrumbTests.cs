@@ -16,8 +16,8 @@ public class BreadcrumbTests
 
     static readonly IReadOnlyList<BreadcrumbItem> Items =
     [
-        new BreadcrumbItem("Home", () => NavigationLog.Add("home")),
-        new BreadcrumbItem("Docs", () => NavigationLog.Add("docs")),
+        new BreadcrumbItem("Home", static () => NavigationLog.Add("home")),
+        new BreadcrumbItem("Docs", static () => NavigationLog.Add("docs")),
         new BreadcrumbItem("Controls", IsCurrent: true)
     ];
 
@@ -156,7 +156,7 @@ public class BreadcrumbTests
     public void ClickingAnInteractiveCrumbRunsItsActionOnce()
     {
         NavigationLog.Clear();
-        var gui = RunFrame(g => g.Breadcrumb(Items));
+        var gui = RunFrame(static g => g.Breadcrumb(Items));
 
         Click(gui, Items, 1);
 
@@ -184,12 +184,12 @@ public class BreadcrumbTests
     public void ClickingAwayFromTheTrailFiresNothing()
     {
         NavigationLog.Clear();
-        RunFrame(g => g.Breadcrumb(Items));
+        RunFrame(static g => g.Breadcrumb(Items));
 
         var input = NoInput();
         input.MousePosition.Returns(new Vector2(Width - 1, Height - 1));
         input.IsMouseButtonPressed(MouseButton.Left).Returns(true);
-        RunFrame(g => g.Breadcrumb(Items), input);
+        RunFrame(static g => g.Breadcrumb(Items), input);
 
         Assert.Empty(NavigationLog);
     }

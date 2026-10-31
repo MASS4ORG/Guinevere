@@ -43,7 +43,7 @@ public abstract partial class Program
             FileDialogFilter.Of("C# files", ".cs"),
             FileDialogFilter.Of("Images", ".png", ".jpg", ".jpeg")
         ],
-        OnClosed = result => _selectedFile = result.WasCancelled
+        OnClosed = static result => _selectedFile = result.WasCancelled
             ? "File selection cancelled"
             : $"Selected: {result.Path}",
     });
@@ -53,7 +53,7 @@ public abstract partial class Program
         Mode = FileDialogMode.SelectFolder,
         Title = "Select a folder",
         StartPath = Environment.CurrentDirectory,
-        OnClosed = result => _selectedFolder = result.WasCancelled
+        OnClosed = static result => _selectedFolder = result.WasCancelled
             ? "Folder selection cancelled"
             : $"Selected: {result.Path}",
     });

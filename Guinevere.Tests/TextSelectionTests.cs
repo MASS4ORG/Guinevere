@@ -10,7 +10,7 @@ public sealed class TextSelectionTests
     static void Draw(Gui gui) => gui.DrawText(Text, selectable: true);
 
     static TextEditState State(FrameHarness h) =>
-        h.Gui.ControlState($"{h.Gui.RootNode!.Children[0].Id}/selection", () => new TextEditState());
+        h.Gui.ControlState($"{h.Gui.RootNode!.Children[0].Id}/selection", static () => new TextEditState());
 
     /// <summary>Dragging selects text and continues outside the label until release.</summary>
     [Fact]

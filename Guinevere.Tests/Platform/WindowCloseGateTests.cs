@@ -14,7 +14,7 @@ public class WindowCloseGateTests
     [Fact]
     public void AHandlerCanVetoAClose()
     {
-        var gate = new WindowCloseGate { CloseRequested = () => false };
+        var gate = new WindowCloseGate { CloseRequested = static () => false };
 
         Assert.False(gate.MayClose());
         Assert.False(gate.Approved);
@@ -23,7 +23,7 @@ public class WindowCloseGateTests
     [Fact]
     public void AHandlerCanAllowAClose()
     {
-        var gate = new WindowCloseGate { CloseRequested = () => true };
+        var gate = new WindowCloseGate { CloseRequested = static () => true };
 
         Assert.True(gate.MayClose());
     }

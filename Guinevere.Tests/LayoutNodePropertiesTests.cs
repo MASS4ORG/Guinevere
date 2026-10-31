@@ -550,7 +550,7 @@ public class LayoutNodePropertiesTests : LayoutNodeTestBase
         }
 
         // Sort as renderer would
-        var sortedList = flatList.OrderBy(value => value.z).ToList();
+        var sortedList = flatList.OrderBy(static value => value.z).ToList();
 
         // Assert
         Assert.Equal(5, sortedList.Count);

@@ -1,8 +1,6 @@
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly int[,] ControllerGridNeighbors =
     {
@@ -76,9 +74,10 @@ public partial class Shared
             gui.DrawText($"{device.Name} [{device.Id}]", 15, p.Text);
             gui.DrawText(device.IsMapped ? "Mapped gamepad: navigation enabled" : "Raw joystick: application mapping required",
                 14, p.TextDim);
-            gui.DrawText($"Axes: {string.Join(", ", device.Axes.Select(axis => $"{axis:0.00}"))}", 14, p.TextDim);
-            gui.DrawText($"Buttons: {string.Join(", ", device.Buttons.Select((button, index) =>
-                button.Down ? $"{index} ({button.HeldSeconds:0.0}s)" : "").Where(value => value.Length > 0))}",
+            gui.DrawText($"Axes: {string.Join(", ", device.Axes.Select(
+                static axis => $"{axis:0.00}"))}", 14, p.TextDim);
+            gui.DrawText($"Buttons: {string.Join(", ", device.Buttons.Select(static (button, index) =>
+                button.Down ? $"{index} ({button.HeldSeconds:0.0}s)" : "").Where(static value => value.Length > 0))}",
                 14, p.TextDim);
             gui.DrawText($"Hats: {string.Join(", ", device.Hats)}; touchpad contacts: {device.TouchpadContacts.Count}",
                 14, p.TextDim);

@@ -23,13 +23,13 @@ public class ExcaliburStylesTests
         var theme = StyleSheet.Parse("button { border-radius = 0; }");
         harness.Gui.StyleSheets.Add(theme);
 
-        harness.Frame(g => g.Button("Save"));
+        harness.Frame(static g => g.Button("Save"));
         Assert.Same(ExcaliburStyles.DefaultSheet, harness.Gui.StyleSheets[0]);
         Assert.Same(theme, harness.Gui.StyleSheets[1]);
 
         harness.Gui.StyleSheets.RemoveAt(0);
         harness.Gui.StyleSheets.Add(ExcaliburStyles.DefaultSheet);
-        harness.Frame(g => g.Button("Save"));
+        harness.Frame(static g => g.Button("Save"));
         Assert.Equal([ExcaliburStyles.DefaultSheet, theme], harness.Gui.StyleSheets);
     }
 

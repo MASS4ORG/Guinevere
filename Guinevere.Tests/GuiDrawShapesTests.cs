@@ -31,7 +31,7 @@ public class GuiDrawShapesTests
     [Fact]
     public void BackgroundIsPrependedExactlyOnce()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             gui.DrawRect(new Rect(20, 20, 20, 20), Color.Blue);
             gui.DrawBackgroundRect(new Color(0xff000080));
@@ -48,7 +48,7 @@ public class GuiDrawShapesTests
     [Fact]
     public void TriangleInterpolatesAllThreeVertexColors()
     {
-        using var pixels = Render(gui => gui.DrawTriangle(new Vector2(5, 5), new Vector2(75, 5),
+        using var pixels = Render(static gui => gui.DrawTriangle(new Vector2(5, 5), new Vector2(75, 5),
             new Vector2(5, 75), Color.Red, Color.Lime, Color.Blue));
         Assert.True(pixels.GetPixel(8, 8).Red > 220);
         Assert.True(pixels.GetPixel(68, 8).Green > 210);
@@ -75,7 +75,7 @@ public class GuiDrawShapesTests
     [Fact]
     public void DirectCommandsKeepZOrderClipAndOpacity()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             using (gui.Node(40, 40, "top").Enter())
             {
@@ -112,7 +112,7 @@ public class GuiDrawShapesTests
     [Fact]
     public void RectangleWithoutColorReturnsMutableShape()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             gui.DrawRect(new Rect(5, 5, 20, 20)).SolidColor(Color.Blue);
             gui.DrawRect(new Rect(35, 5, 20, 20), radius: 3).SolidColor(Color.Lime);
@@ -208,7 +208,7 @@ public class GuiDrawShapesTests
     [Fact]
     public void BordersAndLinesDoNotChangeFollowingFillPaint()
     {
-        using var pixels = Render(gui =>
+        using var pixels = Render(static gui =>
         {
             gui.DrawRectBorder(new Rect(5, 5, 20, 20), Color.Blue, 4, 4);
             gui.DrawCircleBorder(new Vector2(50, 15), 10, Color.Lime, 4);

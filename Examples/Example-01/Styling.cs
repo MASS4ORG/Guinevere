@@ -1,8 +1,6 @@
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly StyleSheetSource Stylesheet = StyleSheetSource.FromProvider(Theme);
     static readonly string[] StyleChips = ["Layout", "Text", "Motion", "Style"];
@@ -14,7 +12,7 @@ public partial class Shared
     /// <summary>The stylesheet follows the active palette; the Theme switch reloads it atomically.</summary>
     static string Theme()
     {
-        var p = _palette;
+        var p = Common.Palette;
         var hover = ColorPalette.Hex(Color.Lerp(p.SurfaceHover, p.Accent, 0.3f));
         return $$"""
             @const radius = 12;
@@ -147,7 +145,7 @@ public partial class Shared
                         var chip = gui.StyledNode("chip", i == _styleChip ? ["selected"] : []);
                         if (chip.OnClick())
                         {
-                            Later(() => _styleChip = index);
+                            Common.Later(() => _styleChip = index);
                         }
 
                         using (chip.Enter())
@@ -179,7 +177,7 @@ public partial class Shared
         var node = gui.StyledNode("button", selected ? ["selected"] : []);
         if (node.OnClick())
         {
-            Later(clicked);
+            Common.Later(clicked);
         }
 
         using (node.Enter())

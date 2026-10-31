@@ -194,7 +194,7 @@ public class GuiTransformTests
     public void OpacityGroupsCoverTransformedInk()
     {
         using var harness = new FrameHarness();
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             using (gui.Node(20, 20).Absolute(Corner.X, Corner.Y).Enter())
             {

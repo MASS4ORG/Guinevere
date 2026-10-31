@@ -21,7 +21,7 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(selected);
         var id = gui.AutomaticId(filePath, lineNumber);
-        var state = gui.ControlState(id, () => new ChoiceState<T>());
+        var state = gui.ControlState(id, static () => new ChoiceState<T>());
         var changes = BeginChoices(gui, state, enabled);
         comparer ??= EqualityComparer<T>.Default;
         display ??= static item => item?.ToString() ?? string.Empty;

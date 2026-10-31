@@ -20,7 +20,7 @@ sealed partial class Build
     const bool DefaultPublishSingleFile = false;
     const bool DefaultPublishTrimmed = false;
 
-    string DefaultConfiguration => IsLocalBuild ? ConfigurationOptions.Debug : ConfigurationOptions.Release;
+    string DefaultConfiguration => ConfigurationOptions.Release;
     const string TestReportArgument = "--report-xunit-trx";
 
     IEnumerable<Project> ReleaseProjects => PackableProjects;

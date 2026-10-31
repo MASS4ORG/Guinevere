@@ -13,12 +13,12 @@ public class FontMeasurementTests
         frame.Gui.Fonts.RegisterFile("Brand", FontRegistryTests.FontPath());
         frame.Gui.Fonts.RegisterFile("Emoji", FontRegistryTests.FontPath("icons.ttf"));
         frame.Gui.StyleSheets.Add(StyleSheet.Parse("checkbox, tab { font-family = Brand, Emoji; }"));
-        frame.Frame(gui =>
+        frame.Frame(static gui =>
         {
             gui.Checkbox(false, "WWW😀", size: 16, fontSize: 18, spacing: 6);
             var checkbox = gui.CurrentNode.Children.First();
             Assert.Equal(22 + gui.MeasureTextWidth("WWW😀", 18, checkbox.Scope), checkbox.Style.Width);
-            gui.Tabs(0, builder => builder.Tab("WWW😀"), fontSize: 18);
+            gui.Tabs(0, static builder => builder.Tab("WWW😀"), fontSize: 18);
             var tabs = gui.CurrentNode.Children[1];
             var tab = tabs.Children.First().Children.First();
             Assert.Equal(24 + gui.MeasureTextWidth("WWW😀", 18, tab.Scope), tab.Style.Width);

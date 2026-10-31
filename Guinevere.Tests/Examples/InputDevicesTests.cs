@@ -14,7 +14,7 @@ public class InputDevicesTests
         harness.Input.ConnectController("pad");
         void Draw(Gui gui)
         {
-            Example01.Shared.InputDevices(gui, Example01.ColorPalette.Dark);
+            Example01.Example01.InputDevices(gui, Shared.ColorPalette.Dark);
             using (gui.Node(100, 30, "outside").Absolute(0, 350).Enter())
             {
                 gui.Pressable();
@@ -59,7 +59,7 @@ public class InputDevicesTests
     public void GalleryShowsDevicesAndReceivesNavigationAndTouch()
     {
         using var harness = new FrameHarness(800, 900);
-        static void Draw(Gui gui) => Example01.Shared.InputDevices(gui, Example01.ColorPalette.Dark);
+        static void Draw(Gui gui) => Example01.Example01.InputDevices(gui, Shared.ColorPalette.Dark);
         harness.Frame(Draw);
         harness.Gui.Platform.Register<IGameInputCapability>(harness.Input);
         harness.Gui.Platform.Register<ITouchCapability>(harness.Input);
@@ -76,7 +76,8 @@ public class InputDevicesTests
         harness.Input.Touch(new TouchContact(1, position, null, TouchPhase.Ended));
         harness.Frame(Draw);
         Assert.Null(harness.Gui.TouchCapture(1));
-        var grid = harness.Gui.RootNode!.Children.Single().Children.Single(node => node.Id == "controller-navigation-grid");
+        var grid = harness.Gui.RootNode!.Children.Single().Children.Single(
+            static node => node.Id == "controller-navigation-grid");
         var firstControl = grid.Children.First();
         harness.Gui.RequestFocus(firstControl.Id);
         harness.Input.SetControllerButton("pad", GameButton.South, false);
@@ -100,7 +101,7 @@ public class InputDevicesTests
         var activated = 0;
         void Draw(Gui gui)
         {
-            if (Example01.Shared.NavItem(gui, Example01.ColorPalette.Dark, "Input", active, compact))
+            if (Example01.Example01.NavItem(gui, Shared.ColorPalette.Dark, "Input", active, compact))
             {
                 activated++;
             }

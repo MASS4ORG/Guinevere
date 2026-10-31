@@ -585,6 +585,6 @@ public static class TextEditor
     public static int PositionOfLine(string[] lines, int row)
     {
         ArgumentNullException.ThrowIfNull(lines);
-        return lines.Take(row).Sum(line => line.Length + 1);
+        return lines.Take(row).Sum(static line => line.Length + 1);
     }
 }

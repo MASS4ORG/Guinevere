@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Guinevere.Graphs</RootNamespace>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Title>Guinevere - Graphs</Title>
+        <PackageId>MASS4.Guinevere.Graphs</PackageId>
+        <Description>Virtualized graph canvas and accessible graph navigation for Guinevere.</Description>
+        <Company>MASS4</Company>
+        <Product>Guinevere</Product>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <Version>6.4.1</Version>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="/" />
+        <PackageReference Include="MASS4.Graph" Version="1.*" />
+        <ProjectReference Include="../Guinevere.Styling/Guinevere.Styling.csproj" />
+        <EmbeddedResource Include="Styles/*.pss" />
+    </ItemGroup>
+</Project>

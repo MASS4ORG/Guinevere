@@ -1,5 +1,5 @@
+using Example02;
 using Guinevere.Tests.Mocks;
-using GuinevereDemos;
 
 namespace Guinevere.Tests.Examples;
 
@@ -10,10 +10,11 @@ public class DemoHeaderTests
     [Fact]
     public void HeaderRendersWithEmbeddedBadge()
     {
-        using var resource = typeof(DemoHeader).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png");
+        using var resource = typeof(GraphPlayground).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png");
         Assert.NotNull(resource);
         using var frame = new FrameHarness();
-        frame.Frame(gui => DemoHeader.Header(gui, "Demo"));
-        frame.Frame(gui => DemoHeader.Header(gui, "Demo"));
+        var playground = new GraphPlayground();
+        frame.Frame(playground.Draw);
+        frame.Frame(playground.Draw);
     }
 }

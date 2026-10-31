@@ -111,7 +111,7 @@ public class ProviderLifecycleTests
 
         state.Language = NoProviders;
 
-        Assert.All(providers.Tokens, token => Assert.True(token.IsCancellationRequested));
+        Assert.All(providers.Tokens, static token => Assert.True(token.IsCancellationRequested));
         providers.Complete();
         state.Update(2);
         Assert.Empty(state.Diagnostics);

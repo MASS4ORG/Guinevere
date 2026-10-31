@@ -10,6 +10,7 @@
         <Project Path="Examples/Example-01-OpenGL-SilkNet/Example-01-OpenGL-SilkNet.csproj"/>
         <Project Path="Examples/Example-01-Vulkan-SilkNet/Example-01-Vulkan-SilkNet.csproj"/>
         <Project Path="Examples/Example-01/Example-01.csproj"/>
+        <Project Path="Examples/Example-02-Graph/Example-02-Graph.csproj"/>
         <Project Path="Examples/Example-11-Excalibur-Attributes/Example-11-Excalibur-Attributes.csproj"/>
         <Project Path="Examples/Example-50-OpenGL-OpenTK/Example-50-OpenGL-OpenTK.csproj"/>
         <Project Path="Examples/Example-50-OpenGL-Raylib/Example-50-OpenGL-Raylib.csproj"/>
@@ -27,6 +28,7 @@
         <Project Path="Examples/Example-90-LayoutBenchmarks/Example-90-LayoutBenchmarks.csproj"/>
         <Project Path="Examples/Example-91-TypeBenchmarks/Example-91-TypeBenchmarks.csproj"/>
         <Project Path="Examples/Example-92-DrawBenchmarks/Example-92-DrawBenchmarks.csproj"/>
+        <Project Path="Examples/Example-93-GraphCanvas/Example-93-GraphCanvas.csproj"/>
     </Folder>
     <Folder Name="/Integrations/">
         <Project Path="Integrations/Guinevere.OpenGL.OpenTK/Guinevere.OpenGL.OpenTK.csproj"/>
@@ -42,6 +44,7 @@
     <Project Path="Autoformers.Excalibur/Autoformers.Excalibur.csproj"/>
     <Project Path="Guinevere.Excalibur/Guinevere.Excalibur.csproj"/>
     <Project Path="Guinevere.Excalibur.TextEditor/Guinevere.Excalibur.TextEditor.csproj"/>
+    <Project Path="Guinevere.Graphs/Guinevere.Graphs.csproj"/>
     <Project Path="Guinevere.Scripting/Guinevere.Scripting.csproj"/>
     <Project Path="Guinevere.Styling/Guinevere.Styling.csproj"/>
     <Project Path="Guinevere.Svg/Guinevere.Svg.csproj"/>

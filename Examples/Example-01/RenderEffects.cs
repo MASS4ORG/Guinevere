@@ -1,8 +1,6 @@
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly (string Name, RenderEffectStack Stack)[] FilterCards =
     [

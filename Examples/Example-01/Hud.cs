@@ -1,9 +1,8 @@
-using Guinevere;
-using SkiaSharp;
+
 
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     static readonly Lazy<SKImage> HudMask = new(CreateHudMask);
     static readonly Lazy<SKImage> HudBarSprite = new(CreateHudBarSprite);
@@ -20,15 +19,15 @@ public partial class Shared
             {
                 if (Button(gui, p, "Take damage"))
                 {
-                    Later(() => state.Health = Math.Max(0, state.Health - 20));
+                    Common.Later(() => state.Health = Math.Max(0, state.Health - 20));
                 }
                 if (Button(gui, p, "Restore"))
                 {
-                    Later(() => state.Health = 100);
+                    Common.Later(() => state.Health = 100);
                 }
                 if (Button(gui, p, "Animate", state.Animate))
                 {
-                    Later(() => state.Animate = !state.Animate);
+                    Common.Later(() => state.Animate = !state.Animate);
                 }
             }
             var health = gui.AnimatedRange(state.Health, duration: 0.15f, lagDelay: 0.35f,

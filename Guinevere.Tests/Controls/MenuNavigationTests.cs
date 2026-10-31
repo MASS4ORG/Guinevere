@@ -176,10 +176,10 @@ public class MenuNavigationTests
     public void ExpandedCompactMenuAnchorsUnderTheSelectedTitle()
     {
         using var h = new FrameHarness(width: 600);
-        static void Draw(Gui gui) => gui.MenuBar(bar => bar.Collapsible()
-            .Menu("File", menu => menu.Item("Open"))
-            .Menu("Edit", menu => menu.Item("Copy"))
-            .Menu("Help", menu => menu.Item("About")));
+        static void Draw(Gui gui) => gui.MenuBar(static bar => bar.Collapsible()
+            .Menu("File", static menu => menu.Item("Open"))
+            .Menu("Edit", static menu => menu.Item("Copy"))
+            .Menu("Help", static menu => menu.Item("About")));
         h.Frame(Draw);
         h.Click(Draw, h.Gui.RootNode!.Children[0].Center);
         h.Frame(Draw);

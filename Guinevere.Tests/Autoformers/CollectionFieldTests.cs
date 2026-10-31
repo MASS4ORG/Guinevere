@@ -19,9 +19,9 @@ public class CollectionFieldTests
         Assert.True(collection.CanResize);
 
         var entries = collection.Entries();
-        Assert.Equal(["[0]", "[1]", "[2]"], entries.Select(entry => entry.Name));
-        Assert.Equal([1, 2, 3], entries.Select(entry => (int)entry.GetValue()!));
-        Assert.All(entries, entry => Assert.Equal(nameof(Model.List), entry.CollectionMember));
+        Assert.Equal(["[0]", "[1]", "[2]"], entries.Select(static entry => entry.Name));
+        Assert.Equal([1, 2, 3], entries.Select(static entry => (int)entry.GetValue()!));
+        Assert.All(entries, static entry => Assert.Equal(nameof(Model.List), entry.CollectionMember));
         Assert.Equal(2, entries[2].CollectionIndex);
         Assert.Same(target, entries[0].Target);
     }
@@ -121,7 +121,7 @@ public class CollectionFieldTests
         Assert.Equal(2, collection.Count);
 
         var entries = collection.Entries();
-        Assert.Equal(["a", "b"], entries.Select(entry => entry.Name));
+        Assert.Equal(["a", "b"], entries.Select(static entry => entry.Name));
         Assert.Equal(2, entries[1].GetValue());
         Assert.Null(entries[0].CollectionMember);
     }
@@ -199,7 +199,7 @@ public class CollectionFieldTests
         Assert.False(list.CanResize);
         Assert.False(list.Add());
         Assert.False(list.RemoveAt(0));
-        Assert.All(list.Entries(), entry => Assert.True(entry.IsReadOnly));
+        Assert.All(list.Entries(), static entry => Assert.True(entry.IsReadOnly));
         Assert.False(list.Entries()[0].SetValue(9));
         Assert.False(map.Entries()[0].SetValue(9));
 
@@ -233,7 +233,7 @@ public class CollectionFieldTests
         Assert.False(CollectionField.IsCollection(Field(target, nameof(Model.Number))));
         Assert.False(CollectionField.IsCollection(Field(target, nameof(Model.Missing))));
         Assert.True(CollectionField.IsCollection(Field(target, nameof(Model.List))));
-        Assert.Throws<ArgumentNullException>(() => CollectionField.TryCreate(null!));
+        Assert.Throws<ArgumentNullException>(static () => CollectionField.TryCreate(null!));
     }
 
     [Fact]

@@ -50,7 +50,7 @@ public class StyleSheetPssTests
     {
         const string text = "/* header\n   comment */\n@const pad = 4;\n// note\nbox {\n    padding = @pad;\n    oops;\n}\n";
 
-        var error = Assert.Throws<StyleSheetException>(() =>
+        var error = Assert.Throws<StyleSheetException>(static () =>
             StyleSheet.Parse(text, new StyleSheetOptions { SourceName = "theme.pss" }));
 
         Assert.Equal(("theme.pss", 7, 5), (error.SourceName, error.Line, error.Column));
@@ -61,7 +61,8 @@ public class StyleSheetPssTests
     [Fact]
     public void SelectorErrorsReportRulePosition()
     {
-        var error = Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("\n  Panel >> Button { width = 1; }"));
+        var error = Assert.Throws<StyleSheetException>(
+            static () => StyleSheet.Parse("\n  Panel >> Button { width = 1; }"));
 
         Assert.Equal((2, 3), (error.Line, error.Column));
         Assert.Null(error.SourceName);
@@ -127,9 +128,10 @@ public class StyleSheetPssTests
         var sheet = StyleSheet.Parse("@font-face { font-family = Mono; src = 'fonts/mono.ttf'; }");
 
         Assert.Equal(new Uri("fonts/mono.ttf", UriKind.Relative), sheet.FontFaces[0].Source);
-        Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("@font-face { src = url(a.ttf); }"));
-        Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("@font-face font-family = x;"));
-        Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("@font-face { font-family = x; src = url(a.ttf)"));
+        Assert.Throws<StyleSheetException>(static () => StyleSheet.Parse("@font-face { src = url(a.ttf); }"));
+        Assert.Throws<StyleSheetException>(static () => StyleSheet.Parse("@font-face font-family = x;"));
+        Assert.Throws<StyleSheetException>(
+            static () => StyleSheet.Parse("@font-face { font-family = x; src = url(a.ttf)"));
     }
 
     /// <summary>Imported rules, tokens and constants come first; the importing sheet overrides them.</summary>
@@ -207,7 +209,7 @@ public class StyleSheetPssTests
                 StyleDeferredKind.StyleMacro, StyleDeferredKind.Invocation, StyleDeferredKind.BackgroundShape,
                 StyleDeferredKind.Shape, StyleDeferredKind.Effect, StyleDeferredKind.Invocation,
             },
-            sheet.Deferred.Select(d => d.Kind));
+            sheet.Deferred.Select(static d => d.Kind));
         Assert.Equal((8, 5), (sheet.Deferred[5].Line, sheet.Deferred[5].Column));
         Assert.StartsWith("shape knob = circle(", sheet.Deferred[6].Text);
         var style = StyleResolver.Resolve([sheet], new StyleTarget("button", null, []));
@@ -260,7 +262,7 @@ public class StyleSheetPssTests
     [Fact]
     public void InheritVariantsRejectCycles()
     {
-        var error = Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("""
+        var error = Assert.Throws<StyleSheetException>(static () => StyleSheet.Parse("""
             a #inherit-properties(b) { width = 1; }
             b #inherit-selector(a) { width = 2; }
             """));

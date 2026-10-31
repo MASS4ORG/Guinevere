@@ -21,6 +21,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     readonly FileDropQueue _fileDrops = new();
     readonly SystemAppearanceMonitor _appearance = SystemAppearanceMonitor.Create();
     readonly Gui _gui;
+    readonly LinuxAccessibility? _accessibility;
     readonly ICanvasRenderer _canvasRenderer;
     Action _guiCallback = null!;
     int _width;
@@ -44,6 +45,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         _width = width;
         _height = height;
         _gui = gui;
+        _accessibility = LinuxAccessibility.TryRegister(_gui, title, () => new Vector2(Location.X, Location.Y), Focus);
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IWindowChromeCapability>(this);
@@ -291,6 +293,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// </summary>
     public new void Dispose()
     {
+        _accessibility?.Dispose();
         base.Dispose();
         _canvasRenderer.Dispose();
         _fontText.Dispose();

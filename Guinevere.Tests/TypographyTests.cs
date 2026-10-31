@@ -79,7 +79,7 @@ public class TypographyTests
         Assert.Equal(100f, CaretX(explicitStops, 2), 2);
         var interval = 4 * space;
         Assert.Equal(MathF.Floor(CaretX(explicitStops, 3) / interval + 1f) * interval, CaretX(explicitStops, 4), 2);
-        Assert.Equal(3, explicitStops.Runs.Sum(run => run.Glyphs?.Ids.Length ?? 0));
+        Assert.Equal(3, explicitStops.Runs.Sum(static run => run.Glyphs?.Ids.Length ?? 0));
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class TypographyTests
 
         Assert.Equal(2, withTab.Lines.Count);
         Assert.Single(withoutTab.Lines);
-        Assert.All(withTab.Lines, line => Assert.True(line.Width <= 120.01f));
+        Assert.All(withTab.Lines, static line => Assert.True(line.Width <= 120.01f));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class TypographyTests
         Assert.Equal(10f, layout.Runs[layout.Lines[1].FirstRun].X, 2);
         var eight = layout.Lines[^1];
         Assert.Equal(30f, layout.Runs[eight.FirstRun].X, 2);
-        Assert.All(layout.Lines, line => Assert.True(line.Width <= 120.01f));
+        Assert.All(layout.Lines, static line => Assert.True(line.Width <= 120.01f));
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class TypographyTests
         var justified = Layout("abcdefgh", options with { Alignment = TextAlignment.Justify }, 30);
 
         Assert.True(justified.Lines.Count > 1);
-        Assert.Equal(plain.Lines.Select(line => line.Width), justified.Lines.Select(line => line.Width));
+        Assert.Equal(plain.Lines.Select(static line => line.Width), justified.Lines.Select(static line => line.Width));
         AssertGlyphsOnCarets(justified);
     }
 
@@ -209,7 +209,7 @@ public class TypographyTests
         var layout = Layout("hELLO world", new TextLayoutOptions { Case = textCase });
 
         Assert.Equal("hELLO world", layout.Text);
-        Assert.Equal(drawn, string.Concat(layout.Runs.Select(run => run.Text)));
+        Assert.Equal(drawn, string.Concat(layout.Runs.Select(static run => run.Text)));
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class TypographyTests
         var layout = Layout(new RichText().Append("ab").Append("cd", new TextSpanStyle { Case = TextCase.Upper }),
             new TextLayoutOptions());
 
-        Assert.Equal("abCD", string.Concat(layout.Runs.Select(run => run.Text)));
+        Assert.Equal("abCD", string.Concat(layout.Runs.Select(static run => run.Text)));
     }
 
     [Fact]
@@ -239,11 +239,11 @@ public class TypographyTests
         var withBox = Layout("a\U000F0000b", new TextLayoutOptions { MissingGlyph = "?" });
         var plain = Layout("a\U000F0000b", new TextLayoutOptions());
 
-        var missing = withBox.Runs.Single(run => run.Start == 1);
+        var missing = withBox.Runs.Single(static run => run.Start == 1);
         Assert.Equal("?", missing.Text);
         Assert.Equal(3, missing.End);
         Assert.Equal(missing.X + missing.Width, CaretX(withBox, 3), 2);
-        Assert.DoesNotContain(plain.Runs, run => run.Text == "?");
+        Assert.DoesNotContain(plain.Runs, static run => run.Text == "?");
     }
 
     [Fact]
@@ -275,7 +275,7 @@ public class TypographyTests
         public ShapedText Shape(Font font, string text, int start, int length, bool kerning)
         {
             var basic = BasicTextShaper.Instance.Shape(font, text, start, length, kerning);
-            return basic with { YOffsets = [.. Enumerable.Range(0, basic.Glyphs.Length).Select(i => i * -3f)] };
+            return basic with { YOffsets = [.. Enumerable.Range(0, basic.Glyphs.Length).Select(static i => i * -3f)] };
         }
     }
 
@@ -385,6 +385,6 @@ public class TypographyTests
         Assert.False(((IInkBounds)text).InkBounds(null!)!.Value.IsEmpty);
         using var image = surface.Snapshot();
         using var pixmap = image.PeekPixels();
-        Assert.Contains(pixmap.GetPixelSpan().ToArray().Chunk(4), pixel => pixel[3] > 0);
+        Assert.Contains(pixmap.GetPixelSpan().ToArray().Chunk(4), static pixel => pixel[3] > 0);
     }
 }

@@ -89,8 +89,8 @@ public class ColorRepresentationTests
         Assert.Equal(((byte)0x12, (byte)0x34, (byte)0x56, (byte)0x78), (color.R, color.G, color.B, color.A));
 
         var integerConversions = typeof(Color).GetMethods()
-            .Where(method => method.Name == "op_Implicit")
-            .Where(method => method.GetParameters()[0].ParameterType is { } type
+            .Where(static method => method.Name == "op_Implicit")
+            .Where(static method => method.GetParameters()[0].ParameterType is { } type
                              && (type == typeof(int) || type == typeof(uint)));
         Assert.Empty(integerConversions);
     }

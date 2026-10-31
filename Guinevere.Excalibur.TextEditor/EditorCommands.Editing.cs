@@ -5,19 +5,19 @@ public static partial class EditorCommands
     static void RegisterEditing()
     {
         Register("newline", Editing(NewLine));
-        Register("deleteLeft", Editing(state => DeleteLeft(state)));
-        Register("deleteRight", Editing(state => Delete(state, (buffer, caret) =>
+        Register("deleteLeft", Editing(static state => DeleteLeft(state)));
+        Register("deleteRight", Editing(static state => Delete(state, static (buffer, caret) =>
             (caret, TextNavigation.NextBoundary(buffer, caret)))));
-        Register("deleteWordLeft", Editing(state => Delete(state, (buffer, caret) =>
+        Register("deleteWordLeft", Editing(static state => Delete(state, static (buffer, caret) =>
             (TextNavigation.WordLeft(buffer, caret), caret))));
-        Register("deleteWordRight", Editing(state => Delete(state, (buffer, caret) =>
+        Register("deleteWordRight", Editing(static state => Delete(state, static (buffer, caret) =>
             (caret, TextNavigation.WordRight(buffer, caret)))));
         Register("tab", Editing(Tab));
-        Register("outdent", Editing(state => Indent(state, outdent: true)));
-        Register("indentLines", Editing(state => Indent(state, outdent: false)));
-        Register("outdentLines", Editing(state => Indent(state, outdent: true)));
-        Register("undo", Editing(state => state.Document.Undo()));
-        Register("redo", Editing(state => state.Document.Redo()));
+        Register("outdent", Editing(static state => Indent(state, outdent: true)));
+        Register("indentLines", Editing(static state => Indent(state, outdent: false)));
+        Register("outdentLines", Editing(static state => Indent(state, outdent: true)));
+        Register("undo", Editing(static state => state.Document.Undo()));
+        Register("redo", Editing(static state => state.Document.Redo()));
     }
 
     /// <summary>
@@ -205,7 +205,8 @@ public static partial class EditorCommands
                     continue;
                 }
 
-                var remove = text.StartsWith('\t') ? 1 : text.TakeWhile(c => c == ' ').Take(state.Settings.TabSize).Count();
+                var remove = text.StartsWith('\t') ? 1 : text.TakeWhile(
+                    static c => c == ' ').Take(state.Settings.TabSize).Count();
                 if (remove > 0)
                 {
                     edits.Add(new TextEdit(start, remove, ""));

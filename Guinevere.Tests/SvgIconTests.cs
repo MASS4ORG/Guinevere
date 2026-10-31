@@ -47,8 +47,8 @@ public class SvgIconTests
     [Fact]
     public void ArgumentsAreValidated()
     {
-        Assert.Throws<ArgumentException>(() => SvgIcon.FromMarkup(""));
-        Assert.Throws<ArgumentException>(() => SvgIcon.FromFile(""));
-        Assert.Throws<ArgumentNullException>(() => SvgIcon.FromStream(null!));
+        Assert.Throws<ArgumentException>(static () => SvgIcon.FromMarkup(""));
+        Assert.Throws<ArgumentException>(static () => SvgIcon.FromFile(""));
+        Assert.Throws<ArgumentNullException>(static () => SvgIcon.FromStream(null!));
     }
 }

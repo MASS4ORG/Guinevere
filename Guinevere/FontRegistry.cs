@@ -319,8 +319,8 @@ public sealed class FontRegistry : IDisposable
     {
         Version++;
         _resolved.Clear();
-        _ownedFonts.RemoveAll(reference => !reference.TryGetTarget(out _));
-        _ownedFaces.RemoveAll(reference => !reference.TryGetTarget(out _));
+        _ownedFonts.RemoveAll(static reference => !reference.TryGetTarget(out _));
+        _ownedFaces.RemoveAll(static reference => !reference.TryGetTarget(out _));
     }
 
     internal Font Own(Font font)

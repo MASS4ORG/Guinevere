@@ -1,6 +1,6 @@
 # Common
-!Directory.Build.props
 *.Build.props
+!Directory.Build.props
 *.coverage
 *.coveragexml
 *.local.props

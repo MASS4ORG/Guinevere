@@ -57,7 +57,7 @@ public partial class LayoutNode : IDisposable
     internal List<LayoutNode> FlowChildren =>
         _absoluteChildCount == 0
             ? ChildNodes
-            : _flowChildrenCache ??= [.. ChildNodes.Where(c => !c.Style.IsAbsolute)];
+            : _flowChildrenCache ??= [.. ChildNodes.Where(static c => !c.Style.IsAbsolute)];
 
     /// <summary>
     /// Marks this node as absolutely positioned and tells the parent to drop it from the flow.

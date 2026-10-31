@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: `Graph` library #62 #83 #84 #85 #86 #87 #224.
+- Added: Linux AT-SPI desktop accessibility bridge #226.
+- Fixed: deterministic warm-up for the identity allocation gate #167.
+
 ## [6.4.1] - 2026-10-26
 
 - Improved: font reuse across text layouts and frames #222.

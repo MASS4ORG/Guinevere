@@ -46,7 +46,7 @@ public class StyleBoxValuesTests
     {
         var radii = StyleBoxValues.Radii(value, new Rect(0, 0, 100, 40));
 
-        Assert.Equal([tl, tr, br, bl], radii.Select(r => r.X));
+        Assert.Equal([tl, tr, br, bl], radii.Select(static r => r.X));
     }
 
     /// <summary>The outline shorthand and longhands combine; missing colors or <c>none</c> draw nothing.</summary>

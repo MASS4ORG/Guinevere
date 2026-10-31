@@ -65,8 +65,8 @@ public sealed class StyledBackgroundsTests
             box { width = 20; height = 20; background-image = url("tile.png");
                 border-radius = 6; border-width = 2; border-color = #0000ff; opacity = 0.5;
                 box-shadow = inset 0 2px 0 #000000; }
-            """, new StyleSheetOptions { ResourceResolver = _ => new MemoryStream(Image(SKColors.Red)) }));
-        harness.Frame(g =>
+            """, new StyleSheetOptions { ResourceResolver = static _ => new MemoryStream(Image(SKColors.Red)) }));
+        harness.Frame(static g =>
         {
             g.DrawBackgroundRect(Color.White);
             using (g.Node().Direction(Axis.Horizontal).Gap(10).Enter())

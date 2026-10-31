@@ -20,7 +20,7 @@ public class GuiLayoutNodeTests
     public void RenderPassRevisitsBuildNodesInOrder()
     {
         using var harness = new FrameHarness();
-        var (build, render, root) = Frame(harness, (gui, nodes) =>
+        var (build, render, root) = Frame(harness, static (gui, nodes) =>
         {
             for (var i = 0; i < 5; i++)
             {
@@ -33,7 +33,7 @@ public class GuiLayoutNodeTests
 
         Assert.Equal(build, render);
         Assert.Equal(build, root.ChildNodes);
-        Assert.Equal(["b", "a"], root.ChildNodes.Skip(5).Select(n => n.Id));
+        Assert.Equal(["b", "a"], root.ChildNodes.Skip(5).Select(static n => n.Id));
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ public class GuiLayoutNodeTests
     public void RenderPassResynchronizesWhenPassesDiverge()
     {
         using var harness = new FrameHarness();
-        var (build, render, root) = Frame(harness, (gui, nodes) =>
+        var (build, render, root) = Frame(harness, static (gui, nodes) =>
         {
             var renderPass = gui.Pass == Pass.Pass2Render;
             nodes.Add(gui.Node(4, 4, id: "first"));
@@ -68,7 +68,8 @@ public class GuiLayoutNodeTests
         Assert.Same(build[2], render[3]);
         Assert.Same(build[4], render[4]);
         Assert.DoesNotContain(render[1], build);
-        Assert.Equal(["first", "build-only", "x", "y", "last", "render-only"], root.ChildNodes.Select(n => n.Id));
+        Assert.Equal(["first", "build-only", "x", "y", "last", "render-only"], root.ChildNodes.Select(
+            static n => n.Id));
     }
 
     /// <summary>A node entered again later in the pass keeps matching its remaining build children.</summary>
@@ -76,7 +77,7 @@ public class GuiLayoutNodeTests
     public void ReenteredParentContinuesMatching()
     {
         using var harness = new FrameHarness();
-        var (build, render, _) = Frame(harness, (gui, nodes) =>
+        var (build, render, _) = Frame(harness, static (gui, nodes) =>
         {
             var parent = gui.Node(100, 100);
             using (parent.Enter())

@@ -101,7 +101,7 @@ public sealed class ColorRecents(int capacity = 10)
 
     /// <summary>The list a GUI's pickers show.</summary>
     /// <param name="gui">The GUI.</param>
-    public static ColorRecents For(Gui gui) => PerGui.GetValue(gui, _ => new ColorRecents());
+    public static ColorRecents For(Gui gui) => PerGui.GetValue(gui, static _ => new ColorRecents());
 
     /// <summary>Moves or inserts a color at the front, dropping the oldest beyond <see cref="Capacity"/>.</summary>
     /// <param name="color">The color.</param>

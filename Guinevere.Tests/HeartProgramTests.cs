@@ -54,8 +54,8 @@ public class HeartProgramTests
         using var harness = new FrameHarness(800, 700);
         harness.Frame(Program.Draw, 46);
         Assert.NotNull(harness.Gui.RootNode);
-        Assert.Contains(harness.Gui.RootNode.ChildNodes.SelectMany(node => node.ChildNodes),
-            node => node.Rect.Y >= 500);
+        Assert.Contains(harness.Gui.RootNode.ChildNodes.SelectMany(static node => node.ChildNodes),
+            static node => node.Rect.Y >= 500);
         Assert.NotNull(harness.Gui.GetData<(Shape Shape, string Text)>((null!, ""), "heart-frame").Shape);
     }
 

@@ -7,14 +7,15 @@ static class BuiltinDrawers
 
     static readonly ConditionalWeakTable<Type, EnumMetadata> EnumMetadataByType = [];
 
-    static readonly IPropertyDrawer Boolean = new PrimitiveDrawer((gui, field, _, _, _) => DrawBool(gui, field));
-    static readonly IPropertyDrawer Text = new PrimitiveDrawer((gui, field, _, id, _) => DrawString(gui, field, id));
+    static readonly IPropertyDrawer Boolean = new PrimitiveDrawer(static (gui, field, _, _, _) => DrawBool(gui, field));
+    static readonly IPropertyDrawer Text = new PrimitiveDrawer(
+        static (gui, field, _, id, _) => DrawString(gui, field, id));
     static readonly IPropertyDrawer Number =
-        new PrimitiveDrawer((gui, field, type, id, _) => DrawNumber(gui, field, type, id), numeric: true);
+        new PrimitiveDrawer(static (gui, field, type, id, _) => DrawNumber(gui, field, type, id), numeric: true);
     static readonly IPropertyDrawer Enumeration = new PrimitiveDrawer(DrawEnum);
 
     /// <summary>The value as dim text, for read-only fields and types with no editor.</summary>
-    internal static readonly IPropertyDrawer Summary = new PrimitiveDrawer((gui, field, _, _, _) =>
+    internal static readonly IPropertyDrawer Summary = new PrimitiveDrawer(static (gui, field, _, _, _) =>
     {
         var style = new FormStyle(gui);
         gui.DrawText(field.HasMixedValue ? "—" : field.GetValue()?.ToString() ?? "—",
@@ -67,7 +68,7 @@ static class BuiltinDrawers
     internal static float TextAreaHeight(Gui gui, string text, TextAreaAttribute area)
     {
         var style = new FormStyle(gui);
-        var lines = Math.Clamp(text.Count(c => c == '\n') + 1, area.MinLines, area.MaxLines);
+        var lines = Math.Clamp(text.Count(static c => c == '\n') + 1, area.MinLines, area.MaxLines);
         return Math.Max(style.RowHeight, lines * style.FontSize * 1.4f + 8f);
     }
 

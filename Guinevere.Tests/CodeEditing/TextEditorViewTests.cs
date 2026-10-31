@@ -16,6 +16,20 @@ public sealed class TextEditorViewTests : IDisposable
     void Frame(TextEditorState state, double deltaTime = 0.016) =>
         _harness.Frame(gui => _node = gui.TextEditor(state, Options, 600, 400).Node, deltaTime);
 
+    /// <summary>
+    /// Draws frames until a background provider result arrives. The bound is wall-clock time, not a frame count, so a
+    /// loaded machine whose thread pool starts the provider late does not fail the test.
+    /// </summary>
+    void FrameUntil(TextEditorState state, Func<bool> done, double deltaTime = 0.016)
+    {
+        var elapsed = System.Diagnostics.Stopwatch.StartNew();
+        while (!done() && elapsed.Elapsed < TimeSpan.FromSeconds(10))
+        {
+            Frame(state, deltaTime);
+            Thread.Sleep(5);
+        }
+    }
+
     /// <summary>The screen point of an offset, from the frame's own layout.</summary>
     Vector2 PointOf(TextEditorState state, int offset)
     {
@@ -158,7 +172,7 @@ public sealed class TextEditorViewTests : IDisposable
     [Fact]
     public void TheWheelScrollsWithinTheDocumentAndCaretMovesRevealThemselves()
     {
-        var state = Editor("|" + string.Join("\n", Enumerable.Range(0, 500).Select(i => $"line {i}")));
+        var state = Editor("|" + string.Join("\n", Enumerable.Range(0, 500).Select(static i => $"line {i}")));
         Frame(state);
         _harness.Input.MoveTo(new Vector2(300, 200));
 
@@ -177,7 +191,7 @@ public sealed class TextEditorViewTests : IDisposable
     [Fact]
     public void LargeDocumentsLayOutOnlyTheVisibleLines()
     {
-        var text = string.Join("\n", Enumerable.Range(0, 100_000).Select(i => $"int value{i} = {i} * 2; // n"));
+        var text = string.Join("\n", Enumerable.Range(0, 100_000).Select(static i => $"int value{i} = {i} * 2; // n"));
         var state = new TextEditorState(text, LanguageServices.ForLanguage("csharp"));
         Frame(state);
         state.ScrollY = 50_000 * 20;
@@ -201,11 +215,7 @@ public sealed class TextEditorViewTests : IDisposable
     public void ClickingAFoldMarkerHidesTheRegion()
     {
         var state = Editor("{\n  a\n  b\n}\nend", LanguageServices.ForLanguage("csharp"));
-        for (var i = 0; i < 20 && state.FoldingRanges.Count == 0; i++)
-        {
-            Frame(state, 0.25);
-            Thread.Sleep(5);
-        }
+        FrameUntil(state, () => state.FoldingRanges.Count > 0, 0.25);
 
         Assert.NotEmpty(state.FoldingRanges);
         var first = PointOf(state, 0);
@@ -224,11 +234,7 @@ public sealed class TextEditorViewTests : IDisposable
         Focus(state);
         _harness.Input.TypeText("u");
         Frame(state);
-        for (var i = 0; i < 50 && state.Completion is null; i++)
-        {
-            Thread.Sleep(5);
-            Frame(state);
-        }
+        FrameUntil(state, () => state.Completion is not null);
 
         Frame(state);
         var popup = FindNode(_node!, node => node.Rect.W > 0 && node.Rect.H > 0 && node != _node && node.Parent == _node);
@@ -389,7 +395,7 @@ public sealed class TextEditorViewTests : IDisposable
 
         Assert.Equal(hover, state.Hover);
         Frame(state);
-        Assert.NotNull(FindNode(_node!, node => node.Rect.W >= 300));
+        Assert.NotNull(FindNode(_node!, static node => node.Rect.W >= 300));
     }
 
     sealed class StaticHover(HoverInfo info) : IHoverProvider

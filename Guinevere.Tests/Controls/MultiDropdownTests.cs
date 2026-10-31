@@ -156,7 +156,7 @@ public sealed class MultiDropdownTests
     [Fact]
     public void LargeListVirtualizesAndScrollsToLastOption()
     {
-        using var f = new Fixture { Options = [.. Enumerable.Range(0, 10_000).Select(i => $"Option {i}")] };
+        using var f = new Fixture { Options = [.. Enumerable.Range(0, 10_000).Select(static i => $"Option {i}")] };
         f.Open();
         Assert.InRange(Nodes(f.Harness.Gui.RootNode!).Count(), 1, 45);
         var list = f.Find("/list")!;
@@ -174,7 +174,7 @@ public sealed class MultiDropdownTests
     [Fact]
     public void KeyboardSelectionAndEscapeStayScoped()
     {
-        using var f = new Fixture { Options = [.. Enumerable.Range(0, 50).Select(i => $"Option {i}")] };
+        using var f = new Fixture { Options = [.. Enumerable.Range(0, 50).Select(static i => $"Option {i}")] };
         f.Open();
         f.Key(KeyboardKey.Down);
         Assert.EndsWith("/list", f.Harness.Gui.Focus.CurrentFocusedId);

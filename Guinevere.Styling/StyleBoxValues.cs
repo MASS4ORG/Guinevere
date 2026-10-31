@@ -137,7 +137,7 @@ static class StyleBoxValues
     static BoxShadow? TryShadow(string layer)
     {
         var tokens = Split(layer, ' ');
-        var inset = tokens.RemoveAll(t => t.Equals("inset", StringComparison.OrdinalIgnoreCase)) > 0;
+        var inset = tokens.RemoveAll(static t => t.Equals("inset", StringComparison.OrdinalIgnoreCase)) > 0;
         var lengths = new List<float>(4);
         Color? color = null;
         foreach (var token in tokens)

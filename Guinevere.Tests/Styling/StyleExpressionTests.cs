@@ -177,7 +177,7 @@ public class StyleExpressionTests
     [Fact]
     public void ValidateReportsUnclosedGroup()
     {
-        var error = Assert.Throws<StyleExpressionException>(() => StyleExpression.Validate("2 * (1 + 2"));
+        var error = Assert.Throws<StyleExpressionException>(static () => StyleExpression.Validate("2 * (1 + 2"));
 
         Assert.Equal(("Missing ')'", 4), (error.Message, error.Position));
     }
@@ -186,8 +186,8 @@ public class StyleExpressionTests
     [Fact]
     public void SyntaxErrorInTokenAndConstValues()
     {
-        var token = Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("$x = 1 * ;"));
-        var constant = Assert.Throws<StyleSheetException>(() =>
+        var token = Assert.Throws<StyleSheetException>(static () => StyleSheet.Parse("$x = 1 * ;"));
+        var constant = Assert.Throws<StyleSheetException>(static () =>
             StyleSheet.Parse("@const n = 2;\nbox { width = @n * ; }"));
 
         Assert.Equal((1, 9), (token.Line, token.Column));

@@ -181,5 +181,5 @@ public sealed class StyledIconsTests : IDisposable
     /// <summary>The id must be non-empty.</summary>
     [Fact]
     public void ResolveIconRejectsEmptyId() =>
-        Assert.Throws<ArgumentException>(() => GuiWith().ResolveIcon(""));
+        Assert.Throws<ArgumentException>(static () => GuiWith().ResolveIcon(""));
 }

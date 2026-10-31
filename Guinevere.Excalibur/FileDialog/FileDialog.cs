@@ -120,7 +120,7 @@ public static partial class ControlsExtensions
             using (gui.Node().Expand().Enter()) { }
 
             var index = state.FilterIndex;
-            gui.Dropdown([.. request.Filters.Select(filter => filter.Label)], ref index,
+            gui.Dropdown([.. request.Filters.Select(static filter => filter.Label)], ref index,
                 width: 200f, height: height, fontSize: fontSize);
 
             if (index == state.FilterIndex)

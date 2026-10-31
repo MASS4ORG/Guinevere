@@ -6,7 +6,7 @@ namespace, so it drops into an existing Guinevere app with a single package refe
 
 ![Guinevere Excalibur controls](../docs/guinevere-excalibur-examples.webp)
 
-The optional [TextEditor](../Guinevere.Excalibur.TextEditor/README.md) package adds syntax highlighting, multiple carets, folding, find and replace, completion and diagnostics. Example-50 includes a dockable shader editor and a large-document demo.
+The optional [TextEditor](../Guinevere.Excalibur.TextEditor/README.md) package adds syntax highlighting, multiple carets, folding, find and replace, completion and diagnostics.
 
 ## Install
 
@@ -190,6 +190,8 @@ When upgrading, move slider/progress colors and splitter colors into the matchin
 Default tokens: `$base-background`, `$surface`, `$surface-hover`, `$surface-active`, `$popup`, `$border`, `$border-active`, `$divider`, `$accent`, `$accent-hover`, `$accent-subtle`, `$text`, `$text-dim`, `$text-disabled`, `$text-on-accent`, `$selected`, `$positive`, `$negative`, `$warning`, `$info`, `$focus-ring`, `$shadow`, `$overlay`, `$text-selection`, `$radius`. Every Excalibur control now draws from sheets, including the Autoformers `form` contract.
 
 ## Buttons and selection
+
+`IconButton(icon, "Readable action name")` accepts a core `Icon` containing a glyph, image or vector picture. Tintable pictures follow the button's PSS text color without depending on a particular icon font. The readable name is published to the control semantics sink. Menu titles/items also publish labels and checked/disabled state; dropdowns publish their label, value and open state and support Enter/Space, Up/Down, Home/End and Escape from the keyboard.
 
 ```csharp
 if (gui.Button("Build")) Build();
@@ -405,8 +407,6 @@ gui.DrawImageNineSlice(image, destination, border);
 ```
 
 Keep `border` between frames. The editor returns true when that invocation changes the insets. Guide edits arrive in the build pass; numeric commits arrive in the render pass. The preview draws a transparency checkerboard and optional guides at the destination size. `NineSliceLayout` exposes the normalized border, source/destination center rectangles and corresponding patches for integrations such as Turian's asset inspector. `Insets` constructor order is left/top/right/bottom; stylesheet `background-slice` order is top/right/bottom/left.
-
-Example 50's **9-slice** dock panel demonstrates editing and wide, tall and tiny destinations. Its Styling panel also includes a bitmap `background-slice` skin.
 
 ## License
 

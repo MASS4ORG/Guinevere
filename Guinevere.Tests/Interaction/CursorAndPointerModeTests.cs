@@ -103,7 +103,7 @@ public class CursorAndPointerModeTests
         var harness = new Harness();
         harness.Input.MoveTo(50, 50);
 
-        harness.Frame(gui =>
+        harness.Frame(static gui =>
         {
             Panels(gui);
             gui.RequestCursor(PointerCursor.NotAllowed);
@@ -150,8 +150,8 @@ public class CursorAndPointerModeTests
     {
         var harness = new Harness();
 
-        harness.Frame(gui => gui.RequestPointerMode(PointerMode.Relative));
-        harness.Frame(_ => { });
+        harness.Frame(static gui => gui.RequestPointerMode(PointerMode.Relative));
+        harness.Frame(static _ => { });
 
         Assert.Equal(PointerMode.Normal, harness.Gui.PointerMode);
         Assert.True(harness.Input.Visible);

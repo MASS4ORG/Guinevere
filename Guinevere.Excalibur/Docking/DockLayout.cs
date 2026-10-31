@@ -65,7 +65,7 @@ public sealed class DockLayout
     /// <summary>
     /// Every panel id in the layout, in leaf order.
     /// </summary>
-    public IEnumerable<string> PanelIds => Leaves().SelectMany(leaf => leaf.PanelIds);
+    public IEnumerable<string> PanelIds => Leaves().SelectMany(static leaf => leaf.PanelIds);
 
     /// <summary>
     /// Whether the layout holds this panel.

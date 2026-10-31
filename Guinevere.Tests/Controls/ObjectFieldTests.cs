@@ -91,7 +91,7 @@ public class ObjectFieldTests
         var over = new Vector2(200, 10);
 
         h.Frame(over);
-        h.Frame(over, down: true, before: gui => gui.BeginDrag("source", "payload"));
+        h.Frame(over, down: true, before: static gui => gui.BeginDrag("source", "payload"));
 
         // The release frame: the drop is queued here and resolved when the frame ends.
         Assert.Equal(ObjectFieldAction.None, h.Frame(over).Action);

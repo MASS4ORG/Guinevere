@@ -81,7 +81,7 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void Toast(this Gui gui, string text, ToastOptions? options = null)
     {
-        var state = gui.ControlState(ToastStateId, () => new ToastState());
+        var state = gui.ControlState(ToastStateId, static () => new ToastState());
         var opts = options ?? new ToastOptions();
         var now = gui.Clock.Elapsed;
 
@@ -113,7 +113,7 @@ public static partial class ControlsExtensions
     /// </summary>
     public static void ClearToasts(this Gui gui)
     {
-        gui.ControlState(ToastStateId, () => new ToastState()).Entries.Clear();
+        gui.ControlState(ToastStateId, static () => new ToastState()).Entries.Clear();
     }
 
     static void RenderToasts(Gui gui, ToastState state, float now)

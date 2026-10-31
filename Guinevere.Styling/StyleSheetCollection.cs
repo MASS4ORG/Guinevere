@@ -26,7 +26,8 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
 
     /// <summary>Whether any rule carries a transition annotation, so styled nodes must track their last style.</summary>
     internal bool HasTransitions => _hasTransitions ??=
-        this.Any(sheet => sheet.Rules.Any(rule => rule.Selectors.Any(selector => selector.Transition is not null)));
+        this.Any(static sheet => sheet.Rules.Any(static rule => rule.Selectors.Any(
+            static selector => selector.Transition is not null)));
 
     /// <summary>Overrides the <c>$name</c> token for every sheet, above any sheet's own value.</summary>
     /// <param name="name">Token name, with or without the <c>$</c> or <c>--</c> prefix.</param>

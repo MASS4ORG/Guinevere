@@ -11,7 +11,8 @@ public class FormsDependencyTests
     public void FormsReferencesOnlyAttributesAndTheRuntime()
     {
         AssertNoForbiddenReferences(typeof(FormBuilder).Assembly);
-        Assert.Contains(typeof(FormBuilder).Assembly.GetReferencedAssemblies(), name => name.Name == "Attributes");
+        Assert.Contains(typeof(FormBuilder).Assembly.GetReferencedAssemblies(),
+            static name => name.Name == "Attributes");
     }
 
     [Fact]
@@ -19,15 +20,16 @@ public class FormsDependencyTests
     {
         AssertNoForbiddenReferences(typeof(ButtonAttribute).Assembly);
         Assert.DoesNotContain(typeof(ButtonAttribute).Assembly.GetReferencedAssemblies(),
-            name => name.Name == "JetBrains.Annotations");
+            static name => name.Name == "JetBrains.Annotations");
     }
 
     [Fact]
     public void RendererReferencesNoGayaOrTurian()
     {
-        var names = typeof(FormRenderer).Assembly.GetReferencedAssemblies().Select(name => name.Name ?? "").ToList();
+        var names = typeof(FormRenderer).Assembly.GetReferencedAssemblies().Select(
+            static name => name.Name ?? "").ToList();
 
-        Assert.DoesNotContain(names, name => name.StartsWith("Gaya", StringComparison.Ordinal)
+        Assert.DoesNotContain(names, static name => name.StartsWith("Gaya", StringComparison.Ordinal)
                                              || name.StartsWith("Turian", StringComparison.Ordinal));
         Assert.Contains("Autoformers", names);
     }

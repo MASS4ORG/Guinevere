@@ -29,7 +29,7 @@ public class FlyoutTests
 
         var menu = Assert.Single(harness.Gui.RootNode!.Children);
         Assert.Equal(4, menu.Children.Count);
-        Assert.All(menu.Children, row => Assert.Equal(ItemHeight, row.Rect.H, 2));
+        Assert.All(menu.Children, static row => Assert.Equal(ItemHeight, row.Rect.H, 2));
     }
 
     [Fact]

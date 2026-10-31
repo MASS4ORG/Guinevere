@@ -1,8 +1,6 @@
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     sealed record WorkItem(string Id, string Title, bool NeedsReview);
 
@@ -17,7 +15,7 @@ public partial class Shared
         new("release", "Cut the release", true),
     ];
 
-    static readonly Dictionary<string, int> Placement = WorkItems.ToDictionary(item => item.Id, _ => 0);
+    static readonly Dictionary<string, int> Placement = WorkItems.ToDictionary(static item => item.Id, static _ => 0);
     static readonly DragDropTag BoardTag = new("demo/board");
     static string? _boardMessage;
 
@@ -55,7 +53,7 @@ public partial class Shared
 
             var result = gui.DropTarget<WorkItem>(id, BoardTag,
                 item => Placement[item.Id] != column && !(column == BoardColumns.Length - 1 && item.NeedsReview),
-                item => Later(() =>
+                item => Common.Later(() =>
                 {
                     Placement[item.Id] = column;
                     _boardMessage = $"{item.Title} → {BoardColumns[column]}";

@@ -38,18 +38,22 @@ public sealed class CollectionField
     public string Label => _source.Label;
 
     /// <summary>Whether entries may be written.</summary>
-    public bool IsReadOnly => _collections?.Any(collection => collection.IsReadOnly) == true || _source.IsReadOnly || (_list?.IsReadOnly ?? _dictionary?.IsReadOnly ?? true);
+    public bool IsReadOnly => _collections?.Any(
+        static collection =>
+            collection.IsReadOnly) == true || _source.IsReadOnly
+            || (_list?.IsReadOnly ?? _dictionary?.IsReadOnly ?? true);
 
     /// <summary>
     /// Whether entries may be added or removed. False for an array and for any dictionary whose key
     /// type offers no way to invent a fresh key.
     /// </summary>
-    public bool CanResize => (_collections?.All(collection => collection.CanResize) ?? true) && !IsReadOnly
+    public bool CanResize => (_collections?.All(static collection => collection.CanResize) ?? true) && !IsReadOnly
                              && !(_list?.IsFixedSize ?? false)
                              && (!IsDictionary || CanInventKey);
 
     /// <summary>Whether entries may be moved: a writable list or array (arrays reorder but never resize).</summary>
-    public bool CanReorder => (_collections?.All(collection => collection.CanReorder) ?? true) && !IsReadOnly && _list is not null;
+    public bool CanReorder => (_collections?.All(
+        static collection => collection.CanReorder) ?? true) && !IsReadOnly && _list is not null;
 
     /// <summary>
     /// Recognises a field holding a collection, or null when it holds something else. A string is a
@@ -69,7 +73,7 @@ public sealed class CollectionField
         if (field.Sources.Count > 1)
         {
             var shared = field.Sources.Select(TryCreate).ToArray();
-            if (shared.Any(collection => collection is null))
+            if (shared.Any(static collection => collection is null))
             {
                 return null;
             }

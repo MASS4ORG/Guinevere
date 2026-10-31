@@ -18,7 +18,7 @@ public partial class Gui
 
     /// <summary>Whether keyboard or semantic input requests activation of a focused control.</summary>
     public bool IsAcceptPressed => Input.IsKeyPressed(KeyboardKey.Enter) || Input.IsKeyPressed(KeyboardKey.Space)
-        || IsSemanticActionPressed(SemanticAction.Accept);
+        || IsSemanticActionPressed(SemanticAction.Accept) || ControlActivation?.IsActivated(CurrentNode.Id) == true;
 
     /// <summary>Whether keyboard or semantic input requests dismissal of the active surface.</summary>
     public bool IsCancelPressed => Input.IsKeyPressed(KeyboardKey.Escape)
@@ -81,7 +81,7 @@ public partial class Gui
     void UpdateTouchInputDevice()
     {
         if (Platform.TryGet<ITouchCapability>(out var touch) && touch is not null
-            && touch.Contacts.Any(contact => contact.Phase is TouchPhase.Began or TouchPhase.Moved))
+            && touch.Contacts.Any(static contact => contact.Phase is TouchPhase.Began or TouchPhase.Moved))
         {
             _activeInputDevice = new InputDevice("touch", InputDeviceKind.Touch);
         }

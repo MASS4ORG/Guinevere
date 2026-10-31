@@ -55,7 +55,7 @@ public class StyleBoxTests
     [Fact]
     public void BorderRadiusPerCorner()
     {
-        var px = Render(Base + "background-color = #ff0000; border-radius = 16 0 0 0; }", g => Box(g));
+        var px = Render(Base + "background-color = #ff0000; border-radius = 16 0 0 0; }", static g => Box(g));
 
         Assert.Equal((byte)0, At(px, 21, 21).A);
         Assert.Equal((255, 0, 0, 255), At(px, 58, 21));
@@ -66,8 +66,8 @@ public class StyleBoxTests
     [Fact]
     public void BackgroundGradientAndColor()
     {
-        var gradient = Render(Base + "background = linear-gradient(to right, #ff0000, #0000ff); }", g => Box(g));
-        var solid = Render(Base + "background = #00ff00; }", g => Box(g));
+        var gradient = Render(Base + "background = linear-gradient(to right, #ff0000, #0000ff); }", static g => Box(g));
+        var solid = Render(Base + "background = #00ff00; }", static g => Box(g));
 
         Assert.True(At(gradient, 21, 40).R > 200 && At(gradient, 21, 40).B < 50);
         Assert.True(At(gradient, 58, 40).B > 200 && At(gradient, 58, 40).R < 50);
@@ -78,10 +78,11 @@ public class StyleBoxTests
     [Fact]
     public void BoxShadowOuterAndInset()
     {
-        var outer = Render(Base + "box-shadow = 6px 6px 0 #000000; }", g => Box(g));
-        var inset = Render(Base + "background-color = #ffffff; box-shadow = inset 0 6px 0 0 #000000; }", g => Box(g));
+        var outer = Render(Base + "box-shadow = 6px 6px 0 #000000; }", static g => Box(g));
+        var inset = Render(Base + "background-color = #ffffff; box-shadow = inset 0 6px 0 0 #000000; }",
+            static g => Box(g));
         var spread = Render(Base + "background-color = #ffffff; box-shadow = inset 0 0 0 30px #000000, 0 0 4px 2px #ff0000; }",
-            g => Box(g));
+            static g => Box(g));
 
         Assert.Equal((0, 0, 0, 255), At(outer, 63, 63));
         Assert.Equal((byte)0, At(outer, 40, 40).A);
@@ -96,7 +97,7 @@ public class StyleBoxTests
     public void OutlineDrawsOutsideTheBox()
     {
         var px = Render(Base + "border-color = #00ff00; border-width = 2; outline = 2px solid #0000ff; outline-offset = 3; }",
-            g => Box(g));
+            static g => Box(g));
 
         Assert.Equal((0, 0, 255, 255), At(px, 40, 15));
         Assert.Equal((0, 255, 0, 255), At(px, 40, 20));
@@ -107,7 +108,7 @@ public class StyleBoxTests
     [Fact]
     public void BorderLiesInsideTheBox()
     {
-        var px = Render(Base + "border-color = #00ff00; border-width = 1; }", g => Box(g));
+        var px = Render(Base + "border-color = #00ff00; border-width = 1; }", static g => Box(g));
 
         Assert.Equal((0, 255, 0, 255), At(px, 40, 20));
         Assert.Equal((0, 255, 0, 255), At(px, 59, 40));
@@ -120,9 +121,9 @@ public class StyleBoxTests
     [Fact]
     public void BorderPerSide()
     {
-        var bottom = Render(Base + "border-bottom-color = #ff0000; border-bottom-width = 2; }", g => Box(g));
+        var bottom = Render(Base + "border-bottom-color = #ff0000; border-bottom-width = 2; }", static g => Box(g));
         var mixed = Render(Base + "border-color = #00ff00; border-width = 1; border-top-width = 3; border-left-color = #0000ff; }",
-            g => Box(g));
+            static g => Box(g));
 
         Assert.Equal((255, 0, 0, 255), At(bottom, 40, 58));
         Assert.Equal((255, 0, 0, 255), At(bottom, 40, 59));
@@ -146,7 +147,7 @@ public class StyleBoxTests
             box { width = 40; height = 40; padding = 10; background-color = #ff0000; opacity = 50%; }
             inner { width = 20; height = 20; background-color = #0000ff; opacity = 0.5; }
             hidden { width = 1; height = 1; opacity = 0; background-color = #ffffff; }
-            """, g =>
+            """, static g =>
         {
             using (g.StyledNode("box").Enter())
             {
@@ -167,7 +168,7 @@ public class StyleBoxTests
     public void OpacityLayerKeepsShadowsAndOutlines()
     {
         var px = Render(Base + "opacity = 0.5; box-shadow = 8px 8px 6px #000000; outline = 2px #0000ff; outline-offset = 4; }",
-            g => Box(g));
+            static g => Box(g));
 
         Assert.InRange(At(px, 64, 64).A, 20, 135);
         Assert.InRange(At(px, 40, 15).A, 120, 135);
@@ -180,7 +181,7 @@ public class StyleBoxTests
         var px = Render("""
             box { width = 40; height = 40; background-color = #ff0000; opacity = 0.5; }
             over { width = 10; height = 10; background-color = #0000ff; }
-            """, g =>
+            """, static g =>
         {
             using (g.StyledNode("box").Enter())
             using (g.StyledNode("over").Enter())

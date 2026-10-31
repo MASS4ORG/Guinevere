@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere.Tests.Layout;
 
 /// <summary>Verifies collision-safe interning and allocation-free identity lookup after warmup.</summary>
@@ -30,32 +32,38 @@ public class NodeIdentityRegistryTests
     {
         var registry = new NodeIdentityRegistry();
         var root = registry.Explicit(0, 0, "0");
-        void Lookup()
+        // Exercise the exact measurement helper before the assertion; its counter/loop cannot tier or OSR midway.
+        for (var i = 0; i < 32; i++)
         {
-            registry.BeginPass();
-            for (var i = 0; i < 32; i++)
-            {
-                var scope = registry.EnterItem(root, 0, i);
-                registry.Automatic(root, scope, "source.cs", 42);
-                var control = registry.Automatic(root, scope, "source.cs", 43, control: true);
-                registry.Name(control);
-                registry.Explicit(root, scope, "semantic");
-                registry.At(root, scope, "source.cs", 44, 0);
-            }
+            MeasureLookups(registry, root, 1_000);
         }
-        for (var i = 0; i < 100; i++)
-        {
-            Lookup();
-        }
+        Assert.Equal(0, MeasureLookups(registry, root, 10_000));
+    }
 
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+    static long MeasureLookups(NodeIdentityRegistry registry, int root, int iterations)
+    {
         var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 100; i++)
+        for (var i = 0; i < iterations; i++)
         {
-            Lookup();
+            Lookup(registry, root);
         }
+        return GC.GetAllocatedBytesForCurrentThread() - before;
+    }
 
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        Assert.Equal(0, allocated);
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    static void Lookup(NodeIdentityRegistry registry, int root)
+    {
+        registry.BeginPass();
+        for (var i = 0; i < 32; i++)
+        {
+            var scope = registry.EnterItem(root, 0, i);
+            registry.Automatic(root, scope, "source.cs", 42);
+            var control = registry.Automatic(root, scope, "source.cs", 43, control: true);
+            registry.Name(control);
+            registry.Explicit(root, scope, "semantic");
+            registry.At(root, scope, "source.cs", 44, 0);
+        }
     }
 
     /// <summary>Duplicate and null item keys are rejected, while different parents and outer scopes are independent.</summary>

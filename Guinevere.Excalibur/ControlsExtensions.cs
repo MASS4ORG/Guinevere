@@ -67,6 +67,24 @@ public static partial class ControlsExtensions
         return ButtonCore(gui, icon, IconClass, size, size, fontSize, enabled, classes, id);
     }
 
+    /// <summary>A square button displaying a tintable glyph, image or vector icon with a readable semantic label.</summary>
+    public static bool IconButton(this Gui gui, Icon icon, string label,
+        float size = ControlMetrics.FieldHeight, bool enabled = true,
+        IReadOnlyList<string>? classes = null, string? id = null)
+    {
+        var node = StyledButton(gui, IconClass, classes, id, enabled, "", 0);
+        using var scope = node.Width(size).Height(size).Enter();
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return false;
+        }
+        gui.RegisterFocusable(canReceiveFocus: enabled, isInteractable: enabled);
+        var color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
+        gui.DrawIcon(icon, new Rect(node.Rect.X + 6, node.Rect.Y + 6, size - 12, size - 12), color);
+        PublishMenuSemantics(gui, label, enabled, false, ControlRole.Button);
+        return enabled && Activated(gui);
+    }
+
     static bool ButtonCore(Gui gui, Text text, string[]? variant, float width, float height, float? fontSize,
         bool enabled, IReadOnlyList<string>? classes, string? id,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
@@ -88,6 +106,7 @@ public static partial class ControlsExtensions
             }
 
             RenderCenteredText(gui, text, fontSizeEffective);
+            PublishMenuSemantics(gui, text.Label ?? "", enabled, false, ControlRole.Button);
             return enabled && Activated(gui);
         }
     }

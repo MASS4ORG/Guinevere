@@ -1,6 +1,55 @@
-using Guinevere;
+namespace Shared;
 
-namespace Example01;
+/// <summary>Draws the shared demo header with the badge embedded in the example assembly.</summary>
+static class Common
+{
+    static public readonly List<Action> Pending = [];
+
+    /// <summary>
+    /// Queues a state change for the start of the next frame. Clicks are seen while rendering, and changing
+    /// anything that shapes the tree there would make the two passes disagree.
+    /// </summary>
+    public static void Later(Action change) => Pending.Add(change);
+
+    public static ColorPalette Palette = ColorPalette.Dark;
+
+    static readonly Bitmap Badge = LoadBadge();
+
+    /// <summary>Draws the cached badge, demo title and frame rate.</summary>
+    public static void Header(Gui gui, string title, Color? textColor = null)
+    {
+        gui.SetTextColor(textColor ?? Color.White);
+        using (gui.Node().Height(40).Padding(15, 0).Direction(Axis.Horizontal)
+                   .ContentAlignY(0.5f).Gap(8).Enter())
+        {
+            gui.Image(Badge, width: 26, height: 26);
+            gui.DrawText(title, 16);
+            gui.Node().Expand();
+            gui.DrawText($"{gui.Time.SmoothFps:N0} FPS", 12);
+            // gui.DrawText($"{gui.Time.DeltaTime:f2} ms", 12);
+
+            var node = gui.DrawText("◐");
+            if (gui.GetInteractable(node).OnClick())
+            {
+                var dark = ReferenceEquals(Palette, ColorPalette.Dark);
+                Later(() =>
+                {
+                    Palette = dark ? ColorPalette.Light : ColorPalette.Dark;
+                    ThemeCallback?.Invoke(dark);
+                });
+            }
+        }
+    }
+
+    public static Action<bool>? ThemeCallback { get; set; }
+
+    static Bitmap LoadBadge()
+    {
+        using var stream = typeof(Common).Assembly.GetManifestResourceStream("GuinevereDemos.guinevere-badge.png")
+                           ?? throw new InvalidOperationException("The embedded demo badge is missing.");
+        return Bitmap.FromStream(stream);
+    }
+}
 
 /// <summary>
 /// The colors every demo draws with. Demos receive the active palette as an argument, so switching

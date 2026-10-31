@@ -26,8 +26,8 @@ public class StyleTransitionTests
         Assert.Null(Selector.Parse("Box:hold(0.05) :focus").Transition);
         Assert.Equal("cubic-bezier(0, 0, 1, 1)",
             Selector.Parse("Box:hover(1 cubic-bezier(0, 0, 1, 1))").Transition!.EasingName);
-        Assert.Throws<FormatException>(() => Selector.Parse("Box:hover(fast)"));
-        Assert.Throws<StyleSheetException>(() => StyleSheet.Parse("Box:hover(0.1 wobble) { opacity = 1; }"));
+        Assert.Throws<FormatException>(static () => Selector.Parse("Box:hover(fast)"));
+        Assert.Throws<StyleSheetException>(static () => StyleSheet.Parse("Box:hover(0.1 wobble) { opacity = 1; }"));
     }
 
     /// <summary>The resolved style reports the transition of the rule that set each property.</summary>

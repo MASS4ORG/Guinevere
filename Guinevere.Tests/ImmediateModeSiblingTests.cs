@@ -85,7 +85,7 @@ public class ImmediateModeSiblingTests
     [Fact]
     public void ScrollContainerStillClipsItsOwnContent()
     {
-        var px = RenderFrame(g =>
+        var px = RenderFrame(static g =>
         {
             using (g.Node().Expand().Direction(Axis.Vertical).Enter())
             {
@@ -111,7 +111,7 @@ public class ImmediateModeSiblingTests
     [Fact]
     public void EqualZIndexSiblingsRenderInSubmissionOrder()
     {
-        var px = RenderFrame(g =>
+        var px = RenderFrame(static g =>
         {
             for (var i = 0; i < 32; i++)
             {

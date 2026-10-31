@@ -101,7 +101,7 @@ public partial class Gui
     /// </summary>
     [PublicAPI]
     public int RunningAnimationCount => (_animationManager?.RunningAnimationCount ?? 0)
-        + _scopedAnimations.Values.Count(state => state.Animation.IsAnimating);
+        + _scopedAnimations.Values.Count(static state => state.Animation.IsAnimating);
 
     /// <summary>
     /// Clears all animation instances. This should typically be called

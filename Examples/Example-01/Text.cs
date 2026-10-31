@@ -1,9 +1,6 @@
-using System.Numerics;
-using Guinevere;
-
 namespace Example01;
 
-public partial class Shared
+public partial class Example01
 {
     const string TextShort = "Guinevere GUI çãóé⚙️☀️▶️❤️😀";
 
@@ -26,8 +23,8 @@ public partial class Shared
             gui.ScrollY(p.Track, p.Border);
             using (gui.Node().Direction(Axis.Horizontal).Gap(24).ContentAlignY(0.5f).Enter())
             {
-                Stepper(gui, p, "type-size", "Size", _typeSize, 10, 72, value => _typeSize = value, step: 2);
-                Choice(gui, p, "type-color", ColorNames, _typeColor, index => _typeColor = index);
+                Stepper(gui, p, "type-size", "Size", _typeSize, 10, 72, static value => _typeSize = value, step: 2);
+                Choice(gui, p, "type-color", ColorNames, _typeColor, static index => _typeColor = index);
             }
 
             using (gui.Node().ExpandWidth().Padding(20).Enter())
@@ -79,7 +76,8 @@ public partial class Shared
                     gui.DrawText(TextLong, 12, p.TextDim, wrapWidth: _wrapWidth, centerInRect: false);
                 }
 
-                ResizeHandle(gui, p, "wrap/handle", () => _wrapWidth, value => _wrapWidth = value, 120f, 800f);
+                ResizeHandle(gui, p, "wrap/handle", static () => _wrapWidth,
+                    static value => _wrapWidth = value, 120f, 800f);
             }
         }
     }
@@ -95,7 +93,7 @@ public partial class Shared
 
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter())
         {
-            Stepper(gui, p, "effect-size", "Size", _effectSize, 20, 64, value => _effectSize = value, step: 4);
+            Stepper(gui, p, "effect-size", "Size", _effectSize, 20, 64, static value => _effectSize = value, step: 4);
             using (gui.Node().Expand().Direction(Axis.Vertical).Gap(8).Enter())
             {
                 gui.ScrollY(p.Track, p.Border);
