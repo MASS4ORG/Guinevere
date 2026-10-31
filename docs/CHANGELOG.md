@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [6.5.0] - 2026-10-31
+
 - Added: `Graph` library #62 #83 #84 #85 #86 #87 #224.
 - Added: Linux AT-SPI desktop accessibility bridge #226.
 - Fixed: deterministic warm-up for the identity allocation gate #167.
@@ -253,7 +255,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - First Commit
 
-[Unreleased]: https://github.com/MASS4ORG/Guinevere/compare/v6.4.1...HEAD
+[Unreleased]: https://github.com/MASS4ORG/Guinevere/compare/v6.5.0...HEAD
+[6.5.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.4.1...v6.5.0
 [6.4.1]: https://github.com/MASS4ORG/Guinevere/compare/v6.4.0...v6.4.1
 [6.4.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.3.0...v6.4.0
 [6.3.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.2.0...v6.3.0
