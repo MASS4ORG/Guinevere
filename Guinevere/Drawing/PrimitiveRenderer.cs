@@ -1,8 +1,9 @@
 namespace Guinevere;
 
 /// <summary>Shares scratch native resources during one replay and releases them when replay ends.</summary>
-sealed class PrimitiveRenderer : IDisposable
+sealed partial class PrimitiveRenderer : IDisposable
 {
+    internal DrawStatistics Statistics;
     SKPaint? _paint;
     SKRoundRect? _roundRect;
     SKPathBuilder? _pathBuilder;
@@ -11,6 +12,11 @@ sealed class PrimitiveRenderer : IDisposable
 
     internal void Render(in PrimitiveCommand command, SKCanvas canvas)
     {
+        Statistics = Statistics with
+        {
+            Primitives = Statistics.Primitives + 1,
+            PrimitiveDrawCalls = Statistics.PrimitiveDrawCalls + 1
+        };
         var paint = _paint ??= new SKPaint();
         paint.Reset();
         paint.Color = command.Color;
@@ -63,6 +69,11 @@ sealed class PrimitiveRenderer : IDisposable
 
     void Line(in PrimitiveCommand command, SKCanvas canvas, SKPaint paint)
     {
+        if (canvas.Surface is not null && TryLineRectangle(command, canvas.TotalMatrix, out var rectangle))
+        {
+            canvas.DrawRect(rectangle, paint);
+            return;
+        }
         var direction = command.B - command.A;
         var length = direction.Length();
         var half = MathF.Max(0.5f, command.Thickness * 0.5f);

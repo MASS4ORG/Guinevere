@@ -5,9 +5,21 @@ namespace Guinevere.Tests;
 /// <summary>
 /// Provides shared helper methods for layout node tests.
 /// </summary>
-public abstract class LayoutNodeTestBase
+public abstract class LayoutNodeTestBase : IDisposable
 {
     static uint _globalOrderTemp;
+    readonly List<SKSurface> _surfaces = [];
+
+    /// <summary>Keeps native canvas owners alive until the test completes, then releases them.</summary>
+    public void Dispose()
+    {
+        foreach (var surface in _surfaces)
+        {
+            surface.Dispose();
+        }
+        _surfaces.Clear();
+        GC.SuppressFinalize(this);
+    }
 
     /// <summary>
     /// Creates a testable GUI with the given screen dimensions and begins a frame.
@@ -25,6 +37,7 @@ public abstract class LayoutNodeTestBase
     SKCanvas CreateTestCanvas()
     {
         var surface = SKSurface.Create(new SKImageInfo(800, 600));
+        _surfaces.Add(surface);
         return surface.Canvas;
     }
 

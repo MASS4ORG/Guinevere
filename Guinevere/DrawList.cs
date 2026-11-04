@@ -5,6 +5,9 @@ namespace Guinevere;
 /// </summary>
 public sealed class DrawList
 {
+    /// <summary>Command and direct canvas submission counts from the last successful replay.</summary>
+    public DrawStatistics LastRenderStatistics { get; private set; }
+
     readonly List<DrawCommand> _entries = [];
     List<PrimitiveCommand>? _primitives;
 
@@ -115,6 +118,7 @@ public sealed class DrawList
     /// <summary>Removes queued commands while retaining the allocated command buffer.</summary>
     public void Clear()
     {
+        LastRenderStatistics = default;
         _entries.Clear();
         _primitives?.Clear();
     }
@@ -133,10 +137,14 @@ public sealed class DrawList
 
     internal void Render(Gui gui, LayoutNode node, SKCanvas canvas, PrimitiveRenderer renderer)
     {
+        var before = renderer.Statistics;
+        LastRenderStatistics = default;
         foreach (var entry in _entries)
         {
+            renderer.Statistics = renderer.Statistics with { Commands = renderer.Statistics.Commands + 1 };
             entry.Execute(gui, node, canvas, _primitives, renderer);
         }
+        LastRenderStatistics = renderer.Statistics.Since(before);
     }
 
     enum DrawCommandKind : byte
@@ -190,12 +198,15 @@ public sealed class DrawList
             switch (_kind)
             {
                 case DrawCommandKind.Drawable:
+                    renderer.Statistics = renderer.Statistics with { Drawables = renderer.Statistics.Drawables + 1 };
                     ((IDrawable)_value).Render(gui, node, canvas);
                     break;
                 case DrawCommandKind.ClipRect:
+                    renderer.Statistics = renderer.Statistics with { Clips = renderer.Statistics.Clips + 1 };
                     ExecuteClip(gui, node, canvas, _rect);
                     break;
                 case DrawCommandKind.ClipShape:
+                    renderer.Statistics = renderer.Statistics with { Clips = renderer.Statistics.Clips + 1 };
                     canvas.Save();
                     var shape = (Shape)_value;
                     var matrix = canvas.TotalMatrix;
@@ -204,6 +215,7 @@ public sealed class DrawList
                     canvas.SetMatrix(matrix);
                     break;
                 case DrawCommandKind.Custom:
+                    renderer.Statistics = renderer.Statistics with { Callbacks = renderer.Statistics.Callbacks + 1 };
                     ((IDrawListEntry)_value).Execute(gui, node, canvas);
                     break;
                 case DrawCommandKind.Primitive:
