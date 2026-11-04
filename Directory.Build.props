@@ -8,4 +8,18 @@
         <WarningsAsErrors Condition="'$(CI)' == 'true'">$(WarningsAsErrors);$(Mass4EnforcedDiagnostics)</WarningsAsErrors>
         <AnalysisLevel>10.0</AnalysisLevel>
     </PropertyGroup>
+
+    <!-- `Directory.Build.local.props` points to local checkouts instead of the published packages (git-ignored) -->
+    <Import Project="$(MSBuildThisFileDirectory)Directory.Build.local.props"
+            Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.local.props')"/>
+
+    <!-- `-p:NoLocalPackages=true` ignores every local checkout and builds against the published packages -->
+    <PropertyGroup Condition="'$(NoLocalPackages)' == 'true'">
+        <GraphLocalPath></GraphLocalPath>
+    </PropertyGroup>
+
+    <!-- Checked by Directory.Build.targets before a pack or publish; list each local checkout here -->
+    <PropertyGroup>
+        <UsesLocalPackages Condition="'$(GraphLocalPath)' != ''">true</UsesLocalPackages>
+    </PropertyGroup>
 </Project>
