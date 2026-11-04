@@ -251,6 +251,26 @@ public partial class Gui
     /// </exception>
     public void Render()
     {
+        RenderStatistics = default;
+        RenderSortTime = RenderReplayTime = TimeSpan.Zero;
+        var started = StartRenderTimer();
+        CollectRenderNodes();
+        RenderSortTime = RenderElapsed(started);
+        started = StartRenderTimer();
+        using var renderer = new PrimitiveRenderer();
+        RenderNodes(renderer);
+        RenderStatistics = renderer.Statistics;
+        RenderReplayTime = RenderElapsed(started);
+    }
+
+    long StartRenderTimer() => MeasureRenderTimings ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+
+    static TimeSpan RenderElapsed(long started) => started == 0
+        ? TimeSpan.Zero
+        : System.Diagnostics.Stopwatch.GetElapsedTime(started);
+
+    void CollectRenderNodes()
+    {
         _renderNodes.Clear();
         NodeFlatList(RootNode!, _renderNodes);
         _renderNodes.Sort(static (left, right) =>
@@ -258,39 +278,47 @@ public partial class Gui
             var zOrder = left.Z.CompareTo(right.Z);
             return zOrder != 0 ? zOrder : left.Sequence.CompareTo(right.Sequence);
         });
+    }
 
-        using var renderer = new PrimitiveRenderer();
+    void RenderNodes(PrimitiveRenderer renderer)
+    {
         for (var index = 0; index < _renderNodes.Count; index++)
         {
-            var node = _renderNodes[index].Node;
-            var opacity = _opacityUsed ? EnterOpacityGroups(index) : 1f;
-            var restore = Canvas!.Save();
-            if (TransformsUsed)
-            {
-                ApplyTransformedClips(node, Canvas!);
-            }
-            else
-            {
-                ApplyAncestorClips(node, Canvas!);
-            }
-
-            if (opacity < 1f)
-            {
-                SaveOpacityLayer(node.DrawList.InkBounds(node), opacity);
-            }
-
-            if (opacity > 0f)
-            {
-                node.DrawList.Render(this, node, Canvas!, renderer);
-            }
-
-            Canvas!.RestoreToCount(restore);
-            node.Pass2NodeCount = 0;
+            RenderNode(index, renderer);
         }
+
         if (_opacityUsed)
         {
             CloseOpacityGroups(int.MaxValue, int.MaxValue);
         }
+    }
+
+    void RenderNode(int index, PrimitiveRenderer renderer)
+    {
+        var node = _renderNodes[index].Node;
+        var opacity = _opacityUsed ? EnterOpacityGroups(index) : 1f;
+        var restore = Canvas!.Save();
+        if (TransformsUsed)
+        {
+            ApplyTransformedClips(node, Canvas!);
+        }
+        else
+        {
+            ApplyAncestorClips(node, Canvas!);
+        }
+
+        if (opacity < 1f)
+        {
+            SaveOpacityLayer(node.DrawList.InkBounds(node), opacity);
+        }
+
+        if (opacity > 0f)
+        {
+            node.DrawList.Render(this, node, Canvas!, renderer);
+        }
+
+        Canvas!.RestoreToCount(restore);
+        node.Pass2NodeCount = 0;
     }
 
     /// <summary>

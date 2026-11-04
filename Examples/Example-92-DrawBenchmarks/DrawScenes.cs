@@ -6,6 +6,28 @@ namespace Guinevere;
 /// <summary>Representative controls, text, clipping, effects and the dashboard sample's drawing methods.</summary>
 static class DrawScenes
 {
+    /// <summary>Draws separated chart tick segments with identical translucent paint.</summary>
+    public static void ChartLines(Gui gui)
+    {
+        for (var i = 0; i < 1000; i++)
+        {
+            var x = i % 50 * 20f + 5;
+            var y = i / 50 * 35f + 5;
+            gui.DrawLine(new Vector2(x, y), new Vector2(x + 8, y), new Color(0x4080c080), 2);
+        }
+    }
+
+    /// <summary>Draws pixel-aligned chart bars with the same translucent paint.</summary>
+    public static void ChartBars(Gui gui)
+    {
+        for (var i = 0; i < 1000; i++)
+        {
+            var x = i % 50 * 20f + 5;
+            var y = i / 50 * 35f + 5;
+            gui.DrawRect(new Rect(x, y, 8, 12), new Color(0x4080c080));
+        }
+    }
+
     /// <summary>Builds ordinary buttons and independent sliders.</summary>
     public static void Controls(Gui gui)
     {
