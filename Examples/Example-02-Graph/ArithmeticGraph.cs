@@ -1,10 +1,11 @@
 using System.Text.Json.Serialization;
 using MASS4.Graph.Dataflow;
+using GraphPoint = Guinevere.Graphs.GraphPoint;
 
 namespace Example02;
 
 /// <summary>A real arithmetic dataflow domain registered through the public Graph API.</summary>
-public sealed class ArithmeticGraph
+public sealed class ArithmeticGraph : IDemoDomain
 {
     /// <summary>The numeric port type.</summary>
     public static PortType NumberType { get; } = new(Id(1), "number");
@@ -59,6 +60,31 @@ public sealed class ArithmeticGraph
     public string Describe(GraphNode node) => node.TypeId == Number.Id && node.Payload is float value
         ? "Number · " + value.ToString(CultureInfo.InvariantCulture)
         : Editor.Document.Registry.NodeTypes.Resolve(node.TypeId).DisplayName;
+
+    /// <summary>Number nodes step their constant by whole units.</summary>
+    public object? Stepped(GraphNode node, float delta) =>
+        node.TypeId == Number.Id ? (node.Payload is float value ? value : 0) + delta : null;
+
+    /// <summary>The constant shown by a Number stepper.</summary>
+    public string FormatPayload(GraphNode node) =>
+        (node.Payload is float value ? value : 0).ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>Arithmetic values are shown by the flow overlay rather than node previews.</summary>
+    public bool HasPreview(GraphNode node) => false;
+
+    /// <summary>Connects 2 and 3 to Multiply, then to Result.</summary>
+    public void Populate(GraphDocumentView view)
+    {
+        var first = view.AddNode(Number, new GraphPoint(40, 40), 2f);
+        var second = view.AddNode(Number, new GraphPoint(40, 240), 3f);
+        var multiply = view.AddNode(Multiply, new GraphPoint(360, 120));
+        var result = view.AddNode(Result, new GraphPoint(700, 140));
+        view.Connect(Port(first, ValueKey), Port(multiply, AKey));
+        view.Connect(Port(second, ValueKey), Port(multiply, BKey));
+        view.Connect(Port(multiply, ValueKey), Port(result, AKey));
+    }
+
+    ElementId Port(ElementId node, StableId key) => Editor.Document.GetNode(node).GetPort(key).Id;
 
     static NodeType Binary(int id, string name) => new(Id(id), name,
         [PortDeclaration.Input(AKey, "A", NumberType.Id), PortDeclaration.Input(BKey, "B", NumberType.Id),

@@ -76,14 +76,14 @@ public sealed class GraphDependencySelectionTests
         var scene = new SandboxScene();
         var nodes = scene.View.Editor.Document.Nodes.ToArray();
         var navigation = scene.Canvas.Navigation;
-        navigation.SetSelection(nodes.Take(2).Select(node => node.Id.ToString()), nodes[0].Id.ToString());
+        navigation.SetSelection(nodes.Take(2).Select(static node => node.Id.ToString()), nodes[0].Id.ToString());
 
-        scene.Commands(harness.Gui).Single(command => command.Label == "Select downstream").Run();
+        scene.Commands(harness.Gui).Single(static command => command.Label == "Select downstream").Run();
 
         Assert.Equal(4, navigation.SelectedKeys.Count);
         Assert.Equal(nodes[0].Id.ToString(), navigation.FocusedKey);
         navigation.Select(nodes[3].Id.ToString());
-        scene.Commands(harness.Gui).Single(command => command.Label == "Select upstream").Run();
+        scene.Commands(harness.Gui).Single(static command => command.Label == "Select upstream").Run();
         Assert.Equal(4, navigation.SelectedKeys.Count);
     }
 
@@ -148,7 +148,7 @@ public sealed class GraphDependencySelectionTests
         view.Refresh();
         scene.Canvas.Navigation.Select(nodes[2].Id.ToString());
         view.SelectDownstream();
-        Assert.Equal(nodes.Skip(2).Select(node => node.Id.ToString()).Order(),
+        Assert.Equal(nodes.Skip(2).Select(static node => node.Id.ToString()).Order(),
             scene.Canvas.Navigation.SelectedKeys.Order());
     }
 
@@ -158,12 +158,12 @@ public sealed class GraphDependencySelectionTests
         var scene = new SandboxScene();
         var view = scene.View;
         var nodes = view.Editor.Document.Nodes.ToArray();
-        scene.Canvas.Navigation.SetSelection(nodes.Take(2).Select(node => node.Id.ToString()));
+        scene.Canvas.Navigation.SetSelection(nodes.Take(2).Select(static node => node.Id.ToString()));
         var group = view.GroupSelection("Inputs");
         Assert.True(view.SetGroupCollapsed(group, true).Succeeded);
         scene.Canvas.Navigation.Select(nodes[3].Id.ToString());
         view.SelectUpstream();
-        Assert.Equal(new[] { group, nodes[2].Id, nodes[3].Id }.Select(id => id.ToString()).Order(),
+        Assert.Equal(new[] { group, nodes[2].Id, nodes[3].Id }.Select(static id => id.ToString()).Order(),
             scene.Canvas.Navigation.SelectedKeys.Order());
 
         scene.Canvas.Navigation.Select(group.ToString());
