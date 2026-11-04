@@ -30,8 +30,7 @@
         <ProjectReference Include="../Autoformers/Autoformers.csproj"/>
         <ProjectReference Include="../Autoformers.Excalibur/Autoformers.Excalibur.csproj"/>
         <ProjectReference Include="../Guinevere/Guinevere.csproj"/>
-        <!-- Local Graph checkouts moved StableId into MASS4.StableIdentity; drop the condition once that package ships -->
-        <Using Include="MASS4.StableIdentity" Condition="'$(GraphLocalPath)' != ''" />
+        <Using Include="MASS4.StableIdentity" />
         <ProjectReference Include="../Guinevere.Graphs/Guinevere.Graphs.csproj"/>
         <ProjectReference Include="../Examples/Example-02-Graph/Example-02-Graph.csproj"/>
         <ProjectReference Include="../Guinevere.Excalibur/Guinevere.Excalibur.csproj"/>
