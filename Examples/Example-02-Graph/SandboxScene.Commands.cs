@@ -15,6 +15,8 @@ public sealed partial class SandboxScene
         new("Edit", "Paste", "paste-selection", () => WithClipboard(gui, c => View.Paste(c.GetClipboardText(), new(16, 16)))),
         new("Edit", "Duplicate", "duplicate-selection", () => View.DuplicateSelection(new(16, 16))),
         new("Edit", "Delete", "delete-selection", () => View.DeleteSelection()),
+        new("Edit", "Select upstream", "select-upstream", View.SelectUpstream),
+        new("Edit", "Select downstream", "select-downstream", View.SelectDownstream),
         new("Layout", "Frame all", "frame-all", Canvas.FitAll),
         new("Layout", "Reset layout", "reset-layout", ResetLayout),
         new("Layout", "Align left", "align-left", () => View.AlignSelection(GraphAlignment.Left)),
