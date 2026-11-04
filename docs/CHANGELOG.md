@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Changed: reuse compiled test outputs.
 - Improved: pixel-aligned line replay and render submission diagnostics #20.
 
 ## [6.5.0] - 2026-10-31

@@ -15,6 +15,25 @@ sealed partial class Build
     static AbsolutePath CoverageReportSummaryDirectory => CoverageReportDirectory / "Summary.txt";
     static AbsolutePath CoverageSettingsFile => RootDirectory / "CodeCoverage.runsettings";
 
+    /// <summary>Runs tests without coverage, with optional project-specific filters for local iteration.</summary>
+    public Target TestFast => td =>
+        td
+            .DependsOn(Compile)
+            .Executes(() =>
+            {
+                var settings = WithMsBuildProperties(new DotNetTestSettings()
+                    .SetConfiguration(Config)
+                    .SetProcessWorkingDirectory(Solution.Directory)
+                    .EnableNoBuild()
+                    .EnableNoRestore()
+                    .AddProcessAdditionalArguments("--minimum-expected-tests", "1"));
+                ConfigureFastTests(ref settings);
+                DotNetTest(settings);
+            });
+
+    /// <summary>Configures project-specific fast-test filters using the project's test framework.</summary>
+    partial void ConfigureFastTests(ref DotNetTestSettings settings);
+
     Target Test => td =>
         td
             .DependsOn(Compile)
@@ -27,6 +46,9 @@ sealed partial class Build
                 CoverageMergedDirectory.DeleteDirectory();
                 DotNetTest(settings => WithMsBuildProperties(settings
                     .SetConfiguration(Config)
+                    .SetProcessWorkingDirectory(Solution.Directory)
+                    .EnableNoBuild()
+                    .EnableNoRestore()
                     .AddProcessAdditionalArguments(
                         "--coverage",
                         "--coverage-settings", CoverageSettingsFile, // Excludes source generated files

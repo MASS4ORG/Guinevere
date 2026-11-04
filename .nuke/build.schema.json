@@ -46,6 +46,7 @@
         "Restore",
         "ShowCurrentVersion",
         "Test",
+        "TestFast",
         "TestReport",
         "UpdateChangelog",
         "UpdateProjectVersions"
