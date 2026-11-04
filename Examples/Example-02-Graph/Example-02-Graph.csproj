@@ -10,9 +10,14 @@
 
     <ItemGroup>
         <EmbeddedResource Include="../../docs/guinevere-badge.png" LogicalName="GuinevereDemos.guinevere-badge.png" />
-        <PackageReference Include="MASS4.Graph.Dataflow" Version="[1.1.0]" />
-        <PackageReference Include="MASS4.Graph.Interpreter" Version="[1.1.0]" />
-        <PackageReference Include="MASS4.Graph.State" Version="[1.1.0]" />
+        <!-- Local Graph checkouts moved StableId into MASS4.StableIdentity; drop the condition once that package ships -->
+        <Using Include="MASS4.StableIdentity" Condition="'$(GraphLocalPath)' != ''" />
+        <ProjectReference Include="$(GraphLocalPath)/Graph.Dataflow/Graph.Dataflow.csproj" Condition="'$(GraphLocalPath)' != ''" />
+        <PackageReference Include="MASS4.Graph.Dataflow" Version="[1.1.0]" Condition="'$(GraphLocalPath)' == ''" />
+        <ProjectReference Include="$(GraphLocalPath)/Graph.Interpreter/Graph.Interpreter.csproj" Condition="'$(GraphLocalPath)' != ''" />
+        <PackageReference Include="MASS4.Graph.Interpreter" Version="[1.1.0]" Condition="'$(GraphLocalPath)' == ''" />
+        <ProjectReference Include="$(GraphLocalPath)/Graph.State/Graph.State.csproj" Condition="'$(GraphLocalPath)' != ''" />
+        <PackageReference Include="MASS4.Graph.State" Version="[1.1.0]" Condition="'$(GraphLocalPath)' == ''" />
         <ProjectReference Include="../../Guinevere.Graphs/Guinevere.Graphs.csproj" />
         <ProjectReference Include="../../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
         <ProjectReference Include="../../Integrations/Guinevere.OpenGL.SilkNET/Guinevere.OpenGL.SilkNET.csproj" />
