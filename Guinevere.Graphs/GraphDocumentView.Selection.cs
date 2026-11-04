@@ -5,7 +5,8 @@ namespace Guinevere.Graphs;
 public sealed partial class GraphDocumentView
 {
     /// <summary>Selects selected nodes and all their transitive input dependencies.</summary>
-    /// <remarks>Uses focus when selection is empty. Groups seed their descendants; focused ports seed their owner.
+    /// <remarks>Uses focus when selection is empty. Groups seed their descendants; ports seed their owner;
+    /// edges seed both endpoint nodes.
     /// Hidden nodes select their collapsed container. Does not change document content or undo history.</remarks>
     public void SelectUpstream() => SelectReachable(upstream: true);
 
@@ -23,6 +24,11 @@ public sealed partial class GraphDocumentView
             if (document.TryGetPort(id, out var port))
             {
                 seeds.Add(port.NodeId);
+            }
+            else if (document.TryGetEdge(id, out var edge))
+            {
+                seeds.Add(document.GetPort(edge.Source).NodeId);
+                seeds.Add(document.GetPort(edge.Target).NodeId);
             }
         }
         var groups = seeds.Where(id => document.TryGetGroup(id, out _)).ToArray();

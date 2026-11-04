@@ -10,6 +10,8 @@ public sealed partial class FsmScene
         new("File", "Rename signal + reload", "fsm-rename", () => Load(View.Serialize(), renamed: true)),
         new("Edit", "Undo", "fsm-undo", () => View.Undo()),
         new("Edit", "Redo", "fsm-redo", () => View.Redo()),
+        new("Edit", "Select upstream", "fsm-select-upstream", View.SelectUpstream),
+        new("Edit", "Select downstream", "fsm-select-downstream", View.SelectDownstream),
         new("Edit", "Add state", "fsm-add-state", AddState),
         new("Edit", "Add transition", "fsm-add-transition", AddTransition),
         new("Edit", "Assign trigger", "fsm-assign", () => AssignTrigger()),

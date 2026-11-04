@@ -6,6 +6,69 @@ namespace Guinevere.Tests.Graphs;
 
 public sealed class GraphDependencySelectionTests
 {
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void SelectedOrFocusedLinkSeedsBothEndpoints(bool upstream, bool selected)
+    {
+        var scene = new SandboxScene();
+        var view = scene.View;
+        var document = view.Editor.Document;
+        var nodes = document.Nodes.ToArray();
+        var edge = document.Edges.Single(edge => document.GetPort(edge.Source).NodeId == nodes[0].Id);
+        var navigation = scene.Canvas.Navigation;
+        if (selected)
+        {
+            navigation.Select(edge.Id.ToString());
+        }
+        else
+        {
+            navigation.Focus(edge.Id.ToString());
+        }
+        var before = view.Serialize();
+        var history = view.Editor.NextUndo;
+
+        if (upstream)
+        {
+            view.SelectUpstream();
+        }
+        else
+        {
+            view.SelectDownstream();
+        }
+
+        var expected = upstream ? nodes.Take(3) : nodes.Where((_, index) => index != 1);
+        Assert.Equal(expected.Select(node => node.Id.ToString()).Order(), navigation.SelectedKeys.Order());
+        Assert.Equal(before, view.Serialize());
+        Assert.Same(history, view.Editor.NextUndo);
+    }
+
+    [Theory]
+    [InlineData("Select upstream")]
+    [InlineData("Select downstream")]
+    public void FsmMenuTraversesRealStateCyclesWithoutEditing(string label)
+    {
+        using var harness = new FrameHarness();
+        var scene = new FsmScene { AutoRun = false };
+        var view = scene.View;
+        var document = view.Editor.Document;
+        var transition = document.Nodes.First(node => node.TypeId == MASS4.Graph.State.StateNodes.Transition.Id);
+        view.Canvas.Navigation.Select(transition.Id.ToString());
+        var before = view.Serialize();
+        var history = view.Editor.NextUndo;
+
+        scene.Commands(harness.Gui).Single(command => command.Label == label).Run();
+
+        Assert.Contains(transition.Id.ToString(), view.Canvas.Navigation.SelectedKeys);
+        Assert.True(view.Canvas.Navigation.SelectedKeys.Count > 1);
+        Assert.All(view.Canvas.Navigation.SelectedKeys, key =>
+            Assert.True(document.TryGetNode(ElementId.Parse(key), out _)));
+        Assert.Equal(before, view.Serialize());
+        Assert.Same(history, view.Editor.NextUndo);
+    }
+
     [Fact]
     public void PlaygroundCommandsUseAllSelectedSeedsAndKeepFocus()
     {
