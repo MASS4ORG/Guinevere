@@ -12,7 +12,9 @@ static class GraphPlaygroundInput
             0 => playground.Sandbox.Commands(harness.Gui),
             1 => playground.Flow.Sandbox.Commands(harness.Gui),
             2 => playground.Fsm.Commands(harness.Gui),
-            _ => playground.Groups.Sandbox.Commands(harness.Gui)
+            3 => playground.Groups.Sandbox.Commands(harness.Gui),
+            4 => playground.Shader.Sandbox.Commands(harness.Gui),
+            _ => playground.Compositor.Sandbox.Commands(harness.Gui)
         };
         var command = commands.Single(command => command.Id == id);
         var menuIndex = commands.Select(static command => command.Menu).Distinct().ToList().IndexOf(command.Menu);

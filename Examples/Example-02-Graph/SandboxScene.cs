@@ -9,25 +9,27 @@ public sealed partial class SandboxScene
     bool _paletteOpen;
     string _query = "";
 
-    /// <summary>Creates the arithmetic graph and its initial connections.</summary>
-    public SandboxScene(string name = "Playground sandbox", string canvasId = "sandbox-canvas")
+    /// <summary>The height of a node's preview slot in world units.</summary>
+    public const double PreviewHeight = 72;
+    const double StepperHeight = 30;
+
+    /// <summary>Creates a domain's initial document; the arithmetic domain is used when none is supplied.</summary>
+    public SandboxScene(string name = "Playground sandbox", string canvasId = "sandbox-canvas",
+        IDemoDomain? domain = null)
     {
         CanvasId = canvasId;
+        Graph = domain ?? new ArithmeticGraph();
         View = CreateView(Graph.Editor, new GraphCanvas { ShowMinimap = true, Name = name });
-        var first = View.AddNode(ArithmeticGraph.Number, new GraphPoint(40, 40), 2f);
-        var second = View.AddNode(ArithmeticGraph.Number, new GraphPoint(40, 240), 3f);
-        var multiply = View.AddNode(ArithmeticGraph.Multiply, new GraphPoint(360, 120));
-        var result = View.AddNode(ArithmeticGraph.Result, new GraphPoint(700, 140));
-        View.Connect(Port(first, ArithmeticGraph.ValueKey), Port(multiply, ArithmeticGraph.AKey));
-        View.Connect(Port(second, ArithmeticGraph.ValueKey), Port(multiply, ArithmeticGraph.BKey));
-        View.Connect(Port(multiply, ArithmeticGraph.ValueKey), Port(result, ArithmeticGraph.AKey));
+        Graph.Populate(View);
         Graph.Editor.ClearHistory();
         View.Refresh();
         ConfigureActions();
     }
 
-    /// <summary>The sample's real arithmetic domain.</summary>
-    public ArithmeticGraph Graph { get; } = new();
+    /// <summary>The sample's real dataflow domain.</summary>
+    public IDemoDomain Graph { get; }
+    /// <summary>The latest background-rendered preview of a node, supplied by the hosting scene.</summary>
+    public Func<ElementId, NodePreview?>? Previews { get; set; }
     /// <summary>The focusable canvas identifier.</summary>
     public string CanvasId { get; }
     /// <summary>The reusable real-document adapter.</summary>
@@ -79,21 +81,43 @@ public sealed partial class SandboxScene
         View.Draw(gui, CanvasId);
     }
 
-    /// <summary>Changes a Number node's payload through the real editor, as one undoable step.</summary>
-    public CommandResult Step(ElementId node, float delta)
+    /// <summary>Changes a steppable node's payload through the real editor, as one undoable step.</summary>
+    public CommandResult Step(ElementId node, float delta) =>
+        Graph.Stepped(Graph.Editor.Document.GetNode(node), delta) is { } payload
+            ? View.Execute(new SetPayloadCommand(node, payload))
+            : new CommandResult(false, []);
+
+    bool Steppable(GraphNode node) => Graph.Stepped(node, 0) is not null;
+
+    double ContentHeight(GraphNode node) =>
+        (Steppable(node) ? StepperHeight : 0) + (Graph.HasPreview(node) ? PreviewHeight : 0);
+
+    void DrawContent(Gui gui, GraphNodeVisual visual)
     {
-        var value = Graph.Editor.Document.GetNode(node).Payload is float current ? current : 0;
-        return View.Execute(new SetPayloadCommand(node, value + delta));
+        using var column = gui.Node().Expand().Direction(Axis.Vertical).Enter();
+        if (Steppable(visual.Node))
+        {
+            DrawStepper(gui, visual);
+        }
+        if (Graph.HasPreview(visual.Node))
+        {
+            using var slot = gui.Node().ExpandWidth().Height((float)PreviewHeight).Enter();
+            if (gui.Pass == Pass.Pass2Render && Previews?.Invoke(visual.Node.Id) is { } preview)
+            {
+                var rect = gui.CurrentNode.Rect;
+                preview.Draw(gui, new Rect(rect.X + 4, rect.Y + 4, rect.W - 8, rect.H - 8));
+            }
+        }
     }
 
-    void DrawNumberStepper(Gui gui, GraphNodeVisual visual)
+    void DrawStepper(Gui gui, GraphNodeVisual visual)
     {
-        using var row = gui.Node().Expand().Direction(Axis.Horizontal).Gap(8).ContentAlignY(0.5f).Enter();
+        using var row = gui.Node().ExpandWidth().Height((float)StepperHeight).Direction(Axis.Horizontal).Gap(8)
+            .ContentAlignY(0.5f).Enter();
         StepButton(gui, visual, "-", "decrement", -1);
         using (gui.Node().Expand().AlignContent(0.5f, 0.5f).Enter())
         {
-            var value = visual.Node.Payload is float number ? number : 0;
-            gui.DrawText(value.ToString(CultureInfo.InvariantCulture));
+            gui.DrawText(Graph.FormatPayload(visual.Node));
         }
         StepButton(gui, visual, "+", "increment", 1);
     }
@@ -153,15 +177,13 @@ public sealed partial class SandboxScene
         e.StopPropagation();
     }
 
-    ElementId Port(ElementId node, StableId key) => Graph.Editor.Document.GetNode(node).GetPort(key).Id;
-
     GraphDocumentView CreateView(GraphEditor editor, GraphCanvas canvas)
     {
         return new GraphDocumentView(editor, canvas)
         {
             NodeTitle = Graph.Describe,
-            ContentHeight = static node => node.TypeId == ArithmeticGraph.Number.Id ? 30 : 0,
-            NodePresenter = DrawNumberStepper,
+            ContentHeight = ContentHeight,
+            NodePresenter = DrawContent,
             NodeBadges = static node => node.TypeId == ArithmeticGraph.Result.Id ? ["result"] : [],
             PortShape = static port => port.Direction == PortDirection.Output ? GraphPortShape.Triangle
                 : GraphPortShape.Circle

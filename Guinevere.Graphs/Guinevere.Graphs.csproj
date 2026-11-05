@@ -19,10 +19,9 @@
     </PropertyGroup>
     <ItemGroup>
         <None Include="README.md" Pack="true" PackagePath="/" />
-        <!-- Local Graph checkouts moved StableId into MASS4.StableIdentity; drop the condition once that package ships -->
-        <Using Include="MASS4.StableIdentity" Condition="'$(GraphLocalPath)' != ''" />
+        <Using Include="MASS4.StableIdentity" />
         <ProjectReference Include="$(GraphLocalPath)/Graph/Graph.csproj" Condition="'$(GraphLocalPath)' != ''" />
-        <PackageReference Include="MASS4.Graph" Version="1.*" Condition="'$(GraphLocalPath)' == ''" />
+        <PackageReference Include="MASS4.Graph" Version="[1.2.0]" Condition="'$(GraphLocalPath)' == ''" />
         <ProjectReference Include="../Guinevere.Styling/Guinevere.Styling.csproj" />
         <EmbeddedResource Include="Styles/*.pss" />
     </ItemGroup>

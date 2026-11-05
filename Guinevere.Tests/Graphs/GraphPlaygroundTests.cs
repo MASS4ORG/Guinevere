@@ -24,10 +24,10 @@ public sealed class GraphPlaygroundTests
         GraphCanvasTests.Key(harness, scene.Draw, KeyboardKey.Enter);
         harness.Frame(scene.Draw);
         harness.Frame(scene.Draw);
-        Assert.Equal(3, scene.Scenario);
+        Assert.Equal(5, scene.Scenario);
         Assert.NotEmpty(scene.Groups.Sandbox.View.Editor.Document.Groups);
         Assert.Throws<ArgumentOutOfRangeException>(() => scene.SelectScenario(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => scene.SelectScenario(4));
+        Assert.Throws<ArgumentOutOfRangeException>(() => scene.SelectScenario(6));
         Assert.Contains(typeof(GraphPlayground).Assembly.GetReferencedAssemblies(), static assembly =>
             assembly.Name == "Guinevere.Excalibur");
         Assert.DoesNotContain(typeof(GraphCanvas).Assembly.GetReferencedAssemblies(), static assembly =>

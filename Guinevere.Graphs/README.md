@@ -1,5 +1,15 @@
 # Guinevere.Graphs
 
+`GraphDocumentView.SelectUpstream()` selects selected nodes and their transitive dependencies;
+`SelectDownstream()` selects their transitive consumers. Both follow all authored edge types,
+handle cycles, and include the starting nodes. With no selection they use the focused node
+or a focused port's owner. Selected or focused links seed both endpoint nodes.
+Selected groups seed all descendant nodes. Traversal crosses
+collapsed groups and selects their visible container without expanding them. With no node
+seeds the selection stays unchanged. These are view selection operations and leave the
+document and undo history intact. The playground exposes both actions in its Edit menu
+and sandbox command palette, including the FSM scenario's Edit menu.
+
 `MASS4.Guinevere.Graphs` is a .NET 10 GUI package built on Guinevere, PSS styling and the published `MASS4.Graph` package, pinned to exactly 1.1.0 so that core upgrades are deliberate. It has no Excalibur or engine dependency. The generic canvas consumes immutable view descriptions; `GraphDocumentView` adapts the real headless document and editor without implementing a parallel model.
 
 Keep one `GraphCanvas` per surface and call `Draw` in both Guinevere passes. Supply `GraphElementView` descriptions through a domain adapter. Only visible descriptions build layout controls; all descriptions remain available for logical navigation and accessibility. Bounds must conservatively enclose the complete node or edge ink, including curves. The package owns camera, selection, logical focus, and view metadata only. Domain payloads remain opaque; topology, type registration, payload serialization and undo are supplied by the headless core.

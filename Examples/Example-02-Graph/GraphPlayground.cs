@@ -3,7 +3,7 @@ namespace Example02;
 /// <summary>The Excalibur application shell for the graph playground.</summary>
 public sealed class GraphPlayground
 {
-    static readonly string[] Titles = ["Sandbox", "Running flow", "State machine", "Groups"];
+    static readonly string[] Titles = ["Sandbox", "Running flow", "State machine", "Groups", "Shader", "Compositor"];
     static readonly string[] Routings = ["Bézier", "Straight", "Orthogonal"];
     static readonly Bitmap Badge = LoadBadge();
     readonly Queue<Action> _pending = new();
@@ -22,6 +22,11 @@ public sealed class GraphPlayground
     public FsmScene Fsm { get; } = new();
     /// <summary>A nested-group document sharing the ordinary editing and persistence APIs.</summary>
     public GroupsScene Groups { get; } = new();
+    /// <summary>A material graph with fragment previews and generated GLSL.</summary>
+    public PreviewScene Shader { get; } = new(new ShaderDomain(), "Material graph", "shader-canvas", "Albedo · GLSL");
+    /// <summary>A video composition with asynchronous frame thumbnails on a running playhead.</summary>
+    public PreviewScene Compositor { get; } =
+        new(new CompositorDomain(), "Video compositor", "compositor-canvas", "Output frame");
     /// <summary>The selected application's stylesheet index.</summary>
     public int StyleIndex { get; private set; }
     /// <summary>The style name shown by the selector.</summary>
@@ -32,7 +37,9 @@ public sealed class GraphPlayground
         0 => Sandbox.View,
         1 => Flow.Sandbox.View,
         2 => Fsm.View,
-        _ => Groups.Sandbox.View
+        3 => Groups.Sandbox.View,
+        4 => Shader.Sandbox.View,
+        _ => Compositor.Sandbox.View
     };
 
     /// <summary>Chooses one of the available scenarios.</summary>
@@ -66,7 +73,9 @@ public sealed class GraphPlayground
             case 0: Sandbox.Draw(gui, button); break;
             case 1: Flow.Draw(gui, button); break;
             case 2: Fsm.Draw(gui, button); break;
-            default: Groups.Draw(gui, button); break;
+            case 3: Groups.Draw(gui, button); break;
+            case 4: Shader.Draw(gui, button); break;
+            default: Compositor.Draw(gui, button); break;
         }
     }
 
@@ -90,6 +99,8 @@ public sealed class GraphPlayground
         Flow.Sandbox.View.Routing = routing;
         Fsm.View.Routing = routing;
         Groups.Sandbox.View.Routing = routing;
+        Shader.Sandbox.View.Routing = routing;
+        Compositor.Sandbox.View.Routing = routing;
     }
 
     void ApplyStyle(Gui gui)
@@ -169,7 +180,9 @@ public sealed class GraphPlayground
         0 => Sandbox.Commands(gui),
         1 => Flow.Sandbox.Commands(gui),
         2 => Fsm.Commands(gui),
-        _ => Groups.Sandbox.Commands(gui)
+        3 => Groups.Sandbox.Commands(gui),
+        4 => Shader.Sandbox.Commands(gui),
+        _ => Compositor.Sandbox.Commands(gui)
     };
 
     void BuildGroupMenu(Gui gui, FlyoutBuilder menu)
