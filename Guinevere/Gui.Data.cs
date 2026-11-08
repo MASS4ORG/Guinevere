@@ -121,8 +121,9 @@ public partial class Gui
         RootNode?.Scope.ResetDataScope(0);
     }
 
-    sealed class DataCell<T>(T value)
+    sealed class DataCell<T>(T value) : IDataCell
     {
+        public object? InspectValue => Value;
         internal T Value = value;
         internal T Snapshot = value;
         internal ulong Frame = ulong.MaxValue;

@@ -1,0 +1,17 @@
+$profile-surface = #202631; $profile-ink = #eef2f7; $profile-accent = #82c9ff;
+$md-surface = #202631; $md-surface-container = #202631; $md-on-surface = #eef2f7;
+$md-secondary-container = #294b69; $md-on-secondary-container = #eef2f7;
+profiler { background-color = #151b24; color = $profile-ink; font-size = 13; padding = 8; gap = 6; }
+profiler-toolbar { height = fit; gap = 6; padding = 4; }
+profiler button, profiler treeview, profiler tree-row, profiler dock-content,
+profiler dock-window, profiler dock-panel, profiler tabstrip, profiler tab, profiler label {
+    background-color = $profile-surface; color = $profile-ink; border-radius = 3;
+}
+profiler button:hover, profiler tree-row:hover { background-color = #33465d; }
+profiler button:focus, profiler treeview:focus, profiler tree-row:selected,
+profiler tab:focus { outline-color = $profile-accent; outline-width = 2; }
+profiler tree-row:selected, profiler tab:selected { background-color = #294b69; }
+profiler-panel { padding = 8; gap = 5; }
+profiler-preview { background-color = #141a23; }
+profiler-bar { background-color = $profile-accent; }
+profiler-bounds { border-color = $profile-accent; }

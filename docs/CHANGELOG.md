@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: dockable GUI debugger and shared profiling capture adapter #36.
 - Added: shader and video-compositor graph samples #88.
 - Improved: render submission diagnostics #20.
 - Changed: reuse compiled test outputs.

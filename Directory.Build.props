@@ -16,10 +16,12 @@
     <!-- `-p:NoLocalPackages=true` ignores every local checkout and builds against the published packages -->
     <PropertyGroup Condition="'$(NoLocalPackages)' == 'true'">
         <GraphLocalPath></GraphLocalPath>
+        <ProfilingLocalPath></ProfilingLocalPath>
     </PropertyGroup>
 
     <!-- Checked by Directory.Build.targets before a pack or publish; list each local checkout here -->
     <PropertyGroup>
         <UsesLocalPackages Condition="'$(GraphLocalPath)' != ''">true</UsesLocalPackages>
+        <UsesLocalPackages Condition="'$(ProfilingLocalPath)' != ''">true</UsesLocalPackages>
     </PropertyGroup>
 </Project>

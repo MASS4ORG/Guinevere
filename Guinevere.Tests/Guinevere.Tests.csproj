@@ -30,6 +30,10 @@
         <ProjectReference Include="../Autoformers/Autoformers.csproj"/>
         <ProjectReference Include="../Autoformers.Excalibur/Autoformers.Excalibur.csproj"/>
         <ProjectReference Include="../Guinevere/Guinevere.csproj"/>
+        <ProjectReference Include="../Guinevere.Profiling/Guinevere.Profiling.csproj"/>
+        <ProjectReference Include="../Integrations/Guinevere.OpenGL.OpenTK/Guinevere.OpenGL.OpenTK.csproj" Aliases="OpenTk"/>
+        <ProjectReference Include="../Integrations/Guinevere.Vulkan.SilkNET/Guinevere.Vulkan.SilkNET.csproj" Aliases="Vulkan"/>
+        <ProjectReference Include="../Guinevere.DevTools/Guinevere.DevTools.csproj"/>
         <Using Include="MASS4.StableIdentity" />
         <ProjectReference Include="../Guinevere.Graphs/Guinevere.Graphs.csproj"/>
         <ProjectReference Include="../Examples/Example-02-Graph/Example-02-Graph.csproj"/>

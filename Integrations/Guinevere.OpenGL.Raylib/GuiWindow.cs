@@ -231,7 +231,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
             _canvasRenderer.Resize(_width, _height);
         }
 
-        _gui.Time.Update(Raylib.GetFrameTime());
+        _gui.UpdateFrameTime(Raylib.GetFrameTime());
         PollGameInput();
 
         // Update mouse position tracking
@@ -248,23 +248,11 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
 
         _canvasRenderer.Render(canvas =>
         {
-            _gui.SetStage(Pass.Pass1Build);
             if (Raylib.IsFileDropped())
             {
                 _fileDrops.Enqueue(Raylib.GetDroppedFiles(), MousePosition);
             }
-
-            _gui.BeginFrame(canvas);
-            draw();
-
-            // Process the whole layout after the build pass
-            _gui.CalculateLayout();
-
-            _gui.SetStage(Pass.Pass2Render);
-            draw();
-            _gui.Render();
-
-            _gui.EndFrame();
+            _gui.RenderFrame(canvas, draw);
         });
         ApplyPendingResize();
         _gameInput.NewFrame();

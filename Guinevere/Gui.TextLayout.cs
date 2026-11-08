@@ -188,6 +188,7 @@ public partial class Gui
             return;
         }
 
+        ObserveText(node, layout);
         DrawTextBackgrounds(layout, origin, node);
         var paints = new Dictionary<Color, List<(SKPaint Paint, Vector2 Offset)>>();
         List<(SKPaint Paint, Vector2 Offset)> PaintsFor(Color value)
@@ -227,6 +228,14 @@ public partial class Gui
         }
 
         DrawTextDecorations(layout, origin, color, node);
+    }
+
+    void ObserveText(LayoutNode node, TextLayout layout)
+    {
+        if (FrameObserver is { CaptureDetails: true } observer)
+        {
+            observer.Text(node, layout);
+        }
     }
 
     void DrawInlineImage(TextLayoutRun run, RichTextImage image, Vector2 origin, LayoutNode node)

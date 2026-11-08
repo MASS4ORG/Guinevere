@@ -20,6 +20,7 @@ public partial class Gui
     /// </summary>
     public void RequestFrame()
     {
+        FrameObserver?.FrameRequested(0);
         Volatile.Write(ref _frameRequested, 1);
         WakeFromOtherThread();
     }
@@ -37,6 +38,7 @@ public partial class Gui
             return;
         }
         var deadline = Stopwatch.GetTimestamp() + (long)(Math.Min(seconds, 3600d) * Stopwatch.Frequency);
+        FrameObserver?.FrameRequested(seconds);
         long current;
         do
         {

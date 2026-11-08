@@ -147,6 +147,15 @@ public sealed class DrawList
         LastRenderStatistics = renderer.Statistics.Since(before);
     }
 
+    internal void Inspect(IGuiFrameObserver observer, string nodeId)
+    {
+        for (var index = 0; index < _entries.Count; index++)
+        {
+            observer.Inspect(nodeId, "", "draw", index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                _entries[index].Describe(_primitives));
+        }
+    }
+
     enum DrawCommandKind : byte
     {
         Drawable,
@@ -172,6 +181,13 @@ public sealed class DrawList
         }
 
         public bool IsClip => _kind is DrawCommandKind.ClipRect or DrawCommandKind.ClipShape;
+
+        public string Describe(List<PrimitiveCommand>? primitives) => _kind switch
+        {
+            DrawCommandKind.Primitive => primitives![_primitiveIndex].ToString(),
+            DrawCommandKind.ClipRect => $"ClipRect {_rect}",
+            _ => $"{_kind}: {_value.GetType().Name} (opaque)"
+        };
 
         public SKRect? InkBounds(LayoutNode node, List<PrimitiveCommand>? primitives)
         {

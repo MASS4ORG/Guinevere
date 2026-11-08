@@ -113,6 +113,12 @@ sealed class NodeIdentityRegistry
         return _names[key] = $"{Name(location.Parent)}{site.FilePath}:{site.LineNumber} {descriptor.Index}";
     }
 
+    internal (string File, int Line) Source(int identity)
+    {
+        var site = _siteNames[_descriptors[identity].Location.Site];
+        return (site.FilePath ?? string.Empty, site.LineNumber);
+    }
+
     int Site(string filePath, int lineNumber)
     {
         var site = new CallSite(filePath, lineNumber);
