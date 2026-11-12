@@ -120,6 +120,7 @@ public static class StylingExtensions
                 var style = Transition(gui, node, styling, styling.Sheets.Resolve(target, variables, inherited));
                 StyleLayout.Apply(node, style);
                 ApplyInherited(gui, node, style, styling, inherited);
+                InspectStyle(gui, node, style, "style.build");
                 return node;
             }
 
@@ -128,6 +129,7 @@ public static class StylingExtensions
             var liveStyle = Transition(gui, node, styling,
                 styling.Sheets.Resolve(target with { State = live }, variables, inherited));
             ApplyInherited(gui, node, liveStyle, styling, inherited);
+            InspectStyle(gui, node, liveStyle, "style.render");
             if (StyleTransform.From(liveStyle, node.Rect) is { } transform)
             {
                 gui.SetTransform(transform, node.Scope);
@@ -198,6 +200,24 @@ public static class StylingExtensions
             var styling = StateOf(gui);
             var target = CreateStyleTarget(styling.Ancestors, gui.CurrentNode, type, classes, null, modifiers, state);
             return styling.Sheets.Resolve(target, null, gui.CurrentNodeScope.Get<StyleTokens>());
+        }
+    }
+
+    static void InspectStyle(Gui gui, LayoutNode node, ResolvedStyle style, string category)
+    {
+        if (gui.FrameObserver is not { CaptureDetails: true } observer)
+        {
+            return;
+        }
+        var id = node.Identity.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        foreach (var (property, value) in style.Declarations)
+        {
+            observer.Inspect(id, "", category, property, value);
+            if (style.Sources?.GetValueOrDefault(property) is { } source)
+            {
+                observer.Inspect(id, "", "style.source", property,
+                    $"{source.Options.SourceName}:{source.Line}:{source.Column}");
+            }
         }
     }
 

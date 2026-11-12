@@ -5,7 +5,7 @@
 // Usage: dotnet run tools/crap.cs -- [--base <ref>] [--max <n>] [--coverage <file>] [--all]
 //   --base      git ref to diff against, working tree and untracked files included (default: main)
 //   --max       highest acceptable CRAP score (default: 15)
-//   --coverage  Cobertura file (default: coverage/coverage.xml)
+//   --coverage  Cobertura file (default: .artifacts/tests/coverage.xml)
 //   --all       report every method in a changed file, not only methods whose lines changed
 
 using System.Diagnostics;
@@ -15,7 +15,7 @@ using System.Xml.Linq;
 
 var baseRef = Option("--base") ?? "main";
 var limit = double.Parse(Option("--max") ?? "15", CultureInfo.InvariantCulture);
-var coveragePath = Option("--coverage") ?? "coverage/coverage.xml";
+var coveragePath = Option("--coverage") ?? ".artifacts/tests/coverage.xml";
 var wholeFiles = args.Contains("--all");
 
 var repository = Git("rev-parse", "--show-toplevel").Trim();

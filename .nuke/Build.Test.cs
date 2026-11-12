@@ -6,35 +6,24 @@ namespace Build;
 /// </summary>
 sealed partial class Build
 {
-    static AbsolutePath CoverageDirectory => RootDirectory / "coverage";
-    static AbsolutePath CoverageResultFile => CoverageDirectory / "coverage.xml";
+    [Parameter("skip-coverage (default: false): run the tests without instrumenting them; TestReport needs coverage")]
+    readonly bool SkipCoverage;
+
+    // Where Test writes the TRX reports and, unless skipped, the coverage.
+    static AbsolutePath TestDirectory => TransientDirectory / "tests";
+    static AbsolutePath CoverageResultFile => TestDirectory / "coverage.xml";
 
     // Where dotnet test writes the cobertura report it merges from all test projects.
-    static AbsolutePath CoverageMergedDirectory => CoverageDirectory / "merged";
-    static AbsolutePath CoverageReportDirectory => CoverageDirectory / "report";
+    static AbsolutePath CoverageMergedDirectory => TestDirectory / "merged";
+    static AbsolutePath CoverageReportDirectory => TestDirectory / "report";
     static AbsolutePath CoverageReportSummaryDirectory => CoverageReportDirectory / "Summary.txt";
     static AbsolutePath CoverageSettingsFile => RootDirectory / "CodeCoverage.runsettings";
 
-    /// <summary>Runs tests without coverage, with optional project-specific filters for local iteration.</summary>
-    public Target TestFast => td =>
-        td
-            .DependsOn(Compile)
-            .Executes(() =>
-            {
-                var settings = WithMsBuildProperties(new DotNetTestSettings()
-                    .SetConfiguration(Config)
-                    .SetProcessWorkingDirectory(Solution.Directory)
-                    .EnableNoBuild()
-                    .EnableNoRestore()
-                    .AddProcessAdditionalArguments("--minimum-expected-tests", "1"));
-                ConfigureFastTests(ref settings);
-                DotNetTest(settings);
-            });
-
-    /// <summary>Configures project-specific fast-test filters using the project's test framework.</summary>
-    partial void ConfigureFastTests(ref DotNetTestSettings settings);
-
-    Target Test => td =>
+    /// <summary>
+    /// Runs the tests and writes their TRX reports, with coverage unless <see cref="SkipCoverage"/> is set. A project
+    /// may narrow what runs through <see cref="ConfigureTests"/>.
+    /// </summary>
+    public Target Test => td =>
         td
             .DependsOn(Compile)
             .Produces(CoverageResultFile)
@@ -42,42 +31,42 @@ sealed partial class Build
             {
                 // Every test project writes its own uniquely named report; a shared --coverage-output would let the
                 // parallel test hosts overwrite each other.
-                CoverageDirectory.GlobFiles("*.cobertura.xml").ForEach(static report => report.DeleteFile());
+                TestDirectory.GlobFiles("*.cobertura.xml").ForEach(static report => report.DeleteFile());
                 CoverageMergedDirectory.DeleteDirectory();
-                DotNetTest(settings => WithMsBuildProperties(settings
+                var settings = WithMsBuildProperties(new DotNetTestSettings()
                     .SetConfiguration(Config)
                     .SetProcessWorkingDirectory(Solution.Directory)
                     .EnableNoBuild()
                     .EnableNoRestore()
                     .AddProcessAdditionalArguments(
-                        "--coverage",
-                        "--coverage-settings", CoverageSettingsFile, // Excludes source generated files
-                        "--coverage-output-format", "cobertura",
                         TestReportArgument,
                         "--minimum-expected-tests", "1",
-                        "--results-directory", CoverageDirectory)));
+                        "--results-directory", TestDirectory));
+                if (!SkipCoverage)
+                {
+                    settings = settings.AddProcessAdditionalArguments(
+                        "--coverage",
+                        "--coverage-settings", CoverageSettingsFile, // Excludes source generated files
+                        "--coverage-output-format", "cobertura");
+                }
 
-                var reportDirectory = CoverageMergedDirectory.DirectoryExists() ? CoverageMergedDirectory : CoverageDirectory;
-                var reports = reportDirectory.GlobFiles("*.cobertura.xml").ToArray();
-                if (reports.Length == 1)
+                ConfigureTests(ref settings);
+                _ = DotNetTest(settings);
+
+                if (!SkipCoverage)
                 {
-                    reports[0].Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
+                    MergeCoverage();
                 }
-                else
-                {
-                    _ = ReportGenerator(settings => settings
-                        .SetReports(reports.Select(static report => report.ToString()))
-                        .SetTargetDirectory(CoverageMergedDirectory)
-                        .SetReportTypes([ReportTypes.Cobertura]));
-                    (CoverageMergedDirectory / "Cobertura.xml").Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
-                }
-                CoverageMergedDirectory.DeleteDirectory();
             });
 
-    /// <summary>Generates coverage reports and publishes their summary to CI.</summary>
+    /// <summary>Configures project-specific test filters using the project's test framework.</summary>
+    partial void ConfigureTests(ref DotNetTestSettings settings);
+
+    /// <summary>Generates coverage reports from <see cref="Test"/> and publishes their summary to CI.</summary>
     public Target TestReport => td =>
         td
             .DependsOn(Test)
+            .Requires(() => !SkipCoverage)
             .Consumes(Test, CoverageResultFile)
             .Executes(() =>
             {
@@ -97,4 +86,25 @@ sealed partial class Build
                     File.AppendAllText(stepSummary, (CoverageReportDirectory / "SummaryGithub.md").ReadAllText());
                 }
             });
+
+    /// <summary>Merges the coverage every test project wrote into <see cref="CoverageResultFile"/>.</summary>
+    static void MergeCoverage()
+    {
+        var reportDirectory = CoverageMergedDirectory.DirectoryExists() ? CoverageMergedDirectory : TestDirectory;
+        var reports = reportDirectory.GlobFiles("*.cobertura.xml").ToArray();
+        if (reports.Length == 1)
+        {
+            reports[0].Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
+        }
+        else
+        {
+            _ = ReportGenerator(settings => settings
+                .SetReports(reports.Select(static report => report.ToString()))
+                .SetTargetDirectory(CoverageMergedDirectory)
+                .SetReportTypes([ReportTypes.Cobertura]));
+            (CoverageMergedDirectory / "Cobertura.xml").Move(CoverageResultFile, ExistsPolicy.FileOverwrite);
+        }
+
+        CoverageMergedDirectory.DeleteDirectory();
+    }
 }

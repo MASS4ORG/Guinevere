@@ -107,6 +107,7 @@ public partial class Gui : ILayoutNodeEnterExit
     /// </summary>
     public void CalculateLayout()
     {
+        FrameObserver?.Phase("layout");
         RootNode!.CalculateLayout();
         UpdateInputBlocker();
     }

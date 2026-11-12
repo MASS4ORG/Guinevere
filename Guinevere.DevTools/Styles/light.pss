@@ -1,0 +1,29 @@
+$profile-surface = #f2f5f9; $profile-ink = #162334; $profile-accent = #175d96;
+$md-surface = #f2f5f9; $md-surface-container = #e0e7ef; $md-surface-container-low = #edf2f7;
+$md-surface-container-high = #d6e5f2; $md-surface-container-highest = #c5d6e6;
+$md-on-surface = #162334; $md-on-surface-variant = #334861;
+$md-secondary-container = #b7d7f0; $md-on-secondary-container = #102c44;
+profiler { background-color = #e0e7ef; color = $profile-ink; font-size = 13; padding = 8; gap = 6; }
+profiler-toolbar { height = fit; gap = 6; padding = 4; }
+profiler button, profiler treeview, profiler tree-row, profiler dock-content,
+profiler dock-window, profiler dock-panel, profiler tabstrip, profiler tab, profiler label {
+    background-color = $profile-surface; color = $profile-ink; border-radius = 3;
+}
+profiler button:hover, profiler tree-row:hover { background-color = #d6e5f2; }
+profiler button:focus, profiler treeview:focus, profiler tree-row:selected,
+profiler tab:focus { outline-color = $profile-accent; outline-width = 2; }
+profiler tree-row:selected, profiler tab:selected { background-color = #b7d7f0; }
+profiler-panel { padding = 8; gap = 5; }
+profiler-preview { background-color = #ffffff; }
+profiler-bounds { border-color = $profile-accent; }
+profiler-frames, profiler-flame, profiler-scopes { background-color = #ffffff; }
+profiler-series-0 { background-color = #3d6fd6; } profiler-series-1 { background-color = #4c9a2a; }
+profiler-series-2 { background-color = #c4841d; } profiler-series-3 { background-color = #8455d4; }
+profiler-series-4 { background-color = #1f93b8; } profiler-series-5 { background-color = #d14d6a; }
+profiler-series-6 { background-color = #2a9d8f; } profiler-series-7 { background-color = #d9692c; }
+profiler-untracked { background-color = #b9c4d1; }
+profiler-hitch { background-color = #c62839; }
+profiler-hover { background-color = #d6e5f2; }
+profiler-budget { border-color = #6a7686; }
+profiler-selection { border-color = #0d1b2a; }
+profiler-scope-label { color = #ffffff; }

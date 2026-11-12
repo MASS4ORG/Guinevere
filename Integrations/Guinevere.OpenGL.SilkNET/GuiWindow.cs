@@ -153,7 +153,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     /// <param name="deltaTime">The time elapsed since the last update.</param>
     void OnUpdate(double deltaTime)
     {
-        _gui.Time.Update(deltaTime);
+        _gui.UpdateFrameTime(deltaTime);
     }
 
     /// <summary>
@@ -203,21 +203,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
         }
 
         // Pass2Render our GUI using the canvas renderer
-        _renderer.Render(canvas =>
-        {
-            _gui.SetStage(Pass.Pass1Build);
-            _gui.BeginFrame(canvas);
-            _draw.Invoke();
-
-            // Process the whole layout after the build pass
-            _gui.CalculateLayout();
-
-            _gui.SetStage(Pass.Pass2Render);
-            _draw.Invoke();
-            _gui.Render();
-
-            _gui.EndFrame();
-        });
+        _renderer.Render(canvas => _gui.RenderFrame(canvas, _draw));
 
         ApplyPendingResize();
 
@@ -264,6 +250,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     {
         _prevMousePosition = _mousePosition;
         _mousePosition = position;
+        _gui.FrameController?.Input(new GuiInputEvent("move", position));
         _mouseDelta = _mousePosition - _prevMousePosition;
         Pacing.NotifyInput();
     }
@@ -271,6 +258,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     void OnMouseScroll(IMouse mouse, ScrollWheel scrollWheel)
     {
         _mouseWheelDelta = scrollWheel.Y;
+        _gui.FrameController?.Input(new GuiInputEvent("scroll", Delta: scrollWheel.Y));
         Pacing.NotifyInput();
     }
 
@@ -281,6 +269,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
             _nativeX11Move = false;
         }
 
+        _gui.FrameController?.Input(new GuiInputEvent("press", Code: (int)button));
         _pressedButtons.Add(button);
         _heldButtons.Add(button);
         Pacing.NotifyInput();
@@ -288,6 +277,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
 
     void OnMouseUp(IMouse mouse, Silk.NET.Input.MouseButton button)
     {
+        _gui.FrameController?.Input(new GuiInputEvent("release", Code: (int)button));
         _heldButtons.Remove(button);
         if (button == Silk.NET.Input.MouseButton.Left)
         {
@@ -318,6 +308,7 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
 
     void OnKeyDown(IKeyboard keyboard, Key key, int scanCode)
     {
+        _gui.FrameController?.Input(new GuiInputEvent("key-down", Code: (int)key));
         _pressedKeys.Add(key);
         _heldKeys.Add(key);
         Pacing.NotifyInput();
@@ -325,12 +316,14 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
 
     void OnKeyUp(IKeyboard keyboard, Key key, int scanCode)
     {
+        _gui.FrameController?.Input(new GuiInputEvent("key-up", Code: (int)key));
         _heldKeys.Remove(key);
         Pacing.NotifyInput();
     }
 
     void OnKeyChar(IKeyboard keyboard, char c)
     {
+        _gui.FrameController?.Input(new GuiInputEvent("text", Text: c.ToString()));
         _typedCharacters.Append(c);
         Pacing.NotifyInput();
     }

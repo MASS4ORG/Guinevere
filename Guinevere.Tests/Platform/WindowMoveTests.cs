@@ -94,6 +94,7 @@ public sealed class WindowMoveTests
     static GuiWindow CreateWindow()
     {
         var window = (GuiWindow)RuntimeHelpers.GetUninitializedObject(typeof(GuiWindow));
+        SetField(window, "_gui", new Gui());
         SetField(window, "_window", Substitute.For<IWindow>());
         SetField(window, "_pressedButtons", new HashSet<NativeMouseButton>());
         SetField(window, "_heldButtons", new HashSet<NativeMouseButton>());

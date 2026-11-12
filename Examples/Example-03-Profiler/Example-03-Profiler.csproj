@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ProfilerBackend Condition="'$(ProfilerBackend)' == ''">OpenGL.SilkNET</ProfilerBackend>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Guinevere.DevTools/Guinevere.DevTools.csproj" />
+    <ProjectReference Include="../../Integrations/Guinevere.$(ProfilerBackend)/Guinevere.$(ProfilerBackend).csproj" />
+  </ItemGroup>
+</Project>

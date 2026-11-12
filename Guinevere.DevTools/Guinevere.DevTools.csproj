@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>MASS4.Guinevere.DevTools</PackageId>
+    <Version>0.1.0</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Guinevere.Profiling/Guinevere.Profiling.csproj" />
+    <ProjectReference Include="../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
+    <EmbeddedResource Include="Styles/*.pss" />
+  </ItemGroup>
+</Project>

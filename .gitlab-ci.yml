@@ -41,7 +41,7 @@ test:
         reports:
             coverage_report:
                 coverage_format: cobertura
-                path: coverage/coverage.xml
+                path: .artifacts/tests/coverage.xml
 
 package-check:
     <<: *build_job_template
@@ -81,7 +81,7 @@ build:
         - ./build.sh PackNuGet --configuration "Release" --verbosity minimal
     artifacts:
         paths:
-            - artifacts/*
+            - .artifacts/dist/*
 
 gitlab-release:
     <<: *build_job_template

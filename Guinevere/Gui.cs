@@ -109,6 +109,7 @@ public partial class Gui
     /// <param name="fontWidgetIcon">Optional font for explicit widget icons.</param>
     public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null, Font? fontWidgetIcon = null)
     {
+        FrameObserver?.BeginFrame(this);
         BeginIdentityPass();
         BeginFrameRequests();
         _dataFrame++;
@@ -151,6 +152,7 @@ public partial class Gui
 
         var textFont = ApplyFrameTextFonts(font, fontIcon);
         ApplyFrameWidgetFont(textFont, fontIcon, fontWidgetIcon);
+        FrameObserver?.Phase("build");
     }
 
     Font? ApplyFrameTextFonts(Font? font, Font? fontIcon)
@@ -197,6 +199,7 @@ public partial class Gui
     /// </summary>
     public void EndFrame()
     {
+        FrameObserver?.Phase("finalize");
         // Process focus management and keyboard navigation
         ProcessFocusManagement();
 
@@ -215,6 +218,7 @@ public partial class Gui
         }
 
         Canvas = null;
+        FrameObserver?.EndFrame(this);
     }
 
     /// <summary>
@@ -224,6 +228,10 @@ public partial class Gui
     /// <param name="newPass">The new rendering stage to assign, represented as a value of the <see cref="Pass"/> enumeration.</param>
     public void SetStage(Pass newPass)
     {
+        if (newPass == Pass.Pass2Render)
+        {
+            FrameObserver?.Phase("render-build");
+        }
         BeginIdentityPass();
         Pass = newPass;
         _matchIndexes.Clear();
@@ -251,12 +259,14 @@ public partial class Gui
     /// </exception>
     public void Render()
     {
+        FrameObserver?.Phase("sort");
         RenderStatistics = default;
         RenderSortTime = RenderReplayTime = TimeSpan.Zero;
         var started = StartRenderTimer();
         CollectRenderNodes();
         RenderSortTime = RenderElapsed(started);
         started = StartRenderTimer();
+        FrameObserver?.Phase("replay");
         using var renderer = new PrimitiveRenderer();
         RenderNodes(renderer);
         RenderStatistics = renderer.Statistics;

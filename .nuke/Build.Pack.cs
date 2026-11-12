@@ -6,7 +6,11 @@ namespace Build;
 /// </summary>
 sealed partial class Build
 {
-    static AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
+    // Everything the build writes lives under one folder the repository ignores; each product gets a subfolder.
+    static AbsolutePath TransientDirectory => RootDirectory / ".artifacts";
+
+    // What releases and CI upload: archives, installers, packages.
+    static AbsolutePath ArtifactsDirectory => TransientDirectory / "dist";
 
     AbsolutePath PackedArchive =>
         ArtifactsDirectory / $"{ProductName}-{Version}-{RuntimeIdentifier}.zip";

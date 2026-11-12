@@ -133,7 +133,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
-        _gui.Time.Update(args.Time);
+        _gui.UpdateFrameTime(args.Time);
     }
 
     /// <summary>
@@ -146,6 +146,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         {
             if (!string.IsNullOrEmpty(e.AsString))
             {
+                _gui.FrameController?.Input(new GuiInputEvent("text", Text: e.AsString));
                 _typedCharacters.Append(e.AsString);
             }
         }
@@ -156,6 +157,14 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
         }
     }
 
+    /// <summary>Journals releases before the host dispatches its native move and pacing handlers.</summary>
+    /// <param name="e">The released pointer button.</param>
+    protected override void OnMouseUp(MouseButtonEventArgs e)
+    {
+        _gui.FrameController?.Input(new GuiInputEvent("release", Code: (int)e.Button));
+        base.OnMouseUp(e);
+    }
+
     /// <summary>
     /// Handles frame rendering by executing the GUI draw callback and rendering the result.
     /// </summary>
@@ -164,21 +173,7 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     {
         base.OnRenderFrame(args);
 
-        _canvasRenderer.Render(canvas =>
-        {
-            _gui.SetStage(Pass.Pass1Build);
-            _gui.BeginFrame(canvas);
-            _guiCallback();
-
-            // Process the whole layout after the build pass
-            _gui.CalculateLayout();
-
-            _gui.SetStage(Pass.Pass2Render);
-            _guiCallback();
-            _gui.Render();
-
-            _gui.EndFrame();
-        });
+        _canvasRenderer.Render(canvas => _gui.RenderFrame(canvas, _guiCallback));
 
         SwapBuffers();
         _nativeMovePress = false;
@@ -257,10 +252,19 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// <summary>Input and window events that change what is shown count as input for pacing.</summary>
     unsafe void HookPacingEvents()
     {
-        KeyDown += _ => Pacing.NotifyInput();
-        KeyUp += _ => Pacing.NotifyInput();
+        KeyDown += args =>
+        {
+            _gui.FrameController?.Input(new GuiInputEvent("key-down", Code: (int)args.Key));
+            Pacing.NotifyInput();
+        };
+        KeyUp += args =>
+        {
+            _gui.FrameController?.Input(new GuiInputEvent("key-up", Code: (int)args.Key));
+            Pacing.NotifyInput();
+        };
         MouseDown += args =>
         {
+            _gui.FrameController?.Input(new GuiInputEvent("press", Code: (int)args.Button));
             if (args.Button == OpenTK.Windowing.GraphicsLibraryFramework.MouseButton.Left)
             {
                 _nativeMovePress = _nativeMove;
@@ -278,8 +282,16 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
             }
             Pacing.NotifyInput();
         };
-        MouseMove += _ => Pacing.NotifyInput();
-        MouseWheel += _ => Pacing.NotifyInput();
+        MouseMove += _ =>
+        {
+            _gui.FrameController?.Input(new GuiInputEvent("move", MousePosition));
+            Pacing.NotifyInput();
+        };
+        MouseWheel += _ =>
+        {
+            _gui.FrameController?.Input(new GuiInputEvent("scroll", Delta: MouseWheelDelta));
+            Pacing.NotifyInput();
+        };
         TextInput += _ => Pacing.NotifyInput();
         Resize += _ => Pacing.NotifyInput();
         FileDrop += _ => Pacing.NotifyInput();
