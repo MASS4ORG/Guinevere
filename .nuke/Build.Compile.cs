@@ -21,7 +21,7 @@ sealed partial class Build
                 .Where(static path => path.DirectoryExists())
                 .ForEach(static path => path.DeleteDirectory());
             PublishDir.DeleteDirectory();
-            CoverageDirectory.DeleteDirectory();
+            TestDirectory.DeleteDirectory();
         });
 
     Target Restore => td => td

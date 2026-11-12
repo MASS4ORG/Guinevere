@@ -7,11 +7,11 @@
 *.trx
 *.user
 *.userprefs
+.artifacts/
 .config/
 .DS_Store*.sln.iml
 .local
 .nuke/temp
-.publish/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 [Bb]in/
@@ -23,10 +23,8 @@
 [Rr]elease/
 [Rr]eleases/
 [Ww][Ii][Nn]32/
-artifacts/
 bld/
 coverage*.*
-coverage/
 project.fragment.lock.json
 project.lock.json
 Thumbs.db

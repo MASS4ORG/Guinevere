@@ -43,6 +43,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
+          include-hidden-files: true
           name: coverage-report
-          path: coverage/
+          path: .artifacts/tests/
           retention-days: 7

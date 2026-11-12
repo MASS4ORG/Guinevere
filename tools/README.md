@@ -6,7 +6,7 @@ Single-file C# helpers for .NET 10. Run from the repository root after `./build.
 dotnet run tools/crap.cs -- --base HEAD
 ```
 
-The validator reports CRAP scores from `coverage/coverage.xml` for methods changed since the selected
+The validator reports CRAP scores from `.artifacts/tests/coverage.xml` for methods changed since the selected
 git ref, including working-tree changes and untracked files. It exits with code 1 when a score exceeds
 15. Use `--base main` for changes on a feature branch, `--max <score>` to choose a limit,
 `--coverage <file>` for another report, or `--all` to inspect every method in changed files.

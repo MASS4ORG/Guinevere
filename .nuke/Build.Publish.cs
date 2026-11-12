@@ -11,10 +11,10 @@ sealed partial class Build
     )]
     readonly string RuntimeIdentifier = "linux-x64";
 
-    [Parameter("publish-directory (default: ./.publish/{runtimeIdentifier})")]
+    [Parameter("publish-directory (default: ./.artifacts/publish/{runtimeIdentifier})")]
     readonly AbsolutePath PublishDirectory;
 
-    AbsolutePath PublishDir => PublishDirectory ?? RootDirectory / ".publish" / RuntimeIdentifier;
+    AbsolutePath PublishDir => PublishDirectory ?? TransientDirectory / "publish" / RuntimeIdentifier;
 
     [Parameter("publish-self-contained (default: set by the project)")]
     readonly bool PublishSelfContained = DefaultPublishSelfContained;
