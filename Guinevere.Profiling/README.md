@@ -4,7 +4,6 @@ Collect GUI frames without viewer assemblies, or attach an optional host gate fo
 
 ```csharp
 using Guinevere.Profiling;
-using MASS4.Profiling;
 
 using var session = new ProfileSession();
 using var profiler = new GuiProfiler(gui, session, "Application") { Detailed = true };
@@ -13,7 +12,7 @@ using var controller = new GuiFrameController(gui);
 window.RunGui(DrawApplication);
 ```
 
-Collection works with the ordinary BeginFrame/CalculateLayout/SetStage/Render/EndFrame lifecycle. Custom hosts use `gui.UpdateFrameTime(delta)` and `gui.RenderFrame(canvas, draw)` to enable host control. A custom clock needs its own controller; the default controller rejects it. Target execution and viewer operations belong to the host UI thread. The shared core independently supports concurrent producer tracks.
+Collection works with the ordinary BeginFrame/CalculateLayout/SetStage/Render/EndFrame lifecycle. Custom hosts use `gui.UpdateFrameTime(delta)` and `gui.RenderFrame(canvas, draw)` to enable host control. A custom clock needs its own controller; the default controller rejects it. Target execution and viewer operations belong to the host UI thread. The capture core independently supports concurrent producer tracks.
 
 `controller.Paused = true` freezes callbacks, target time and input delivery. `controller.Step(delta)` requests exactly one complete frame. Native presentation snapshots are bounded by `MaximumSurfacePixels`; frozen presentation reuses copied pixels without executing custom callbacks. Targets render on the host's actual canvas/backend; snapshot/readback and presentation costs occur outside measured target scopes. The canvas must be surface-backed. Dispose the controller and collector before unloading application code or destroying its host. Held captures remain owned values.
 
@@ -23,4 +22,4 @@ Looping requires an application-owned ResetTarget callback. Restore all relevant
 
 Summary mode collects CPU phase scopes, work requests, nodes, canvas submissions and thread allocation deltas. Detailed mode copies geometry, applied PSS values/provenance, text/glyph/fallback data, ordered draw descriptors and safe state/input descriptors. Arbitrary state/native objects stay opaque. Frame allocation totals include inline instrumentation; observer-internal allocation is a partial attribution. GPU time, native memory and process-wide allocations remain unavailable.
 
-Development before the first shared-core release uses `-p:ProfilingLocalPath=/mass4/dev/libs/Profiling`. Published builds use the exact `MASS4.Profiling` 0.1.0 pin; NoLocalPackages clears the override and local-source pack guards remain active.
+The capture core ships in this package with no extra dependencies: `ProfileSession`/`ProfileSource` for scopes, counters, diagnostics and inspector values with bounded history; owned `ProfileCapture`s; `ProfileExport` for the JSON capture schema; `ChromeTraceExport` to open captures in Perfetto or chrome://tracing; and `ProfileAnalysis` for per-scope and per-frame statistics. Non-GUI producers, such as a game loop, register their own sources in the same session.

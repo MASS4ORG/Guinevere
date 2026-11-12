@@ -1,4 +1,4 @@
-using MASS4.Profiling;
+using Guinevere.Profiling;
 
 namespace Guinevere.DevTools;
 

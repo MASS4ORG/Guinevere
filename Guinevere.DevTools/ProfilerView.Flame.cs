@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Numerics;
-using MASS4.Profiling;
+using Guinevere.Profiling;
 
 namespace Guinevere.DevTools;
 

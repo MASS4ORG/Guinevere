@@ -1,5 +1,5 @@
 using Guinevere.DevTools;
-using MASS4.Profiling;
+using Guinevere.Profiling;
 
 namespace Guinevere.Tests.Profiling;
 
@@ -176,7 +176,7 @@ public sealed class ProfilerViewTests
         using var view = new ProfilerView(session);
         view.Gui.Input = host.Input;
         view.Gui.ConfigureFonts(host.Font);
-        using var controller = new Guinevere.Profiling.GuiFrameController(target.Gui);
+        using var controller = new GuiFrameController(target.Gui);
         Assert.Throws<InvalidOperationException>(() => view.Attach(target.Gui, "Invalid target"));
         Assert.Null(target.Gui.FrameObserver);
         Assert.Empty(session.GetSources());

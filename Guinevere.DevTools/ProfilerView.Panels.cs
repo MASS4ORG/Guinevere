@@ -1,5 +1,5 @@
 using System.Globalization;
-using MASS4.Profiling;
+using Guinevere.Profiling;
 
 namespace Guinevere.DevTools;
 

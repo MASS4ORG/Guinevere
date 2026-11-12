@@ -11,8 +11,5 @@
   <ItemGroup>
     <ProjectReference Include="../Guinevere/Guinevere.csproj" />
     <ProjectReference Include="../Guinevere.Scripting/Guinevere.Scripting.csproj" />
-    <PackageReference Include="MASS4.Profiling" Version="[0.1.0]" Condition="'$(ProfilingLocalPath)' == ''" />
-    <ProjectReference Include="$(ProfilingLocalPath)/Profiling/Profiling.csproj" Condition="'$(ProfilingLocalPath)' != ''"
-                      AdditionalProperties="Configuration=$(Configuration)" />
   </ItemGroup>
 </Project>

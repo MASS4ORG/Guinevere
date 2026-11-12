@@ -1,6 +1,6 @@
 using Guinevere;
 using Guinevere.DevTools;
-using MASS4.Profiling;
+using Guinevere.Profiling;
 using SkiaSharp;
 
 var headless = args.Contains("--headless");

@@ -4,7 +4,7 @@ A separate GUI for live sources and immutable exported captures. Its clock, inpu
 
 ```csharp
 using Guinevere.DevTools;
-using MASS4.Profiling;
+using Guinevere.Profiling;
 
 using var session = new ProfileSession();
 using var viewer = new ProfilerView(session);
@@ -20,4 +20,4 @@ Panels dock, split, float and persist through `viewer.Layout.ToJson()` and `view
 
 `ProfilerSkins.Light` and `.Dark` are PSS stylesheets. `viewer.SetSkin(consumerSheet)` replaces them without code palettes or target-style changes. All viewer selectors, control appearance and focus indicators remain styleable. `viewer.Import(stream)` and `viewer.Export(stream)` use the shared capture schema. Toolbar and input-panel file buttons save/open captures and input recordings or legacy scripts. An optional host-supplied `FileDialogState` customizes the file browser; cancellation preserves the selection, and invalid files produce a viewer diagnostic.
 
-Run `dotnet run --project Examples/Example-03-Profiler -c Release` for the sample. Before publishing the shared core, supply `-p:ProfilingLocalPath=/mass4/dev/libs/Profiling` or the equivalent ignored local override. The sample can select a native integration with `-p:ProfilerBackend=OpenGL.OpenTK`, `OpenGL.Raylib` or `Vulkan.SilkNET`; the default is `OpenGL.SilkNET`. `--headless preview.png` exercises the tool offscreen. Native qualification uses a real window and remains distinct from that headless mode.
+Run `dotnet run --project Examples/Example-03-Profiler -c Release` for the sample. The sample can select a native integration with `-p:ProfilerBackend=OpenGL.OpenTK`, `OpenGL.Raylib` or `Vulkan.SilkNET`; the default is `OpenGL.SilkNET`. `--headless preview.png` exercises the tool offscreen. Native qualification uses a real window and remains distinct from that headless mode.
