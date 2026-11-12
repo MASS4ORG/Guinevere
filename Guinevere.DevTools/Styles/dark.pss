@@ -14,7 +14,7 @@ profiler tree-row:selected, profiler tab:selected { background-color = #294b69; 
 profiler-panel { padding = 8; gap = 5; }
 profiler-preview { background-color = #141a23; }
 profiler-bounds { border-color = $profile-accent; }
-profiler-frames, profiler-flame { background-color = #10151d; }
+profiler-frames, profiler-flame, profiler-scopes { background-color = #10151d; }
 profiler-series-0 { background-color = #7aa2f7; } profiler-series-1 { background-color = #9ece6a; }
 profiler-series-2 { background-color = #e0af68; } profiler-series-3 { background-color = #bb9af7; }
 profiler-series-4 { background-color = #7dcfff; } profiler-series-5 { background-color = #f7768e; }

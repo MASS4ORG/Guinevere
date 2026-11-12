@@ -36,7 +36,11 @@ public sealed partial class ProfilerView
         switch (name)
         {
             case "pause":
-                if (Target is { } pause) { pause.Controller.Paused = !pause.Controller.Paused; }
+                if (Target is { } pause)
+                {
+                    pause.Controller.Paused = !pause.Controller.Paused;
+                    FollowLatest |= !pause.Controller.Paused;
+                }
                 break;
             case "step": Target?.Controller.Step(); break;
             case "detail":

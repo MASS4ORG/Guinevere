@@ -83,6 +83,7 @@ public sealed partial class ProfilerView
         Gui.Label(string.Create(CultureInfo.InvariantCulture,
             $"{frame.Name} · frame #{frame.Frame} · {frame.Milliseconds:F3} ms · {frame.Dropped} dropped"));
         FlameChart(frame);
+        ScopeTable();
         if (Capture is not { } capture)
         {
             Gui.Label("Inspector details for this frame were evicted; timing only.");

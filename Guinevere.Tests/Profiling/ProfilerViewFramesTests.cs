@@ -82,6 +82,94 @@ public sealed class ProfilerViewFramesTests
         Assert.StartsWith("Update · track 0 · 3.000 ms total · 2.000 ms self", copied, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ScopeTableSummarizesPathsAndClickSelectsTheSlowestFrame()
+    {
+        using var host = new ProfilerFixture(1100, 800);
+        var clock = new StepClock();
+        using var session = new ProfileSession();
+        using var view = new ProfilerView(session);
+        view.Gui.Input = host.Input;
+        view.Gui.ConfigureFonts(host.Font);
+        using var engine = session.Register("Engine", "engine", clock);
+        var generations = new List<long>();
+        foreach (var extra in new[] { 0, 4, 1 })
+        {
+            engine.BeginFrame(generations.Count + 1);
+            using (var update = engine.BeginScope("Update"))
+            {
+                clock.Skip(extra);
+                using (engine.BeginScope("Physics", parentId: update.Id)) { }
+                using (engine.BeginScope("Physics", parentId: update.Id)) { }
+            }
+            generations.Add(engine.EndFrame().Generation);
+            Frame(view, host);
+        }
+        view.Command("frame", generations[0].ToString(CultureInfo.InvariantCulture));
+        view.Command("panel", "timeline");
+        Frame(view, host);
+        Frame(view, host);
+
+        var table = Assert.IsType<LayoutNode>(FindNode(view.Gui, "profiler-scopes")).Rect;
+        host.Input.MoveTo(table.X + 20, table.Y + 2 + 18 * 1.5f);
+        Frame(view, host);
+        host.Input.PressButton();
+        Frame(view, host);
+        host.Input.ReleaseButton();
+        Frame(view, host);
+        Assert.Equal(generations[1], view.Capture!.Generation);
+
+        view.Command("copy");
+        Frame(view, host);
+        // Update spans 5 reads plus the skipped ticks; both Physics calls sum to 2 ms per frame.
+        Assert.Equal("Update · track 0 · min 5.000 ms · median 6.000 ms · max 9.000 ms (frame #2) · 1 calls/frame · in 3 frames",
+            host.Input.GetClipboardText());
+    }
+
+    [Fact]
+    public void SlowFramePausesTheTargetAndResumeFollowsLiveAgain()
+    {
+        using var host = new ProfilerFixture(1100, 800);
+        using var session = new ProfileSession();
+        using var view = new ProfilerView(session);
+        view.Gui.Input = host.Input;
+        view.Gui.ConfigureFonts(host.Font);
+        using var target = new ProfilerFixture(320, 200);
+        using var registration = view.Attach(target.Gui, "Application");
+        registration.Controller.Paused = false;
+        view.PauseOnSlowFrame = true;
+        view.SlowFrameMilliseconds = 1000;
+        var slow = false;
+        void Draw()
+        {
+            target.Gui.Label("target");
+            if (slow && target.Gui.Pass == Pass.Pass1Build) { Thread.Sleep(30); }
+        }
+        for (var frame = 0; frame < 3; frame++)
+        {
+            target.Frame(Draw);
+            Frame(view, host);
+        }
+        Assert.True(view.FollowLatest);
+
+        view.SlowFrameMilliseconds = 20;
+        slow = true;
+        target.Frame(Draw);
+        var hitch = registration.Profiler.Latest!.Generation;
+        slow = false;
+        target.Frame(Draw);
+        Frame(view, host);
+        Assert.True(registration.Controller.Paused);
+        Assert.False(view.FollowLatest);
+        Assert.Equal(hitch, view.Capture!.Generation);
+        Assert.StartsWith("Paused on frame", view.Message, StringComparison.Ordinal);
+
+        view.Command("pause");
+        Frame(view, host);
+        Assert.False(registration.Controller.Paused);
+        Assert.True(view.FollowLatest);
+    }
+
     static void Frame(ProfilerView view, ProfilerFixture host)
     {
         view.Gui.UpdateFrameTime(.016);
@@ -107,5 +195,6 @@ public sealed class ProfilerViewFramesTests
         long _now;
         public ProfileClockInfo Info { get; } = new(Guid.NewGuid(), 1000);
         public long GetTimestamp() => _now++;
+        public void Skip(long ticks) => _now += ticks;
     }
 }

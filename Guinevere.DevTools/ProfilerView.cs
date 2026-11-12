@@ -215,6 +215,7 @@ public sealed partial class ProfilerView : IDisposable
         _captureRecord = default;
         _flameFrame = null;
         _flame = [];
+        _stats = [];
         _files.Close(null);
         _disposed = true;
     }

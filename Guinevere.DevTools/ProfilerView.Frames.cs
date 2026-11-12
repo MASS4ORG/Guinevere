@@ -35,6 +35,15 @@ public sealed partial class ProfilerView
         }
     }
 
+    /// <summary>
+    /// Whether a live frame slower than <see cref="SlowFrameMilliseconds"/> pauses the attached target and selects
+    /// that frame. It only fires while following live frames; Resume or Live re-arms it.
+    /// </summary>
+    public bool PauseOnSlowFrame { get; set; }
+
+    /// <summary>Threshold for <see cref="PauseOnSlowFrame"/>; defaults to the 60 fps budget.</summary>
+    public double SlowFrameMilliseconds { get; set; } = BudgetMilliseconds;
+
     /// <summary>Appends newly completed frames of the selected source, bounded by frame and scope counts.</summary>
     void RecordFrames()
     {
@@ -45,27 +54,59 @@ public sealed partial class ProfilerView
             _recordedSource = _sourceId;
             _hoveredFrame = -1;
         }
+        // The first scan of a source holds old frames, such as startup, so it never triggers a pause.
+        var slow = AppendFrames(PauseOnSlowFrame && FollowLatest && _frames.Count > 0);
+        while (_frames.Count > RecordedFrames || (_recordedScopes > RecordedScopes && _frames.Count > 1))
+        {
+            _recordedScopes -= _frames[0].Scopes.Length;
+            _frames.RemoveAt(0);
+        }
+        if (slow is not null)
+        {
+            PauseOn(slow);
+        }
+    }
+
+    /// <summary>Records captures newer than the last record; returns the first one over the threshold when armed.</summary>
+    FrameRecord? AppendFrames(bool armed)
+    {
+        FrameRecord? slow = null;
         var last = _frames.Count > 0 ? _frames[^1].Generation : 0;
         foreach (var capture in _history.Where(capture => capture.Generation > last))
         {
             var record = FrameRecord.From(capture);
             _frames.Add(record);
             _recordedScopes += record.Scopes.Length;
+            if (armed && slow is null && record.Milliseconds > SlowFrameMilliseconds)
+            {
+                slow = record;
+            }
         }
-        while (_frames.Count > RecordedFrames || (_recordedScopes > RecordedScopes && _frames.Count > 1))
+        return slow;
+    }
+
+    void PauseOn(FrameRecord frame)
+    {
+        if (Target is { } target)
         {
-            _recordedScopes -= _frames[0].Scopes.Length;
-            _frames.RemoveAt(0);
+            target.Controller.Paused = true;
+        }
+        SelectFrame(frame.Generation);
+        Message = string.Create(CultureInfo.InvariantCulture,
+            $"Paused on frame #{frame.Frame}: {frame.Milliseconds:F2} ms > {SlowFrameMilliseconds:F2} ms.");
+    }
+
+    void SelectFrame(string? key)
+    {
+        if (long.TryParse(key, CultureInfo.InvariantCulture, out var generation))
+        {
+            SelectFrame(generation);
         }
     }
 
     /// <summary>Selects a frame by generation: its full capture while retained, else its timing only.</summary>
-    void SelectFrame(string? key)
+    void SelectFrame(long generation)
     {
-        if (!long.TryParse(key, CultureInfo.InvariantCulture, out var generation))
-        {
-            return;
-        }
         if (_history.FirstOrDefault(frame => frame.Generation == generation) is { } capture)
         {
             SelectCapture(capture);
@@ -83,7 +124,7 @@ public sealed partial class ProfilerView
     /// <summary>Per-frame overview: one stacked bar per completed frame; clicking a bar selects that frame.</summary>
     void FrameStrip()
     {
-        Gui.Label(FrameSummary());
+        StripHeader();
         using (Gui.StyledNode("profiler-frames", id: "profiler-frames").ExpandWidth().Height(72).Enter())
         {
             var strip = Gui.GetInteractable();
@@ -103,6 +144,21 @@ public sealed partial class ProfilerView
                 Gui.RequestFrame();
             }
             DrawFrames(area, hovered);
+        }
+    }
+
+    /// <summary>Slow-frame pause control, then the latest viewer message or the strip summary.</summary>
+    void StripHeader()
+    {
+        using (Gui.StyledNode("profiler-toolbar").ExpandWidth().Direction(Axis.Horizontal).Wrap(1).Enter())
+        {
+            PauseOnSlowFrame = Gui.Checkbox(PauseOnSlowFrame, "Pause when a frame exceeds", id: "profiler-slow-pause");
+            var limit = SlowFrameMilliseconds;
+            if (Gui.NumberField(ref limit, step: .5, min: .01, max: 10_000, width: 72, format: "0.##", id: "profiler-slow-limit"))
+            {
+                SlowFrameMilliseconds = limit;
+            }
+            Gui.Label(Message is null ? $"ms · {FrameSummary()}" : $"ms · {Message}");
         }
     }
 
