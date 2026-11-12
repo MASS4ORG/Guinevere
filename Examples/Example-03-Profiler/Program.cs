@@ -40,6 +40,39 @@ void DrawTarget()
     target.Label($"Counter: {counter}");
     if (target.Button("Increment", width: 180, height: 40, id: "increment")) { counter++; }
     target.SetData(counter, "counter");
+    using (target.Node().ExpandWidth().Direction(Axis.Horizontal).Wrap(1).Gap(4).Enter())
+    {
+        for (var row = 0; row < 120; row++)
+        {
+            target.Label($"Track {row} · {(counter + row) % 7}");
+        }
+    }
+}
+
+// Busy-waits to stand in for engine work, so the engine source shows nested scopes and periodic spikes.
+static void Work(double milliseconds)
+{
+    var end = System.Diagnostics.Stopwatch.GetTimestamp()
+        + (long)(milliseconds * System.Diagnostics.Stopwatch.Frequency / 1000);
+    while (System.Diagnostics.Stopwatch.GetTimestamp() < end) { }
+}
+
+void EngineFrame()
+{
+    worker.BeginFrame(hostFrames);
+    var spike = hostFrames % 45 == 0 ? 6 : 0;
+    using (var update = worker.BeginScope("Update", track: 1))
+    {
+        using (worker.BeginScope("Physics", track: 1, parentId: update.Id)) { Work(.3 + spike); }
+        using (worker.BeginScope("AI", track: 1, parentId: update.Id)) { Work(.2 + hostFrames % 7 * .03); }
+        worker.Counter("Entities", 42, "count");
+    }
+    using (var render = worker.BeginScope("Render", track: 2))
+    {
+        using (worker.BeginScope("Cull", track: 2, parentId: render.Id)) { Work(.15); }
+        using (worker.BeginScope("Submit", track: 2, parentId: render.Id)) { Work(.25); }
+    }
+    worker.EndFrame();
 }
 
 void DrawHost()
@@ -50,9 +83,7 @@ void DrawHost()
         target.UpdateFrameTime(1d / 60);
         targetSurface.Canvas.Clear(SKColors.Transparent);
         target.RenderFrame(targetSurface.Canvas, DrawTarget);
-        worker.BeginFrame(hostFrames);
-        using (worker.BeginScope("Update", track: 1)) { worker.Counter("Entities", 42, "count"); }
-        worker.EndFrame();
+        EngineFrame();
         if (smoke || headless) { Exercise(); }
     }
     view.Draw();
@@ -96,6 +127,9 @@ void Exercise()
         }
         Console.WriteLine($"Profiler smoke passed: pause/step, script, capture roundtrip, skins, docking; counter={counter}");
         window?.Close();
+        registration.Controller.Paused = false;
+        view.Command("live");
+        view.Command("panel", "timeline");
     }
 }
 
@@ -103,7 +137,7 @@ if (headless)
 {
     view.Gui.Input = new ScriptedInputHandler();
     using var surface = SKSurface.Create(new SKImageInfo(1280, 840));
-    for (var frame = 0; frame < 20; frame++)
+    for (var frame = 0; frame < 140; frame++)
     {
         view.Gui.UpdateFrameTime(1d / 60);
         view.Gui.RenderFrame(surface.Canvas, DrawHost);

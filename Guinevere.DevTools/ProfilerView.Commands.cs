@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace Guinevere.DevTools;
 
 public sealed partial class ProfilerView
@@ -19,13 +17,7 @@ public sealed partial class ProfilerView
         switch (name)
         {
             case "source": SelectSource(key); break;
-            case "frame":
-                if (long.TryParse(key, CultureInfo.InvariantCulture, out var generation)
-                    && _history.FirstOrDefault(frame => frame.Generation == generation) is { } capture)
-                {
-                    SelectCapture(capture);
-                }
-                break;
+            case "frame": SelectFrame(key); break;
             case "object":
                 SelectedObject = key;
                 if (_trees.TryGetValue("layout", out var tree)) { tree.SelectedId = key; }
@@ -83,6 +75,7 @@ public sealed partial class ProfilerView
             _sourceId = sourceId;
             SelectedObject = null;
             Capture = null;
+            _pinnedFrame = null;
             FollowLatest = true;
             _trees.Clear();
         }

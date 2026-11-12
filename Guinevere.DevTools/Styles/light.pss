@@ -15,5 +15,15 @@ profiler tab:focus { outline-color = $profile-accent; outline-width = 2; }
 profiler tree-row:selected, profiler tab:selected { background-color = #b7d7f0; }
 profiler-panel { padding = 8; gap = 5; }
 profiler-preview { background-color = #ffffff; }
-profiler-bar { background-color = $profile-accent; }
 profiler-bounds { border-color = $profile-accent; }
+profiler-frames, profiler-flame { background-color = #ffffff; }
+profiler-series-0 { background-color = #3d6fd6; } profiler-series-1 { background-color = #4c9a2a; }
+profiler-series-2 { background-color = #c4841d; } profiler-series-3 { background-color = #8455d4; }
+profiler-series-4 { background-color = #1f93b8; } profiler-series-5 { background-color = #d14d6a; }
+profiler-series-6 { background-color = #2a9d8f; } profiler-series-7 { background-color = #d9692c; }
+profiler-untracked { background-color = #b9c4d1; }
+profiler-hitch { background-color = #c62839; }
+profiler-hover { background-color = #d6e5f2; }
+profiler-budget { border-color = #6a7686; }
+profiler-selection { border-color = #0d1b2a; }
+profiler-scope-label { color = #ffffff; }

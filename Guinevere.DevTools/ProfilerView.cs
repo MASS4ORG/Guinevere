@@ -99,6 +99,7 @@ public sealed partial class ProfilerView : IDisposable
     {
         ArgumentNullException.ThrowIfNull(capture);
         Capture = capture;
+        _pinnedFrame = null;
         _sourceId = capture.Source.Id;
         FollowLatest = false;
         SelectedObject = null;
@@ -163,6 +164,7 @@ public sealed partial class ProfilerView : IDisposable
         using (Gui.StyledNode("profiler", id: "profiler").Expand().Direction(Axis.Vertical).Enter())
         {
             Toolbar();
+            FrameStrip();
             Gui.DockSpace(Layout, static id => new DockPanelInfo(id), DrawPanel, id: "profiler-workspace");
             Gui.FileDialog(_files, id: "profiler-files");
         }
@@ -183,7 +185,9 @@ public sealed partial class ProfilerView : IDisposable
         if (FollowLatest && _history.Count > 0)
         {
             Capture = _history[^1];
+            _pinnedFrame = null;
         }
+        RecordFrames();
     }
 
     ProfilerTarget? Target => Capture is { } capture && capture.Session != _session.Id
@@ -206,6 +210,11 @@ public sealed partial class ProfilerView : IDisposable
         _history = [];
         _trees.Clear();
         Capture = null;
+        _frames.Clear();
+        _pinnedFrame = null;
+        _captureRecord = default;
+        _flameFrame = null;
+        _flame = [];
         _files.Close(null);
         _disposed = true;
     }

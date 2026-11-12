@@ -75,38 +75,23 @@ public sealed partial class ProfilerView
 
     void Timeline()
     {
-        if (Capture is not { } capture)
+        if (SelectedFrame is not { } frame)
         {
             Gui.Label("Waiting for a completed capture.");
             return;
         }
-        Gui.Label($"{capture.Source.Name} · clock {capture.Source.Clock.Domain} · {capture.Source.Clock.Frequency} Hz");
-        Gui.Label($"Resolution: {capture.Source.Clock.ResolutionTicks?.ToString(CultureInfo.InvariantCulture) ?? "unmeasured"} ticks; CPU scopes include inline instrumentation.");
-        using (Gui.StyledNode("profiler-preview", id: "profiler-timeline").ExpandWidth().Height(100).Enter())
+        Gui.Label(string.Create(CultureInfo.InvariantCulture,
+            $"{frame.Name} · frame #{frame.Frame} · {frame.Milliseconds:F3} ms · {frame.Dropped} dropped"));
+        FlameChart(frame);
+        if (Capture is not { } capture)
         {
-            if (Gui.Pass == Pass.Pass2Render)
-            {
-                DrawTimeline(capture, Gui.CurrentNode.Rect);
-            }
+            Gui.Label("Inspector details for this frame were evicted; timing only.");
+            return;
         }
+        Gui.Label($"Clock {capture.Source.Clock.Domain} · {capture.Source.Clock.Frequency} Hz · resolution {capture.Source.Clock.ResolutionTicks?.ToString(CultureInfo.InvariantCulture) ?? "unmeasured"} ticks; CPU scopes include inline instrumentation.");
         var events = capture.Events.Select(entry => new TreeItem(entry.Id.ToString(CultureInfo.InvariantCulture),
             EventLabel(entry, capture.Source.Clock.Frequency), 0)).ToArray();
         DrawTree("events", events, "event");
-    }
-
-    void DrawTimeline(ProfileCapture capture, Rect area)
-    {
-        var duration = Math.Max(1, capture.End - capture.Start);
-        var scopes = capture.Events.Where(static entry => entry.Kind == "scope").ToArray();
-        var tracks = scopes.Select(static entry => entry.Track).Distinct().Order().ToArray();
-        var color = Gui.ResolveStyle("profiler-bar").GetColor("background-color") ?? Color.Transparent;
-        foreach (var scope in scopes)
-        {
-            var row = Array.IndexOf(tracks, scope.Track);
-            var x = area.X + (float)((scope.Start - capture.Start) / (double)duration) * area.W;
-            var width = (float)((scope.End - scope.Start) / (double)duration) * area.W;
-            Gui.DrawRect(new Rect(x, area.Y + row * 20 + 4, Math.Max(1, width), 16), color);
-        }
     }
 
     static string EventLabel(ProfileEvent entry, long frequency) => entry.Kind switch
