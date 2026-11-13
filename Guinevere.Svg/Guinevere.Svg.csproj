@@ -31,6 +31,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="14.4.0.100" />
         <PackageReference Include="Svg.Skia" Version="5.2.3" />
     </ItemGroup>
 

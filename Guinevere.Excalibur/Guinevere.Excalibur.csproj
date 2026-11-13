@@ -30,7 +30,7 @@
 
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
-        <PackageReference Include="SkiaSharp" Version="4.154.0" />
+        <PackageReference Include="SkiaSharp" Version="4.156.0" />
     </ItemGroup>
 
     <ItemGroup>
