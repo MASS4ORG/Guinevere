@@ -313,13 +313,17 @@ public partial class FocusManager
     }
 
     /// <summary>Makes a scope the sole owner of Tab and directional navigation.</summary>
-    public void ActivateScope(string scopeId, string? restoreFocusId = null)
+    public void ActivateScope(string scopeId, string? restoreFocusId = null) =>
+        ActivateScope(scopeId, restoreFocusId, autoFocus: true);
+
+    internal void ActivateScope(string scopeId, string? restoreFocusId, bool autoFocus)
     {
         if (!_scopes.TryGetValue(scopeId, out var scope))
         {
             return;
         }
 
+        scope.AutoFocus = autoFocus;
         if (ActiveScopeId != scopeId)
         {
             scope.RestoreFocusId = restoreFocusId ?? _nextFrameFocusId ?? _currentFocusedId;
@@ -345,6 +349,20 @@ public partial class FocusManager
             _nextFrameFocusId = null;
             _focusChangedThisFrame = true;
         }
+    }
+
+    /// <summary>Releases focus scheduled for this scope without disturbing focus requested elsewhere.</summary>
+    internal bool ClearFocusInScope(string scopeId)
+    {
+        if (_nextFrameFocusId is not { } id || !_focusableControls.TryGetValue(id, out var control)
+            || control.ScopeId != scopeId)
+        {
+            return false;
+        }
+
+        _nextFrameFocusId = null;
+        _focusChangedThisFrame = true;
+        return true;
     }
 
     /// <summary>
@@ -550,6 +568,7 @@ class FocusNavigationScopeState
 {
     public string? ParentId { get; set; }
     public string? RestoreFocusId { get; set; }
+    public bool AutoFocus { get; set; }
 }
 
 /// <summary>A frame-local registration scope that can constrain keyboard navigation.</summary>
@@ -560,6 +579,8 @@ public sealed class FocusNavigationScope : IDisposable
     internal FocusNavigationScope(FocusManager manager, string id) => (_manager, _id) = (manager, id);
     /// <summary>Activates this scope until it is no longer registered in a frame.</summary>
     public void SetActive(string? restoreFocusId = null) => _manager.ActivateScope(_id, restoreFocusId);
+    /// <summary>Restricts keyboard navigation to this scope without automatically focusing a control.</summary>
+    internal void SetActiveWithoutAutoFocus() => _manager.ActivateScope(_id, restoreFocusId: null, autoFocus: false);
     /// <summary>Leaves the registration scope.</summary>
     public void Dispose() => _manager.ExitScope(_id);
 }

@@ -21,7 +21,8 @@ public static partial class ControlsExtensions
         public Rect Rect;
     }
 
-    static void PreparePopupMenuFrame(Gui gui, MenuBarState state, bool isOpen, MenuAppearance? appearance = null)
+    static void PreparePopupMenuFrame(Gui gui, MenuBarState state, string id, bool isOpen,
+        MenuAppearance? appearance = null)
     {
         if (gui.Pass != Pass.Pass1Build)
         {
@@ -36,7 +37,7 @@ public static partial class ControlsExtensions
         state.OpenIndex = isOpen ? 0 : -1;
         state.SubmenuRects = [];
         state.Appearance = appearance ?? state.Appearance;
-        state.BeginFrame(gui.LocalMousePosition);
+        state.BeginFrame(gui, id);
     }
 
     static int ResolveMenuBranch(Gui gui, MenuBarState state, string id, List<FlyoutItem> items,

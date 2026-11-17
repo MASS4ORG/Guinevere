@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added: `Table` widget #66.
 - Added: `DrawText(ReadOnlySpan<char>)`; new text layouts allocate less #245
 - Added: `Gui.Post(Action)` hands background results to the UI thread #247
+- Fixed: maintain focus during pointer navigation.
 
 ## [6.7.0] - 2026-11-13
 

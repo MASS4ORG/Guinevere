@@ -41,11 +41,16 @@ public static partial class ControlsExtensions
         public List<Rect> SubmenuRects { get; set; } = [];
 
         /// <summary>Snapshots the live menu state for both passes.</summary>
-        public void BeginFrame(Vector2 mouse)
+        public void BeginFrame(Gui gui, string id)
         {
+            var mouse = gui.LocalMousePosition;
             if (mouse != PreviousMouse)
             {
                 KeyboardActive = false;
+                if (gui.Focus.ClearFocusInScope($"{id}/focus"))
+                {
+                    gui.RequestFrame();
+                }
             }
 
             PreviousMouse = mouse;
@@ -104,7 +109,7 @@ public static partial class ControlsExtensions
         if (gui.Pass == Pass.Pass1Build)
         {
             state.SubmenuRects = [];
-            state.BeginFrame(gui.LocalMousePosition);
+            state.BeginFrame(gui, id);
         }
 
         var bar = RenderMenuBar(gui, state, builder, fontSize, padding);
@@ -250,7 +255,7 @@ public static partial class ControlsExtensions
         }
 
         using var focusScope = gui.EnterFocusNavigationScope($"{id}/focus");
-        focusScope.SetActive();
+        focusScope.SetActiveWithoutAutoFocus();
         RenderMenuBarDropdown(gui, state, menu, fontSize, padding);
     }
 
