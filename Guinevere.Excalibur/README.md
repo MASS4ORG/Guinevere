@@ -387,21 +387,23 @@ gui.TreeView(state, items, onClick: e => SelectedPath = e.Item.Label);
 
 ## Table
 
-A table reads its data through `ITableViewSource`, which is counted and indexed: it asks for the row count and then for the value of each cell in view, and never enumerates the dataset. Only the rows in the viewport become layout nodes, so a source of millions of rows costs what one that fills the screen does. Columns are immutable `TableColumn` definitions keyed by `Id`; share one list between frames and keep a `TableState` alongside it.
+A table reads its data through `ITableViewSource`, which is counted and indexed: it asks for the row count and then for the value of each cell in view, and never enumerates the dataset. Only the rows in the viewport become layout nodes, so a source of millions of rows costs what one that fills the screen does. Columns are immutable `TableColumn` definitions keyed by a `TableColumnId`; share one list between frames and keep a `TableState` alongside it.
 
 ```csharp
 var state = new TableState();
 TableColumn[] columns =
 [
-    new("name", "Name") { Width = TableLength.Star(2) },
-    new("size", "Size") { Width = 90f, Alignment = TableAlignment.Right },
-    new("status", "Status") { Width = 90f, Renderer = new StatusBadgeRenderer() },
+    new("Name", new("name")) { Width = TableLength.Star(2) },
+    new("Size", new("size")) { Width = 90f, Alignment = TableAlignment.Right },
+    new("Status", new("status")) { Width = 90f, Renderer = new StatusBadgeRenderer() },
 ];
 
 gui.Table(state, source, columns);
 ```
 
-`TableLength` is pixels, a weighted `Star` share of what the fixed and auto columns leave, or `Auto`; `MinWidth` and `MaxWidth` bound all three. `Auto` is as wide as the header text only: the table never scans the dataset to measure cells, so give a column whose content is wider than its title a fixed or star width. A column without a `Renderer` draws its value as text. `ITableCellRenderer.Render` builds the content inside a cell the table has already sized, clipped and aligned. `TableColumn.InitiallyVisible = false` leaves a column out. `Pin` is part of the definition but the table does not apply it yet.
+`TableColumnId` is its own type with no conversion to or from `string`, so a title or a row value cannot be passed where a column key goes; the source's `GetValue`, `TableSort` and persisted column state all use it, and it stores its `Value` string unchanged. The id is optional: left out, it is derived from the declaring file's name and line. That derived id changes when the line moves, which silently orphans persisted column state, so give every column whose state is persisted across sessions an explicit id. Columns created on one line, in a loop for instance, need explicit ids as well, because ids must be unique in a table.
+
+`TableLength` is pixels, a weighted `Star` share of what the fixed and auto columns leave, or `Auto`; `MinWidth` and `MaxWidth` bound all three. `Auto` is as wide as the header text only: the table never scans the dataset to measure cells, so give a column whose content is wider than its title a fixed or star width. A column without a `Renderer` draws its value as text. `ITableCellRenderer.Render` builds the content inside a cell the table has already sized, clipped and aligned; its `TableCellContext` carries the row index, the source, the table state and the row's `Identity`, so state that must survive sorting and scrolling is kept against the identity and not the index. `TableColumn.InitiallyVisible = false` leaves a column out. `Pin` is part of the definition but the table does not apply it yet.
 
 The header stays at the top while the rows scroll and follows the body sideways. `TableOptions.VirtualizeColumns` builds only the columns in view, which pays off with hundreds of columns. A source with no rows shows `EmptyText`; a source that reports `IsLoading` shows `LoadingText` in place of the rows, or below them when it already has some. Row height is fixed (`TableTheme.RowHeight`), which is what keeps the scroll arithmetic exact.
 

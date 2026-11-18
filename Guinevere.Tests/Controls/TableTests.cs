@@ -140,21 +140,35 @@ public class TableTests
         var renderer = new RecordingRenderer();
         TableColumn[] columns =
         [
-            new("name", "Name") { Width = 200f },
-            new("size", "Size") { Width = 100f, Renderer = renderer }
+            new("Name", new("name")) { Width = 200f },
+            new("Size", new("size")) { Width = 100f, Renderer = renderer }
         ];
-        var gui = RunFrames(new GridSource(100_000, 2), columns, frames: 2);
+        var source = new GridSource(100_000, 2);
+        var state = new TableState();
+        var gui = RunFrames(source, columns, state, frames: 2);
 
         Assert.NotEmpty(renderer.Cells);
-        Assert.All(renderer.Cells, static cell =>
+        Assert.All(renderer.Cells, cell =>
         {
-            Assert.Equal("size", cell.Column.Id);
+            Assert.Equal(new TableColumnId("size"), cell.Column.Id);
             Assert.Equal(100f, cell.Width);
             Assert.Equal(Theme.RowHeight, cell.Height);
             Assert.Equal($"r{cell.Row}/size", cell.Value);
+            Assert.Same(source, cell.Source);
+            Assert.Same(state, cell.State);
         });
         Assert.True(renderer.Cells.Max(static cell => cell.Row) < 60);
         Assert.NotNull(gui);
+    }
+
+    [Fact]
+    public void ARendererCanReachTheStableIdentityOfItsRow()
+    {
+        var renderer = new RecordingRenderer();
+        TableColumn[] columns = [new("Size", new("size")) { Width = 100f, Renderer = renderer }];
+        RunFrames(new GridSource(50, 1), columns, frames: 2);
+
+        Assert.All(renderer.Cells, static cell => Assert.Equal(RowIdentity.FromIndex(cell.Row), cell.Identity));
     }
 
     [Fact]
@@ -188,7 +202,7 @@ public class TableTests
     [Fact]
     public void TheSortedColumnGetsAMarkerAndTheOthersDoNot()
     {
-        var state = new TableState { Sort = new TableSort("c1", TableSortDirection.Descending) };
+        var state = new TableState { Sort = new TableSort(new TableColumnId("c1"), TableSortDirection.Descending) };
         var gui = RunFrames(new GridSource(3, 3), Columns(3), state, frames: 2);
 
         Assert.Equal(2, gui.RootNode!.FindChildById("table/header/c1")!.Children.Count);
@@ -198,7 +212,7 @@ public class TableTests
     [Fact]
     public void AColumnThatIsNotInitiallyVisibleIsLeftOut()
     {
-        TableColumn[] columns = [new("a", "A"), new("b", "B") { InitiallyVisible = false }];
+        TableColumn[] columns = [new("A", new("a")), new("B", new("b")) { InitiallyVisible = false }];
         var gui = RunFrames(new GridSource(3, 2), columns, frames: 2);
 
         Assert.NotNull(gui.RootNode!.FindChildById("table/header/a"));
@@ -208,7 +222,7 @@ public class TableTests
     [Fact]
     public void ARightAlignedCellSitsAtItsTrailingEdge()
     {
-        TableColumn[] columns = [new("n", "N") { Width = 200f, Alignment = TableAlignment.Right }];
+        TableColumn[] columns = [new("N", new("n")) { Width = 200f, Alignment = TableAlignment.Right }];
         var gui = RunFrames(new GridSource(1, 1), columns, frames: 2);
 
         var cell = gui.RootNode!.FindChildById("table/row0/n")!;
@@ -219,7 +233,7 @@ public class TableTests
     [Fact]
     public void ADuplicateColumnIdIsRejected()
     {
-        TableColumn[] columns = [new("a", "A"), new("a", "Again")];
+        TableColumn[] columns = [new("A", new("a")), new("Again", new("a"))];
 
         Assert.Throws<ArgumentException>(() => RunFrames(new GridSource(1, 1), columns));
     }
@@ -233,10 +247,10 @@ public class TableTests
     }
 
     static TableColumn[] Columns(int count) =>
-        [.. Enumerable.Range(0, count).Select(static i => new TableColumn($"c{i}", $"Column {i}"))];
+        [.. Enumerable.Range(0, count).Select(static i => new TableColumn($"Column {i}", new($"c{i}")))];
 
     static TableColumn[] Fixed(int count, float width) =>
-        [.. Enumerable.Range(0, count).Select(i => new TableColumn($"c{i}", $"Column {i}") { Width = width })];
+        [.. Enumerable.Range(0, count).Select(i => new TableColumn($"Column {i}", new($"c{i}")) { Width = width })];
 
     static Gui RunFrames(GridSource source, IReadOnlyList<TableColumn> columns, TableState? state = null,
         TableOptions? options = null, int frames = 1, Gui? reuse = null)
@@ -340,7 +354,7 @@ public class TableTests
         public object? GetValue(int row, TableColumn column)
         {
             Reads++;
-            return $"r{row}/{column.Id}";
+            return $"r{row}/{column.Id.Value}";
         }
 
         public RowIdentity GetRowIdentity(int row) => RowIdentity.FromIndex(row);

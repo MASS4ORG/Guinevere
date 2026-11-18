@@ -27,7 +27,7 @@ public enum TableSortDirection
 /// <summary>A sort request: the column and the direction.</summary>
 /// <param name="ColumnId">The <see cref="TableColumn.Id"/> to order by.</param>
 /// <param name="Direction">The direction.</param>
-public readonly record struct TableSort(string ColumnId, TableSortDirection Direction = TableSortDirection.Ascending);
+public readonly record struct TableSort(TableColumnId ColumnId, TableSortDirection Direction = TableSortDirection.Ascending);
 
 /// <summary>
 /// The only path a table reads data through. Everything is counted and indexed, so a table with

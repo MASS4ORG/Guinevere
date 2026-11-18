@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace Guinevere;
 
 /// <summary>What a cell renderer is told about the cell it draws.</summary>
@@ -9,13 +7,25 @@ namespace Guinevere;
 /// <param name="FontSize">The table's text size.</param>
 /// <param name="Width">The cell's width, padding included.</param>
 /// <param name="Height">The cell's height.</param>
+/// <param name="Source">The source the cell's row comes from, for reading anything else about the row.</param>
+/// <param name="State">The table's state, which row-level state such as expansion is kept in.</param>
 public readonly record struct TableCellContext(
     int Row,
     TableColumn Column,
     object? Value,
     float FontSize,
     float Width,
-    float Height);
+    float Height,
+    ITableViewSource Source,
+    TableState State)
+{
+    /// <summary>
+    /// The stable key of the cell's row, read from the source only when asked for. Anything that must
+    /// survive sorting or scrolling, such as selection or expansion, is kept against this and not against
+    /// <see cref="Row"/>.
+    /// </summary>
+    public RowIdentity Identity => Source.GetRowIdentity(Row);
+}
 
 /// <summary>
 /// Draws the content of one table cell. The table builds the cell node, sizes and clips it and aligns its
@@ -27,14 +37,4 @@ public interface ITableCellRenderer
     /// <param name="gui">The GUI, positioned inside the cell node.</param>
     /// <param name="cell">The cell being drawn.</param>
     void Render(Gui gui, in TableCellContext cell);
-}
-
-/// <summary>Draws a cell's value as text, which is what a column without a renderer gets.</summary>
-sealed class TableTextRenderer : ITableCellRenderer
-{
-    public static TableTextRenderer Instance { get; } = new();
-
-    public void Render(Gui gui, in TableCellContext cell) =>
-        gui.DrawText(Convert.ToString(cell.Value, CultureInfo.CurrentCulture) ?? "", cell.FontSize,
-            centerInRect: false, clip: true);
 }

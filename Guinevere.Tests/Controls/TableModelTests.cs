@@ -1,8 +1,11 @@
+using System.Runtime.CompilerServices;
 using Guinevere.Tests.Mocks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Guinevere.Tests.Controls;
 
-/// <summary>Covers the table's data model: column definitions, row identities and the per-table cache.</summary>
+/// <summary>Covers the table's data model: column definitions and keys, and row identities.</summary>
 public class TableModelTests
 {
     [Fact]
@@ -14,17 +17,88 @@ public class TableModelTests
     }
 
     [Fact]
-    public void AColumnNeedsAnIdAndATitle()
+    public void AColumnNeedsATitleAndAnIdThatIsNotEmpty()
     {
-        Assert.Throws<ArgumentException>(static () => new TableColumn("", "Title"));
-        Assert.Throws<ArgumentNullException>(static () => new TableColumn("id", null!));
-        Assert.Equal("", new TableColumn("id", "").Title);
+        Assert.ThrowsAny<ArgumentException>(static () => new TableColumn("Title", new TableColumnId("")));
+        Assert.ThrowsAny<ArgumentException>(static () => new TableColumn("Title", default(TableColumnId)));
+        Assert.Throws<ArgumentNullException>(static () => new TableColumn(null!, new("id")));
+        Assert.Equal("", new TableColumn("", new("id")).Title);
+    }
+
+    [Fact]
+    public void ATitleCannotBePassedWhereAnIdGoesAndTheOtherWayRound()
+    {
+        const string swapped = """
+            using Guinevere;
+            class C
+            {
+                void M()
+                {
+                    var byTitleAsId = new TableColumn("Title", "id");
+                    string idAsText = new TableColumnId("id");
+                    TableColumnId textAsId = "id";
+                    var sort = new TableSort("id");
+                }
+            }
+            """;
+        const string correct = """
+            using Guinevere;
+            class C
+            {
+                void M()
+                {
+                    var column = new TableColumn("Title", new TableColumnId("id"));
+                    string text = column.Id.Value;
+                    var sort = new TableSort(column.Id);
+                }
+            }
+            """;
+
+        Assert.Empty(CompileErrors(correct));
+        Assert.Equal(4, CompileErrors(swapped).Count);
+    }
+
+    [Fact]
+    public void AnIdLeftOutIsDerivedFromTheDeclaringFileAndLine()
+    {
+        var column = new TableColumn("Title"); var line = Line();
+
+        Assert.Equal(new TableColumnId($"TableModelTests.cs:{line}"), column.Id);
+        Assert.DoesNotContain('/', column.Id.Value);
+    }
+
+    [Fact]
+    public void ColumnsOnDifferentLinesGetDifferentDerivedIdsAndAnExplicitIdWins()
+    {
+        var first = new TableColumn("A");
+        var second = new TableColumn("A");
+        var explicitId = new TableColumn("A", new("stable"));
+
+        Assert.NotEqual(first.Id, second.Id);
+        Assert.Equal("stable", explicitId.Id.Value);
+        Assert.Equal("stable", explicitId.Id.ToString());
+    }
+
+    static int Line([CallerLineNumber] int line = 0) => line;
+
+    /// <summary>Compiles a snippet against the loaded assemblies and returns its compile errors.</summary>
+    static List<string> CompileErrors(string source)
+    {
+        var references = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(static assembly => !assembly.IsDynamic && assembly.Location.Length > 0)
+            .Select(static assembly => MetadataReference.CreateFromFile(assembly.Location));
+        var compilation = CSharpCompilation.Create("TableIdProbe", [CSharpSyntaxTree.ParseText(source)], references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        return [.. compilation.GetDiagnostics()
+            .Where(static diagnostic => diagnostic.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+            .Select(static diagnostic => diagnostic.Id)];
     }
 
     [Fact]
     public void AColumnStartsVisibleUnpinnedAndSharingTheFreeWidth()
     {
-        var column = new TableColumn("id", "Title");
+        var column = new TableColumn("Title", new("id"));
 
         Assert.True(column.InitiallyVisible);
         Assert.Equal(TablePin.None, column.Pin);
@@ -34,33 +108,12 @@ public class TableModelTests
     }
 
     [Fact]
-    public void AnAutoWidthIsMeasuredOncePerFontSize()
-    {
-        var state = new TableState();
-        var column = new TableColumn("id", "Title");
-        var measured = 0;
-
-        float Measure()
-        {
-            measured++;
-            return 50f + measured;
-        }
-
-        Assert.Equal(51f, state.AutoWidth(column, 12f, Measure));
-        Assert.Equal(51f, state.AutoWidth(column, 12f, Measure));
-        Assert.Equal(1, measured);
-
-        Assert.Equal(52f, state.AutoWidth(column, 14f, Measure));
-        Assert.Equal(2, measured);
-    }
-
-    [Fact]
     public void AnAutoColumnIsAsWideAsItsHeaderText()
     {
         TableColumn[] columns =
         [
-            new("short", "A") { Width = TableLength.Auto, MinWidth = 1f },
-            new("long", "A considerably longer header title") { Width = TableLength.Auto, MinWidth = 1f }
+            new("A", new("short")) { Width = TableLength.Auto, MinWidth = 1f },
+            new("A considerably longer header title", new("long")) { Width = TableLength.Auto, MinWidth = 1f }
         ];
 
         var gui = RunFrame(columns);

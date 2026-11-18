@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 /// <summary>Where a column's content sits horizontally inside its cells.</summary>
@@ -33,18 +35,27 @@ public enum TablePin
 public sealed class TableColumn
 {
     /// <summary>Creates a column.</summary>
-    /// <param name="id">Stable key for column state and for the source's <c>GetValue</c>; unique in a table.</param>
     /// <param name="title">The header text.</param>
-    public TableColumn(string id, string title)
+    /// <param name="id">
+    /// Stable key for column state and for the source's <c>GetValue</c>; unique in a table. Left out, it is
+    /// derived from the declaring file's name and line. That derived key changes when the line moves, which
+    /// silently orphans any persisted state, so give every column whose state is persisted across sessions
+    /// an explicit id. Columns created on one line, in a loop for instance, need explicit ids as well.
+    /// </param>
+    /// <param name="filePath">Call site, supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
+    public TableColumn(string title, TableColumnId? id = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(title);
-        Id = id;
+        var key = id ?? TableColumnId.FromSite(filePath, lineNumber);
+        ArgumentException.ThrowIfNullOrEmpty(key.Value, nameof(id));
+        Id = key;
         Title = title;
     }
 
     /// <summary>Stable key for column state and for the source's <c>GetValue</c>.</summary>
-    public string Id { get; }
+    public TableColumnId Id { get; }
 
     /// <summary>The header text.</summary>
     public string Title { get; }

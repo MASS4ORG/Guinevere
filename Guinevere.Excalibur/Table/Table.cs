@@ -4,6 +4,9 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
+    const string EmptyId = "table/table-empty";
+    const string LoadingId = "table/table-loading";
+
     static readonly string[] OddRow = ["odd"];
 
     /// <summary>
@@ -36,11 +39,11 @@ public static partial class ControlsExtensions
         options ??= TableOptions.Default;
         theme ??= TableTheme.Default;
 
-        var shown = ShownColumns(state, columns);
-        var layout = TableLayout.Resolve(shown, state.FrameViewportWidth, AutoWidths(gui, state, theme, shown));
+        state.Cache.Begin(columns);
+        var layout = ResolveLayout(gui, state, theme);
         var (first, last) = options.VirtualizeColumns
             ? layout.Window(state.FrameScrollX, state.FrameViewportWidth, theme.ColumnOverscan)
-            : (0, shown.Length);
+            : (0, layout.Columns.Length);
 
         using (gui.StyledNode("table", classes, id, filePath: filePath, lineNumber: lineNumber)
                    .Expand().Direction(Axis.Vertical).Enter())
@@ -50,38 +53,21 @@ public static partial class ControlsExtensions
         }
     }
 
-    /// <summary>The columns the table lays out: those visible by default, in the order given.</summary>
-    static TableColumn[] ShownColumns(TableState state, IReadOnlyList<TableColumn> columns)
+    /// <summary>
+    /// The column geometry for this frame, reused until the columns, the width they share or the text
+    /// metrics change. Header-sized widths are measured once per column and metrics.
+    /// </summary>
+    static TableLayout ResolveLayout(Gui gui, TableState state, TableTheme theme)
     {
-        if (!ReferenceEquals(state.CheckedColumns, columns))
+        var cache = state.Cache;
+        var width = state.FrameViewportWidth;
+        if (cache.TryLayout(width, theme.FontSize, theme.CellPadding, out var layout))
         {
-            var ids = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var column in columns)
-            {
-                if (!ids.Add(column.Id))
-                {
-                    throw new ArgumentException($"Table column id '{column.Id}' is used twice.", nameof(columns));
-                }
-            }
-
-            state.CheckedColumns = columns;
+            return layout;
         }
 
-        var shown = new List<TableColumn>(columns.Count);
-        foreach (var column in columns)
-        {
-            if (column.InitiallyVisible)
-            {
-                shown.Add(column);
-            }
-        }
-
-        return [.. shown];
-    }
-
-    static float[] AutoWidths(Gui gui, TableState state, TableTheme theme, TableColumn[] shown)
-    {
-        var widths = new float[shown.Length];
+        var shown = cache.Shown;
+        var autoWidths = new float[shown.Length];
         for (var i = 0; i < shown.Length; i++)
         {
             var column = shown[i];
@@ -90,11 +76,17 @@ public static partial class ControlsExtensions
                 continue;
             }
 
-            widths[i] = state.AutoWidth(column, theme.FontSize, () =>
-                MeasureTextWidth(MeasuringFont(gui, theme.FontSize), column.Title) + (theme.CellPadding * 2f));
+            if (!cache.TryAutoWidth(column.Id, theme.FontSize, theme.CellPadding, out autoWidths[i]))
+            {
+                autoWidths[i] = MeasureTextWidth(MeasuringFont(gui, theme.FontSize), column.Title)
+                                + (theme.CellPadding * 2f);
+                cache.StoreAutoWidth(column.Id, theme.FontSize, theme.CellPadding, autoWidths[i]);
+            }
         }
 
-        return widths;
+        layout = TableLayout.Resolve(shown, width, autoWidths);
+        cache.StoreLayout(layout, width, theme.FontSize, theme.CellPadding);
+        return layout;
     }
 
     static void TableBody(Gui gui, TableState state, ITableViewSource source, TableOptions options,
@@ -107,25 +99,32 @@ public static partial class ControlsExtensions
             var count = source.RowCount;
             if (count == 0)
             {
-                Placeholder(gui, source.IsLoading ? "table-loading" : "table-empty", theme,
-                    source.IsLoading ? options.LoadingText : options.EmptyText);
+                if (source.IsLoading)
+                {
+                    Placeholder(gui, "table-loading", LoadingId, theme, options.LoadingText);
+                }
+                else
+                {
+                    Placeholder(gui, "table-empty", EmptyId, theme, options.EmptyText);
+                }
             }
             else
             {
                 var window = VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, theme.RowHeight,
                     count, theme.RowOverscan);
+                state.Cache.Reserve(window.Last - window.First);
 
                 VirtualRows.Spacer(gui, "table/padTop", window.PadTop);
                 for (var row = window.First; row < window.Last; row++)
                 {
-                    TableRow(gui, source, theme, layout, row, firstColumn, lastColumn);
+                    TableRow(gui, state, source, theme, layout, row, firstColumn, lastColumn);
                 }
 
                 VirtualRows.Spacer(gui, "table/padBottom", window.PadBottom);
 
                 if (source.IsLoading)
                 {
-                    Placeholder(gui, "table-loading", theme, options.LoadingText, theme.RowHeight);
+                    Placeholder(gui, "table-loading", LoadingId, theme, options.LoadingText, theme.RowHeight);
                 }
             }
 
@@ -154,9 +153,9 @@ public static partial class ControlsExtensions
         state.FrameScrollY = measure.Y;
     }
 
-    static void Placeholder(Gui gui, string element, TableTheme theme, string text, float? height = null)
+    static void Placeholder(Gui gui, string element, string id, TableTheme theme, string text, float? height = null)
     {
-        using (gui.StyledNode(element, id: $"table/{element}").ExpandWidth().Height(height ?? theme.RowHeight * 3f)
+        using (gui.StyledNode(element, id: id).ExpandWidth().Height(height ?? theme.RowHeight * 3f)
                    .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
         {
             gui.DrawText(text, theme.FontSize, centerInRect: false);

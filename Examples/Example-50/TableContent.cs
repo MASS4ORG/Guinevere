@@ -7,7 +7,7 @@ public abstract partial class Program
     const int TableRows = 1_000_000;
     const int TableExtraColumns = 40;
 
-    static readonly TableState TableDemoState = new() { Sort = new TableSort("row") };
+    static readonly TableState TableDemoState = new() { Sort = new TableSort(new TableColumnId("row")) };
     static readonly TableOptions TableDemoOptions = new() { VirtualizeColumns = true };
     static readonly TableColumn[] TableDemoColumns = BuildTableColumns();
     static readonly GeneratedRows TableDemoSource = new(TableRows);
@@ -16,15 +16,15 @@ public abstract partial class Program
     {
         var columns = new List<TableColumn>
         {
-            new("row", "Row") { Width = 90f, Alignment = TableAlignment.Right },
-            new("name", "Name") { Width = TableLength.Star(2), MinWidth = 160f },
-            new("size", "Size (KB)") { Width = 100f, Alignment = TableAlignment.Right },
-            new("status", "Status") { Width = 90f, Renderer = new StatusRenderer() }
+            new("Row", new("row")) { Width = 90f, Alignment = TableAlignment.Right },
+            new("Name", new("name")) { Width = TableLength.Star(2), MinWidth = 160f },
+            new("Size (KB)", new("size")) { Width = 100f, Alignment = TableAlignment.Right },
+            new("Status", new("status")) { Width = 90f, Renderer = new StatusRenderer() }
         };
 
         for (var i = 0; i < TableExtraColumns; i++)
         {
-            columns.Add(new TableColumn($"extra{i}", $"Extra {i + 1}") { Width = 110f });
+            columns.Add(new TableColumn($"Extra {i + 1}", new($"extra{i}")) { Width = 110f });
         }
 
         return [.. columns];
@@ -58,7 +58,7 @@ public abstract partial class Program
             remove { }
         }
 
-        public object? GetValue(int row, TableColumn column) => column.Id switch
+        public object? GetValue(int row, TableColumn column) => column.Id.Value switch
         {
             "row" => row + 1,
             "name" => $"asset_{row:D7}.png",
