@@ -6,7 +6,7 @@ public abstract partial class Program
 {
     static int _scrollDemo;
     static string _scrollNodeId = "";
-    static readonly string[] ScrollDemoNames = ["List", "Nested", "Programmatic"];
+    static readonly string[] ScrollDemoNames = ["List", "Nested", "Programmatic", "Table"];
 
     static void ScrollingContent(Gui gui)
     {
@@ -72,6 +72,9 @@ public abstract partial class Program
                         break;
                     case 1:
                         NestedScroll(gui);
+                        break;
+                    case 3:
+                        TableDemo(gui);
                         break;
                     default:
                         ProgrammaticScroll(gui);

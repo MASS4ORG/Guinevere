@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Changed (breaking): Excalibur widgets return ControlNode
 - Changed (breaking): removed `alignX`, `AppBar` height, `TreeViewTheme` and `DockTheme`; sheets and the returned node set them #244
 - Fixed: unused node identities are evicted, so views that stream or scroll through many rows keep memory flat
+- Added: `Table` widget #66.
 
 ## [6.7.0] - 2026-11-13
 

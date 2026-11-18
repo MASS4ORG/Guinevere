@@ -434,6 +434,17 @@ tree-row {
 tree-expander { color = $text-dim; :hover { color = $text; } }
 tree-ghost { background-color = $md-secondary-container; border-radius = $md-shape-small; color = $md-on-secondary-container; }
 
+table { color = $text; }
+table-header { background-color = $surface-hover; border-bottom-color = $border; border-bottom-width = 1; }
+table-header-cell { color = $text-dim; :sorted { color = $text; } }
+table-row {
+    border-bottom-color = $divider;
+    border-bottom-width = 1;
+    :odd { background-color = alpha($text, 3%); }
+    :hover(0.1 ease-out) { background-color = alpha($text, 8%); }
+}
+table-empty, table-loading { color = $text-dim; }
+
 popup, dialog, toast { color = $text; }
 popup { background-color = $popup; border-radius = $md-shape-medium; box-shadow = 0 2 6 2 #00000026, 0 1 2 0 #0000004d; }
 dialog {

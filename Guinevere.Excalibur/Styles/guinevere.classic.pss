@@ -280,6 +280,17 @@ tree-row {
 tree-expander { color = $text-disabled; :hover { color = $text; } }
 tree-ghost { background-color = $selected; border-radius = 3; color = $text; }
 
+table { color = $text; }
+table-header { background-color = $surface-hover; border-bottom-color = $border; border-bottom-width = 1; }
+table-header-cell { color = $text-dim; :sorted { color = $text; } }
+table-row {
+    border-bottom-color = $divider;
+    border-bottom-width = 1;
+    :odd { background-color = alpha($text, 3%); }
+    :hover { background-color = $accent-subtle; }
+}
+table-empty, table-loading { color = $text-dim; }
+
 popup, dialog, toast { background-color = $popup; border-color = $border; border-width = 1; color = $text; }
 popup, toast { border-radius = 6; }
 dialog { border-radius = 8; }

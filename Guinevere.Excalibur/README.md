@@ -51,6 +51,7 @@ public partial class App
 | Text and values | `TextInput`, `PasswordInput`, `TextArea`, `NumberField`, `Slider`, `ObjectField` | Text editing, scrub editing, numeric ranges, and compact object fields. |
 | Display | `Image`, `ProgressBar`, `WrappedText`, `Toast`, `Toasts`, `ClearToasts` | Images, progress, wrapping, and transient notifications. |
 | Navigation | `Tabs`, `TabBar`, `TabStrip`, `PillTabs`, `VerticalTabs`, `Breadcrumb`, `TreeView`, `FileBrowser` | Tabs, trails, virtualised trees, and an embeddable filesystem picker. Tabs are closable only with `closable: true`. |
+| Data | `Table` | A virtualised table over a counted, indexed data source, with a sticky header, custom cell renderers and empty and loading states. |
 | Menus and overlays | `AppBar`, `MenuBar`, `Flyout`, `CascadeMenu`, `ContextMenu`, `Popup`, `ModalPopup`, `Dialog`, `Tooltip` | Application chrome, command menus, popovers, modal windows, and delayed help. |
 | Layout tools | `Splitter`, `DockSpace`, `DockLayout` | Resizable panes and persistent split/tab/float docking. |
 
@@ -162,6 +163,7 @@ Token names are the palette's property names in kebab case (`SurfaceHover` → `
 | `TabStrip` | `tabstrip`, `tab`, `marker`, `tab-close` | caller classes and `id` | tab `:hover`, `:selected`; `tab-close` `:hover` | tabstrip background; tab background/color; marker background; close radius |
 | `DockSpace`/`DockLayout` | `dockspace`, `dock-panel`, `dock-window`, `dock-grip`, `dock-empty`, `dock-ghost`, `dock-icon`, `drop-indicator`, `drop-preview` | `dock` on floating windows | — | background, border, radius, color and cursor per element; tab icon `width`; dock splitter thickness through `splitter.dock` |
 | `TreeView` | `treeview`, `tree-row`, `tree-expander`, `tree-icon`, `tree-ghost` | caller classes and `id` | row `:hover`, `:selected`; expander `:hover` | treeview color and font-size; row background/radius, `height`, `indent`, `inset`; expander color and width; icon width; ghost background/radius/color |
+| `Table` | `table`, `table-header`, `table-header-cell`, `table-body`, `table-row`, `table-cell`, `table-empty`, `table-loading` | caller classes and `id` on `table` | header cell `:sorted`, `:ascending`, `:descending`; row `:odd`, `:hover` | table color; header background/border; header cell color; row background/border; empty and loading color |
 | scrollbar | `scrollbar`, child `thumb` (drawn by the styling package) | — | thumb `:hover`, `:active` | scrollbar background; thumb background/radius |
 | `Popup` | `popup`, `popup-content`, `popup-title`, `overlay` | caller classes and `id` | `:closed` while hidden | popup background/border/radius; title background/color; overlay background |
 | `Dialog` | `dialog`, `dialog-title`, `dialog-content`, `dialog-footer`, `dialog-close` | caller classes and `id` | `:closed`; close `:hover` | dialog background/border/radius; title/color; footer border; close radius/color |
@@ -382,6 +384,28 @@ var items = new List<TreeItem>
 
 gui.TreeView(state, items, onClick: e => SelectedPath = e.Item.Label);
 ```
+
+## Table
+
+A table reads its data through `ITableViewSource`, which is counted and indexed: it asks for the row count and then for the value of each cell in view, and never enumerates the dataset. Only the rows in the viewport become layout nodes, so a source of millions of rows costs what one that fills the screen does. Columns are immutable `TableColumn` definitions keyed by `Id`; share one list between frames and keep a `TableState` alongside it.
+
+```csharp
+var state = new TableState();
+TableColumn[] columns =
+[
+    new("name", "Name") { Width = TableLength.Star(2) },
+    new("size", "Size") { Width = 90f, Alignment = TableAlignment.Right },
+    new("status", "Status") { Width = 90f, Renderer = new StatusBadgeRenderer() },
+];
+
+gui.Table(state, source, columns);
+```
+
+`TableLength` is pixels, a weighted `Star` share of what the fixed and auto columns leave, or `Auto`; `MinWidth` and `MaxWidth` bound all three. `Auto` is as wide as the header text only: the table never scans the dataset to measure cells, so give a column whose content is wider than its title a fixed or star width. A column without a `Renderer` draws its value as text. `ITableCellRenderer.Render` builds the content inside a cell the table has already sized, clipped and aligned. `TableColumn.InitiallyVisible = false` leaves a column out. `Pin` is part of the definition but the table does not apply it yet.
+
+The header stays at the top while the rows scroll and follows the body sideways. `TableOptions.VirtualizeColumns` builds only the columns in view, which pays off with hundreds of columns. A source with no rows shows `EmptyText`; a source that reports `IsLoading` shows `LoadingText` in place of the rows, or below them when it already has some. Row height is fixed (`TableTheme.RowHeight`), which is what keeps the scroll arithmetic exact.
+
+Sorting belongs to the source: an `ISortableTableViewSource` reorders the rows it exposes in `ApplySort`, and the table never sorts a dataset it does not hold. Set `TableState.Sort` to the order you applied and the header marks it.
 
 ## Docking
 
