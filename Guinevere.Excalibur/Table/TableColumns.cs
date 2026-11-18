@@ -34,16 +34,26 @@ sealed class TableColumnSet
             }
         }
 
-        Shown = [.. All.Where(static column => column.InitiallyVisible)];
+        ShownOrder = [.. PositionsOf(TablePin.Left), .. PositionsOf(TablePin.None), .. PositionsOf(TablePin.Right)];
+        Shown = [.. ShownOrder.Select(i => All[i])];
         HeaderIds = [.. Shown.Select(static column => "table/header/" + column.Id)];
         CellSuffixes = [.. Shown.Select(static column => "/" + column.Id)];
+
+        IEnumerable<int> PositionsOf(TablePin pin) =>
+            Enumerable.Range(0, All.Length).Where(i => All[i].InitiallyVisible && All[i].Pin == pin);
     }
 
     /// <summary>Every column, in the order given.</summary>
     public TableColumn[] All { get; }
 
-    /// <summary>The columns laid out: those visible by default, in the order given.</summary>
+    /// <summary>
+    /// The columns laid out: those visible by default. Left-pinned columns come first, then the others, then
+    /// right-pinned ones; each group keeps the order given.
+    /// </summary>
     public TableColumn[] Shown { get; }
+
+    /// <summary>Positions in <see cref="All"/> of the columns in <see cref="Shown"/>, in the same order.</summary>
+    public int[] ShownOrder { get; }
 
     /// <summary>Node id of each shown column's header cell.</summary>
     public string[] HeaderIds { get; }
@@ -77,7 +87,7 @@ public sealed class TableColumns<TRow> : IReadOnlyList<TableColumn<TRow>>
         ArgumentNullException.ThrowIfNull(columns);
         _columns = [.. columns];
         Set = new TableColumnSet(_columns);
-        Shown = [.. _columns.Where(static column => column.InitiallyVisible)];
+        Shown = [.. Set.ShownOrder.Select(i => _columns[i])];
     }
 
     /// <summary>The number of columns, hidden ones included.</summary>

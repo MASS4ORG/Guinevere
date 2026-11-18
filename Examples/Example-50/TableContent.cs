@@ -10,7 +10,7 @@ public abstract partial class Program
     static readonly string[] TableStatuses = ["Ready", "Building", "Failed"];
 
     static readonly TableColumn<int, int> TableRowColumn = TableColumn<int>.Of("Row", static row => row + 1,
-        id: "row", width: 90f, alignment: TableAlignment.Right);
+        id: "row", width: 90f, alignContentX: 1f);
 
     static readonly TableColumns<int> TableDemoColumns = BuildTableColumns();
     static readonly TableState TableDemoState = BuildTableState();
@@ -36,7 +36,7 @@ public abstract partial class Program
             TableColumn<int>.Of("Name", static row => $"asset_{row:D7}.png", width: TableLength.Star(2),
                 minWidth: 160f),
             TableColumn<int>.Of("Size (KB)", static row => (row * 37 % 9000) + 12, id: "size", width: 100f,
-                alignment: TableAlignment.Right),
+                alignContentX: 1f),
             TableColumn<int>.Of("Status", static row => TableStatuses[row % TableStatuses.Length], width: 90f,
                 renderer: new StatusRenderer())
         };

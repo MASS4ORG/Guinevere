@@ -21,7 +21,7 @@ public class TableModelTests
 
         Assert.True(column.InitiallyVisible);
         Assert.Equal(TablePin.None, column.Pin);
-        Assert.Equal(TableAlignment.Left, column.Alignment);
+        Assert.Equal(0, column.AlignContentX);
         Assert.Equal(TableLengthKind.Star, column.Width.Kind);
         Assert.Equal(48f, column.MinWidth);
         Assert.Equal(float.PositiveInfinity, column.MaxWidth);
@@ -32,14 +32,14 @@ public class TableModelTests
     public void TheFactoryAndTheConstructorWithInitializersBuildTheSameColumn()
     {
         var made = TableColumn<int>.Of("Size", static row => row, id: "bytes", width: 90f, minWidth: 30f,
-            maxWidth: 200f, alignment: TableAlignment.Right, pin: TablePin.Left, visible: false);
+            maxWidth: 200f, alignContentX: 1, pin: TablePin.Left, visible: false);
         var built = new TableColumn<int, int>("Size", static row => row)
         {
             Id = "bytes",
             Width = 90f,
             MinWidth = 30f,
             MaxWidth = 200f,
-            Alignment = TableAlignment.Right,
+            AlignContentX = 1,
             Pin = TablePin.Left,
             InitiallyVisible = false
         };
@@ -48,7 +48,7 @@ public class TableModelTests
         Assert.Equal(built.Width, made.Width);
         Assert.Equal(built.MinWidth, made.MinWidth);
         Assert.Equal(built.MaxWidth, made.MaxWidth);
-        Assert.Equal(built.Alignment, made.Alignment);
+        Assert.Equal(built.AlignContentX, made.AlignContentX);
         Assert.Equal(built.Pin, made.Pin);
         Assert.Equal(built.InitiallyVisible, made.InitiallyVisible);
     }

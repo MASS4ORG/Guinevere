@@ -51,7 +51,7 @@ public static partial class ControlsExtensions
 
         using (gui.StyledNode("table-header-cell", id: id, modifiers: modifiers)
                    .Width(width).Height(theme.HeaderHeight).Direction(Axis.Horizontal).Gap(4f)
-                   .PaddingX(theme.CellPadding).ContentAlignX(AlignOf(column.Alignment)).ContentAlignY(0.5f).Enter())
+                   .PaddingX(theme.CellPadding).AlignContentX(column.AlignContentX).AlignContentY(column.AlignmentY).Enter())
         {
             gui.ClipContent();
             if (column.Header is { } content)
@@ -99,18 +99,12 @@ public static partial class ControlsExtensions
     {
         using (gui.StyledNode("table-cell", id: state.Cache.CellId(slot, index))
                    .Width(width).Height(theme.RowHeight).Direction(Axis.Horizontal).PaddingX(theme.CellPadding)
-                   .ContentAlignX(AlignOf(column.Alignment)).ContentAlignY(0.5f).Enter())
+                   .AlignContentX(column.AlignContentX).AlignContentY(column.AlignmentY)
+                   .Enter())
         {
             gui.ClipContent();
             column.RenderCell(gui, item, new TableCellFrame<TRow>(slot.Row, index, slot, state.Cache, source, state,
                 theme.FontSize, width, theme.RowHeight));
         }
     }
-
-    static float AlignOf(TableAlignment alignment) => alignment switch
-    {
-        TableAlignment.Center => 0.5f,
-        TableAlignment.Right => 1f,
-        _ => 0f
-    };
 }

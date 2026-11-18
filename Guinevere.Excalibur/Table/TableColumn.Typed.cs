@@ -26,7 +26,8 @@ public abstract class TableColumn<TRow> : TableColumn
     /// <param name="width">How the width is decided; an equal share of the free width by default.</param>
     /// <param name="minWidth">The narrowest the column may be, in pixels.</param>
     /// <param name="maxWidth">The widest the column may be, in pixels.</param>
-    /// <param name="alignment">Where the header and cell content sit.</param>
+    /// <param name="alignContentX">Where the header and cell content sit.</param>
+    /// <param name="alignmentY">Where the header and cell content sit.</param>
     /// <param name="pin">Which edge the column is held at while the rest scrolls sideways.</param>
     /// <param name="visible">Whether the column is shown before the user has chosen otherwise.</param>
     /// <param name="comparer">Orders the values; makes a column sortable whose type has no natural order.</param>
@@ -34,7 +35,7 @@ public abstract class TableColumn<TRow> : TableColumn
     /// <param name="header">Draws the header instead of the title text: an icon, localized text, a widget.</param>
     public static TableColumn<TRow, TValue> Of<TValue>(string title, Func<TRow, TValue> value, string? id = null,
         TableLength? width = null, float? minWidth = null, float? maxWidth = null,
-        TableAlignment alignment = TableAlignment.Left, TablePin pin = TablePin.None, bool visible = true,
+        float alignContentX = 0f, float alignmentY = 0f, TablePin pin = TablePin.None, bool visible = true,
         IComparer<TValue>? comparer = null, ITableCellRenderer<TRow, TValue>? renderer = null,
         ITableHeaderContent? header = null) =>
         new(title, value, comparer, renderer)
@@ -44,7 +45,8 @@ public abstract class TableColumn<TRow> : TableColumn
             Width = width ?? DefaultWidth,
             MinWidth = minWidth ?? DefaultMinWidth,
             MaxWidth = maxWidth ?? float.PositiveInfinity,
-            Alignment = alignment,
+            AlignContentX = alignContentX,
+            AlignmentY = alignmentY,
             Pin = pin,
             InitiallyVisible = visible
         };
@@ -58,17 +60,19 @@ public abstract class TableColumn<TRow> : TableColumn
     /// <param name="width">How the width is decided; an equal share of the free width by default.</param>
     /// <param name="minWidth">The narrowest the column may be, in pixels.</param>
     /// <param name="maxWidth">The widest the column may be, in pixels.</param>
-    /// <param name="alignment">Where the header and cell content sit.</param>
+    /// <param name="alignmentX">Where the header and cell content sit.</param>
+    /// <param name="alignmentY">Where the header and cell content sit.</param>
     /// <param name="pin">Which edge the column is held at while the rest scrolls sideways.</param>
     /// <param name="visible">Whether the column is shown before the user has chosen otherwise.</param>
     /// <param name="comparer">Orders the rows; makes the column sortable when the row type has no natural order.</param>
     /// <param name="renderer">Draws the cell from the row; text of the row when null.</param>
     /// <param name="header">Draws the header instead of the title text: an icon, localized text, a widget.</param>
     public static TableColumn<TRow, TRow> Row(string title, string? id = null, TableLength? width = null,
-        float? minWidth = null, float? maxWidth = null, TableAlignment alignment = TableAlignment.Left,
+        float? minWidth = null, float? maxWidth = null, float alignmentX = 0, float alignmentY = 0,
         TablePin pin = TablePin.None, bool visible = true, IComparer<TRow>? comparer = null,
         ITableCellRenderer<TRow, TRow>? renderer = null, ITableHeaderContent? header = null) =>
-        Of(title, static row => row, id, width, minWidth, maxWidth, alignment, pin, visible, comparer, renderer,
+        Of(title, static row => row, id, width, minWidth, maxWidth, alignmentX, alignmentY, pin, visible, comparer,
+            renderer,
             header);
 }
 

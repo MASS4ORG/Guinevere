@@ -2,19 +2,6 @@ using System.Text;
 
 namespace Guinevere;
 
-/// <summary>Where a column's content sits horizontally inside its cells.</summary>
-public enum TableAlignment
-{
-    /// <summary>At the leading edge.</summary>
-    Left,
-
-    /// <summary>Centered.</summary>
-    Center,
-
-    /// <summary>At the trailing edge, as numbers read best.</summary>
-    Right
-}
-
 /// <summary>Whether a column stays in view while the rest of the table scrolls sideways.</summary>
 public enum TablePin
 {
@@ -106,7 +93,10 @@ public abstract class TableColumn
     public float MaxWidth { get; init; } = float.PositiveInfinity;
 
     /// <summary>Where the header and cell content sit inside the column.</summary>
-    public TableAlignment Alignment { get; init; } = TableAlignment.Left;
+    public float AlignContentX { get; init; }
+
+    /// <summary>Where the header and cell content sit inside the column.</summary>
+    public float AlignmentY { get; protected init; } = .5f;
 
     /// <summary>Whether the column stays at an edge while the rest scrolls sideways.</summary>
     public TablePin Pin { get; init; } = TablePin.None;

@@ -11,9 +11,21 @@ sealed class TableLayout
         Columns = columns;
         Widths = widths;
         Offsets = offsets;
+
+        LeftCount = 0;
+        while (LeftCount < columns.Length && columns[LeftCount].Pin == TablePin.Left)
+        {
+            LeftCount++;
+        }
+
+        RightStart = columns.Length;
+        while (RightStart > LeftCount && columns[RightStart - 1].Pin == TablePin.Right)
+        {
+            RightStart--;
+        }
     }
 
-    /// <summary>The visible columns in display order.</summary>
+    /// <summary>The visible columns in display order: left-pinned, then scrolling, then right-pinned.</summary>
     public TableColumn[] Columns { get; }
 
     /// <summary>The width of each column.</summary>
@@ -24,6 +36,18 @@ sealed class TableLayout
 
     /// <summary>The width of every column together.</summary>
     public float Total => Offsets[^1];
+
+    /// <summary>How many leading columns are pinned left; they never scroll.</summary>
+    public int LeftCount { get; }
+
+    /// <summary>The index of the first right-pinned column; the columns from here to the end are pinned right.</summary>
+    public int RightStart { get; }
+
+    /// <summary>The width of the left-pinned columns together.</summary>
+    public float LeftWidth => Offsets[LeftCount];
+
+    /// <summary>The width of the right-pinned columns together.</summary>
+    public float RightWidth => Total - Offsets[RightStart];
 
     /// <summary>
     /// Decides every column's width. Fixed and auto columns take their size within their limits, and star
@@ -69,25 +93,30 @@ sealed class TableLayout
         return new TableLayout(columns, widths, offsets);
     }
 
-    /// <summary>The columns whose cells touch the viewport, widened by <paramref name="overscan"/> on each side.</summary>
-    /// <param name="scrollX">How far the body is scrolled sideways.</param>
-    /// <param name="viewportWidth">The width in view.</param>
+    /// <summary>
+    /// The scrolling columns whose cells touch the space the pinned columns leave in view, widened by
+    /// <paramref name="overscan"/> on each side. Pinned columns are not in the window; they are always built.
+    /// </summary>
+    /// <param name="scrollX">How far the scrolling columns are scrolled sideways.</param>
+    /// <param name="viewportWidth">The width the whole table shows, pinned columns included.</param>
     /// <param name="overscan">Columns kept built beyond each edge.</param>
     public (int First, int Last) Window(float scrollX, float viewportWidth, int overscan)
     {
-        var first = 0;
-        while (first < Columns.Length - 1 && Offsets[first + 1] <= scrollX)
+        var origin = Offsets[LeftCount];
+        var scrollWidth = viewportWidth - LeftWidth - RightWidth;
+        var first = LeftCount;
+        while (first < RightStart - 1 && Offsets[first + 1] - origin <= scrollX)
         {
             first++;
         }
 
         var last = first + 1;
-        while (last < Columns.Length && Offsets[last] < scrollX + viewportWidth)
+        while (last < RightStart && Offsets[last] - origin < scrollX + scrollWidth)
         {
             last++;
         }
 
-        return (Math.Max(0, first - overscan), Math.Min(Columns.Length, last + overscan));
+        return (Math.Max(LeftCount, first - overscan), Math.Min(RightStart, last + overscan));
     }
 
     static float Limit(TableColumn column, float width) =>

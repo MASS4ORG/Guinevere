@@ -183,7 +183,7 @@ public class TableTests : TableTestBase
         var columns = new TableColumns<Item>(
         [
             TableColumn<Item>.Of("Version", static item => item.Version),
-            TableColumn<Item>.Of("Downloads", static item => item.Downloads, alignment: TableAlignment.Right),
+            TableColumn<Item>.Of("Downloads", static item => item.Downloads, alignContentX: 1),
             TableColumn<Item>.Row("Actions", renderer: spy)
         ]);
 
@@ -369,7 +369,7 @@ public class TableTests : TableTestBase
     public void ARightAlignedCellSitsAtItsTrailingEdge()
     {
         var columns = new TableColumns<int>(
-            [TableColumn<int>.Of("N", static row => $"n{row}", width: 200f, alignment: TableAlignment.Right)]);
+            [TableColumn<int>.Of("N", static row => $"n{row}", width: 200f, alignContentX: 1)]);
         var gui = RunFrames(new GridSource(1), columns, frames: 2);
 
         var cell = gui.RootNode!.FindChildById("table/row0/n")!;
@@ -397,7 +397,7 @@ public class TableTests : TableTestBase
     {
         var values = new[] { 5, 5, 5 };
         var columns = new TableColumns<int>(
-            [TableColumn<int>.Of("Value", row => values[row], id: "value", alignment: TableAlignment.Left)]);
+            [TableColumn<int>.Of("Value", row => values[row], id: "value", alignContentX: 0)]);
         var source = new GridSource(3);
         var state = new TableState();
         var gui = RunFrames(source, columns, state, frames: 2);

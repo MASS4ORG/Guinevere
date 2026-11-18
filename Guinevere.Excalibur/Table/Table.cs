@@ -164,7 +164,7 @@ public static partial class ControlsExtensions
     static void Placeholder(Gui gui, string element, string id, TableTheme theme, string text, float? height = null)
     {
         using (gui.StyledNode(element, id: id).ExpandWidth().Height(height ?? theme.RowHeight * 3f)
-                   .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+                   .AlignContentX(0.5f).AlignContentY(0.5f).Enter())
         {
             gui.DrawText(text, theme.FontSize, centerInRect: false);
         }
