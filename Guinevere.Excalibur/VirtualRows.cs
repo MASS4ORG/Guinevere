@@ -38,6 +38,26 @@ static class VirtualRows
         return new RowWindow(first, last, first * stride, (count - last) * stride);
     }
 
+    /// <summary>
+    /// The rows to build for a viewport over rows of differing height, the same contract as the fixed-stride
+    /// overload. Positions come from <paramref name="rows"/>, so the spacers match rows with extra height.
+    /// </summary>
+    /// <param name="scroll">Scroll offset along the list.</param>
+    /// <param name="viewport">Viewport extent along the list.</param>
+    /// <param name="rows">Where each row sits.</param>
+    /// <param name="overscan">Rows kept built beyond each edge, so a fast scroll shows no gap.</param>
+    public static RowWindow Window(float scroll, float viewport, IRowOffsets rows, int overscan)
+    {
+        if (rows.Count == 0)
+        {
+            return new RowWindow(0, 0, 0f, 0f);
+        }
+
+        var first = Math.Max(0, rows.RowAt(scroll) - overscan);
+        var last = Math.Min(rows.Count, rows.RowAt(scroll + viewport) + 1 + overscan);
+        return new RowWindow(first, last, rows.TopOf(first), rows.Total - rows.TopOf(last));
+    }
+
     /// <summary>Records the current scrolling node's viewport and offset for the next frame to build against.</summary>
     /// <param name="gui">The GUI whose current node scrolls.</param>
     public static ScrollMeasure Measure(Gui gui)

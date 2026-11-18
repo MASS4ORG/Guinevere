@@ -2,8 +2,9 @@ namespace Guinevere.Tests.Controls;
 
 /// <summary>
 /// Covers the built-in in-memory source: the order it produces for one and several keys, that it never touches
-/// the rows, that identity follows the row and not its position, and that it sorts without allocating beyond
-/// its one permutation.
+/// the rows, that identity follows the row and not its position, that every change shows only at the next frame
+/// start, that a replaced list keeps sort and identities, and that it sorts without allocating beyond its one
+/// permutation.
 /// </summary>
 public class ListTableSourceTests
 {
@@ -12,6 +13,8 @@ public class ListTableSourceTests
     static readonly TableColumn<Item> Size = TableColumn<Item>.Of("Size", static item => item.Size);
     static readonly TableColumn<Item> Opaque = TableColumn<Item>.Of("Opaque", static item => item.Opaque);
     static readonly TableColumn<Item> Whole = TableColumn<Item>.Row("Whole");
+
+    static long _frames;
 
     [Fact]
     public void WithNoSortTheRowsComeInTheirOwnOrderWithTheirIdentity()
@@ -29,10 +32,10 @@ public class ListTableSourceTests
     {
         var source = Source([new(1, "b", "x", 3), new(2, "a", "x", 1), new(3, "c", "x", 2)]);
 
-        source.ApplySort([new TableSort(Name)]);
+        Sort(source, new TableSort(Name));
         Assert.Equal(["a", "b", "c"], Names(source));
 
-        source.ApplySort([new TableSort(Name, TableSortDirection.Descending)]);
+        Sort(source, new TableSort(Name, TableSortDirection.Descending));
         Assert.Equal(["c", "b", "a"], Names(source));
     }
 
@@ -43,7 +46,7 @@ public class ListTableSourceTests
             comparer: Comparer<int>.Create(static (a, b) => b.CompareTo(a)));
         var source = Source([new(1, "a", "x", 1), new(2, "b", "x", 3), new(3, "c", "x", 2)]);
 
-        source.ApplySort([new TableSort(reversed)]);
+        Sort(source, new TableSort(reversed));
 
         Assert.Equal(["b", "c", "a"], Names(source));
     }
@@ -55,7 +58,7 @@ public class ListTableSourceTests
             static (a, b) => string.CompareOrdinal(a.Name, b.Name)));
         var source = Source([new(1, "b", "x", 0), new(2, "a", "x", 0)]);
 
-        source.ApplySort([new TableSort(byName)]);
+        Sort(source, new TableSort(byName));
 
         Assert.Equal(["a", "b"], Names(source));
     }
@@ -69,10 +72,10 @@ public class ListTableSourceTests
             new(4, "s", "a", 2), new(5, "t", "b", 2), new(6, "u", "a", 1)
         ]);
 
-        source.ApplySort([new TableSort(Category), new TableSort(Size, TableSortDirection.Descending), new TableSort(Name)]);
+        Sort(source, new TableSort(Category), new TableSort(Size, TableSortDirection.Descending), new TableSort(Name));
         Assert.Equal(["q", "s", "u", "p", "t", "r"], Names(source));
 
-        source.ApplySort([new TableSort(Category), new TableSort(Size)]);
+        Sort(source, new TableSort(Category), new TableSort(Size));
         Assert.Equal(["u", "q", "s", "r", "p", "t"], Names(source));
     }
 
@@ -80,16 +83,16 @@ public class ListTableSourceTests
     public void AnEmptyKeyListRestoresTheOriginalOrder()
     {
         var source = Source([new(1, "b", "x", 0), new(2, "a", "x", 0)]);
-        source.ApplySort([new TableSort(Name)]);
+        Sort(source, new TableSort(Name));
         Assert.Equal(["a", "b"], Names(source));
 
-        source.ApplySort([]);
+        Sort(source);
 
         Assert.Equal(["b", "a"], Names(source));
     }
 
     [Fact]
-    public void ApplyingASortRaisesInvalidated()
+    public void EveryChangeRaisesInvalidated()
     {
         var source = Source([new(1, "a", "x", 0)]);
         var raised = 0;
@@ -97,8 +100,9 @@ public class ListTableSourceTests
 
         source.ApplySort([new TableSort(Name)]);
         source.Refresh();
+        source.Replace([new Item(2, "b", "x", 0)]);
 
-        Assert.Equal(2, raised);
+        Assert.Equal(3, raised);
     }
 
     [Fact]
@@ -110,6 +114,7 @@ public class ListTableSourceTests
         Assert.Throws<ArgumentException>(() => source.ApplySort([new TableSort(Opaque)]));
         Assert.Throws<ArgumentException>(() => source.ApplySort([new TableSort(Whole)]));
         Assert.Throws<ArgumentException>(() => source.ApplySort([new TableSort(Name), new TableSort(foreign)]));
+        Publish(source);
 
         Assert.Equal(["b", "a"], Names(source));
     }
@@ -121,7 +126,7 @@ public class ListTableSourceTests
         var before = source.GetRowIdentity(0);
         Assert.Equal("b", source[0].Name);
 
-        source.ApplySort([new TableSort(Name)]);
+        Sort(source, new TableSort(Name));
 
         Assert.Equal("a", source[0].Name);
         Assert.Equal("20", source.GetRowIdentity(0).Key);
@@ -130,13 +135,81 @@ public class ListTableSourceTests
     }
 
     [Fact]
-    public void AddingRowsIsNoticedOnTheNextReadAndKeepsTheSort()
+    public void AChangeOnlyShowsAtTheNextFrameStartNeverInTheMiddleOfAFrame()
+    {
+        var source = Source([new(1, "b", "x", 0), new(2, "a", "x", 0)]);
+        Publish(source);
+
+        source.ApplySort([new TableSort(Name)]);
+        source.Replace([new Item(9, "z", "x", 0)]);
+
+        Assert.Equal(2, source.RowCount);
+        Assert.Equal(["b", "a"], Names(source));
+
+        Publish(source);
+
+        Assert.Equal(1, source.RowCount);
+        Assert.Equal(["z"], Names(source));
+    }
+
+    [Fact]
+    public void PublishingTwiceForTheSameFrameDoesNothingTheSecondTime()
+    {
+        var source = Source([new(1, "b", "x", 0)]);
+        source.BeginFrame(7);
+
+        source.Replace([new Item(2, "a", "x", 0), new Item(3, "c", "x", 0)]);
+        source.BeginFrame(7);
+        Assert.Equal(1, source.RowCount);
+
+        source.BeginFrame(8);
+        Assert.Equal(2, source.RowCount);
+    }
+
+    [Fact]
+    public void AReplacedListKeepsTheSortAndTheIdentitiesOfRowsThatSurvive()
+    {
+        var source = Source([new(1, "c", "x", 0), new(2, "a", "x", 0), new(3, "b", "x", 0)]);
+        Sort(source, new TableSort(Name));
+        Assert.Equal("2", source.GetRowIdentity(0).Key);
+
+        source.Replace([new Item(1, "c", "x", 0), new Item(2, "a2", "x", 0), new Item(3, "b", "x", 0), new Item(4, "d", "x", 0)]);
+        Publish(source);
+
+        Assert.Equal(["a2", "b", "c", "d"], Names(source));
+        Assert.Equal(["2", "3", "1", "4"], Identities(source));
+    }
+
+    [Fact]
+    public async Task ReplaceMayBeCalledFromAnotherThread()
+    {
+        var source = Source([new(1, "a", "x", 0)]);
+        var raisedOn = -1;
+        source.Invalidated += (_, _) => raisedOn = Environment.CurrentManagedThreadId;
+
+        var workerThread = -1;
+        await Task.Run(() =>
+        {
+            workerThread = Environment.CurrentManagedThreadId;
+            source.Replace([new Item(2, "b", "x", 0), new Item(3, "c", "x", 0)]);
+        }, TestContext.Current.CancellationToken);
+        Publish(source);
+
+        Assert.Equal(2, source.RowCount);
+        Assert.Equal(["b", "c"], Names(source));
+        Assert.Equal(workerThread, raisedOn);
+    }
+
+    [Fact]
+    public void AListEditedInPlaceBetweenFramesIsNoticedThroughItsCountAndKeepsTheSort()
     {
         List<Item> rows = [new(1, "c", "x", 0), new(2, "a", "x", 0)];
         var source = new ListTableSource<Item>(rows, static item => item.Id.ToString());
-        source.ApplySort([new TableSort(Name)]);
+        Sort(source, new TableSort(Name));
 
         rows.Add(new(3, "b", "x", 0));
+        Assert.Equal(2, source.RowCount);
+        Publish(source);
 
         Assert.Equal(3, source.RowCount);
         Assert.Equal(["a", "b", "c"], Names(source));
@@ -147,10 +220,11 @@ public class ListTableSourceTests
     {
         var rows = new Item[] { new(1, "a", "x", 0), new(2, "b", "x", 0) };
         var source = new ListTableSource<Item>(rows, static item => item.Id.ToString());
-        source.ApplySort([new TableSort(Name)]);
+        Sort(source, new TableSort(Name));
 
         rows[0] = rows[0] with { Name = "z" };
         source.Refresh();
+        Publish(source);
 
         Assert.Equal(["b", "z"], Names(source));
     }
@@ -166,10 +240,11 @@ public class ListTableSourceTests
     }
 
     [Fact]
-    public void ItNeedsRowsAndAnIdentity()
+    public void ItNeedsRowsAnIdentityAndANewListToReplaceWith()
     {
         Assert.Throws<ArgumentNullException>(static () => new ListTableSource<Item>(null!, static item => item.Name));
         Assert.Throws<ArgumentNullException>(static () => new ListTableSource<Item>([], null!));
+        Assert.Throws<ArgumentNullException>(static () => Source([]).Replace(null!));
     }
 
     [Fact]
@@ -181,7 +256,7 @@ public class ListTableSourceTests
             .ToArray();
         var source = new ListTableSource<Item>(rows, static item => item.Id.ToString());
 
-        source.ApplySort([new TableSort(Category), new TableSort(Size, TableSortDirection.Descending), new TableSort(Name)]);
+        Sort(source, new TableSort(Category), new TableSort(Size, TableSortDirection.Descending), new TableSort(Name));
 
         var expected = rows.OrderBy(static r => r.Category, Comparer<string>.Default)
             .ThenByDescending(static r => r.Size).ThenBy(static r => r.Name, Comparer<string>.Default)
@@ -196,9 +271,12 @@ public class ListTableSourceTests
         var source = new ListTableSource<Item>(rows, static item => item.Id.ToString());
         TableSort[] keys = [new(Category), new(Size, TableSortDirection.Descending), new(Name)];
         source.ApplySort(keys);
+        Publish(source);
+        var frame = Interlocked.Increment(ref _frames);
 
         var before = GC.GetAllocatedBytesForCurrentThread();
         source.ApplySort(keys);
+        source.BeginFrame(frame);
         var sorting = GC.GetAllocatedBytesForCurrentThread() - before;
 
         before = GC.GetAllocatedBytesForCurrentThread();
@@ -214,8 +292,20 @@ public class ListTableSourceTests
 
     static ListTableSource<Item> Source(Item[] rows) => new(rows, static item => item.Id.ToString());
 
+    static void Publish<TRow>(ListTableSource<TRow> source) => source.BeginFrame(Interlocked.Increment(ref _frames));
+
+    /// <summary>Applies the keys and publishes them, as the next frame start would.</summary>
+    static void Sort(ListTableSource<Item> source, params TableSort[] keys)
+    {
+        source.ApplySort(keys);
+        Publish(source);
+    }
+
     static string[] Names(ListTableSource<Item> source) =>
         [.. Enumerable.Range(0, source.RowCount).Select(i => source[i].Name)];
+
+    static string[] Identities(ListTableSource<Item> source) =>
+        [.. Enumerable.Range(0, source.RowCount).Select(i => source.GetRowIdentity(i).Key)];
 
     /// <summary>A row; <see cref="Opaque"/> has no natural order.</summary>
     sealed record Item(int Id, string Name, string Category, int Size)

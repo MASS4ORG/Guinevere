@@ -21,20 +21,31 @@ public partial class GuiWindow
         _gui.WakeHost = _glfw.PostEmptyEvent;
         try
         {
-            if (!_window.IsInitialized)
+            // A draw that throws leaves the window library inside its render loop, where the reset below is
+            // skipped and a later reset throws. The lifecycle records that and lets the original exception
+            // through unchanged; Dispose then releases what it can without throwing.
+            _lifecycle.Run(() =>
             {
-                _window.Initialize();
-            }
+                if (!_window.IsInitialized)
+                {
+                    _window.Initialize();
+                }
 
-            _window.Run(RunFrame);
-            _window.DoEvents();
-            _window.Reset();
+                _window.Run(RunFrame);
+                _window.DoEvents();
+                _window.Reset();
+            });
         }
         finally
         {
             _gui.WakeHost = null;
         }
     }
+
+    readonly WindowLifecycle _lifecycle = new();
+
+    /// <summary>Releases one resource; a failure is reported and never stops the rest of the disposal.</summary>
+    void Teardown(string step, Action release) => _lifecycle.Teardown(step, release, ReportSuppressed);
 
     WindowState? _windowState;
 

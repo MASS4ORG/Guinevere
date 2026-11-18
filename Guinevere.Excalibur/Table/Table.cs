@@ -40,6 +40,7 @@ public static partial class ControlsExtensions
         options ??= TableOptions.Default;
         theme ??= TableTheme.Default;
 
+        state.BeginFrame(gui, source);
         if (state.Cache.Begin(columns.Set))
         {
             state.Sort.Rebind(columns.Set);
@@ -102,10 +103,11 @@ public static partial class ControlsExtensions
         {
             gui.Scroll();
 
-            var count = source.RowCount;
+            // The snapshot taken at the start of the frame, not the source's current values.
+            var count = state.FrameRowCount;
             if (count == 0)
             {
-                if (source.IsLoading)
+                if (state.FrameLoading)
                 {
                     Placeholder(gui, "table-loading", LoadingId, theme, options.LoadingText);
                 }
@@ -128,7 +130,7 @@ public static partial class ControlsExtensions
 
                 VirtualRows.Spacer(gui, "table/padBottom", window.PadBottom);
 
-                if (source.IsLoading)
+                if (state.FrameLoading)
                 {
                     Placeholder(gui, "table-loading", LoadingId, theme, options.LoadingText, theme.RowHeight);
                 }

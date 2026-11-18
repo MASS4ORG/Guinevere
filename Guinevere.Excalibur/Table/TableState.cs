@@ -57,6 +57,69 @@ public sealed class TableState
     /// <summary>Layout, ids and text the table derives from its inputs and reuses until they change.</summary>
     internal TableCache Cache { get; } = new();
 
+    /// <summary>The number of rows of the snapshot this frame is built from; both passes use it.</summary>
+    internal int FrameRowCount { get; private set; }
+
+    /// <summary>Whether the source was loading in this frame's snapshot.</summary>
+    internal bool FrameLoading { get; private set; }
+
+    object? _source;
+    Action? _unbind;
+    long _frameStamp = -1;
+
+    /// <summary>
+    /// Takes this frame's snapshot of the source: asks it to publish, then keeps its row count and loading flag, so
+    /// the second pass builds the tree the first one did even if the source changes in between. It runs in the
+    /// first pass, and in the second only when no first pass of this frame ran with this source. A source that
+    /// replaces the previous one is subscribed to, so its <see cref="ITableViewSource{TRow}.Invalidated"/> asks
+    /// for a frame, and the old one is let go.
+    /// </summary>
+    internal void BeginFrame<TRow>(Gui gui, ITableViewSource<TRow> source)
+    {
+        var replaced = !ReferenceEquals(_source, source);
+        if (replaced)
+        {
+            Bind(gui, source);
+        }
+
+        var frame = gui.FrameNumber;
+        if (!replaced && gui.Pass != Pass.Pass1Build && _frameStamp == frame)
+        {
+            return;
+        }
+
+        _frameStamp = frame;
+        source.BeginFrame(frame);
+        FrameRowCount = source.RowCount;
+        FrameLoading = source.IsLoading;
+    }
+
+    void Bind<TRow>(Gui gui, ITableViewSource<TRow> source)
+    {
+        _unbind?.Invoke();
+        var relay = new InvalidationRelay(gui);
+        source.Invalidated += relay.Handle;
+        _source = source;
+        _unbind = () => source.Invalidated -= relay.Handle;
+    }
+
+    /// <summary>
+    /// Asks for a frame when a source says it has something to publish. It may be called from any thread, so it
+    /// holds the Gui weakly: a long-lived source then keeps no window alive.
+    /// </summary>
+    sealed class InvalidationRelay(Gui gui)
+    {
+        readonly WeakReference<Gui> _gui = new(gui);
+
+        public void Handle(object? sender, EventArgs e)
+        {
+            if (_gui.TryGetTarget(out var target))
+            {
+                target.RequestFrame();
+            }
+        }
+    }
+
     /// <summary>Horizontal scroll offset of the body, which the sticky header follows.</summary>
     internal float FrameScrollX { get; set; }
 

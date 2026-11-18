@@ -9,9 +9,9 @@ public class TableModelTests
     [Fact]
     public void ARowIdentityFromAnIndexIsItsInvariantNumber()
     {
-        Assert.Equal("42", RowIdentity.FromIndex(42).Key);
-        Assert.Equal("42", RowIdentity.FromIndex(42).ToString());
-        Assert.Equal(RowIdentity.FromIndex(7), new RowIdentity("7"));
+        Assert.Equal("42", RowIdentity.UnstableIndex(42).Key);
+        Assert.Equal("42", RowIdentity.UnstableIndex(42).ToString());
+        Assert.Equal(RowIdentity.UnstableIndex(7), new RowIdentity("7"));
     }
 
     [Fact]

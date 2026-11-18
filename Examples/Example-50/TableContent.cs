@@ -66,7 +66,10 @@ public abstract partial class Program
         }
     }
 
-    /// <summary>A million generated rows that exist only as the row index.</summary>
+    /// <summary>
+    /// A million generated rows that exist only as the row index. They are never sorted, filtered or changed, which
+    /// is the one case where the position can stand in for the identity.
+    /// </summary>
     sealed class GeneratedRows(int count) : ITableViewSource<int>
     {
         public int RowCount => count;
@@ -79,7 +82,7 @@ public abstract partial class Program
 
         public int this[int index] => index;
 
-        public RowIdentity GetRowIdentity(int index) => RowIdentity.FromIndex(index);
+        public RowIdentity GetRowIdentity(int index) => RowIdentity.UnstableIndex(index);
     }
 
     /// <summary>Tints the status text, as a column's own renderer would draw a badge.</summary>

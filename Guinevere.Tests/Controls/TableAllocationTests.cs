@@ -3,13 +3,11 @@ using Guinevere.Tests.Mocks;
 namespace Guinevere.Tests.Controls;
 
 /// <summary>
-/// Holds the table's steady-state allocation at its measured best. Each limit is that best plus 10%, set once
-/// on 2026-11-18 (best in Debug, the configuration the gate runs in: static 127.2 KB and scrolling 211.1 KB a
-/// frame; Release is lower still at 114.6 KB and 198.7 KB). The scenario runs twice in the process and only the
-/// second run counts, because the first pays one-time costs and measured 5% to 10% higher. The policy is in the
-/// wiki page guinevere-table-allocation: a change that raises a number has to say why there and move the limit
-/// on purpose, and the margin is not to be widened again to absorb noise. Zero allocation is the engine's goal,
-/// not the table's.
+/// Holds the table's steady-state allocation at its measured best in Debug, the configuration the gate runs in
+/// (static 127.2 KB and scrolling 211.1 KB a frame); each limit is that best plus 10%. The scenario runs twice in
+/// the process and only the second run counts, because the first pays one-time costs. A change that raises a
+/// number moves the limit on purpose and says why in the wiki page guinevere-table-allocation. Zero allocation is
+/// the engine's goal, not the table's.
 /// </summary>
 public class TableAllocationTests
 {
@@ -90,6 +88,6 @@ public class TableAllocationTests
 
         public int this[int index] => index;
 
-        public RowIdentity GetRowIdentity(int row) => RowIdentity.FromIndex(row);
+        public RowIdentity GetRowIdentity(int row) => RowIdentity.UnstableIndex(row);
     }
 }

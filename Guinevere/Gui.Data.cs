@@ -10,6 +10,12 @@ public partial class Gui
     ulong _dataFrame;
     readonly record struct AutomaticDataScopeKey(int Identity);
 
+    /// <summary>
+    /// The number of the frame being built. It goes up by one for every frame that starts, and is the same in both
+    /// passes of that frame, so state that is published once per frame can tell whether it already was.
+    /// </summary>
+    public long FrameNumber => (long)_dataFrame;
+
     internal int CurrentDataScope => LayoutNodeScopeStack.TryPeek(out var scope) ? scope.DataScope : 0;
 
     /// <summary>Selects a keyed data context inherited by this node's descendants and restored on node exit.</summary>
