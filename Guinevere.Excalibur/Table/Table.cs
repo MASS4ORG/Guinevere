@@ -15,18 +15,19 @@ public static partial class ControlsExtensions
     /// table of millions of rows costs the same as one that fills the screen. The header stays in view
     /// while the rows scroll and follows them sideways.
     /// </summary>
+    /// <typeparam name="TRow">The type of a row, as the source's indexer returns it.</typeparam>
     /// <param name="gui">The GUI instance.</param>
     /// <param name="state">What the table keeps between frames, held by the caller.</param>
-    /// <param name="source">The data, read by row index and only for cells in view.</param>
-    /// <param name="columns">The column definitions, in display order. Share one list between frames.</param>
+    /// <param name="source">The rows, read by index and only for rows in view.</param>
+    /// <param name="columns">The columns, built once and shared between frames.</param>
     /// <param name="options">Behavior and wording. Defaults to <see cref="TableOptions.Default"/>.</param>
     /// <param name="theme">Layout metrics. Defaults to <see cref="TableTheme.Default"/>.</param>
     /// <param name="classes">Stylesheet classes for this control.</param>
     /// <param name="id">Stable control and stylesheet identity.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
-    public static void Table(this Gui gui, TableState state, ITableViewSource source,
-        IReadOnlyList<TableColumn> columns, TableOptions? options = null, TableTheme? theme = null,
+    public static void Table<TRow>(this Gui gui, TableState state, ITableViewSource<TRow> source,
+        TableColumns<TRow> columns, TableOptions? options = null, TableTheme? theme = null,
         IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
@@ -39,7 +40,11 @@ public static partial class ControlsExtensions
         options ??= TableOptions.Default;
         theme ??= TableTheme.Default;
 
-        state.Cache.Begin(columns);
+        if (state.Cache.Begin(columns.Set))
+        {
+            state.Sort.Rebind(columns.Set);
+        }
+
         var layout = ResolveLayout(gui, state, theme);
         var (first, last) = options.VirtualizeColumns
             ? layout.Window(state.FrameScrollX, state.FrameViewportWidth, theme.ColumnOverscan)
@@ -49,7 +54,7 @@ public static partial class ControlsExtensions
                    .Expand().Direction(Axis.Vertical).Enter())
         {
             TableHeader(gui, state, theme, layout, first, last);
-            TableBody(gui, state, source, options, theme, layout, first, last);
+            TableBody(gui, state, source, columns.Shown, options, theme, layout, first, last);
         }
     }
 
@@ -66,7 +71,7 @@ public static partial class ControlsExtensions
             return layout;
         }
 
-        var shown = cache.Shown;
+        var shown = cache.Columns!.Shown;
         var autoWidths = new float[shown.Length];
         for (var i = 0; i < shown.Length; i++)
         {
@@ -76,11 +81,11 @@ public static partial class ControlsExtensions
                 continue;
             }
 
-            if (!cache.TryAutoWidth(column.Id, theme.FontSize, theme.CellPadding, out autoWidths[i]))
+            if (!cache.TryAutoWidth(column, theme.FontSize, theme.CellPadding, out autoWidths[i]))
             {
                 autoWidths[i] = MeasureTextWidth(MeasuringFont(gui, theme.FontSize), column.Title)
                                 + (theme.CellPadding * 2f);
-                cache.StoreAutoWidth(column.Id, theme.FontSize, theme.CellPadding, autoWidths[i]);
+                cache.StoreAutoWidth(column, theme.FontSize, theme.CellPadding, autoWidths[i]);
             }
         }
 
@@ -89,8 +94,9 @@ public static partial class ControlsExtensions
         return layout;
     }
 
-    static void TableBody(Gui gui, TableState state, ITableViewSource source, TableOptions options,
-        TableTheme theme, TableLayout layout, int firstColumn, int lastColumn)
+    static void TableBody<TRow>(Gui gui, TableState state, ITableViewSource<TRow> source,
+        TableColumn<TRow>[] shown, TableOptions options, TableTheme theme, TableLayout layout, int firstColumn,
+        int lastColumn)
     {
         using (gui.StyledNode("table-body", id: "table/body").Expand().Direction(Axis.Vertical).Enter())
         {
@@ -117,7 +123,7 @@ public static partial class ControlsExtensions
                 VirtualRows.Spacer(gui, "table/padTop", window.PadTop);
                 for (var row = window.First; row < window.Last; row++)
                 {
-                    TableRow(gui, state, source, theme, layout, row, firstColumn, lastColumn);
+                    TableRow(gui, state, source, shown, theme, layout, row, firstColumn, lastColumn);
                 }
 
                 VirtualRows.Spacer(gui, "table/padBottom", window.PadBottom);

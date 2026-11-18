@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Guinevere;
 
@@ -29,42 +29,78 @@ public enum TablePin
 }
 
 /// <summary>
-/// One column of a table. A definition never changes after it is built, so a table can share one list
-/// of columns between frames and callers can key persisted column state on <see cref="Id"/>.
+/// What layout and the header need of any column: its title, width, alignment and whether it can be sorted.
+/// The column instance is the column's identity everywhere a table refers to one, including sort keys; the
+/// string <see cref="Id"/> exists only so persisted state can find the column again. Build columns with the
+/// factories on <see cref="TableColumn{TRow}"/>.
 /// </summary>
-public sealed class TableColumn
+public abstract class TableColumn
 {
-    /// <summary>Creates a column.</summary>
-    /// <param name="title">The header text.</param>
-    /// <param name="id">
-    /// Stable key for column state and for the source's <c>GetValue</c>; unique in a table. Left out, it is
-    /// derived from the declaring file's name and line. That derived key changes when the line moves, which
-    /// silently orphans any persisted state, so give every column whose state is persisted across sessions
-    /// an explicit id. Columns created on one line, in a loop for instance, need explicit ids as well.
-    /// </param>
-    /// <param name="filePath">Call site, supplied by the compiler.</param>
-    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
-    public TableColumn(string title, TableColumnId? id = null,
-        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+    internal static readonly TableLength DefaultWidth = TableLength.Star();
+
+    internal const float DefaultMinWidth = 48f;
+
+    string? _id;
+    string? _positionalId;
+
+    /// <summary>The hierarchy is closed: the table needs to call the typed members of its own subclasses.</summary>
+    private protected TableColumn(string title)
     {
         ArgumentNullException.ThrowIfNull(title);
-        var key = id ?? TableColumnId.FromSite(filePath, lineNumber);
-        ArgumentException.ThrowIfNullOrEmpty(key.Value, nameof(id));
-        Id = key;
         Title = title;
     }
 
-    /// <summary>Stable key for column state and for the source's <c>GetValue</c>.</summary>
-    public TableColumnId Id { get; }
-
-    /// <summary>The header text.</summary>
+    /// <summary>
+    /// The header text, which may be empty. It is what the header shows when <see cref="Header"/> is not set,
+    /// what an Auto width is measured from, and what the default <see cref="Id"/> comes from.
+    /// </summary>
     public string Title { get; }
 
+    /// <summary>
+    /// What the header cell draws instead of the title text: an icon, a localized text, another widget or
+    /// anything implementing <see cref="ITableHeaderContent"/>. Null draws <see cref="Title"/>.
+    /// </summary>
+    public ITableHeaderContent? Header { get; init; }
+
+    /// <summary>
+    /// The key persisted column state uses to find this column again; unique in a table. Left out, it is the
+    /// title in lower case with everything but letters and digits removed ("File Name" is <c>filename</c>);
+    /// a title with none of those (an empty one, or only an icon) falls back to <c>column</c> and the
+    /// column's position in the <see cref="TableColumns{TRow}"/> that holds it, counting from one.
+    /// Set it explicitly on every column whose state is persisted across sessions, because retitling,
+    /// translating or reordering columns changes the derived key and orphans the stored state, and on columns
+    /// built in a loop or sharing a title.
+    /// </summary>
+    public string Id
+    {
+        get => _id ?? DerivedId;
+        init => _id = value;
+    }
+
+    string DerivedId
+    {
+        get
+        {
+            var slug = DeriveId(Title);
+            return slug.Length > 0 ? slug : _positionalId ?? "";
+        }
+    }
+
+    /// <summary>Called by the collection that holds the column, so a column with no title text still has an id.</summary>
+    internal void AssignPositionalId(int position) => _positionalId = "column" + (position + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>The id the factories pass on, where null means "derive it from the title".</summary>
+    internal string? ExplicitId
+    {
+        get => _id;
+        init => _id = value;
+    }
+
     /// <summary>How the width is decided; an equal share of the free width by default.</summary>
-    public TableLength Width { get; init; } = TableLength.Star();
+    public TableLength Width { get; init; } = DefaultWidth;
 
     /// <summary>The narrowest the column may be, in pixels.</summary>
-    public float MinWidth { get; init; } = 48f;
+    public float MinWidth { get; init; } = DefaultMinWidth;
 
     /// <summary>The widest the column may be, in pixels.</summary>
     public float MaxWidth { get; init; } = float.PositiveInfinity;
@@ -78,6 +114,24 @@ public sealed class TableColumn
     /// <summary>Whether the column is shown before the user has chosen otherwise.</summary>
     public bool InitiallyVisible { get; init; } = true;
 
-    /// <summary>Draws the column's cells, or null for the default text rendering of the value.</summary>
-    public ITableCellRenderer? Renderer { get; init; }
+    /// <summary>
+    /// Whether the column can be ordered by: its value type is comparable or a comparer was given when it was
+    /// built. A column that cannot be sorted gets no sort marker and cannot be a sort key.
+    /// </summary>
+    public bool Sortable { get; private protected set; }
+
+    /// <summary>The title in lower case with everything but letters and digits removed.</summary>
+    internal static string DeriveId(string title)
+    {
+        var slug = new StringBuilder(title.Length);
+        foreach (var character in title)
+        {
+            if (char.IsLetterOrDigit(character))
+            {
+                slug.Append(char.ToLowerInvariant(character));
+            }
+        }
+
+        return slug.ToString();
+    }
 }

@@ -163,7 +163,7 @@ Token names are the palette's property names in kebab case (`SurfaceHover` → `
 | `TabStrip` | `tabstrip`, `tab`, `marker`, `tab-close` | caller classes and `id` | tab `:hover`, `:selected`; `tab-close` `:hover` | tabstrip background; tab background/color; marker background; close radius |
 | `DockSpace`/`DockLayout` | `dockspace`, `dock-panel`, `dock-window`, `dock-grip`, `dock-empty`, `dock-ghost`, `dock-icon`, `drop-indicator`, `drop-preview` | `dock` on floating windows | — | background, border, radius, color and cursor per element; tab icon `width`; dock splitter thickness through `splitter.dock` |
 | `TreeView` | `treeview`, `tree-row`, `tree-expander`, `tree-icon`, `tree-ghost` | caller classes and `id` | row `:hover`, `:selected`; expander `:hover` | treeview color and font-size; row background/radius, `height`, `indent`, `inset`; expander color and width; icon width; ghost background/radius/color |
-| `Table` | `table`, `table-header`, `table-header-cell`, `table-body`, `table-row`, `table-cell`, `table-empty`, `table-loading` | caller classes and `id` on `table` | header cell `:sorted`, `:ascending`, `:descending`; row `:odd`, `:hover` | table color; header background/border; header cell color; row background/border; empty and loading color |
+| `Table` | `table`, `table-header`, `table-header-cell`, `table-body`, `table-row`, `table-cell`, `table-empty`, `table-loading` | caller classes and `id` on `table` | header cell `:sorted`, `:sorted-more`, `:sorted-secondary`, `:ascending`, `:descending`; row `:odd`, `:hover` | table color; header background/border; header cell color; row background/border; empty and loading color |
 | scrollbar | `scrollbar`, child `thumb` (drawn by the styling package) | — | thumb `:hover`, `:active` | scrollbar background; thumb background/radius |
 | `Popup` | `popup`, `popup-content`, `popup-title`, `overlay` | caller classes and `id` | `:closed` while hidden | popup background/border/radius; title background/color; overlay background |
 | `Dialog` | `dialog`, `dialog-title`, `dialog-content`, `dialog-footer`, `dialog-close` | caller classes and `id` | `:closed`; close `:hover` | dialog background/border/radius; title/color; footer border; close radius/color |
@@ -387,27 +387,37 @@ gui.TreeView(state, items, onClick: e => SelectedPath = e.Item.Label);
 
 ## Table
 
-A table reads its data through `ITableViewSource`, which is counted and indexed: it asks for the row count and then for the value of each cell in view, and never enumerates the dataset. Only the rows in the viewport become layout nodes, so a source of millions of rows costs what one that fills the screen does. Columns are immutable `TableColumn` definitions keyed by a `TableColumnId`; share one list between frames and keep a `TableState` alongside it.
+A table reads its rows through `ITableViewSource<TRow>`, which is counted and indexed: it asks for the row count and then for the row of each index in view, and never enumerates the dataset. Only the rows in the viewport become layout nodes, so a source of millions of rows costs what one that fills the screen does. Each column reads its own typed value from the row, so there is no `object` boxing and no string dispatch on the way to a cell.
 
 ```csharp
-var state = new TableState();
-TableColumn[] columns =
+var columns = new TableColumns<Item>(
 [
-    new("Name", new("name")) { Width = TableLength.Star(2) },
-    new("Size", new("size")) { Width = 90f, Alignment = TableAlignment.Right },
-    new("Status", new("status")) { Width = 90f, Renderer = new StatusBadgeRenderer() },
-];
+    TableColumn<Item>.Of("Name", x => x.Name, width: TableLength.Star(2)),
+    TableColumn<Item>.Of("File Size", x => x.Size, id: "size", width: 90f, alignment: TableAlignment.Right),
+    TableColumn<Item>.Of("Status", x => x.Status, width: 90f, renderer: new StatusBadgeRenderer()),
+    TableColumn<Item>.Row("Actions", renderer: new ActionsRenderer()),
+]);
+var source = new ListTableSource<Item>(items, x => x.Id);
+var state = new TableState();
 
 gui.Table(state, source, columns);
 ```
 
-`TableColumnId` is its own type with no conversion to or from `string`, so a title or a row value cannot be passed where a column key goes; the source's `GetValue`, `TableSort` and persisted column state all use it, and it stores its `Value` string unchanged. The id is optional: left out, it is derived from the declaring file's name and line. That derived id changes when the line moves, which silently orphans persisted column state, so give every column whose state is persisted across sessions an explicit id. Columns created on one line, in a loop for instance, need explicit ids as well, because ids must be unique in a table.
+**The column instance is the column's identity.** Sort keys, `state.SortBy(source, column)` and a source's own `ApplySort` refer to the column object, so there is nothing to mistype: pass `columns[0]` or keep the column in a field. The string `Id` exists only so persisted state can find a column again in a later session. It is optional and defaults to the title in lower case with everything but letters and digits removed ("File Name" is `filename`); a title with none of those (an empty one, or an icon-only header) falls back to `column` and its position. Give an explicit `Id` to every column whose state is persisted, to localized columns (translating a title changes the derived id and orphans stored state), to columns built in a loop and to columns that share a title or may be reordered. `TableColumns<TRow>` freezes the list and validates it once: a duplicate id throws an `ArgumentException` naming both columns and asking for `Id = "…"` or unique titles. Share one `TableColumns` between frames.
 
-`TableLength` is pixels, a weighted `Star` share of what the fixed and auto columns leave, or `Auto`; `MinWidth` and `MaxWidth` bound all three. `Auto` is as wide as the header text only: the table never scans the dataset to measure cells, so give a column whose content is wider than its title a fixed or star width. A column without a `Renderer` draws its value as text. `ITableCellRenderer.Render` builds the content inside a cell the table has already sized, clipped and aligned; its `TableCellContext` carries the row index, the source, the table state and the row's `Identity`, so state that must survive sorting and scrolling is kept against the identity and not the index. `TableColumn.InitiallyVisible = false` leaves a column out. `Pin` is part of the definition but the table does not apply it yet.
+`TableColumn<TRow>.Of(title, x => value)` makes a column over a value read from the row; `Row(title)` makes one whose value is the row itself, for cells a renderer draws from several fields. Both take their options (`id`, `width`, `minWidth`, `maxWidth`, `alignment`, `pin`, `visible`, `comparer`, `renderer`, `header`) as named arguments; `new TableColumn<TRow, TValue>(title, x => value) { Id = "…", Width = 90f }` is the same column with initializers. `Title` may be empty. The header shows the title unless a `header` content is given: `TableHeaderContent.Icon(WidgetIcons.…)`, `TableHeaderContent.Text(() => Localizer["name"])` (asked every frame, so a language change shows without rebuilding), or your own `ITableHeaderContent` to draw another widget or anything else inside the header cell, which keeps its padding, alignment, clipping and sort marker.
+
+`TableLength` is pixels, a weighted `Star` share of what the fixed and auto columns leave, or `Auto`; `MinWidth` and `MaxWidth` bound all three. `Auto` is as wide as the title text only: the table never scans the dataset to measure cells or custom header content, so give a column whose content is wider than its title a fixed or star width. A column without a `renderer` draws its value as text, formatted once per row while the value stays equal. A custom `ITableCellRenderer<TRow, TValue>` builds the content inside a cell the table has already sized, clipped and aligned; its `TableCellContext` carries the row index, the row, the typed value, the column, the source, the table state and the row's `Identity`, so state that must survive sorting and scrolling is kept against the identity and not the index. `InitiallyVisible = false` leaves a column out. `Pin` is part of the definition but the table does not apply it yet.
 
 The header stays at the top while the rows scroll and follows the body sideways. `TableOptions.VirtualizeColumns` builds only the columns in view, which pays off with hundreds of columns. A source with no rows shows `EmptyText`; a source that reports `IsLoading` shows `LoadingText` in place of the rows, or below them when it already has some. Row height is fixed (`TableTheme.RowHeight`), which is what keeps the scroll arithmetic exact.
 
-Sorting belongs to the source: an `ISortableTableViewSource` reorders the rows it exposes in `ApplySort`, and the table never sorts a dataset it does not hold. Set `TableState.Sort` to the order you applied and the header marks it.
+**Sorting.** A column is `Sortable` when its value type is comparable (numbers, strings, dates, enums, nullables of those) or a `comparer` was given; a `Row(...)` column over an item that is not comparable is not sortable until it gets one. A column that is not sortable has no sort marker and cannot be a sort key. `ListTableSource<TRow>` is the built-in in-memory source: it sorts an index permutation with the columns' own comparers, keeps ties in their original order, never moves your rows and allocates only the permutation, once. A source over a database or service implements `ISortableTableViewSource<TRow>` and maps each `TableSort.Column` (by reference, or by `Id`) to its own query in `ApplySort(IReadOnlyList<TableSort> keys)`; an empty list means the natural order.
+
+`TableState.Sort` is a `TableSortList`: a primary key plus the secondary keys retained behind it, which the source evaluates in order. `state.SortBy(source, column)` makes the column the ascending primary and demotes the previous primary into the first secondary slot, earlier retained keys keeping their order; calling it with the current primary flips its direction. It throws if the column is not one of the table's columns or is not sortable. `state.SortBy(source, keys)` applies an explicit list, and an empty list clears the order. Both write `TableState.Sort`, so the header marks the primary with a chevron and a `+N` indicator when secondaries are retained. The header does not react to clicks yet: interaction arrives in a later phase, and until then drive sorting from your own UI with `SortBy`. Row identities must not change with the order, and a renderer reads `TableCellContext.Identity` while rendering.
+
+To persist a sort, store `state.Sort.Save()` (an array of `(Id, Direction)`) and read it back with `state.Sort.Restore(saved, columns)`, which resolves the ids against the current columns and silently drops the ones that no longer exist. If you rebuild the column list (a new `TableColumns` with new column objects), the table re-binds the sort keys to the new instances by `Id` on the next frame.
+
+Style the table with the `table-*` selectors; `table-header-cell` takes the modifiers `sorted`, `sorted-more`, `sorted-secondary`, `ascending` and `descending`, and `table-row` takes `odd`.
 
 ## Docking
 

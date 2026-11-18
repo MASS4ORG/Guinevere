@@ -3,58 +3,61 @@ using System.Globalization;
 namespace Guinevere.Tests.Controls;
 
 /// <summary>
-/// Covers what the table reuses between frames, and the cases that must make it stop: a changed value,
-/// an edited column list, a changed culture, and a row slot taken over by another row.
+/// Covers what the table reuses between frames, and the cases that must make it stop: new columns, a changed
+/// value, a changed culture, and a row slot taken over by another row.
 /// </summary>
 public class TableCacheTests
 {
     [Fact]
-    public void TheSameColumnsKeepTheSameShownArrayAndEditedColumnsRebuildIt()
+    public void TheSameColumnsAreNotRebuiltAndANewSetIs()
     {
         var cache = new TableCache();
-        var list = new List<TableColumn> { Column("a"), Column("b") };
+        var first = Columns("a", "b");
+        var second = Columns("a", "b");
 
-        cache.Begin(list);
-        var first = cache.Shown;
-        cache.Begin(list);
-        Assert.Same(first, cache.Shown);
+        Assert.True(cache.Begin(first.Set));
+        Assert.False(cache.Begin(first.Set));
+        Assert.Same(first.Set, cache.Columns);
 
-        list.Add(Column("c"));
-        cache.Begin(list);
-        Assert.NotSame(first, cache.Shown);
-        Assert.Equal(3, cache.Shown.Length);
-
-        var swapped = list[0];
-        list[0] = list[1];
-        list[1] = swapped;
-        cache.Begin(list);
-        Assert.Equal(["b", "a", "c"], cache.Shown.Select(static column => column.Id.Value));
+        Assert.True(cache.Begin(second.Set));
+        Assert.Same(second.Set, cache.Columns);
     }
 
     [Fact]
-    public void HiddenColumnsAreNotShownAndHeadersGetTheirOwnIds()
+    public void TheSetKnowsItsShownColumnsHeaderIdsAndCellSuffixes()
     {
-        var cache = new TableCache();
-        cache.Begin([Column("a"), new TableColumn("B", new("b")) { InitiallyVisible = false }, Column("c")]);
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("A", static row => row, id: "a"),
+            TableColumn<int>.Of("B", static row => row, id: "b", visible: false),
+            TableColumn<int>.Of("C", static row => row, id: "c")
+        ]);
 
-        Assert.Equal(["a", "c"], cache.Shown.Select(static column => column.Id.Value));
-        Assert.Equal(["table/header/a", "table/header/c"], cache.HeaderIds);
+        Assert.Equal(["a", "c"], columns.Set.Shown.Select(static column => column.Id));
+        Assert.Equal(["table/header/a", "table/header/c"], columns.Set.HeaderIds);
+        Assert.Equal(["/a", "/c"], columns.Set.CellSuffixes);
+        Assert.Equal(columns.Set.Shown, columns.Shown);
     }
 
     [Fact]
-    public void ADuplicateColumnIdIsRejectedWhenTheListChanges()
+    public void TheSetFindsAColumnByIdAndOnlyContainsTheExactInstance()
     {
-        var cache = new TableCache();
+        var columns = Columns("a", "b");
+        var impostor = TableColumn<int>.Of("A", static row => row, id: "a");
 
-        var error = Assert.Throws<ArgumentException>(() => cache.Begin([Column("a"), Column("a")])); Assert.Contains("'a'", error.Message);
+        Assert.Same(columns[1], columns.Set.Find("b"));
+        Assert.Null(columns.Set.Find("zzz"));
+        Assert.True(columns.Set.Contains(columns[0]));
+        Assert.False(columns.Set.Contains(impostor));
     }
 
     [Fact]
     public void ALayoutIsReusedOnlyForTheInputsItWasResolvedFrom()
     {
         var cache = new TableCache();
-        cache.Begin([Column("a")]);
-        var layout = TableLayout.Resolve(cache.Shown, 400f, [0f]);
+        var columns = Columns("a");
+        cache.Begin(columns.Set);
+        var layout = TableLayout.Resolve(columns.Set.Shown, 400f, [0f]);
 
         Assert.False(cache.TryLayout(400f, 12f, 8f, out _));
         cache.StoreLayout(layout, 400f, 12f, 8f);
@@ -65,24 +68,25 @@ public class TableCacheTests
         Assert.False(cache.TryLayout(400f, 13f, 8f, out _));
         Assert.False(cache.TryLayout(400f, 12f, 9f, out _));
 
-        cache.Begin([Column("a"), Column("b")]);
+        cache.Begin(Columns("a", "b").Set);
         Assert.False(cache.TryLayout(400f, 12f, 8f, out _));
     }
 
     [Fact]
-    public void AnAutoWidthIsRememberedPerColumnTextSizeAndPadding()
+    public void AnAutoWidthIsRememberedPerColumnInstanceTextSizeAndPadding()
     {
         var cache = new TableCache();
-        var id = new TableColumnId("id");
+        var columns = Columns("a");
+        var other = TableColumn<int>.Of("A", static row => row, id: "a");
 
-        Assert.False(cache.TryAutoWidth(id, 12f, 8f, out _));
-        cache.StoreAutoWidth(id, 12f, 8f, 51f);
+        Assert.False(cache.TryAutoWidth(columns[0], 12f, 8f, out _));
+        cache.StoreAutoWidth(columns[0], 12f, 8f, 51f);
 
-        Assert.True(cache.TryAutoWidth(id, 12f, 8f, out var width));
+        Assert.True(cache.TryAutoWidth(columns[0], 12f, 8f, out var width));
         Assert.Equal(51f, width);
-        Assert.False(cache.TryAutoWidth(id, 14f, 8f, out _));
-        Assert.False(cache.TryAutoWidth(id, 12f, 10f, out _));
-        Assert.False(cache.TryAutoWidth(new TableColumnId("other"), 12f, 8f, out _));
+        Assert.False(cache.TryAutoWidth(columns[0], 14f, 8f, out _));
+        Assert.False(cache.TryAutoWidth(columns[0], 12f, 10f, out _));
+        Assert.False(cache.TryAutoWidth(other, 12f, 8f, out _));
     }
 
     [Fact]
@@ -106,14 +110,12 @@ public class TableCacheTests
         var cache = Ready(5, "a");
         var slot = cache.Slot(3);
         Assert.Equal("table/row3/a", cache.CellId(slot, 0));
-        Assert.Equal("1.5", cache.Text(slot, 0, 1.5));
 
         // 16 slots: row 19 lands where row 3 was.
         var taken = cache.Slot(19);
         Assert.Same(slot, taken);
         Assert.Equal("table/row19", TableCache.RowId(taken));
         Assert.Equal("table/row19/a", cache.CellId(taken, 0));
-        Assert.Equal("2.5", cache.Text(taken, 0, 2.5));
     }
 
     [Fact]
@@ -122,7 +124,7 @@ public class TableCacheTests
         var cache = Ready(5, "a");
         Assert.Equal("table/row2/a", cache.CellId(cache.Slot(2), 0));
 
-        cache.Begin([Column("z")]);
+        cache.Begin(Columns("z").Set);
 
         Assert.Equal("table/row2/z", cache.CellId(cache.Slot(2), 0));
     }
@@ -134,8 +136,9 @@ public class TableCacheTests
         var slot = cache.Slot(0);
         var text = new string('x', 3);
 
-        Assert.Same(text, cache.Text(slot, 0, text));
-        Assert.Equal("", cache.Text(slot, 0, null));
+        Assert.Same(text, cache.TextCacheFor<string>(0).Text(cache, slot, text));
+        Assert.Equal("", cache.TextCacheFor<string>(0).Text(cache, slot, null!));
+        Assert.Equal("", cache.TextCacheFor<int?>(0).Text(cache, slot, null));
     }
 
     [Fact]
@@ -143,23 +146,46 @@ public class TableCacheTests
     {
         var cache = Ready(1, "a");
         var slot = cache.Slot(0);
+        var text = cache.TextCacheFor<int>(1 - 1);
 
-        var first = cache.Text(slot, 0, 1234);
+        var first = text.Text(cache, slot, 1234);
         Assert.Equal("1234", first);
-        Assert.Same(first, cache.Text(slot, 0, 1234));
+        Assert.Same(first, text.Text(cache, slot, 1234));
 
-        Assert.Equal("1235", cache.Text(slot, 0, 1235));
+        Assert.Equal("1235", text.Text(cache, slot, 1235));
     }
 
     [Fact]
-    public void ACellOfAnotherTypeNeverReusesTheTextOfTheTypeBefore()
+    public void TheTextOfAValueIsKeptPerRowAndNotSharedBetweenRows()
+    {
+        var cache = Ready(5, "a");
+        var text = cache.TextCacheFor<int>(0);
+
+        // Large numbers: the runtime keeps one shared string for small ones, which would make every check pass.
+        var zero = text.Text(cache, cache.Slot(0), 70_000);
+        var one = text.Text(cache, cache.Slot(1), 80_000);
+
+        Assert.Equal("70000", zero);
+        Assert.Equal("80000", one);
+        Assert.Same(zero, text.Text(cache, cache.Slot(0), 70_000));
+        Assert.Same(one, text.Text(cache, cache.Slot(1), 80_000));
+
+        // Row 16 takes the slot of row 0: an equal value is formatted again, never read from row 0's text.
+        Assert.NotSame(zero, text.Text(cache, cache.Slot(16), 70_000));
+    }
+
+    [Fact]
+    public void ANullableValueTypeIsCachedAndAMissingValueIsEmpty()
     {
         var cache = Ready(1, "a");
         var slot = cache.Slot(0);
+        var text = cache.TextCacheFor<int?>(0);
 
-        Assert.Equal("1", cache.Text(slot, 0, 1));
-        Assert.Equal("1", cache.Text(slot, 0, 1L));
-        Assert.Equal("True", cache.Text(slot, 0, true));
+        var present = text.Text(cache, slot, 12);
+
+        Assert.Same(present, text.Text(cache, slot, 12));
+        Assert.Equal("", text.Text(cache, slot, null));
+        Assert.Equal("12", text.Text(cache, slot, 12));
     }
 
     [Fact]
@@ -167,12 +193,13 @@ public class TableCacheTests
     {
         var cache = Ready(1, "a");
         var slot = cache.Slot(0);
+        var text = cache.TextCacheFor<Mutable>(0);
         var item = new Mutable { Text = "before" };
 
-        Assert.Equal("before", cache.Text(slot, 0, item));
+        Assert.Equal("before", text.Text(cache, slot, item));
         item.Text = "after";
 
-        Assert.Equal("after", cache.Text(slot, 0, item));
+        Assert.Equal("after", text.Text(cache, slot, item));
     }
 
     [Fact]
@@ -181,15 +208,18 @@ public class TableCacheTests
         var original = CultureInfo.CurrentCulture;
         try
         {
-            var cache = Ready(1, "a");
-            Assert.Equal("1234.5", cache.Text(cache.Slot(0), 0, 1234.5));
+            var columns = Columns("a");
+            var cache = new TableCache();
+            cache.Begin(columns.Set);
+            cache.Reserve(1);
+            Assert.Equal("1234.5", cache.TextCacheFor<double>(0).Text(cache, cache.Slot(0), 1234.5));
 
             var comma = (CultureInfo)CultureInfo.InvariantCulture.Clone();
             comma.NumberFormat.NumberDecimalSeparator = ",";
             CultureInfo.CurrentCulture = comma;
-            cache.Begin([Column("a")]);
+            cache.Begin(columns.Set);
 
-            Assert.Equal("1234,5", cache.Text(cache.Slot(0), 0, 1234.5));
+            Assert.Equal("1234,5", cache.TextCacheFor<double>(0).Text(cache, cache.Slot(0), 1234.5));
         }
         finally
         {
@@ -197,13 +227,59 @@ public class TableCacheTests
         }
     }
 
-    static TableColumn Column(string id) => new(id.ToUpperInvariant(), new TableColumnId(id));
+    [Fact]
+    public void GrowingTheCacheKeepsTheTextOfTheColumnCorrect()
+    {
+        var cache = Ready(5, "a");
+        var text = cache.TextCacheFor<int>(0);
+        Assert.Equal("5", text.Text(cache, cache.Slot(2), 5));
 
-    /// <summary>A cache over the given columns with room for <paramref name="rows"/> built rows.</summary>
+        cache.Reserve(100);
+
+        Assert.True(cache.Capacity >= 200);
+        Assert.Equal("5", text.Text(cache, cache.Slot(2), 5));
+        Assert.Equal("6", text.Text(cache, cache.Slot(2), 6));
+    }
+
+    [Fact]
+    public void EachColumnGetsItsOwnTextCacheUntilTheColumnsChange()
+    {
+        var cache = Ready(1, "a", "b");
+
+        var first = cache.TextCacheFor<int>(0);
+        Assert.Same(first, cache.TextCacheFor<int>(0));
+        Assert.NotSame(first, cache.TextCacheFor<int>(1));
+
+        cache.Begin(Columns("a", "b").Set);
+        Assert.NotSame(first, cache.TextCacheFor<int>(0));
+    }
+
+    [Fact]
+    public void AnUnchangedValueTypeCellCostsNoAllocationAtAll()
+    {
+        var cache = Ready(1, "a");
+        var slot = cache.Slot(0);
+        var text = cache.TextCacheFor<int>(0);
+        _ = text.Text(cache, slot, 123_456);
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var i = 0; i < 10_000; i++)
+        {
+            _ = text.Text(cache, slot, 123_456);
+        }
+
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Assert.True(allocated < 256, $"10000 unchanged cells allocated {allocated} bytes: the value was boxed or reformatted");
+    }
+
+    static TableColumns<int> Columns(params string[] ids) =>
+        new(ids.Select(static id => TableColumn<int>.Of(id.ToUpperInvariant(), static row => row, id: id)));
+
+    /// <summary>A cache over columns with the given ids and room for <paramref name="rows"/> built rows.</summary>
     static TableCache Ready(int rows, params string[] ids)
     {
         var cache = new TableCache();
-        cache.Begin([.. ids.Select(Column)]);
+        cache.Begin(Columns(ids).Set);
         cache.Reserve(rows);
         return cache;
     }

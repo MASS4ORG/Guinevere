@@ -5,7 +5,8 @@ namespace Guinevere.Tests.Controls;
 
 /// <summary>
 /// Covers the table control: that a huge source only builds the cells in view, that the header stays
-/// put and follows the body sideways, and that empty and loading sources say so.
+/// put and follows the body sideways, that columns read typed values from rows, and that empty and loading
+/// sources say so.
 /// </summary>
 public class TableTests
 {
@@ -17,29 +18,32 @@ public class TableTests
     [Fact]
     public void AMillionRowSourceOnlyBuildsTheRowsOnScreen()
     {
-        var source = new GridSource(1_000_000, 3);
-        var gui = RunFrames(source, Columns(3), frames: 2);
+        var gui = RunFrames(new GridSource(1_000_000), Columns(3), frames: 2);
 
         Assert.InRange(RowIndices(gui).Count, 1, 40);
     }
 
     [Fact]
-    public void ARowCountIsAllTheTableAsksForUpFront()
+    public void OnlyTheRowsAndValuesInViewAreEverRead()
     {
-        var source = new GridSource(1_000_000, 3);
-        var gui = RunFrames(source, Columns(3), frames: 2);
+        var counter = new Counter();
+        var columns = Columns(3, counter);
+        var source = new GridSource(1_000_000);
+        var gui = RunFrames(source, columns, frames: 2);
 
         source.Reads = 0;
-        RunFrames(source, Columns(3), frames: 1, reuse: gui);
+        counter.Reads = 0;
+        RunFrames(source, columns, frames: 1, reuse: gui);
 
-        // Cells in view, in both passes; never a pass over the dataset.
-        Assert.InRange(source.Reads, 1, 40 * 3 * 2);
+        // Rows in view, once per pass, and their cells' values; never a pass over the dataset.
+        Assert.InRange(source.Reads, 1, 40 * 2);
+        Assert.InRange(counter.Reads, 1, 40 * 3 * 2);
     }
 
     [Fact]
     public void TheSpacersKeepTheScrollExtentOfTheWholeSource()
     {
-        var gui = RunFrames(new GridSource(1000, 2), Columns(2), frames: 2);
+        var gui = RunFrames(new GridSource(1000), Columns(2), frames: 2);
 
         var bottom = gui.RootNode!.FindChildById("table/padBottom");
         Assert.NotNull(bottom);
@@ -49,12 +53,13 @@ public class TableTests
     [Fact]
     public void ScrollingKeepsTheVisibleRowsBuilt()
     {
-        var source = new GridSource(10_000, 2);
+        var source = new GridSource(10_000);
+        var columns = Columns(2);
         var state = new TableState();
-        var gui = RunFrames(source, Columns(2), state);
+        var gui = RunFrames(source, columns, state);
 
         gui.ScrollBy("table/body", new Vector2(0, 24 * 5000));
-        gui = RunFrames(source, Columns(2), state, frames: 2, reuse: gui);
+        gui = RunFrames(source, columns, state, frames: 2, reuse: gui);
 
         var rows = RowIndices(gui);
         Assert.NotEmpty(rows);
@@ -65,13 +70,14 @@ public class TableTests
     [Fact]
     public void TheHeaderStaysAtTheTopWhileRowsScroll()
     {
-        var source = new GridSource(10_000, 2);
+        var source = new GridSource(10_000);
+        var columns = Columns(2);
         var state = new TableState();
-        var gui = RunFrames(source, Columns(2), state);
+        var gui = RunFrames(source, columns, state);
         var top = gui.RootNode!.FindChildById("table/header")!.Rect.Y;
 
         gui.ScrollBy("table/body", new Vector2(0, 24 * 5000));
-        gui = RunFrames(source, Columns(2), state, frames: 2, reuse: gui);
+        gui = RunFrames(source, columns, state, frames: 2, reuse: gui);
 
         Assert.Equal(top, gui.RootNode!.FindChildById("table/header")!.Rect.Y);
     }
@@ -80,7 +86,7 @@ public class TableTests
     public void TheHeaderFollowsTheBodySideways()
     {
         var columns = Fixed(5, 300f);
-        var source = new GridSource(20, 5);
+        var source = new GridSource(20);
         var state = new TableState();
         var gui = RunFrames(source, columns, state, frames: 2);
 
@@ -96,7 +102,7 @@ public class TableTests
     [Fact]
     public void StarColumnsThatFitShowNoHorizontalScrollbar()
     {
-        var gui = RunFrames(new GridSource(5, 3), Columns(3), frames: 4);
+        var gui = RunFrames(new GridSource(5), Columns(3), frames: 4);
 
         var scroll = gui.GetScrollState(gui.RootNode!.FindChildById("table/body")!.Id);
         Assert.NotNull(scroll);
@@ -107,7 +113,7 @@ public class TableTests
     public void VirtualizedColumnsOnlyBuildTheColumnsInView()
     {
         var columns = Fixed(200, 100f);
-        var source = new GridSource(10, 200);
+        var source = new GridSource(10);
 
         var gui = RunFrames(source, columns, options: new TableOptions { VirtualizeColumns = true }, frames: 3);
         var all = RunFrames(source, columns, frames: 3);
@@ -121,7 +127,7 @@ public class TableTests
     public void VirtualizedColumnsStillCoverAScrolledViewport()
     {
         var columns = Fixed(200, 100f);
-        var source = new GridSource(10, 200);
+        var source = new GridSource(10);
         var options = new TableOptions { VirtualizeColumns = true };
         var state = new TableState();
         var gui = RunFrames(source, columns, state, options, frames: 2);
@@ -138,26 +144,27 @@ public class TableTests
     public void ACustomRendererDrawsOnlyTheCellsInView()
     {
         var renderer = new RecordingRenderer();
-        TableColumn[] columns =
+        var columns = new TableColumns<int>(
         [
-            new("Name", new("name")) { Width = 200f },
-            new("Size", new("size")) { Width = 100f, Renderer = renderer }
-        ];
-        var source = new GridSource(100_000, 2);
+            TableColumn<int>.Of("Name", static row => $"r{row}/name", width: 200f),
+            TableColumn<int>.Of("Size", static row => $"r{row}/size", width: 100f, renderer: renderer)
+        ]);
+        var source = new GridSource(100_000);
         var state = new TableState();
         var gui = RunFrames(source, columns, state, frames: 2);
 
         Assert.NotEmpty(renderer.Cells);
         Assert.All(renderer.Cells, cell =>
         {
-            Assert.Equal(new TableColumnId("size"), cell.Column.Id);
+            Assert.Equal("size", cell.Column.Id);
             Assert.Equal(100f, cell.Width);
             Assert.Equal(Theme.RowHeight, cell.Height);
-            Assert.Equal($"r{cell.Row}/size", cell.Value);
+            Assert.Equal($"r{cell.Index}/size", cell.Value);
+            Assert.Equal(cell.Index, cell.Item);
             Assert.Same(source, cell.Source);
             Assert.Same(state, cell.State);
         });
-        Assert.True(renderer.Cells.Max(static cell => cell.Row) < 60);
+        Assert.True(renderer.Cells.Max(static cell => cell.Index) < 60);
         Assert.NotNull(gui);
     }
 
@@ -165,16 +172,60 @@ public class TableTests
     public void ARendererCanReachTheStableIdentityOfItsRow()
     {
         var renderer = new RecordingRenderer();
-        TableColumn[] columns = [new("Size", new("size")) { Width = 100f, Renderer = renderer }];
-        RunFrames(new GridSource(50, 1), columns, frames: 2);
+        var columns = new TableColumns<int>(
+            [TableColumn<int>.Of("Size", static row => $"r{row}", renderer: renderer)]);
+        RunFrames(new GridSource(50), columns, frames: 2);
 
-        Assert.All(renderer.Cells, static cell => Assert.Equal(RowIdentity.FromIndex(cell.Row), cell.Identity));
+        Assert.All(renderer.Cells, static cell => Assert.Equal(RowIdentity.FromIndex(cell.Index), cell.Identity));
+    }
+
+    [Fact]
+    public void AColumnReadsItsTypedValueFromTheRowWithoutAnyStringDispatch()
+    {
+        var items = new ItemSource(
+        [
+            new Item("1.2.0", "a.zip", 3),
+            new Item("1.3.0", "b.zip", 7)
+        ]);
+        var spy = new ItemRenderer();
+        var columns = new TableColumns<Item>(
+        [
+            TableColumn<Item>.Of("Version", static item => item.Version),
+            TableColumn<Item>.Of("Downloads", static item => item.Downloads, alignment: TableAlignment.Right),
+            TableColumn<Item>.Row("Actions", renderer: spy)
+        ]);
+
+        var gui = RunFrames(items, columns, frames: 2);
+
+        Assert.NotNull(gui.RootNode!.FindChildById("table/row0/version"));
+        Assert.NotNull(gui.RootNode!.FindChildById("table/row1/downloads"));
+        Assert.Equal(["a.zip", "b.zip"], spy.Seen.Distinct().Order());
+        Assert.All(spy.Seen, static item => Assert.NotNull(item));
+    }
+
+    [Fact]
+    public void ARowColumnWhoseItemTypeIsNotComparableIsNotSortableAndShowsNoMarker()
+    {
+        var items = new ItemSource([new Item("1", "a", 1)]);
+        var actions = TableColumn<Item>.Row("Actions", renderer: new ItemRenderer());
+        var version = TableColumn<Item>.Of("Version", static item => item.Version);
+        var columns = new TableColumns<Item>([version, actions]);
+        var state = new TableState();
+        state.Sort.Set([new TableSort(actions), new TableSort(version)]);
+
+        var gui = RunFrames(items, columns, state, frames: 2);
+
+        Assert.False(actions.Sortable);
+        Assert.True(version.Sortable);
+        Assert.Single(gui.RootNode!.FindChildById("table/header/actions")!.Children);
+        Assert.DoesNotContain("sorted", Modifiers(gui, "actions"));
+        Assert.DoesNotContain("sorted-secondary", Modifiers(gui, "actions"));
     }
 
     [Fact]
     public void AnEmptySourceShowsTheEmptyState()
     {
-        var gui = RunFrames(new GridSource(0, 2), Columns(2), frames: 2);
+        var gui = RunFrames(new GridSource(0), Columns(2), frames: 2);
 
         Assert.NotNull(gui.RootNode!.FindChildById("table/table-empty"));
         Assert.Null(gui.RootNode!.FindChildById("table/table-loading"));
@@ -184,7 +235,7 @@ public class TableTests
     [Fact]
     public void ALoadingEmptySourceShowsTheLoadingStateInsteadOfTheEmptyOne()
     {
-        var gui = RunFrames(new GridSource(0, 2) { Loading = true }, Columns(2), frames: 2);
+        var gui = RunFrames(new GridSource(0) { Loading = true }, Columns(2), frames: 2);
 
         Assert.NotNull(gui.RootNode!.FindChildById("table/table-loading"));
         Assert.Null(gui.RootNode!.FindChildById("table/table-empty"));
@@ -193,7 +244,7 @@ public class TableTests
     [Fact]
     public void ALoadingSourceKeepsItsRowsAndAddsALoadingRow()
     {
-        var gui = RunFrames(new GridSource(5, 2) { Loading = true }, Columns(2), frames: 2);
+        var gui = RunFrames(new GridSource(5) { Loading = true }, Columns(2), frames: 2);
 
         Assert.Equal(5, RowIndices(gui).Count);
         Assert.NotNull(gui.RootNode!.FindChildById("table/table-loading"));
@@ -202,18 +253,123 @@ public class TableTests
     [Fact]
     public void TheSortedColumnGetsAMarkerAndTheOthersDoNot()
     {
-        var state = new TableState { Sort = new TableSort(new TableColumnId("c1"), TableSortDirection.Descending) };
-        var gui = RunFrames(new GridSource(3, 3), Columns(3), state, frames: 2);
+        var columns = Columns(3);
+        var state = new TableState();
+        state.Sort.Set([new TableSort(columns[1], TableSortDirection.Descending)]);
+        var gui = RunFrames(new GridSource(3), columns, state, frames: 2);
 
         Assert.Equal(2, gui.RootNode!.FindChildById("table/header/c1")!.Children.Count);
         Assert.Single(gui.RootNode!.FindChildById("table/header/c0")!.Children);
+        Assert.Contains("descending", Modifiers(gui, "c1"));
+        Assert.DoesNotContain("sorted-more", Modifiers(gui, "c1"));
     }
+
+    [Fact]
+    public void ARetainedSecondaryKeyAddsAnIndicatorToThePrimaryAndOnlyAModifierToItself()
+    {
+        var columns = Columns(3);
+        var state = new TableState();
+        state.Sort.Set([
+            new TableSort(columns[1]),
+            new TableSort(columns[2], TableSortDirection.Descending),
+            new TableSort(columns[0])
+        ]);
+        var gui = RunFrames(new GridSource(3), columns, state, frames: 2);
+
+        Assert.Equal(3, gui.RootNode!.FindChildById("table/header/c1")!.Children.Count);
+        Assert.Contains("sorted-more", Modifiers(gui, "c1"));
+        Assert.Single(gui.RootNode!.FindChildById("table/header/c2")!.Children);
+        Assert.Contains("sorted-secondary", Modifiers(gui, "c2"));
+        Assert.Contains("descending", Modifiers(gui, "c2"));
+        Assert.Contains("sorted-secondary", Modifiers(gui, "c0"));
+        Assert.Contains("ascending", Modifiers(gui, "c0"));
+    }
+
+    [Fact]
+    public void AHeaderWithAnEmptyTitleAndNoContentDrawsNothingAndTheTableStillBuilds()
+    {
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("", static row => row),
+            TableColumn<int>.Of("Named", static row => row)
+        ]);
+
+        var gui = RunFrames(new GridSource(2), columns, frames: 2);
+
+        Assert.Empty(gui.RootNode!.FindChildById("table/header/column1")!.Children);
+        Assert.Single(gui.RootNode!.FindChildById("table/header/named")!.Children);
+    }
+
+    [Fact]
+    public void AHeaderContentReplacesTheTitleTextAndIsGivenItsColumnAndRoom()
+    {
+        var content = new RecordingHeader();
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("Title", static row => row, header: content),
+            TableColumn<int>.Of("Other", static row => row)
+        ]);
+
+        var gui = RunFrames(new GridSource(2), columns, frames: 2);
+
+        Assert.NotEmpty(content.Seen);
+        Assert.All(content.Seen, context =>
+        {
+            Assert.Same(columns[0], context.Column);
+            Assert.Equal(Theme.HeaderHeight, context.Height);
+            Assert.True(context.Width > 0f);
+            Assert.Equal(Theme.FontSize, context.FontSize);
+        });
+        Assert.Single(gui.RootNode!.FindChildById("table/header/title")!.Children);
+    }
+
+    [Fact]
+    public void AnIconAndALocalizedTextAreBuiltInHeaderContents()
+    {
+        var language = "one";
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("", static row => row, header: TableHeaderContent.Icon(WidgetIcons.ChevronUp)),
+            TableColumn<int>.Of("Name", static row => row, header: TableHeaderContent.Text(() => language))
+        ]);
+        var state = new TableState();
+        var gui = RunFrames(new GridSource(2), columns, state, frames: 2);
+        var shortWidth = gui.RootNode!.FindChildById("table/header/name")!.Children[0].Rect.W;
+        Assert.Single(gui.RootNode!.FindChildById("table/header/column1")!.Children);
+
+        language = "a much longer text";
+        gui = RunFrames(new GridSource(2), columns, state, frames: 2, reuse: gui);
+
+        Assert.True(gui.RootNode!.FindChildById("table/header/name")!.Children[0].Rect.W > shortWidth);
+    }
+
+    [Fact]
+    public void TheSortMarkerFollowsCustomHeaderContentToo()
+    {
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("", static row => row, header: TableHeaderContent.Icon(WidgetIcons.ChevronUp))
+        ]);
+        var state = new TableState();
+        state.Sort.Set([new TableSort(columns[0])]);
+
+        var gui = RunFrames(new GridSource(2), columns, state, frames: 2);
+
+        Assert.Equal(2, gui.RootNode!.FindChildById("table/header/column1")!.Children.Count);
+    }
+
+    static IReadOnlyList<string> Modifiers(Gui gui, string column) =>
+        gui.RootNode!.FindChildById($"table/header/{column}")!.StyleTarget?.Modifiers ?? [];
 
     [Fact]
     public void AColumnThatIsNotInitiallyVisibleIsLeftOut()
     {
-        TableColumn[] columns = [new("A", new("a")), new("B", new("b")) { InitiallyVisible = false }];
-        var gui = RunFrames(new GridSource(3, 2), columns, frames: 2);
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("A", static row => row),
+            TableColumn<int>.Of("B", static row => row, visible: false)
+        ]);
+        var gui = RunFrames(new GridSource(3), columns, frames: 2);
 
         Assert.NotNull(gui.RootNode!.FindChildById("table/header/a"));
         Assert.Null(gui.RootNode!.FindChildById("table/header/b"));
@@ -222,8 +378,9 @@ public class TableTests
     [Fact]
     public void ARightAlignedCellSitsAtItsTrailingEdge()
     {
-        TableColumn[] columns = [new("N", new("n")) { Width = 200f, Alignment = TableAlignment.Right }];
-        var gui = RunFrames(new GridSource(1, 1), columns, frames: 2);
+        var columns = new TableColumns<int>(
+            [TableColumn<int>.Of("N", static row => $"n{row}", width: 200f, alignment: TableAlignment.Right)]);
+        var gui = RunFrames(new GridSource(1), columns, frames: 2);
 
         var cell = gui.RootNode!.FindChildById("table/row0/n")!;
         var text = cell.Children[0];
@@ -231,28 +388,70 @@ public class TableTests
     }
 
     [Fact]
-    public void ADuplicateColumnIdIsRejected()
+    public void ExplicitIdsLetColumnsShareATitle()
     {
-        TableColumn[] columns = [new("A", new("a")), new("Again", new("a"))];
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("Size", static row => row, id: "sizeBefore"),
+            TableColumn<int>.Of("Size", static row => row, id: "sizeAfter")
+        ]);
 
-        Assert.Throws<ArgumentException>(() => RunFrames(new GridSource(1, 1), columns));
+        var gui = RunFrames(new GridSource(1), columns, frames: 2);
+
+        Assert.NotNull(gui.RootNode!.FindChildById("table/header/sizeBefore"));
+        Assert.NotNull(gui.RootNode!.FindChildById("table/header/sizeAfter"));
+    }
+
+    [Fact]
+    public void TheTextOfAValueTypeFollowsTheValueWhenItChanges()
+    {
+        var values = new[] { 5, 5, 5 };
+        var columns = new TableColumns<int>(
+            [TableColumn<int>.Of("Value", row => values[row], id: "value", alignment: TableAlignment.Left)]);
+        var source = new GridSource(3);
+        var state = new TableState();
+        var gui = RunFrames(source, columns, state, frames: 2);
+        var before = TextWidth(gui, 1, "value");
+
+        values[1] = 50_000_000;
+        RunFrames(source, columns, state, frames: 2, reuse: gui);
+        var after = TextWidth(gui, 1, "value");
+
+        Assert.True(after > before + 20f, $"the cell showed width {after}, no wider than {before} for a longer number");
+        Assert.Equal(TextWidth(gui, 0, "value"), before);
     }
 
     [Fact]
     public void TheTableIsDrawnWithoutAnySheetRulesOfItsOwn()
     {
-        var gui = RunFrames(new GridSource(2, 2), Columns(2));
+        var gui = RunFrames(new GridSource(2), Columns(2));
 
         Assert.NotNull(gui.RootNode);
     }
 
-    static TableColumn[] Columns(int count) =>
-        [.. Enumerable.Range(0, count).Select(static i => new TableColumn($"Column {i}", new($"c{i}")))];
+    /// <summary>The width of the text node a cell drew, which follows the text it shows.</summary>
+    static float TextWidth(Gui gui, int row, string column) =>
+        gui.RootNode!.FindChildById($"table/row{row}/{column}")!.Children[0].Rect.W;
 
-    static TableColumn[] Fixed(int count, float width) =>
-        [.. Enumerable.Range(0, count).Select(i => new TableColumn($"Column {i}", new($"c{i}")) { Width = width })];
+    /// <summary>Columns whose values are <c>r{row}/c{n}</c> strings, counting how often they are read.</summary>
+    static TableColumns<int> Columns(int count, Counter? counter = null) =>
+        new(Enumerable.Range(0, count).Select(i => Make(i, counter, null)));
 
-    static Gui RunFrames(GridSource source, IReadOnlyList<TableColumn> columns, TableState? state = null,
+    static TableColumns<int> Fixed(int count, float width) =>
+        new(Enumerable.Range(0, count).Select(i => Make(i, null, width)));
+
+    static TableColumn<int> Make(int index, Counter? counter, float? width) =>
+        TableColumn<int>.Of($"Column {index}", row =>
+        {
+            if (counter is not null)
+            {
+                counter.Reads++;
+            }
+
+            return $"r{row}/c{index}";
+        }, id: $"c{index}", width: width);
+
+    static Gui RunFrames<TRow>(ITableViewSource<TRow> source, TableColumns<TRow> columns, TableState? state = null,
         TableOptions? options = null, int frames = 1, Gui? reuse = null)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
@@ -332,8 +531,15 @@ public class TableTests
         }
     }
 
-    /// <summary>A source of <c>r{row}/{column}</c> strings that counts how often it is read.</summary>
-    sealed class GridSource(int rows, int columns) : ITableViewSource
+    sealed class Counter
+    {
+        public int Reads { get; set; }
+    }
+
+    sealed record Item(string Version, string FileName, int Downloads);
+
+    /// <summary>Rows are their own indices; counts how often the table reads one.</summary>
+    sealed class GridSource(int rows) : ITableViewSource<int>
     {
         public int Reads { get; set; }
 
@@ -343,7 +549,27 @@ public class TableTests
 
         public bool IsLoading => Loading;
 
-        public int ColumnCount => columns;
+        public event EventHandler? Invalidated
+        {
+            add { }
+            remove { }
+        }
+
+        public int this[int index]
+        {
+            get
+            {
+                Reads++;
+                return index;
+            }
+        }
+
+        public RowIdentity GetRowIdentity(int index) => RowIdentity.FromIndex(index);
+    }
+
+    sealed class ItemSource(Item[] items) : ITableViewSource<Item>
+    {
+        public int RowCount => items.Length;
 
         public event EventHandler? Invalidated
         {
@@ -351,25 +577,46 @@ public class TableTests
             remove { }
         }
 
-        public object? GetValue(int row, TableColumn column)
-        {
-            Reads++;
-            return $"r{row}/{column.Id.Value}";
-        }
+        public Item this[int index] => items[index];
 
-        public RowIdentity GetRowIdentity(int row) => RowIdentity.FromIndex(row);
+        public RowIdentity GetRowIdentity(int index) => new(items[index].FileName);
     }
 
-    sealed class RecordingRenderer : ITableCellRenderer
+    sealed class RecordingRenderer : ITableCellRenderer<int, string>
     {
-        public List<TableCellContext> Cells { get; } = [];
+        public List<TableCellContext<int, string>> Cells { get; } = [];
 
-        public void Render(Gui gui, in TableCellContext cell)
+        public void Render(Gui gui, in TableCellContext<int, string> cell)
         {
             if (gui.Pass == Pass.Pass2Render)
             {
                 Cells.Add(cell);
             }
+        }
+    }
+
+    /// <summary>Receives the row itself, as a renderer-only column does.</summary>
+    sealed class ItemRenderer : ITableCellRenderer<Item, Item>
+    {
+        public List<string> Seen { get; } = [];
+
+        public void Render(Gui gui, in TableCellContext<Item, Item> cell)
+        {
+            if (gui.Pass == Pass.Pass2Render)
+            {
+                Seen.Add(cell.Value.FileName);
+            }
+        }
+    }
+
+    sealed class RecordingHeader : ITableHeaderContent
+    {
+        public List<TableHeaderContext> Seen { get; } = [];
+
+        public void Render(Gui gui, in TableHeaderContext context)
+        {
+            Seen.Add(context);
+            gui.DrawText("icon", context.FontSize);
         }
     }
 }

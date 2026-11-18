@@ -3,101 +3,70 @@ using System.Globalization;
 namespace Guinevere;
 
 /// <summary>The strings a table keeps for one built row, so a row that stays in view costs nothing to rebuild.</summary>
-sealed class TableRowSlot
+sealed class TableRowSlot(int index)
 {
+    /// <summary>The slot's place in the ring, which typed caches index their arrays by.</summary>
+    public readonly int Index = index;
+
     public int Row = -1;
     public int Generation = -1;
     public string? Id;
     public string? PadLeftId;
     public string? PadRightId;
     public string?[] CellIds = [];
-    public object?[] Values = [];
-    public string?[] Texts = [];
 }
 
 /// <summary>
-/// What a table derives from its inputs and reuses until they change: the visible columns and their
-/// layout, the node ids of built rows and cells, and the text of cell values. Nothing here is read from the
-/// data source except through <see cref="Text"/>, which only reuses a string while the value is equal.
+/// What a table derives from its inputs and reuses until they change: the column geometry, the node ids of built
+/// rows and cells, and the text of cell values. Reusing text never reads the source; it only compares the value
+/// the column just read with the one the text was made from.
 /// </summary>
 sealed class TableCache
 {
-    readonly Dictionary<(TableColumnId Id, float FontSize, float Padding), float> _autoWidths = [];
+    readonly Dictionary<(TableColumn Column, float FontSize, float Padding), float> _autoWidths = [];
 
-    TableColumn[] _snapshot = [];
+    TableColumnSet? _columns;
     TableRowSlot?[] _slots = [];
+    object?[] _textCaches = [];
     TableLayout? _layout;
     float _layoutWidth;
     float _layoutFontSize;
     float _layoutPadding;
-    int _generation;
     CultureInfo? _culture;
 
-    /// <summary>The columns laid out: those visible by default, in the order given.</summary>
-    public TableColumn[] Shown { get; private set; } = [];
+    /// <summary>The columns of the table that last drew, or null before the first frame.</summary>
+    public TableColumnSet? Columns => _columns;
 
-    /// <summary>Node id of each shown column's header cell.</summary>
-    public string[] HeaderIds { get; private set; } = [];
+    /// <summary>Incremented when cached text or ids stop being valid: new columns, or a new culture.</summary>
+    public int Generation { get; private set; }
 
-    string[] CellSuffixes { get; set; } = [];
+    /// <summary>How many rows the cache can remember at once.</summary>
+    public int Capacity => _slots.Length;
 
     /// <summary>
-    /// Starts a frame: rebuilds what depends on the column list when it differs from the last frame's, and
-    /// drops cached text when the culture changed. The list is compared by content, so a caller may share
-    /// one list or edit it in place.
+    /// Starts a frame: drops cached text when the culture changed, and everything that depends on the columns
+    /// when they are not the columns of the last frame. Columns are frozen, so one reference comparison decides.
     /// </summary>
-    /// <param name="columns">The caller's column definitions.</param>
-    public void Begin(IReadOnlyList<TableColumn> columns)
+    /// <param name="columns">The table's columns.</param>
+    /// <returns>Whether the columns changed since the last frame.</returns>
+    public bool Begin(TableColumnSet columns)
     {
         if (!ReferenceEquals(_culture, CultureInfo.CurrentCulture))
         {
             _culture = CultureInfo.CurrentCulture;
-            _generation++;
+            Generation++;
         }
 
-        if (SameColumns(columns))
-        {
-            return;
-        }
-
-        var ids = new HashSet<TableColumnId>();
-        var shown = new List<TableColumn>(columns.Count);
-        foreach (var column in columns)
-        {
-            if (!ids.Add(column.Id))
-            {
-                throw new ArgumentException($"Table column id '{column.Id}' is used twice.", nameof(columns));
-            }
-
-            if (column.InitiallyVisible)
-            {
-                shown.Add(column);
-            }
-        }
-
-        _snapshot = [.. columns];
-        Shown = [.. shown];
-        HeaderIds = [.. Shown.Select(static column => "table/header/" + column.Id.Value)];
-        CellSuffixes = [.. Shown.Select(static column => "/" + column.Id.Value)];
-        _layout = null;
-        _generation++;
-    }
-
-    bool SameColumns(IReadOnlyList<TableColumn> columns)
-    {
-        if (columns.Count != _snapshot.Length)
+        if (ReferenceEquals(_columns, columns))
         {
             return false;
         }
 
-        for (var i = 0; i < _snapshot.Length; i++)
-        {
-            if (!ReferenceEquals(columns[i], _snapshot[i]))
-            {
-                return false;
-            }
-        }
-
+        _columns = columns;
+        _textCaches = new object?[columns.Shown.Length];
+        _autoWidths.Clear();
+        _layout = null;
+        Generation++;
         return true;
     }
 
@@ -119,12 +88,12 @@ sealed class TableCache
     }
 
     /// <summary>A column's header-sized width, when it was measured for this text size and padding.</summary>
-    public bool TryAutoWidth(TableColumnId id, float fontSize, float padding, out float width) =>
-        _autoWidths.TryGetValue((id, fontSize, padding), out width);
+    public bool TryAutoWidth(TableColumn column, float fontSize, float padding, out float width) =>
+        _autoWidths.TryGetValue((column, fontSize, padding), out width);
 
     /// <summary>Remembers a column's header-sized width; a definition never changes, so it stays valid.</summary>
-    public void StoreAutoWidth(TableColumnId id, float fontSize, float padding, float width) =>
-        _autoWidths[(id, fontSize, padding)] = width;
+    public void StoreAutoWidth(TableColumn column, float fontSize, float padding, float width) =>
+        _autoWidths[(column, fontSize, padding)] = width;
 
     /// <summary>Makes room to remember every row built in a frame, with as many again for rows that just left.</summary>
     /// <param name="rowsBuilt">Rows built this frame.</param>
@@ -140,26 +109,24 @@ sealed class TableCache
     /// <summary>The slot of a built row, emptied when it last held another row or other columns.</summary>
     public TableRowSlot Slot(int row)
     {
-        var slot = _slots[row & (_slots.Length - 1)] ??= new TableRowSlot();
-        if (slot.Row == row && slot.Generation == _generation)
+        var index = row & (_slots.Length - 1);
+        var slot = _slots[index] ??= new TableRowSlot(index);
+        if (slot.Row == row && slot.Generation == Generation)
         {
             return slot;
         }
 
         slot.Row = row;
-        slot.Generation = _generation;
+        slot.Generation = Generation;
         slot.Id = slot.PadLeftId = slot.PadRightId = null;
-        if (slot.CellIds.Length == Shown.Length)
+        var shown = _columns!.Shown.Length;
+        if (slot.CellIds.Length == shown)
         {
             Array.Clear(slot.CellIds);
-            Array.Clear(slot.Values);
-            Array.Clear(slot.Texts);
         }
         else
         {
-            slot.CellIds = new string?[Shown.Length];
-            slot.Values = new object?[Shown.Length];
-            slot.Texts = new string?[Shown.Length];
+            slot.CellIds = new string?[shown];
         }
 
         return slot;
@@ -174,33 +141,86 @@ sealed class TableCache
 
     /// <summary>Node id of one cell: its row's id and its column's key.</summary>
     public string CellId(TableRowSlot slot, int column) =>
-        slot.CellIds[column] ??= RowId(slot) + CellSuffixes[column];
+        slot.CellIds[column] ??= RowId(slot) + _columns!.CellSuffixes[column];
 
-    /// <summary>
-    /// The text of a cell value. Strings are their own text. Value types are formatted once and reused while
-    /// the value stays equal, which is safe because a boxed value cannot change in place. Anything else may
-    /// change behind its reference, so it is formatted every time.
-    /// </summary>
-    public string Text(TableRowSlot slot, int column, object? value)
+    /// <summary>The text cache of one shown column, made the first time the column draws.</summary>
+    /// <typeparam name="TValue">The column's value type.</typeparam>
+    /// <param name="column">The column's position among the shown columns.</param>
+    public TableTextCache<TValue> TextCacheFor<TValue>(int column)
     {
-        switch (value)
+        if (_textCaches[column] is TableTextCache<TValue> cache)
         {
-            case null:
-                return "";
-            case string text:
-                return text;
-            case ValueType:
-                if (slot.Texts[column] is { } cached && value.Equals(slot.Values[column]))
-                {
-                    return cached;
-                }
-
-                var formatted = Convert.ToString(value, CultureInfo.CurrentCulture) ?? "";
-                slot.Values[column] = value;
-                slot.Texts[column] = formatted;
-                return formatted;
-            default:
-                return Convert.ToString(value, CultureInfo.CurrentCulture) ?? "";
+            return cache;
         }
+
+        var created = new TableTextCache<TValue>();
+        _textCaches[column] = created;
+        return created;
+    }
+}
+
+/// <summary>
+/// The text of one column's cell values. Strings are their own text. A value type is formatted once and the
+/// text reused while the value stays equal, compared without boxing, which is safe because a value cannot
+/// change behind a copy. Any other type may change behind its reference, so it is formatted every time.
+/// </summary>
+/// <typeparam name="TValue">The column's value type.</typeparam>
+sealed class TableTextCache<TValue>
+{
+    static readonly bool Reusable = typeof(TValue).IsValueType;
+    static readonly bool IsNullable = Nullable.GetUnderlyingType(typeof(TValue)) is not null;
+
+    TValue[] _values = [];
+    string?[] _texts = [];
+    int[] _rows = [];
+    int _generation = -1;
+
+    /// <summary>The text of a value in the cell of a built row.</summary>
+    /// <param name="cache">The table's cache, which says when stored text is stale.</param>
+    /// <param name="slot">The slot of the cell's row.</param>
+    /// <param name="value">The value the column just read.</param>
+    public string Text(TableCache cache, TableRowSlot slot, TValue value)
+    {
+        if (!Reusable)
+        {
+            // A reference type: a null check and a cast box nothing.
+            if (value is null)
+            {
+                return "";
+            }
+
+            return typeof(TValue) == typeof(string) ? (string)(object)value : value.ToString() ?? "";
+        }
+
+        // A value type, where a null test would box it when the JIT has not optimized the method yet: only a
+        // Nullable<T> can be missing, and it equals its default exactly then.
+        if (IsNullable && EqualityComparer<TValue>.Default.Equals(value, default))
+        {
+            return "";
+        }
+
+        if (_values.Length != cache.Capacity || _generation != cache.Generation)
+        {
+            _values = new TValue[cache.Capacity];
+            _texts = new string?[cache.Capacity];
+            _rows = new int[cache.Capacity];
+            Array.Fill(_rows, -1);
+            _generation = cache.Generation;
+        }
+
+        var index = slot.Index;
+        if (_rows[index] == slot.Row && _texts[index] is { } text
+                                     && EqualityComparer<TValue>.Default.Equals(_values[index], value))
+        {
+            return text;
+        }
+
+        // A constrained call: no boxing for a struct that overrides ToString, and the current culture
+        // formats it, as the text always has been.
+        text = value!.ToString() ?? "";
+        _values[index] = value;
+        _texts[index] = text;
+        _rows[index] = slot.Row;
+        return text;
     }
 }

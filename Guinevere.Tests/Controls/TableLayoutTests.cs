@@ -7,9 +7,9 @@ public class TableLayoutTests
     public void FixedColumnsKeepTheirWidthWithinTheirLimits()
     {
         var layout = Resolve(800f,
-            new TableColumn("A", new("a")) { Width = 120f },
-            new TableColumn("B", new("b")) { Width = 10f, MinWidth = 40f },
-            new TableColumn("C", new("c")) { Width = 900f, MaxWidth = 300f });
+            Col("A", width: 120f),
+            Col("B", width: 10f, minWidth: 40f),
+            Col("C", width: 900f, maxWidth: 300f));
 
         Assert.Equal([120f, 40f, 300f], layout.Widths);
     }
@@ -18,9 +18,9 @@ public class TableLayoutTests
     public void StarColumnsShareTheFreeWidthByWeight()
     {
         var layout = Resolve(700f,
-            new TableColumn("A", new("a")) { Width = 100f },
-            new TableColumn("B", new("b")) { Width = TableLength.Star(1) },
-            new TableColumn("C", new("c")) { Width = TableLength.Star(2) });
+            Col("A", width: 100f),
+            Col("B", width: TableLength.Star(1)),
+            Col("C", width: TableLength.Star(2)));
 
         Assert.Equal([100f, 200f, 400f], layout.Widths);
     }
@@ -29,9 +29,9 @@ public class TableLayoutTests
     public void AStarColumnBelowItsMinimumIsPinnedThereAndTheRestShareWhatRemains()
     {
         var layout = Resolve(400f,
-            new TableColumn("A", new("a")) { Width = TableLength.Star(1), MinWidth = 250f },
-            new TableColumn("B", new("b")) { Width = TableLength.Star(1) },
-            new TableColumn("C", new("c")) { Width = TableLength.Star(1) });
+            Col("A", width: TableLength.Star(1), minWidth: 250f),
+            Col("B", width: TableLength.Star(1)),
+            Col("C", width: TableLength.Star(1)));
 
         Assert.Equal([250f, 75f, 75f], layout.Widths);
     }
@@ -40,9 +40,9 @@ public class TableLayoutTests
     public void AStarColumnAboveItsMaximumIsPinnedThereAndTheRestShareWhatRemains()
     {
         var layout = Resolve(600f,
-            new TableColumn("A", new("a")) { Width = TableLength.Star(1), MaxWidth = 100f },
-            new TableColumn("B", new("b")) { Width = TableLength.Star(1) },
-            new TableColumn("C", new("c")) { Width = TableLength.Star(1) });
+            Col("A", width: TableLength.Star(1), maxWidth: 100f),
+            Col("B", width: TableLength.Star(1)),
+            Col("C", width: TableLength.Star(1)));
 
         Assert.Equal([100f, 250f, 250f], layout.Widths);
     }
@@ -51,9 +51,9 @@ public class TableLayoutTests
     public void WithNothingLeftStarColumnsTakeTheirMinimumAndTheTableScrolls()
     {
         var layout = Resolve(100f,
-            new TableColumn("A", new("a")) { Width = 90f },
-            new TableColumn("B", new("b")) { Width = TableLength.Star(1), MinWidth = 60f },
-            new TableColumn("C", new("c")) { Width = TableLength.Star(3), MinWidth = 80f });
+            Col("A", width: 90f),
+            Col("B", width: TableLength.Star(1), minWidth: 60f),
+            Col("C", width: TableLength.Star(3), minWidth: 80f));
 
         Assert.Equal([90f, 60f, 80f], layout.Widths);
         Assert.Equal(230f, layout.Total);
@@ -62,11 +62,11 @@ public class TableLayoutTests
     [Fact]
     public void AnAutoColumnTakesItsMeasuredWidthWithinItsLimits()
     {
-        var columns = new[]
-        {
-            new TableColumn("A", new("a")) { Width = TableLength.Auto },
-            new TableColumn("B", new("b")) { Width = TableLength.Auto, MaxWidth = 90f }
-        };
+        TableColumn[] columns =
+        [
+            Col("A", width: TableLength.Auto),
+            Col("B", width: TableLength.Auto, maxWidth: 90f)
+        ];
 
         var layout = TableLayout.Resolve(columns, 500f, [70f, 200f]);
 
@@ -77,9 +77,9 @@ public class TableLayoutTests
     public void OffsetsAreCumulativeAndTheLastOneIsTheTotal()
     {
         var layout = Resolve(1000f,
-            new TableColumn("A", new("a")) { Width = 100f },
-            new TableColumn("B", new("b")) { Width = 50f },
-            new TableColumn("C", new("c")) { Width = 25f, MinWidth = 10f });
+            Col("A", width: 100f),
+            Col("B", width: 50f),
+            Col("C", width: 25f, minWidth: 10f));
 
         Assert.Equal([0f, 100f, 150f, 175f], layout.Offsets);
         Assert.Equal(175f, layout.Total);
@@ -88,8 +88,7 @@ public class TableLayoutTests
     [Fact]
     public void TheWindowCoversTheColumnsTheViewportTouches()
     {
-        var layout = Resolve(1000f, [.. Enumerable.Range(0, 10)
-            .Select(static i => new TableColumn("C", new($"c{i}")) { Width = 100f })]);
+        var layout = Resolve(1000f, Many(10));
 
         Assert.Equal((0, 3), layout.Window(0f, 250f, 0));
         Assert.Equal((2, 5), layout.Window(250f, 200f, 0));
@@ -99,7 +98,7 @@ public class TableLayoutTests
     [Fact]
     public void AColumnWindowSurvivesAZeroWidthViewport()
     {
-        var layout = Resolve(1000f, new TableColumn("A", new("a")) { Width = 100f });
+        var layout = Resolve(1000f, Col("A", width: 100f));
 
         Assert.Equal((0, 1), layout.Window(0f, 0f, 0));
     }
@@ -107,8 +106,7 @@ public class TableLayoutTests
     [Fact]
     public void TheWindowNeverLeavesTheColumnList()
     {
-        var layout = Resolve(1000f, [.. Enumerable.Range(0, 4)
-            .Select(static i => new TableColumn("C", new($"c{i}")) { Width = 100f })]);
+        var layout = Resolve(1000f, Many(4));
 
         Assert.Equal((0, 4), layout.Window(0f, 10_000f, 5));
         Assert.Equal((0, 4), layout.Window(-50f, 100f, 5));
@@ -143,6 +141,12 @@ public class TableLayoutTests
         Assert.Throws<ArgumentOutOfRangeException>(static () => TableLength.Star(0f));
         Assert.Equal(TableLengthKind.Pixels, ((TableLength)64f).Kind);
     }
+
+    static TableColumn Col(string title, TableLength? width = null, float? minWidth = null, float? maxWidth = null) =>
+        TableColumn<int>.Row(title, width: width, minWidth: minWidth, maxWidth: maxWidth);
+
+    static TableColumn[] Many(int count) =>
+        [.. Enumerable.Range(0, count).Select(static i => TableColumn<int>.Row("C", id: $"c{i}", width: 100f))];
 
     static TableLayout Resolve(float viewport, params TableColumn[] columns) =>
         TableLayout.Resolve(columns, viewport, new float[columns.Length]);

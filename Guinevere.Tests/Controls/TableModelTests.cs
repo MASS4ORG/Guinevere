@@ -1,11 +1,9 @@
-using System.Runtime.CompilerServices;
-using Guinevere.Tests.Mocks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
 namespace Guinevere.Tests.Controls;
 
-/// <summary>Covers the table's data model: column definitions and keys, and row identities.</summary>
+/// <summary>
+/// Covers the table's data model: how columns are built and identified, which of them sort, how the frozen
+/// column collection validates its ids, and row identities.
+/// </summary>
 public class TableModelTests
 {
     [Fact]
@@ -17,152 +15,299 @@ public class TableModelTests
     }
 
     [Fact]
-    public void AColumnNeedsATitleAndAnIdThatIsNotEmpty()
-    {
-        Assert.ThrowsAny<ArgumentException>(static () => new TableColumn("Title", new TableColumnId("")));
-        Assert.ThrowsAny<ArgumentException>(static () => new TableColumn("Title", default(TableColumnId)));
-        Assert.Throws<ArgumentNullException>(static () => new TableColumn(null!, new("id")));
-        Assert.Equal("", new TableColumn("", new("id")).Title);
-    }
-
-    [Fact]
-    public void ATitleCannotBePassedWhereAnIdGoesAndTheOtherWayRound()
-    {
-        const string swapped = """
-            using Guinevere;
-            class C
-            {
-                void M()
-                {
-                    var byTitleAsId = new TableColumn("Title", "id");
-                    string idAsText = new TableColumnId("id");
-                    TableColumnId textAsId = "id";
-                    var sort = new TableSort("id");
-                }
-            }
-            """;
-        const string correct = """
-            using Guinevere;
-            class C
-            {
-                void M()
-                {
-                    var column = new TableColumn("Title", new TableColumnId("id"));
-                    string text = column.Id.Value;
-                    var sort = new TableSort(column.Id);
-                }
-            }
-            """;
-
-        Assert.Empty(CompileErrors(correct));
-        Assert.Equal(4, CompileErrors(swapped).Count);
-    }
-
-    [Fact]
-    public void AnIdLeftOutIsDerivedFromTheDeclaringFileAndLine()
-    {
-        var column = new TableColumn("Title"); var line = Line();
-
-        Assert.Equal(new TableColumnId($"TableModelTests.cs:{line}"), column.Id);
-        Assert.DoesNotContain('/', column.Id.Value);
-    }
-
-    [Fact]
-    public void ColumnsOnDifferentLinesGetDifferentDerivedIdsAndAnExplicitIdWins()
-    {
-        var first = new TableColumn("A");
-        var second = new TableColumn("A");
-        var explicitId = new TableColumn("A", new("stable"));
-
-        Assert.NotEqual(first.Id, second.Id);
-        Assert.Equal("stable", explicitId.Id.Value);
-        Assert.Equal("stable", explicitId.Id.ToString());
-    }
-
-    static int Line([CallerLineNumber] int line = 0) => line;
-
-    /// <summary>Compiles a snippet against the loaded assemblies and returns its compile errors.</summary>
-    static List<string> CompileErrors(string source)
-    {
-        var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(static assembly => !assembly.IsDynamic && assembly.Location.Length > 0)
-            .Select(static assembly => MetadataReference.CreateFromFile(assembly.Location));
-        var compilation = CSharpCompilation.Create("TableIdProbe", [CSharpSyntaxTree.ParseText(source)], references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-        return [.. compilation.GetDiagnostics()
-            .Where(static diagnostic => diagnostic.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-            .Select(static diagnostic => diagnostic.Id)];
-    }
-
-    [Fact]
     public void AColumnStartsVisibleUnpinnedAndSharingTheFreeWidth()
     {
-        var column = new TableColumn("Title", new("id"));
+        var column = TableColumn<int>.Of("Title", static row => row);
 
         Assert.True(column.InitiallyVisible);
         Assert.Equal(TablePin.None, column.Pin);
         Assert.Equal(TableAlignment.Left, column.Alignment);
         Assert.Equal(TableLengthKind.Star, column.Width.Kind);
+        Assert.Equal(48f, column.MinWidth);
+        Assert.Equal(float.PositiveInfinity, column.MaxWidth);
         Assert.Null(column.Renderer);
     }
 
     [Fact]
-    public void AnAutoColumnIsAsWideAsItsHeaderText()
+    public void TheFactoryAndTheConstructorWithInitializersBuildTheSameColumn()
     {
-        TableColumn[] columns =
+        var made = TableColumn<int>.Of("Size", static row => row, id: "bytes", width: 90f, minWidth: 30f,
+            maxWidth: 200f, alignment: TableAlignment.Right, pin: TablePin.Left, visible: false);
+        var built = new TableColumn<int, int>("Size", static row => row)
+        {
+            Id = "bytes",
+            Width = 90f,
+            MinWidth = 30f,
+            MaxWidth = 200f,
+            Alignment = TableAlignment.Right,
+            Pin = TablePin.Left,
+            InitiallyVisible = false
+        };
+
+        Assert.Equal(built.Id, made.Id);
+        Assert.Equal(built.Width, made.Width);
+        Assert.Equal(built.MinWidth, made.MinWidth);
+        Assert.Equal(built.MaxWidth, made.MaxWidth);
+        Assert.Equal(built.Alignment, made.Alignment);
+        Assert.Equal(built.Pin, made.Pin);
+        Assert.Equal(built.InitiallyVisible, made.InitiallyVisible);
+    }
+
+    [Fact]
+    public void AColumnNeedsATitleAndAValueReader()
+    {
+        Assert.Throws<ArgumentNullException>(static () => TableColumn<int>.Of(null!, static row => row));
+        Assert.Throws<ArgumentNullException>(static () => TableColumn<int>.Of<int>("T", null!));
+        Assert.Equal("", TableColumn<int>.Of("", static row => row, id: "e").Title);
+    }
+
+    [Theory]
+    [InlineData("Version", "version")]
+    [InlineData("File Name", "filename")]
+    [InlineData("Size (KB)", "sizekb")]
+    [InlineData("  Last-Modified  ", "lastmodified")]
+    [InlineData("URL", "url")]
+    [InlineData("Col 2", "col2")]
+    [InlineData("Größe", "größe")]
+    public void AnIdLeftOutIsTheTitleInLowerCaseWithOnlyLettersAndDigits(string title, string expected)
+    {
+        Assert.Equal(expected, TableColumn<int>.Of(title, static row => row).Id);
+    }
+
+    [Fact]
+    public void AnExplicitIdWinsOverTheTitleAndSurvivesRetitling()
+    {
+        var english = TableColumn<int>.Of("Name", static row => row, id: "name");
+        var german = TableColumn<int>.Of("Bezeichnung", static row => row, id: "name");
+
+        Assert.Equal("name", english.Id);
+        Assert.Equal(english.Id, german.Id);
+        Assert.NotEqual(TableColumn<int>.Of("Name", static row => row).Id,
+            TableColumn<int>.Of("Bezeichnung", static row => row).Id);
+    }
+
+    [Fact]
+    public void TheIdCanBeSetThroughAnInitializerAndNeverPositionally()
+    {
+        var column = new TableColumn<int, int>("Title", static row => row) { Id = "custom" };
+
+        Assert.Equal("custom", column.Id);
+        Assert.DoesNotContain(typeof(TableColumn<int, int>).GetConstructors().Single().GetParameters(),
+            static parameter => parameter.Name == "id");
+    }
+
+    [Fact]
+    public void ColumnsAreComparedByInstanceNotByIdOrTitle()
+    {
+        var first = TableColumn<int>.Of("Same", static row => row);
+        var second = TableColumn<int>.Of("Same", static row => row);
+
+        Assert.Equal(first.Id, second.Id);
+        Assert.NotSame(first, second);
+        Assert.False(first.Equals(second));
+    }
+
+    [Fact]
+    public void AValueTypeStringAndNullableAreSortableByTheirOwnOrder()
+    {
+        Assert.True(TableColumn<Row>.Of("A", static row => row.Number).Sortable);
+        Assert.True(TableColumn<Row>.Of("B", static row => row.Name).Sortable);
+        Assert.True(TableColumn<Row>.Of("C", static row => row.Maybe).Sortable);
+        Assert.True(TableColumn<Row>.Of("D", static row => row.When).Sortable);
+        Assert.True(TableColumn<Row>.Of("E", static row => row.Kind).Sortable);
+    }
+
+    [Fact]
+    public void ATypeWithNoNaturalOrderIsOnlySortableWithAComparer()
+    {
+        Assert.False(TableColumn<Row>.Of("Opaque", static row => row.Opaque).Sortable);
+        Assert.False(TableColumn<Row>.Row("Row").Sortable);
+        Assert.False(TableColumn<Row>.Of("Object", static row => (object)row.Name).Sortable);
+
+        var withComparer = TableColumn<Row>.Of("Opaque", static row => row.Opaque,
+            comparer: Comparer<Opaque>.Create(static (a, b) => a.Weight.CompareTo(b.Weight)));
+        var rowWithComparer = TableColumn<Row>.Row("Row",
+            comparer: Comparer<Row>.Create(static (a, b) => a.Number.CompareTo(b.Number)));
+
+        Assert.True(withComparer.Sortable);
+        Assert.True(rowWithComparer.Sortable);
+    }
+
+    [Fact]
+    public void ComparingUsesTheValueTypesOrderTheGivenComparerOrRefusesWhenNotSortable()
+    {
+        var byNumber = TableColumn<Row>.Of("Number", static row => row.Number);
+        var byWeight = TableColumn<Row>.Of("Weight", static row => row.Opaque,
+            comparer: Comparer<Opaque>.Create(static (a, b) => b.Weight.CompareTo(a.Weight)));
+        var opaque = TableColumn<Row>.Of("Opaque", static row => row.Opaque);
+        var low = new Row(1, "b", null, default, Kind.Beta, new Opaque(5));
+        var high = new Row(2, "a", null, default, Kind.Alpha, new Opaque(9));
+
+        Assert.True(byNumber.Compare(low, high) < 0);
+        Assert.True(byWeight.Compare(low, high) > 0, "the given comparer, not the default, decides");
+        Assert.Equal(0, byNumber.Compare(low, low));
+        Assert.Throws<InvalidOperationException>(() => opaque.Compare(low, high));
+    }
+
+    [Fact]
+    public void AValueIsReadFromTheRowByTheColumn()
+    {
+        var column = TableColumn<Row>.Of("Name", static row => row.Name);
+        var row = new Row(1, "widget", null, default, Kind.Alpha, new Opaque(1));
+
+        Assert.Equal("widget", column.Value(row));
+        Assert.Same(row, TableColumn<Row>.Row("Row").Value(row));
+    }
+
+    [Fact]
+    public void TheColumnsKeepTheirOrderAndFreezeIt()
+    {
+        var a = TableColumn<int>.Of("A", static row => row);
+        var b = TableColumn<int>.Of("B", static row => row, visible: false);
+        var c = TableColumn<int>.Of("C", static row => row);
+        var list = new List<TableColumn<int>> { a, b, c };
+
+        var columns = new TableColumns<int>(list);
+        list.Clear();
+
+        Assert.Equal(3, columns.Count);
+        Assert.Same(a, columns[0]);
+        Assert.Same(c, columns[2]);
+        Assert.Equal([a, b, c], columns);
+    }
+
+    [Fact]
+    public void AColumnWithNoTitleTextGetsItsPositionAsAnIdInsteadOfFailing()
+    {
+        var columns = new TableColumns<int>(
         [
-            new("A", new("short")) { Width = TableLength.Auto, MinWidth = 1f },
-            new("A considerably longer header title", new("long")) { Width = TableLength.Auto, MinWidth = 1f }
-        ];
+            TableColumn<int>.Of("A", static row => row),
+            TableColumn<int>.Of("", static row => row),
+            TableColumn<int>.Of("—", static row => row),
+            TableColumn<int>.Of("", static row => row, id: "share")
+        ]);
 
-        var gui = RunFrame(columns);
-
-        var shortWidth = gui.RootNode!.FindChildById("table/header/short")!.Rect.W;
-        var longWidth = gui.RootNode!.FindChildById("table/header/long")!.Rect.W;
-        Assert.True(shortWidth >= 2 * TableTheme.Default.CellPadding, "padding is part of the width");
-        Assert.True(longWidth > shortWidth + 50f, $"{longWidth} should be well over {shortWidth}");
+        Assert.Equal(["a", "column2", "column3", "share"], columns.Select(static column => column.Id));
     }
 
-    static Gui RunFrame(TableColumn[] columns)
+    [Fact]
+    public void ThePositionalIdOnlyAppliesWhereTheTitleGivesNone()
     {
-        using var surface = SKSurface.Create(new SKImageInfo(600, 200));
-        var input = Substitute.For<IInputHandler>();
-        input.MousePosition.Returns(new Vector2(-100, -100));
-        input.PrevMousePosition.Returns(new Vector2(-100, -100));
-        var gui = new TestableGui { Input = input };
-        gui.SetScreenRect(600, 200);
-        var state = new TableState();
-        var source = new EmptySource();
+        var titled = TableColumn<int>.Of("Name", static row => row);
+        var untitled = TableColumn<int>.Of("", static row => row);
 
-        for (var frame = 0; frame < 2; frame++)
-        {
-            gui.Time.Update(0.016);
-            gui.SetStage(Pass.Pass1Build);
-            gui.BeginFrame(surface.Canvas);
-            gui.Table(state, source, columns);
-            gui.CalculateLayout();
-            gui.SetStage(Pass.Pass2Render);
-            gui.Table(state, source, columns);
-            gui.Render();
-            gui.EndFrame();
-        }
+        _ = new TableColumns<int>([untitled, titled]);
 
-        return gui;
+        Assert.Equal("name", titled.Id);
+        Assert.Equal("column1", untitled.Id);
     }
 
-    sealed class EmptySource : ITableViewSource
+    [Fact]
+    public void ACollisionWithAPositionalIdIsStillRejectedWithAClearMessage()
     {
-        public int RowCount => 0;
+        var error = Assert.Throws<ArgumentException>(static () => new TableColumns<int>(
+        [
+            TableColumn<int>.Of("", static row => row),
+            TableColumn<int>.Of("Column 1", static row => row)
+        ]));
 
-        public event EventHandler? Invalidated
-        {
-            add { }
-            remove { }
-        }
-
-        public object? GetValue(int row, TableColumn column) => null;
-
-        public RowIdentity GetRowIdentity(int row) => RowIdentity.FromIndex(row);
+        Assert.Contains("'column1'", error.Message);
+        Assert.Contains("Id = ", error.Message);
     }
+
+    [Fact]
+    public void AHeaderCanBeSetThroughTheFactoryOrAnInitializerAndDefaultsToTheTitle()
+    {
+        var icon = TableHeaderContent.Icon(WidgetIcons.ChevronUp);
+        var made = TableColumn<int>.Of("", static row => row, header: icon);
+        var built = new TableColumn<int, int>("", static row => row) { Header = icon };
+
+        Assert.Same(icon, made.Header);
+        Assert.Same(icon, built.Header);
+        Assert.Null(TableColumn<int>.Of("Plain", static row => row).Header);
+        Assert.Same(icon, TableColumn<int>.Row("Row", header: icon).Header);
+    }
+
+    [Fact]
+    public void BuiltInHeaderContentsRejectNull()
+    {
+        Assert.Throws<ArgumentNullException>(static () => TableHeaderContent.Icon(null!));
+        Assert.Throws<ArgumentNullException>(static () => TableHeaderContent.Text(null!));
+    }
+
+    [Fact]
+    public void AnEmptyExplicitIdIsRejected()
+    {
+        var column = new TableColumn<int, int>("Title", static row => row) { Id = "" };
+
+        Assert.Throws<ArgumentException>(() => new TableColumns<int>([column]));
+    }
+
+    [Fact]
+    public void ADuplicateIdIsRejectedAtConstructionNamingBothColumns()
+    {
+        var error = Assert.Throws<ArgumentException>(static () => new TableColumns<int>(
+        [
+            TableColumn<int>.Of("First", static row => row, id: "dup"),
+            TableColumn<int>.Of("Second", static row => row, id: "dup")
+        ]));
+
+        Assert.Contains("'First'", error.Message);
+        Assert.Contains("'Second'", error.Message);
+        Assert.Contains("'dup'", error.Message);
+        Assert.Contains("Id = ", error.Message);
+        Assert.Contains("unique titles", error.Message);
+    }
+
+    [Fact]
+    public void TwoTitlesThatDeriveTheSameIdAreRejectedNotRenamedBehindTheCallersBack()
+    {
+        var error = Assert.Throws<ArgumentException>(static () => new TableColumns<int>(
+        [
+            TableColumn<int>.Of("File Name", static row => row),
+            TableColumn<int>.Of("file-name", static row => row)
+        ]));
+
+        Assert.Contains("'filename'", error.Message);
+    }
+
+    [Fact]
+    public void ExplicitIdsLetColumnsShareATitle()
+    {
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("Size", static row => row, id: "before"),
+            TableColumn<int>.Of("Size", static row => row, id: "after")
+        ]);
+
+        Assert.Equal(["before", "after"], columns.Select(static column => column.Id));
+    }
+
+    [Fact]
+    public void ANullColumnOrListIsRejected()
+    {
+        Assert.Throws<ArgumentNullException>(static () => new TableColumns<int>(null!));
+        Assert.Throws<ArgumentException>(static () => new TableColumns<int>([null!]));
+    }
+
+    [Fact]
+    public void TheIdLookupIsNotPartOfThePublicApi()
+    {
+        var members = typeof(TableColumns<int>).GetMembers().Select(static member => member.Name);
+
+        Assert.DoesNotContain("Find", members);
+        Assert.DoesNotContain("Set", members);
+        Assert.DoesNotContain("Contains", members);
+    }
+
+    enum Kind
+    {
+        Alpha,
+        Beta
+    }
+
+    /// <summary>A value with no natural order.</summary>
+    readonly record struct Opaque(int Weight);
+
+    sealed record Row(int Number, string Name, int? Maybe, DateTime When, Kind Kind, Opaque Opaque);
 }
