@@ -77,7 +77,7 @@ public partial class Example01
             {
                 var fruit = Fruits[i];
                 var node = gui.Node(-1, 40, $"fruit/{fruit}").ExpandWidth().Padding(12, 0).Direction(Axis.Horizontal)
-                    .Gap(10).ContentAlignY(0.5f).Cursor(PointerCursor.Hand);
+                    .Gap(10).AlignContentY(0.5f).Cursor(PointerCursor.Hand);
                 using (node.Enter())
                 {
                     var hovered = gui.Pass == Pass.Pass2Render && node.OnHover();

@@ -47,7 +47,7 @@ public sealed class AttributeTour
 
     static void Header(Gui gui)
     {
-        using (gui.Node().Height(48).Padding(16, 0).Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(10).Enter())
+        using (gui.Node().Height(48).Padding(16, 0).Direction(Axis.Horizontal).AlignContentY(0.5f).Gap(10).Enter())
         {
             gui.DrawText("Autoformers", 20, Token(gui, "text"));
         }
@@ -82,7 +82,7 @@ public sealed class AttributeTour
 
     void SidebarEntry(Gui gui, DemoPage page, int index)
     {
-        using (gui.Node(-1, 26, $"nav/{index}").ExpandWidth().Padding(10, 0).ContentAlignY(0.5f).Enter())
+        using (gui.Node(-1, 26, $"nav/{index}").ExpandWidth().Padding(10, 0).AlignContentY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
             var selected = index == Selected;
@@ -123,10 +123,10 @@ public sealed class AttributeTour
             var sideBySide = gui.ScreenRect.W >= SideBySideWidth;
             using (gui.Node().Direction(sideBySide ? Axis.Horizontal : Axis.Vertical).Gap(16).Enter())
             {
-                Panel(gui, "Result", sideBySide ? UnitValue.Pixels(FormWidth) : UnitValue.Expand(), "page/result", false,
+                Panel(gui, "Result", sideBySide ? Size.Pixels(FormWidth) : Size.Expand(), "page/result", false,
                     () => gui.Form(new FormModel(target, [FormBuilder.Section(target, page.Title)]), "page/form",
                         context));
-                Panel(gui, "Code", UnitValue.Expand(), "page/code", true,
+                Panel(gui, "Code", Size.Expand(), "page/code", true,
                     () => gui.DrawText(source, 12, Token(gui, "text"), CodeFont, centerInRect: false, clip: true));
             }
         }
@@ -139,7 +139,7 @@ public sealed class AttributeTour
     /// <param name="id">The panel's node id.</param>
     /// <param name="pan">Whether the body pans sideways to reach content wider than the panel.</param>
     /// <param name="body">Draws the panel's content inside the padded body.</param>
-    static void Panel(Gui gui, string title, UnitValue width, string id, bool pan, Action body)
+    static void Panel(Gui gui, string title, Size width, string id, bool pan, Action body)
     {
         using (gui.Node(-1, -1, id).Width(width).Direction(Axis.Vertical).Enter())
         {

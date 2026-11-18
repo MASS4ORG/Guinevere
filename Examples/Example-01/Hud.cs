@@ -40,7 +40,7 @@ public partial class Example01
                 gui.RequestFrame();
             }
             gui.DrawText("Image skins: raw health / shield with a held damage trail", 15, p.Text);
-            using (gui.Node().ExpandWidth().Height(32).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+            using (gui.Node().ExpandWidth().Height(32).AlignContentX(0.5f).AlignContentY(0.5f).Enter())
             {
                 var skin = new FillOptions { Sprite = HudBarSprite.Value, SpriteBorder = new Insets(6), Maximum = 100 };
                 gui.DrawFill(gui.CurrentNode.Rect, health.Value, new FillLayers
@@ -53,7 +53,7 @@ public partial class Example01
                 gui.DrawText($"{state.Health:0} / 100 health · 20 shield", 14, p.Text);
             }
             gui.DrawText("Ability cooldown: raw elapsed seconds with an eased normalizer", 15, p.Text);
-            using (gui.Node(100, 100).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+            using (gui.Node(100, 100).AlignContentX(0.5f).AlignContentY(0.5f).Enter())
             {
                 gui.DrawBackgroundRect(p.Accent, 12);
                 gui.DrawFill(gui.CurrentNode.Rect, 4 * progress, new FillOptions
@@ -67,7 +67,7 @@ public partial class Example01
                 gui.DrawText($"{4 * (1 - progress):0.0}s", 16, Color.White);
             }
             gui.DrawText("Cast progress / segmented charge", 15, p.Text);
-            using (gui.Node().ExpandWidth().Height(28).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+            using (gui.Node().ExpandWidth().Height(28).AlignContentX(0.5f).AlignContentY(0.5f).Enter())
             {
                 gui.DrawBackgroundRect(p.Track);
                 gui.DrawFill(gui.CurrentNode.Rect, progress,

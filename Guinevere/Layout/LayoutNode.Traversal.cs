@@ -18,6 +18,7 @@ public partial class LayoutNode
         }
 
         ChildNodes.Add(child);
+        child.StampBuildGeneration();
         if (child.Style.IsAbsolute)
         {
             _absoluteChildCount++;
@@ -33,6 +34,7 @@ public partial class LayoutNode
     internal void AppendNewChild(LayoutNode child)
     {
         ChildNodes.Add(child);
+        child.StampBuildGeneration();
         if (child.Style.IsAbsolute)
         {
             _absoluteChildCount++;

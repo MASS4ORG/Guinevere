@@ -13,7 +13,7 @@ public static class DemoControls
     /// <summary>Draws a labeled Excalibur action, using an icon and tooltip for common commands.</summary>
     public static bool Button(Gui gui, string label, string id)
     {
-        using var host = gui.Node().Width(UnitValue.Fit).Height(28).Enter();
+        using var host = gui.Node().Width(Size.Fit).Height(28).Enter();
         var clicked = DemoIcons.Actions.TryGetValue(label, out var icon)
             ? gui.IconButton(icon, label, size: 28, id: id)
             : gui.Button(label, height: 28, id: id);

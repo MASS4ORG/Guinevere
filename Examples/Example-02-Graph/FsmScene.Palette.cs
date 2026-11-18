@@ -11,10 +11,10 @@ public sealed partial class FsmScene
         {
             return;
         }
-        using var palette = gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Vertical).Gap(6).Enter();
+        using var palette = gui.Node().ExpandWidth().Height(Size.Fit).Direction(Axis.Vertical).Gap(6).Enter();
         DemoControls.TextInput(gui, ref _query, "Search registered FSM node types", "fsm-node-search",
             onKey: e => SearchKey(gui, e));
-        using var choices = gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter();
+        using var choices = gui.Node().ExpandWidth().Height(Size.Fit).Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter();
         foreach (var type in View.Palette(_query))
         {
             button(type.DisplayName, "fsm-create-" + type.Id, () => CreateNode(gui, type));

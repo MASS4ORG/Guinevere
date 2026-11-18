@@ -45,7 +45,7 @@ public static partial class ControlsExtensions
             }
 
             var modifiers = selectedIndex == value ? CheckedModifier : NoModifiers;
-            using (ChoicePart(gui, "indicator", size, size, modifiers).ContentAlignX(0.5f).ContentAlignY(0.5f)
+            using (ChoicePart(gui, "indicator", size, size, modifiers).AlignContentX(0.5f).AlignContentY(0.5f)
                        .Enter())
             using (ChoicePart(gui, "dot", size * 0.4f, size * 0.4f, modifiers).Enter())
             {

@@ -96,9 +96,9 @@ public static class StyleLayout
 
                 break;
             case "align-self": node.AlignSelf(AlignFraction(value)); break;
-            case "align-items": node.ContentAlignX(AlignFraction(value)); break;
-            case "justify-content": node.ContentAlignY(AlignFraction(value)); break;
-            case "gap" when StyleValue.TryFloat(value, out var gap): node.Gap(gap); break;
+            case "align-items": node.AlignContentX(AlignFraction(value)); break;
+            case "justify-content": node.AlignContentY(AlignFraction(value)); break;
+            case "gap" when StyleValue.TrySize(value, out var gap): node.Gap(gap); break;
         }
     }
 
@@ -106,175 +106,64 @@ public static class StyleLayout
     {
         switch (prop)
         {
-            case "width": ApplyLength(node, value, width: true); break;
-            case "height": ApplyLength(node, value, width: false); break;
+            case "width" when StyleValue.TrySize(value, out var width): node.Width(width); break;
+            case "height" when StyleValue.TrySize(value, out var height): node.Height(height); break;
             case "padding": ApplyBox(node, value, padding: true); break;
         }
     }
 
     static void ApplyM(LayoutNode node, string prop, string value)
     {
+        if (prop == "margin")
+        {
+            ApplyBox(node, value, padding: false);
+            return;
+        }
+
+        if (!StyleValue.TrySize(value, out var size))
+        {
+            return;
+        }
+
         switch (prop)
         {
-            case "margin": ApplyBox(node, value, padding: false); break;
-            case "min-width":
-                if (StyleValue.TryLength(value, out var minWidth, out _))
-                {
-                    node.MinWidth(minWidth);
-                }
-
-                break;
-            case "max-width":
-                if (StyleValue.TryLength(value, out var maxWidth, out _))
-                {
-                    node.MaxWidth(maxWidth);
-                }
-
-                break;
-            case "min-height":
-                if (StyleValue.TryLength(value, out var minHeight, out _))
-                {
-                    node.MinHeight(minHeight);
-                }
-
-                break;
-            case "max-height":
-                if (StyleValue.TryLength(value, out var maxHeight, out _))
-                {
-                    node.MaxHeight(maxHeight);
-                }
-
-                break;
+            case "min-width": node.MinWidth(size); break;
+            case "max-width": node.MaxWidth(size); break;
+            case "min-height": node.MinHeight(size); break;
+            case "max-height": node.MaxHeight(size); break;
         }
     }
 
-    static void ApplyLength(LayoutNode node, string value, bool width)
+    /// <summary>The up-to-four sides of a box shorthand, without allocating.</summary>
+    [System.Runtime.CompilerServices.InlineArray(4)]
+    struct BoxSides
     {
-        if (!TryParseDimension(value, out var dimension))
-        {
-            return;
-        }
-
-        if (dimension.Unit == DimensionUnit.Expression)
-        {
-            if (width)
-            {
-                node.Width(dimension.Expression);
-            }
-            else
-            {
-                node.Height(dimension.Expression);
-            }
-
-            return;
-        }
-
-        if (width)
-        {
-            if (dimension.Unit == DimensionUnit.Percent)
-            {
-                node.WidthPercent(dimension.Length);
-            }
-            else
-            {
-                node.Width(dimension.Length);
-            }
-        }
-        else
-        {
-            if (dimension.Unit == DimensionUnit.Percent)
-            {
-                node.HeightPercent(dimension.Length);
-            }
-            else
-            {
-                node.Height(dimension.Length);
-            }
-        }
-    }
-
-    enum DimensionUnit { Pixel, Percent, Expression }
-
-    readonly record struct DimensionValue(DimensionUnit Unit, float Length = 0, UnitValue Expression = default);
-
-    static bool TryParseDimension(string value, out DimensionValue dimension)
-    {
-        if (value == "expand")
-        {
-            dimension = new(DimensionUnit.Expression, Expression: UnitValue.Expand());
-        }
-        else if (value is "fit" or "auto")
-        {
-            dimension = new(DimensionUnit.Expression, Expression: UnitValue.Fit);
-        }
-        else if (value.StartsWith("ratio(", StringComparison.Ordinal) && value.EndsWith(')')
-                 && StyleValue.TryFloat(value.AsSpan(6, value.Length - 7), out var ratio))
-        {
-            dimension = new(DimensionUnit.Expression, Expression: UnitValue.Ratio(ratio));
-        }
-        else if (StyleValue.TryLength(value, out var length, out var isPercent))
-        {
-            dimension = new(isPercent ? DimensionUnit.Percent : DimensionUnit.Pixel, length);
-        }
-        else
-        {
-            dimension = default;
-            return false;
-        }
-        return true;
+        Size _first;
     }
 
     static void ApplyBox(LayoutNode node, string value, bool padding)
     {
-        Span<float> lengths = stackalloc float[4];
-        var count = ParseBox(value, lengths);
+        var buffer = new BoxSides();
+        Span<Size> sides = buffer;
+        var count = StyleValue.ReadSizes(value, sides);
         if (padding)
         {
             switch (count)
             {
-                case 1: node.Padding(lengths[0]); break;
-                case 2: node.Padding(lengths[1], lengths[0]); break;
-                case 4: node.Padding(lengths[0], lengths[1], lengths[2], lengths[3]); break;
+                case 1: node.Padding(sides[0]); break;
+                case 2: node.Padding(sides[1], sides[0]); break;
+                case 4: node.Padding(sides[0], sides[1], sides[2], sides[3]); break;
             }
         }
         else
         {
             switch (count)
             {
-                case 1: node.Margin(lengths[0]); break;
-                case 2: node.Margin(lengths[1], lengths[0]); break;
-                case 4: node.Margin(lengths[0], lengths[1], lengths[2], lengths[3]); break;
+                case 1: node.Margin(sides[0]); break;
+                case 2: node.Margin(sides[1], sides[0]); break;
+                case 4: node.Margin(sides[0], sides[1], sides[2], sides[3]); break;
             }
         }
-    }
-
-    static int ParseBox(string value, Span<float> lengths)
-    {
-        var parts = value.AsSpan();
-        var count = 0;
-        while (!parts.IsEmpty)
-        {
-            parts = parts.TrimStart();
-            if (parts.IsEmpty)
-            {
-                break;
-            }
-
-            if (count == lengths.Length)
-            {
-                return 0;
-            }
-
-            var end = parts.IndexOf(' ');
-            var token = end < 0 ? parts : parts[..end];
-            if (!StyleValue.TryLength(token, out lengths[count++], out _))
-            {
-                return 0;
-            }
-
-            parts = end < 0 ? [] : parts[(end + 1)..];
-        }
-        return count;
     }
 
     static readonly FrozenDictionary<string, float> AlignFractions = new Dictionary<string, float>

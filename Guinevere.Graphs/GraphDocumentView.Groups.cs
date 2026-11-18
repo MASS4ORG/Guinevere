@@ -178,7 +178,7 @@ public sealed partial class GraphDocumentView
             .HitTestVisible(false).Enter();
         using var header = gui.StyledNode("graph-group-header").ExpandWidth()
             .Height(GraphStyles.Length(_groupHeaderStyle, "height")).Absolute(0, 0).HitTestVisible(true)
-            .Direction(Axis.Horizontal).ContentAlignY(0.5f).Enter();
+            .Direction(Axis.Horizontal).AlignContentY(0.5f).Enter();
         gui.CurrentNode.On<PointerDownEvent>(e =>
         {
             if (e.Button == MouseButton.Left)

@@ -24,7 +24,7 @@ public partial class Example01
         using var key = gui.ItemKey(id ?? label);
         ref var hovered = ref gui.GetData(false);
         var fill = gui.AnimateColor(selected ? p.Accent : hovered ? p.SurfaceHover : p.SurfaceRaised, 0.12f);
-        var node = gui.Node().Padding(14, 7).ContentAlignY(0.5f).Cursor(PointerCursor.Hand);
+        var node = gui.Node().Padding(14, 7).AlignContentY(0.5f).Cursor(PointerCursor.Hand);
         using (node.Enter())
         {
             gui.DrawBackgroundRect(fill, 8);
@@ -58,9 +58,9 @@ public partial class Example01
     static void Stepper(Gui gui, ColorPalette p, string id, string label, int value, int min, int max,
         Action<int> set, int step = 1)
     {
-        using (gui.Node().Direction(Axis.Horizontal).Gap(8).ContentAlignY(0.5f).Enter())
+        using (gui.Node().Direction(Axis.Horizontal).Gap(8).AlignContentY(0.5f).Enter())
         {
-            using (gui.Node(width: 74).ContentAlignY(0.5f).Enter())
+            using (gui.Node(width: 74).AlignContentY(0.5f).Enter())
             {
                 Label(gui, p, label);
             }
@@ -70,7 +70,7 @@ public partial class Example01
                 Common.Later(() => set(Math.Max(min, value - step)));
             }
 
-            using (gui.Node(width: 28).ContentAlignY(0.5f).Enter())
+            using (gui.Node(width: 28).AlignContentY(0.5f).Enter())
             {
                 gui.DrawText($"{value}", 14, p.Text);
             }
@@ -111,7 +111,7 @@ public partial class Example01
     // {
     //     var dark = ReferenceEquals(p, ColorPalette.Dark);
     //     var knob = gui.AnimateFloat(dark ? 0f : 1f, 0.2f);
-    //     var node = gui.Node().Height(36).Padding(14, 0).Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f)
+    //     var node = gui.Node().Height(36).Padding(14, 0).Direction(Axis.Horizontal).Gap(10).AlignContentY(0.5f)
     //         .Cursor(PointerCursor.Hand);
     //     if (compact)
     //     {

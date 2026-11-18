@@ -27,7 +27,7 @@ public static partial class ControlsExtensions
 
                 if (state.Browser.Entries.Count == 0)
                 {
-                    using (gui.StyledNode("file-label").Height(RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
+                    using (gui.StyledNode("file-label").Height(RowHeight).ExpandWidth().AlignContentY(0.5f).Enter())
                     {
                         gui.DrawText(state.Browser.IsLoading ? "Loading…" :
                                 state.Browser.Error is null ? "Nothing here" : "Cannot read this folder",
@@ -73,7 +73,7 @@ public static partial class ControlsExtensions
     {
 
         using (gui.StyledNode("file-header").Height(RowHeight).ExpandWidth().Direction(Axis.Horizontal).Gap(6f)
-                   .PaddingX(8f).ContentAlignY(0.5f).Enter())
+                   .PaddingX(8f).AlignContentY(0.5f).Enter())
         {
 
             Column(gui, state, FileSortColumn.Name, "Name", 0f, fontSize);
@@ -98,7 +98,7 @@ public static partial class ControlsExtensions
             node.Expand();
         }
 
-        using (node.ContentAlignY(0.5f).Enter())
+        using (node.AlignContentY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
             var marker = active ? state.Browser.Ascending ? " ⬆" : " ⬇" : "";
@@ -119,26 +119,26 @@ public static partial class ControlsExtensions
 
         using (gui.StyledNode("file-row", id: state.ControlId($"row/{entry.FullPath}"),
                        modifiers: selected ? ["selected"] : []).Height(RowHeight).ExpandWidth()
-                   .Direction(Axis.Horizontal).Gap(6f).PaddingX(4f).ContentAlignY(0.5f).Enter())
+                   .Direction(Axis.Horizontal).Gap(6f).PaddingX(4f).AlignContentY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
 
 
             gui.DrawText(entry.IsDirectory ? WidgetIcons.Folder : WidgetIcons.FileLines, fontSize, gui.ResolvePart("file-detail").GetColor("color"));
 
-            using (gui.Node().Expand().ContentAlignY(0.5f).Enter())
+            using (gui.Node().Expand().AlignContentY(0.5f).Enter())
             {
                 gui.ClipContent();
                 gui.DrawText(entry.Name, fontSize, centerInRect: false, clip: true);
             }
 
-            using (gui.Node(SizeWidth, RowHeight).ContentAlignY(0.5f).Enter())
+            using (gui.Node(SizeWidth, RowHeight).AlignContentY(0.5f).Enter())
             {
                 gui.DrawText(Guinevere.FileBrowser.FormatSize(entry.Size), fontSize - 1f, gui.ResolvePart("file-detail").GetColor("color"),
                     centerInRect: false);
             }
 
-            using (gui.Node(ModifiedWidth, RowHeight).ContentAlignY(0.5f).Enter())
+            using (gui.Node(ModifiedWidth, RowHeight).AlignContentY(0.5f).Enter())
             {
                 gui.DrawText(Modified(entry), fontSize - 1f, gui.ResolvePart("file-detail").GetColor("color"), centerInRect: false);
             }

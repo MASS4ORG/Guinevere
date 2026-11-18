@@ -58,12 +58,12 @@ public static partial class ControlsExtensions
             filePath: filePath, lineNumber: lineNumber);
         if (width >= 0)
         {
-            node.Width(width == 0 ? UnitValue.Expand() : UnitValue.Pixels(width));
+            node.Width(width == 0 ? Size.Expand() : Size.Pixels(width));
         }
 
         if (height >= 0)
         {
-            node.Height(height == 0 ? UnitValue.Expand() : UnitValue.Pixels(height));
+            node.Height(height == 0 ? Size.Expand() : Size.Pixels(height));
         }
 
         var state = gui.ControlState(node.Id, static () => new SliderState());

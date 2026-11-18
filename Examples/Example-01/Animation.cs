@@ -24,17 +24,17 @@ public partial class Example01
         using (gui.Node().ExpandWidth().Direction(Axis.Vertical).Padding(16).Gap(10).Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 12);
-            using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Direction(Axis.Horizontal).Gap(14).AlignContentY(0.5f).Enter())
             {
                 if (Button(gui, p, _blendWide ? "Shrink to 120px" : "Grow to 70%", id: "blend/toggle"))
                 {
                     Common.Later(static () => _blendWide = !_blendWide);
                 }
 
-                Label(gui, p, "UnitValue.Lerp(Pixels(120), Percentage(0.7), t): layout units animate like numbers");
+                Label(gui, p, "Size.Lerp(Pixels(120), Percentage(0.7), t): layout units animate like numbers");
             }
 
-            var width = UnitValue.Lerp(UnitValue.Pixels(120f), UnitValue.Percentage(0.7f), progress);
+            var width = Size.Lerp(Size.Pixels(120f), Size.Percentage(0.7f), progress);
             using (gui.Node().Width(width).Height(40).AlignContent(0.5f, 0.5f).Enter())
             {
                 gui.DrawBackgroundRect(p.Accent, 8);
@@ -60,7 +60,7 @@ public partial class Example01
         using (gui.Node().Expand().Direction(Axis.Vertical).Padding(16).Gap(10).Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 12);
-            using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Direction(Axis.Horizontal).Gap(14).AlignContentY(0.5f).Enter())
             {
                 Label(gui, p, "Loop duration");
                 Choice(gui, p, "easing-duration", EasingDurations, _easingDuration,
@@ -72,7 +72,7 @@ public partial class Example01
                 var (name, curve) = curves[i];
                 var eased = curve(time);
                 using var key = gui.ItemKey(name);
-                using (gui.Node().ExpandWidth().Height(26).Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f)
+                using (gui.Node().ExpandWidth().Height(26).Direction(Axis.Horizontal).Gap(14).AlignContentY(0.5f)
                            .Enter())
                 {
                     using (gui.Node(width: 120).Enter())
@@ -109,7 +109,7 @@ public partial class Example01
         using (gui.Node().ExpandWidth().Height(250).Direction(Axis.Vertical).Padding(16).Gap(10).Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 12);
-            using (gui.Node().Direction(Axis.Horizontal).Gap(10).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Direction(Axis.Horizontal).Gap(10).AlignContentY(0.5f).Enter())
             {
                 if (Button(gui, p, "Flip target", id: "spring/flip"))
                 {
@@ -169,7 +169,7 @@ public partial class Example01
     /// <summary>Hover grows a card, click spins it; hit testing follows the transformed shape.</summary>
     static void Cards(Gui gui, ColorPalette p)
     {
-        using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(24).Padding(12).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+        using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(24).Padding(12).AlignContentX(0.5f).AlignContentY(0.5f).Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 12);
             for (var i = 0; i < 5; i++)

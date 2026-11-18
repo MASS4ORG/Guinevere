@@ -53,7 +53,7 @@ public partial class Program
             }
 
             // Section for track list and pads on the right
-            using (_gui.Node(400, UnitValue.Expand()).Gap(_gap).Enter())
+            using (_gui.Node(400, Size.Expand()).Gap(_gap).Enter())
             {
                 // Draw the library
                 using (_gui.Node().Expand().Enter())
@@ -88,7 +88,7 @@ public partial class Program
             using (_gui.Node().Direction(Axis.Horizontal).Gap(_gap).Margin(_gap).MarginTop(0).ExpandWidth().Enter())
             {
                 // The mask to cut off some of the snapshot buttons with
-                ShapePos mask = pianoBgShape.Expand(10);
+                ShapePos mask = (ShapePos)pianoBgShape.Expand(10);
 
                 DrawSnapshotButton(_snapshots[0], default);
                 DrawSnapshotButton(_snapshots[1], default);
@@ -111,14 +111,14 @@ public partial class Program
     LayoutNode DrawSnapshotButton(Snapshot snapshot, ShapePos mask)
     {
         // Draws the horizontal list of buttons below the instruments and volume sliders
-        using (_gui.Node(UnitValue.Expand(), 60).Gap(10).Enter())
+        using (_gui.Node(Size.Expand(), 60).Gap(10).Enter())
         {
             bool isSelected = snapshot == selectedSnapshot;
             ShapePos bgShape = ShapePos.RectangleRounded(_gui.CurrentNode.Rect.Expand(-3), _borderRadius);
 
             if (mask != default)
             {
-                bgShape = bgShape - mask;
+                bgShape = (ShapePos)(bgShape - mask);
             }
 
             StyleButton(isSelected, bgShape);
@@ -223,7 +223,7 @@ public partial class Program
 
                     for (int n = 0; n < 2; n++)
                     {
-                        var rect = _gui.Node(UnitValue.Expand(), 40).Rect;
+                        var rect = _gui.Node(Size.Expand(), 40).Rect;
                         var count = (rect.Width - 20) / 2;
 
                         // Draw some random audio wave
@@ -275,12 +275,12 @@ public partial class Program
                            .Enter())
                 {
                     int rulerMargin = 8;
-                    LayoutNode leftRulerNode = _gui.Node(8, UnitValue.Expand()).Margin(0, rulerMargin);
+                    LayoutNode leftRulerNode = _gui.Node(8, Size.Expand()).Margin(0, rulerMargin);
                     LayoutNode sliderNode = DrawVolumeSlider(instrument.Color, ref instrument.Volume).Width(26);
-                    LayoutNode rulerNumbersNode = _gui.Node(10, UnitValue.Expand()).ContentAlignX(0.5f)
+                    LayoutNode rulerNumbersNode = _gui.Node(10, Size.Expand()).AlignContentX(0.5f)
                         .Spacing(Spacing.SpaceBetween).Margin(8, rulerMargin);
-                    LayoutNode volumnBarNode = _gui.Node(26, UnitValue.Expand());
-                    LayoutNode rightRulerNode = _gui.Node(8, UnitValue.Expand()).Margin(0, rulerMargin);
+                    LayoutNode volumnBarNode = _gui.Node(26, Size.Expand());
+                    LayoutNode rightRulerNode = _gui.Node(8, Size.Expand()).Margin(0, rulerMargin);
 
                     int rulerLineCount = 15;
                     using (rulerNumbersNode.Enter())
@@ -541,7 +541,7 @@ public partial class Program
                 _gui.DrawText(title);
             }
 
-            var line = _gui.Node(UnitValue.Expand(), 2).MarginBottom(_gap);
+            var line = _gui.Node(Size.Expand(), 2).MarginBottom(_gap);
             _gui.DrawRect(line.Rect.Expand(_gap, 0), new Color(0x00000044u));
         }
     }
@@ -580,9 +580,9 @@ public partial class Program
         {
             // Draw mod wheel
             {
-                var leftRuler = _gui.Node(10, UnitValue.Expand()).Spacing(Spacing.SpaceBetween);
-                var wheel = _gui.Node(60, UnitValue.Expand()).Rect;
-                var rightRuler = _gui.Node(10, UnitValue.Expand()).Spacing(Spacing.SpaceBetween);
+                var leftRuler = _gui.Node(10, Size.Expand()).Spacing(Spacing.SpaceBetween);
+                var wheel = _gui.Node(60, Size.Expand()).Rect;
+                var rightRuler = _gui.Node(10, Size.Expand()).Spacing(Spacing.SpaceBetween);
                 var handle = wheel.Padding(0, 5).AlignTop(30).AddY(modWheel * (wheel.Height - 36));
                 var shadowShape = Shape.Circle(300).MoveX(-220) * Shape.Rectangle(400, wheel.Height).MoveX(180);
                 var handleShape = Shape.RectangleRounded(wheel.Width, 20, 5);
@@ -619,8 +619,8 @@ public partial class Program
                     for (int i = 0; i < numLines; i++)
                     {
                         float f = i / (float)numLines;
-                        var left = leftRuler.AppendNode(UnitValue.Expand(), 2);
-                        var right = rightRuler.AppendNode(UnitValue.Expand(), 2);
+                        var left = leftRuler.AppendNode(Size.Expand(), 2);
+                        var right = rightRuler.AppendNode(Size.Expand(), 2);
                         float brightness = _gui.Smoothdamp(f >= modWheel ? 1 : 0f, 10);
                         Color color = Color.Lerp(new Color(0x000000ffu), new Color(0xE6B455FFu), brightness);
                         float outerShadow = brightness * 8;
@@ -652,7 +652,7 @@ public partial class Program
                     float keyStart = _gui.Smoothdamp((1f / numKeys) * instrument.KeyStart);
                     float keyLength = _gui.Smoothdamp((1f / numKeys) * instrument.KeyLength);
 
-                    Rect rangeRect = _gui.Node(UnitValue.Expand(), 14).Rect;
+                    Rect rangeRect = _gui.Node(Size.Expand(), 14).Rect;
                     rangeRect.X += keyStart * rangeRect.Width;
                     rangeRect.Width *= keyLength;
 
@@ -690,7 +690,7 @@ public partial class Program
                 {
                     for (int i = 0; i < padPlayer.Pads.Length; i++)
                     {
-                        using (_gui.Node().ExpandWidth().Height(UnitValue.Ratio(1)).Enter())
+                        using (_gui.Node().ExpandWidth().Height(Size.Ratio(1)).Enter())
                         {
                             StyleButton(i == padPlayer.SelectedPad);
                             _gui.DrawText(padPlayer.Pads[i]);
@@ -739,10 +739,10 @@ public partial class Program
         }
     }
 
-    LayoutNode DrawKnobSlider(Color color, UnitValue unitValue, ref float value, bool isPan = false)
+    LayoutNode DrawKnobSlider(Color color, Size size, ref float value, bool isPan = false)
     {
         ref float t = ref _gui.Smoothdamp(value);
-        LayoutNode node = _gui.Node(unitValue);
+        LayoutNode node = _gui.Node(size);
         float angleOffset = 0.1f;
         float arcLength = Angle.Turns(1 - angleOffset * 2);
         float arcStart = Angle.Turns(0.25f + angleOffset);
@@ -943,7 +943,7 @@ public partial class Program
     {
         LayoutNode container = _gui.Node().ExpandWidth().Direction(Axis.Horizontal);
         LayoutNode toggleEffectNode =
-            container.AppendNode(UnitValue.Ratio(1), UnitValue.Expand())
+            container.AppendNode(Size.Ratio(1), Size.Expand())
                 .AlignContent(0.5f); // Expand height, and make width as wide as it is tall.
         LayoutNode textNode = container.AppendNode().ExpandWidth()
             .AlignContent(0, 0.5f)
@@ -1051,7 +1051,7 @@ public partial class Program
     {
         Rect rect = _gui.CurrentNode
             .Padding(15)
-            .MinWidth(UnitValue.Ratio(1))
+            .MinWidth(Size.Ratio(1))
             .AlignContent(0.5f)
             .Rect;
 
@@ -1335,7 +1335,7 @@ public partial class Program
                                .Direction(Axis.Horizontal)
                                .ExpandWidth()
                                .Gap(_gap)
-                               .MinWidth(UnitValue.Fit)
+                               .MinWidth(Size.Fit)
                                .Margin(20)
                                .AlignContent(0.5f).Enter())
                     {
@@ -1347,20 +1347,20 @@ public partial class Program
                     }
 
                     // Draw separator line
-                    _gui.DrawRect(_gui.Node(UnitValue.Expand(), 1), new Color(1, 1, 1, 0.1f));
+                    _gui.DrawRect(_gui.Node(Size.Expand(), 1), new Color(1, 1, 1, 0.1f));
                     _gui.SetTextColor(new Color(0xffffff88u));
                     // Assigns the body container
                     popup.BodyContainer = _gui.Node()
                         .Margin(_gap)
                         .ToScope();
                     // Draw another separator line
-                    _gui.DrawRect(_gui.Node(UnitValue.Expand(), 1), new Color(1, 1, 1, 0.1f));
+                    _gui.DrawRect(_gui.Node(Size.Expand(), 1), new Color(1, 1, 1, 0.1f));
                     // Assigns the footer container
                     popup.FooterContainer = _gui.Node()
                         .Margin(_gap)
                         .Direction(Axis.Horizontal)
                         .ExpandWidth()
-                        .ContentAlignX(1)
+                        .AlignContentX(1)
                         .Gap(_gap)
                         .ToScope();
                 }

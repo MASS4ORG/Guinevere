@@ -159,7 +159,7 @@ public partial class Gui : ILayoutNodeEnterExit
         Node(width, (float)height, id, filePath, lineNumber);
 
     /// <summary>Creates a node using composable size expressions.</summary>
-    public LayoutNode Node(UnitValue width, UnitValue height,
+    public LayoutNode Node(Size width, Size height,
         string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)

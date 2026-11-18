@@ -421,8 +421,8 @@ static Fixture BuildExpand(int count)
     for (var i = 0; i < count; i++)
     {
         var child = new LayoutNode(i.ToString(), gui, root, 0f, 100f);
-        child.Style.MinWidth = i % 2 == 0 ? 2f : -1f;
-        child.Style.MaxWidth = i % 3 == 0 ? 40f : -1f;
+        child.Style.MinWidth = i % 2 == 0 ? 2f : null;
+        child.Style.MaxWidth = i % 3 == 0 ? 40f : null;
         root.AddChild(child);
     }
     return new Fixture(root, count + 1);
@@ -529,7 +529,7 @@ static Fixture BuildPixelsWithMinExpand(int count)
         row.Style.Direction = Axis.Horizontal;
         var first = new LayoutNode($"first-{i}", gui, row, 20f, 10f);
         var second = new LayoutNode($"second-{i}", gui, row, 20f, 10f);
-        second.Style.MinWidthExpression = UnitValue.Pixels(10f) + UnitValue.Expand(0.5f);
+        second.Style.MinWidth = Size.Pixels(10f) + Size.Expand(0.5f);
         row.AddChild(first);
         row.AddChild(second);
         root.AddChild(row);
@@ -560,7 +560,7 @@ static Fixture BuildExpandWeights(int count)
         row.Style.Direction = Axis.Horizontal;
         var one = new LayoutNode($"one-{i}", gui, row, 0f, 10f);
         var two = new LayoutNode($"two-{i}", gui, row, 0f, 10f);
-        two.Style.ExpandWidthPercentage = 2f;
+        two.Style.Width = Size.Expand(2f);
         row.AddChild(one);
         row.AddChild(two);
         root.AddChild(row);
@@ -600,8 +600,8 @@ static Fixture BuildPercentageAndRatio(int count)
     for (var i = 0; i < count; i++)
     {
         var child = new LayoutNode(i.ToString(), gui, root);
-        child.Width(UnitValue.Percentage(0.5f));
-        child.Height(UnitValue.Ratio(0.5f));
+        child.Width(Size.Percentage(0.5f));
+        child.Height(Size.Ratio(0.5f));
         root.AddChild(child);
     }
     return new Fixture(root, count + 1);

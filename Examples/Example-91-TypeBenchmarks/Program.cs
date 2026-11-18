@@ -124,7 +124,8 @@ Measure("layout-style-read", count, iterations * 4, () =>
     var sum = 0f;
     for (var i = 0; i < count; i++)
     {
-        sum += style.Width + style.PaddingLeft + style.MaxWidth;
+        sum += (style.Width ?? default).PixelsContribution + style.PaddingLeft.PixelsContribution
+               + (style.MaxWidth ?? default).PixelsContribution;
     }
 
     GC.KeepAlive(sum);

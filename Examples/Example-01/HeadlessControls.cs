@@ -13,7 +13,7 @@ public partial class Example01
     {
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(18).Enter())
         {
-            using (gui.Node().Direction(Axis.Horizontal).Gap(14).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Direction(Axis.Horizontal).Gap(14).AlignContentY(0.5f).Enter())
             {
                 Label(gui, p, "Skin");
                 Choice(gui, p, "skin", SkinNames, _skin, static index => _skin = index);
@@ -80,7 +80,7 @@ public partial class Example01
 
     static void CustomToggle(Gui gui, ColorPalette p, string label, ref bool value)
     {
-        using (gui.Node(280, 38, $"toggle/{label}").Direction(Axis.Horizontal).Gap(12).ContentAlignY(0.5f).Enter())
+        using (gui.Node(280, 38, $"toggle/{label}").Direction(Axis.Horizontal).Gap(12).AlignContentY(0.5f).Enter())
         {
             var result = gui.Toggleable(value,
                 new ControlBehaviorOptions(Role: ControlRole.Switch, Label: label));

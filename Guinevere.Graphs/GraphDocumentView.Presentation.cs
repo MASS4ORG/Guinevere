@@ -276,7 +276,7 @@ public sealed partial class GraphDocumentView
         var half = (float)element.Bounds.Width / 2;
         using var label = gui.StyledNode("graph-port-label").Margin(0).Width(width).Height(height)
             .Absolute(input ? half + gap : half - width - gap, half - height / 2)
-            .ContentAlignX(input ? 0 : 1).HitTestVisible(false).Enter();
+            .AlignContentX(input ? 0 : 1).HitTestVisible(false).Enter();
         gui.DrawText(element.Name).HitTestVisible(false);
     }
 

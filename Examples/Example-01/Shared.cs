@@ -174,7 +174,7 @@ public partial class Example01(Gui gui)
         using var key = gui.ItemKey(title);
         ref var hovered = ref gui.GetData(false);
         var fill = gui.AnimateColor(NavItemFill(p, active, hovered), 0.12f);
-        var node = gui.Node().Height(compact ? 30 : 34).Padding(compact ? 12 : 14, 0).ContentAlignY(0.5f)
+        var node = gui.Node().Height(compact ? 30 : 34).Padding(compact ? 12 : 14, 0).AlignContentY(0.5f)
             .Cursor(PointerCursor.Hand);
         if (!compact)
         {

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Changed: `Size` is now used by every layout distance #15
+
 ## [6.7.0] - 2026-11-13
 
 - Added: dockable GUI debugger and shared profiling capture adapter #36

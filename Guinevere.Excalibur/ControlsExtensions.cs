@@ -153,10 +153,9 @@ public static partial class ControlsExtensions
             textHeight = Math.Max(textHeight, bounds.Height);
         }
 
-        var style = node.Style;
         return (
-            width > 0 ? width : textWidth + style.PaddingLeft + style.PaddingRight,
-            height > 0 ? height : textHeight + style.PaddingTop + style.PaddingBottom
+            width > 0 ? width : textWidth + node.PaddingLeftPixels + node.PaddingRightPixels,
+            height > 0 ? height : textHeight + node.PaddingTopPixels + node.PaddingBottomPixels
         );
     }
 

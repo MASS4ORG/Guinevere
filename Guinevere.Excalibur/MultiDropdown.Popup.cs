@@ -72,7 +72,7 @@ public static partial class ControlsExtensions
     static void ChoiceBulkButton<T>(Gui gui, string id, string label, ChoiceState<T> state,
         IReadOnlyList<T> options, bool selected, float height, float fontSize)
     {
-        using (gui.StyledNode("option", id: id).Height(height).ExpandWidth().ContentAlignX(0.5f).ContentAlignY(0.5f)
+        using (gui.StyledNode("option", id: id).Height(height).ExpandWidth().AlignContentX(0.5f).AlignContentY(0.5f)
                    .Enter())
         {
             gui.DrawText(label, fontSize);
@@ -116,7 +116,7 @@ public static partial class ControlsExtensions
             ListingSpacer(gui, $"{id}/pad-bottom", (state.Filtered.Count - state.Last) * height);
             if (state.Filtered.Count == 0)
             {
-                using (gui.Node(-1, height, $"{id}/empty").ExpandWidth().ContentAlignY(0.5f).Enter())
+                using (gui.Node(-1, height, $"{id}/empty").ExpandWidth().AlignContentY(0.5f).Enter())
                 {
                     gui.DrawText("No results", fontSize, PlaceholderColor(gui, true));
                 }
@@ -140,7 +140,7 @@ public static partial class ControlsExtensions
             ? position == state.Active ? SelectedHighlightedModifiers : SelectedModifier
             : position == state.Active ? HighlightedModifier : NoModifiers;
         using (gui.StyledNode("option", id: $"{id}/option/{index}", modifiers: modifiers).Height(height).ExpandWidth()
-                   .Padding(8, 0).Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(6).Enter())
+                   .Padding(8, 0).Direction(Axis.Horizontal).AlignContentY(0.5f).Gap(6).Enter())
         {
             if (multiple)
             {

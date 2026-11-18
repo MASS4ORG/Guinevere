@@ -203,7 +203,7 @@ public static partial class ControlsExtensions
         var modifiers = state.Open && enabled ? OpenModifier : NoModifiers;
         using (Sized(gui.StyledNode("dropdown", id: $"{id}/button", modifiers: modifiers, disabled: !enabled),
                        width, height)
-                   .Direction(Axis.Horizontal).Padding(8, 0).ContentAlignY(0.5f).Enter())
+                   .Direction(Axis.Horizontal).Padding(8, 0).AlignContentY(0.5f).Enter())
         {
             gui.ClipContent();
             if (gui.Pass == Pass.Pass2Render)
@@ -236,7 +236,7 @@ public static partial class ControlsExtensions
         for (var i = 0; i < count; i++)
         {
             using (gui.StyledNode("chip", id: $"{id}/chip/{i}", disabled: !enabled).Height(height - 6).Padding(4, 0)
-                       .BlockInput().ContentAlignY(0.5f).Enter())
+                       .BlockInput().AlignContentY(0.5f).Enter())
             {
                 gui.DrawText(display(state.Selection[i]) + " ×", fontSize, centerInRect: false);
                 if (gui.Pass != Pass.Pass2Render)

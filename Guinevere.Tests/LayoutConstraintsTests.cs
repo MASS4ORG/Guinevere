@@ -25,7 +25,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void WidthPercentResolvesAgainstParent(float fraction, float expected)
     {
         var gui = CreateTestGui();
-        var child = Tree(gui, c => c.WidthPercent(fraction).Height(50f));
+        var child = Tree(gui, c => c.Width(Size.Percentage(fraction)).Height(50f));
 
         Assert.Equal(expected, child.Rect.W, 1);
     }
@@ -37,7 +37,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
         var gui = CreateTestGui();
         var root = LayoutNode.CreateRoot(gui, 800f, 600f);
         root.Padding(50f);
-        var child = CreateTestLayoutNode(gui, root).HeightPercent(0.5f).Width(100f);
+        var child = CreateTestLayoutNode(gui, root).Height(Size.Percentage(0.5f)).Width(100f);
         root.AddChild(child);
         root.CalculateLayout();
 
@@ -70,7 +70,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void MaxHeightClampsPercentHeight()
     {
         var gui = CreateTestGui();
-        var child = Tree(gui, static c => c.Width(100f).HeightPercent(0.9f).MaxHeight(200f));
+        var child = Tree(gui, static c => c.Width(100f).Height(Size.Percentage(0.9f)).MaxHeight(200f));
 
         Assert.Equal(200f, child.Rect.H, 1);
     }
@@ -101,7 +101,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     {
         var gui = CreateTestGui();
         var child = Tree(gui, static c => c.Width(40f).Height(40f)
-            .MinWidth(UnitValue.Pixels(20f) + UnitValue.Expand(0.5f)));
+            .MinWidth(Size.Pixels(20f) + Size.Expand(0.5f)));
 
         Assert.Equal(420f, child.Rect.W, 1);
     }
@@ -113,7 +113,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void InterpolatedMinimumResolvesEachContribution(float amount, float expected)
     {
         var gui = CreateTestGui();
-        var minimum = UnitValue.Lerp(UnitValue.Pixels(100f), UnitValue.Percentage(0.5f), amount);
+        var minimum = Size.Lerp(Size.Pixels(100f), Size.Percentage(0.5f), amount);
         var child = Tree(gui, c => c.Width(20f).Height(20f).MinWidth(minimum));
 
         Assert.Equal(expected, child.Rect.W, 1);
@@ -123,7 +123,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void NegativeExpressionMaximumClampsToZeroInsteadOfActingUnset()
     {
         var gui = CreateTestGui();
-        var child = Tree(gui, static c => c.Width(40f).Height(20f).MaxWidth(UnitValue.Pixels(-10f)));
+        var child = Tree(gui, static c => c.Width(40f).Height(20f).MaxWidth(Size.Pixels(-10f)));
 
         Assert.Equal(0f, child.Rect.W, 1);
     }
@@ -133,7 +133,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     {
         var gui = CreateTestGui();
         var child = Tree(gui, static c => c.Width(40f).Height(20f)
-            .MinHeight(UnitValue.Pixels(30f) + UnitValue.Percentage(0.5f)));
+            .MinHeight(Size.Pixels(30f) + Size.Percentage(0.5f)));
 
         Assert.Equal(330f, child.Rect.H, 1);
     }
@@ -143,7 +143,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     {
         var gui = CreateTestGui();
         var child = Tree(gui, static c => c.Width(40f).Height(40f)
-            .MinHeight(UnitValue.Percentage(0.5f)).MaxHeight(UnitValue.Pixels(100f)));
+            .MinHeight(Size.Percentage(0.5f)).MaxHeight(Size.Pixels(100f)));
 
         Assert.Equal(300f, child.Rect.H, 1);
     }
@@ -152,7 +152,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     public void RatioMinimumUsesResolvedPerpendicularSize()
     {
         var gui = CreateTestGui();
-        var child = Tree(gui, static c => c.Width(20f).Height(50f).MinWidth(UnitValue.Ratio(2f)));
+        var child = Tree(gui, static c => c.Width(20f).Height(50f).MinWidth(Size.Ratio(2f)));
 
         Assert.Equal(100f, child.Rect.W, 1);
     }
@@ -163,7 +163,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
         var gui = CreateTestGui();
         var root = LayoutNode.CreateRoot(gui, 800f, 600f);
         var parent = CreateTestLayoutNode(gui, root).Width(20f).Height(60f)
-            .MinWidth(UnitValue.FitLargest());
+            .MinWidth(Size.FitLargest());
         var child = CreateTestLayoutNode(gui, parent).Width(90f).Height(20f);
         root.AddChild(parent);
         parent.AddChild(child);
@@ -178,8 +178,8 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     {
         var gui = CreateTestGui();
         var child = Tree(gui, static c => c.Width(20f).Height(20f).MinWidth(20f)
-            .AddMinWidth(UnitValue.Percentage(0.5f))
-            .LerpMinWidth(UnitValue.Pixels(100f), 0.5f));
+            .AddMinWidth(Size.Percentage(0.5f))
+            .LerpMinWidth(Size.Pixels(100f), 0.5f));
 
         Assert.Equal(260f, child.Rect.W, 1);
     }
@@ -189,7 +189,7 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     {
         var gui = CreateTestGui();
         var child = Tree(gui, static c => c.Width(40f).Height(40f)
-            .MinWidth(UnitValue.Percentage(0.5f)).MaxWidth(UnitValue.Pixels(100f)));
+            .MinWidth(Size.Percentage(0.5f)).MaxWidth(Size.Pixels(100f)));
 
         Assert.Equal(400f, child.Rect.W, 1);
     }
@@ -199,9 +199,9 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
     {
         var gui = CreateTestGui();
         var root = LayoutNode.CreateRoot(gui, 800f, 600f);
-        var parent = CreateTestLayoutNode(gui, root).Width(UnitValue.Fit).Height(60f);
+        var parent = CreateTestLayoutNode(gui, root).Width(Size.Fit).Height(60f);
         var child = CreateTestLayoutNode(gui, parent).Width(20f).Height(20f)
-            .MinWidth(UnitValue.Percentage(0.5f));
+            .MinWidth(Size.Percentage(0.5f));
         root.AddChild(parent);
         parent.AddChild(child);
 
@@ -219,9 +219,9 @@ public class LayoutConstraintsTests : LayoutNodeTestBase
         var row = CreateTestLayoutNode(gui, root).Width(100f).Direction(Axis.Horizontal).Wrap(0);
         root.AddChild(row);
         var first = CreateTestLayoutNode(gui, row).Width(20f).Height(20f)
-            .MinWidth(UnitValue.Pixels(60f));
+            .MinWidth(Size.Pixels(60f));
         var second = CreateTestLayoutNode(gui, row).Width(20f).Height(20f)
-            .MinWidth(UnitValue.Pixels(60f));
+            .MinWidth(Size.Pixels(60f));
         row.AddChild(first);
         row.AddChild(second);
 

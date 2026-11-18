@@ -49,7 +49,7 @@ public abstract partial class Program
         var editor = _textEditor;
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(10).Enter())
         {
-            using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).ContentAlignY(0.5f).Enter())
+            using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(8).AlignContentY(0.5f).Enter())
             {
                 if (gui.Button("Shader sample"))
                 {

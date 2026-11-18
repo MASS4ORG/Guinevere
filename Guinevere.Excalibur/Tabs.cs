@@ -150,7 +150,7 @@ public static partial class ControlsExtensions
         var tabWidth = CalculateTabWidth(gui, tab.Title, fontSize, tab.Closable, node.Scope);
 
         using (node.Width(tabWidth).Height(state.TabBarHeight).Direction(Axis.Horizontal)
-                   .ContentAlignY(0.5f).Enter())
+                   .AlignContentY(0.5f).Enter())
         {
             var behavior = gui.Selectable(isActive, new ControlBehaviorOptions(
                 Enabled: tab.Enabled, Role: ControlRole.Tab, Label: tab.Title));
@@ -168,7 +168,7 @@ public static partial class ControlsExtensions
                 }
             }
 
-            using (gui.Node().Expand().Height(state.TabBarHeight).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Expand().Height(state.TabBarHeight).AlignContentX(0.5f).AlignContentY(0.5f).Enter())
             {
                 gui.DrawText(tab.Title, fontSize, centerInRect: true);
             }
@@ -498,7 +498,7 @@ public static partial class ControlsExtensions
                 }
             }
 
-            using (gui.Node().Expand().Height(36).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Expand().Height(36).AlignContentY(0.5f).Enter())
             {
                 gui.DrawText(tab.Title, fontSize, centerInRect: false);
             }
@@ -525,7 +525,7 @@ public static partial class ControlsExtensions
                 HandleTabPointer(gui, state, tabIndex, tab);
             }
 
-            using (gui.Node().Expand().Height(state.TabBarHeight - 16).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Expand().Height(state.TabBarHeight - 16).AlignContentX(0.5f).AlignContentY(0.5f).Enter())
             {
                 gui.DrawText(tab.Title, fontSize, centerInRect: true);
             }

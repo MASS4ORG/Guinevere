@@ -405,8 +405,8 @@ public static partial class ControlsExtensions
 
             if (item.Icon is { } icon)
             {
-                using (gui.Node(theme.IconSize, theme.RowHeight, $"treeview/row{row}/icon").ContentAlignX(0.5f)
-                           .ContentAlignY(0.5f).Enter())
+                using (gui.Node(theme.IconSize, theme.RowHeight, $"treeview/row{row}/icon").AlignContentX(0.5f)
+                           .AlignContentY(0.5f).Enter())
                 {
                     icon(gui);
                 }
@@ -470,7 +470,7 @@ public static partial class ControlsExtensions
     /// <summary>What follows the pointer while a row is dragged: the row's own label on a chip.</summary>
     static void DragGhost(Gui gui, TreeViewTheme theme, TreeItem item)
     {
-        using (gui.StyledNode("tree-ghost").Height(theme.RowHeight).Padding(6, 0).ContentAlignY(0.5f).Enter())
+        using (gui.StyledNode("tree-ghost").Height(theme.RowHeight).Padding(6, 0).AlignContentY(0.5f).Enter())
         {
             gui.DrawText(item.Label, theme.FontSize, centerInRect: false);
         }
@@ -535,7 +535,7 @@ public static partial class ControlsExtensions
                        modifiers: state.IsCollapsed(item.Id, item.Depth) ? [] : ["expanded"])
                    .Width(theme.ExpanderWidth).Height(theme.RowHeight)
                    .BlockInput(item.HasChildren)
-                   .ContentAlignX(0.5f).ContentAlignY(0.5f)
+                   .AlignContentX(0.5f).AlignContentY(0.5f)
                    .Enter())
         {
             if (!item.HasChildren)

@@ -36,12 +36,12 @@ public static partial class ControlsExtensions
             filePath: filePath, lineNumber: lineNumber);
         if (width > 0)
         {
-            node.Width(UnitValue.Pixels(width));
+            node.Width(Size.Pixels(width));
         }
 
         if (height is { } size)
         {
-            node.Height(UnitValue.Pixels(size));
+            node.Height(Size.Pixels(size));
         }
 
         using (node.Enter())

@@ -38,7 +38,7 @@ public static partial class ControlsExtensions
             filePath: filePath, lineNumber: lineNumber);
         if (thickness is { } size)
         {
-            node = horizontal ? node.Width(UnitValue.Pixels(size)) : node.Height(UnitValue.Pixels(size));
+            node = horizontal ? node.Width(Size.Pixels(size)) : node.Height(Size.Pixels(size));
         }
 
         using (node.Enter())

@@ -154,7 +154,7 @@ public static partial class ControlsExtensions
         ExcaliburStyles.Ensure(gui);
         var modifiers = checkedValue && !isMixed ? CheckedModifier : NoModifiers;
         using (gui.StyledNode("button", SegmentClass, $"{id}/toggle/{option}", modifiers, disabled: !enabled)
-                   .Expand().BlockInput().ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+                   .Expand().BlockInput().AlignContentX(0.5f).AlignContentY(0.5f).Enter())
         {
             gui.DrawText((isMixed ? "— " : "") + label, gui.ControlStyle.FontSizeOr(fontSize));
             if (gui.Pass != Pass.Pass2Render)
@@ -194,7 +194,7 @@ public static partial class ControlsExtensions
     {
         ExcaliburStyles.Ensure(gui);
         using (gui.StyledNode("button", IconClass, id, disabled: !enabled).Width(height).Height(height).BlockInput()
-                   .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+                   .AlignContentX(0.5f).AlignContentY(0.5f).Enter())
         {
             gui.DrawText(label, fontSize);
             if (gui.Pass != Pass.Pass2Render)

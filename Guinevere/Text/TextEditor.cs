@@ -507,13 +507,13 @@ public static class TextEditor
         ArgumentNullException.ThrowIfNull(gui);
 
         var align = gui.CurrentNode.Style.AlignContentHorizontal;
-        if (align <= 0f)
+        if (align.IsZero)
         {
             return inner.X;
         }
 
         var slack = Math.Max(0f, inner.W - MeasureWidth(font, text));
-        return inner.X + (slack * align);
+        return inner.X + align.PixelsContribution + slack * align.PercentageContribution;
     }
 
     /// <summary>The caret offset nearest a point.</summary>

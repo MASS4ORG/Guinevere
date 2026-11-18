@@ -106,7 +106,7 @@ public sealed class PreviewScene
         }
         if (_domain.Animated)
         {
-            using (gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Horizontal).Gap(8).Enter())
+            using (gui.Node().ExpandWidth().Height(Size.Fit).Direction(Axis.Horizontal).Gap(8).Enter())
             {
                 button(Playing ? "Pause" : "Run", "preview-play", () => Playing = !Playing);
                 button("Restart", "preview-restart", () => Seek(0));

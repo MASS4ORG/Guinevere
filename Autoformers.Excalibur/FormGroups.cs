@@ -92,7 +92,7 @@ static class FormGroups
     static void HeaderText(Gui gui, string text, string id)
     {
         var style = new FormStyle(gui);
-        using (gui.Node(style.FontSize * (text.Length * 0.6f + 1f), style.RowHeight, id).ContentAlignY(0.5f).Enter())
+        using (gui.Node(style.FontSize * (text.Length * 0.6f + 1f), style.RowHeight, id).AlignContentY(0.5f).Enter())
         {
             gui.DrawText(text, style.FontSize - 1f, style.InkDim);
         }
@@ -262,7 +262,7 @@ static class FormGroups
         {
             FormControls.MarkModified(gui, modified);
             using (gui.Node(style.LabelWidth, style.RowHeight, $"{id}/head/label").Direction(Axis.Horizontal).Gap(2f)
-                       .ContentAlignY(0.5f)
+                       .AlignContentY(0.5f)
                        .Enter())
             {
                 if (gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick() && !collapsed.Add(id))
@@ -270,7 +270,7 @@ static class FormGroups
                     collapsed.Remove(id);
                 }
 
-                using (gui.Node(10f, style.RowHeight, $"{id}/head/arrow").ContentAlignX(0.5f).ContentAlignY(0.5f)
+                using (gui.Node(10f, style.RowHeight, $"{id}/head/arrow").AlignContentX(0.5f).AlignContentY(0.5f)
                            .Enter())
                 {
                     FormControls.FoldArrow(gui, isOpen);
@@ -283,7 +283,7 @@ static class FormGroups
             if (actions is not null)
             {
                 using (gui.Node(-1, style.RowHeight, $"{id}/head/actions").Expand().Direction(Axis.Horizontal).Gap(4f)
-                           .ContentAlignY(0.5f).Enter())
+                           .AlignContentY(0.5f).Enter())
                 {
                     actions();
                 }

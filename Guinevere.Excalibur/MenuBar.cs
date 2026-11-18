@@ -109,7 +109,7 @@ public static partial class ControlsExtensions
         var barNode = gui.StyledNode("menubar", state.Classes, state.StyleId).Height(height).Direction(Axis.Horizontal);
         if (builder.CollapsedLabel is not null)
         {
-            barNode.Width(UnitValue.Fit);
+            barNode.Width(Size.Fit);
         }
 
         using var scope = barNode.Enter();
@@ -236,7 +236,7 @@ public static partial class ControlsExtensions
     static void RenderMenuBarTitle(Gui gui, MenuBarState state, MenuBarMenu menu, int index,
         float height, float fontSize, float padding)
     {
-        using var scope = gui.StyledNode("menu-title", modifiers: state.FrameOpenIndex == index ? ["open"] : []).Height(height).Padding(padding, 0).ContentAlignY(0.5f).Enter();
+        using var scope = gui.StyledNode("menu-title", modifiers: state.FrameOpenIndex == index ? ["open"] : []).Height(height).Padding(padding, 0).AlignContentY(0.5f).Enter();
         if (gui.Pass == Pass.Pass2Render)
         {
             state.TitleRects[index] = gui.CurrentNode.Rect;
@@ -376,7 +376,7 @@ public static partial class ControlsExtensions
         using var scope = gui.StyledNode("menu-item", id: $"{nodeId}/i{index}",
             modifiers: MenuRowSelected(state, depth, index, false) ? ["highlighted"] : [], disabled: !item.Enabled)
             .Width(width).Height(itemHeight)
-            .Padding(padding, 0).Direction(Axis.Horizontal).ContentAlignY(0.5f).Enter();
+            .Padding(padding, 0).Direction(Axis.Horizontal).AlignContentY(0.5f).Enter();
         if (gui.Pass == Pass.Pass2Render)
         {
             HandleMenuRow(gui, state, item, index, depth);
@@ -445,7 +445,7 @@ public static partial class ControlsExtensions
         gui.Node().Expand();
         if (item.HasSubmenu)
         {
-            using var scope = gui.StyledNode("menu-expander").Width(fontSize).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter();
+            using var scope = gui.StyledNode("menu-expander").Width(fontSize).AlignContentX(0.5f).AlignContentY(0.5f).Enter();
             gui.DrawText(WidgetIcons.ChevronRight, fontSize * 0.7f, color);
         }
         else if (!string.IsNullOrEmpty(item.Shortcut))
@@ -463,7 +463,7 @@ public static partial class ControlsExtensions
             return;
         }
 
-        using var scope = gui.StyledNode("menu-check").Width(14f).ContentAlignX(0.5f).ContentAlignY(0.5f).Enter();
+        using var scope = gui.StyledNode("menu-check").Width(14f).AlignContentX(0.5f).AlignContentY(0.5f).Enter();
         var id = gui.CurrentNode.Id;
         if (gui.Pass == Pass.Pass1Build)
         {

@@ -200,12 +200,16 @@ public partial class LayoutNode : IDisposable
     /// A <see cref="Rect"/> representing the content area inside the padding boundaries.
     /// This is the area available for child content or drawing operations.
     /// </value>
-    public Rect InnerRect => new(
-        Rect.X + Style.PaddingLeft,
-        Rect.Y + Style.PaddingTop,
-        Rect.W - (Style.PaddingLeft + Style.PaddingRight),
-        Rect.H - (Style.PaddingTop + Style.PaddingBottom)
-    );
+    public Rect InnerRect
+    {
+        get
+        {
+            var left = PaddingLeftPixels;
+            var top = PaddingTopPixels;
+            return new Rect(Rect.X + left, Rect.Y + top, Rect.W - (left + PaddingRightPixels),
+                Rect.H - (top + PaddingBottomPixels));
+        }
+    }
 
     /// <summary>
     /// Gets the outer rectangle of this layout node, including margins.
@@ -214,12 +218,16 @@ public partial class LayoutNode : IDisposable
     /// A <see cref="Rect"/> representing the total space occupied by this node including its margins.
     /// This represents the full footprint of the node in the layout.
     /// </value>
-    public Rect OuterRect => new(
-        Rect.X - Style.MarginLeft,
-        Rect.Y - Style.MarginTop,
-        Rect.W + (Style.MarginLeft + Style.MarginRight),
-        Rect.H + (Style.MarginTop + Style.MarginBottom)
-    );
+    public Rect OuterRect
+    {
+        get
+        {
+            var left = MarginLeftPixels;
+            var top = MarginTopPixels;
+            return new Rect(Rect.X - left, Rect.Y - top, Rect.W + (left + MarginRightPixels),
+                Rect.H + (top + MarginBottomPixels));
+        }
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LayoutNode"/> class.
@@ -244,28 +252,21 @@ public partial class LayoutNode : IDisposable
         _gui = gui;
         _parent = parent;
         Style = LayoutStyle.Default;
-        if (width.HasValue)
-        {
-            Style.Width = width.Value;
-        }
-
-        if (height.HasValue)
-        {
-            Style.Height = height.Value;
-        }
-
+        Style.Width = InitialSize(width);
+        Style.Height = InitialSize(height);
         Identity = identity;
         Scope = new LayoutNodeScope(gui, this);
-        if (width == 0)
-        {
-            ExpandWidth();
-        }
-
-        if (height == 0)
-        {
-            ExpandHeight();
-        }
+        RefreshSpacing();
+        StampBuildGeneration();
     }
+
+    /// <summary>Maps a node-factory dimension to a size: negative is auto, zero expands, positive is pixels.</summary>
+    internal static Size? InitialSize(float? value) => value switch
+    {
+        null or < 0f => null,
+        0f => Guinevere.Size.Expand(),
+        _ => Guinevere.Size.Pixels(value.Value),
+    };
 
     /// <summary>
     /// Enters this layout node's scope, making it the current active node in the GUI context.
@@ -333,8 +334,8 @@ public partial class LayoutNode : IDisposable
     /// <param name="lineNumber">The line number in the source file of the caller, automatically provided by the compiler.</param>
     /// <returns>A new instance of <see cref="LayoutNode"/> as a child of the current node.</returns>
     public LayoutNode AppendNode(
-        UnitValue? sizeX = null,
-        UnitValue? sizeY = null,
+        Size? sizeX = null,
+        Size? sizeY = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {

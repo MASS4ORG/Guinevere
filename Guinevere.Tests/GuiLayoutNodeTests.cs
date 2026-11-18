@@ -27,7 +27,7 @@ public class GuiLayoutNodeTests
                 nodes.Add(gui.Node(4, 4));
             }
 
-            nodes.Add(gui.Node(UnitValue.Pixels(4), UnitValue.Pixels(4), id: "b"));
+            nodes.Add(gui.Node(Size.Pixels(4), Size.Pixels(4), id: "b"));
             nodes.Add(gui.Node(4, 4, id: "a"));
         });
 

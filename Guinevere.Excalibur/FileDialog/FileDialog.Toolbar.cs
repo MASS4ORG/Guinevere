@@ -14,7 +14,7 @@ public static partial class ControlsExtensions
         var height = RowHeight + 6f;
 
         using (gui.Node(-1, height).ExpandWidth().Direction(Axis.Horizontal).Gap(4f)
-                   .ContentAlignY(0.5f).Enter())
+                   .AlignContentY(0.5f).Enter())
         {
             if (gui.IconButton("⬅", size: height, fontSize: fontSize, enabled: browser.CanGoBack))
             {

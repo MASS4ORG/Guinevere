@@ -145,7 +145,7 @@ public class ViewportOptionsTests
                         clicks++;
                     }
                 }
-                gui.Node().WidthPercent(0.5f).HeightPercent(0.5f).AbsoluteScreen(0, 0);
+                gui.Node().Width(Size.Percentage(0.5f)).Height(Size.Percentage(0.5f)).AbsoluteScreen(0, 0);
             }
             Assert.Equal(gui.ScreenRect, gui.LayoutBounds);
             Assert.Equal(1, gui.FontScale);

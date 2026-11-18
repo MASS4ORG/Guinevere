@@ -653,7 +653,7 @@ public class LayoutNodeCalculationTests : LayoutNodeTestBase
         root.AddChild(child);
         root.CalculateLayout();
 
-        child.Height(-1f);
+        child.Height(null);
         root.CalculateLayout();
 
         Assert.Equal(40f, child.Rect.H);

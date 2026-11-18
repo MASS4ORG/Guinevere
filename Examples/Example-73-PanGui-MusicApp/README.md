@@ -276,7 +276,7 @@ void DrawInstruments()
                 int rulerMargin = 8;
                 LayoutNode leftRulerNode = gui.Node(8, Size.Expand()).Margin(0, rulerMargin);
                 LayoutNode sliderNode = DrawVolumeSlider(instrument.Color, ref instrument.Volume).Width(26);
-                LayoutNode rulerNumbersNode = gui.Node(10, Size.Expand()).ContentAlignX(0.5f).Spacing(Spacing.SpaceBetween).Margin(8, rulerMargin);
+                LayoutNode rulerNumbersNode = gui.Node(10, Size.Expand()).AlignContentX(0.5f).Spacing(Spacing.SpaceBetween).Margin(8, rulerMargin);
                 LayoutNode volumnBarNode = gui.Node(26, Size.Expand());
                 LayoutNode rightRulerNode = gui.Node(8, Size.Expand()).Margin(0, rulerMargin);
 
@@ -1340,7 +1340,7 @@ Popup GetPopup()
                     .Margin(gap)
                     .FlowDir(Axis.X)
                     .ExpandWidth()
-                    .ContentAlignX(1)
+                    .AlignContentX(1)
                     .Gap(gap)
                     .ToScope();
             }

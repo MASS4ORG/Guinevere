@@ -21,7 +21,7 @@ public partial class Example01
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(14).Enter())
         {
             gui.ScrollY(p.Track, p.Border);
-            using (gui.Node().Direction(Axis.Horizontal).Gap(24).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Direction(Axis.Horizontal).Gap(24).AlignContentY(0.5f).Enter())
             {
                 Stepper(gui, p, "type-size", "Size", _typeSize, 10, 72, static value => _typeSize = value, step: 2);
                 Choice(gui, p, "type-color", ColorNames, _typeColor, static index => _typeColor = index);
@@ -34,11 +34,11 @@ public partial class Example01
             }
 
             Label(gui, p, "Type ramp");
-            using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(18).ContentAlignY(1f).Enter())
+            using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(18).AlignContentY(1f).Enter())
             {
                 foreach (var size in new[] { 11, 13, 16, 20, 28, 40 })
                 {
-                    using (gui.Node().Direction(Axis.Vertical).ContentAlignX(0.5f).Enter())
+                    using (gui.Node().Direction(Axis.Vertical).AlignContentX(0.5f).Enter())
                     {
                         gui.DrawText("Aa", size, p.Text);
                         Label(gui, p, $"{size}");
@@ -124,10 +124,10 @@ public partial class Example01
     static void EffectRow(Gui gui, ColorPalette p, string label, TextEffects? effects)
     {
         using var key = gui.ItemKey(label);
-        using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(24).Padding(14, 8).ContentAlignY(0.5f).Enter())
+        using (gui.Node().ExpandWidth().Direction(Axis.Horizontal).Gap(24).Padding(14, 8).AlignContentY(0.5f).Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 10);
-            using (gui.Node(width: 130).ContentAlignY(0.5f).Enter())
+            using (gui.Node(width: 130).AlignContentY(0.5f).Enter())
             {
                 Label(gui, p, label);
             }

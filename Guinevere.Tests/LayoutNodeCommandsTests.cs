@@ -26,9 +26,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.True(GetStyleProperty<bool>(node, "IsExpanded"));
-        Assert.Equal(widthPercentage, GetStyleProperty<float>(node, "ExpandWidthPercentage"));
-        Assert.Equal(heightPercentage, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
+        Assert.Equal(Size.Expand(widthPercentage), node.Style.Width);
+        Assert.Equal(Size.Expand(heightPercentage), node.Style.Height);
     }
 
     /// <summary>
@@ -45,9 +44,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.True(GetStyleProperty<bool>(node, "IsExpanded"));
-        Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandWidthPercentage"));
-        Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
+        Assert.True(node.Style.ExpandsWidth && node.Style.ExpandsHeight);
+        Assert.Equal(Size.Expand(1.0f), node.Style.Width);
+        Assert.Equal(Size.Expand(1.0f), node.Style.Height);
     }
 
     /// <summary>
@@ -64,9 +63,9 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.False(GetStyleProperty<bool>(node, "IsExpanded"));
-        Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandWidthPercentage")); // Default value
-        Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandHeightPercentage")); // Default value
+        Assert.False(node.Style.ExpandsWidth || node.Style.ExpandsHeight);
+        Assert.Null(node.Style.Width);
+        Assert.Null(node.Style.Height);
     }
 
     #endregion
@@ -91,8 +90,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.True(GetStyleProperty<bool>(node, "ExpandWidth"));
-        Assert.Equal(percentage, GetStyleProperty<float>(node, "ExpandWidthPercentage"));
+        Assert.True(node.Style.ExpandsWidth);
+        Assert.Equal(Size.Expand(percentage), node.Style.Width);
     }
 
     /// <summary>
@@ -109,8 +108,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.True(GetStyleProperty<bool>(node, "ExpandWidth"));
-        Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandWidthPercentage"));
+        Assert.True(node.Style.ExpandsWidth);
+        Assert.Equal(Size.Expand(1.0f), node.Style.Width);
     }
 
     /// <summary>
@@ -127,7 +126,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.False(GetStyleProperty<bool>(node, "ExpandWidth"));
+        Assert.False(node.Style.ExpandsWidth);
     }
 
     #endregion
@@ -152,8 +151,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.True(GetStyleProperty<bool>(node, "ExpandHeight"));
-        Assert.Equal(percentage, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
+        Assert.True(node.Style.ExpandsHeight);
+        Assert.Equal(Size.Expand(percentage), node.Style.Height);
     }
 
     /// <summary>
@@ -170,8 +169,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.True(GetStyleProperty<bool>(node, "ExpandHeight"));
-        Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
+        Assert.True(node.Style.ExpandsHeight);
+        Assert.Equal(Size.Expand(1.0f), node.Style.Height);
     }
 
     /// <summary>
@@ -188,7 +187,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.False(GetStyleProperty<bool>(node, "ExpandHeight"));
+        Assert.False(node.Style.ExpandsHeight);
     }
 
     #endregion
@@ -214,7 +213,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(gap, GetStyleProperty<float>(node, "Gap"));
+        Assert.Equal(gap, node.Style.Gap.PixelsContribution);
     }
 
     /// <summary>
@@ -231,7 +230,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(0f, GetStyleProperty<float>(node, "Gap")); // Default value
+        Assert.Equal(0f, node.Style.Gap.PixelsContribution); // Default value
     }
 
     #endregion
@@ -426,8 +425,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(alignment, GetStyleProperty<float>(node, "AlignContentHorizontal"));
-        Assert.Equal(alignment, GetStyleProperty<float>(node, "AlignContentVertical"));
+        Assert.Equal(alignment, node.Style.AlignContentHorizontal.PercentageContribution);
+        Assert.Equal(alignment, node.Style.AlignContentVertical.PercentageContribution);
     }
 
     /// <summary>
@@ -449,7 +448,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(alignment, GetStyleProperty<float>(node, "AlignSelf"));
+        Assert.Equal(alignment, (node.Style.AlignSelf ?? default).PercentageContribution);
     }
 
     /// <summary>
@@ -469,8 +468,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(horizontal, GetStyleProperty<float>(node, "AlignContentHorizontal"));
-        Assert.Equal(vertical, GetStyleProperty<float>(node, "AlignContentVertical"));
+        Assert.Equal(horizontal, node.Style.AlignContentHorizontal.PercentageContribution);
+        Assert.Equal(vertical, node.Style.AlignContentVertical.PercentageContribution);
     }
 
     /// <summary>
@@ -487,8 +486,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(0.0f, GetStyleProperty<float>(node, "AlignContentHorizontal")); // Default value
-        Assert.Equal(0.0f, GetStyleProperty<float>(node, "AlignContentVertical")); // Default value
+        Assert.Equal(0.0f, node.Style.AlignContentHorizontal.PercentageContribution); // Default value
+        Assert.Equal(0.0f, node.Style.AlignContentVertical.PercentageContribution); // Default value
     }
 
     /// <summary>
@@ -505,8 +504,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(0.0f, GetStyleProperty<float>(node, "AlignContentHorizontal")); // Default value
-        Assert.Equal(0.0f, GetStyleProperty<float>(node, "AlignContentVertical")); // Default value
+        Assert.Equal(0.0f, node.Style.AlignContentHorizontal.PercentageContribution); // Default value
+        Assert.Equal(0.0f, node.Style.AlignContentVertical.PercentageContribution); // Default value
     }
 
     /// <summary>
@@ -523,7 +522,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(0.5f, GetStyleProperty<float>(node, "AlignSelf")); // Default value
+        Assert.Null(node.Style.AlignSelf);
     }
 
     #endregion
@@ -627,7 +626,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(width, GetStyleProperty<float?>(node, "Width"));
+        Assert.Equal(width, node.Style.Width?.PixelsContribution);
     }
 
     /// <summary>
@@ -648,7 +647,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(height, GetStyleProperty<float?>(node, "Height"));
+        Assert.Equal(height, node.Style.Height?.PixelsContribution);
     }
 
     /// <summary>
@@ -668,8 +667,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Equal(size, GetStyleProperty<float?>(node, "Width"));
-        Assert.Equal(size, GetStyleProperty<float?>(node, "Height"));
+        Assert.Equal(size, node.Style.Width?.PixelsContribution);
+        Assert.Equal(size, node.Style.Height?.PixelsContribution);
     }
 
     /// <summary>
@@ -686,7 +685,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Null(GetStyleProperty<float?>(node, "Width"));
+        Assert.Null(node.Style.Width?.PixelsContribution);
     }
 
     /// <summary>
@@ -703,7 +702,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
 
         // Assert
         VerifyFluentReturn(node, result);
-        Assert.Null(GetStyleProperty<float?>(node, "Height"));
+        Assert.Null(node.Style.Height?.PixelsContribution);
     }
 
     #endregion
@@ -820,18 +819,15 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         VerifyFluentReturn(node, result);
 
         // Verify all properties were set correctly
-        Assert.True(GetStyleProperty<bool>(node, "IsExpanded"));
-        Assert.Equal(0.8f, GetStyleProperty<float>(node, "ExpandWidthPercentage"));
-        Assert.Equal(0.6f, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
         AssertMarginValues(node, 10f, 10f, 10f, 10f);
         AssertPaddingValues(node, 8f, 5f, 8f, 5f);
         Assert.Equal(Axis.Horizontal, GetStyleProperty<Axis>(node, "Direction"));
-        Assert.Equal(15f, GetStyleProperty<float>(node, "Gap"));
-        Assert.Equal(200f, GetStyleProperty<float?>(node, "Width"));
-        Assert.Equal(100f, GetStyleProperty<float?>(node, "Height"));
-        Assert.Equal(0.25f, GetStyleProperty<float>(node, "AlignContentHorizontal"));
-        Assert.Equal(0.25f, GetStyleProperty<float>(node, "AlignContentVertical"));
-        Assert.Equal(0.75f, GetStyleProperty<float>(node, "AlignSelf"));
+        Assert.Equal(15f, node.Style.Gap.PixelsContribution);
+        Assert.Equal(200f, node.Style.Width?.PixelsContribution);
+        Assert.Equal(100f, node.Style.Height?.PixelsContribution);
+        Assert.Equal(0.25f, node.Style.AlignContentHorizontal.PercentageContribution);
+        Assert.Equal(0.25f, node.Style.AlignContentVertical.PercentageContribution);
+        Assert.Equal(0.75f, (node.Style.AlignSelf ?? default).PercentageContribution);
         Assert.True(GetStyleProperty<bool>(node, "Wrap"));
         Assert.Equal(50f, node.Rect.X);
         Assert.Equal(30f, node.Rect.Y);
@@ -860,15 +856,13 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         VerifyFluentReturn(node, result);
 
         // Verify no properties were changed (all should have default values)
-        Assert.False(GetStyleProperty<bool>(node, "IsExpanded"));
-        Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandWidthPercentage"));
-        Assert.Equal(1.0f, GetStyleProperty<float>(node, "ExpandHeightPercentage"));
+        Assert.False(node.Style.ExpandsWidth || node.Style.ExpandsHeight);
         AssertMarginValues(node, 0f, 0f, 0f, 0f);
         AssertPaddingValues(node, 0f, 0f, 0f, 0f);
         Assert.Equal(Axis.Vertical, GetStyleProperty<Axis>(node, "Direction"));
-        Assert.Equal(0f, GetStyleProperty<float>(node, "Gap"));
-        Assert.Null(GetStyleProperty<float?>(node, "Width"));
-        Assert.Null(GetStyleProperty<float?>(node, "Height"));
+        Assert.Equal(0f, node.Style.Gap.PixelsContribution);
+        Assert.Null(node.Style.Width?.PixelsContribution);
+        Assert.Null(node.Style.Height?.PixelsContribution);
     }
 
     #endregion
