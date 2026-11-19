@@ -147,7 +147,7 @@ public static partial class ControlsExtensions
         var width = b.Layout.Widths[index];
         using (gui.StyledNode("table-cell", id: b.State.Cache.CellId(slot, index))
                    .Width(width).Height(b.Theme.RowHeight).Direction(Axis.Horizontal).PaddingX(b.Theme.CellPadding)
-                   .AlignContentX(column.AlignContentX).AlignContentY(column.AlignmentY)
+                   .AlignContentX(column.AlignContentX).AlignContentY(column.AlignContentY)
                    .Enter())
         {
             gui.ClipContent();

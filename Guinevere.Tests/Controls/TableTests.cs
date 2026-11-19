@@ -293,36 +293,30 @@ public class TableTests : TableTestBase
     }
 
     [Fact]
-    public void AHeaderContentReplacesTheTitleTextAndIsGivenItsColumnAndRoom()
+    public void AHeaderContentReplacesTheTitleTextAtTheTablesTextSize()
     {
         var content = new RecordingHeader();
         var columns = new TableColumns<int>(
         [
-            TableColumn<int>.Of("Title", static row => row, header: content),
+            TableColumn<int>.Of("Title", static row => row, header: Content.From(content)),
             TableColumn<int>.Of("Other", static row => row)
         ]);
 
         var gui = RunFrames(new GridSource(2), columns, frames: 2);
 
-        Assert.NotEmpty(content.Seen);
-        Assert.All(content.Seen, context =>
-        {
-            Assert.Same(columns[0], context.Column);
-            Assert.Equal(Theme.HeaderHeight, context.Height);
-            Assert.True(context.Width > 0f);
-            Assert.Equal(Theme.FontSize, context.FontSize);
-        });
+        Assert.NotEmpty(content.TextSizes);
+        Assert.All(content.TextSizes, static size => Assert.Equal(Theme.FontSize, size));
         Assert.Single(HeaderContent(gui, "title"));
     }
 
     [Fact]
-    public void AnIconAndALocalizedTextAreBuiltInHeaderContents()
+    public void AnIconAndALocalizedTextAreHeaderContents()
     {
         var language = "one";
         var columns = new TableColumns<int>(
         [
-            TableColumn<int>.Of("", static row => row, header: TableHeaderContent.Icon(WidgetIcons.ChevronUp)),
-            TableColumn<int>.Of("Name", static row => row, header: TableHeaderContent.Text(() => language))
+            TableColumn<int>.Of("", static row => row, header: WidgetIcons.ChevronUp),
+            TableColumn<int>.Of("Name", static row => row, header: Content.Text(() => language))
         ]);
         var state = new TableState();
         var gui = RunFrames(new GridSource(2), columns, state, frames: 2);
@@ -340,7 +334,7 @@ public class TableTests : TableTestBase
     {
         var columns = new TableColumns<int>(
         [
-            TableColumn<int>.Of("", static row => row, header: TableHeaderContent.Icon(WidgetIcons.ChevronUp))
+            TableColumn<int>.Of("", static row => row, header: WidgetIcons.ChevronUp)
         ]);
         var state = new TableState();
         state.Sort.Set([new TableSort(columns[0])]);

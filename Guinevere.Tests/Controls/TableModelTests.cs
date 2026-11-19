@@ -218,21 +218,27 @@ public class TableModelTests
     [Fact]
     public void AHeaderCanBeSetThroughTheFactoryOrAnInitializerAndDefaultsToTheTitle()
     {
-        var icon = TableHeaderContent.Icon(WidgetIcons.ChevronUp);
+        Content icon = WidgetIcons.ChevronUp;
         var made = TableColumn<int>.Of("", static row => row, header: icon);
         var built = new TableColumn<int, int>("", static row => row) { Header = icon };
 
-        Assert.Same(icon, made.Header);
-        Assert.Same(icon, built.Header);
-        Assert.Null(TableColumn<int>.Of("Plain", static row => row).Header);
-        Assert.Same(icon, TableColumn<int>.Row("Row", header: icon).Header);
+        Assert.Equal(WidgetIcons.ChevronUp, made.Header.Label);
+        Assert.Equal(WidgetIcons.ChevronUp, built.Header.Label);
+        Assert.True(TableColumn<int>.Of("Plain", static row => row).Header.IsEmpty);
+        Assert.Equal(WidgetIcons.ChevronUp, TableColumn<int>.Row("Row", header: icon).Header.Label);
     }
 
     [Fact]
-    public void BuiltInHeaderContentsRejectNull()
+    public void TheFactoriesAndTheInitializerAgreeOnAlignment()
     {
-        Assert.Throws<ArgumentNullException>(static () => TableHeaderContent.Icon(null!));
-        Assert.Throws<ArgumentNullException>(static () => TableHeaderContent.Text(null!));
+        var made = TableColumn<int>.Of("A", static row => row);
+        var row = TableColumn<int>.Row("B");
+        var built = new TableColumn<int, int>("C", static value => value);
+
+        Assert.Equal(built.AlignContentX, made.AlignContentX);
+        Assert.Equal(built.AlignContentY, made.AlignContentY);
+        Assert.Equal(built.AlignContentY, row.AlignContentY);
+        Assert.Equal(0.5f, built.AlignContentY);
     }
 
     [Fact]

@@ -24,7 +24,7 @@ public static partial class ControlsExtensions
         var selected = selection.Count;
         var description = string.Create(CultureInfo.InvariantCulture,
             $"{state.FrameRowCount} rows, {shown.Length} columns, {selected} selected");
-        sink.PublishElement(new AccessibilityElement(tableId, null, "Table", options.AccessibleName, description,
+        sink.PublishElement(new AccessibilityElement(tableId, null, ControlRole.Table, options.AccessibleName, description,
             gui.CurrentNode.Rect, gui.HasFocus(BodyId) ? ControlVisualState.Focused : ControlVisualState.None));
 
         for (var i = 0; i < layout.Columns.Length; i++)
@@ -33,8 +33,8 @@ public static partial class ControlsExtensions
             var sort = state.Sort.IndexOf(column) is var at and >= 0
                 ? state.Sort[at].Direction == TableSortDirection.Ascending ? "sorted ascending" : "sorted descending"
                 : "";
-            sink.PublishElement(new AccessibilityElement($"{tableId}/column/{column.Id}", tableId, "ColumnHeader",
-                column.Title.Length > 0 ? column.Title : column.Id, sort, Rect.Zero, ControlVisualState.None,
+            sink.PublishElement(new AccessibilityElement($"{tableId}/column/{column.Id}", tableId, ControlRole.ColumnHeader,
+                column.Name, sort, Rect.Zero, ControlVisualState.None,
                 Virtualized: true, ScopeId: tableId, Key: column.Id));
         }
 
@@ -60,7 +60,7 @@ public static partial class ControlsExtensions
             ? state.Expansion.IsExpanded(key)
             : null;
         var name = shown.Length > 0 ? shown[0].Text(item) : "";
-        sink.PublishElement(new AccessibilityElement(rowId, tableId, "Row",
+        sink.PublishElement(new AccessibilityElement(rowId, tableId, ControlRole.Row,
             name.Length > 0 ? name : $"Row {row + 1}", $"Row {row + 1} of {state.FrameRowCount}",
             gui.CurrentNode.Rect, rowState, ScopeId: tableId, Key: key, Expanded: expanded));
     }
@@ -78,8 +78,8 @@ public static partial class ControlsExtensions
         var tableId = state.AccessibleId!;
         var rowId = $"{tableId}/row/{slot.Key}";
         var cellState = (state.Selection.Contains(slot.Key!) ? ControlVisualState.Selected : ControlVisualState.None);
-        sink.PublishElement(new AccessibilityElement($"{rowId}/cell/{column.Id}", rowId, "Cell", column.Text(item),
-            column.Title, gui.CurrentNode.Rect, cellState, ScopeId: tableId, Key: slot.Key));
+        sink.PublishElement(new AccessibilityElement($"{rowId}/cell/{column.Id}", rowId, ControlRole.Cell, column.Text(item),
+            column.Name, gui.CurrentNode.Rect, cellState, ScopeId: tableId, Key: slot.Key));
     }
 
     /// <summary>Announces what the user just did that no element's state says: a new selection or a new sort.</summary>

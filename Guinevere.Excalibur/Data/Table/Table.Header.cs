@@ -100,7 +100,8 @@ public static partial class ControlsExtensions
                 var captured = column;
                 menu.Items.Add(new FlyoutItem
                 {
-                    Text = column.Title.Length > 0 ? column.Title : column.Id,
+                    Content = column.Title.Length > 0 || column.Header.IsEmpty ? column.Name : column.Header,
+                    Key = column.Id,
                     IsChecked = () => state.Columns.IsVisible(captured),
                     OnCheckChanged = visible => state.Columns.SetVisible(captured, visible)
                 });
@@ -130,12 +131,14 @@ public static partial class ControlsExtensions
 
         using (gui.StyledNode("table-header-cell", id: id, modifiers: modifiers)
                    .Width(width).Height(theme.HeaderHeight).Direction(Axis.Horizontal).Gap(4f)
-                   .PaddingX(theme.CellPadding).AlignContentX(column.AlignContentX).AlignContentY(column.AlignmentY).Enter())
+                   .PaddingX(theme.CellPadding).AlignContentX(column.AlignContentX).AlignContentY(column.AlignContentY)
+                   .Enter())
         {
             gui.ClipContent();
-            if (column.Header is { } content)
+            if (!column.Header.IsEmpty)
             {
-                content.Render(gui, new TableHeaderContext(column, theme.FontSize, width, theme.HeaderHeight, state));
+                gui.SetTextSize(theme.FontSize);
+                gui.Content(column.Header);
             }
             else if (column.Title.Length > 0)
             {

@@ -270,10 +270,10 @@ sealed partial class AtSpiConnection
         [ControlRole.Menu.Name] = (33, "menu"),
         [ControlRole.MenuItem.Name] = (35, "menu item"),
         [ControlRole.TextInput.Name] = (79, "entry"),
-        ["Table"] = (55, "table"),
-        ["Row"] = (90, "table row"),
-        ["Cell"] = (56, "table cell"),
-        ["ColumnHeader"] = (57, "table column header")
+        [ControlRole.Table.Name] = (55, "table"),
+        [ControlRole.Row.Name] = (90, "table row"),
+        [ControlRole.Cell.Name] = (56, "table cell"),
+        [ControlRole.ColumnHeader.Name] = (57, "table column header")
     };
 
     /// <summary>The nearest known role along the <see cref="ControlRole.Base"/> chain; a panel otherwise.</summary>

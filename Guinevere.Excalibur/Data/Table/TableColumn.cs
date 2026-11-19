@@ -44,10 +44,13 @@ public abstract class TableColumn
     public string Title { get; }
 
     /// <summary>
-    /// What the header cell draws instead of the title text: an icon, a localized text, another widget or
-    /// anything implementing <see cref="ITableHeaderContent"/>. Null draws <see cref="Title"/>.
+    /// What the header cell draws instead of the title text: an icon, a localized text, other widgets or a custom
+    /// <see cref="IContent"/>. <see cref="Content.None"/> draws <see cref="Title"/>.
     /// </summary>
-    public ITableHeaderContent? Header { get; init; }
+    public Content Header { get; init; }
+
+    /// <summary>The readable name of the column: the title, else the header content's label, else the id.</summary>
+    internal string Name => Title.Length > 0 ? Title : Header.Label is { Length: > 0 } label ? label : Id;
 
     /// <summary>
     /// The key persisted column state uses to find this column again; unique in a table. Left out, it is the
@@ -92,11 +95,11 @@ public abstract class TableColumn
     /// <summary>The widest the column may be, in pixels.</summary>
     public float MaxWidth { get; init; } = float.PositiveInfinity;
 
-    /// <summary>Where the header and cell content sit inside the column.</summary>
+    /// <summary>Where the header and cell content sit across the column: 0 leading, 0.5 centred, 1 trailing.</summary>
     public float AlignContentX { get; init; }
 
-    /// <summary>Where the header and cell content sit inside the column.</summary>
-    public float AlignmentY { get; protected init; } = .5f;
+    /// <summary>Where the header and cell content sit down the row: 0 top, 0.5 centred, 1 bottom.</summary>
+    public float AlignContentY { get; init; } = 0.5f;
 
     /// <summary>Whether the column stays at an edge while the rest scrolls sideways.</summary>
     public TablePin Pin { get; init; } = TablePin.None;

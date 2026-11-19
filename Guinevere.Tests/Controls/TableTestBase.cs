@@ -290,14 +290,16 @@ public abstract class TableTestBase
         }
     }
 
-    protected sealed class RecordingHeader : ITableHeaderContent
+    protected sealed class RecordingHeader : IContent
     {
-        public List<TableHeaderContext> Seen { get; } = [];
+        public List<float> TextSizes { get; } = [];
 
-        public void Render(Gui gui, in TableHeaderContext context)
+        public string? Label => "icon";
+
+        public void Build(Gui gui)
         {
-            Seen.Add(context);
-            gui.DrawText("icon", context.FontSize);
+            TextSizes.Add(gui.CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value);
+            gui.DrawText("icon", centerInRect: false);
         }
     }
 }

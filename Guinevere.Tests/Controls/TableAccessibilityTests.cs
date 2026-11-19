@@ -14,16 +14,16 @@ public class TableAccessibilityTests : TableTestBase
         var f = new Fixture(rows: 300);
         f.Frames(3);
 
-        var table = f.Tree.Elements.Values.Single(static element => element.Role == "Table");
+        var table = f.Tree.Elements.Values.Single(static element => element.Role == ControlRole.Table);
         Assert.Equal("Files", table.Name);
         Assert.Null(table.ParentId);
         Assert.Contains("300 rows, 2 columns", table.Description);
 
-        var headers = f.Tree.Elements.Values.Where(static element => element.Role == "ColumnHeader").ToArray();
+        var headers = f.Tree.Elements.Values.Where(static element => element.Role == ControlRole.ColumnHeader).ToArray();
         Assert.Equal(["Name", "Downloads"], headers.Select(static header => header.Name).Order().Reverse());
         Assert.All(headers, header => Assert.Equal(table.Id, header.ParentId));
 
-        var rows = f.Tree.Elements.Values.Where(static element => element.Role == "Row").ToArray();
+        var rows = f.Tree.Elements.Values.Where(static element => element.Role == ControlRole.Row).ToArray();
         Assert.InRange(rows.Length, 5, 40);
         Assert.All(rows, row => Assert.Equal(table.Id, row.ParentId));
     }
@@ -34,14 +34,14 @@ public class TableAccessibilityTests : TableTestBase
         var f = new Fixture();
         f.Frames(3);
 
-        var row = f.Tree.Elements.Values.Single(static element => element.Role == "Row" && element.Key == "b.zip");
+        var row = f.Tree.Elements.Values.Single(static element => element.Role == ControlRole.Row && element.Key == "b.zip");
         Assert.Equal("b.zip", row.Name);
         Assert.Equal("Row 2 of 3", row.Description);
 
         var cells = f.Tree.Elements.Values.Where(element => element.ParentId == row.Id).ToArray();
         Assert.Equal(["Downloads", "Name"], cells.Select(static cell => cell.Description).Order());
         Assert.Equal(["5", "b.zip"], cells.Select(static cell => cell.Name).Order());
-        Assert.All(cells, static cell => Assert.Equal("Cell", cell.Role));
+        Assert.All(cells, static cell => Assert.Equal(ControlRole.Cell, cell.Role));
         Assert.All(cells, static cell => Assert.True(cell.Bounds.W > 0f));
     }
 
@@ -53,10 +53,10 @@ public class TableAccessibilityTests : TableTestBase
         f.Harness.Click(f.Draw, f.RowPoint("c.zip"));
         f.Frames(2);
 
-        var row = f.Tree.Elements.Values.Single(static element => element.Role == "Row" && element.Key == "c.zip");
+        var row = f.Tree.Elements.Values.Single(static element => element.Role == ControlRole.Row && element.Key == "c.zip");
         Assert.True(row.State.HasFlag(ControlVisualState.Selected));
         Assert.True(row.State.HasFlag(ControlVisualState.Focused));
-        var other = f.Tree.Elements.Values.Single(static element => element.Role == "Row" && element.Key == "a.zip");
+        var other = f.Tree.Elements.Values.Single(static element => element.Role == ControlRole.Row && element.Key == "a.zip");
         Assert.False(other.State.HasFlag(ControlVisualState.Selected));
     }
 
@@ -68,8 +68,8 @@ public class TableAccessibilityTests : TableTestBase
         f.State.Expansion.SetExpanded(new RowIdentity("a.zip"), true);
         f.Frames(3);
 
-        Assert.True(f.Tree.Elements.Values.Single(static element => element.Role == "Row" && element.Key == "a.zip").Expanded);
-        Assert.False(f.Tree.Elements.Values.Single(static element => element.Role == "Row" && element.Key == "b.zip").Expanded);
+        Assert.True(f.Tree.Elements.Values.Single(static element => element.Role == ControlRole.Row && element.Key == "a.zip").Expanded);
+        Assert.False(f.Tree.Elements.Values.Single(static element => element.Role == ControlRole.Row && element.Key == "b.zip").Expanded);
     }
 
     [Fact]
@@ -80,10 +80,10 @@ public class TableAccessibilityTests : TableTestBase
         f.State.SortBy(f.Source, f.Columns[0]);
         f.Frames(3);
 
-        var header = f.Tree.Elements.Values.Single(static element => element.Role == "ColumnHeader" && element.Key == "name");
+        var header = f.Tree.Elements.Values.Single(static element => element.Role == ControlRole.ColumnHeader && element.Key == "name");
         Assert.Equal("sorted ascending", header.Description);
         Assert.Equal("", f.Tree.Elements.Values
-            .Single(static element => element.Role == "ColumnHeader" && element.Key == "downloads").Description);
+            .Single(static element => element.Role == ControlRole.ColumnHeader && element.Key == "downloads").Description);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class TableAccessibilityTests : TableTestBase
         f.Frames(3);
 
         Assert.Equal(1, f.Tree.Announcements.Count(static note => note.Message == "1 row selected"));
-        var scope = f.Tree.Elements.Values.Single(static element => element.Role == "Table").Id;
+        var scope = f.Tree.Elements.Values.Single(static element => element.Role == ControlRole.Table).Id;
         Assert.All(f.Tree.Announcements, note => Assert.Equal(scope, note.Scope));
 
         f.State.SortBy(f.Source, f.Columns[1]);
