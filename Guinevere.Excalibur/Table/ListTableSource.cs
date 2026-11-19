@@ -14,7 +14,7 @@ namespace Guinevere;
 /// rows without changing the count.
 /// </remarks>
 /// <typeparam name="TRow">The type of a row.</typeparam>
-public sealed class ListTableSource<TRow> : ISortableTableViewSource<TRow>
+public sealed class ListTableSource<TRow> : ISortableTableViewSource<TRow>, ITableRowLookup
 {
     readonly Func<TRow, string> _identity;
     readonly OrderComparer _comparer;
@@ -26,6 +26,9 @@ public sealed class ListTableSource<TRow> : ISortableTableViewSource<TRow>
     int _count;
     int[]? _order;
     long _lastFrame = -1;
+
+    // Where each identity sits now, built the first time a row is looked up after a change.
+    Dictionary<string, int>? _positions;
 
     // Changes waiting for the next frame; guarded by _gate.
     IReadOnlyList<TRow>? _pendingRows;
@@ -65,6 +68,25 @@ public sealed class ListTableSource<TRow> : ISortableTableViewSource<TRow>
 
     /// <inheritdoc />
     public RowIdentity GetRowIdentity(int index) => new(_identity(this[index]));
+
+    /// <summary>
+    /// Finds a row from its identity. The first lookup after a change reads every row's identity once, so the
+    /// cost is paid only by tables that keep rows expanded, and only when the data changed.
+    /// </summary>
+    /// <param name="identity">The row's identity.</param>
+    public int IndexOf(RowIdentity identity)
+    {
+        if (_positions is null)
+        {
+            _positions = new Dictionary<string, int>(_count, StringComparer.Ordinal);
+            for (var i = 0; i < _count; i++)
+            {
+                _positions[GetRowIdentity(i).Key] = i;
+            }
+        }
+
+        return _positions.TryGetValue(identity.Key, out var index) ? index : -1;
+    }
 
     /// <inheritdoc />
     public void BeginFrame(long frame)
@@ -192,6 +214,7 @@ public sealed class ListTableSource<TRow> : ISortableTableViewSource<TRow>
             return;
         }
 
+        _positions = null;
         if (_comparer.KeyCount == 0)
         {
             _order = null;

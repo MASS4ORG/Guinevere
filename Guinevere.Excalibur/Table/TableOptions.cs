@@ -1,8 +1,17 @@
 namespace Guinevere;
 
 /// <summary>What a table does and says, apart from how big its parts are (<see cref="TableTheme"/>).</summary>
-public sealed class TableOptions
+public class TableOptions
 {
+    /// <summary>
+    /// How many rows the user can select, by click, Ctrl, Shift, dragging and the keyboard. With
+    /// <see cref="TableSelectionMode.None"/>, the default, rows are not interactive.
+    /// </summary>
+    public TableSelectionMode Selection { get; init; }
+
+    /// <summary>The name assistive technology announces for the table.</summary>
+    public string AccessibleName { get; init; } = "Table";
+
     /// <summary>
     /// Builds only the columns in view when the table scrolls sideways. It pays for itself with hundreds
     /// of columns; with a few it only adds spacers.

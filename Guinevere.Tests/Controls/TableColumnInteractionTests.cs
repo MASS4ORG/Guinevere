@@ -224,7 +224,7 @@ public class TableColumnInteractionTests : TableTestBase
         harness.Click(draw, FrameHarness.Center(harness.Gui.RootNode!.FindChildById("table/header/c0")!),
             MouseButton.Right);
 
-        Assert.True(harness.Gui.GetValue(false, "table/header/menu"));
+        Assert.True(state.HeaderMenuOpen);
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class TableColumnInteractionTests : TableTestBase
         harness.Click(draw, FrameHarness.Center(harness.Gui.RootNode!.FindChildById("table/header/c0")!),
             MouseButton.Right);
 
-        Assert.False(harness.Gui.GetValue(false, "table/header/menu"));
+        Assert.False(state.HeaderMenuOpen);
     }
 
     [Fact]

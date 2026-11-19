@@ -21,7 +21,7 @@ namespace Guinevere;
 /// </para>
 /// </remarks>
 /// <typeparam name="TRow">The type of a row.</typeparam>
-public sealed class StreamingTableSource<TRow> : ITableViewSource<TRow>
+public sealed class StreamingTableSource<TRow> : ITableViewSource<TRow>, ITableRowLookup
 {
     const int ChunkShift = 12;
     const int ChunkSize = 1 << ChunkShift;
@@ -79,6 +79,12 @@ public sealed class StreamingTableSource<TRow> : ITableViewSource<TRow>
         // Rows are never removed, so a sequence number is the index; a retention cap would offset it.
         return new RowIdentity(index.ToString(CultureInfo.InvariantCulture));
     }
+
+    /// <inheritdoc />
+    public int IndexOf(RowIdentity identity) =>
+        int.TryParse(identity.Key, NumberStyles.None, CultureInfo.InvariantCulture, out var index) && index < _published
+            ? index
+            : -1;
 
     /// <inheritdoc />
     public void BeginFrame(long frame)

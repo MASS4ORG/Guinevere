@@ -10,7 +10,13 @@ sealed class TableRowSlot(int index)
 
     public int Row = -1;
     public int Generation = -1;
+    public int SourceVersion = -1;
+
+    /// <summary>The row's identity key, read from the source once while the slot holds this row.</summary>
+    public string? Key;
+
     public string? Id;
+    public string? DetailsId;
     public string? PadLeftId;
     public string? PadRightId;
     public string? PinnedLeftId;
@@ -49,6 +55,13 @@ sealed class TableCache
 
     /// <summary>How many rows the cache can remember at once.</summary>
     public int Capacity => _slots.Length;
+
+    /// <summary>
+    /// The version of the source's data this frame is built from. A slot remembers the row's identity and the
+    /// ids made from it, so it is emptied when the version moves: after a sort or a change the same index
+    /// holds another row.
+    /// </summary>
+    public int SourceVersion { get; set; }
 
     /// <summary>
     /// Starts a frame: drops cached text when the culture changed, and everything that depends on the columns
@@ -128,14 +141,16 @@ sealed class TableCache
     {
         var index = row & (_slots.Length - 1);
         var slot = _slots[index] ??= new TableRowSlot(index);
-        if (slot.Row == row && slot.Generation == Generation)
+        if (slot.Row == row && slot.Generation == Generation && slot.SourceVersion == SourceVersion)
         {
             return slot;
         }
 
         slot.Row = row;
         slot.Generation = Generation;
-        slot.Id = slot.PadLeftId = slot.PadRightId = slot.PinnedLeftId = slot.PinnedRightId = null;
+        slot.SourceVersion = SourceVersion;
+        slot.Key = null;
+        slot.Id = slot.DetailsId = slot.PadLeftId = slot.PadRightId = slot.PinnedLeftId = slot.PinnedRightId = null;
         var shown = _view!.Shown.Length;
         if (slot.CellIds.Length == shown)
         {
@@ -149,8 +164,27 @@ sealed class TableCache
         return slot;
     }
 
+    /// <summary>
+    /// The identity key of the slot's row, asked of the source the first time and kept until the slot holds
+    /// another row or the source's data changes, so a row that stays in view costs the source nothing.
+    /// </summary>
+    /// <typeparam name="TRow">The source's row type.</typeparam>
+    public static string Key<TRow>(TableRowSlot slot, ITableViewSource<TRow> source) =>
+        slot.Key ??= source.GetRowIdentity(slot.Row).Key;
+
+    /// <summary>
+    /// Node id of a row: its identity key, so focus, hover and anything a cell keeps follow the row through a
+    /// sort or an insert. A key's slash and percent are escaped, so no key can read as a child id.
+    /// </summary>
     public static string RowId(TableRowSlot slot) =>
-        slot.Id ??= "table/row" + slot.Row.ToString(CultureInfo.InvariantCulture);
+        slot.Id ??= "table/row" + (slot.Key is { } key ? Escape(key) : slot.Row.ToString(CultureInfo.InvariantCulture));
+
+    static string Escape(string key) => key.AsSpan().IndexOfAny('/', '%') < 0
+        ? key
+        : key.Replace("%", "%25", StringComparison.Ordinal).Replace("/", "%2F", StringComparison.Ordinal);
+
+    /// <summary>The node id of the details below an expanded row.</summary>
+    public static string DetailsId(TableRowSlot slot) => slot.DetailsId ??= RowId(slot) + "/details";
 
     public static string PadLeftId(TableRowSlot slot) => slot.PadLeftId ??= RowId(slot) + "/padLeft";
 

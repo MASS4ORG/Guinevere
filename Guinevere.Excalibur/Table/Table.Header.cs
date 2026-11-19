@@ -2,7 +2,6 @@ namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
-    const string HeaderMenuKey = "table/header/menu";
     const float ResizeHandleWidth = 6f;
 
     static readonly DragDropTag ColumnDrag = new("table-column");
@@ -19,22 +18,21 @@ public static partial class ControlsExtensions
     /// the scrolling body, so it never leaves the top. Only the scrolling group takes the body's horizontal
     /// offset, so its cells stay over their columns while the pinned ones stay put.
     /// </summary>
-    static void TableHeader(Gui gui, TableState state, TableOptions options, TableTheme theme, TableLayout layout,
-        int firstColumn, int lastColumn)
+    static void TableHeader<TRow>(in TableBuild<TRow> b)
     {
+        var (gui, state, _, _, options, _, theme, layout, firstColumn, lastColumn) = b;
         using (gui.StyledNode("table-header", id: "table/header").Height(theme.HeaderHeight).ExpandWidth()
                    .Direction(Axis.Horizontal).Enter())
         {
             gui.ClipContent();
             if (options.ColumnMenu && gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick(MouseButton.Right))
             {
-                gui.GetValue(false, HeaderMenuKey) = true;
+                state.HeaderMenuOpen = true;
             }
 
             if (layout.LeftCount > 0)
             {
-                PinnedHeader(gui, state, options, theme, layout, 0, layout.LeftCount, "table/header/pinned-left",
-                    layout.LeftWidth);
+                PinnedHeader(b, 0, layout.LeftCount, "table/header/pinned-left", layout.LeftWidth);
             }
 
             // The offsets run from the table's left edge, so the spacers subtract what the pinned group holds.
@@ -48,7 +46,7 @@ public static partial class ControlsExtensions
                     theme.HeaderHeight);
                 for (var c = firstColumn; c < lastColumn; c++)
                 {
-                    HeaderCell(gui, state, options, theme, layout, c);
+                    HeaderCell(b, c);
                 }
 
                 VirtualRows.SpacerX(gui, "table/header/padRight",
@@ -57,12 +55,12 @@ public static partial class ControlsExtensions
 
             if (layout.RightStart < layout.Columns.Length)
             {
-                PinnedHeader(gui, state, options, theme, layout, layout.RightStart, layout.Columns.Length,
-                    "table/header/pinned-right", layout.RightWidth);
+                PinnedHeader(b, layout.RightStart, layout.Columns.Length, "table/header/pinned-right",
+                    layout.RightWidth);
 
                 // The body leaves room for its vertical bar when it shows one; the header leaves the same room
                 // so its right-pinned group lines up with the body's.
-                var scrollbar = gui.GetScrollState("table/body");
+                var scrollbar = gui.GetScrollState(BodyId);
                 if (scrollbar is { ShowScrollbarY: true })
                 {
                     VirtualRows.SpacerX(gui, "table/header/scrollbar", scrollbar.ScrollbarThickness, theme.HeaderHeight);
@@ -70,31 +68,32 @@ public static partial class ControlsExtensions
             }
         }
 
-        if (options.ColumnMenu)
+        if (state.HeaderMenuOpen)
         {
-            ColumnMenu(gui, state, options);
+            ColumnMenu(b);
         }
     }
 
     /// <summary>A header group whose columns are pinned: it does not scroll, so it keeps its own width.</summary>
-    static void PinnedHeader(Gui gui, TableState state, TableOptions options, TableTheme theme, TableLayout layout,
-        int firstColumn, int lastColumn, string id, float width)
+    static void PinnedHeader<TRow>(in TableBuild<TRow> b, int firstColumn, int lastColumn, string id, float width)
     {
-        using (gui.StyledNode("table-header-pinned", id: id).Width(width).Height(theme.HeaderHeight)
+        var gui = b.Gui;
+        using (gui.StyledNode("table-header-pinned", id: id).Width(width).Height(b.Theme.HeaderHeight)
                    .Direction(Axis.Horizontal).Enter())
         {
             for (var c = firstColumn; c < lastColumn; c++)
             {
-                HeaderCell(gui, state, options, theme, layout, c);
+                HeaderCell(b, c);
             }
         }
     }
 
     /// <summary>The menu a right-click on the header opens: every column with a check, and a way back to the defaults.</summary>
-    static void ColumnMenu(Gui gui, TableState state, TableOptions options)
+    static void ColumnMenu<TRow>(in TableBuild<TRow> b)
     {
-        ref var open = ref gui.GetValue(false, HeaderMenuKey);
-        gui.ContextMenu(ref open, menu =>
+        var state = b.State;
+        var reset = b.Options.ResetColumnsText;
+        b.Gui.ContextMenu(ref state.HeaderMenuOpen, menu =>
         {
             foreach (var column in state.Cache.Columns!.All)
             {
@@ -107,13 +106,13 @@ public static partial class ControlsExtensions
                 });
             }
 
-            menu.Separator().Item(options.ResetColumnsText, state.Columns.Reset);
+            menu.Separator().Item(reset, state.Columns.Reset);
         }, id: "table/header/menu-popup");
     }
 
-    static void HeaderCell(Gui gui, TableState state, TableOptions options, TableTheme theme, TableLayout layout,
-        int index)
+    static void HeaderCell<TRow>(in TableBuild<TRow> b, int index)
     {
+        var (gui, state, _, _, _, _, theme, layout, _, _) = b;
         var column = layout.Columns[index];
         var id = state.Cache.View!.HeaderIds[index];
         var width = layout.Widths[index];
@@ -152,22 +151,24 @@ public static partial class ControlsExtensions
                 }
             }
 
-            HeaderInteraction(gui, state, options, theme, layout, index, id);
+            HeaderInteraction(b, index, id);
         }
     }
 
     /// <summary>
-    /// What the user can do with a header cell: focus it, drag it onto another to reorder, press Ctrl with an
-    /// arrow to move it, Shift with an arrow to resize it, and drag its right edge to resize it.
+    /// What the user can do with a header cell: click it (or press Enter or Space on it) to sort by it, drag it
+    /// onto another to reorder, press Ctrl with an arrow to move it, Shift with an arrow to resize it, and drag
+    /// its right edge to resize it.
     /// </summary>
-    static void HeaderInteraction(Gui gui, TableState state, TableOptions options, TableTheme theme,
-        TableLayout layout, int index, string id)
+    static void HeaderInteraction<TRow>(in TableBuild<TRow> b, int index, string id)
     {
+        var (gui, state, source, _, options, _, theme, layout, _, _) = b;
         var column = layout.Columns[index];
         var resizable = options.Resizable && column.Resizable;
+        var view = state.Cache.View!;
         if (resizable)
         {
-            ResizeHandle(gui, state, theme, layout, index, id + "/resize");
+            ResizeHandle(gui, state, theme, layout, index, view.ResizeId(index), view.AnchorId(index));
         }
 
         if (gui.Pass != Pass.Pass2Render)
@@ -175,18 +176,18 @@ public static partial class ControlsExtensions
             return;
         }
 
+        gui.Focus.RegisterFocusableControl(id, gui.CurrentNode.Rect.Center);
         if (options.Reorderable)
         {
-            HeaderReorder(gui, state, column, id);
-        }
-        else
-        {
-            gui.Focus.RegisterFocusableControl(id, gui.CurrentNode.Rect.Center);
+            HeaderReorder(gui, state, column, id, view.Ghosts[index]);
         }
 
-        if (gui.GetInteractable().OnClick())
+        var rect = gui.CurrentNode.Rect;
+        var overEdge = resizable && gui.Input.MousePosition.X >= rect.X + rect.W - ResizeHandleWidth;
+        if (gui.GetInteractable().OnClickCompleted(out _) && !overEdge)
         {
             gui.RequestFocus(FocusReason.Mouse);
+            SortByHeader(state, source, column);
         }
 
         // Shift or Ctrl with an arrow is this header's, so it does not also move focus to the next header.
@@ -195,25 +196,51 @@ public static partial class ControlsExtensions
 
         if (gui.HasFocus(id))
         {
-            HeaderKeys(gui, state, options, layout, index, resizable);
+            HeaderKeys(b, index, resizable, column);
         }
     }
 
-    /// <summary>The cell as a drag source and a drop target for columns of this table.</summary>
-    static void HeaderReorder(Gui gui, TableState state, TableColumn column, string id)
+    /// <summary>Sorts the way a click does when the source can sort and the column can be sorted; else nothing.</summary>
+    static void SortByHeader<TRow>(TableState state, ITableViewSource<TRow> source, TableColumn column)
     {
-        gui.DragSource(id, column, ghost: ghost => ghost.DrawText(column.Title, 12f), tag: ColumnDrag);
+        if (column.Sortable && source is ISortableTableViewSource<TRow> sortable)
+        {
+            state.SortBy(sortable, column);
+        }
+    }
+
+    /// <summary>
+    /// The cell as a drag source, and while a column is being dragged a drop target for it. The target is offered
+    /// only then, so a table nobody is dragging in pays nothing for it.
+    /// </summary>
+    static void HeaderReorder(Gui gui, TableState state, TableColumn column, string id, Action<Gui> ghost)
+    {
+        gui.DragSource<TableColumn>(id, column, ghost: ghost, tag: ColumnDrag, keyboard: false);
+        if (!gui.IsDragging)
+        {
+            return;
+        }
+
         var drop = gui.DropTarget<TableColumn>(id + "/drop", ColumnDrag,
             canAccept: dragged => state.Cache.Columns!.Contains(dragged) && dragged.Pin == column.Pin,
-            onDrop: dragged => state.Columns.MoveTo(dragged, column));
+            onDrop: dragged => state.Columns.MoveTo(dragged, column), keyboard: false);
         gui.DrawDropIndicator(drop.State);
     }
 
-    /// <summary>Shift and an arrow resize the focused column by a step, Ctrl and an arrow move it one place.</summary>
-    static void HeaderKeys(Gui gui, TableState state, TableOptions options, TableLayout layout, int index,
-        bool resizable)
+    /// <summary>
+    /// Enter or Space sorts by the focused column, Shift and an arrow resize it by a step, and Ctrl and an arrow
+    /// move it one place.
+    /// </summary>
+    static void HeaderKeys<TRow>(in TableBuild<TRow> b, int index, bool resizable, TableColumn column)
     {
+        var (gui, state, source, _, options, _, _, layout, _, _) = b;
         var input = gui.Input;
+        if (input.IsKeyPressed(KeyboardKey.Enter) || input.IsKeyPressed(KeyboardKey.Space))
+        {
+            SortByHeader(state, source, column);
+            return;
+        }
+
         var direction = input.IsKeyPressed(KeyboardKey.Left) ? -1 : input.IsKeyPressed(KeyboardKey.Right) ? 1 : 0;
         if (direction == 0)
         {
@@ -229,7 +256,7 @@ public static partial class ControlsExtensions
         }
         else if (options.Reorderable && IsModifierDown(gui, KeyboardKey.LeftControl, KeyboardKey.RightControl))
         {
-            state.Columns.Nudge(layout.Columns[index], direction);
+            state.Columns.Nudge(column, direction);
         }
     }
 
@@ -240,7 +267,8 @@ public static partial class ControlsExtensions
     /// The grab zone on a header's right edge. Dragging it sets the column's width to the width it had at the
     /// press plus the pointer's travel; a double click gives the column its defined width back.
     /// </summary>
-    static void ResizeHandle(Gui gui, TableState state, TableTheme theme, TableLayout layout, int index, string id)
+    static void ResizeHandle(Gui gui, TableState state, TableTheme theme, TableLayout layout, int index, string id,
+        string anchorKey)
     {
         // An absolute child is placed from the cell's padding box, so the cell's own padding is taken off.
         var width = layout.Widths[index];
@@ -249,7 +277,7 @@ public static partial class ControlsExtensions
                    .Width(ResizeHandleWidth)
                    .Height(theme.HeaderHeight).Cursor(PointerCursor.ResizeHorizontal).Enter())
         {
-            ref var anchor = ref gui.GetValue(float.NaN, id + "/anchor");
+            ref var anchor = ref gui.GetValue(float.NaN, anchorKey);
             if (gui.Pass != Pass.Pass2Render)
             {
                 return;

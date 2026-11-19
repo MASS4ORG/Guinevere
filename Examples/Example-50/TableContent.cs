@@ -14,7 +14,15 @@ public abstract partial class Program
 
     static readonly TableColumns<int> TableDemoColumns = BuildTableColumns();
     static readonly TableState TableDemoState = BuildTableState();
-    static readonly TableOptions TableDemoOptions = new() { VirtualizeColumns = true };
+    static readonly TableOptions<int> TableDemoOptions = new()
+    {
+        VirtualizeColumns = true,
+        Selection = TableSelectionMode.Multiple,
+        RowDetails = new DemoDetails(),
+        RowMenu = static (menu, row) => menu
+            .Item("Select this row only", () => TableDemoState.Selection.Select(row.Identity))
+            .Item("Clear selection", () => TableDemoState.Selection.Clear())
+    };
     static readonly GeneratedRows TableDemoSource = new(TableRows);
 
     static TableState BuildTableState()
@@ -32,6 +40,7 @@ public abstract partial class Program
     {
         var columns = new List<TableColumn<int>>
         {
+            TableColumn<int>.Expander(pin: TablePin.Left),
             TableRowColumn,
             TableColumn<int>.Of("Name", static row => $"asset_{row:D7}.png", width: TableLength.Star(2),
                 minWidth: 160f),
@@ -56,7 +65,7 @@ public abstract partial class Program
         using (gui.Node().Expand().Padding(10).Direction(Axis.Vertical).Gap(6).Enter())
         {
             gui.DrawText($"{TableRows:N0} rows, {TableDemoColumns.Count} columns", size: 18);
-            gui.DrawText("Only the cells in view are built. Wheel scrolls, Shift+wheel scrolls sideways; the header stays put.",
+            gui.DrawText("Only the cells in view are built. Click, Ctrl+click, Shift+click or drag to select; arrows move; every tenth row expands (chevron or Right/Left); drag header edges and headers, right-click a header or a row.",
                 size: 13, color: Token(gui, "text-dim"));
 
             using (gui.Node().Expand().Enter())
@@ -70,8 +79,11 @@ public abstract partial class Program
     /// A million generated rows that exist only as the row index. They are never sorted, filtered or changed, which
     /// is the one case where the position can stand in for the identity.
     /// </summary>
-    sealed class GeneratedRows(int count) : ITableViewSource<int>
+    sealed class GeneratedRows(int count) : ITableViewSource<int>, ITableRowLookup
     {
+        public int IndexOf(RowIdentity identity) =>
+            int.TryParse(identity.Key, out var index) && index < count ? index : -1;
+
         public int RowCount => count;
 
         public event EventHandler? Invalidated
@@ -83,6 +95,23 @@ public abstract partial class Program
         public int this[int index] => index;
 
         public RowIdentity GetRowIdentity(int index) => RowIdentity.UnstableIndex(index);
+    }
+
+    /// <summary>Every tenth row has a short block of details below it.</summary>
+    sealed class DemoDetails : ITableRowDetails<int>
+    {
+        public bool HasDetails(in TableRowContext<int> row) => row.Item % 10 == 0;
+
+        public float GetHeight(in TableRowContext<int> row) => 56f;
+
+        public void Render(Gui gui, in TableRowContext<int> row, float width, float height)
+        {
+            using (gui.Node().Expand().Padding(8).Direction(Axis.Vertical).Gap(2).Enter())
+            {
+                gui.DrawText($"Details of asset_{row.Item:D7}.png", size: 13);
+                gui.DrawText($"Identity {row.Identity.Key}, row {row.Index + 1:N0}.", size: 12, color: Token(gui, "text-dim"));
+            }
+        }
     }
 
     /// <summary>Tints the status text, as a column's own renderer would draw a badge.</summary>

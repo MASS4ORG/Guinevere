@@ -60,6 +60,81 @@ public sealed class TableState
     /// </summary>
     public TableColumnState Columns { get; } = new();
 
+    /// <summary>
+    /// The rows the user selected, kept by identity. Set <see cref="TableOptions.Selection"/> to let the table change
+    /// it; a host may also read it, set it or clear it at any time between frames.
+    /// </summary>
+    public TableSelection Selection { get; } = new();
+
+    /// <summary>The rows shown expanded, kept by identity; see <see cref="ITableRowDetails{TRow}"/>.</summary>
+    public TableExpansion Expansion { get; } = new();
+
+    /// <summary>The details provider of this frame's options, which an expander column asks whether a row has any.</summary>
+    internal object? Details { get; set; }
+
+    /// <summary>Where the rows sit vertically, rebuilt only when expansion or the data moves.</summary>
+    internal TableRowGeometry Geometry { get; } = new();
+
+    /// <summary>The host's accessibility tree during the render pass, or null when it has none.</summary>
+    internal IAccessibilityTreeSink? Accessibility { get; set; }
+
+    /// <summary>The table node's id, which the ids of its accessible rows, cells and headers hang from.</summary>
+    internal string? AccessibleId { get; set; }
+
+    /// <summary>The selection and sort versions already announced, so each change is announced once.</summary>
+    internal int AnnouncedSelection { get; set; }
+
+    internal int AnnouncedSort { get; set; }
+
+    /// <summary>Whether the column menu in the header is open.</summary>
+    internal bool HeaderMenuOpen;
+
+    /// <summary>Whether the menu of a right-clicked row is open.</summary>
+    internal bool RowMenuOpen;
+
+    /// <summary>The row the open menu belongs to, by index and identity.</summary>
+    internal int MenuRow = -1;
+
+    internal string? MenuKey;
+
+    /// <summary>Whether a press on a row started a drag that selects the rows it passes.</summary>
+    internal bool DragSelecting;
+
+    /// <summary>
+    /// The version of the data this frame's snapshot is of. It moves when the source says it has something to
+    /// publish or its count changes, and it is what ids and identities cached per row slot are checked against.
+    /// </summary>
+    internal int FrameSourceVersion { get; private set; }
+
+    int _sourceVersion;
+    int _lastCount = -1;
+
+    /// <summary>
+    /// Everything the user chose that outlives a session: the columns (order, visibility, widths) and the sort. Store
+    /// it wherever the host keeps settings; selection and expansion are not part of it, since rows are not stable
+    /// across sessions.
+    /// </summary>
+    public TableSnapshot Save() => new(Columns.Save(), Sort.Save());
+
+    /// <summary>
+    /// Brings back what <see cref="Save"/> returned. The sort is resolved against <paramref name="columns"/>,
+    /// dropping ids that no longer exist, and applied to <paramref name="source"/> when one is given, so the rows
+    /// come back in the saved order. Call it before the first frame or at any time between frames.
+    /// </summary>
+    /// <typeparam name="TRow">The columns' row type.</typeparam>
+    /// <param name="snapshot">What <see cref="Save"/> returned.</param>
+    /// <param name="columns">The table's columns.</param>
+    /// <param name="source">The source to apply the sort to, or null to leave the rows as the source has them.</param>
+    public void Restore<TRow>(TableSnapshot snapshot, TableColumns<TRow> columns,
+        ISortableTableViewSource<TRow>? source = null)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(columns);
+        Columns.Restore(snapshot.Columns);
+        Sort.Restore(snapshot.Sort, columns);
+        source?.ApplySort([.. Sort]);
+    }
+
     /// <summary>Layout, ids and text the table derives from its inputs and reuses until they change.</summary>
     internal TableCache Cache { get; } = new();
 
@@ -98,12 +173,26 @@ public sealed class TableState
         source.BeginFrame(frame);
         FrameRowCount = source.RowCount;
         FrameLoading = source.IsLoading;
+        if (replaced || FrameRowCount != _lastCount)
+        {
+            Interlocked.Increment(ref _sourceVersion);
+        }
+
+        _lastCount = FrameRowCount;
+        var version = Volatile.Read(ref _sourceVersion);
+        if (version != FrameSourceVersion)
+        {
+            FrameSourceVersion = version;
+            Selection.Reconcile(source);
+        }
     }
+
+    void MarkSourceChanged() => Interlocked.Increment(ref _sourceVersion);
 
     void Bind<TRow>(Gui gui, ITableViewSource<TRow> source)
     {
         _unbind?.Invoke();
-        var relay = new InvalidationRelay(gui);
+        var relay = new InvalidationRelay(gui, this);
         source.Invalidated += relay.Handle;
         _source = source;
         _unbind = () => source.Invalidated -= relay.Handle;
@@ -113,15 +202,21 @@ public sealed class TableState
     /// Asks for a frame when a source says it has something to publish. It may be called from any thread, so it
     /// holds the Gui weakly: a long-lived source then keeps no window alive.
     /// </summary>
-    sealed class InvalidationRelay(Gui gui)
+    sealed class InvalidationRelay(Gui gui, TableState state)
     {
         readonly WeakReference<Gui> _gui = new(gui);
+        readonly WeakReference<TableState> _state = new(state);
 
         public void Handle(object? sender, EventArgs e)
         {
-            if (_gui.TryGetTarget(out var target))
+            if (_state.TryGetTarget(out var target))
             {
-                target.RequestFrame();
+                target.MarkSourceChanged();
+            }
+
+            if (_gui.TryGetTarget(out var window))
+            {
+                window.RequestFrame();
             }
         }
     }

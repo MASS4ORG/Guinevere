@@ -18,6 +18,9 @@ public abstract class TableColumn<TRow> : TableColumn
     /// <summary>Orders two rows by this column's value.</summary>
     internal abstract int Compare(TRow left, TRow right);
 
+    /// <summary>The text of this column's value in a row, for an assistive technology to read.</summary>
+    internal abstract string Text(TRow item);
+
     /// <summary>A column whose cells show a value read from the row.</summary>
     /// <typeparam name="TValue">The value's type; its default comparison decides whether the column sorts.</typeparam>
     /// <param name="title">The header text, which may be empty when <paramref name="header"/> draws the header.</param>
@@ -78,6 +81,24 @@ public abstract class TableColumn<TRow> : TableColumn
         Of(title, static row => row, id, width, minWidth, maxWidth, alignmentX, alignmentY, pin, visible, comparer,
             renderer,
             header, resizable);
+
+    /// <summary>
+    /// A column of expanders: a chevron on every row whose details exist (see
+    /// <see cref="TableOptions{TRow}.RowDetails"/>) that expands and collapses the row. It cannot be sorted or
+    /// resized, and draws nothing for a row without details.
+    /// </summary>
+    /// <param name="title">The header text, empty by default.</param>
+    /// <param name="id">Key for persisted column state.</param>
+    /// <param name="width">The column's fixed width in pixels.</param>
+    /// <param name="pin">Which edge the column is held at; a left pin keeps the expanders in view.</param>
+    public static TableColumn<TRow, TRow> Expander(string title = "", string id = "expander", float width = 32f,
+        TablePin pin = TablePin.None)
+    {
+        var column = Of(title, static (TRow row) => row, id, TableLength.Pixels(width), width, width, 0.5f, 0.5f, pin,
+            renderer: new ExpanderRenderer<TRow>(), resizable: false);
+        column.DisableSorting();
+        return column;
+    }
 }
 
 /// <summary>
@@ -131,6 +152,14 @@ public sealed class TableColumn<TRow, TValue> : TableColumn<TRow>
         gui.DrawText(frame.Cache.TextCacheFor<TValue>(frame.Column).Text(frame.Cache, frame.Slot, value),
             frame.FontSize, centerInRect: false, clip: true);
     }
+
+    /// <summary>Takes the column out of sorting even though its value type has an order.</summary>
+    internal void DisableSorting()
+    {
+        Sortable = false;
+    }
+
+    internal override string Text(TRow item) => Value(item)?.ToString() ?? "";
 
     internal override int Compare(TRow left, TRow right) =>
         (_order ?? throw new InvalidOperationException($"Column '{Title}' cannot be sorted.")).Compare(

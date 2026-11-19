@@ -36,10 +36,12 @@ sealed class TableColumnSet
 
         _headerIds = [.. All.Select(static column => "table/header/" + column.Id)];
         _cellSuffixes = [.. All.Select(static column => "/" + column.Id)];
+        _ghosts = [.. All.Select(static column => (Action<Gui>)(gui => gui.DrawText(column.Title, 12f)))];
     }
 
     readonly string[] _headerIds;
     readonly string[] _cellSuffixes;
+    readonly Action<Gui>[] _ghosts;
 
     /// <summary>Every column, in the order given.</summary>
     public TableColumn[] All { get; }
@@ -75,6 +77,7 @@ sealed class TableColumnSet
         var lengths = new TableLength[positions.Count];
         var headerIds = new string[positions.Count];
         var suffixes = new string[positions.Count];
+        var ghosts = new Action<Gui>[positions.Count];
         for (var i = 0; i < shown.Length; i++)
         {
             var at = positions[i];
@@ -82,9 +85,10 @@ sealed class TableColumnSet
             lengths[i] = state?.WidthOf(All[at]) ?? All[at].Width;
             headerIds[i] = _headerIds[at];
             suffixes[i] = _cellSuffixes[at];
+            ghosts[i] = _ghosts[at];
         }
 
-        return new TableColumnView(shown, lengths, headerIds, suffixes);
+        return new TableColumnView(shown, lengths, headerIds, suffixes, ghosts);
     }
 }
 
@@ -96,8 +100,19 @@ sealed class TableColumnSet
 /// <param name="Lengths">How each shown column's width is decided now.</param>
 /// <param name="HeaderIds">Node id of each shown column's header cell.</param>
 /// <param name="CellSuffixes">The tail of the node id of each shown column's cells.</param>
-sealed record TableColumnView(TableColumn[] Shown, TableLength[] Lengths, string[] HeaderIds, string[] CellSuffixes)
+/// <param name="Ghosts">What follows the pointer while each shown column's header is dragged.</param>
+sealed record TableColumnView(TableColumn[] Shown, TableLength[] Lengths, string[] HeaderIds, string[] CellSuffixes,
+    Action<Gui>[] Ghosts)
 {
+    /// <summary>The node id of a header's resize grab zone, derived from its header id and kept.</summary>
+    public string ResizeId(int shown) => (_resizeIds ??= new string?[Shown.Length])[shown] ??= HeaderIds[shown] + "/resize";
+
+    /// <summary>The key a header's resize drag keeps its starting width under.</summary>
+    public string AnchorId(int shown) => (_anchorIds ??= new string?[Shown.Length])[shown] ??= ResizeId(shown) + "/anchor";
+
+    string?[]? _resizeIds;
+    string?[]? _anchorIds;
+
     object? _typed;
 
     /// <summary>The shown columns as columns of one row type, converted once.</summary>

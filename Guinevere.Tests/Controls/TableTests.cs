@@ -189,8 +189,8 @@ public class TableTests : TableTestBase
 
         var gui = RunFrames(items, columns, frames: 2);
 
-        Assert.NotNull(gui.RootNode!.FindChildById("table/row0/version"));
-        Assert.NotNull(gui.RootNode!.FindChildById("table/row1/downloads"));
+        Assert.NotNull(gui.RootNode!.FindChildById("table/rowa.zip/version"));
+        Assert.NotNull(gui.RootNode!.FindChildById("table/rowb.zip/downloads"));
         Assert.Equal(["a.zip", "b.zip"], spy.Seen.Distinct().Order());
         Assert.All(spy.Seen, static item => Assert.NotNull(item));
     }

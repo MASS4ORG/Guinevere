@@ -41,21 +41,34 @@ public static partial class ControlsExtensions
         theme ??= TableTheme.Default;
 
         state.BeginFrame(gui, source);
+        state.Cache.SourceVersion = state.FrameSourceVersion;
         if (state.Cache.Begin(columns.Set, state.Columns))
         {
             state.Sort.Rebind(columns.Set);
         }
 
+        var typed = options as TableOptions<TRow>;
+        state.Details = typed?.RowDetails;
+        state.Geometry.Update(gui, state, source, typed?.RowDetails, theme.RowHeight);
+
         var layout = ResolveLayout(gui, state, theme);
         var (first, last) = options.VirtualizeColumns
             ? layout.Window(state.FrameScrollX, state.FrameViewportWidth, theme.ColumnOverscan)
             : (layout.LeftCount, layout.RightStart);
+        var build = new TableBuild<TRow>(gui, state, source, state.Cache.View!.Typed<TRow>(), options, typed, theme,
+            layout, first, last);
 
         using (gui.StyledNode("table", classes, id, filePath: filePath, lineNumber: lineNumber)
                    .Expand().Direction(Axis.Vertical).Enter())
         {
-            TableHeader(gui, state, options, theme, layout, first, last);
-            TableBody(gui, state, source, state.Cache.View!.Typed<TRow>(), options, theme, layout, first, last);
+            state.Accessibility = gui.Pass == Pass.Pass2Render && gui.Platform.TryGet<IAccessibilityTreeSink>(out var tree)
+                ? tree
+                : null;
+            state.AccessibleId = gui.CurrentNode.Id;
+            TableHeader(build);
+            TableBody(build);
+            RowContextMenu(build);
+            PublishTableSemantics(build);
         }
     }
 
@@ -96,13 +109,16 @@ public static partial class ControlsExtensions
         return layout;
     }
 
-    static void TableBody<TRow>(Gui gui, TableState state, ITableViewSource<TRow> source,
-        TableColumn<TRow>[] shown, TableOptions options, TableTheme theme, TableLayout layout, int firstColumn,
-        int lastColumn)
+    static void TableBody<TRow>(in TableBuild<TRow> b)
     {
-        using (gui.StyledNode("table-body", id: "table/body").Expand().Direction(Axis.Vertical).Enter())
+        var (gui, state, _, _, options, _, theme, _, _, _) = b;
+        using (gui.StyledNode("table-body", id: BodyId).Expand().Direction(Axis.Vertical).Enter())
         {
             gui.Scroll();
+            if (gui.Pass == Pass.Pass2Render && options.Selection != TableSelectionMode.None)
+            {
+                gui.RegisterFocusable(claimsArrowKeys: true);
+            }
 
             // The snapshot taken at the start of the frame, not the source's current values.
             var count = state.FrameRowCount;
@@ -119,14 +135,17 @@ public static partial class ControlsExtensions
             }
             else
             {
-                var window = VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, theme.RowHeight,
-                    count, theme.RowOverscan);
+                var offsets = state.Geometry.Offsets;
+                var window = offsets is null
+                    ? VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, theme.RowHeight, count,
+                        theme.RowOverscan)
+                    : VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, offsets, theme.RowOverscan);
                 state.Cache.Reserve(window.Last - window.First);
 
                 VirtualRows.Spacer(gui, "table/padTop", window.PadTop);
                 for (var row = window.First; row < window.Last; row++)
                 {
-                    TableRow(gui, state, source, shown, theme, layout, row, firstColumn, lastColumn);
+                    TableRow(b, row);
                 }
 
                 VirtualRows.Spacer(gui, "table/padBottom", window.PadBottom);
@@ -139,6 +158,12 @@ public static partial class ControlsExtensions
 
             if (gui.Pass == Pass.Pass2Render)
             {
+                if (!gui.Input.IsMouseButtonDown(MouseButton.Left))
+                {
+                    state.DragSelecting = false;
+                }
+
+                BodyKeys(b);
                 Measure(gui, state);
             }
         }

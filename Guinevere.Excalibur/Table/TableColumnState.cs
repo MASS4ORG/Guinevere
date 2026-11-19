@@ -10,6 +10,15 @@ namespace Guinevere;
 public readonly record struct TableColumnSetting(string Id, bool Visible, TableLength? Width);
 
 /// <summary>
+/// What a table keeps between sessions: the column choices and the sort, both by column id. It is plain data, so a
+/// host serializes it however it likes; <see cref="TableState.Save"/> makes one and <see cref="TableState.Restore{TRow}"/>
+/// applies it.
+/// </summary>
+/// <param name="Columns">Each column's visibility and width, in display order.</param>
+/// <param name="Sort">The sort keys, primary first.</param>
+public sealed record TableSnapshot(TableColumnSetting[] Columns, (string Id, TableSortDirection Direction)[] Sort);
+
+/// <summary>
 /// What the user chose about a table's columns: which are shown, in what order, and how wide. The choices are
 /// kept by column id, so a rebuilt column list picks them up again and <see cref="Save"/> and
 /// <see cref="Restore"/> move them to wherever the host keeps its settings. Columns never mentioned keep
