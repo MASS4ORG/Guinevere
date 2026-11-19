@@ -15,7 +15,7 @@ public readonly struct Size : IEquatable<Size>
     /// <summary>Creates a pixel distance.</summary>
     public Size(float pixels) : this(pixels, 0f, 0f, 0f, 0f, 0f, null) { }
 
-    Size(float pixels, float percentage, float ratio, float expand, float fitContent, float fitLargest,
+    internal Size(float pixels, float percentage, float ratio, float expand, float fitContent, float fitLargest,
         NodeReference[]? references)
     {
         PixelsContribution = pixels;

@@ -57,24 +57,24 @@ public partial struct LayoutStyle
         (_flags & (StyleFlags.HeightSet | StyleFlags.HeightRelative)) == StyleFlags.HeightSet;
 
     /// <summary>The pixel term of the width.</summary>
-    internal readonly float FixedWidth => _width.PixelsContribution;
+    internal readonly float FixedWidth => _pixels[WidthSlot];
 
     /// <summary>The pixel term of the height.</summary>
-    internal readonly float FixedHeight => _height.PixelsContribution;
+    internal readonly float FixedHeight => _pixels[HeightSlot];
 
     /// <summary>Whether an unsized or zero-pixel relative width gets the floor that keeps a child visible.</summary>
     internal readonly bool WidthNeedsFloor => !Has(StyleFlags.WidthSet)
-        || (Has(StyleFlags.WidthRelative) && _width.PixelsContribution <= 0f);
+        || (Has(StyleFlags.WidthRelative) && _pixels[WidthSlot] <= 0f);
 
     /// <summary>Whether an unsized or zero-pixel relative height gets the floor that keeps a child visible.</summary>
     internal readonly bool HeightNeedsFloor => !Has(StyleFlags.HeightSet)
-        || (Has(StyleFlags.HeightRelative) && _height.PixelsContribution <= 0f);
+        || (Has(StyleFlags.HeightRelative) && _pixels[HeightSlot] <= 0f);
 
     /// <summary>The width's expand weight, or zero.</summary>
-    internal readonly float WidthExpandWeight => Has(StyleFlags.WidthRelative) ? _width.ExpandContribution : 0f;
+    internal readonly float WidthExpandWeight => Has(StyleFlags.WidthRelative) ? Expand(WidthSlot) : 0f;
 
     /// <summary>The height's expand weight, or zero.</summary>
-    internal readonly float HeightExpandWeight => Has(StyleFlags.HeightRelative) ? _height.ExpandContribution : 0f;
+    internal readonly float HeightExpandWeight => Has(StyleFlags.HeightRelative) ? Expand(HeightSlot) : 0f;
 
     /// <summary>Whether a minimum or maximum width is set.</summary>
     internal readonly bool HasWidthBounds => (_flags & StyleFlags.WidthBounds) != 0;
@@ -90,19 +90,19 @@ public partial struct LayoutStyle
 
     /// <summary>The pixel lower width bound, or zero when unset.</summary>
     internal readonly float MinWidthPixels =>
-        Has(StyleFlags.MinWidthSet) ? Math.Max(0f, _minWidth.PixelsContribution) : 0f;
+        Has(StyleFlags.MinWidthSet) ? Math.Max(0f, _pixels[MinWidthSlot]) : 0f;
 
     /// <summary>The pixel upper width bound, or <see cref="float.MaxValue"/> when unset.</summary>
     internal readonly float MaxWidthPixels =>
-        Has(StyleFlags.MaxWidthSet) ? Math.Max(0f, _maxWidth.PixelsContribution) : float.MaxValue;
+        Has(StyleFlags.MaxWidthSet) ? Math.Max(0f, _pixels[MaxWidthSlot]) : float.MaxValue;
 
     /// <summary>The pixel lower height bound, or zero when unset.</summary>
     internal readonly float MinHeightPixels =>
-        Has(StyleFlags.MinHeightSet) ? Math.Max(0f, _minHeight.PixelsContribution) : 0f;
+        Has(StyleFlags.MinHeightSet) ? Math.Max(0f, _pixels[MinHeightSlot]) : 0f;
 
     /// <summary>The pixel upper height bound, or <see cref="float.MaxValue"/> when unset.</summary>
     internal readonly float MaxHeightPixels =>
-        Has(StyleFlags.MaxHeightSet) ? Math.Max(0f, _maxHeight.PixelsContribution) : float.MaxValue;
+        Has(StyleFlags.MaxHeightSet) ? Math.Max(0f, _pixels[MaxHeightSlot]) : float.MaxValue;
 
     /// <summary>Whether the node overrides its parent's cross alignment.</summary>
     internal readonly bool HasAlignSelf => Has(StyleFlags.AlignSelfSet);
@@ -114,13 +114,13 @@ public partial struct LayoutStyle
     internal readonly bool GapIsPixels => !Has(StyleFlags.GapRelative);
 
     /// <summary>The pixel term of the gap.</summary>
-    internal readonly float GapPixels => _gap.PixelsContribution;
+    internal readonly float GapPixels => _pixels[GapSlot];
 
     /// <summary>The pixel terms of the padding as top, right, bottom, left.</summary>
-    internal readonly Vector4 PaddingPixels => new(_paddingTop.PixelsContribution,
-        _paddingRight.PixelsContribution, _paddingBottom.PixelsContribution, _paddingLeft.PixelsContribution);
+    internal readonly Vector4 PaddingPixels => new(_pixels[PaddingTopSlot],
+        _pixels[PaddingRightSlot], _pixels[PaddingBottomSlot], _pixels[PaddingLeftSlot]);
 
     /// <summary>The pixel terms of the margins as top, right, bottom, left.</summary>
-    internal readonly Vector4 MarginPixels => new(_marginTop.PixelsContribution,
-        _marginRight.PixelsContribution, _marginBottom.PixelsContribution, _marginLeft.PixelsContribution);
+    internal readonly Vector4 MarginPixels => new(_pixels[MarginTopSlot],
+        _pixels[MarginRightSlot], _pixels[MarginBottomSlot], _pixels[MarginLeftSlot]);
 }
