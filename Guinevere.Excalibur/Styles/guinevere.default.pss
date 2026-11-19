@@ -437,6 +437,7 @@ tree-ghost { background-color = $md-secondary-container; border-radius = $md-sha
 table { color = $text; }
 table-header { background-color = $surface-hover; border-bottom-color = $border; border-bottom-width = 1; }
 table-header-cell { color = $text-dim; :sorted { color = $text; } }
+table-header-resize { :hover(0.1 ease-out) { background-color = alpha($text, 14%); } :active { background-color = alpha($text, 24%); } }
 table-row {
     border-bottom-color = $divider;
     border-bottom-width = 1;

@@ -104,6 +104,9 @@ public abstract class TableColumn
     /// <summary>Whether the column is shown before the user has chosen otherwise.</summary>
     public bool InitiallyVisible { get; init; } = true;
 
+    /// <summary>Whether the user can change the column's width; false for a column that must keep its size.</summary>
+    public bool Resizable { get; init; } = true;
+
     /// <summary>
     /// Whether the column can be ordered by: its value type is comparable or a comparer was given when it was
     /// built. A column that cannot be sorted gets no sort marker and cannot be a sort key.

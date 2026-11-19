@@ -28,6 +28,8 @@ sealed class TableCache
     readonly Dictionary<(TableColumn Column, float FontSize, float Padding), float> _autoWidths = [];
 
     TableColumnSet? _columns;
+    TableColumnView? _view;
+    int _stateVersion = -1;
     TableRowSlot?[] _slots = [];
     object?[] _textCaches = [];
     TableLayout? _layout;
@@ -39,7 +41,10 @@ sealed class TableCache
     /// <summary>The columns of the table that last drew, or null before the first frame.</summary>
     public TableColumnSet? Columns => _columns;
 
-    /// <summary>Incremented when cached text or ids stop being valid: new columns, or a new culture.</summary>
+    /// <summary>The arrangement of the columns this frame lays out, or null before the first frame.</summary>
+    public TableColumnView? View => _view;
+
+    /// <summary>Incremented when cached text or ids stop being valid: new columns, a new arrangement or a new culture.</summary>
     public int Generation { get; private set; }
 
     /// <summary>How many rows the cache can remember at once.</summary>
@@ -47,11 +52,13 @@ sealed class TableCache
 
     /// <summary>
     /// Starts a frame: drops cached text when the culture changed, and everything that depends on the columns
-    /// when they are not the columns of the last frame. Columns are frozen, so one reference comparison decides.
+    /// when they are not the columns of the last frame or the user's choices about them changed. Columns are
+    /// frozen, so one reference comparison and one version comparison decide.
     /// </summary>
     /// <param name="columns">The table's columns.</param>
-    /// <returns>Whether the columns changed since the last frame.</returns>
-    public bool Begin(TableColumnSet columns)
+    /// <param name="choices">What the user chose about the columns.</param>
+    /// <returns>Whether the columns, not only their arrangement, changed since the last frame.</returns>
+    public bool Begin(TableColumnSet columns, TableColumnState choices)
     {
         if (!ReferenceEquals(_culture, CultureInfo.CurrentCulture))
         {
@@ -59,17 +66,25 @@ sealed class TableCache
             Generation++;
         }
 
-        if (ReferenceEquals(_columns, columns))
+        var replaced = !ReferenceEquals(_columns, columns);
+        if (!replaced && _stateVersion == choices.Version)
         {
             return false;
         }
 
-        _columns = columns;
-        _textCaches = new object?[columns.Shown.Length];
-        _autoWidths.Clear();
+        if (replaced)
+        {
+            _columns = columns;
+            _autoWidths.Clear();
+        }
+
+        choices.Bind(columns);
+        _stateVersion = choices.Version;
+        _view = columns.Arrange(choices);
+        _textCaches = new object?[_view.Shown.Length];
         _layout = null;
         Generation++;
-        return true;
+        return replaced;
     }
 
     /// <summary>The layout resolved for these inputs, when nothing it depends on has changed.</summary>
@@ -121,7 +136,7 @@ sealed class TableCache
         slot.Row = row;
         slot.Generation = Generation;
         slot.Id = slot.PadLeftId = slot.PadRightId = slot.PinnedLeftId = slot.PinnedRightId = null;
-        var shown = _columns!.Shown.Length;
+        var shown = _view!.Shown.Length;
         if (slot.CellIds.Length == shown)
         {
             Array.Clear(slot.CellIds);
@@ -152,9 +167,9 @@ sealed class TableCache
     /// </summary>
     public string CellId(TableRowSlot slot, int column)
     {
-        var pin = _columns!.Shown[column].Pin;
+        var pin = _view!.Shown[column].Pin;
         var container = pin == TablePin.None ? RowId(slot) : PinnedId(slot, pin);
-        return slot.CellIds[column] ??= container + _columns.CellSuffixes[column];
+        return slot.CellIds[column] ??= container + _view.CellSuffixes[column];
     }
 
     /// <summary>The text cache of one shown column, made the first time the column draws.</summary>

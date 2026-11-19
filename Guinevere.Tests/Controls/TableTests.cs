@@ -209,7 +209,7 @@ public class TableTests : TableTestBase
 
         Assert.False(actions.Sortable);
         Assert.True(version.Sortable);
-        Assert.Single(gui.RootNode!.FindChildById("table/header/actions")!.Children);
+        Assert.Single(HeaderContent(gui, "actions"));
         Assert.DoesNotContain("sorted", Modifiers(gui, "actions"));
         Assert.DoesNotContain("sorted-secondary", Modifiers(gui, "actions"));
     }
@@ -250,8 +250,8 @@ public class TableTests : TableTestBase
         state.Sort.Set([new TableSort(columns[1], TableSortDirection.Descending)]);
         var gui = RunFrames(new GridSource(3), columns, state, frames: 2);
 
-        Assert.Equal(2, gui.RootNode!.FindChildById("table/header/c1")!.Children.Count);
-        Assert.Single(gui.RootNode!.FindChildById("table/header/c0")!.Children);
+        Assert.Equal(2, HeaderContent(gui, "c1").Count);
+        Assert.Single(HeaderContent(gui, "c0"));
         Assert.Contains("descending", Modifiers(gui, "c1"));
         Assert.DoesNotContain("sorted-more", Modifiers(gui, "c1"));
     }
@@ -268,9 +268,9 @@ public class TableTests : TableTestBase
         ]);
         var gui = RunFrames(new GridSource(3), columns, state, frames: 2);
 
-        Assert.Equal(3, gui.RootNode!.FindChildById("table/header/c1")!.Children.Count);
+        Assert.Equal(3, HeaderContent(gui, "c1").Count);
         Assert.Contains("sorted-more", Modifiers(gui, "c1"));
-        Assert.Single(gui.RootNode!.FindChildById("table/header/c2")!.Children);
+        Assert.Single(HeaderContent(gui, "c2"));
         Assert.Contains("sorted-secondary", Modifiers(gui, "c2"));
         Assert.Contains("descending", Modifiers(gui, "c2"));
         Assert.Contains("sorted-secondary", Modifiers(gui, "c0"));
@@ -288,8 +288,8 @@ public class TableTests : TableTestBase
 
         var gui = RunFrames(new GridSource(2), columns, frames: 2);
 
-        Assert.Empty(gui.RootNode!.FindChildById("table/header/column1")!.Children);
-        Assert.Single(gui.RootNode!.FindChildById("table/header/named")!.Children);
+        Assert.Empty(HeaderContent(gui, "column1"));
+        Assert.Single(HeaderContent(gui, "named"));
     }
 
     [Fact]
@@ -312,7 +312,7 @@ public class TableTests : TableTestBase
             Assert.True(context.Width > 0f);
             Assert.Equal(Theme.FontSize, context.FontSize);
         });
-        Assert.Single(gui.RootNode!.FindChildById("table/header/title")!.Children);
+        Assert.Single(HeaderContent(gui, "title"));
     }
 
     [Fact]
@@ -326,13 +326,13 @@ public class TableTests : TableTestBase
         ]);
         var state = new TableState();
         var gui = RunFrames(new GridSource(2), columns, state, frames: 2);
-        var shortWidth = gui.RootNode!.FindChildById("table/header/name")!.Children[0].Rect.W;
-        Assert.Single(gui.RootNode!.FindChildById("table/header/column1")!.Children);
+        var shortWidth = HeaderContent(gui, "name")[0].Rect.W;
+        Assert.Single(HeaderContent(gui, "column1"));
 
         language = "a much longer text";
         gui = RunFrames(new GridSource(2), columns, state, frames: 2, reuse: gui);
 
-        Assert.True(gui.RootNode!.FindChildById("table/header/name")!.Children[0].Rect.W > shortWidth);
+        Assert.True(HeaderContent(gui, "name")[0].Rect.W > shortWidth);
     }
 
     [Fact]
@@ -347,7 +347,7 @@ public class TableTests : TableTestBase
 
         var gui = RunFrames(new GridSource(2), columns, state, frames: 2);
 
-        Assert.Equal(2, gui.RootNode!.FindChildById("table/header/column1")!.Children.Count);
+        Assert.Equal(2, HeaderContent(gui, "column1").Count);
     }
 
 

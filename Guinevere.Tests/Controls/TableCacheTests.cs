@@ -15,11 +15,11 @@ public class TableCacheTests
         var first = Columns("a", "b");
         var second = Columns("a", "b");
 
-        Assert.True(cache.Begin(first.Set));
-        Assert.False(cache.Begin(first.Set));
+        Assert.True(cache.Begin(first.Set, new TableColumnState()));
+        Assert.False(cache.Begin(first.Set, new TableColumnState()));
         Assert.Same(first.Set, cache.Columns);
 
-        Assert.True(cache.Begin(second.Set));
+        Assert.True(cache.Begin(second.Set, new TableColumnState()));
         Assert.Same(second.Set, cache.Columns);
     }
 
@@ -33,10 +33,37 @@ public class TableCacheTests
             TableColumn<int>.Of("C", static row => row, id: "c")
         ]);
 
-        Assert.Equal(["a", "c"], columns.Set.Shown.Select(static column => column.Id));
-        Assert.Equal(["table/header/a", "table/header/c"], columns.Set.HeaderIds);
-        Assert.Equal(["/a", "/c"], columns.Set.CellSuffixes);
-        Assert.Equal(columns.Set.Shown, columns.Shown);
+        var view = columns.Set.Arrange();
+        Assert.Equal(["a", "c"], view.Shown.Select(static column => column.Id));
+        Assert.Equal(["table/header/a", "table/header/c"], view.HeaderIds);
+        Assert.Equal(["/a", "/c"], view.CellSuffixes);
+        Assert.Equal(view.Shown, view.Typed<int>());
+    }
+
+    [Fact]
+    public void ChangedChoicesRearrangeTheSameColumnsAndKeepWhatDoesNotDependOnThem()
+    {
+        var cache = new TableCache();
+        var columns = Columns("a", "b");
+        var choices = new TableColumnState();
+        cache.Begin(columns.Set, choices);
+        cache.StoreAutoWidth(columns[0], 12f, 8f, 44f);
+        cache.StoreLayout(TableLayout.Resolve(cache.View!.Shown, cache.View.Lengths, 400f, [0f, 0f]), 400f, 12f, 8f);
+        var view = cache.View;
+        var generation = cache.Generation;
+
+        Assert.False(cache.Begin(columns.Set, choices));
+        Assert.Same(view, cache.View);
+
+        choices.MoveTo(columns[0], columns[1]);
+
+        Assert.False(cache.Begin(columns.Set, choices));
+        Assert.NotSame(view, cache.View);
+        Assert.Equal(["b", "a"], cache.View!.Shown.Select(static column => column.Id));
+        Assert.True(cache.Generation > generation);
+        Assert.False(cache.TryLayout(400f, 12f, 8f, out _));
+        Assert.True(cache.TryAutoWidth(columns[0], 12f, 8f, out var auto));
+        Assert.Equal(44f, auto);
     }
 
     [Fact]
@@ -56,8 +83,9 @@ public class TableCacheTests
     {
         var cache = new TableCache();
         var columns = Columns("a");
-        cache.Begin(columns.Set);
-        var layout = TableLayout.Resolve(columns.Set.Shown, 400f, [0f]);
+        cache.Begin(columns.Set, new TableColumnState());
+        var view = columns.Set.Arrange();
+        var layout = TableLayout.Resolve(view.Shown, view.Lengths, 400f, [0f]);
 
         Assert.False(cache.TryLayout(400f, 12f, 8f, out _));
         cache.StoreLayout(layout, 400f, 12f, 8f);
@@ -68,7 +96,7 @@ public class TableCacheTests
         Assert.False(cache.TryLayout(400f, 13f, 8f, out _));
         Assert.False(cache.TryLayout(400f, 12f, 9f, out _));
 
-        cache.Begin(Columns("a", "b").Set);
+        cache.Begin(Columns("a", "b").Set, new TableColumnState());
         Assert.False(cache.TryLayout(400f, 12f, 8f, out _));
     }
 
@@ -124,7 +152,7 @@ public class TableCacheTests
         var cache = Ready(5, "a");
         Assert.Equal("table/row2/a", cache.CellId(cache.Slot(2), 0));
 
-        cache.Begin(Columns("z").Set);
+        cache.Begin(Columns("z").Set, new TableColumnState());
 
         Assert.Equal("table/row2/z", cache.CellId(cache.Slot(2), 0));
     }
@@ -210,14 +238,14 @@ public class TableCacheTests
         {
             var columns = Columns("a");
             var cache = new TableCache();
-            cache.Begin(columns.Set);
+            cache.Begin(columns.Set, new TableColumnState());
             cache.Reserve(1);
             Assert.Equal("1234.5", cache.TextCacheFor<double>(0).Text(cache, cache.Slot(0), 1234.5));
 
             var comma = (CultureInfo)CultureInfo.InvariantCulture.Clone();
             comma.NumberFormat.NumberDecimalSeparator = ",";
             CultureInfo.CurrentCulture = comma;
-            cache.Begin(columns.Set);
+            cache.Begin(columns.Set, new TableColumnState());
 
             Assert.Equal("1234,5", cache.TextCacheFor<double>(0).Text(cache, cache.Slot(0), 1234.5));
         }
@@ -250,7 +278,7 @@ public class TableCacheTests
         Assert.Same(first, cache.TextCacheFor<int>(0));
         Assert.NotSame(first, cache.TextCacheFor<int>(1));
 
-        cache.Begin(Columns("a", "b").Set);
+        cache.Begin(Columns("a", "b").Set, new TableColumnState());
         Assert.NotSame(first, cache.TextCacheFor<int>(0));
     }
 
@@ -279,7 +307,7 @@ public class TableCacheTests
     static TableCache Ready(int rows, params string[] ids)
     {
         var cache = new TableCache();
-        cache.Begin(Columns(ids).Set);
+        cache.Begin(Columns(ids).Set, new TableColumnState());
         cache.Reserve(rows);
         return cache;
     }

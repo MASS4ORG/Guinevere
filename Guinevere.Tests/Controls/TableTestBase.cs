@@ -16,6 +16,13 @@ public abstract class TableTestBase
     protected static IReadOnlyList<string> Modifiers(Gui gui, string column) =>
         gui.RootNode!.FindChildById($"table/header/{column}")!.StyleTarget?.Modifiers ?? [];
 
+    /// <summary>What a header cell drew itself, without the grab zone of its resize edge.</summary>
+    protected static List<LayoutNode> HeaderContent(Gui gui, string column) =>
+    [
+        .. gui.RootNode!.FindChildById($"table/header/{column}")!.Children
+            .Where(static child => !child.Id.EndsWith("/resize", StringComparison.Ordinal))
+    ];
+
     /// <summary>The width of the text node a cell drew, which follows the text it shows.</summary>
     protected static float TextWidth(Gui gui, int row, string column) =>
         gui.RootNode!.FindChildById($"table/row{row}/{column}")!.Children[0].Rect.W;

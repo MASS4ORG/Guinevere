@@ -68,7 +68,7 @@ public class TableLayoutTests
             Col("B", width: TableLength.Auto, maxWidth: 90f)
         ];
 
-        var layout = TableLayout.Resolve(columns, 500f, [70f, 200f]);
+        var layout = TableLayout.Resolve(columns, Lengths(columns), 500f, [70f, 200f]);
 
         Assert.Equal([70f, 90f], layout.Widths);
     }
@@ -195,8 +195,7 @@ public class TableLayoutTests
             TableColumn<int>.Of("F", static row => row, pin: TablePin.Right)
         ]);
 
-        Assert.Equal(["c", "e", "b", "a", "f"], columns.Set.Shown.Select(static column => column.Id));
-        Assert.Equal([2, 4, 1, 0, 5], columns.Set.ShownOrder);
+        Assert.Equal(["c", "e", "b", "a", "f"], columns.Set.Arrange().Shown.Select(static column => column.Id));
     }
 
     static TableColumn Pinned(string title, TablePin pin) =>
@@ -209,5 +208,7 @@ public class TableLayoutTests
         [.. Enumerable.Range(0, count).Select(static i => TableColumn<int>.Row("C", id: $"c{i}", width: 100f))];
 
     static TableLayout Resolve(float viewport, params TableColumn[] columns) =>
-        TableLayout.Resolve(columns, viewport, new float[columns.Length]);
+        TableLayout.Resolve(columns, Lengths(columns), viewport, new float[columns.Length]);
+
+    static TableLength[] Lengths(TableColumn[] columns) => [.. columns.Select(static column => column.Width)];
 }

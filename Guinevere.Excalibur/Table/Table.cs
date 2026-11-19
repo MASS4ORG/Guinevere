@@ -41,7 +41,7 @@ public static partial class ControlsExtensions
         theme ??= TableTheme.Default;
 
         state.BeginFrame(gui, source);
-        if (state.Cache.Begin(columns.Set))
+        if (state.Cache.Begin(columns.Set, state.Columns))
         {
             state.Sort.Rebind(columns.Set);
         }
@@ -54,8 +54,8 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("table", classes, id, filePath: filePath, lineNumber: lineNumber)
                    .Expand().Direction(Axis.Vertical).Enter())
         {
-            TableHeader(gui, state, theme, layout, first, last);
-            TableBody(gui, state, source, columns.Shown, options, theme, layout, first, last);
+            TableHeader(gui, state, options, theme, layout, first, last);
+            TableBody(gui, state, source, state.Cache.View!.Typed<TRow>(), options, theme, layout, first, last);
         }
     }
 
@@ -72,12 +72,13 @@ public static partial class ControlsExtensions
             return layout;
         }
 
-        var shown = cache.Columns!.Shown;
+        var view = cache.View!;
+        var shown = view.Shown;
         var autoWidths = new float[shown.Length];
         for (var i = 0; i < shown.Length; i++)
         {
             var column = shown[i];
-            if (column.Width.Kind != TableLengthKind.Auto)
+            if (view.Lengths[i].Kind != TableLengthKind.Auto)
             {
                 continue;
             }
@@ -90,7 +91,7 @@ public static partial class ControlsExtensions
             }
         }
 
-        layout = TableLayout.Resolve(shown, width, autoWidths);
+        layout = TableLayout.Resolve(shown, view.Lengths, width, autoWidths);
         cache.StoreLayout(layout, width, theme.FontSize, theme.CellPadding);
         return layout;
     }

@@ -6,9 +6,10 @@ namespace Guinevere;
 /// </summary>
 sealed class TableLayout
 {
-    TableLayout(TableColumn[] columns, float[] widths, float[] offsets)
+    TableLayout(TableColumn[] columns, TableLength[] lengths, float[] widths, float[] offsets)
     {
         Columns = columns;
+        Lengths = lengths;
         Widths = widths;
         Offsets = offsets;
 
@@ -27,6 +28,9 @@ sealed class TableLayout
 
     /// <summary>The visible columns in display order: left-pinned, then scrolling, then right-pinned.</summary>
     public TableColumn[] Columns { get; }
+
+    /// <summary>How each column's width was decided, which a resize reads to know what kind of column it changes.</summary>
+    public TableLength[] Lengths { get; }
 
     /// <summary>The width of each column.</summary>
     public float[] Widths { get; }
@@ -55,9 +59,11 @@ sealed class TableLayout
     /// rest is shared again. When nothing is left, star columns take their minimum and the table scrolls.
     /// </summary>
     /// <param name="columns">The visible columns in display order.</param>
+    /// <param name="lengths">How each column's width is decided: its definition or what the user chose.</param>
     /// <param name="viewportWidth">The width the columns fill.</param>
     /// <param name="autoWidths">The header-sized width of each column, read for auto columns.</param>
-    public static TableLayout Resolve(TableColumn[] columns, float viewportWidth, float[] autoWidths)
+    public static TableLayout Resolve(TableColumn[] columns, TableLength[] lengths, float viewportWidth,
+        float[] autoWidths)
     {
         var widths = new float[columns.Length];
         var open = new List<int>();
@@ -66,7 +72,7 @@ sealed class TableLayout
         for (var i = 0; i < columns.Length; i++)
         {
             var column = columns[i];
-            switch (column.Width.Kind)
+            switch (lengths[i].Kind)
             {
                 case TableLengthKind.Star:
                     open.Add(i);
@@ -76,13 +82,13 @@ sealed class TableLayout
                     free -= widths[i];
                     break;
                 default:
-                    widths[i] = Limit(column, column.Width.Value);
+                    widths[i] = Limit(column, lengths[i].Value);
                     free -= widths[i];
                     break;
             }
         }
 
-        ShareStars(columns, widths, open, free);
+        ShareStars(columns, lengths, widths, open, free);
 
         var offsets = new float[columns.Length + 1];
         for (var i = 0; i < columns.Length; i++)
@@ -90,7 +96,7 @@ sealed class TableLayout
             offsets[i + 1] = offsets[i] + widths[i];
         }
 
-        return new TableLayout(columns, widths, offsets);
+        return new TableLayout(columns, lengths, widths, offsets);
     }
 
     /// <summary>
@@ -126,20 +132,21 @@ sealed class TableLayout
     /// Splits <paramref name="free"/> among the star columns. When the limits move the total, the columns
     /// that broke the limit in the dominant direction are pinned at it and the rest are shared again.
     /// </summary>
-    static void ShareStars(TableColumn[] columns, float[] widths, List<int> open, float free)
+    static void ShareStars(TableColumn[] columns, TableLength[] lengths, float[] widths, List<int> open,
+        float free)
     {
         while (open.Count > 0)
         {
             var weight = 0f;
             foreach (var i in open)
             {
-                weight += columns[i].Width.Value;
+                weight += lengths[i].Value;
             }
 
             var correction = 0f;
             foreach (var i in open)
             {
-                var share = Share(columns[i], free, weight);
+                var share = Share(lengths[i], free, weight);
                 correction += Limit(columns[i], share) - share;
             }
 
@@ -151,7 +158,7 @@ sealed class TableLayout
             for (var k = open.Count - 1; k >= 0; k--)
             {
                 var i = open[k];
-                var share = Share(columns[i], free, weight);
+                var share = Share(lengths[i], free, weight);
                 var limited = Limit(columns[i], share);
                 if (correction > 0f ? limited <= share : limited >= share)
                 {
@@ -167,15 +174,15 @@ sealed class TableLayout
         var remaining = 0f;
         foreach (var i in open)
         {
-            remaining += columns[i].Width.Value;
+            remaining += lengths[i].Value;
         }
 
         foreach (var i in open)
         {
-            widths[i] = Share(columns[i], free, remaining);
+            widths[i] = Share(lengths[i], free, remaining);
         }
     }
 
-    static float Share(TableColumn column, float free, float weight) =>
-        Math.Max(0f, free) * column.Width.Value / weight;
+    static float Share(TableLength length, float free, float weight) =>
+        Math.Max(0f, free) * length.Value / weight;
 }

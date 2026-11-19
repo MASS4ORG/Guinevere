@@ -33,11 +33,12 @@ public abstract class TableColumn<TRow> : TableColumn
     /// <param name="comparer">Orders the values; makes a column sortable whose type has no natural order.</param>
     /// <param name="renderer">Draws the cell; text of the value when null.</param>
     /// <param name="header">Draws the header instead of the title text: an icon, localized text, a widget.</param>
+    /// <param name="resizable">Whether the user can drag the column's edge or use the keyboard to change its width.</param>
     public static TableColumn<TRow, TValue> Of<TValue>(string title, Func<TRow, TValue> value, string? id = null,
         TableLength? width = null, float? minWidth = null, float? maxWidth = null,
         float alignContentX = 0f, float alignmentY = 0f, TablePin pin = TablePin.None, bool visible = true,
         IComparer<TValue>? comparer = null, ITableCellRenderer<TRow, TValue>? renderer = null,
-        ITableHeaderContent? header = null) =>
+        ITableHeaderContent? header = null, bool resizable = true) =>
         new(title, value, comparer, renderer)
         {
             ExplicitId = id,
@@ -48,7 +49,8 @@ public abstract class TableColumn<TRow> : TableColumn
             AlignContentX = alignContentX,
             AlignmentY = alignmentY,
             Pin = pin,
-            InitiallyVisible = visible
+            InitiallyVisible = visible,
+            Resizable = resizable
         };
 
     /// <summary>
@@ -67,13 +69,15 @@ public abstract class TableColumn<TRow> : TableColumn
     /// <param name="comparer">Orders the rows; makes the column sortable when the row type has no natural order.</param>
     /// <param name="renderer">Draws the cell from the row; text of the row when null.</param>
     /// <param name="header">Draws the header instead of the title text: an icon, localized text, a widget.</param>
+    /// <param name="resizable">Whether the user can drag the column's edge or use the keyboard to change its width.</param>
     public static TableColumn<TRow, TRow> Row(string title, string? id = null, TableLength? width = null,
         float? minWidth = null, float? maxWidth = null, float alignmentX = 0, float alignmentY = 0,
         TablePin pin = TablePin.None, bool visible = true, IComparer<TRow>? comparer = null,
-        ITableCellRenderer<TRow, TRow>? renderer = null, ITableHeaderContent? header = null) =>
+        ITableCellRenderer<TRow, TRow>? renderer = null, ITableHeaderContent? header = null,
+        bool resizable = true) =>
         Of(title, static row => row, id, width, minWidth, maxWidth, alignmentX, alignmentY, pin, visible, comparer,
             renderer,
-            header);
+            header, resizable);
 }
 
 /// <summary>

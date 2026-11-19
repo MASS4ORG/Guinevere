@@ -54,6 +54,12 @@ public sealed class TableState
         source.ApplySort([.. Sort]);
     }
 
+    /// <summary>
+    /// What the user chose about the columns: which are shown, their order and their widths. The table's header
+    /// changes it on resize, drag and the column menu; a host reads and writes it to keep the choices.
+    /// </summary>
+    public TableColumnState Columns { get; } = new();
+
     /// <summary>Layout, ids and text the table derives from its inputs and reuses until they change.</summary>
     internal TableCache Cache { get; } = new();
 

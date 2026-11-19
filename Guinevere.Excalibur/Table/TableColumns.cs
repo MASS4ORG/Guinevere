@@ -34,38 +34,76 @@ sealed class TableColumnSet
             }
         }
 
-        ShownOrder = [.. PositionsOf(TablePin.Left), .. PositionsOf(TablePin.None), .. PositionsOf(TablePin.Right)];
-        Shown = [.. ShownOrder.Select(i => All[i])];
-        HeaderIds = [.. Shown.Select(static column => "table/header/" + column.Id)];
-        CellSuffixes = [.. Shown.Select(static column => "/" + column.Id)];
-
-        IEnumerable<int> PositionsOf(TablePin pin) =>
-            Enumerable.Range(0, All.Length).Where(i => All[i].InitiallyVisible && All[i].Pin == pin);
+        _headerIds = [.. All.Select(static column => "table/header/" + column.Id)];
+        _cellSuffixes = [.. All.Select(static column => "/" + column.Id)];
     }
+
+    readonly string[] _headerIds;
+    readonly string[] _cellSuffixes;
 
     /// <summary>Every column, in the order given.</summary>
     public TableColumn[] All { get; }
-
-    /// <summary>
-    /// The columns laid out: those visible by default. Left-pinned columns come first, then the others, then
-    /// right-pinned ones; each group keeps the order given.
-    /// </summary>
-    public TableColumn[] Shown { get; }
-
-    /// <summary>Positions in <see cref="All"/> of the columns in <see cref="Shown"/>, in the same order.</summary>
-    public int[] ShownOrder { get; }
-
-    /// <summary>Node id of each shown column's header cell.</summary>
-    public string[] HeaderIds { get; }
-
-    /// <summary>The tail of the node id of each shown column's cells.</summary>
-    public string[] CellSuffixes { get; }
 
     /// <summary>The column with this persisted id, or null; used to restore and re-bind state.</summary>
     public TableColumn? Find(string id) => _index.TryGetValue(id, out var index) ? All[index] : null;
 
     /// <summary>Whether this exact column instance is one of the columns.</summary>
     public bool Contains(TableColumn column) => ReferenceEquals(Find(column.Id), column);
+
+    /// <summary>
+    /// Arranges the columns the way a table lays them out: the shown ones in the state's order, left-pinned
+    /// first, then the others, then right-pinned, each group keeping that order. Without a state, the columns
+    /// visible by default in the order given.
+    /// </summary>
+    /// <param name="state">What the user chose, or null for the definitions alone.</param>
+    public TableColumnView Arrange(TableColumnState? state = null)
+    {
+        var order = state?.Order(this) ?? All;
+        var positions = new List<int>(order.Length);
+        foreach (var pin in (ReadOnlySpan<TablePin>)[TablePin.Left, TablePin.None, TablePin.Right])
+        {
+            foreach (var column in order)
+            {
+                if (column.Pin == pin && (state?.IsVisible(column) ?? column.InitiallyVisible))
+                {
+                    positions.Add(_index[column.Id]);
+                }
+            }
+        }
+
+        var shown = new TableColumn[positions.Count];
+        var lengths = new TableLength[positions.Count];
+        var headerIds = new string[positions.Count];
+        var suffixes = new string[positions.Count];
+        for (var i = 0; i < shown.Length; i++)
+        {
+            var at = positions[i];
+            shown[i] = All[at];
+            lengths[i] = state?.WidthOf(All[at]) ?? All[at].Width;
+            headerIds[i] = _headerIds[at];
+            suffixes[i] = _cellSuffixes[at];
+        }
+
+        return new TableColumnView(shown, lengths, headerIds, suffixes);
+    }
+}
+
+/// <summary>
+/// The columns a table lays out in one arrangement: which are shown, in what order, their defined or chosen
+/// widths, and the node ids built from their keys. It is made again only when the columns or the user's choices change.
+/// </summary>
+/// <param name="Shown">The shown columns in display order.</param>
+/// <param name="Lengths">How each shown column's width is decided now.</param>
+/// <param name="HeaderIds">Node id of each shown column's header cell.</param>
+/// <param name="CellSuffixes">The tail of the node id of each shown column's cells.</param>
+sealed record TableColumnView(TableColumn[] Shown, TableLength[] Lengths, string[] HeaderIds, string[] CellSuffixes)
+{
+    object? _typed;
+
+    /// <summary>The shown columns as columns of one row type, converted once.</summary>
+    /// <typeparam name="TRow">The row type of the table's columns.</typeparam>
+    public TableColumn<TRow>[] Typed<TRow>() =>
+        (TableColumn<TRow>[])(_typed ??= Array.ConvertAll(Shown, static column => (TableColumn<TRow>)column));
 }
 
 /// <summary>
@@ -87,7 +125,6 @@ public sealed class TableColumns<TRow> : IReadOnlyList<TableColumn<TRow>>
         ArgumentNullException.ThrowIfNull(columns);
         _columns = [.. columns];
         Set = new TableColumnSet(_columns);
-        Shown = [.. Set.ShownOrder.Select(i => _columns[i])];
     }
 
     /// <summary>The number of columns, hidden ones included.</summary>
@@ -99,9 +136,6 @@ public sealed class TableColumns<TRow> : IReadOnlyList<TableColumn<TRow>>
 
     /// <summary>The same columns without the type, with their id map.</summary>
     internal TableColumnSet Set { get; }
-
-    /// <summary>The columns laid out, typed so the table can draw their cells.</summary>
-    internal TableColumn<TRow>[] Shown { get; }
 
     /// <inheritdoc />
     public IEnumerator<TableColumn<TRow>> GetEnumerator() => ((IEnumerable<TableColumn<TRow>>)_columns).GetEnumerator();
