@@ -60,22 +60,31 @@ public class DockSpaceRenderTests
     public void ModifiedTabCanCloseFromItsInsetButton()
     {
         using var h = new FrameHarness();
-        TabStripResult result = default;
-        void Draw(Gui gui) => result = gui.TabStrip(
-            [new TabStripItem("scene", "Scene", Modified: true)], "scene");
+        var active = "scene";
+        string? closed = null;
+        var changed = false;
+        void Draw(Gui gui)
+        {
+            var strip = gui.TabStrip(ref active, tabs => tabs.Tab("Scene", key: "scene", closable: true,
+                modified: true, onClose: () => closed = "scene"), id: "tabstrip");
+            changed |= strip.Changed;
+        }
+
         h.Frame(Draw);
         var close = h.Gui.RootNode!.FindChildById("tabstrip/scene/close")!;
         h.Input.MoveTo(close.Center);
         h.Frame(Draw);
         h.Input.PressButton();
+        changed = false;
         h.Frame(Draw);
-        Assert.Equal("scene", result.Closed?.Id);
-        Assert.Null(result.Activated);
+        Assert.Equal("scene", closed);
+        Assert.Equal("scene", active);
+        Assert.False(changed);
     }
 
     const float SplitterThickness = 6f;
 
-    static readonly DockTheme Theme = new() { SplitterThickness = SplitterThickness, TabHeight = 20f };
+    static readonly DockTheme Theme = new() { SplitterThickness = SplitterThickness };
 
     static Gui RenderDock(DockLayout layout, out List<string> rendered, int width = 400, int height = 300,
         Func<string, DockPanelInfo?>? panelInfo = null, Action<DockTabStrip, Gui>? tabStripActions = null)
@@ -194,14 +203,15 @@ public class DockSpaceRenderTests
     }
 
     [Fact]
-    public void ATabStripTakesItsHeightFromTheThemeAndTheBodyTakesTheRest()
+    public void ATabStripIsTheCompactStripHeightAndTheBodyTakesTheRest()
     {
         var layout = new DockLayout { Root = new DockLeaf("scene") };
 
         var gui = RenderDock(layout, out _);
 
-        Assert.Equal(Theme.TabHeight, RectOf(gui, "dock:root/tabs").H, 1);
-        Assert.Equal(300f - Theme.TabHeight, RectOf(gui, "dock:root/body").H, 1);
+        var stripHeight = gui.ControlStyle.CompactHeight + 2f;
+        Assert.Equal(stripHeight, RectOf(gui, "dock:root/tabs").H, 1);
+        Assert.Equal(300f - stripHeight, RectOf(gui, "dock:root/body").H, 1);
     }
 
     [Fact]

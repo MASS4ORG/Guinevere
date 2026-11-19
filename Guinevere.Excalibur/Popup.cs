@@ -19,6 +19,9 @@ public static partial class ControlsExtensions
         /// it is on the button — so without this the click-outside rule closes it again immediately.
         /// </summary>
         public bool JustOpened { get; set; }
+
+        /// <summary>The popup's size as last laid out, which centers and clamps it before the next layout.</summary>
+        public Vector2 Size { get; set; }
     }
 
     class TooltipState
@@ -35,40 +38,53 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>
-    /// Creates a popup that can be opened/closed with internal state management
+    /// A popup placed at <paramref name="position"/> that opens and closes through <paramref name="isOpen"/>. It is
+    /// one and a half fields wide and fits its content unless a sheet or the returned node says otherwise; the title,
+    /// when given, is a bar above the content.
     /// </summary>
-    public static void Popup(this Gui gui, ref bool isOpen, Action content,
-        float width = 300,
-        float height = 200,
+    /// <param name="gui">The GUI for this frame.</param>
+    /// <param name="isOpen">Whether the popup is shown; written back when it closes itself.</param>
+    /// <param name="content">Builds the body. Invoked only while the popup is open.</param>
+    /// <param name="title">What the title bar shows: text, an icon, a localized string or other widgets; none for no bar.</param>
+    /// <param name="position">Screen position of the popup's top-left corner.</param>
+    /// <param name="modal">Whether a dimming overlay blocks everything behind the popup.</param>
+    /// <param name="closeOnClickOutside">Whether a press outside the popup closes it.</param>
+    /// <param name="closeOnEscape">Whether Escape closes it.</param>
+    /// <param name="classes">Stylesheet classes for the popup.</param>
+    /// <param name="id">Optional id for <c>popup#id</c> rules and a stable identity; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The popup's node, which is laid out even while closed.</returns>
+    public static LayoutNode Popup(this Gui gui, ref bool isOpen, Action content,
         Content title = default,
         Vector2? position = null,
         bool modal = false,
         bool closeOnClickOutside = true,
         bool closeOnEscape = true,
-        float titleBarHeight = 30,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
+        [CallerLineNumber] int lineNumber = 0) =>
+        PopupCore(gui, ref isOpen, content, title, position, centered: false, modal, closeOnClickOutside,
+            closeOnEscape, classes, id ?? gui.AutomaticId(filePath, lineNumber));
+
+    /// <summary>
+    /// The popup behind <see cref="Popup"/> and <see cref="ModalPopup"/>; <paramref name="centered"/> places it in the
+    /// middle of the screen from its last laid-out size when no position is given.
+    /// </summary>
+    static LayoutNode PopupCore(Gui gui, ref bool isOpen, Action content, Content title, Vector2? position,
+        bool centered, bool modal, bool closeOnClickOutside, bool closeOnEscape,
+        IReadOnlyList<string>? classes, string id)
     {
-        id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = GetOrCreatePopupState(gui, id, position, closeOnClickOutside, closeOnEscape);
+        if (centered && position is null)
+        {
+            position = CenteredPopupPosition(gui, state);
+        }
 
         // Sync external state with internal state
-        if (isOpen != state.IsOpen)
-        {
-            state.IsOpen = isOpen;
-            state.JustOpened = isOpen;
-            if (isOpen && position.HasValue)
-            {
-                state.Position = position.Value;
-            }
-        }
-        else if (isOpen && position.HasValue)
-        {
-            state.Position = position.Value;
-        }
+        SyncPopupOpenState(state, isOpen, position);
 
         // Always create popup structure for consistency
         HandlePopupInteraction(gui, state);
@@ -77,53 +93,41 @@ public static partial class ControlsExtensions
             RenderOverlay(gui, state.IsOpen, PopupZIndex - 1, id + "/overlay");
         }
 
-        RenderPopup(gui, state, content, width, height, title, titleBarHeight, classes, id);
+        var popupNode = RenderPopup(gui, state, content, title, classes, id);
 
         isOpen = state.IsOpen;
+        return popupNode;
     }
 
     /// <summary>
-    /// Creates a popup that returns the open state without modifying the input
+    /// A modal popup (blocks interaction with the background), centered on screen unless given a position. Its
+    /// parameters are those of <see cref="Popup"/> with the overlay and click-outside dismissal on.
     /// </summary>
-    public static bool Popup(this Gui gui, bool isOpen, Action content,
-        float width = 300,
-        float height = 200,
+    /// <param name="gui">The GUI for this frame.</param>
+    /// <param name="isOpen">Whether the popup is shown; written back when it closes itself.</param>
+    /// <param name="content">Builds the body. Invoked only while the popup is open.</param>
+    /// <param name="title">What the title bar shows; none for no bar.</param>
+    /// <param name="position">Screen position of the top-left corner; centered on the screen when null.</param>
+    /// <param name="classes">Stylesheet classes for the popup.</param>
+    /// <param name="id">Optional id for <c>popup#id</c> rules and a stable identity; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The popup's node.</returns>
+    public static LayoutNode ModalPopup(this Gui gui, ref bool isOpen, Action content,
         Content title = default,
         Vector2? position = null,
-        bool modal = false,
-        bool closeOnClickOutside = true,
-        bool closeOnEscape = true,
-        float titleBarHeight = 30,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
-    {
-        var temp = isOpen;
-        gui.Popup(ref temp, content, width, height, title, position, modal, closeOnClickOutside,
-            closeOnEscape, titleBarHeight, classes, id, filePath, lineNumber);
-        return temp;
-    }
+        [CallerLineNumber] int lineNumber = 0) =>
+        PopupCore(gui, ref isOpen, content, title, position, centered: true, modal: true, closeOnClickOutside: true,
+            closeOnEscape: true, classes, id ?? gui.AutomaticId(filePath, lineNumber));
 
-    /// <summary>
-    /// Creates a modal popup (blocks interaction with background)
-    /// </summary>
-    public static void ModalPopup(this Gui gui, ref bool isOpen, Action content,
-        float width = 300,
-        float height = 200,
-        Content title = default,
-        Vector2? position = null,
-        float titleBarHeight = 30,
-        IReadOnlyList<string>? classes = null,
-        string? id = null,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
-    {
-        gui.Popup(ref isOpen, content, width, height, title,
-            position ?? new Vector2(gui.LayoutBounds.W * 0.5f - width * 0.5f, gui.LayoutBounds.H * 0.5f - height * 0.5f),
-            true, true, true,
-            titleBarHeight, classes, id, filePath, lineNumber);
-    }
+    /// <summary>A popup's default width, one and a half fields.</summary>
+    static float PopupWidth(Gui gui) => gui.ControlStyle.FieldWidth * 1.5f;
+
+    /// <summary>A popup's title bar height, a little under a field.</summary>
+    static float PopupTitleHeight(Gui gui) => gui.ControlStyle.FieldHeight - 2f;
 
     static readonly string[] ClosedModifier = ["closed"];
 
@@ -249,6 +253,30 @@ public static partial class ControlsExtensions
             CloseOnEscape = closeOnEscape
         });
 
+    /// <summary>The top-left corner that centers the popup from its last laid-out size, kept on screen.</summary>
+    static Vector2 CenteredPopupPosition(Gui gui, PopupState state)
+    {
+        var size = state.Size == default ? new Vector2(PopupWidth(gui), 0f) : state.Size;
+        return ConstrainToScreen(gui, new Vector2(
+            gui.LayoutBounds.X + (gui.LayoutBounds.W - size.X) * 0.5f,
+            gui.LayoutBounds.Y + (gui.LayoutBounds.H - size.Y) * 0.5f), size.X, size.Y);
+    }
+
+    /// <summary>Copies the caller's open flag and position into the popup state, marking the frame it opens.</summary>
+    static void SyncPopupOpenState(PopupState state, bool isOpen, Vector2? position)
+    {
+        if (isOpen != state.IsOpen)
+        {
+            state.IsOpen = isOpen;
+            state.JustOpened = isOpen;
+        }
+
+        if (isOpen && position.HasValue)
+        {
+            state.Position = position.Value;
+        }
+    }
+
     static void HandlePopupInteraction(Gui gui, PopupState state)
     {
         if (gui.Pass != Pass.Pass2Render)
@@ -263,13 +291,13 @@ public static partial class ControlsExtensions
         }
     }
 
-    static void RenderPopup(Gui gui, PopupState state, Action content, float width, float height,
-        Content title, float titleBarHeight, IReadOnlyList<string>? classes, string id)
+    static LayoutNode RenderPopup(Gui gui, PopupState state, Action content, Content title,
+        IReadOnlyList<string>? classes, string id)
     {
-        var totalHeight = title.IsEmpty ? height : height + titleBarHeight;
-
-        var popupNode = gui.StyledNode("popup", classes, id, modifiers: state.IsOpen ? [] : ["closed"]).Width(width).Height(totalHeight)
-            .AbsoluteScreen(state.Position.X, state.Position.Y).HitTestVisible(state.IsOpen);
+        var popupNode = gui.StyledNode("popup", classes, id, modifiers: state.IsOpen ? [] : ["closed"]);
+        SizeUnlessStyled(popupNode, PopupWidth(gui), Size.FitContent());
+        popupNode.Direction(Axis.Vertical).AbsoluteScreen(state.Position.X, state.Position.Y)
+            .HitTestVisible(state.IsOpen);
         if (state.IsOpen)
         {
             popupNode.BlockInput();
@@ -283,13 +311,11 @@ public static partial class ControlsExtensions
             // Always create title bar node for consistency
             if (!title.IsEmpty)
             {
-                RenderPopupTitleBar(gui, title, width, titleBarHeight, state.IsOpen);
+                RenderPopupTitleBar(gui, title, PopupTitleHeight(gui), state.IsOpen);
             }
 
             // Always create content area node for consistency
-            var contentY = title.IsEmpty ? 0 : titleBarHeight;
-            using (gui.StyledNode("popup-content").Width(width).Height(height).HitTestVisible(state.IsOpen)
-                       .Top(contentY)
+            using (gui.StyledNode("popup-content").ExpandWidth().ExpandHeight().HitTestVisible(state.IsOpen)
                        .Padding(8)
                        .Enter())
             {
@@ -303,7 +329,13 @@ public static partial class ControlsExtensions
             }
         }
 
+        if (gui.Pass == Pass.Pass2Render && popupNode.Rect.W > 0)
+        {
+            state.Size = new Vector2(popupNode.Rect.W, popupNode.Rect.H);
+        }
+
         DismissPopupOutside(gui, state, popupNode);
+        return popupNode;
     }
 
     static void DismissPopupOutside(Gui gui, PopupState state, LayoutNode popupNode)
@@ -346,10 +378,9 @@ public static partial class ControlsExtensions
         return false;
     }
 
-    static void RenderPopupTitleBar(Gui gui, Content title, float width, float height,
-        bool isOpen)
+    static void RenderPopupTitleBar(Gui gui, Content title, float height, bool isOpen)
     {
-        using (gui.StyledNode("popup-title").Width(width).Height(height).Padding(8, 0).AlignContentY(0.5f)
+        using (gui.StyledNode("popup-title").ExpandWidth().Height(height).Padding(8, 0).AlignContentY(0.5f)
                    .HitTestVisible(isOpen).Enter())
         {
             gui.Content(title);

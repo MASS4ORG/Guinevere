@@ -11,123 +11,158 @@ public static partial class ControlsExtensions
 
     static readonly string[] VerticalModifier = ["vertical"];
 
+    /// <summary>Default height of a color area; its width is the scope's field width.</summary>
+    const float ColorAreaHeight = 150f;
+
+    /// <summary>Default thickness of a color strip, across its axis.</summary>
+    const float StripThickness = 14f;
+
+    /// <summary>Default width of a color preview; its height is the scope's compact height.</summary>
+    const float ColorPreviewWidth = 48f;
+
     /// <summary>
     /// The two-dimensional part of a color picker: drag or click to pick, arrows nudge the cursor once focused. Styled
-    /// by <c>color-area</c> (<c>:disabled</c>, <c>:focus</c>) and its drawn <c>cursor</c> ring (<c>:focus</c>).
+    /// by <c>color-area</c> (<c>:disabled</c>, <c>:focus</c>) and its drawn <c>cursor</c> ring (<c>:focus</c>). It is the
+    /// scope's field width by 150 unless a sheet or the returned node sizes it.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="value">The edited color.</param>
     /// <param name="shape">The surface; <see cref="ColorPickerShapes.Rectangle"/> by default.</param>
-    /// <param name="width">Node width; 0 expands.</param>
-    /// <param name="height">Node height; 0 expands.</param>
     /// <param name="enabled">Whether the area responds to input.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
     /// <param name="id">Element id for stylesheet selectors and persistent control state.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether the color changed this frame.</returns>
-    public static bool ColorArea(this Gui gui, ref Hsva value, IColorPickerShape? shape = null,
-        float width = 200, float height = 150, bool enabled = true,
-        IReadOnlyList<string>? classes = null, string? id = null,
+    /// <returns>The area's node, <see cref="LayoutNode.Changed"/> on a frame the color changed (as a <c>bool</c> too).</returns>
+    public static ControlNode ColorArea(this Gui gui, ref Hsva value, IColorPickerShape? shape = null,
+        bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         shape ??= ColorPickerShapes.Rectangle;
         ExcaliburStyles.Ensure(gui);
-        var node = Sized(gui.StyledNode("color-area", classes, id, disabled: !enabled,
-            filePath: filePath, lineNumber: lineNumber), width, height);
+        var node = gui.StyledControl("color-area", classes, id, disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
+        SizeUnlessStyled(node, Size.Pixels(gui.ControlStyle.FieldWidth), Size.Pixels(ColorAreaHeight));
         var before = value;
         using (node.Enter())
         {
-            if (gui.Pass != Pass.Pass2Render)
+            if (gui.Pass == Pass.Pass2Render)
             {
-                return false;
-            }
+                var rect = node.InnerRect;
+                var drag = gui.ControlState(node.Id, static () => new ColorDragState());
+                if (enabled)
+                {
+                    value = EditArea(gui, drag, shape, rect, value);
+                }
+                else
+                {
+                    drag.Dragging = false;
+                }
 
-            var rect = node.InnerRect;
-            var drag = gui.ControlState(node.Id, static () => new ColorDragState());
-            if (enabled)
-            {
-                value = EditArea(gui, drag, shape, rect, value);
+                shape.Draw(gui, rect, value);
+                DrawPartCentered(gui, "cursor", shape.Cursor(rect, value), 12f);
             }
-            else
-            {
-                drag.Dragging = false;
-            }
-
-            shape.Draw(gui, rect, value);
-            DrawPartCentered(gui, "cursor", shape.Cursor(rect, value), 12f);
         }
-        return value != before;
+
+        if (gui.Pass == Pass.Pass2Render && value != before)
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
+        return node;
     }
 
     /// <summary>
     /// A one-channel strip, such as the hue or alpha bar beside a color area: drag or click to set the channel, arrows
     /// step it by 1% once focused. Styled by <c>color-strip</c> (<c>:vertical</c>, <c>:disabled</c>) and its drawn
-    /// <c>thumb</c> (<c>width</c> is its thickness across a horizontal strip, <c>height</c> across a vertical one).
+    /// <c>thumb</c>. It is the scope's field width long and 14 across, swapped when vertical, unless a sheet or the
+    /// returned node sizes it.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="value">The edited color.</param>
     /// <param name="channel">The channel the strip edits.</param>
     /// <param name="vertical">Whether the strip runs bottom (0) to top (max) instead of left to right.</param>
-    /// <param name="length">Length along the strip; 0 expands.</param>
-    /// <param name="thickness">Size across the strip.</param>
     /// <param name="enabled">Whether the strip responds to input.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
     /// <param name="id">Element id for stylesheet selectors and persistent control state.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether the color changed this frame.</returns>
-    public static bool ColorStrip(this Gui gui, ref Hsva value, HsvChannel channel, bool vertical = false,
-        float length = ControlMetrics.FieldWidth, float thickness = 14, bool enabled = true,
-        IReadOnlyList<string>? classes = null, string? id = null,
+    /// <returns>The strip's node, <see cref="LayoutNode.Changed"/> on a frame the color changed (as a <c>bool</c> too).</returns>
+    public static ControlNode ColorStrip(this Gui gui, ref Hsva value, HsvChannel channel, bool vertical = false,
+        bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ExcaliburStyles.Ensure(gui);
-        var node = gui.StyledNode("color-strip", classes, id, modifiers: vertical ? VerticalModifier : null,
+        var node = gui.StyledControl("color-strip", classes, id, modifiers: vertical ? VerticalModifier : null,
             disabled: !enabled, filePath: filePath, lineNumber: lineNumber);
-        Sized(node, vertical ? thickness : length, vertical ? length : thickness);
+        SizeColorStrip(gui, node, vertical);
         var before = value;
         using (node.Enter())
         {
-            if (gui.Pass != Pass.Pass2Render)
+            if (gui.Pass == Pass.Pass2Render)
             {
-                return false;
+                value = EditAndDrawStrip(gui, node, value, channel, vertical, enabled);
             }
-
-            var rect = node.InnerRect;
-            var drag = gui.ControlState(node.Id, static () => new ColorDragState());
-            if (enabled)
-            {
-                value = EditStrip(gui, drag, rect, value, channel, vertical);
-            }
-            else
-            {
-                drag.Dragging = false;
-            }
-
-            DrawChannelGradient(gui, rect, value, channel, vertical);
-            DrawStripThumb(gui, rect, ChannelFraction(value, channel), vertical);
         }
-        return value != before;
+
+        RaiseColorChanged(gui, node, value, before);
+        return node;
+    }
+
+    /// <summary>Sizes a strip along the field width and across its thickness, swapped when vertical.</summary>
+    static void SizeColorStrip(Gui gui, ControlNode node, bool vertical)
+    {
+        var along = Size.Pixels(gui.ControlStyle.FieldWidth);
+        var across = Size.Pixels(StripThickness);
+        SizeUnlessStyled(node, vertical ? across : along, vertical ? along : across);
+    }
+
+    /// <summary>Applies this frame's drag and arrow edits when enabled, then draws the strip.</summary>
+    static Hsva EditAndDrawStrip(Gui gui, ControlNode node, Hsva value, HsvChannel channel, bool vertical,
+        bool enabled)
+    {
+        var rect = node.InnerRect;
+        var drag = gui.ControlState(node.Id, static () => new ColorDragState());
+        if (enabled)
+        {
+            value = EditStrip(gui, drag, rect, value, channel, vertical);
+        }
+        else
+        {
+            drag.Dragging = false;
+        }
+
+        DrawChannelGradient(gui, rect, value, channel, vertical);
+        DrawStripThumb(gui, rect, ChannelFraction(value, channel), vertical);
+        return value;
+    }
+
+    /// <summary>Raises the change signal when the strip's color differs from its color before this frame.</summary>
+    static void RaiseColorChanged(Gui gui, ControlNode node, Hsva value, Hsva before)
+    {
+        if (gui.Pass == Pass.Pass2Render && value != before)
+        {
+            node.Raise(NodeSignals.Changed);
+        }
     }
 
     /// <summary>
     /// A wrapping row of color swatches; clicking one, or Space/Enter on a focused one, picks it. Each is a
-    /// <c>swatch</c> node (<c>:selected</c> when it is the current color) inside a <c>swatches</c> row.
+    /// <c>swatch</c> node (<c>:selected</c> when it is the current color) inside a <c>swatches</c> row. Swatches are 18
+    /// square unless a sheet sizes them.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="value">The edited color.</param>
     /// <param name="colors">The swatch colors.</param>
-    /// <param name="size">Side of each swatch.</param>
     /// <param name="enabled">Whether the swatches respond to input.</param>
     /// <param name="classes">Extra classes for the row.</param>
     /// <param name="id">Element id of the row; swatch ids derive from it.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether a swatch was picked this frame.</returns>
-    public static bool ColorSwatches(this Gui gui, ref Hsva value, IReadOnlyList<Color> colors, float size = 18,
+    /// <returns>The row's node, <see cref="LayoutNode.Changed"/> on a frame a swatch was picked (as a <c>bool</c> too).</returns>
+    public static ControlNode ColorSwatches(this Gui gui, ref Hsva value, IReadOnlyList<Color> colors,
         bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
@@ -136,14 +171,18 @@ public static partial class ControlsExtensions
         ExcaliburStyles.Ensure(gui);
         var picked = false;
         var current = value.ToColor();
-        using (gui.StyledNode("swatches", classes, id, disabled: !enabled, filePath: filePath, lineNumber: lineNumber)
-                   .ExpandWidth().Enter())
+        var node = gui.StyledControl("swatches", classes, id, disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
+        node.ExpandWidth();
+        using (node.Enter())
         {
             for (var i = 0; i < colors.Count; i++)
             {
                 var color = colors[i];
-                using (gui.StyledNode("swatch", modifiers: color == current ? SelectedModifier : null,
-                           disabled: !enabled).Width(size).Height(size).Enter())
+                var swatch = gui.StyledNode("swatch", modifiers: color == current ? SelectedModifier : null,
+                    disabled: !enabled);
+                SizeUnlessStyled(swatch, Size.Pixels(SwatchSize), Size.Pixels(SwatchSize));
+                using (swatch.Enter())
                 {
                     if (gui.Pass != Pass.Pass2Render)
                     {
@@ -167,49 +206,66 @@ public static partial class ControlsExtensions
                 }
             }
         }
-        return picked;
+
+        if (picked)
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
+        return node;
     }
 
     /// <summary>
     /// The before/after sample of a picker. With <paramref name="before"/>, the left half shows it and clicking that
     /// half asks to restore it. Styled by <c>color-preview</c>; translucent colors show over the <c>checker</c> part.
+    /// It is 48 wide and the scope's compact height unless a sheet or the returned node sizes it.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="after">The current color.</param>
     /// <param name="before">The color before editing, or <c>null</c> to show only the current one.</param>
-    /// <param name="width">Node width; 0 expands.</param>
-    /// <param name="height">Node height; 0 expands.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
     /// <param name="id">Element id for stylesheet selectors.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether the "before" half was clicked this frame.</returns>
-    public static bool ColorPreview(this Gui gui, Color after, Color? before = null, float width = 48,
-        float height = ControlMetrics.CompactHeight, IReadOnlyList<string>? classes = null, string? id = null,
+    /// <returns>The preview's node, <see cref="LayoutNode.Clicked"/> on a frame the "before" half was clicked (as a <c>bool</c> too).</returns>
+    public static ControlNode ColorPreview(this Gui gui, Color after, Color? before = null,
+        IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ExcaliburStyles.Ensure(gui);
-        var node = Sized(gui.StyledNode("color-preview", classes, id, filePath: filePath, lineNumber: lineNumber),
-            width, height);
+        var node = gui.StyledControl("color-preview", classes, id, filePath: filePath, lineNumber: lineNumber);
+        SizeUnlessStyled(node, Size.Pixels(ColorPreviewWidth), Size.Pixels(gui.ControlStyle.CompactHeight));
+        var restore = false;
         using (node.Enter())
         {
-            if (gui.Pass != Pass.Pass2Render)
+            if (gui.Pass == Pass.Pass2Render)
             {
-                return false;
+                restore = DrawPreview(gui, node.InnerRect, after, before);
             }
-
-            var rect = node.InnerRect;
-            if (before is not { } old)
-            {
-                DrawColorSample(gui, rect, after);
-                return false;
-            }
-            var half = new Rect(rect.X, rect.Y, rect.W / 2f, rect.H);
-            DrawColorSample(gui, half, old);
-            DrawColorSample(gui, new Rect(rect.X + half.W, rect.Y, rect.W - half.W, rect.H), after);
-            return gui.GetInteractable().OnClick() && gui.IsPointerIn(half);
         }
+
+        if (restore)
+        {
+            node.Raise(NodeSignals.Clicked);
+        }
+
+        return node;
+    }
+
+    /// <summary>Draws the preview's halves; true when the "before" half was clicked this frame.</summary>
+    static bool DrawPreview(Gui gui, Rect rect, Color after, Color? before)
+    {
+        if (before is not { } old)
+        {
+            DrawColorSample(gui, rect, after);
+            return false;
+        }
+
+        var half = new Rect(rect.X, rect.Y, rect.W / 2f, rect.H);
+        DrawColorSample(gui, half, old);
+        DrawColorSample(gui, new Rect(rect.X + half.W, rect.Y, rect.W - half.W, rect.H), after);
+        return gui.GetInteractable().OnClick() && gui.IsPointerIn(half);
     }
 
     /// <summary>Draws a color over the checkerboard when it is translucent.</summary>

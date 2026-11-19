@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 - Changed: `Size` is now used by every layout distance #15
+- Changed (breaking): widgets take `Content`, return their node and drop geometry parameters (v7 widget API)
 
 ## [6.7.0] - 2026-11-13
 

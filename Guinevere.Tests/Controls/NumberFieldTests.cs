@@ -58,8 +58,10 @@ public class NumberFieldTests
 
             void Draw()
             {
-                Committed = _gui.NumberField(ref value, step: 0.25f, min: 0f, max: 100f,
-                    width: 280, height: 24, fontSize: 12, id: _id, mixed: Mixed);
+                var field = _gui.NumberField(ref value, step: 0.25f, min: 0f, max: 100f,
+                    id: _id, mixed: Mixed);
+                field.Width(280).Height(24);
+                Committed = field;
                 _gui.Button("Next").Width(60).Height(24);
             }
 

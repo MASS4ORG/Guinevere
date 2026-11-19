@@ -67,7 +67,8 @@ public abstract partial class Program
 
             if (state.IsOpen)
             {
-                gui.FileBrowser(state, width: 504, height: 450, fontSize: 12);
+                gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFontSize, float>(13f));
+                gui.FileBrowser(state).Width(504).Height(450);
             }
             else if (gui.Button("Browse again", classes: SmallClass).Width(120).Height(28).Clicked)
             {

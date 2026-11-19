@@ -25,13 +25,13 @@ public static partial class ControlsExtensions
     /// </summary>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="state">The dialog's state, owned by the host across frames.</param>
-    /// <param name="width">The dialog's width.</param>
-    /// <param name="height">The dialog's body height, before its title bar and footer.</param>
-    /// <param name="fontSize">Base text size for the listing, sidebar and fields.</param>
     /// <param name="classes">Stylesheet classes for the dialog.</param>
     /// <param name="id">Stable control and stylesheet identity.</param>
-    public static void FileDialog(this Gui gui, FileDialogState state,
-        float width = 840f, float height = 460f, float fontSize = 13f,
+    /// <returns>
+    /// The dialog's node: 840 wide with a 460 high body unless a sheet or the node says otherwise. Its text is one
+    /// size under the control font size.
+    /// </returns>
+    public static LayoutNode FileDialog(this Gui gui, FileDialogState state,
         IReadOnlyList<string>? classes = null, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(gui);
@@ -39,13 +39,17 @@ public static partial class ControlsExtensions
 
         var isOpen = state.IsOpen;
         var title = state.Request?.Title ?? "";
+        var fontSize = FileFontSize(gui);
+        var chrome = DialogTitleHeight(gui) + DialogFooterHeight(gui);
 
-        gui.Dialog(ref isOpen, title,
+        var dialog = DialogCore(gui, ref isOpen, title,
             () => Body(gui, state, fontSize),
-            width, height,
             () => Footer(gui, state, fontSize),
-            footerHeight: 44f, classes: classes is null ? ["file"] : ["file", .. classes],
-            id: id ?? state.ControlId("dialog"));
+            showCloseButton: true, draggable: true, closeOnEscape: true, closeOnClickOutside: false,
+            classes: classes is null ? ["file"] : ["file", .. classes],
+            id: id ?? state.ControlId("dialog"),
+            width: FileBrowserWidth, height: FileBrowserHeight + chrome,
+            fallback: new Vector2(FileBrowserWidth, FileBrowserHeight + chrome));
 
         // Escape and the title bar's × write straight into isOpen, so that is how the dialog reports
         // a cancellation: the request's callback still has to hear about it.
@@ -53,7 +57,18 @@ public static partial class ControlsExtensions
         {
             state.Close(null);
         }
+
+        return dialog;
     }
+
+    /// <summary>Default width of the file dialog and the inline browser.</summary>
+    const float FileBrowserWidth = 840f;
+
+    /// <summary>Default height of the browser body, before a dialog's title bar and footer.</summary>
+    const float FileBrowserHeight = 460f;
+
+    /// <summary>The base text size of the file browser, one under the control font size.</summary>
+    static float FileFontSize(Gui gui) => gui.ControlStyle.FontSize - 1f;
 
     static void Body(Gui gui, FileDialogState state, float fontSize)
     {
@@ -64,6 +79,8 @@ public static partial class ControlsExtensions
 
         using (gui.Node().Expand().Direction(Axis.Vertical).Gap(RegionGap).Enter())
         {
+            // The dialog's text size is the control size of the fields and dropdowns inside it.
+            gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFontSize, float>(fontSize));
             Toolbar(gui, state, fontSize);
 
             using (gui.Node().Expand().Direction(Axis.Horizontal).Gap(RegionGap).Enter())
@@ -99,38 +116,50 @@ public static partial class ControlsExtensions
         {
             if (named)
             {
-                using (gui.StyledNode("file-label").Width(52f).Height(height).AlignContentY(0.5f).Enter())
-                {
-                    gui.DrawText(request.Mode == FileDialogMode.CreateFolder ? "Folder" : "Name",
-                        fontSize, centerInRect: false);
-                }
-
-                using (gui.Node().Expand().Enter())
-                {
-                    state.Name = gui.TextInput(state.Name, width: 0, height: height,
-                        placeholder: "Name", fontSize: fontSize, padding: 5, id: state.ControlId("name"));
-                }
+                NameField(gui, state, request, fontSize, height);
             }
 
-            if (!filtered)
+            if (filtered)
             {
-                return;
+                FilterDropdown(gui, state, request, height);
             }
-
-            using (gui.Node().Expand().Enter()) { }
-
-            var index = state.FilterIndex;
-            gui.Dropdown([.. request.Filters.Select(static filter => filter.Label)], ref index,
-                width: 200f, height: height, fontSize: fontSize);
-
-            if (index == state.FilterIndex)
-            {
-                return;
-            }
-
-            state.FilterIndex = index;
-            state.Browser.Filter = request.Filters[index];
         }
+    }
+
+    /// <summary>The label and text box for the name a save or new folder dialog asks for.</summary>
+    static void NameField(Gui gui, FileDialogState state, FileDialogRequest request, float fontSize, float height)
+    {
+        using (gui.StyledNode("file-label").Width(52f).Height(height).AlignContentY(0.5f).Enter())
+        {
+            gui.DrawText(request.Mode == FileDialogMode.CreateFolder ? "Folder" : "Name",
+                fontSize, centerInRect: false);
+        }
+
+        using (gui.Node().Expand().Enter())
+        {
+            var name = state.Name;
+            gui.TextInput(ref name, placeholder: "Name", id: state.ControlId("name")).Width(Size.Expand())
+                .Height(height);
+            state.Name = name;
+        }
+    }
+
+    /// <summary>The filter dropdown at the end of the name row; picking one re-filters the listing.</summary>
+    static void FilterDropdown(Gui gui, FileDialogState state, FileDialogRequest request, float height)
+    {
+        using (gui.Node().Expand().Enter()) { }
+
+        var index = state.FilterIndex;
+        gui.Dropdown([.. request.Filters.Select(static filter => filter.Label)], ref index).Width(200f)
+            .Height(height);
+
+        if (index == state.FilterIndex)
+        {
+            return;
+        }
+
+        state.FilterIndex = index;
+        state.Browser.Filter = request.Filters[index];
     }
 
     /// <summary>The line under the listing: whatever refused the last confirmation, or a read error.</summary>
@@ -245,15 +274,25 @@ public static partial class ControlsExtensions
         _ = ConfirmAsync(state).AsTask();
     }
 
-    /// <summary>Draws the same browser inline in normal layout flow.</summary>
-    public static void FileBrowser(this Gui gui, FileDialogState state, float width = 840f,
-        float height = 460f, float fontSize = 13f, IReadOnlyList<string>? classes = null, string? id = null)
+    /// <summary>
+    /// Draws the same browser inline in normal layout flow, 840 by 460 unless a sheet or the returned node says
+    /// otherwise.
+    /// </summary>
+    /// <param name="gui">The GUI for this frame.</param>
+    /// <param name="state">The browser's state, owned by the host across frames.</param>
+    /// <param name="classes">Stylesheet classes for the browser.</param>
+    /// <param name="id">Stable control and stylesheet identity.</param>
+    /// <returns>The browser's node.</returns>
+    public static LayoutNode FileBrowser(this Gui gui, FileDialogState state,
+        IReadOnlyList<string>? classes = null, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
         ExcaliburStyles.Ensure(gui);
-        using (gui.StyledNode("file-browser", classes, id ?? state.ControlId("root"))
-                   .Width(width).Height(height).Direction(Axis.Vertical).Gap(RegionGap).Enter())
+        var fontSize = FileFontSize(gui);
+        var browser = gui.StyledNode("file-browser", classes, id ?? state.ControlId("root"));
+        SizeUnlessStyled(browser, FileBrowserWidth, FileBrowserHeight);
+        using (browser.Direction(Axis.Vertical).Gap(RegionGap).Enter())
         {
             Body(gui, state, fontSize);
             using (gui.Node(-1, 36f).ExpandWidth().Direction(Axis.Horizontal).Gap(RegionGap)
@@ -262,5 +301,7 @@ public static partial class ControlsExtensions
                 Footer(gui, state, fontSize);
             }
         }
+
+        return browser;
     }
 }

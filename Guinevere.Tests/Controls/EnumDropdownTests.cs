@@ -16,8 +16,8 @@ public sealed class EnumDropdownTests
         var open = true;
         var value = Ordinary.First;
         void Draw(Gui gui) => gui.Popup(ref open, () =>
-            gui.EnumDropdown(ref value, width: 150, height: 24, filePath: "nested", lineNumber: 0),
-            width: 180, height: 100, position: Vector2.Zero);
+            gui.EnumDropdown(ref value, filePath: "nested", lineNumber: 0).Width(150).Height(24),
+            position: Vector2.Zero).Width(180).Height(100);
         h.Frame(Draw);
         h.Click(Draw, Find(h, "/button")!.Rect.Center);
         h.Frame(Draw);
@@ -96,7 +96,7 @@ public sealed class EnumDropdownTests
         var writes = 0;
         void Draw(Gui gui)
         {
-            if (gui.EnumDropdown(ref value, width: 200, height: 24, filePath: "flags", lineNumber: 0))
+            if (gui.EnumDropdown(ref value, filePath: "flags", lineNumber: 0).Width(200).Height(24).Changed)
             {
                 writes++;
             }
@@ -119,8 +119,8 @@ public sealed class EnumDropdownTests
     {
         using var h = new FrameHarness(500, 500);
         var value = Ordinary.First;
-        void Draw(Gui gui) => gui.EnumDropdown(ref value, width: 200, height: 24,
-            display: v => $"Choice {v}", filePath: "ordinary", lineNumber: 0);
+        void Draw(Gui gui) => gui.EnumDropdown(ref value, display: v => $"Choice {v}", filePath: "ordinary",
+            lineNumber: 0).Width(200).Height(24);
         h.Frame(Draw);
         Click(h, Draw, "/button");
         Click(h, Draw, "/option/1");
@@ -140,8 +140,8 @@ public sealed class EnumDropdownTests
         using var h = new FrameHarness(500, 500);
         var value = Flags.A;
         var enabled = true;
-        void Draw(Gui gui) => gui.EnumDropdown(ref value, EnumPresentation.ToggleButtons,
-            width: 480, height: 24, enabled: enabled, filePath: "toggle", lineNumber: 0);
+        void Draw(Gui gui) => gui.EnumDropdown(ref value, EnumPresentation.ToggleButtons, enabled: enabled,
+            filePath: "toggle", lineNumber: 0).Width(480).Height(24);
         h.Frame(Draw);
         Click(h, Draw, "/toggle/B");
         Assert.Equal(Flags.Both, value);
@@ -174,8 +174,8 @@ public sealed class EnumDropdownTests
         using var h = new FrameHarness(500, 500);
         var value = Ordinary.First;
         var enabled = true;
-        void Draw(Gui gui) => gui.EnumDropdown(ref value, EnumPresentation.Paging,
-            width: 200, height: 24, enabled: enabled, filePath: "paging", lineNumber: 0);
+        void Draw(Gui gui) => gui.EnumDropdown(ref value, EnumPresentation.Paging, enabled: enabled,
+            filePath: "paging", lineNumber: 0).Width(200).Height(24);
         h.Frame(Draw);
         Click(h, Draw, "/previous");
         Assert.Equal(Ordinary.Third, value);
@@ -220,11 +220,11 @@ public sealed class EnumDropdownTests
             using (gui.Node().Expand().Direction(Axis.Vertical).Enter())
             {
                 gui.ScrollY();
-                gui.EnumDropdown(ref perms, width: 200, filePath: "regression-perms", lineNumber: 0);
-                gui.EnumDropdown(ref mode, EnumPresentation.Paging, width: 200,
-                    filePath: "regression-mode", lineNumber: 0);
-                gui.EnumDropdown(ref perms, EnumPresentation.ToggleButtons, width: 480,
-                    filePath: "regression-toggle", lineNumber: 0);
+                gui.EnumDropdown(ref perms, filePath: "regression-perms", lineNumber: 0).Width(200);
+                gui.EnumDropdown(ref mode, EnumPresentation.Paging, filePath: "regression-mode", lineNumber: 0)
+                    .Width(200);
+                gui.EnumDropdown(ref perms, EnumPresentation.ToggleButtons, filePath: "regression-toggle",
+                    lineNumber: 0).Width(480);
             }
         }
         void Draw(Gui gui) => gui.DockSpace(layout, id => new DockPanelInfo(id), Panel, new DockTheme());
@@ -271,8 +271,8 @@ public sealed class EnumDropdownTests
     {
         using var h = new FrameHarness(500, 500);
         var value = WithoutZero.A | WithoutZero.B;
-        void Draw(Gui gui) => gui.EnumDropdown(ref value, width: 200, height: 24,
-            filePath: "without-zero", lineNumber: 0);
+        void Draw(Gui gui) => gui.EnumDropdown(ref value, filePath: "without-zero", lineNumber: 0)
+            .Width(200).Height(24);
         h.Frame(Draw);
         Click(h, Draw, "/button");
         Click(h, Draw, "/option/0");
@@ -280,7 +280,7 @@ public sealed class EnumDropdownTests
 
         value = WithoutZero.B;
         void DrawPaged(Gui gui) => gui.EnumDropdown(ref value, EnumPresentation.Paging,
-            width: 200, height: 24, filePath: "without-zero-paged", lineNumber: 0);
+            filePath: "without-zero-paged", lineNumber: 0).Width(200).Height(24);
         h.Frame(DrawPaged);
         Click(h, DrawPaged, "/next");
         Assert.Equal(WithoutZero.A, value);

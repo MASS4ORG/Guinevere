@@ -5,7 +5,14 @@ public static partial class ControlsExtensions
     /// <summary>Seconds an open submenu survives while the pointer crosses other rows toward it.</summary>
     const float SwitchDelay = 0.3f;
 
-    sealed record MenuAppearance(float ItemHeight = 26, float SeparatorHeight = 9, float MinWidth = 160);
+    sealed record MenuAppearance(float ItemHeight, float SeparatorHeight, float MinWidth);
+
+    /// <summary>
+    /// The metrics of a menu bar's drop-downs and of a cascade menu: rows a little taller than compact controls, a thin
+    /// separator and a minimum width of 80% of a field.
+    /// </summary>
+    static MenuAppearance DefaultMenuAppearance(Gui gui) =>
+        new(gui.ControlStyle.CompactHeight + 2f, 9f, gui.ControlStyle.FieldWidth * 0.8f);
 
     sealed class MenuBranch
     {
@@ -83,7 +90,7 @@ public static partial class ControlsExtensions
     static bool KeepMenuBranchOpen(Gui gui, MenuBarState state, string id, List<FlyoutItem> items,
         int hovered, MenuBranch branch)
     {
-        var childId = $"{id}/{items[branch.OpenIndex].Text}";
+        var childId = $"{id}/{items[branch.OpenIndex].Key}";
         var insideChild = state.Branches.Any(pair =>
             (pair.Key == childId || pair.Key.StartsWith(childId + "/", StringComparison.Ordinal))
             && gui.IsPointerIn(pair.Value.Rect));

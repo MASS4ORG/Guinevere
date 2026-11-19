@@ -29,7 +29,7 @@ public static class DemoControls
         {
             gui.CurrentNode.On(onKey);
         }
-        gui.TextInput(ref text, width: width, height: 28, placeholder: label, id: id);
+        gui.TextInput(ref text, placeholder: label, id: id).Width(width).Height(28);
         Publish(gui, id, label, text, ControlRole.TextInput);
     }
 

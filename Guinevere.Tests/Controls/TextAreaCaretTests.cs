@@ -27,7 +27,7 @@ public class TextAreaCaretTests
     {
         using var harness = new FrameHarness();
         var text = "first\nsecond";
-        void Draw(Gui gui) => gui.TextArea(ref text, 300, 120, id: "notes");
+        void Draw(Gui gui) => gui.TextArea(ref text, id: "notes").Width(300).Height(120);
 
         harness.Frame(Draw);
         var area = harness.Gui.RootNode!.Children[0];
@@ -45,7 +45,7 @@ public class TextAreaCaretTests
     {
         using var harness = new FrameHarness();
         var text = "first\nsecond\nthird";
-        void Draw(Gui gui) => gui.TextArea(ref text, 300, 120, id: "notes");
+        void Draw(Gui gui) => gui.TextArea(ref text, id: "notes").Width(300).Height(120);
 
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(20, 30));

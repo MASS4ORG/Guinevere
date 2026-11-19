@@ -45,7 +45,7 @@ public class ControlRoleTests
 
     /// <summary>An empty name is rejected.</summary>
     [Fact]
-    public void EmptyNameThrows() => Assert.Throws<ArgumentException>(() => new ControlRole(" "));
+    public void EmptyNameThrows() => Assert.Throws<ArgumentException>(static () => new ControlRole(" "));
 
-    sealed record HeadingRole(int Level) : ControlRole("Heading", ControlRole.Text);
+    sealed record HeadingRole(int Level) : ControlRole("Heading", Text);
 }

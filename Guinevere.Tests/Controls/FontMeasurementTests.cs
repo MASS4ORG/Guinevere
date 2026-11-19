@@ -51,10 +51,11 @@ public class FontMeasurementTests
         {
             pill = gui.PillTabs(ref selected, builder => builder.Tab("WWW😀")).Children[0].Children[0];
             pillTextWidth = gui.MeasureTextWidth("WWW😀", 18, pill.Scope);
-            gui.TabStrip([new TabStripItem("one", "WWW😀", Closable: false)], "one");
+            var active = "one";
+            gui.TabStrip(ref active, tabs => tabs.Tab("WWW😀", key: "one"));
             var strip = gui.CurrentNode.Children[1];
             var tab = strip.Children.First();
-            Assert.Equal(18 + gui.MeasureTextWidth("WWW😀", TabStripTheme.Default.FontSize, tab.Scope),
+            Assert.Equal(18 + gui.MeasureTextWidth("WWW😀", gui.ControlStyle.CompactFontSize, tab.Scope),
                 tab.Style.Width);
             Assert.True(tab.Scope.Get<LayoutNodeScopeTextFont>().Value.Italic);
             Assert.Throws<ArgumentNullException>(() => gui.GetStyleFont(null!));

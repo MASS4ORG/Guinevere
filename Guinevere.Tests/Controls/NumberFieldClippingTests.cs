@@ -21,11 +21,11 @@ public sealed class NumberFieldClippingTests
             using var scope = gui.Node(100, 30, "fieldHost").Absolute(100, 30).Enter();
             if (numeric)
             {
-                gui.NumberField(ref number, width: 100, height: 30, alignX: align, id: "number");
+                gui.NumberField(ref number, alignX: align, id: "number").Width(100).Height(30);
             }
             else
             {
-                gui.TextInput(ref text, width: 100, height: 30, alignX: align, id: "text");
+                gui.TextInput(ref text, alignX: align, id: "text").Width(100).Height(30);
             }
         }
         h.Frame(Draw);

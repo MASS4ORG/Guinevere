@@ -163,7 +163,7 @@ public abstract partial class Program
                 var nested = gui.Button(Content.Build(() =>
                 {
                     gui.DrawText("Widgets inside:", centerInRect: false);
-                    gui.ProgressBar(_buttonClickCount % 10 / 10f, width: 60);
+                    gui.ProgressBar(_buttonClickCount % 10 / 10f).Width(60);
                 }).Labeled("Progress"));
                 if (nested.Clicked)
                 {

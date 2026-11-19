@@ -25,34 +25,26 @@ public static partial class ControlsExtensions
     /// <param name="step">Units per pixel of horizontal drag; vertical drag uses the same step.</param>
     /// <param name="min">Lower bound on the value, applied to scrubbing and to committed text.</param>
     /// <param name="max">Upper bound on the value, applied to scrubbing and to committed text.</param>
-    /// <param name="width">Node width.</param>
-    /// <param name="height">Node height.</param>
     /// <param name="format">Format applied when echoing numbers back into the field (for example "0.##").</param>
-    /// <param name="fontSize">The font size.</param>
-    /// <param name="padding">Inner padding.</param>
     /// <param name="dragSensitivity">Multiplier on the drag distance, letting one-step span several pixels.</param>
-    /// <param name="enabled">Whether the field responds to input.</param>
-    /// <param name="id">A stable identifier; two numeric fields on the same frame must not share one.</param>
     /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
     /// <param name="mixed">Shows a dash until the user enters a shared value.</param>
+    /// <param name="enabled">Whether the field responds to input.</param>
     /// <param name="classes">Extra classes for the sheet; the field is styled as <c>input.number</c>.</param>
-    /// <param name="filePath">Call site supplied by the compiler.</param>
-    /// <param name="lineNumber">Call site supplied by the compiler.</param>
-    /// <returns>True when the user commits a valid number or changes the value.</returns>
+    /// <param name="id">Optional stable id; two numeric fields on the same frame must not share one.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>
+    /// The field's node: <see cref="LayoutNode.Changed"/> when the value changed, <see cref="LayoutNode.Submitted"/>
+    /// when the user committed a valid number; as a <c>bool</c> either one.
+    /// </returns>
     [PublicAPI]
-    public static bool NumberField(this Gui gui, ref double value,
-        double step = 1.0, double min = double.MinValue, double max = double.MaxValue,
-        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
-        float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
-        double dragSensitivity = 1.0, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false,
-        IReadOnlyList<string>? classes = null,
+    public static ControlNode NumberField(this Gui gui, ref double value,
+        double step = 1.0, double min = double.MinValue, double max = double.MaxValue, string format = "0.##",
+        double dragSensitivity = 1.0, float alignX = 0f, bool mixed = false, bool enabled = true,
+        IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        width = gui.ControlStyle.FieldWidthOr(width);
-        height = gui.ControlStyle.FieldHeightOr(height);
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        padding = gui.ControlStyle.SpacingOr(padding);
-
         ArgumentNullException.ThrowIfNull(gui);
         if (max < min)
         {
@@ -61,8 +53,8 @@ public static partial class ControlsExtensions
 
         value = Clamp(value, min, max);
 
-        var node = FieldNode(gui, NumberClass, classes, id, enabled, width, height, padding,
-            filePath, lineNumber);
+        var node = FieldNode(gui, NumberClass, classes, id, enabled, gui.ControlStyle.FieldWidth,
+            gui.ControlStyle.FieldHeight, filePath, lineNumber);
         var nodeId = node.Id;
         var field = gui.ControlState(nodeId, static () => new NumberFieldState());
 
@@ -76,6 +68,7 @@ public static partial class ControlsExtensions
 
         using (node.AlignContentX(alignX).AlignContentY(0.5f).Enter())
         {
+            var fontSize = FieldFontSize(gui);
             gui.ClipContent();
             var interactable = gui.GetInteractable();
             HandleNumberFieldInteraction(gui, field, ref value, interactable, min, max, format, fontSize, enabled);
@@ -84,24 +77,36 @@ public static partial class ControlsExtensions
             DrawInputText(gui, field.Buffer.Text, mixed ? "—" : "", fontSize, enabled);
             DrawCursor(gui, field.Buffer, field.Buffer.Text, fontSize);
         }
-        return gui.Pass == Pass.Pass2Render && (field.Committed || !value.Equals(original));
+
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            if (!value.Equals(original))
+            {
+                node.Raise(NodeSignals.Changed);
+            }
+
+            if (field.Committed)
+            {
+                node.Raise(NodeSignals.Submitted);
+            }
+        }
+
+        return node;
     }
 
     /// <summary>Float wrapper over the double field, for callers whose values are floats.</summary>
     [PublicAPI]
-    public static bool NumberField(this Gui gui, ref float value,
-        float step = 1f, float min = float.MinValue, float max = float.MaxValue,
-        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight, string format = "0.##",
-        float fontSize = ControlMetrics.FontSize, float padding = ControlMetrics.Spacing,
-        float dragSensitivity = 1f, bool enabled = true, string id = "", float alignX = 0f, bool mixed = false,
-        IReadOnlyList<string>? classes = null,
+    public static ControlNode NumberField(this Gui gui, ref float value,
+        float step = 1f, float min = float.MinValue, float max = float.MaxValue, string format = "0.##",
+        float dragSensitivity = 1f, float alignX = 0f, bool mixed = false, bool enabled = true,
+        IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         double d = value;
-        var changed = gui.NumberField(ref d, step, min, max, width, height, format, fontSize, padding,
-            dragSensitivity, enabled, id, alignX, mixed, classes, filePath, lineNumber);
+        var node = gui.NumberField(ref d, step, min, max, format, dragSensitivity, alignX, mixed, enabled, classes,
+            id, filePath, lineNumber);
         value = (float)d;
-        return changed;
+        return node;
     }
 
     static void SyncNumberBuffer(NumberFieldState field, double value, string format, bool mixed)

@@ -39,8 +39,8 @@ public class PopupTests
             var state = open;
 
             // ReSharper disable once ExplicitCallerInfoArgument - one stable id across frames.
-            void Draw() => _gui.Popup(ref state, () => { }, 150, 100,
-                position: new Vector2(10, 10), filePath: "popup-test", lineNumber: 1);
+            void Draw() => _gui.Popup(ref state, () => { },
+                position: new Vector2(10, 10), filePath: "popup-test", lineNumber: 1).Width(150).Height(100);
 
             _gui.Time.Update(0.016);
             _gui.SetStage(Pass.Pass1Build);
@@ -107,7 +107,7 @@ public class PopupTests
                 gui.On<FileDropEvent>(_ => deliveries++);
             }
 
-            gui.Popup(ref open, () => { }, 150, 100, title: "Hidden", position: Vector2.Zero);
+            gui.Popup(ref open, () => { }, title: "Hidden", position: Vector2.Zero).Width(150).Height(130);
         }
         harness.Frame(Draw);
         queue.Enqueue(["/file.png"], new Vector2(50, 15));

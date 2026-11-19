@@ -130,7 +130,7 @@ public abstract partial class Program
         using (gui.Node().Height(250).Enter())
         {
             gui.SetTextColor(Color.Blue);
-            gui.Breadcrumb(FileTrail(), height: 32);
+            gui.Breadcrumb(FileTrail()).Height(32);
 
             using (gui.Node().Margin(0, 10, 0, 0).Height(190).Direction(Axis.Horizontal).Gap(12).Enter())
             {
@@ -219,7 +219,7 @@ public abstract partial class Program
         {
             return
             [
-                new BreadcrumbItem("Guinevere", () => NavigateTo("proj"), Icon: FolderGlyph,
+                new BreadcrumbItem(Content.Row(FolderGlyph, "Guinevere"), () => NavigateTo("proj"),
                     Children: ChildrenOf("proj")),
                 new BreadcrumbItem("Nothing selected", IsCurrent: true)
             ];
@@ -233,10 +233,9 @@ public abstract partial class Program
             var label = i == 0 ? "Guinevere" : segments[i];
             var isLeaf = i == segments.Length - 1;
 
-            crumbs.Add(new BreadcrumbItem(label,
+            crumbs.Add(new BreadcrumbItem(Content.Row(IsFolder(path) ? FolderGlyph : FileGlyph, label),
                 isLeaf ? null : () => NavigateTo(path),
                 IsCurrent: isLeaf,
-                Icon: IsFolder(path) ? FolderGlyph : FileGlyph,
                 Children: ChildrenOf(path)));
         }
         return crumbs;
@@ -250,8 +249,8 @@ public abstract partial class Program
 
         return FileTree()
             .Where(row => row.Depth == childDepth && row.Id.StartsWith(prefix))
-            .Select(row => new BreadcrumbItem(row.Label, () => NavigateTo(row.Id),
-                Icon: row.HasChildren ? FolderGlyph : FileGlyph))
+            .Select(row => new BreadcrumbItem(Content.Row(row.HasChildren ? FolderGlyph : FileGlyph, row.Label),
+                () => NavigateTo(row.Id)))
             .ToList();
     }
 

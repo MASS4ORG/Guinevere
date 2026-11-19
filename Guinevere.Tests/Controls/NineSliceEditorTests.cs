@@ -183,7 +183,7 @@ public sealed class NineSliceEditorTests
     {
         using var harness = new FrameHarness(120, 80);
         using var image = Texture();
-        harness.Frame(g => g.NineSlicePreview(image, new Insets(4), 100, 60, guides));
+        harness.Frame(g => g.NineSlicePreview(image, new Insets(4), guides).Width(100).Height(60));
         using var snapshot = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(snapshot);
         Assert.Equal(SKColors.Green, pixels.GetPixel(2, 30));

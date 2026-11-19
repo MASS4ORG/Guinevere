@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 /// <summary>What the user did to an <see cref="ControlsExtensions.ObjectField"/> this frame.</summary>
@@ -41,52 +43,81 @@ public static partial class ControlsExtensions
     /// </summary>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="text">What the current value is called.</param>
-    /// <param name="id">Stable id, unique among siblings.</param>
+    /// <param name="result">
+    /// What the user did this frame. A drop is reported on the frame after the pointer is released,
+    /// because a drag only settles once the frame it ended in is over.
+    /// </param>
     /// <param name="accept">Whether a dragged payload may be dropped here.</param>
     /// <param name="isEmpty">Whether the reference points at nothing, which dims the text.</param>
     /// <param name="showClear">Whether to offer a clear button.</param>
     /// <param name="showPick">Whether to offer the button that opens a picker.</param>
-    /// <param name="height">Row height.</param>
-    /// <param name="fontSize">Text size.</param>
+    /// <param name="enabled">When false the field matches <c>:disabled</c> and reports nothing.</param>
     /// <param name="classes">Stylesheet classes for the field.</param>
+    /// <param name="id">Optional id for <c>object-field#id</c> rules and drop and state identity; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
     /// <returns>
-    /// What the user did this frame. A drop is reported on the frame after the pointer is released,
-    /// because a drag only settles once the frame it ended in is over.
+    /// The field's node: <see cref="LayoutNode.Clicked"/> for a pick or reveal and <see cref="LayoutNode.Changed"/>
+    /// for a clear or drop (as a <c>bool</c>, any of them). It fills the parent's width at the scope's indicator
+    /// height unless a sheet or the node says otherwise.
     /// </returns>
-    public static ObjectFieldResult ObjectField(this Gui gui, string text, string id,
+    public static ControlNode ObjectField(this Gui gui, string text, out ObjectFieldResult result,
         Func<object, bool>? accept = null,
         bool isEmpty = false,
         bool showClear = true,
         bool showPick = true,
-        float height = ControlMetrics.IndicatorSize,
-        float fontSize = ControlMetrics.CompactFontSize,
-        IReadOnlyList<string>? classes = null)
+        bool enabled = true,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
-        height = gui.ControlStyle.IndicatorSizeOr(height);
-        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
-
         ArgumentNullException.ThrowIfNull(gui);
 
         ExcaliburStyles.Ensure(gui);
-        var state = gui.ControlState(id, () => new ObjectFieldState());
-        var action = ObjectFieldAction.None;
+        var side = gui.ControlStyle.IndicatorSize;
+        var node = gui.StyledControl("object-field", classes, id,
+            ObjectFieldModifiers(gui, enabled, isEmpty, accept), disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
+        UseFontSize(gui, node, gui.ControlStyle.CompactFontSize);
+        SizeUnlessStyled(node, Size.Expand(), side);
+        node.Direction(Axis.Horizontal);
+        var state = gui.ControlState(node.Id, static () => new ObjectFieldState());
 
-        var eligibility = DropEligibility(gui, accept);
+        var action = RenderObjectFieldNode(gui, node, state, text, accept, isEmpty, showClear, showPick, enabled,
+            side);
+        result = ResolveObjectFieldResult(gui, state, action);
+        RaiseObjectFieldSignals(gui, node, result.Action);
+        return node;
+    }
+
+    /// <summary>Modifiers for an empty field and for a drag hovering it, accepting or rejecting.</summary>
+    static List<string> ObjectFieldModifiers(Gui gui, bool enabled, bool isEmpty, Func<object, bool>? accept)
+    {
         var modifiers = new List<string>();
         if (isEmpty)
         {
             modifiers.Add("empty");
         }
 
+        var eligibility = enabled ? DropEligibility(gui, accept) : null;
         if (eligibility is { } eligible)
         {
             modifiers.Add(eligible ? "accepting" : "rejecting");
         }
 
-        using (gui.StyledNode("object-field", classes, id, modifiers).Height(height)
-                   .ExpandWidth().Direction(Axis.Horizontal).Enter())
+        return modifiers;
+    }
+
+    /// <summary>Draws the box, text, buttons and reveal target, returning the action the user took.</summary>
+    static ObjectFieldAction RenderObjectFieldNode(Gui gui, ControlNode node, ObjectFieldState state, string text,
+        Func<object, bool>? accept, bool isEmpty, bool showClear, bool showPick, bool enabled, float side)
+    {
+        var action = ObjectFieldAction.None;
+        using (node.Enter())
         {
-            var drop = gui.DropTarget(id, canAccept: accept, onDrop: payload => state.Dropped = payload);
+            var fontSize = FieldFontSize(gui);
+            var drop = gui.DropTarget(node.Id, canAccept: DropAcceptance(enabled, accept),
+                onDrop: ParkDroppedPayload(state));
 
             var interactable = gui.GetInteractable();
             if (drop.IsAccepted)
@@ -94,37 +125,79 @@ public static partial class ControlsExtensions
                 gui.DrawStyledBox(gui.ResolvePart("drop-outline", modifiers: ["accepted"]), gui.CurrentNode.Rect);
             }
 
-            using (gui.Node(-1, height).Expand().Padding(6, 0).AlignContentY(0.5f).Enter())
+            using (gui.Node(-1, side).Expand().Padding(6, 0).AlignContentY(0.5f).Enter())
             {
                 gui.ClipContent();
                 gui.DrawText(text, fontSize);
             }
 
-            if (showPick && PickButton(gui, $"{id}/pick", height))
-            {
-                action = ObjectFieldAction.Pick;
-            }
-
-            if (showClear && !isEmpty && GlyphButton(gui, $"{id}/clear", "×", height))
-            {
-                action = ObjectFieldAction.Clear;
-            }
+            action = ObjectFieldButtons(gui, side, enabled, isEmpty, showPick, showClear);
 
             // Those buttons sit inside the box, so a click on one must not also read as a reveal.
-            if (gui.Pass == Pass.Pass2Render && action == ObjectFieldAction.None && !isEmpty
+            if (gui.Pass == Pass.Pass2Render && enabled && action == ObjectFieldAction.None && !isEmpty
                 && interactable.OnClick())
             {
                 action = ObjectFieldAction.Reveal;
             }
         }
 
-        if (gui.Pass != Pass.Pass2Render || action != ObjectFieldAction.None || state.Dropped is not { } parked)
+        return action;
+    }
+
+    /// <summary>Draws the pick and clear buttons and returns the one clicked, with clear taking precedence.</summary>
+    static ObjectFieldAction ObjectFieldButtons(Gui gui, float side, bool enabled, bool isEmpty, bool showPick,
+        bool showClear)
+    {
+        var action = ObjectFieldAction.None;
+        if (showPick && PickButton(gui, side, enabled))
         {
-            return new ObjectFieldResult(action);
+            action = ObjectFieldAction.Pick;
         }
 
-        state.Dropped = null;
-        return new ObjectFieldResult(ObjectFieldAction.Drop, parked);
+        if (showClear && !isEmpty && GlyphButton(gui, "×", side, enabled))
+        {
+            action = ObjectFieldAction.Clear;
+        }
+
+        return action;
+    }
+
+    /// <summary>What a drop may land on: the caller's filter while enabled, and nothing when disabled.</summary>
+    static Func<object, bool>? DropAcceptance(bool enabled, Func<object, bool>? accept) =>
+        enabled ? accept : static _ => false;
+
+    /// <summary>The drop callback that parks a payload on the field for the next render pass to report.</summary>
+    static Action<object> ParkDroppedPayload(ObjectFieldState state) => payload => state.Dropped = payload;
+
+    /// <summary>Reports a parked drop when no button acted this frame, then clears it.</summary>
+    static ObjectFieldResult ResolveObjectFieldResult(Gui gui, ObjectFieldState state, ObjectFieldAction action)
+    {
+        if (gui.Pass == Pass.Pass2Render && action == ObjectFieldAction.None && state.Dropped is { } parked)
+        {
+            state.Dropped = null;
+            return new ObjectFieldResult(ObjectFieldAction.Drop, parked);
+        }
+
+        return new ObjectFieldResult(action);
+    }
+
+    /// <summary>Maps what the user did to the node's signals: picking and revealing click, clearing and dropping change.</summary>
+    static void RaiseObjectFieldSignals(Gui gui, LayoutNode node, ObjectFieldAction action)
+    {
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
+        switch (action)
+        {
+            case ObjectFieldAction.Pick or ObjectFieldAction.Reveal:
+                node.Raise(NodeSignals.Clicked);
+                break;
+            case ObjectFieldAction.Clear or ObjectFieldAction.Drop:
+                node.Raise(NodeSignals.Changed);
+                break;
+        }
     }
 
     /// <summary>
@@ -145,9 +218,9 @@ public static partial class ControlsExtensions
     /// The button that opens the picker, drawn as a target rather than typed: the system fonts in play
     /// carry no "◎". Blocks input so it never also hits the box behind it.
     /// </summary>
-    static bool PickButton(Gui gui, string id, float height)
+    static bool PickButton(Gui gui, float side, bool enabled)
     {
-        using (gui.StyledNode("object-pick", id: id).Width(height).Height(height).BlockInput().Enter())
+        using (gui.StyledNode("object-pick", disabled: !enabled).Width(side).Height(side).BlockInput().Enter())
         {
             var interactable = gui.GetInteractable();
 
@@ -157,23 +230,23 @@ public static partial class ControlsExtensions
                 var center = new Vector2(rect.X + (rect.W / 2f), rect.Y + (rect.H / 2f));
                 var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
 
-                gui.DrawCircleBorder(center, height * 0.28f, color);
-                gui.DrawCircleFilled(center, height * 0.1f, color);
+                gui.DrawCircleBorder(center, side * 0.28f, color);
+                gui.DrawCircleFilled(center, side * 0.1f, color);
             }
 
-            return gui.Pass == Pass.Pass2Render && interactable.OnClick();
+            return gui.Pass == Pass.Pass2Render && enabled && interactable.OnClick();
         }
     }
 
     /// <summary>One of the slot's inline buttons. Blocks input so it never also hits the box behind it.</summary>
-    static bool GlyphButton(Gui gui, string id, string glyph, float height)
+    static bool GlyphButton(Gui gui, string glyph, float side, bool enabled)
     {
-        using (gui.StyledNode("object-clear", id: id).Width(height).Height(height).BlockInput().Enter())
+        using (gui.StyledNode("object-clear", disabled: !enabled).Width(side).Height(side).BlockInput().Enter())
         {
             var interactable = gui.GetInteractable();
-            gui.DrawText(glyph, height * 0.7f);
+            gui.DrawText(glyph, side * 0.7f);
 
-            return gui.Pass == Pass.Pass2Render && interactable.OnClick();
+            return gui.Pass == Pass.Pass2Render && enabled && interactable.OnClick();
         }
     }
 }

@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Guinevere.Tests.Mocks;
 
 namespace Guinevere.Tests.Controls;
@@ -57,17 +56,18 @@ public class BreadcrumbTests
         return input;
     }
 
-    static LayoutNode? Crumb(Gui gui, int index)
+    /// <summary>The nodes of a styled type in layout order.</summary>
+    static List<LayoutNode> OfType(Gui gui, string type)
     {
-        LayoutNode? found = null;
+        var found = new List<LayoutNode>();
         Visit(gui.RootNode!);
         return found;
 
         void Visit(LayoutNode node)
         {
-            if (Regex.IsMatch(node.Id, $@"^breadcrumb/{index}$"))
+            if (node.StyleTarget?.Type == type)
             {
-                found = node;
+                found.Add(node);
             }
 
             foreach (var child in node.Children)
@@ -77,25 +77,10 @@ public class BreadcrumbTests
         }
     }
 
-    static LayoutNode? Separator(Gui gui, int index)
-    {
-        LayoutNode? found = null;
-        Visit(gui.RootNode!);
-        return found;
+    static LayoutNode? Crumb(Gui gui, int index) => OfType(gui, "crumb").ElementAtOrDefault(index);
 
-        void Visit(LayoutNode node)
-        {
-            if (Regex.IsMatch(node.Id, $@"^breadcrumb/sep/{index}$"))
-            {
-                found = node;
-            }
-
-            foreach (var child in node.Children)
-            {
-                Visit(child);
-            }
-        }
-    }
+    /// <summary>The chevron before crumb <paramref name="index"/>, which is the one that opens its left neighbor's children.</summary>
+    static LayoutNode? Separator(Gui gui, int index) => OfType(gui, "crumb-separator").ElementAtOrDefault(index - 1);
 
     static void Click(Gui gui, IReadOnlyList<BreadcrumbItem> items, int index,
         MouseButton button = MouseButton.Left)
@@ -113,43 +98,10 @@ public class BreadcrumbTests
     [Fact]
     public void RendersThreeCrumbsAndTwoChevrons()
     {
-        var gui = RunFrame(g => g.Breadcrumb(Items));
+        var gui = RunFrame(static g => g.Breadcrumb(Items));
 
-        var crumbs = 0;
-        Visit(gui.RootNode!);
-        Assert.Equal(3, crumbs);
-
-        // The breadcrumb container is the only node with crumbs for children.
-        int? chevrons = null;
-        CountChevrons(gui.RootNode!);
-        Assert.Equal(2, chevrons);
-
-        void Visit(LayoutNode node)
-        {
-            if (Regex.IsMatch(node.Id, @"^breadcrumb/\d+$"))
-            {
-                crumbs++;
-            }
-
-            foreach (var child in node.Children)
-            {
-                Visit(child);
-            }
-        }
-
-        void CountChevrons(LayoutNode node)
-        {
-            var crumbsHere = node.Children.Count(child => Regex.IsMatch(child.Id, @"^breadcrumb/\d+$"));
-            if (crumbsHere > 0)
-            {
-                chevrons = node.Children.Count - crumbsHere;
-            }
-
-            foreach (var child in node.Children)
-            {
-                CountChevrons(child);
-            }
-        }
+        Assert.Equal(3, OfType(gui, "crumb").Count);
+        Assert.Equal(2, OfType(gui, "crumb-separator").Count);
     }
 
     [Fact]
@@ -199,7 +151,7 @@ public class BreadcrumbTests
     {
         var withIcon = new List<BreadcrumbItem>
         {
-            new("Home", () => NavigationLog.Add("home"), Icon: "📁"),
+            new(Content.Row("📁", "Home"), () => NavigationLog.Add("home")),
             new("Docs", IsCurrent: true)
         };
         var plain = new List<BreadcrumbItem>
@@ -221,7 +173,7 @@ public class BreadcrumbTests
 
         var withChildren = new List<BreadcrumbItem>
         {
-            new("Home", null, false, null,
+            new("Home", null, false,
             [
                 new BreadcrumbItem("Child A", () => NavigationLog.Add("child-a")),
                 new BreadcrumbItem("Child B", () => NavigationLog.Add("child-b"))
@@ -230,7 +182,7 @@ public class BreadcrumbTests
         };
 
         var gui = CreateGui();
-        var draw = (Gui g) => g.Breadcrumb(withChildren);
+        Action<Gui> draw = g => g.Breadcrumb(withChildren);
 
         FrameOn(gui, draw);
         var separator = Separator(gui, 1);

@@ -45,8 +45,11 @@ public static partial class ControlsExtensions
     /// <param name="id">Element id for stylesheet selectors and persistent control state.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether the color changed this frame.</returns>
-    public static bool ColorPicker(this Gui gui, ref Color color, ColorPickerOptions? options = null,
+    /// <returns>
+    /// The picker's node, <see cref="LayoutNode.Changed"/> on a frame the color changed (as a <c>bool</c> too); the
+    /// inner picker's change is forwarded.
+    /// </returns>
+    public static ControlNode ColorPicker(this Gui gui, ref Color color, ColorPickerOptions? options = null,
         Color? original = null, bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
@@ -55,9 +58,9 @@ public static partial class ControlsExtensions
         var state = gui.ControlState((id ?? gui.AutomaticId(filePath, lineNumber)) + "/value",
             () => new ColorValueState { Value = Hsva.FromColor(initial) });
         state.Value = Hsva.Sync(state.Value, color);
-        var changed = gui.ColorPicker(ref state.Value, options, original, enabled, classes, id, filePath, lineNumber);
+        var picker = gui.ColorPicker(ref state.Value, options, original, enabled, classes, id, filePath, lineNumber);
         color = state.Value.ToColor();
-        return changed;
+        return picker;
     }
 
     /// <summary>
@@ -77,8 +80,10 @@ public static partial class ControlsExtensions
     /// <param name="id">Element id for stylesheet selectors and persistent control state.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether the color changed this frame.</returns>
-    public static bool ColorPicker(this Gui gui, ref Hsva value, ColorPickerOptions? options = null,
+    /// <returns>
+    /// The picker's node, <see cref="LayoutNode.Changed"/> on a frame the color changed (as a <c>bool</c> too).
+    /// </returns>
+    public static ControlNode ColorPicker(this Gui gui, ref Hsva value, ColorPickerOptions? options = null,
         Color? original = null, bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
@@ -86,8 +91,17 @@ public static partial class ControlsExtensions
         options ??= ColorPickerOptions.For(gui);
         ExcaliburStyles.Ensure(gui);
         var before = value;
-        var node = Sized(gui.StyledNode("color-picker", classes, id, disabled: !enabled,
-            filePath: filePath, lineNumber: lineNumber), options.Width, -1);
+        var node = gui.StyledControl("color-picker", classes, id, disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
+        if (options.Width > 0)
+        {
+            node.Width(options.Width);
+        }
+        else
+        {
+            node.ExpandWidth();
+        }
+
         using (node.Enter())
         {
             if (options.Body is { } body)
@@ -99,7 +113,13 @@ public static partial class ControlsExtensions
                 DefaultPickerBody(gui, ref value, options, original, enabled, node.Id);
             }
         }
-        return gui.Pass == Pass.Pass2Render && value != before;
+
+        if (gui.Pass == Pass.Pass2Render && value != before)
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
+        return node;
     }
 
     static void DefaultPickerBody(Gui gui, ref Hsva value, ColorPickerOptions options, Color? original, bool enabled,
@@ -116,11 +136,13 @@ public static partial class ControlsExtensions
     {
         using (gui.StyledNode("color-picker-row").ExpandWidth().Height(options.AreaHeight).Enter())
         {
-            gui.ColorArea(ref value, options.Shape, width: 0, height: 0, enabled: enabled);
-            gui.ColorStrip(ref value, options.Shape.Companion, vertical: true, length: 0, enabled: enabled);
+            gui.ColorArea(ref value, options.Shape, enabled: enabled).Width(Size.Expand()).Height(Size.Expand());
+            gui.ColorStrip(ref value, options.Shape.Companion, vertical: true, enabled: enabled)
+                .Height(Size.Expand());
             if (options.Alpha)
             {
-                gui.ColorStrip(ref value, HsvChannel.Alpha, vertical: true, length: 0, enabled: enabled);
+                gui.ColorStrip(ref value, HsvChannel.Alpha, vertical: true, enabled: enabled)
+                    .Height(Size.Expand());
             }
         }
     }
@@ -146,9 +168,9 @@ public static partial class ControlsExtensions
     static void SampleRow(Gui gui, ref Hsva value, ColorPickerState state, ColorPickerOptions options,
         Color? original, bool enabled, string pickerId)
     {
-        using (gui.StyledNode("color-picker-row").ExpandWidth().Height(ControlMetrics.CompactHeight).Enter())
+        using (gui.StyledNode("color-picker-row").ExpandWidth().Height(gui.ControlStyle.CompactHeight).Enter())
         {
-            if (gui.ColorPreview(value.ToColor(), original) && enabled && original is { } restore)
+            if (gui.ColorPreview(value.ToColor(), original).Clicked && enabled && original is { } restore)
             {
                 value = Hsva.Sync(value, restore);
             }
@@ -169,26 +191,26 @@ public static partial class ControlsExtensions
     {
         if (options.Swatches.Count > 0)
         {
-            gui.ColorSwatches(ref value, options.Swatches, SwatchSize, enabled);
+            gui.ColorSwatches(ref value, options.Swatches, enabled);
         }
 
         var recent = ColorRecents.For(gui).Items;
         if (options.ShowRecent && recent.Count > 0)
         {
-            gui.ColorSwatches(ref value, recent, SwatchSize, enabled, RecentClass);
+            gui.ColorSwatches(ref value, recent, enabled, RecentClass);
         }
     }
 
     static void ColorModeSwitch(Gui gui, ColorPickerState state, IReadOnlyList<IColorPickerMode> modes, bool enabled,
         string pickerId)
     {
-        using (gui.StyledNode("color-picker-row").ExpandWidth().Height(ControlMetrics.CompactHeight).Enter())
+        using (gui.StyledNode("color-picker-row").ExpandWidth().Height(gui.ControlStyle.CompactHeight).Enter())
         {
             for (var i = 0; i < modes.Count; i++)
             {
                 if (gui.Button(modes[i].Name, enabled,
                         classes: i == state.Mode ? ColorModeCheckedClass : ColorModeClass, id: $"{pickerId}/mode/{i}")
-                        .Height(ControlMetrics.CompactHeight).Clicked)
+                        .Height(gui.ControlStyle.CompactHeight).Clicked)
                 {
                     state.Mode = i;
                 }
@@ -201,7 +223,7 @@ public static partial class ControlsExtensions
         string pickerId, bool enabled)
     {
         var idle = state.Sample is null;
-        if (GlyphButton(gui, WidgetIcons.Eyedropper, ControlMetrics.CompactHeight, pickerId + "/eyedropper",
+        if (GlyphButton(gui, WidgetIcons.Eyedropper, gui.ControlStyle.CompactHeight, pickerId + "/eyedropper",
                 enabled && idle))
         {
             state.Sample = sampler.SampleAsync().AsTask();
@@ -223,28 +245,27 @@ public static partial class ControlsExtensions
     /// <see cref="ColorPicker(Gui, ref Hsva, ColorPickerOptions?, Color?, bool, IReadOnlyList{string}?, string?, string, int)"/>
     /// popup (<c>popup.color-popup</c>), followed by an editable <see cref="ColorHex"/>. The popup closes on Escape, a
     /// click outside or a second click on the swatch, and adds a changed color to the GUI's <see cref="ColorRecents"/>.
+    /// Size it on the returned node; by default it is the scope's field width by compact height.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="color">The edited color.</param>
     /// <param name="options">What the popup picker shows; <see cref="ColorPickerOptions.For"/> by default.</param>
-    /// <param name="width">Field width; 0 expands.</param>
-    /// <param name="height">Field height.</param>
     /// <param name="enabled">Whether the field responds to input.</param>
     /// <param name="classes">Extra classes for the <c>color-field</c> row.</param>
     /// <param name="id">Element id for stylesheet selectors and persistent control state.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether the color changed this frame.</returns>
-    public static bool ColorField(this Gui gui, ref Color color, ColorPickerOptions? options = null,
-        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.CompactHeight, bool enabled = true,
-        IReadOnlyList<string>? classes = null, string? id = null,
+    /// <returns>The field's node, <see cref="LayoutNode.Changed"/> on a frame the color changed (as a <c>bool</c> too).</returns>
+    public static ControlNode ColorField(this Gui gui, ref Color color, ColorPickerOptions? options = null,
+        bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         options ??= ColorPickerOptions.For(gui);
         ExcaliburStyles.Ensure(gui);
-        var node = Sized(gui.StyledNode("color-field", classes, id, disabled: !enabled,
-            filePath: filePath, lineNumber: lineNumber), width, height);
+        var node = gui.StyledControl("color-field", classes, id, disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
+        SizeUnlessStyled(node, Size.Pixels(gui.ControlStyle.FieldWidth), Size.Pixels(gui.ControlStyle.CompactHeight));
         var initial = color;
         var state = gui.ControlState(node.Id, () => new ColorFieldState { Value = Hsva.FromColor(initial) });
         if (gui.Pass == Pass.Pass1Build && state.PendingOpen is { } pending)
@@ -261,19 +282,25 @@ public static partial class ControlsExtensions
                 state.Anchor = node.Rect;
             }
 
-            ColorFieldSwatch(gui, state, color, height, enabled);
-            gui.ColorHex(ref state.Value, options.Alpha, clipboard: false, width: 0, height: height, enabled: enabled,
-                id: node.Id + "/hex");
+            ColorFieldSwatch(gui, state, color, enabled);
+            gui.ColorHex(ref state.Value, options.Alpha, clipboard: false, enabled: enabled,
+                id: node.Id + "/hex").Height(Size.Expand());
         }
         ColorFieldPopup(gui, state, options, enabled, node.Id);
         color = state.Value.ToColor();
-        return gui.Pass == Pass.Pass2Render && state.Value != before;
+        if (gui.Pass == Pass.Pass2Render && state.Value != before)
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
+        return node;
     }
 
-    static void ColorFieldSwatch(Gui gui, ColorFieldState state, Color color, float height, bool enabled)
+    static void ColorFieldSwatch(Gui gui, ColorFieldState state, Color color, bool enabled)
     {
+        // A swatch is one and a half times as wide as the compact row is tall, and fills the field's height.
         using (gui.StyledNode("swatch", modifiers: state.Open ? OpenModifier : null, disabled: !enabled)
-                   .Width(height * 1.5f).Height(height).Enter())
+                   .Width(gui.ControlStyle.CompactHeight * 1.5f).Height(Size.Expand()).Enter())
         {
             if (gui.Pass != Pass.Pass2Render)
             {
@@ -303,14 +330,14 @@ public static partial class ControlsExtensions
     static void ColorFieldPopup(Gui gui, ColorFieldState state, ColorPickerOptions options, bool enabled,
         string fieldId)
     {
-        var popupWidth = (options.Width > 0 ? options.Width : ControlMetrics.FieldWidth) + 16f;
+        var popupWidth = (options.Width > 0 ? options.Width : gui.ControlStyle.FieldWidth) + 16f;
         var popupHeight = options.PopupHeight ?? EstimatePickerHeight(options, ColorRecents.For(gui).Items.Count) + 16f;
         var below = new Vector2(state.Anchor.X, state.Anchor.Y + state.Anchor.H + 4f);
         var open = state.Open;
         gui.Popup(ref open, () => gui.ColorPicker(ref state.Value, options, state.Original, enabled,
                 id: fieldId + "/picker"),
-            popupWidth, popupHeight, position: ConstrainToScreen(gui, below, popupWidth, popupHeight),
-            classes: ColorPopupClass, id: fieldId + "/popup");
+            position: ConstrainToScreen(gui, below, popupWidth, popupHeight),
+            classes: ColorPopupClass, id: fieldId + "/popup").Width(popupWidth).Height(popupHeight);
         if (gui.Pass != Pass.Pass2Render || open == state.Open)
         {
             return;

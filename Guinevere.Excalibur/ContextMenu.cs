@@ -11,11 +11,12 @@ public static partial class ControlsExtensions
         public Vector2 FramePosition;
     }
 
-    /// <summary>Creates a context menu anchored where it opened, with nested menus and keyboard navigation.</summary>
+    /// <summary>
+    /// Creates a context menu anchored where it opened, with nested menus and keyboard navigation. Rows are the compact
+    /// control height and the menu at least 60% of a field wide.
+    /// </summary>
     public static void ContextMenu(this Gui gui, ref bool isOpen, Action<ContextMenuBuilder> buildMenu,
         Vector2? position = null,
-        float itemHeight = 24,
-        float minWidth = 120,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         [CallerFilePath] string filePath = "",
@@ -38,12 +39,14 @@ public static partial class ControlsExtensions
             state.FramePosition = position ?? state.Position;
         }
 
-        gui.Flyout(ref isOpen, state.FramePosition, menu =>
+        var itemHeight = gui.ControlStyle.CompactHeight;
+        PopupFlyout(gui, ref isOpen, state.FramePosition, menu =>
         {
             var builder = new ContextMenuBuilder();
             buildMenu(builder);
             menu.Items.AddRange(builder.Items);
-        }, minWidth, itemHeight, padding: 8, classes: classes, id: explicitId, filePath: filePath, lineNumber: lineNumber);
+        }, new MenuAppearance(itemHeight, itemHeight, gui.ControlStyle.FieldWidth * 0.6f),
+            gui.ControlStyle.Spacing, classes, explicitId, filePath, lineNumber);
         state.WasOpen = isOpen;
     }
 }

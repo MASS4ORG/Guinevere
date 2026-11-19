@@ -439,8 +439,9 @@ public static partial class ControlsExtensions
         Action<TreeItem, string> onRename)
     {
         var text = state.EditingText;
-        gui.TextInput(ref text, width: 0, height: theme.RowHeight - 2f, fontSize: theme.FontSize,
-            padding: 3f, id: $"treeview/rename/{item.Id}", grabFocus: true);
+        UseControlFontSizeInScope(gui, theme.FontSize);
+        gui.TextInput(ref text, grabFocus: true, id: $"treeview/rename/{item.Id}").Width(Size.Expand())
+            .Height(theme.RowHeight - 2f).Padding(3f);
         state.EditingText = text;
 
         if (gui.Pass != Pass.Pass2Render)

@@ -43,7 +43,7 @@ public class ObjectFieldTests
             void Draw()
             {
                 before?.Invoke(_gui);
-                var outcome = _gui.ObjectField("Cube", Id, isEmpty: false);
+                _gui.ObjectField("Cube", out var outcome, isEmpty: false, id: Id);
                 if (outcome.Action != ObjectFieldAction.None)
                 {
                     result = outcome;

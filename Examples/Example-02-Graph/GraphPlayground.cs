@@ -126,16 +126,18 @@ public sealed class GraphPlayground
         gui.Image(Badge, width: 24, height: 24);
         using (gui.Node().Width(270).Height(28).Enter())
         {
-            gui.MenuBar(menus => BuildMenus(gui, menus), height: 28, fontSize: 13, padding: 8, id: "playground-main-menu");
+            gui.MenuBar(menus => BuildMenus(gui, menus), id: "playground-main-menu").Height(28);
         }
         var scenario = _frameScenario;
-        gui.Dropdown(Titles, ref scenario, width: 160, height: 28, placeholder: "Scenario", classes: ["scenario-picker"]);
+        gui.Dropdown([.. Titles], ref scenario, placeholder: "Scenario", classes: ["scenario-picker"]).Width(160)
+            .Height(28);
         if (gui.Pass == Pass.Pass1Build && scenario != _frameScenario)
         {
             Queue(gui, () => SelectScenario(scenario));
         }
         var style = StyleIndex;
-        gui.Dropdown([.. GraphDemoStyles.Names], ref style, width: 150, height: 28, placeholder: "Style", classes: ["style-picker"]);
+        gui.Dropdown([.. GraphDemoStyles.Names], ref style, placeholder: "Style", classes: ["style-picker"]).Width(150)
+            .Height(28);
         if (gui.Pass == Pass.Pass1Build && style != StyleIndex)
         {
             Queue(gui, () => SelectStyle(style));

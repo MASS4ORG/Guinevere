@@ -7,7 +7,7 @@ public static partial class ControlsExtensions
     static readonly string[] SelectedHighlightedModifiers = [StyleModifiers.Selected, Highlighted];
 
     static void ChoicePopup<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,
-        bool multiple, float rowHeight, float fontSize, int visible)
+        bool multiple, float rowHeight, int visible)
     {
         var rows = Math.Max(1, Math.Min(visible, state.Filtered.Count));
         var popupHeight = (rows + (multiple ? 2 : 1)) * rowHeight;
@@ -25,6 +25,7 @@ public static partial class ControlsExtensions
             gui.SetEscapesAncestorClips();
             gui.SetZIndex(Math.Max(ListZIndex,
                 gui.CurrentNode.Parent!.Scope.Get<LayoutNodeScopeZIndex>().Value + 1));
+            UseControlFontSize(gui, gui.CurrentNode);
             using var scope = gui.EnterFocusNavigationScope($"{id}/focus", $"{id}/button");
             scope.SetActive($"{id}/button");
             if (gui.Pass == Pass.Pass2Render)
@@ -32,13 +33,13 @@ public static partial class ControlsExtensions
                 state.PopupRect = gui.CurrentNode.Rect;
             }
 
-            ChoiceSearch(gui, id, state, rowHeight, fontSize);
+            ChoiceSearch(gui, id, state, rowHeight);
             if (multiple)
             {
-                ChoiceBulk(gui, id, state, options, rowHeight, fontSize);
+                ChoiceBulk(gui, id, state, options, rowHeight);
             }
 
-            ChoiceRows(gui, id, state, options, multiple, rows * rowHeight, rowHeight, fontSize);
+            ChoiceRows(gui, id, state, options, multiple, rows * rowHeight, rowHeight);
             if (gui.Pass == Pass.Pass2Render)
             {
                 DismissChoices(gui, id, state);
@@ -46,12 +47,13 @@ public static partial class ControlsExtensions
         }
     }
 
-    static void ChoiceSearch<T>(Gui gui, string id, ChoiceState<T> state, float height, float fontSize)
+    static void ChoiceSearch<T>(Gui gui, string id, ChoiceState<T> state, float height)
     {
         using (gui.Node(-1, height, $"{id}/search").ExpandWidth().Enter())
         {
-            var query = gui.TextInput(state.FrameQuery, width: 0, height: height, fontSize: fontSize,
-                placeholder: "Search…", id: $"{id}/search-text", grabFocus: state.JustOpened);
+            var query = state.FrameQuery;
+            gui.TextInput(ref query, placeholder: "Search…", grabFocus: state.JustOpened, id: $"{id}/search-text")
+                .Width(Size.Expand()).Height(height);
             if (gui.Pass == Pass.Pass2Render)
             {
                 state.Query = query;
@@ -59,23 +61,22 @@ public static partial class ControlsExtensions
         }
     }
 
-    static void ChoiceBulk<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,
-        float height, float fontSize)
+    static void ChoiceBulk<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options, float height)
     {
         using (gui.Node(-1, height, $"{id}/actions").ExpandWidth().Direction(Axis.Horizontal).Enter())
         {
-            ChoiceBulkButton(gui, $"{id}/all", "Select all", state, options, true, height, fontSize);
-            ChoiceBulkButton(gui, $"{id}/clear", "Clear", state, options, false, height, fontSize);
+            ChoiceBulkButton(gui, $"{id}/all", "Select all", state, options, true, height);
+            ChoiceBulkButton(gui, $"{id}/clear", "Clear", state, options, false, height);
         }
     }
 
     static void ChoiceBulkButton<T>(Gui gui, string id, string label, ChoiceState<T> state,
-        IReadOnlyList<T> options, bool selected, float height, float fontSize)
+        IReadOnlyList<T> options, bool selected, float height)
     {
         using (gui.StyledNode("option", id: id).Height(height).ExpandWidth().AlignContentX(0.5f).AlignContentY(0.5f)
                    .Enter())
         {
-            gui.DrawText(label, fontSize);
+            gui.DrawText(label);
             if (gui.Pass != Pass.Pass2Render)
             {
                 return;
@@ -96,7 +97,7 @@ public static partial class ControlsExtensions
     }
 
     static void ChoiceRows<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,
-        bool multiple, float viewport, float height, float fontSize)
+        bool multiple, float viewport, float height)
     {
         using (gui.Node(-1, viewport, $"{id}/list").ExpandWidth().Direction(Axis.Vertical).Enter())
         {
@@ -110,7 +111,7 @@ public static partial class ControlsExtensions
             ListingSpacer(gui, $"{id}/pad-top", state.First * height);
             for (var i = state.First; i < state.Last; i++)
             {
-                ChoiceRow(gui, id, state, options, i, multiple, height, fontSize);
+                ChoiceRow(gui, id, state, options, i, multiple, height);
             }
 
             ListingSpacer(gui, $"{id}/pad-bottom", (state.Filtered.Count - state.Last) * height);
@@ -118,7 +119,7 @@ public static partial class ControlsExtensions
             {
                 using (gui.Node(-1, height, $"{id}/empty").ExpandWidth().AlignContentY(0.5f).Enter())
                 {
-                    gui.DrawText("No results", fontSize, PlaceholderColor(gui, true));
+                    gui.DrawText("No results", color: PlaceholderColor(gui, true));
                 }
             }
 
@@ -133,7 +134,7 @@ public static partial class ControlsExtensions
     }
 
     static void ChoiceRow<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,
-        int position, bool multiple, float height, float fontSize)
+        int position, bool multiple, float height)
     {
         var index = state.Filtered[position];
         var modifiers = state.Checked[index]
@@ -144,10 +145,10 @@ public static partial class ControlsExtensions
         {
             if (multiple)
             {
-                ChoiceMark(gui, state.Mixed[index], state.Checked[index], fontSize);
+                ChoiceMark(gui, state.Mixed[index], state.Checked[index]);
             }
 
-            gui.DrawText(state.Labels[index], fontSize, centerInRect: false);
+            gui.Content(state.Contents[index]);
             if (gui.Pass != Pass.Pass2Render)
             {
                 return;
@@ -189,9 +190,9 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>The check box of a multi-select row: an <c>option &gt; indicator</c> with the mark in its color.</summary>
-    static void ChoiceMark(Gui gui, bool mixed, bool selected, float fontSize)
+    static void ChoiceMark(Gui gui, bool mixed, bool selected)
     {
-        var size = Math.Max(10, fontSize);
+        var size = Math.Max(10, FieldFontSize(gui));
         var modifiers = mixed ? MixedModifier : selected ? CheckedModifier : NoModifiers;
         using (ChoicePart(gui, "indicator", size, size, modifiers).Enter())
         {

@@ -21,31 +21,25 @@ public static partial class ControlsExtensions
     /// <param name="value">The current value; clamped into [<paramref name="min"/>, <paramref name="max"/>].</param>
     /// <param name="min">Lower bound.</param>
     /// <param name="max">Upper bound.</param>
-    /// <param name="width">Node width. The value label, when shown, adds its own width after the track.</param>
-    /// <param name="height">Node height.</param>
     /// <param name="step">Snap interval, or 0 to move continuously.</param>
     /// <param name="showValue">Whether to draw the numeric value to the right of the track.</param>
-    /// <param name="fontSize">Font size of the value label; null uses the stylesheet's size.</param>
     /// <param name="enabled">Whether the slider responds to input.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
-    /// <param name="id">Element id for stylesheet selectors and persistent control state.</param>
-    /// <param name="filePath">Captured by the compiler; makes this call site's slider a unique control.</param>
-    /// <param name="lineNumber">Captured by the compiler; makes this call site's slider a unique control.</param>
+    /// <param name="id">Optional id for stylesheet selectors and persistent control state; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>
+    /// The slider's node, <see cref="LayoutNode.Changed"/> on a frame the value moved (as a <c>bool</c> too). It is the
+    /// scope's field width by compact height unless a sheet or the node says otherwise; the value label, when shown,
+    /// uses the inherited text size.
+    /// </returns>
     [PublicAPI]
-    public static void Slider(this Gui gui, ref float value, float min, float max,
-        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.CompactHeight, float step = 0f,
-        bool showValue = false, float? fontSize = null, bool enabled = true,
+    public static ControlNode Slider(this Gui gui, ref float value, float min, float max, float step = 0f,
+        bool showValue = false, bool enabled = true,
         IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
-        width = gui.ControlStyle.FieldWidthOr(width);
-        height = gui.ControlStyle.CompactHeightOr(height);
-        if (fontSize is { } size)
-        {
-            fontSize = gui.ControlStyle.CompactFontSizeOr(size);
-        }
-
         if (max < min)
         {
             (min, max) = (max, min);
@@ -54,18 +48,11 @@ public static partial class ControlsExtensions
         value = Math.Clamp(value, min, max);
         ExcaliburStyles.Ensure(gui);
 
-        var node = gui.StyledNode("slider", classes, id, disabled: !enabled,
+        var node = gui.StyledControl("slider", classes, id, disabled: !enabled,
             filePath: filePath, lineNumber: lineNumber);
-        if (width >= 0)
-        {
-            node.Width(width == 0 ? Size.Expand() : Size.Pixels(width));
-        }
+        SizeUnlessStyled(node, gui.ControlStyle.FieldWidth, gui.ControlStyle.CompactHeight);
 
-        if (height >= 0)
-        {
-            node.Height(height == 0 ? Size.Expand() : Size.Pixels(height));
-        }
-
+        var original = value;
         var state = gui.ControlState(node.Id, static () => new SliderState());
         using (node.Enter())
         {
@@ -77,9 +64,16 @@ public static partial class ControlsExtensions
             if (showValue)
             {
                 gui.DrawText(FormatSliderValue(value, step),
-                fontSize ?? gui.CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value, centerInRect: false);
+                    gui.CurrentNodeScope.Get<LayoutNodeScopeTextSize>().Value, centerInRect: false);
             }
         }
+
+        if (gui.Pass == Pass.Pass2Render && !value.Equals(original))
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
+        return node;
     }
 
     static void RenderSlider(Gui gui, SliderState state, Rect rect, ref float value, float min, float max,

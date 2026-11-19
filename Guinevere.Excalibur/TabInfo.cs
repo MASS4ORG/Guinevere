@@ -17,6 +17,12 @@ class TabInfo
     /// </summary>
     public bool Closable { get; set; }
 
+    /// <summary>Whether the tab marks unsaved work; a <c>TabStrip</c> shows a dot where the close cross is.</summary>
+    public bool Modified { get; set; }
+
+    /// <summary>Called when a <c>TabStrip</c> tab is closed; the strip then leaves closing to the caller.</summary>
+    public Action? OnClose { get; set; }
+
     /// <summary>Builds the page shown while this tab is active.</summary>
     public Action? Content { get; set; }
 

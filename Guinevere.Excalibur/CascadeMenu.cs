@@ -15,26 +15,21 @@ public static partial class ControlsExtensions
     /// <param name="position">Screen position of the menu's top-left corner. Keep it stable across
     /// frames — example the pointer when the menu opens, not while it is open.</param>
     /// <param name="build">Fills the menu.</param>
-    /// <param name="fontSize">Item text size.</param>
-    /// <param name="padding">Horizontal padding inside a row.</param>
     /// <param name="classes">Stylesheet classes for this control.</param>
     /// <param name="id">Stable control and stylesheet identity; when given, also the top menu's node id.</param>
-    /// <param name="filePath">Call site, supplied by the compiler.</param>
-    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
     public static void CascadeMenu(this Gui gui, ref bool isOpen, Vector2 position,
         Action<FlyoutBuilder> build,
-        float fontSize = ControlMetrics.CompactFontSize,
-        float padding = ControlMetrics.ComfortableSpacing,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
-        padding = gui.ControlStyle.ComfortableSpacingOr(padding);
-
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(build);
+        var fontSize = gui.ControlStyle.CompactFontSize;
+        var padding = gui.ControlStyle.ComfortableSpacing;
 
         var explicitId = id;
         id ??= gui.AutomaticId(filePath, lineNumber);
@@ -45,7 +40,7 @@ public static partial class ControlsExtensions
         state.PopupId = explicitId;
 
         state.OpenIndex = isOpen ? 0 : -1;
-        PreparePopupMenuFrame(gui, state, isOpen);
+        PreparePopupMenuFrame(gui, state, isOpen, DefaultMenuAppearance(gui));
 
         if (state.FrameOpenIndex < 0)
         {

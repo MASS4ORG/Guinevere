@@ -46,7 +46,7 @@ public partial class App
 
 | Group | APIs | Purpose |
 |-------|------|---------|
-| Actions | `Button`, `IconButton`, `ImageButton` | Pointer and keyboard-activated buttons with focus feedback. |
+| Actions | `Button`, `ImageButton` | Pointer and keyboard-activated buttons with focus feedback. |
 | Selection | `Checkbox`, `Toggle`, `RadioButton`, `RadioGroup`, `Dropdown`, `MultiDropdown`, `EnumDropdown` | Boolean, exclusive, list and flag selection, with searchable multi-selection and enum presentations. |
 | Text and values | `TextInput`, `PasswordInput`, `TextArea`, `NumberField`, `Slider`, `ObjectField` | Text editing, scrub editing, numeric ranges, and compact object fields. |
 | Display | `Image`, `ProgressBar`, `WrappedText`, `Toast`, `Toasts`, `ClearToasts` | Images, progress, wrapping, and transient notifications. |
@@ -146,7 +146,7 @@ Token names are the palette's property names in kebab case (`SurfaceHover` → `
 | Control | Element | Classes | States and modifiers | Properties read |
 |---|---|---|---|---|
 | `Button` | `button` | caller classes; `primary` in the default sheet | `:hover`, `:active`, `:focus`, `:disabled` | `background-color`/`background`, `border-*`, `border-radius`, `padding` (fit size), `color`, `font-*`, `outline`, `box-shadow`, `opacity`, `cursor` |
-| `IconButton` | `button` | `icon` + caller classes | as `Button`, plus `:checked` (pass `checked` as a class) | as `Button` |
+| `Button(icon)` | `button` | `icon` + caller classes | as `Button`, plus `:checked` (pass `checked` as a class) | as `Button` |
 | `ImageButton` | `button` | `image` + caller classes | as `Button`; the images swap by state | as `Button`; the image is drawn under the border and outline |
 | `Checkbox` | `checkbox`, drawn child `indicator` | caller classes and `id` | `:hover`, `:active`, `:focus`, `:disabled`, `:checked`, `:mixed` | row `color`/`cursor`; indicator background, border, radius and color; focus `outline`; root box/text properties |
 | `RadioButton` | `radio`, drawn children `indicator`, `dot` | caller classes and `id` | `:hover`, `:active`, `:focus`, `:disabled`, `:checked` | as `Checkbox`; `dot` background/border/radius |
@@ -191,7 +191,7 @@ Default tokens: `$base-background`, `$surface`, `$surface-hover`, `$surface-acti
 
 ## Buttons and selection
 
-`IconButton(icon, "Readable action name")` accepts a core `Icon` containing a glyph, image or vector picture. Tintable pictures follow the button's PSS text color without depending on a particular icon font. The readable name is published to the control semantics sink. Menu titles/items also publish labels and checked/disabled state; dropdowns publish their label, value and open state and support Enter/Space, Up/Down, Home/End and Escape from the keyboard.
+`Button(icon.Labeled("Readable action name"))` accepts a core `Icon` containing a glyph, image or vector picture, and an icon-only button is a field-height square with the `icon` class. Tintable pictures follow the button's PSS text color without depending on a particular icon font. The readable name is published to the control semantics sink. Menu titles/items also publish labels and checked/disabled state; dropdowns publish their label, value and open state and support Enter/Space, Up/Down, Home/End and Escape from the keyboard.
 
 ```csharp
 if (gui.Button("Build")) Build();
@@ -214,8 +214,8 @@ private readonly string[] _tags = ["Gameplay", "UI", "Audio"];
 private IReadOnlyList<string> _selectedTags = [];
 
 // Inside Draw(Gui gui):
-var result = gui.MultiDropdown(_tags, _selectedTags, chips: true,
-    comparer: StringComparer.Ordinal, width: 240);
+gui.MultiDropdown(_tags, _selectedTags, out var result, chips: true,
+    comparer: StringComparer.Ordinal).Width(240);
 if (result.Changed) _selectedTags = result.Selected;
 ```
 
@@ -231,13 +231,13 @@ gui.EnumDropdown(ref _mode, EnumPresentation.Paging);
 
 Ordinary enums select one value. Flag edits add/remove only the chosen bits; selecting zero (None) clears the whole value. A None option is supplied when a flags enum has no declared zero. Paging wraps through distinct declared values in `Enum.GetValues` order, including sparse values; for flags it replaces the entire mask. Button groups occupy one horizontal row: use the dropdown for many or long labels. Pass `display` to provide custom labels.
 
-`EnumDropdown(ref value)` returns true when an edit is delivered. `MultiDropdownResult<T>.Changed` and enum edits are delivered once in the build pass, so persistence/undo can run inside that condition. For custom multi-object drawers, apply `result.Changes` to each owner and use `mixed`/`isMixed` for feedback. The runtime `EnumDropdown(Enum, out changes, ...)` overload and `EnumSelection.Apply` support enum drawers. Autoformers.Excalibur handles this automatically;
+`EnumDropdown(ref value)` returns its node, which reports `Changed` (and converts to `true`) in the render pass of the frame an edit is delivered. `MultiDropdownResult<T>.Changed` and enum edits are delivered once in the build pass, so persistence/undo can run inside that condition. For custom multi-object drawers, apply `result.Changes` to each owner and use `mixed`/`isMixed` for feedback. The runtime `EnumDropdown(Enum, out current, out changes, ...)` overload and `EnumSelection.Apply` support enum drawers. Autoformers.Excalibur handles this automatically;
 
 ## Text and numeric input
 
 ```csharp
-_name = gui.TextInput(_name, placeholder: "Project name");
-_notes = gui.TextArea(_notes, width: 420, height: 120);
+gui.TextInput(ref _name, placeholder: "Project name");
+gui.TextArea(ref _notes).Width(420).Height(120);
 gui.NumberField(ref _opacity, min: 0, max: 1, step: 0.05f);
 gui.Slider(ref _opacity, min: 0, max: 1, step: 0.05f, showValue: true);
 ```
@@ -256,6 +256,7 @@ gui.Tooltip(gui.CurrentNode, "More information");
 
 `Popup` and `Dialog` preserve focus context while open and restore the opener after they close.
 `Dialog` blocks the content behind it; `Popup` can opt into modal behavior through `ModalPopup`.
+Neither takes a size: a popup is one and a half fields wide and a dialog two fields wide, both fitting their content, unless a sheet or the returned node sets it (`gui.Dialog(...).Width(520).Height(320)`). They centre and clamp themselves from their last laid-out size, so a modal settles one frame after it first opens.
 
 ## File dialog
 
@@ -402,11 +403,91 @@ gui.DockSpace(layout,
 ```csharp
 if (gui.NineSliceEditor(image, ref border, id: "panel-slices"))
     SaveAssetBorder(border);
-gui.NineSlicePreview(image, border, width: 320, height: 100, guides: true);
+gui.NineSlicePreview(image, border, guides: true).Width(320).Height(100);
 gui.DrawImageNineSlice(image, destination, border);
 ```
 
 Keep `border` between frames. The editor returns true when that invocation changes the insets. Guide edits arrive in the build pass; numeric commits arrive in the render pass. The preview draws a transparency checkerboard and optional guides at the destination size. `NineSliceLayout` exposes the normalized border, source/destination center rectangles and corresponding patches for integrations such as Turian's asset inspector. `Insets` constructor order is left/top/right/bottom; stylesheet `background-slice` order is top/right/bottom/left.
+
+## Migrating to v7 widget API
+
+Widgets take `Content` for text, icons and nested widgets, return their node, and drop geometry parameters. Apply these rules to each call:
+
+- Widgets return a node: `ControlNode` for interactive widgets; `LayoutNode` for `Label`, `Tooltip`, `ProgressBar`, `NineSlicePreview`, `Dialog` and `Popup`.
+- `ControlNode` converts to `bool` (any signal this frame), so `if (gui.Button("OK"))` still works.
+- A chain returns a plain `LayoutNode`, which does not convert: read `.Clicked`, `.Changed` or `.Submitted` after it, for example `if (gui.Button("OK").Width(96).Clicked)`.
+- `Content` accepts strings, icon glyphs, `Icon` and `Content.Row(...)`; parameters named `text` become `content`.
+- `IconButton` is gone: `Button(icon)` makes an icon-only button, and `icon.Labeled("Save")` sets its accessible name.
+- Optional trailing `string? id = null` after `classes`; the default identity is the call site.
+- Geometry parameters are removed (`width`, `height`, `fontSize`, `padding`, `spacing`, `gap`, `itemHeight`, `minWidth`, `tabWidth`, `tabBarHeight`): size the returned node with `.Width()` and `.Height()`, or set the size in PSS. Defaults come from `ControlStyle`, so a call that relied on an old default size (for example `TextArea` at 300 by 100) must now set it.
+- A returned node cannot change text size already built, so `fontSize` moves to a PSS class or to a parent scope.
+- Non-`ref` value overloads are removed (`string TextInput(string)`, `bool Checkbox(bool)`, `int Dropdown(...)`, `int Tabs(...)`): pass `ref` instead.
+- `Dropdown`, `MultiDropdown`, `EnumDropdown` and `ObjectField` apply the selection in the build pass and report `Changed` in the render pass.
+- `Dialog` and `Popup` take `Content` for `title`; string calls still compile.
+- `NineSliceEditor` keeps `width` and `height`.
+
+| Old | New |
+|-----|-----|
+| `if (gui.Button("Run", width: 120, height: 32))` | `if (gui.Button("Run").Width(120).Height(32).Clicked)` |
+| `if (gui.IconButton("", size: 28))` | `if (gui.Button("").Width(28).Height(28).Clicked)` |
+| `if (gui.IconButton(icon, "Save", size: 28))` | `if (gui.Button(icon.Labeled("Save")).Width(28).Height(28).Clicked)` |
+| `gui.ImageButton(normal, hover, pressed, width: 64, height: 32)` | `gui.ImageButton(normal, hover, pressed).Width(64).Height(32)` |
+| `gui.ImageButton(normal, hover, pressed, text: "Play")` | `gui.ImageButton(normal, hover, pressed, content: "Play")` |
+| `gui.Checkbox(ref on, "Dark", size: 18, fontSize: 14)` | `gui.Checkbox(ref on, "Dark")` |
+| `gui.RadioButton(ref q, 1, "High", spacing: 8)` | `gui.RadioButton(ref q, 1, "High")` |
+| `gui.RadioGroup(ref q, options, gap: 8)` | `gui.RadioGroup(ref q, options)` |
+| `gui.Toggle(ref dark, "Dark mode", width: 60, height: 30)` | `gui.Toggle(ref dark, "Dark mode").Width(60).Height(30)` |
+| `gui.Label("Title", fontSize: 18, selectable: true)` | `gui.Label("Title", selectable: true)` |
+| `gui.Tooltip("More info", fontSize: 12)` | `gui.Tooltip("More info")` |
+| `gui.Tooltip(node, "More info", padding: 6)` | `gui.Tooltip(node, "More info")` |
+| `gui.Tabs(ref tab, tabs => ..., tabBarHeight: 40)` | `gui.Tabs(ref tab, tabs => ...)` |
+| `tab = gui.Tabs(tab, tabs => ...)` | `gui.Tabs(ref tab, tabs => ...)` |
+| `gui.TabBar(["Home", "Logs"], ref tab, height: 28)` | `gui.TabBar(ref tab, ["Home", "Logs"])` |
+| `gui.PillTabs(ref tab, tabs => ..., tabBarHeight: 40)` | `gui.PillTabs(ref tab, tabs => ...)` |
+| `gui.VerticalTabs(ref tab, tabs => ..., tabWidth: 120)` | `gui.VerticalTabs(ref tab, tabs => ...).Width(120)` |
+| `gui.TextInput(ref name, width: 240, height: 32, placeholder: "Name")` | `gui.TextInput(ref name, placeholder: "Name").Width(240).Height(32)` |
+| `name = gui.TextInput(name, width: 240)` | `gui.TextInput(ref name).Width(240)` |
+| `gui.PasswordInput(ref pw, width: 240, maskChar: '*')` | `gui.PasswordInput(ref pw, maskChar: '*').Width(240)` |
+| `gui.TextArea(ref notes, width: 420, height: 120)` | `gui.TextArea(ref notes).Width(420).Height(120)` |
+| `gui.NumberField(ref v, step: 0.1f, min: 0, max: 1, width: 120)` | `gui.NumberField(ref v, step: 0.1f, min: 0, max: 1).Width(120)` |
+| `gui.Slider(ref v, 0, 1, width: 200, height: 30)` | `gui.Slider(ref v, 0, 1).Width(200).Height(30)` |
+| `gui.Slider(ref v, 0, 1, step: 0.05f, showValue: true, fontSize: 12)` | `gui.Slider(ref v, 0, 1, step: 0.05f, showValue: true)` |
+| `gui.ProgressBar(0.4f, width: 200, height: 8)` | `gui.ProgressBar(0.4f).Width(200).Height(8)` |
+| `gui.Splitter(ref f, Axis.Horizontal, thickness: 8)` | `gui.Splitter(ref f, Axis.Horizontal).Width(8)` |
+| `var r = gui.ObjectField(name, "obj-ref", height: 28);` | `gui.ObjectField(name, out var r, id: "obj-ref").Height(28);` |
+| `gui.NineSlicePreview(image, border, width: 320, height: 100, guides: true)` | `gui.NineSlicePreview(image, border, guides: true).Width(320).Height(100)` |
+| `gui.Dropdown(["Draft", "Review"], ref status, width: 200)` | `gui.Dropdown(["Draft", "Review"], ref status).Width(200)` |
+| `status = gui.Dropdown(["Draft", "Review"], status, width: 200)` | `gui.Dropdown(["Draft", "Review"], ref status).Width(200)` |
+| `var result = gui.MultiDropdown(tags, selected, chips: true, width: 240);` | `gui.MultiDropdown(tags, selected, out var result, chips: true).Width(240);` |
+| `var current = gui.EnumDropdown(mode, out var changes, width: 160);` | `gui.EnumDropdown(mode, out var current, out var changes).Width(160);` |
+| `gui.Breadcrumb(items, height: 32, fontSize: 14)` | `gui.Breadcrumb(items).Height(32)` |
+| `new BreadcrumbItem("Assets", OpenAssets, Icon: "📁")` | `new BreadcrumbItem(Content.Row("📁", "Assets"), OpenAssets)` |
+| `gui.MenuBar(menus => ..., height: 28)` | `gui.MenuBar(menus => ...).Height(28)` |
+| `menus.Menu(text: "File", buildMenu: file => ...)` | `menus.Menu(title: "File", buildMenu: file => ...)` |
+| `file.Item(text: "New", action: NewFile, shortcut: "Ctrl+N")` | `file.Item(content: "New", action: NewFile, shortcut: "Ctrl+N")` |
+| `file.CheckItem(text: "Autosave", isChecked: () => on, onChange: v => on = v)` | `file.CheckItem(content: "Autosave", isChecked: () => on, onChange: v => on = v)` |
+| `file.Submenu(text: "Export", buildSubmenu: export => ...)` | `file.Submenu(content: "Export", buildSubmenu: export => ...)` |
+| `new FlyoutItem { Text = "Save", Action = save }` | `new FlyoutItem { Content = "Save", Key = "save", Action = save }` |
+| `menu.Item(text: "Copy", action: Copy)` | `menu.Item(content: "Copy", action: Copy)` |
+| `gui.Flyout(ref open, pos, build, minWidth: 180, itemHeight: 28)` | `gui.Flyout(ref open, pos, build)` |
+| `gui.ContextMenu(ref open, b => ..., itemHeight: 24, minWidth: 120)` | `gui.ContextMenu(ref open, b => ...)` |
+| `gui.CascadeMenu(ref open, pos, build, padding: 8)` | `gui.CascadeMenu(ref open, pos, build)` |
+| `gui.ColorArea(ref hsv, shape, width: 202, height: 102)` | `gui.ColorArea(ref hsv, shape).Width(202).Height(102)` (default: field width by 150) |
+| `gui.ColorStrip(ref hsv, HsvChannel.Hue, length: 240, thickness: 16)` | `gui.ColorStrip(ref hsv, HsvChannel.Hue).Width(240).Height(16)` (swap for `vertical: true`) |
+| `gui.ColorSwatches(ref hsv, colors, size: 24)` | `gui.ColorSwatches(ref hsv, colors)` (swatch size from the `swatch` rule; default 18) |
+| `gui.ColorPreview(after, before, width: 100, height: 20)` | `gui.ColorPreview(after, before).Width(100).Height(20)` (`.Clicked` restores) |
+| `gui.ColorHex(ref hsv, width: 280, height: 24)` | `gui.ColorHex(ref hsv).Width(280).Height(24)` |
+| `gui.ColorChannels(ref hsv, mode, height: 24)` | `gui.ColorChannels(ref hsv, mode)` |
+| `gui.ColorField(ref color, options, width: 240, height: 28)` | `gui.ColorField(ref color, options).Width(240).Height(28)` |
+| `gui.ColorPicker(ref color)` / `gui.ColorArea(...)` returning `bool` | the node converts to `bool`; after a chain read `.Changed` |
+| `gui.Popup(ref open, content, 300, 200, title: "T", position: p)` | `gui.Popup(ref open, content, title: "T", position: p).Width(300).Height(230)` (the old height was the body; the 30 high title bar is added) |
+| `gui.ModalPopup(ref open, content, width: 320, height: 180)` | `gui.ModalPopup(ref open, content).Width(320).Height(180)` |
+| `open = gui.Popup(open, content)` | `gui.Popup(ref open, content)` |
+| `gui.Dialog(ref open, "Title", content, 400, 300, footer: f)` | `gui.Dialog(ref open, "Title", content, footer: f).Width(400).Height(36 + 300 + 48)` (title bar 36, footer 48 are added to the old body height) |
+| `gui.FileDialog(files, width: 840, height: 460, fontSize: 13)` | `gui.FileDialog(files)` (840 wide, 460 body; size with `.Width()`/`.Height()` (body + 36 + 48), text size with the `ControlFontSize` scope token) |
+| `gui.FileBrowser(files, width: 504, height: 450, fontSize: 12)` | `gui.FileBrowser(files).Width(504).Height(450)` |
+| `gui.TabStrip(items, activeId, theme, "docs", trailing, onDrag)` | `gui.TabStrip(ref activeKey, tabs => tabs.Tab("Docs", key: "docs", closable: true, modified: dirty, onClose: Close), trailing, onDrag, id: "docs")`; picking a tab sets `activeKey` and raises `Changed` |
+| `new DockTheme { TabHeight = 28, FontSize = 13 }` | `DockTheme` keeps `TabIconSize`, `SplitterThickness`, `DropZoneFraction`; tab strips are `ControlStyle.CompactHeight + 2` high with compact text |
 
 ## License
 

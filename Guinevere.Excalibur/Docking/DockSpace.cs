@@ -70,7 +70,7 @@ public static partial class ControlsExtensions
 
             if (gui.Pass == Pass.Pass2Render && context.Activating is { } activating)
             {
-                Activate(context, activating.Leaf, activating.Item);
+                Activate(context, activating.Leaf, activating.PanelId);
             }
         }
     }
@@ -111,7 +111,17 @@ public static partial class ControlsExtensions
             }
 
             var fraction = split.Fraction;
-            if (gui.Splitter(ref fraction, split.Axis, context.Theme.SplitterThickness, classes: DockClass))
+            var divider = gui.Splitter(ref fraction, split.Axis, classes: DockClass);
+            if (horizontal)
+            {
+                divider.Width(context.Theme.SplitterThickness);
+            }
+            else
+            {
+                divider.Height(context.Theme.SplitterThickness);
+            }
+
+            if (divider.Changed)
             {
                 split.Fraction = fraction;
                 context.Layout.MarkChanged();
@@ -143,25 +153,18 @@ public static partial class ControlsExtensions
         {
             var leafRect = gui.CurrentNode.Rect;
 
-            var tabs = leaf.PanelIds
-                .Select(panelId => ToTabItem(context, leaf, panelId))
-                .ToList();
-
-            var outcome = gui.TabStrip(tabs, leaf.ActivePanelId, context.Theme.ToTabStripTheme(),
-                $"{path}/tabs",
+            var active = leaf.ActivePanelId;
+            var strip = gui.TabStrip(ref active, tabs => AddPanelTabs(context, leaf, tabs, $"{path}/tabs"),
                 g => context.RenderTabStripActions?.Invoke(
                     new DockTabStrip(leaf, leaf.ActivePanelId, g.CurrentNode.Rect), g),
-                (item, id) => DragTab(context, leaf, item, id));
+                (panelId, id) => DragTab(context, leaf, panelId, id), id: $"{path}/tabs");
 
-            if (outcome.Activated is { } activated)
+            if (strip.Changed && active is not null)
             {
-                context.Activating = (leaf, activated);
+                context.Activating = (leaf, active);
             }
 
-            if (outcome.Closed is { } closed)
-            {
-                context.Closing = closed.Id;
-            }
+            var tabHeight = strip.Rect.H > 0 ? strip.Rect.H : gui.ControlStyle.CompactHeight + 2f;
 
             using (gui.StyledNode("dock-panel", id: $"{path}/body").Expand().Enter())
             {
@@ -173,20 +176,38 @@ public static partial class ControlsExtensions
                 }
             }
 
-            DropZones(context, leaf, new Rect(leafRect.X, leafRect.Y + theme.TabHeight,
-                leafRect.W, Math.Max(0, leafRect.H - theme.TabHeight)));
+            DropZones(context, leaf, new Rect(leafRect.X, leafRect.Y + tabHeight,
+                leafRect.W, Math.Max(0, leafRect.H - tabHeight)));
         }
     }
 
-    static TabStripItem ToTabItem(DockContext context, DockLeaf leaf, string panelId)
+    /// <summary>Adds one tab per panel of the leaf; the panel's icon draws in a square before its title.</summary>
+    static void AddPanelTabs(DockContext context, DockLeaf leaf, TabBuilder tabs, string tabsId)
     {
-        var info = context.PanelInfo(panelId) ?? new DockPanelInfo(panelId);
-        return new TabStripItem(panelId, info.Title, info.Closable, Icon: info.Icon, Tag: leaf);
+        foreach (var panelId in leaf.PanelIds)
+        {
+            var info = context.PanelInfo(panelId) ?? new DockPanelInfo(panelId);
+            var iconId = $"{tabsId}/{panelId}/icon";
+            var title = info.Icon is { } icon
+                ? Content.Row(Content.Build(() => DrawPanelIcon(context, icon, iconId)), info.Title)
+                : (Content)info.Title;
+            tabs.Tab(title.Labeled(info.Title), closable: info.Closable, key: panelId,
+                onClose: () => context.Closing = panelId);
+        }
     }
 
-    static void Activate(DockContext context, DockLeaf leaf, TabStripItem item)
+    static void DrawPanelIcon(DockContext context, Action<Gui> icon, string id)
     {
-        var index = leaf.PanelIds.IndexOf(item.Id);
+        var size = context.Theme.TabIconSize;
+        using (context.Gui.Node(size, size, id).Enter())
+        {
+            icon(context.Gui);
+        }
+    }
+
+    static void Activate(DockContext context, DockLeaf leaf, string panelId)
+    {
+        var index = leaf.PanelIds.IndexOf(panelId);
         if (index < 0 || index == leaf.ActiveIndex)
         {
             return;
@@ -197,21 +218,22 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Starts a tab drag, and accepts a drop from a sibling tab as a reorder.</summary>
-    static bool DragTab(DockContext context, DockLeaf leaf, TabStripItem item, string id)
+    static bool DragTab(DockContext context, DockLeaf leaf, string panelId, string id)
     {
         var gui = context.Gui;
+        var title = (context.PanelInfo(panelId) ?? new DockPanelInfo(panelId)).Title;
 
-        var dragging = gui.DragSource(id, new DockTabPayload(item.Id, leaf), ghost: g =>
+        var dragging = gui.DragSource(id, new DockTabPayload(panelId, leaf), ghost: g =>
         {
-            using (g.StyledNode("dock-ghost").Width(120).Height(context.Theme.TabHeight).Enter())
+            using (g.StyledNode("dock-ghost").Width(120).Height(g.ControlStyle.CompactHeight + 2f).Enter())
             {
-                g.DrawText(item.Label, context.Theme.FontSize);
+                g.DrawText(title, g.ControlStyle.CompactFontSize);
             }
         });
 
-        var index = leaf.PanelIds.IndexOf(item.Id);
+        var index = leaf.PanelIds.IndexOf(panelId);
         var drop = gui.DropTarget<DockTabPayload>(gui.CurrentNode.Rect, id,
-            canAccept: payload => ReferenceEquals(payload.Leaf, leaf) && payload.PanelId != item.Id,
+            canAccept: payload => ReferenceEquals(payload.Leaf, leaf) && payload.PanelId != panelId,
             onDrop: payload =>
             {
                 DockLayout.Reorder(leaf, leaf.PanelIds.IndexOf(payload.PanelId), index);
@@ -395,7 +417,7 @@ public static partial class ControlsExtensions
 
         using (gui.StyledNode("dock-empty", id: "dock:empty").Expand().Enter())
         {
-            gui.DrawText("No panels open", context.Theme.FontSize);
+            gui.DrawText("No panels open", gui.ControlStyle.CompactFontSize);
         }
     }
 
@@ -418,6 +440,6 @@ public static partial class ControlsExtensions
         public DockTheme Theme { get; } = theme;
         public Action<DockTabStrip, Gui>? RenderTabStripActions { get; } = renderTabStripActions;
         public string? Closing { get; set; }
-        public (DockLeaf Leaf, TabStripItem Item)? Activating { get; set; }
+        public (DockLeaf Leaf, string PanelId)? Activating { get; set; }
     }
 }

@@ -105,7 +105,7 @@ public class ContentTests
         Assert.Equal("Save", ((Content)"Save").Label);
         Assert.Equal("x", ((Content)'x').Label);
         Assert.Null(icon.Label);
-        Assert.Null(Content.Build(() => { }).Label);
+        Assert.Null(Content.Build(static () => { }).Label);
         Assert.Equal("Done", icon.Labeled("Done").Label);
         Assert.Equal("badge", Content.From(new Badge()).Label);
         Assert.Equal("badge Save", Content.Row(icon, Content.From(new Badge()), "Save").Label);
@@ -117,10 +117,10 @@ public class ContentTests
     [Fact]
     public void FactoriesRejectNull()
     {
-        Assert.Throws<ArgumentNullException>(() => Content.Text(null!));
-        Assert.Throws<ArgumentNullException>(() => Content.Build(null!));
-        Assert.Throws<ArgumentNullException>(() => Content.From(null!));
-        Assert.Throws<ArgumentNullException>(() => Content.Row(null!));
+        Assert.Throws<ArgumentNullException>(static () => Content.Text(null!));
+        Assert.Throws<ArgumentNullException>(static () => Content.Build(null!));
+        Assert.Throws<ArgumentNullException>(static () => Content.From(null!));
+        Assert.Throws<ArgumentNullException>(static () => Content.Row(null!));
     }
 
     /// <summary>A consumer type that draws a fixed-size node and names itself.</summary>

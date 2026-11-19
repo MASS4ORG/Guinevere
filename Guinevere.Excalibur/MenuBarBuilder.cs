@@ -17,19 +17,21 @@ public class MenuBarBuilder
     }
 
     /// <summary>
-    /// Adds a menu whose <paramref name="text"/> is shown in the bar. Clicking the title drops the
+    /// Adds a menu whose <paramref name="title"/> is shown in the bar. Clicking the title drops the
     /// menu below it.
     /// </summary>
-    public MenuBarBuilder Menu(string text, Action<FlyoutBuilder> buildMenu)
+    /// <param name="title">What the bar shows for the menu; its label also keys the menu.</param>
+    /// <param name="buildMenu">Fills the menu.</param>
+    public MenuBarBuilder Menu(Content title, Action<FlyoutBuilder> buildMenu)
     {
         ArgumentNullException.ThrowIfNull(buildMenu);
 
         var builder = new FlyoutBuilder();
         buildMenu(builder);
-        Menus.Add(new MenuBarMenu(text, builder.Items));
+        Menus.Add(new MenuBarMenu(title, FlyoutItem.KeyFor(title, Menus.Count), builder.Items));
         return this;
     }
 }
 
-/// <summary>One top-level menu: its bar title and the items that drop down below it.</summary>
-sealed record MenuBarMenu(string Title, List<FlyoutItem> Items);
+/// <summary>One top-level menu: its bar title, its key and the items that drop down below it.</summary>
+sealed record MenuBarMenu(Content Title, string Key, List<FlyoutItem> Items);

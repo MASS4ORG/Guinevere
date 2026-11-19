@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 public static partial class ControlsExtensions
@@ -5,11 +7,14 @@ public static partial class ControlsExtensions
     /// <summary>Horizontal padding inside a crumb, leaving room for the hover underline.</summary>
     const float CrumbPadding = 8f;
 
-    /// <summary>The gap between a crumb's icon and its label.</summary>
-    const float CrumbIconGap = 4f;
+    /// <summary>Vertical padding inside a crumb and its separator, which sets the bar's height around the text.</summary>
+    const float CrumbPaddingY = 4f;
 
     /// <summary>The chevron drawn between crumbs.</summary>
     const string Chevron = "›";
+
+    static readonly string[] LinkModifier = ["link"];
+    static readonly string[] CurrentModifier = ["current"];
 
     sealed class BreadcrumbMenuState
     {
@@ -23,155 +28,82 @@ public static partial class ControlsExtensions
     /// Draws a breadcrumb trail from left to right. Every crumb with an
     /// <see cref="BreadcrumbItem.OnClick"/> that is not marked <see cref="BreadcrumbItem.IsCurrent"/> is
     /// a link: hovered it highlights, clicked it invokes the action, and a focused crumb fires on
-    /// Space/Enter. The current page is drawn as plain non-interactive text. A crumb may carry an
-    /// <see cref="BreadcrumbItem.Icon"/> and a set of <see cref="BreadcrumbItem.Children"/>; when
-    /// children are present the "›" to the crumb's left opens a context menu listing them.
+    /// Space/Enter. The current page is drawn as plain non-interactive text. A crumb shows any
+    /// <see cref="Content"/> and may carry a set of <see cref="BreadcrumbItem.Children"/>; when
+    /// children are present the "›" to the crumb's left opens a context menu listing them. The bar fits its crumbs;
+    /// the text takes the control font size unless a sheet sets one.
     /// </summary>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="items">The trail, root first. The last item is usually the current page.</param>
-    /// <param name="height">Height of the bar.</param>
     /// <param name="classes">Stylesheet classes for the breadcrumb.</param>
-    /// <param name="id">Stable stylesheet identity.</param>
-    /// <param name="fontSize">Crumb and chevron size.</param>
-    public static void Breadcrumb(this Gui gui,
-        IReadOnlyList<BreadcrumbItem> items,
-        float height = 28,
-        float fontSize = 13,
-        IReadOnlyList<string>? classes = null, string? id = null)
+    /// <param name="id">Optional id for <c>breadcrumb#id</c> rules and a stable identity; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The bar's node, <see cref="LayoutNode.Clicked"/> (and as a <c>bool</c>) on a frame a crumb or a menu entry ran its action.</returns>
+    public static ControlNode Breadcrumb(this Gui gui, IReadOnlyList<BreadcrumbItem> items,
+        IReadOnlyList<string>? classes = null, string? id = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(items);
-        if (items.Count == 0)
-        {
-            return;
-        }
 
         ExcaliburStyles.Ensure(gui);
+        var bar = gui.StyledControl("breadcrumb", classes, id, filePath: filePath, lineNumber: lineNumber);
+        UseControlFontSize(gui, bar);
+        FitUnlessStyled(bar);
+        bar.Direction(Axis.Horizontal).AlignContentY(0.5f);
 
-        using var font = new SKFont { Size = fontSize };
-
-        using (gui.StyledNode("breadcrumb", classes, id).Height(height).Direction(Axis.Horizontal).Enter())
+        using (bar.Enter())
         {
             for (var i = 0; i < items.Count; i++)
             {
+                using var key = gui.ItemKey(i);
                 if (i > 0)
                 {
-                    RenderBreadcrumbSeparator(gui, items[i - 1], i, font, height);
+                    RenderBreadcrumbSeparator(gui, bar, items[i - 1], i);
                 }
 
-                RenderBreadcrumbCrumb(gui, items[i], i, font, height);
+                RenderBreadcrumbCrumb(gui, bar, items[i]);
             }
         }
+
+        return bar;
     }
 
-    static void RenderBreadcrumbCrumb(Gui gui, BreadcrumbItem item, int index, SKFont font,
-        float height)
+    static void RenderBreadcrumbCrumb(Gui gui, LayoutNode bar, BreadcrumbItem item)
     {
         var interactive = item is { IsCurrent: false, OnClick: not null };
-        var width = MeasureCrumbContent(gui, item, font.Size) + (CrumbPadding * 2);
 
-        using (gui.StyledNode("crumb", id: $"breadcrumb/{index}", modifiers: interactive ? ["link"] : ["current"])
-                   .Width(width).Height(height).AlignContent(0.5f, 0.5f).Enter())
+        var crumb = gui.StyledNode("crumb", modifiers: interactive ? LinkModifier : CurrentModifier);
+        FitUnlessStyled(crumb);
+        PadUnlessStyled(crumb, CrumbPadding, CrumbPaddingY);
+        using (crumb.Direction(Axis.Horizontal).AlignContent(0.5f, 0.5f).Enter())
         {
-            var hovered = false;
-            var clicked = false;
+            gui.Content(item.Content);
 
             if (gui.Pass == Pass.Pass2Render && interactive)
             {
-                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-                var interactable = gui.GetInteractable();
-                hovered = interactable.OnHover();
-
-                if (interactable.OnClick())
-                {
-                    gui.RequestFocus(FocusReason.Mouse);
-                    clicked = true;
-                }
-                else if (gui.HasFocus() && (gui.Input.IsKeyPressed(KeyboardKey.Space) ||
-                                            gui.Input.IsKeyPressed(KeyboardKey.Enter)))
-                {
-                    clicked = true;
-                }
-            }
-
-            var color = gui.CurrentNode.Scope.Get<LayoutNodeScopeTextColor>().Value;
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                DrawBreadcrumbContent(gui, item, font.Size, color);
-            }
-
-            if (interactive && clicked)
-            {
-                item.OnClick?.Invoke();
-            }
-
-            if (gui.Pass == Pass.Pass2Render && interactive && (hovered || clicked || gui.HasFocus()))
-            {
-                DrawBreadcrumbUnderline(gui);
+                HandleBreadcrumbCrumbInteraction(gui, bar, item);
             }
         }
     }
 
-    /// <summary>The width the crumb content needs, measuring through the same main/icon font fallback
-    /// that <c>Gui.DrawText</c> uses so an icon glyph sizes its share of the crumb correctly.</summary>
-    static float MeasureCrumbContent(Gui gui, BreadcrumbItem item, float fontSize)
+    /// <summary>Handles a link crumb's focus, click and hover underline.</summary>
+    static void HandleBreadcrumbCrumbInteraction(Gui gui, LayoutNode bar, BreadcrumbItem item)
     {
-        return MeasureCrumbPiece(gui, item.Icon ?? "", fontSize)
-               + (item.Icon is null ? 0 : CrumbIconGap)
-               + MeasureCrumbPiece(gui, item.Label, fontSize);
-    }
-
-    static float MeasureCrumbPiece(Gui gui, string text, float fontSize)
-    {
-        var width = 0f;
-        foreach (var (runText, runFont) in TextRuns(gui, text, fontSize))
+        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+        var hovered = gui.GetInteractable().OnHover();
+        var clicked = Activated(gui);
+        if (clicked)
         {
-            runFont.SkFont.MeasureText(runText, out var bounds);
-            width += bounds.Width;
-        }
-        return width;
-    }
-
-    /// <summary>Draws the icon (if any) and the label as one run-split, vertically centered block.</summary>
-    static void DrawBreadcrumbContent(Gui gui, BreadcrumbItem item, float fontSize, Color color)
-    {
-        var rect = gui.CurrentNode.Rect;
-        var totalWidth = MeasureCrumbContent(gui, item, fontSize);
-        var cursorX = rect.X + (rect.W - totalWidth) * 0.5f;
-
-        if (item.Icon is not null)
-        {
-            cursorX = DrawCrumbRuns(gui, item.Icon, fontSize, color, cursorX, rect);
+            bar.Raise(NodeSignals.Clicked);
+            item.OnClick?.Invoke();
         }
 
-        DrawCrumbRuns(gui, item.Label, fontSize, color, cursorX, rect);
-    }
-
-    static float DrawCrumbRuns(Gui gui, string text, float fontSize, Color color, float x, Rect rect)
-    {
-        var paint = new SKPaint { Color = color, IsAntialias = true };
-        var runs = TextRuns(gui, text, fontSize);
-
-        var ascent = 0f;
-        var descent = 0f;
-        foreach (var (runText, runFont) in runs)
+        if (hovered || clicked || gui.HasFocus())
         {
-            runFont.SkFont.MeasureText(runText, out var bounds);
-            ascent = Math.Max(ascent, -bounds.Top);
-            descent = Math.Max(descent, bounds.Bottom);
+            DrawBreadcrumbUnderline(gui);
         }
-
-        var baselineY = rect.Y + (rect.H - (ascent + descent)) * 0.5f + ascent;
-        var cursor = x;
-
-        foreach (var (runText, runFont) in runs)
-        {
-            gui.CurrentNode.DrawList.Add(new Text(runText, new Vector2(cursor, baselineY), runFont.SkFont, paint));
-            runFont.SkFont.MeasureText(runText, out var bounds);
-            cursor += bounds.Width;
-        }
-
-        return cursor + CrumbIconGap;
     }
 
     static void DrawBreadcrumbUnderline(Gui gui)
@@ -185,42 +117,39 @@ public static partial class ControlsExtensions
     /// The chevron between crumbs. When the crumb to its left carries children it is clickable: a
     /// hover highlights it and a click opens a context menu listing those children under the bar.
     /// </summary>
-    static void RenderBreadcrumbSeparator(Gui gui, BreadcrumbItem leftItem, int index, SKFont font,
-        float height)
+    static void RenderBreadcrumbSeparator(Gui gui, LayoutNode bar, BreadcrumbItem leftItem, int index)
     {
         var hasChildren = leftItem.Children is { Count: > 0 };
-        var state = gui.ControlState($"breadcrumb/menu/{index}", () => new BreadcrumbMenuState());
+        var state = gui.ControlState($"{bar.Id}/menu/{index}", static () => new BreadcrumbMenuState());
 
-        var clicked = false;
-        var hovered = false;
-
-        using (gui.StyledNode("crumb-separator", id: $"breadcrumb/sep/{index}",
-                       modifiers: hasChildren && state.IsOpen ? ["open"] : []).Width(MeasureTextWidth(font, Chevron)).Height(height)
-                   .Margin(2, 0).AlignContent(0.5f, 0.5f).Enter())
+        var clicked = RenderBreadcrumbChevron(gui, state, hasChildren);
+        if (hasChildren)
         {
-            if (gui.Pass == Pass.Pass2Render && hasChildren)
-            {
-                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-                var interactable = gui.GetInteractable();
-                hovered = interactable.OnHover();
+            RenderBreadcrumbChildrenMenu(gui, bar, leftItem, state, clicked);
+        }
+    }
 
-                if (interactable.OnClick())
-                {
-                    gui.RequestFocus(FocusReason.Mouse);
-                    clicked = true;
-                }
-                else if (gui.HasFocus() && (gui.Input.IsKeyPressed(KeyboardKey.Space) ||
-                                            gui.Input.IsKeyPressed(KeyboardKey.Enter)))
-                {
-                    clicked = true;
-                }
-            }
+    /// <summary>Draws the chevron, toggles the children menu on click and returns true when clicked.</summary>
+    static bool RenderBreadcrumbChevron(Gui gui, BreadcrumbMenuState state, bool hasChildren)
+    {
+        var clicked = false;
+
+        var separator = gui.StyledNode("crumb-separator",
+            modifiers: hasChildren && state.IsOpen ? OpenModifier : NoModifiers);
+        FitUnlessStyled(separator);
+        using (separator.Margin(2, 0).Padding(0, CrumbPaddingY).AlignContent(0.5f, 0.5f).Enter())
+        {
+            gui.DrawText(Chevron, centerInRect: true);
 
             if (gui.Pass == Pass.Pass2Render)
             {
                 var rect = gui.CurrentNode.Rect;
                 state.Anchor = new Vector2(rect.X, rect.Y + rect.H);
-                gui.DrawText(Chevron, font.Size, centerInRect: true);
+                if (hasChildren)
+                {
+                    gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+                    clicked = Activated(gui);
+                }
             }
 
             if (clicked)
@@ -229,11 +158,13 @@ public static partial class ControlsExtensions
             }
         }
 
-        if (!hasChildren)
-        {
-            return;
-        }
+        return clicked;
+    }
 
+    /// <summary>Lists a crumb's children in a context menu anchored at its chevron.</summary>
+    static void RenderBreadcrumbChildrenMenu(Gui gui, LayoutNode bar, BreadcrumbItem leftItem,
+        BreadcrumbMenuState state, bool clicked)
+    {
         // Menu opening is deferred by one frame: the press that opened it must not be read on that
         // same frame as a click outside the menu, which would dismiss it before it ever shows.
         var isOpen = state.IsOpen && !clicked;
@@ -241,7 +172,11 @@ public static partial class ControlsExtensions
         {
             foreach (var child in leftItem.Children!)
             {
-                builder.Item(child.Label, () => child.OnClick?.Invoke());
+                builder.Item(child.Content.Label ?? "", () =>
+                {
+                    bar.Raise(NodeSignals.Clicked);
+                    child.OnClick?.Invoke();
+                });
             }
         }, position: state.Anchor);
         if (!clicked)

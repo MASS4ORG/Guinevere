@@ -204,7 +204,7 @@ public abstract partial class Program
             return;
         }
 
-        using (gui.Node(18, DockTheme.TabHeight, $"dock-actions/{panelId}").Enter())
+        using (gui.Node(18, ControlMetrics.CompactHeight + 2f, $"dock-actions/{panelId}").Enter())
         {
             var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: "Panel actions"),
                 state =>

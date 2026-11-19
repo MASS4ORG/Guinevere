@@ -43,7 +43,7 @@ public sealed partial class FsmScene
         using (gui.Node().ExpandWidth().Height(Size.Fit).Direction(Axis.Horizontal).Gap(8).Enter())
         {
             gui.Dropdown([.. Domain.Signals.Select(static signal => signal.DisplayName)], ref _signalIndex,
-                width: 210, height: 28, placeholder: "Signal");
+                placeholder: "Signal").Width(210).Height(28);
             button("Send to instance", "fsm-send", RaiseSelected);
         }
         var transitionNode = InspectedTransition();

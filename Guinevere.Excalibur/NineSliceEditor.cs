@@ -10,11 +10,31 @@ public static partial class ControlsExtensions
         internal float Initial;
     }
 
+    sealed class SliceEditorState
+    {
+        internal bool ChangedInBuild;
+    }
+
     /// <summary>Edits caller-owned source-pixel insets with four draggable guides and numeric fields.</summary>
-    /// <remarks>The caller owns the image and persists the insets; edits are clamped to its dimensions.</remarks>
-    public static bool NineSliceEditor(this Gui gui, SKImage image, ref Insets border,
-        float width = 256, float height = 256, bool enabled = true, string? id = null,
-        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+    /// <remarks>
+    /// The caller owns the image and persists the insets; edits are clamped to its dimensions. The guides are
+    /// placed by hand over the image, so <paramref name="width"/> and <paramref name="height"/> are the editing
+    /// canvas, not outer layout.
+    /// </remarks>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="image">The image whose insets are edited.</param>
+    /// <param name="border">The insets, in source pixels, clamped to the image.</param>
+    /// <param name="width">Width of the editing canvas, above 24.</param>
+    /// <param name="height">Height of the editing canvas, above 24.</param>
+    /// <param name="enabled">When false the guides and fields ignore input.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="id">Optional id for <c>nine-slice-editor#id</c> rules and a stable identity; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The editor's node, <see cref="LayoutNode.Changed"/> (and as a <c>bool</c>) on a frame an inset changed.</returns>
+    public static ControlNode NineSliceEditor(this Gui gui, SKImage image, ref Insets border,
+        float width = 256, float height = 256, bool enabled = true, IReadOnlyList<string>? classes = null,
+        string? id = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(image);
@@ -23,7 +43,11 @@ public static partial class ControlsExtensions
         ExcaliburStyles.Ensure(gui);
         var before = border;
         border = new NineSliceLayout(image.Width, image.Height, default, border).Border;
-        using (gui.Node(width, id: id ?? gui.AutomaticId(filePath, lineNumber)).Gap(8).Enter())
+        var node = gui.StyledControl("nine-slice-editor", classes, id, disabled: !enabled, filePath: filePath,
+            lineNumber: lineNumber);
+        SizeUnlessStyled(node, width, Size.FitContent());
+        node.Gap(8);
+        using (node.Enter())
         {
             SourceEditor(gui, image, ref border, width, height, enabled);
             SliceField(gui, "Left", ref border, 0, image.Width - border.Right, enabled);
@@ -31,18 +55,34 @@ public static partial class ControlsExtensions
             SliceField(gui, "Right", ref border, 2, image.Width - border.Left, enabled);
             SliceField(gui, "Bottom", ref border, 3, image.Height - border.Top, enabled);
         }
-        return border != before;
+
+        // Guides move in the build pass, so the render pass reads that outcome from the state, not from the insets.
+        var state = gui.ControlState(node.Id, static () => new SliceEditorState());
+        var changed = border != before;
+        if (gui.Pass == Pass.Pass1Build)
+        {
+            state.ChangedInBuild = changed;
+        }
+
+        if (gui.Pass == Pass.Pass2Render && (changed || state.ChangedInBuild))
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
+        return node;
     }
 
-    /// <summary>Draws a scaled nine-slice preview with optional guides showing the preserved corners.</summary>
-    public static LayoutNode NineSlicePreview(this Gui gui, SKImage image, Insets border,
-        float width = 256, float height = 128, bool guides = true, string? id = null,
-        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+    /// <summary>
+    /// Draws a scaled nine-slice preview with optional guides showing the preserved corners. It is 256 by 128 unless
+    /// sized on the returned node.
+    /// </summary>
+    public static LayoutNode NineSlicePreview(this Gui gui, SKImage image, Insets border, bool guides = true,
+        string? id = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(image);
         ExcaliburStyles.Ensure(gui);
-        var node = gui.Node(width, height, id ?? gui.AutomaticId(filePath, lineNumber));
+        var node = gui.Node(256, 128, id ?? gui.AutomaticId(filePath, lineNumber));
         using (node.Enter())
         {
             SliceChecker(gui, node.Rect);
@@ -151,7 +191,7 @@ public static partial class ControlsExtensions
         {
             gui.DrawText(label, color: ExcaliburStyles.TokenColor(gui, "text")).Width(64);
             double value = SliceEdge(border, edge);
-            if (gui.NumberField(ref value, min: 0, max: maximum, width: 120, enabled: enabled))
+            if (gui.NumberField(ref value, min: 0, max: maximum, enabled: enabled).Width(120).Changed)
             {
                 border = SetSliceEdge(border, edge, (float)value);
             }

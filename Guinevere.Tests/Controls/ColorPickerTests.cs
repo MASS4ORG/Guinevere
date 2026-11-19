@@ -35,7 +35,7 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(300, 200);
         var value = new Hsva(120f, 0f, 0f);
-        void Draw(Gui g) => g.ColorArea(ref value, width: 202, height: 102);
+        void Draw(Gui g) => g.ColorArea(ref value).Width(202).Height(102);
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(151, 26));
 
@@ -50,7 +50,7 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(300, 200);
         var value = new Hsva(10f, 0.5f, 0.5f);
-        void Draw(Gui g) => g.ColorArea(ref value, width: 202, height: 102);
+        void Draw(Gui g) => g.ColorArea(ref value).Width(202).Height(102);
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(50, 50));
         harness.Input.PressButton();
@@ -69,7 +69,7 @@ public class ColorPickerTests
         using var harness = new FrameHarness(300, 200);
         var value = new Hsva(0f, 0.5f, 0.5f);
         var changed = false;
-        void Draw(Gui g) => changed = g.ColorArea(ref value, width: 202, height: 102, id: "area");
+        void Draw(Gui g) => changed = g.ColorArea(ref value, id: "area").Width(202).Height(102).Changed;
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(101, 51));
         harness.Input.PressKey(KeyboardKey.Right);
@@ -89,7 +89,7 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(300, 200);
         var value = new Hsva(0f, 0.5f, 0.5f);
-        void Draw(Gui g) => g.ColorArea(ref value, width: 202, height: 102, enabled: false);
+        void Draw(Gui g) => g.ColorArea(ref value, enabled: false).Width(202).Height(102);
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(10, 10));
 
@@ -106,7 +106,8 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(300);
         var value = new Hsva(0f, 0f, 0f, 0f);
-        void Draw(Gui g) => g.ColorStrip(ref value, channel, vertical, length: 202, thickness: 16);
+        void Draw(Gui g) => g.ColorStrip(ref value, channel, vertical).Width(vertical ? 16 : 202)
+            .Height(vertical ? 202 : 16);
         harness.Frame(Draw);
         var at = vertical ? new Vector2(8, 1 + (1 - fraction) * 200) : new Vector2(1 + fraction * 200, 8);
         harness.Click(Draw, at);
@@ -120,7 +121,7 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(300);
         var value = new Hsva(0f, 0f, 0.5f);
-        void Draw(Gui g) => g.ColorStrip(ref value, HsvChannel.Value, vertical: true, length: 202);
+        void Draw(Gui g) => g.ColorStrip(ref value, HsvChannel.Value, vertical: true).Height(202);
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(7, 101));
         harness.Input.PressKey(KeyboardKey.Up);
@@ -135,7 +136,7 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(300, 100);
         var value = Hsva.FromColor(Color.ParseHex("#000000ff"));
-        void Draw(Gui g) => g.ColorHex(ref value, width: 280, id: "hex");
+        void Draw(Gui g) => g.ColorHex(ref value, id: "hex").Width(280);
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(60, 12));
         SelectAll(harness, Draw);
@@ -161,7 +162,7 @@ public class ColorPickerTests
         var value = Hsva.FromColor(Color.ParseHex("#336699ff"));
         void Draw(Gui g)
         {
-            g.ColorHex(ref value, width: 280, id: "hex");
+            g.ColorHex(ref value, id: "hex").Width(280);
             g.Node(50, 50);
         }
         harness.Frame(Draw);
@@ -183,7 +184,7 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(300, 100);
         var value = Hsva.FromColor(Color.ParseHex("#a855f780"));
-        void Draw(Gui g) => g.ColorHex(ref value, width: 280, height: 24, id: "hex");
+        void Draw(Gui g) => g.ColorHex(ref value, id: "hex").Width(280).Height(24);
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(244, 12));
         Assert.Equal("#a855f780", harness.Input.GetClipboardText());
@@ -200,7 +201,7 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(300, 100);
         var value = Hsva.FromColor(Color.ParseHex("#a855f780"));
-        void Draw(Gui g) => g.ColorHex(ref value, alpha: false, width: 280, height: 24, id: "hex");
+        void Draw(Gui g) => g.ColorHex(ref value, alpha: false, id: "hex").Width(280).Height(24);
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(244, 12));
         Assert.Equal("#a855f7", harness.Input.GetClipboardText());
@@ -255,7 +256,7 @@ public class ColorPickerTests
         var value = new Hsva(200f, 0f, 0.5f);
         var picked = false;
         Color[] colors = [Color.ParseHex("#ff0000"), Color.ParseHex("#00ff00")];
-        void Draw(Gui g) => picked |= g.ColorSwatches(ref value, colors);
+        void Draw(Gui g) => picked |= g.ColorSwatches(ref value, colors).Changed;
         harness.Frame(Draw);
         var second = Require(harness.Gui, "swatches").Children[1];
         harness.Click(Draw, FrameHarness.Center(second));
@@ -270,7 +271,7 @@ public class ColorPickerTests
     {
         using var harness = new FrameHarness(200, 100);
         var restore = false;
-        void Draw(Gui g) => restore |= g.ColorPreview(Color.Red, Color.Blue, width: 100, height: 20);
+        void Draw(Gui g) => restore |= g.ColorPreview(Color.Red, Color.Blue).Width(100).Height(20).Clicked;
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(75, 10));
         Assert.False(restore);
@@ -313,7 +314,7 @@ public class ColorPickerTests
         using var harness = new FrameHarness(500, 600);
         var color = Color.ParseHex("#ff0000");
         var changed = false;
-        void Draw(Gui g) => changed |= g.ColorField(ref color, id: "field");
+        void Draw(Gui g) => changed |= g.ColorField(ref color, id: "field").Changed;
         harness.Frame(Draw);
         var swatch = Require(harness.Gui, "swatch");
         harness.Click(Draw, FrameHarness.Center(swatch));
@@ -356,7 +357,7 @@ public class ColorPickerTests
         using var harness = new FrameHarness(300, 200);
         var shape = new HueBarShape();
         var value = new Hsva(0f, 1f, 1f);
-        void Draw(Gui g) => g.ColorArea(ref value, shape, width: 202, height: 52);
+        void Draw(Gui g) => g.ColorArea(ref value, shape).Width(202).Height(52);
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(101, 20));
 
@@ -371,11 +372,11 @@ public class ColorPickerTests
         using var harness = new FrameHarness(300);
         var options = new ColorPickerOptions
         {
-            Body = (Gui g, ref Hsva v, Color? _) => g.ColorStrip(ref v, HsvChannel.Hue, length: 202)
+            Body = (Gui g, ref Hsva v, Color? _) => g.ColorStrip(ref v, HsvChannel.Hue).Width(202).Changed
         };
         var value = new Hsva(0f, 1f, 1f);
         var changed = false;
-        void Draw(Gui g) => changed |= g.ColorPicker(ref value, options);
+        void Draw(Gui g) => changed |= g.ColorPicker(ref value, options).Changed;
         harness.Frame(Draw);
         Assert.Null(Find(harness.Gui.RootNode!, "color-area"));
         var strip = Require(harness.Gui, "color-strip");
@@ -395,8 +396,8 @@ public class ColorPickerTests
         {
             using (g.Node().Expand().Direction(Axis.Horizontal).Enter())
             {
-                g.ColorArea(ref value, ColorPickerShapes.Rectangle, width: 202, height: 202);
-                g.ColorArea(ref value, ColorPickerShapes.Wheel, width: 202, height: 202);
+                g.ColorArea(ref value, ColorPickerShapes.Rectangle).Width(202).Height(202);
+                g.ColorArea(ref value, ColorPickerShapes.Wheel).Width(202).Height(202);
             }
         });
         using var image = harness.Snapshot();
@@ -484,6 +485,61 @@ public class ColorPickerTests
         var full = ColorPickerOptions.Default;
         Assert.True(ControlsExtensions.EstimatePickerHeight(full, 3) >
                     ControlsExtensions.EstimatePickerHeight(full, 0));
+    }
+
+    /// <summary>
+    /// ColorArea defaults to the field width by 150 and ColorHex to an expanding compact row; a sheet's
+    /// <c>color-area</c> size wins over the default.
+    /// </summary>
+    [Fact]
+    public void ColorAreaAndHexTakeTheDefaultSizeUnlessASheetSetsIt()
+    {
+        using var harness = new FrameHarness(400, 400);
+        var value = new Hsva(0f, 0f, 0f);
+        void Draw(Gui g)
+        {
+            g.ColorArea(ref value);
+            g.ColorHex(ref value, id: "hex");
+        }
+        harness.Frame(Draw);
+
+        var area = Require(harness.Gui, "color-area");
+        Assert.Equal(ControlMetrics.FieldWidth, area.Rect.W);
+        Assert.Equal(150f, area.Rect.H);
+        var hex = Require(harness.Gui, "color-hex");
+        Assert.Equal(ControlMetrics.CompactHeight, hex.Rect.H);
+        Assert.True(hex.Rect.W > ControlMetrics.FieldWidth);
+
+        harness.Gui.StyleSheets.Add(StyleSheet.Parse("color-area { width = 120; height = 60; }"));
+        harness.Frame(Draw);
+
+        Assert.Equal(120f, Require(harness.Gui, "color-area").Rect.W);
+        Assert.Equal(60f, Require(harness.Gui, "color-area").Rect.H);
+    }
+
+    /// <summary>ColorSwatches raises Changed once on the frame a swatch is clicked, and not again while it stays picked.</summary>
+    [Fact]
+    public void SwatchesRaiseChangedOnceWhenASwatchIsClicked()
+    {
+        using var harness = new FrameHarness(300, 100);
+        var value = new Hsva(200f, 0f, 0.5f);
+        var changes = 0;
+        Color[] colors = [Color.ParseHex("#ff0000"), Color.ParseHex("#00ff00")];
+        void Draw(Gui g)
+        {
+            var node = g.ColorSwatches(ref value, colors);
+            if (g.Pass == Pass.Pass2Render && node.Changed)
+            {
+                changes++;
+            }
+        }
+        harness.Frame(Draw);
+        var second = Require(harness.Gui, "swatches").Children[1];
+        harness.Click(Draw, FrameHarness.Center(second));
+        harness.Frame(Draw);
+
+        Assert.Equal(1, changes);
+        Assert.Equal(colors[1], value.ToColor());
     }
 
     static void SelectAll(FrameHarness harness, Action<Gui> draw)

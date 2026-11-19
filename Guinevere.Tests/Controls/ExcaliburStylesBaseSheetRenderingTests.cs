@@ -66,6 +66,7 @@ public class ExcaliburStylesBaseSheetRenderingTests
         var tree = new TreeViewState();
         var dock = new DockLayout { Root = new DockLeaf("panel") };
         var files = new FileDialogState();
+        var tabKey = "tab";
         var model = FormBuilder.Build(new FormSettings());
         using var surface = SKSurface.Create(new SKImageInfo(16, 16));
         using var image = surface.Snapshot();
@@ -84,11 +85,11 @@ public class ExcaliburStylesBaseSheetRenderingTests
             g => g.NumberField(ref value),
             g => g.Slider(ref value, 0, 1, showValue: true),
             g => g.Dropdown(["First", "Second"], ref index),
-            g => g.MultiDropdown(["First", "Second"], ["First"], chips: true),
+            g => g.MultiDropdown(["First", "Second"], ["First"], out _, chips: true),
             g => g.EnumDropdown(ref axis),
             g => g.EnumDropdown(ref axis, EnumPresentation.ToggleButtons),
             g => g.EnumDropdown(ref axis, EnumPresentation.Paging),
-            g => g.ObjectField("Object", "object"),
+            g => g.ObjectField("Object", out _, id: "object"),
             g => g.ProgressBar(value),
             g => g.Splitter(ref value, Axis.Horizontal),
             g => g.Splitter(ref value, Axis.Vertical),
@@ -96,7 +97,7 @@ public class ExcaliburStylesBaseSheetRenderingTests
             g => g.PillTabs(ref index, tabs => tabs.Tab("Tab", () => g.Label("Content"))),
             g => g.VerticalTabs(ref index, tabs => tabs.Tab("Tab", () => g.Label("Content"))),
             g => g.TabBar(ref index, ["First", "Second"]),
-            g => g.TabStrip([new("tab", "Tab")], "tab"),
+            g => g.TabStrip(ref tabKey, tabs => tabs.Tab("Tab", key: "tab")),
             g => g.TreeView(tree, [new("row", "Row", 0)]),
             g => g.DockSpace(dock, _ => new("Panel"), (_, gui) => gui.Label("Content")),
             g => g.Breadcrumb([new("Home", () => { }), new("Page", IsCurrent: true)]),
@@ -161,7 +162,7 @@ public class ExcaliburStylesBaseSheetRenderingTests
         Assert.True(clicked);
 
         var hsv = new Hsva(0, 0.5f, 0.5f);
-        void DrawArea(Gui g) => g.ColorArea(ref hsv, width: 202, height: 102);
+        void DrawArea(Gui g) => g.ColorArea(ref hsv).Width(202).Height(102);
         harness.Frame(DrawArea);
         harness.Click(DrawArea, new Vector2(101, 51));
         Assert.InRange(hsv.S, 0.49f, 0.51f);

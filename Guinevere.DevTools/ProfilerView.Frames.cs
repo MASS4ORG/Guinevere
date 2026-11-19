@@ -159,7 +159,8 @@ public sealed partial class ProfilerView
             }
 
             var limit = SlowFrameMilliseconds;
-            if (Gui.NumberField(ref limit, step: .5, min: .01, max: 10_000, width: 72, format: "0.##", id: "profiler-slow-limit"))
+            if (Gui.NumberField(ref limit, step: .5, min: .01, max: 10_000, format: "0.##", id: "profiler-slow-limit")
+                    .Width(72).Changed)
             {
                 SlowFrameMilliseconds = limit;
             }

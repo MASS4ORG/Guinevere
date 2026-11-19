@@ -16,29 +16,28 @@ public static partial class ControlsExtensions
     /// A hexadecimal color field (<c>#rrggbbaa</c>, or <c>#rrggbb</c> without <paramref name="alpha"/>) with copy and
     /// paste buttons when the platform has a clipboard. Typing applies as soon as the text holds six or eight digits;
     /// Enter or leaving the field also accepts the short <c>#rgb</c>/<c>#rgba</c> forms, and invalid text reverts. A
-    /// <c>color-hex</c> row holding an <c>input.hex</c> and <c>button.icon</c> buttons.
+    /// <c>color-hex</c> row holding an <c>input.hex</c> and <c>button.icon</c> buttons. The row expands its width and is
+    /// the scope's compact height unless a sheet or the returned node sizes it.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="value">The edited color.</param>
     /// <param name="alpha">Whether the text carries the alpha byte.</param>
     /// <param name="clipboard">Whether to show the copy and paste buttons.</param>
-    /// <param name="width">Row width; 0 expands.</param>
-    /// <param name="height">Row height.</param>
     /// <param name="enabled">Whether the field responds to input.</param>
     /// <param name="classes">Extra classes for the row.</param>
     /// <param name="id">Element id of the row; the input's and buttons' ids derive from it.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether the color changed this frame.</returns>
-    public static bool ColorHex(this Gui gui, ref Hsva value, bool alpha = true, bool clipboard = true,
-        float width = 0, float height = ControlMetrics.CompactHeight, bool enabled = true,
-        IReadOnlyList<string>? classes = null, string? id = null,
+    /// <returns>The row's node, <see cref="LayoutNode.Changed"/> on a frame the color changed (as a <c>bool</c> too).</returns>
+    public static ControlNode ColorHex(this Gui gui, ref Hsva value, bool alpha = true, bool clipboard = true,
+        bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ExcaliburStyles.Ensure(gui);
-        var node = Sized(gui.StyledNode("color-hex", classes, id, disabled: !enabled,
-            filePath: filePath, lineNumber: lineNumber), width, height);
+        var node = gui.StyledControl("color-hex", classes, id, disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
+        SizeUnlessStyled(node, Size.Expand(), Size.Pixels(gui.ControlStyle.CompactHeight));
         var before = value;
         using (node.Enter())
         {
@@ -49,22 +48,28 @@ public static partial class ControlsExtensions
                 value = TrackHexEditing(gui, state, inputId, alpha, value);
             }
 
-            value = HexInput(gui, state, inputId, value, alpha, height, enabled);
+            value = HexInput(gui, state, inputId, value, alpha, enabled);
             if (clipboard && gui.Platform.TryGet<IClipboard>(out var board))
             {
-                value = ClipboardButtons(gui, board!, node.Id, value, alpha, height, enabled);
+                value = ClipboardButtons(gui, board!, node.Id, value, alpha, enabled);
             }
         }
-        return gui.Pass == Pass.Pass2Render && value != before;
+
+        if (gui.Pass == Pass.Pass2Render && value != before)
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
+        return node;
     }
 
     /// <summary>The text input; while editing it shows the draft, and a complete typed color applies at once.</summary>
-    static Hsva HexInput(Gui gui, ColorHexState state, string inputId, Hsva value, bool alpha, float height,
-        bool enabled)
+    static Hsva HexInput(Gui gui, ColorHexState state, string inputId, Hsva value, bool alpha, bool enabled)
     {
         var text = state.Editing ? state.Draft : value.ToColor().ToHex(alpha);
-        gui.TextInput(ref text, width: 0, height: height, fontSize: ControlMetrics.CompactFontSize,
-            enabled: enabled, id: inputId, classes: HexClass);
+        UseControlFontSizeInScope(gui, gui.ControlStyle.CompactFontSize);
+        gui.TextInput(ref text, enabled: enabled, classes: HexClass, id: inputId)
+            .Width(Size.Expand()).Height(Size.Expand());
         return gui.Pass == Pass.Pass2Render && state.Editing && text != state.Draft
             ? ApplyTypedHex(state, text, value, alpha)
             : value;
@@ -108,9 +113,10 @@ public static partial class ControlsExtensions
         return value;
     }
 
-    static Hsva ClipboardButtons(Gui gui, IClipboard board, string rowId, Hsva value, bool alpha, float size,
-        bool enabled)
+    /// <summary>The copy and paste glyph buttons, each the scope's compact height square.</summary>
+    static Hsva ClipboardButtons(Gui gui, IClipboard board, string rowId, Hsva value, bool alpha, bool enabled)
     {
+        var size = gui.ControlStyle.CompactHeight;
         if (GlyphButton(gui, WidgetIcons.Copy, size, rowId + "/copy", enabled))
         {
             board.SetClipboardText(value.ToColor().ToHex(alpha));
@@ -170,22 +176,21 @@ public static partial class ControlsExtensions
     /// <summary>
     /// One number field per channel of <paramref name="mode"/>, plus alpha in [0, 255]; a committed edit rebuilds the
     /// color through the mode. A <c>color-channels</c> row of <c>color-channel</c> cells, each a <c>label</c> and an
-    /// <c>input.number</c>.
+    /// <c>input.number</c>. The rows are the scope's compact height; the row expands its width.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="value">The edited color.</param>
     /// <param name="mode">The color model; <see cref="ColorPickerModes.Rgb"/> by default.</param>
     /// <param name="alpha">Whether to add the alpha field.</param>
-    /// <param name="height">Row height.</param>
     /// <param name="enabled">Whether the fields respond to input.</param>
     /// <param name="classes">Extra classes for the row.</param>
     /// <param name="id">Element id of the row; field ids derive from it.</param>
     /// <param name="filePath">Captured by the compiler; makes this call site a unique control.</param>
     /// <param name="lineNumber">Captured by the compiler; makes this call site a unique control.</param>
-    /// <returns>Whether the color changed this frame.</returns>
-    public static bool ColorChannels(this Gui gui, ref Hsva value, IColorPickerMode? mode = null, bool alpha = true,
-        float height = ControlMetrics.CompactHeight, bool enabled = true, IReadOnlyList<string>? classes = null,
-        string? id = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+    /// <returns>The row's node, <see cref="LayoutNode.Changed"/> on a frame the color changed (as a <c>bool</c> too).</returns>
+    public static ControlNode ColorChannels(this Gui gui, ref Hsva value, IColorPickerMode? mode = null,
+        bool alpha = true, bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         mode ??= ColorPickerModes.Rgb;
@@ -194,15 +199,18 @@ public static partial class ControlsExtensions
         var channels = mode.Channels;
         Span<float> values = stackalloc float[channels.Count];
         mode.Read(value, values);
-        using (gui.StyledNode("color-channels", classes, id, disabled: !enabled, filePath: filePath,
-                   lineNumber: lineNumber).ExpandWidth().Height(height).Enter())
+        var node = gui.StyledControl("color-channels", classes, id, disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
+        node.ExpandWidth();
+        SizeUnlessStyled(node, null, Size.Pixels(gui.ControlStyle.CompactHeight));
+        using (node.Enter())
         {
             var rowId = gui.CurrentNode.Id;
             for (var i = 0; i < channels.Count; i++)
             {
                 var channel = channels[i];
                 var number = values[i];
-                if (!ChannelField(gui, channel, ref number, $"{rowId}/{mode.Name}/{i}", height, enabled))
+                if (!ChannelField(gui, channel, ref number, $"{rowId}/{mode.Name}/{i}", enabled))
                 {
                     continue;
                 }
@@ -211,27 +219,36 @@ public static partial class ControlsExtensions
                 value = mode.Write(value, values);
             }
             var opacity = MathF.Round(value.A * 255f);
-            if (alpha && ChannelField(gui, new ColorChannel("A", 0, 255), ref opacity, rowId + "/alpha", height, enabled))
+            if (alpha && ChannelField(gui, new ColorChannel("A", 0, 255), ref opacity, rowId + "/alpha", enabled))
             {
                 value = value with { A = opacity / 255f };
             }
         }
-        return gui.Pass == Pass.Pass2Render && value != before;
+
+        if (gui.Pass == Pass.Pass2Render && value != before)
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
+        return node;
     }
 
-    static bool ChannelField(Gui gui, ColorChannel channel, ref float number, string fieldId, float height,
-        bool enabled)
+    /// <summary>One channel cell: a label and a number field, both the scope's compact height.</summary>
+    static ControlNode ChannelField(Gui gui, ColorChannel channel, ref float number, string fieldId, bool enabled)
     {
+        var height = Size.Pixels(gui.ControlStyle.CompactHeight);
         using (gui.StyledNode("color-channel").ExpandWidth().Height(height).Enter())
         {
             using (gui.StyledNode("label").Enter())
             {
-                gui.DrawText(channel.Label, ControlMetrics.CompactFontSize, centerInRect: false);
+                gui.DrawText(channel.Label, gui.ControlStyle.CompactFontSize, centerInRect: false);
             }
 
-            return gui.NumberField(ref number, 1f, channel.Min, channel.Max, width: 0, height: height,
-                format: channel.Format, fontSize: ControlMetrics.CompactFontSize, padding: 4, enabled: enabled,
-                id: fieldId);
+            UseControlFontSizeInScope(gui, gui.ControlStyle.CompactFontSize);
+            var field = gui.NumberField(ref number, 1f, channel.Min, channel.Max, format: channel.Format,
+                enabled: enabled, id: fieldId);
+            field.Width(Size.Expand()).Height(height).Padding(4);
+            return field;
         }
     }
 

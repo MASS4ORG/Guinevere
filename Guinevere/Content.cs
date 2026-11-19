@@ -79,6 +79,9 @@ public readonly struct Content
         _ => null,
     };
 
+    /// <summary>The parts of a <see cref="ContentKind.Row"/>, otherwise empty.</summary>
+    public ReadOnlySpan<Content> Parts => Kind == ContentKind.Row ? (Content[])_value! : default;
+
     /// <summary>The empty content.</summary>
     public static Content None => default;
 

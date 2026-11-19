@@ -10,12 +10,18 @@ public class FlyoutBuilder
     /// <summary>
     /// Adds a menu item with an action
     /// </summary>
-    public FlyoutBuilder Item(string text, Action? action = null, string shortcut = "", bool enabled = true,
+    /// <param name="content">What the item shows; its label also names it for assistive tools.</param>
+    /// <param name="action">Runs when the item is activated.</param>
+    /// <param name="shortcut">Shortcut text shown at the end of the row.</param>
+    /// <param name="enabled">Whether the item can be activated.</param>
+    /// <param name="onHover">Called every frame the pointer rests on the row.</param>
+    public FlyoutBuilder Item(Content content, Action? action = null, string shortcut = "", bool enabled = true,
         Action? onHover = null)
     {
         Items.Add(new FlyoutItem
         {
-            Text = text,
+            Content = content,
+            Key = FlyoutItem.KeyFor(content, Items.Count),
             Action = action,
             Shortcut = shortcut,
             Enabled = enabled,
@@ -27,12 +33,18 @@ public class FlyoutBuilder
     /// <summary>
     /// Adds a menu item with a submenu
     /// </summary>
-    public FlyoutBuilder Submenu(string text, Action<FlyoutBuilder> buildSubmenu, bool enabled = true)
+    public FlyoutBuilder Submenu(Content content, Action<FlyoutBuilder> buildSubmenu, bool enabled = true)
     {
         var submenuBuilder = new FlyoutBuilder();
         buildSubmenu(submenuBuilder);
 
-        Items.Add(new FlyoutItem { Text = text, Submenu = submenuBuilder.Items, Enabled = enabled });
+        Items.Add(new FlyoutItem
+        {
+            Content = content,
+            Key = FlyoutItem.KeyFor(content, Items.Count),
+            Submenu = submenuBuilder.Items,
+            Enabled = enabled
+        });
         return this;
     }
 
@@ -41,7 +53,7 @@ public class FlyoutBuilder
     /// </summary>
     public FlyoutBuilder Separator()
     {
-        Items.Add(new FlyoutItem { IsSeparator = true });
+        Items.Add(new FlyoutItem { IsSeparator = true, Key = $"#{Items.Count}" });
         return this;
     }
 
@@ -49,7 +61,7 @@ public class FlyoutBuilder
     /// Adds a checkable menu item. The item shows a check when <paramref name="isChecked"/> returns
     /// true; activating it calls <paramref name="onChange"/> with the target value.
     /// </summary>
-    public FlyoutBuilder CheckItem(string text, Func<bool> isChecked, Action<bool> onChange,
+    public FlyoutBuilder CheckItem(Content content, Func<bool> isChecked, Action<bool> onChange,
         string shortcut = "", bool enabled = true, Action? onHover = null)
     {
         ArgumentNullException.ThrowIfNull(isChecked);
@@ -57,7 +69,8 @@ public class FlyoutBuilder
 
         Items.Add(new FlyoutItem
         {
-            Text = text,
+            Content = content,
+            Key = FlyoutItem.KeyFor(content, Items.Count),
             IsChecked = isChecked,
             OnCheckChanged = onChange,
             Shortcut = shortcut,

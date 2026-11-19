@@ -8,23 +8,42 @@ public static partial class ControlsExtensions
     /// <remarks>
     /// Equality uses the supplied comparer. Duplicate options share selection and show only their first occurrence.
     /// Select all and Clear affect filtered options; hidden and unknown selections are preserved.
-    /// Apply the returned selection when Changed is true, and call from the same site in both passes.
+    /// Apply <c>result.Selected</c> when <c>result.Changed</c> is true, and call from the same site in both passes.
+    /// The trigger is the scope's field size unless a sheet or the returned node says otherwise; the popup matches
+    /// its width and rows are its height.
     /// </remarks>
-    public static MultiDropdownResult<T> MultiDropdown<T>(this Gui gui, IReadOnlyList<T> options,
-        IReadOnlyCollection<T> selected, Func<T, string>? display = null, IEqualityComparer<T>? comparer = null,
-        float width = ControlMetrics.FieldWidth, float height = ControlMetrics.FieldHeight,
-        float fontSize = ControlMetrics.FontSize, int maxVisibleItems = 6, string placeholder = "Select options…",
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="options">The choices.</param>
+    /// <param name="selected">The current selection.</param>
+    /// <param name="result">The controlled selection and the edits delivered in the build pass.</param>
+    /// <param name="display">What an option shows: text, an icon, widgets; its label is searched and summarized.</param>
+    /// <param name="comparer">How options are compared; the default comparer when null.</param>
+    /// <param name="maxVisibleItems">How many rows the popup shows before it scrolls.</param>
+    /// <param name="placeholder">Shown while nothing is selected.</param>
+    /// <param name="chips">Whether the trigger shows removable chips instead of a summary.</param>
+    /// <param name="enabled">Whether the dropdown may be opened.</param>
+    /// <param name="mixed">Shows a dash until the user edits a selection that differs between owners.</param>
+    /// <param name="isMixed">Whether an option is selected in some owners but not all.</param>
+    /// <param name="classes">Extra classes for the trigger.</param>
+    /// <param name="id">Optional id seeding the identity of the trigger and popup; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The trigger's node, <see cref="LayoutNode.Changed"/> (and as a <c>bool</c>) while the selection changes.</returns>
+    public static ControlNode MultiDropdown<T>(this Gui gui, IReadOnlyList<T> options,
+        IReadOnlyCollection<T> selected, out MultiDropdownResult<T> result, Func<T, Content>? display = null,
+        IEqualityComparer<T>? comparer = null, int maxVisibleItems = 6, string placeholder = "Select options…",
         bool chips = false, bool enabled = true, bool mixed = false, Func<T, bool>? isMixed = null,
+        IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(selected);
-        var id = gui.AutomaticId(filePath, lineNumber);
-        var state = gui.ControlState(id, static () => new ChoiceState<T>());
+        var key = id ?? gui.AutomaticId(filePath, lineNumber);
+        var state = gui.ControlState(key, static () => new ChoiceState<T>());
         var changes = BeginChoices(gui, state, enabled);
         comparer ??= EqualityComparer<T>.Default;
-        display ??= static item => item?.ToString() ?? string.Empty;
+        display = DisplayOrItemText(display);
 
         if (gui.Pass == Pass.Pass1Build)
         {
@@ -32,10 +51,32 @@ public static partial class ControlsExtensions
         }
 
         var membership = new HashSet<T>(state.Selection, comparer);
-        DrawChoices(gui, id, state, options, display, membership.Contains, isMixed, comparer,
-            ChoiceSummary(state.Selection, display, placeholder, mixed), true, chips,
-            width, height, fontSize, maxVisibleItems, enabled);
-        return new MultiDropdownResult<T>(state.Selection, changes);
+        var trigger = DrawChoices(gui, key, state, options, display, membership.Contains, isMixed, comparer,
+            ChoiceSummary(state.Selection, display, placeholder, mixed), true, chips, maxVisibleItems, enabled,
+            classes);
+        RaiseChoiceChanged(gui, trigger, state);
+        result = new MultiDropdownResult<T>(state.Selection, changes);
+        return trigger;
+    }
+
+    /// <summary>The caller's display, else an option's text, which is empty for a null option.</summary>
+    static Func<T, Content> DisplayOrItemText<T>(Func<T, Content>? display)
+    {
+        if (display is not null)
+        {
+            return display;
+        }
+
+        return static item => item?.ToString() ?? string.Empty;
+    }
+
+    /// <summary>Raises the change signal on the trigger when this frame's build edited the selection.</summary>
+    static void RaiseChoiceChanged<T>(Gui gui, ControlNode trigger, ChoiceState<T> state)
+    {
+        if (gui.Pass == Pass.Pass2Render && state.ChangedInBuild)
+        {
+            trigger.Raise(NodeSignals.Changed);
+        }
     }
 
     static IReadOnlyList<T> ApplyChoices<T>(IReadOnlyList<T> options, IEnumerable<T> selected,
@@ -73,7 +114,7 @@ public static partial class ControlsExtensions
         return ordered.AsReadOnly();
     }
 
-    static string ChoiceSummary<T>(IReadOnlyList<T> selected, Func<T, string> display,
+    static string ChoiceSummary<T>(IReadOnlyList<T> selected, Func<T, Content> display,
         string placeholder, bool mixed)
     {
         if (mixed)
@@ -86,7 +127,9 @@ public static partial class ControlsExtensions
             return placeholder;
         }
 
-        return selected.Count <= 2 ? string.Join(", ", selected.Select(display)) : $"{selected.Count} selected";
+        return selected.Count <= 2
+            ? string.Join(", ", selected.Select(item => display(item).Label ?? ""))
+            : $"{selected.Count} selected";
     }
 
     sealed class ChoiceState<T>
@@ -94,6 +137,9 @@ public static partial class ControlsExtensions
         internal bool Open;
         internal bool? RequestedOpen;
         internal bool JustOpened;
+
+        /// <summary>This frame's build pass delivered selection edits; the render pass reads it to report the change.</summary>
+        internal bool ChangedInBuild;
         internal Rect ButtonRect;
         internal Rect Anchor;
         internal Rect PopupRect;
@@ -109,6 +155,7 @@ public static partial class ControlsExtensions
         internal readonly List<SelectionChange<T>> Pending = [];
         internal IReadOnlyList<T> Selection = [];
         internal string[] Labels = [];
+        internal Content[] Contents = [];
         internal bool[] Checked = [];
         internal bool[] Mixed = [];
     }
@@ -141,35 +188,43 @@ public static partial class ControlsExtensions
         }
         var changes = enabled ? state.Pending.ToArray() : [];
         state.Pending.Clear();
+        state.ChangedInBuild = changes.Length > 0;
         return Array.AsReadOnly(changes);
     }
 
-    static void DrawChoices<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,
-        Func<T, string> display, Func<T, bool> selected, Func<T, bool>? mixed, IEqualityComparer<T> comparer,
-        string summary, bool multiple, bool chips, float width, float height, float fontSize,
-        int maxVisibleItems, bool enabled)
+    /// <summary>The height of a trigger and of the popup's rows: the trigger as last laid out, else the field height.</summary>
+    static float ChoiceRowHeight<T>(Gui gui, ChoiceState<T> state) =>
+        Math.Max(16, state.Anchor.H > 0 ? state.Anchor.H : gui.ControlStyle.FieldHeight);
+
+    static ControlNode DrawChoices<T>(Gui gui, string id, ChoiceState<T> state, IReadOnlyList<T> options,
+        Func<T, Content> display, Func<T, bool> selected, Func<T, bool>? mixed, IEqualityComparer<T> comparer,
+        string summary, bool multiple, bool chips, int maxVisibleItems, bool enabled,
+        IReadOnlyList<string>? classes)
     {
-        height = Math.Max(16, gui.ControlStyle.FieldHeightOr(height));
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
+        var height = ChoiceRowHeight(gui, state);
         maxVisibleItems = Math.Max(1, maxVisibleItems);
         if (gui.Pass == Pass.Pass1Build)
         {
             FilterChoices(state, options, display, selected, mixed, comparer, height, maxVisibleItems);
             state.FrameSummary = summary;
         }
-        ChoiceTrigger(gui, id, state, state.FrameSummary, chips, display, width, height, fontSize, enabled);
+
+        var trigger = ChoiceTrigger(gui, id, state, state.FrameSummary, chips, display, enabled, classes);
         if (state.Open && state.Anchor.W > 0)
         {
-            ChoicePopup(gui, id, state, options, multiple, height, fontSize, maxVisibleItems);
+            ChoicePopup(gui, id, state, options, multiple, height, maxVisibleItems);
         }
+
+        return trigger;
     }
 
-    static void FilterChoices<T>(ChoiceState<T> state, IReadOnlyList<T> options, Func<T, string> display,
+    static void FilterChoices<T>(ChoiceState<T> state, IReadOnlyList<T> options, Func<T, Content> display,
         Func<T, bool> selected, Func<T, bool>? mixed, IEqualityComparer<T> comparer, float height, int visible)
     {
         if (state.Labels.Length != options.Count)
         {
             state.Labels = new string[options.Count];
+            state.Contents = new Content[options.Count];
             state.Checked = new bool[options.Count];
             state.Mixed = new bool[options.Count];
         }
@@ -179,7 +234,8 @@ public static partial class ControlsExtensions
         var unique = new HashSet<T>(comparer);
         for (var i = 0; i < options.Count; i++)
         {
-            state.Labels[i] = display(options[i]);
+            state.Contents[i] = display(options[i]);
+            state.Labels[i] = state.Contents[i].Label ?? "";
             state.Checked[i] = selected(options[i]);
             state.Mixed[i] = mixed?.Invoke(options[i]) == true;
             if (unique.Add(options[i])
@@ -195,22 +251,24 @@ public static partial class ControlsExtensions
         state.Last = Math.Min(state.Filtered.Count, state.First + visible + 5);
     }
 
-    static void ChoiceTrigger<T>(Gui gui, string id, ChoiceState<T> state, string summary, bool chips,
-        Func<T, string> display, float width, float height, float fontSize, bool enabled)
+    static ControlNode ChoiceTrigger<T>(Gui gui, string id, ChoiceState<T> state, string summary, bool chips,
+        Func<T, Content> display, bool enabled, IReadOnlyList<string>? classes)
     {
-        width = gui.ControlStyle.FieldWidthOr(width);
         ExcaliburStyles.Ensure(gui);
         var modifiers = state.Open && enabled ? OpenModifier : NoModifiers;
-        using (Sized(gui.StyledNode("dropdown", id: $"{id}/button", modifiers: modifiers, disabled: !enabled),
-                       width, height)
-                   .Direction(Axis.Horizontal).Padding(8, 0).AlignContentY(0.5f).Enter())
+        var trigger = gui.StyledControl("dropdown", classes, $"{id}/button", modifiers, disabled: !enabled);
+        UseControlFontSize(gui, trigger);
+        SizeUnlessStyled(trigger, gui.ControlStyle.FieldWidth, gui.ControlStyle.FieldHeight);
+        var padding = gui.ControlStyle.Spacing;
+        PadUnlessStyled(trigger, padding, 0);
+        using (trigger.Direction(Axis.Horizontal).AlignContentY(0.5f).Enter())
         {
             gui.ClipContent();
             if (gui.Pass == Pass.Pass2Render)
             {
                 state.ButtonRect = gui.CurrentNode.Rect;
                 gui.RegisterFocusable(enabled, enabled, claimsArrowKeys: true);
-                DrawArrow(gui, gui.CurrentNode.Rect, 8);
+                DrawArrow(gui, gui.CurrentNode.Rect, padding);
                 if (ChoicePressed(gui, enabled))
                 {
                     gui.RequestFocus(gui.Input.IsMouseButtonPressed(MouseButton.Left)
@@ -220,25 +278,27 @@ public static partial class ControlsExtensions
             }
             if (chips && state.Selection.Count > 0)
             {
-                ChoiceChips(gui, id, state, display, height, fontSize, enabled);
+                ChoiceChips(gui, id, state, display, enabled);
             }
             else
             {
-                gui.DrawText(summary, fontSize, centerInRect: false);
+                gui.DrawText(summary, centerInRect: false);
             }
         }
+
+        return trigger;
     }
 
-    static void ChoiceChips<T>(Gui gui, string id, ChoiceState<T> state, Func<T, string> display,
-        float height, float fontSize, bool enabled)
+    static void ChoiceChips<T>(Gui gui, string id, ChoiceState<T> state, Func<T, Content> display, bool enabled)
     {
         var count = Math.Min(2, state.Selection.Count);
+        var chipHeight = ChoiceRowHeight(gui, state) - 6;
         for (var i = 0; i < count; i++)
         {
-            using (gui.StyledNode("chip", id: $"{id}/chip/{i}", disabled: !enabled).Height(height - 6).Padding(4, 0)
+            using (gui.StyledNode("chip", id: $"{id}/chip/{i}", disabled: !enabled).Height(chipHeight).Padding(4, 0)
                        .BlockInput().AlignContentY(0.5f).Enter())
             {
-                gui.DrawText(display(state.Selection[i]) + " ×", fontSize, centerInRect: false);
+                gui.DrawText((display(state.Selection[i]).Label ?? "") + " ×", centerInRect: false);
                 if (gui.Pass != Pass.Pass2Render)
                 {
                     continue;
@@ -253,7 +313,7 @@ public static partial class ControlsExtensions
         }
         if (state.Selection.Count > count)
         {
-            gui.DrawText($"+{state.Selection.Count - count}", fontSize, PlaceholderColor(gui, enabled));
+            gui.DrawText($"+{state.Selection.Count - count}", color: PlaceholderColor(gui, enabled));
         }
     }
 

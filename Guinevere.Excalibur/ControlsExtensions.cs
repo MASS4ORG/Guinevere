@@ -92,11 +92,21 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Gives the node's content the scope's control font size unless the sheet set one on it.</summary>
-    static void UseControlFontSize(Gui gui, LayoutNode node)
+    static void UseControlFontSize(Gui gui, LayoutNode node) => UseFontSize(gui, node, gui.ControlStyle.FontSize);
+
+    /// <summary>
+    /// Makes <paramref name="size"/> the control font size of the current node's scope, so the fields and dropdowns
+    /// built inside it use it; a composite widget calls it where it used to pass a font size to each control.
+    /// </summary>
+    static void UseControlFontSizeInScope(Gui gui, float size) =>
+        gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFontSize, float>(size));
+
+    /// <summary>Gives the node's content <paramref name="size"/> unless the sheet set a font size on it.</summary>
+    static void UseFontSize(Gui gui, LayoutNode node, float size)
     {
         if (!node.Scope.HasLocal<LayoutNodeScopeTextSize>())
         {
-            gui.SetTextSize(gui.ControlStyle.FontSize, node.Scope);
+            gui.SetTextSize(size, node.Scope);
         }
     }
 
@@ -144,14 +154,5 @@ public static partial class ControlsExtensions
         }
 
         return clicked || activated;
-    }
-
-    static (string Text, Font Font)[] TextRuns(Gui gui, string text, float fontSize, LayoutNodeScope? scope = null)
-    {
-        scope ??= gui.CurrentNodeScope;
-        var mainFont = gui.GetTextFont(fontSize, scope);
-        var iconFont = scope.Get<LayoutNodeScopeIconFont>().Value.Resized(mainFont.Size);
-
-        return [.. gui.CreateTextRuns(text, mainFont, iconFont, scope)];
     }
 }

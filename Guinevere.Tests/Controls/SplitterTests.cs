@@ -46,7 +46,15 @@ public class SplitterTests
             g.DrawBackgroundRect(Color.White);
             using (g.Node(200, 100).Direction(axis).Enter())
             {
-                g.Splitter(ref fraction, axis, thickness: 8, classes: ["custom"], id: "divider");
+                var divider = g.Splitter(ref fraction, axis, classes: ["custom"], id: "divider");
+                if (axis == Axis.Horizontal)
+                {
+                    divider.Width(8);
+                }
+                else
+                {
+                    divider.Height(8);
+                }
             }
         }
         harness.Frame(Draw);

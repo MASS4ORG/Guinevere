@@ -156,18 +156,18 @@ public class MenuNavigationTests
             .Menu("Edit", menu => menu.Item("Copy")));
         h.Frame(Draw);
         var collapsed = h.Gui.RootNode!.Children[0];
-        Assert.Equal(30, collapsed.Rect.W);
+        Assert.Equal(ControlMetrics.FieldHeight, collapsed.Rect.W);
         h.Click(Draw, collapsed.Center);
         Assert.NotEmpty(Groups(h.Gui.RootNode!));
         h.Frame(Draw);
-        Assert.True(h.Gui.RootNode!.Children[0].Rect.W > 30);
+        Assert.True(h.Gui.RootNode!.Children[0].Rect.W > ControlMetrics.FieldHeight);
         Assert.NotEmpty(Groups(h.Gui.RootNode!));
         AssertMeasured(Group(h, 0));
         h.Input.PressKey(KeyboardKey.Escape);
         h.Frame(Draw);
         h.Input.ReleaseKey(KeyboardKey.Escape);
         h.Frame(Draw);
-        Assert.Equal(30, h.Gui.RootNode!.Children[0].Rect.W);
+        Assert.Equal(ControlMetrics.FieldHeight, h.Gui.RootNode!.Children[0].Rect.W);
         Assert.Empty(Groups(h.Gui.RootNode!));
     }
 

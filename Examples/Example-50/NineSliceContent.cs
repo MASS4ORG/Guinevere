@@ -36,14 +36,17 @@ public abstract partial class Program
                     (size.Width, size.Height) = ((float)_sliceWidth, (float)_sliceHeight);
                 }
 
-                gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, size.Width, size.Height, _sliceGuides,
-                    id: "slice-live");
+                gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, _sliceGuides, id: "slice-live")
+                    .Width(size.Width).Height(size.Height);
                 gui.DrawText("Wide, tall and smaller than the corner sum", 14, Token(gui, "text"));
                 using (gui.Node().Direction(Axis.Horizontal).Gap(12).Enter())
                 {
-                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, 180, 40, _sliceGuides, "slice-wide");
-                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, 40, 120, _sliceGuides, "slice-tall");
-                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, 12, 12, _sliceGuides, "slice-small");
+                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, _sliceGuides, "slice-wide")
+                        .Width(180).Height(40);
+                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, _sliceGuides, "slice-tall")
+                        .Width(40).Height(120);
+                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, _sliceGuides, "slice-small")
+                        .Width(12).Height(12);
                 }
             }
         }

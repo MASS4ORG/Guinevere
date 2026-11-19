@@ -49,8 +49,7 @@ public class DropdownBehaviorTests
             LastFramePasses.Clear();
             void Draw()
             {
-                _gui.Dropdown(_options, ref index, width: 120, height: 24,
-                    filePath: Id, lineNumber: 0);
+                _gui.Dropdown([.. _options], ref index, filePath: Id, lineNumber: 0).Width(120).Height(24);
                 LastFramePasses.Add((_gui.Pass, Exists(_gui.RootNode!, "/list")));
             }
 

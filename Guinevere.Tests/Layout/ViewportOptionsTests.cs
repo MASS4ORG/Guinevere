@@ -214,7 +214,7 @@ public class ViewportOptionsTests
         using var frame = new FrameHarness(800, 600);
         var dock = new DockLayout { Root = new DockLeaf("game") };
         var open = true;
-        frame.Frame(gui =>
+        void Draw(Gui gui)
         {
             using var viewport = gui.Viewport(new ViewportOptions
             {
@@ -223,9 +223,12 @@ public class ViewportOptionsTests
                 ReferenceResolution = new Vector2(280, 220)
             });
             gui.DockSpace(dock, id => new DockPanelInfo(id), (_, g) =>
-                g.ModalPopup(ref open, () => g.DrawText("Menu"), width: 100, height: 60, id: "menu"),
+                g.ModalPopup(ref open, () => g.DrawText("Menu"), id: "menu").Width(100).Height(60),
                 id: "dock");
-        });
+        }
+        // A modal centres from its last laid-out size, so it settles on the frame after its first.
+        frame.Frame(Draw);
+        frame.Frame(Draw);
         var root = frame.Gui.RootNode!;
         var space = root.FindChildById("dock")!;
         Assert.Equal(new Rect(120, 80, 560, 440), space.LocalToScreen(space.Rect));

@@ -6,9 +6,18 @@ namespace Guinevere;
 public class FlyoutItem
 {
     /// <summary>
-    /// Gets or sets the display text of the menu item
+    /// Gets or sets what the menu item shows: text, an icon, other widgets or a custom type.
     /// </summary>
-    public string Text { get; set; } = "";
+    public Content Content { get; set; }
+
+    /// <summary>
+    /// Gets or sets the item's stable id within its menu: the content's label, else its position. It names the item's
+    /// submenu and persistent state, so it should survive translating or restyling the content.
+    /// </summary>
+    public string Key { get; set; } = "";
+
+    /// <summary>The content's readable text, used for width estimates and semantics; empty without one.</summary>
+    internal string Label => Content.Label ?? "";
 
     /// <summary>
     /// Gets or sets the action to execute when clicked
@@ -56,4 +65,7 @@ public class FlyoutItem
     /// Gets whether this item has a submenu
     /// </summary>
     public bool HasSubmenu => Submenu is { Count: > 0 };
+
+    /// <summary>The label of <paramref name="content"/>, or the position among the <paramref name="count"/> earlier items.</summary>
+    internal static string KeyFor(Content content, int count) => content.Label is { Length: > 0 } label ? label : $"#{count}";
 }

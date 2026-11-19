@@ -55,9 +55,9 @@ public class DialogTests
             }
 
             // ReSharper disable once ExplicitCallerInfoArgument - one stable id across frames.
-            void Draw() => _gui.Dialog(ref state, "Title", Content, 150, 100,
-                closeOnClickOutside: closeOnClickOutside, draggable: draggable, titleBarHeight: TitleBarHeight,
-                filePath: "dialog-test", lineNumber: 1);
+            void Draw() => _gui.Dialog(ref state, "Title", Content,
+                closeOnClickOutside: closeOnClickOutside, draggable: draggable,
+                filePath: "dialog-test", lineNumber: 1).Width(150).Height(TitleBarHeight + 100);
 
             _gui.Time.Update(0.016);
             _gui.SetStage(Pass.Pass1Build);
@@ -119,7 +119,8 @@ public class DialogTests
     {
         var h = new Harness();
 
-        h.Frame(open: true, new Vector2(200, 150), draggable: true); // opens, centered
+        h.Frame(open: true, new Vector2(200, 150), draggable: true); // opens
+        h.Frame(open: true, new Vector2(200, 150), draggable: true); // settles centered once its size is known
         var centered = h.Origin!.Value;
 
         h.Frame(open: true, new Vector2(150, 95), pressed: true, draggable: true); // press the title bar
@@ -138,6 +139,7 @@ public class DialogTests
         var h = new Harness();
 
         h.Frame(open: true, new Vector2(200, 150), draggable: true);
+        h.Frame(open: true, new Vector2(200, 150), draggable: true); // settles centered
         var centered = h.Origin!.Value;
 
         // Inside the reserved close-button corner: the title bar's top-right titleBarHeight square.
@@ -156,6 +158,7 @@ public class DialogTests
         var h = new Harness();
 
         h.Frame(open: true, new Vector2(200, 150));
+        h.Frame(open: true, new Vector2(200, 150)); // settles centered once its size is known
         var centered = h.Origin!.Value;
 
         h.Frame(open: true, new Vector2(150, 95), pressed: true);

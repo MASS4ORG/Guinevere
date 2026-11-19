@@ -75,7 +75,7 @@ public sealed partial class SandboxScene
                         gui.RequestFrame();
                     });
                 }
-            }), height: 28, id: "sandbox-selection-menu");
+            }), id: "sandbox-selection-menu").Height(28);
         }
         if (_status is { } status)
         {

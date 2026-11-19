@@ -36,7 +36,7 @@ public class MenuBarTests
 
     const int Width = 600;
     const int Height = 400;
-    const float BarHeight = 30f;
+    const float BarHeight = ControlMetrics.FieldHeight;
 
     /// <summary>Dropdowns keep their own layout and render nodes while another menu shares the container.</summary>
     [Fact]
