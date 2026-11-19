@@ -124,10 +124,11 @@ public sealed partial class SandboxScene
 
     void StepButton(Gui gui, GraphNodeVisual visual, string label, string id, float delta)
     {
-        using var scope = gui.Node().Width(30).Height(26).Enter();
-        gui.CurrentNode.On<PointerDownEvent>(static e => e.StopPropagation());
         var name = $"{(delta < 0 ? "Decrease" : "Increase")} {visual.View.Name}";
-        if (gui.IconButton(DemoIcons.Actions[delta < 0 ? "Decrease" : "Add node"], name, size: 26, id: id))
+        var button = gui.Button(DemoIcons.Actions[delta < 0 ? "Decrease" : "Add node"].Labeled(name), id: id)
+            .Width(26).Height(26).Margin(2, 0)
+            .On<PointerDownEvent>(static e => e.StopPropagation());
+        if (button.Clicked)
         {
             _pending.Enqueue(() => Step(visual.Node.Id, delta));
             gui.RequestFrame();

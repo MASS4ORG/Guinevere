@@ -28,7 +28,7 @@ public abstract partial class Program
                 gui.NumberField(ref _sliceWidth, min: 1, max: 400, id: "slice-width");
                 gui.DrawText("Destination height", color: Token(gui, "text"));
                 gui.NumberField(ref _sliceHeight, min: 1, max: 240, id: "slice-height");
-                _sliceGuides = gui.Checkbox(_sliceGuides, "Show destination guides");
+                gui.Checkbox(ref _sliceGuides, "Show destination guides");
                 // Destination dimensions stay identical in both passes when a numeric field commits during rendering.
                 ref var size = ref gui.GetData((Width: 0f, Height: 0f), id: "slice-preview-size");
                 if (gui.Pass == Pass.Pass1Build)

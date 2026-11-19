@@ -5,7 +5,7 @@ namespace Guinevere;
 /// <summary>Describes a strongly typed style token and its fallback value.</summary>
 public interface IStyleToken<T>
 {
-    static abstract T Default { get; }
+    abstract static T Default { get; }
 }
 
 /// <summary>An independently cascading value for a style token.</summary>

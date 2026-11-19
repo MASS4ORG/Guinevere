@@ -23,7 +23,7 @@ public class ImageButtonTests
         return input;
     }
 
-    static bool RunFrame(byte[] outPixels, IInputHandler input, Func<Gui, bool> draw)
+    static bool RunFrame(byte[] outPixels, IInputHandler input, Func<Gui, LayoutNode> draw)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Surface, Surface, SKColorType.Rgba8888, SKAlphaType.Unpremul));
         var canvas = surface.Canvas;
@@ -35,7 +35,7 @@ public class ImageButtonTests
         draw(gui);
         gui.CalculateLayout();
         gui.SetStage(Pass.Pass2Render);
-        var result = draw(gui);
+        var result = draw(gui).Clicked;
         gui.Render();
         gui.EndFrame();
         canvas.Flush();
@@ -62,7 +62,7 @@ public class ImageButtonTests
         var px = new byte[Surface * Surface * 4];
 
         var clicked = RunFrame(px, OffscreenMouse(),
-            gui => gui.ImageButton(normal, hover, pressed, width: 60, height: 40));
+            gui => gui.ImageButton(normal, hover, pressed).Width(60).Height(40));
 
         Assert.False(clicked);
         var (r, g, b, _) = At(px, 20, 20);
@@ -81,7 +81,7 @@ public class ImageButtonTests
         var input = Substitute.For<IInputHandler>();
         input.MousePosition.Returns(new Vector2(20, 20)); // inside a button laid out at the origin
 
-        RunFrame(px, input, gui => gui.ImageButton(normal, hover, pressed, width: 60, height: 40));
+        RunFrame(px, input, gui => gui.ImageButton(normal, hover, pressed).Width(60).Height(40));
 
         var (r, g, b, _) = At(px, 20, 20);
         Assert.True(g > 180 && r < 80 && b < 80, $"hover image should be green, got ({r},{g},{b})");
@@ -102,7 +102,7 @@ public class ImageButtonTests
         input.IsMouseButtonPressed(Arg.Any<MouseButton>()).Returns(true);
 
         var clicked = RunFrame(px, input, gui =>
-            gui.ImageButton(normal, hover, pressed, disabled, text: "X", width: 60, height: 40, enabled: false));
+            gui.ImageButton(normal, hover, pressed, disabled, content: "X", enabled: false).Width(60).Height(40));
 
         Assert.False(clicked);
         var (r, g, b, _) = At(px, 20, 20);
@@ -118,7 +118,7 @@ public class ImageButtonTests
         var px = new byte[Surface * Surface * 4];
 
         RunFrame(px, OffscreenMouse(), gui =>
-            gui.ImageButton(normal, normal, normal, width: 70, height: 50, nineSlice: new Insets(4)));
+            gui.ImageButton(normal, normal, normal, nineSlice: new Insets(4)).Width(70).Height(50));
 
         Assert.True(At(px, 30, 25).A > 200, "the nine-sliced button background should be opaque");
     }
@@ -134,6 +134,6 @@ public class ImageButtonTests
         gui.SetStage(Pass.Pass1Build);
         gui.BeginFrame(surface.Canvas);
 
-        Assert.False(gui.ImageButton(normal, normal, normal, width: 40, height: 20));
+        Assert.False(gui.ImageButton(normal, normal, normal).Width(40).Height(20).Clicked);
     }
 }

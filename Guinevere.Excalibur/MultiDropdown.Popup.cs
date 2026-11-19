@@ -197,7 +197,7 @@ public static partial class ControlsExtensions
         {
             if (gui.Pass == Pass.Pass2Render && (mixed || selected))
             {
-                RenderCheckboxMark(gui, size, mixed);
+                RenderCheckboxMark(gui, mixed);
             }
         }
     }

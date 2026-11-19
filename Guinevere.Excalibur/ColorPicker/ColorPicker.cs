@@ -186,8 +186,9 @@ public static partial class ControlsExtensions
         {
             for (var i = 0; i < modes.Count; i++)
             {
-                if (gui.Button(modes[i].Name, height: ControlMetrics.CompactHeight, enabled: enabled,
-                        classes: i == state.Mode ? ColorModeCheckedClass : ColorModeClass, id: $"{pickerId}/mode/{i}"))
+                if (gui.Button(modes[i].Name, enabled,
+                        classes: i == state.Mode ? ColorModeCheckedClass : ColorModeClass, id: $"{pickerId}/mode/{i}")
+                        .Height(ControlMetrics.CompactHeight).Clicked)
                 {
                     state.Mode = i;
                 }

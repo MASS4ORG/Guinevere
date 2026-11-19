@@ -223,7 +223,7 @@ public sealed class FsmSceneTests
         var scene = playground.Fsm;
         scene.AutoRun = false;
         playground.SelectScenario(2);
-        Action<Gui> draw = playground.Draw;
+        var draw = playground.Draw;
         harness.Frame(draw);
         await scene.Simulation.Completion;
         harness.Frame(draw);

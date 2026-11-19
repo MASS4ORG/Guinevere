@@ -9,37 +9,113 @@ public static partial class ControlsExtensions
     static readonly string[] PillClass = ["pill"];
     static readonly string[] VerticalPlainClasses = ["vertical", "plain"];
 
+    const float TabPaddingX = 12f;
+    const float VerticalTabWidth = 120f;
+    const float VerticalTabHeight = 36f;
+    const float TabPanelHeight = 200f;
+
+    /// <summary>How a tab container lays out its bar and tabs.</summary>
+    enum TabLook { Bar, Vertical, Pill }
+
     /// <summary>
-    /// A tab container with internal state. Styled by the <c>tabbar</c> rules (class <c>plain</c> without a border),
-    /// its <c>tab</c> children (<c>:selected</c>, <c>:hover</c>, <c>:focus</c>, <c>:disabled</c>, with a drawn
-    /// <c>marker</c> part under the active one), <c>tab-close</c> and the <c>tabpanel</c> holding the content.
+    /// A tab container with internal state. Styled by the <c>tabs</c> container, the <c>tabbar</c> rules (class
+    /// <c>plain</c> without a border), its <c>tab</c> children (<c>:selected</c>, <c>:hover</c>, <c>:focus</c>,
+    /// <c>:disabled</c>, with a drawn <c>marker</c> part under the active one), <c>tab-close</c> and the
+    /// <c>tabpanel</c> holding the content. Bar height and tab sizes come from the sheet, else the control metrics.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="activeTabIndex">The active tab, updated when the user picks or closes one.</param>
     /// <param name="buildTabs">Adds the tabs.</param>
-    /// <param name="tabBarHeight">Height of the bar.</param>
-    /// <param name="fontSize">Label size.</param>
     /// <param name="showBorder">Whether the bar and panel draw their box; false adds the <c>plain</c> class.</param>
-    /// <param name="id">Stable state id; defaults to the call site.</param>
-    /// <param name="onTabClosed">Called with the index and title of a tab the user closed.</param>
+    /// <param name="onTabClosed">Called with the index and key of a tab the user closed.</param>
+    /// <param name="enabled">Whether any tab can be picked.</param>
     /// <param name="classes">Stylesheet classes for the tab container.</param>
+    /// <param name="id">Stable state id, needed by <see cref="RestoreTabs"/>; defaults to the call site.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
-    public static void Tabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
-        float tabBarHeight = 32,
-        float fontSize = ControlMetrics.FontSize,
+    /// <returns>The <c>tabs</c> node; <see cref="NodeSignals.Changed"/> on the call that moved the active tab.</returns>
+    public static ControlNode Tabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
         bool showBorder = true,
-        string id = "",
         Action<int, string>? onTabClosed = null,
+        bool enabled = true,
         IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0) =>
+        TabSet(gui, ref activeTabIndex, buildTabs, TabLook.Bar, showBorder, onTabClosed, enabled, classes, id,
+            filePath, lineNumber);
+
+    /// <summary>Tabs stacked on the side (<c>tabbar.vertical</c>), with the content to their right.</summary>
+    /// <inheritdoc cref="Tabs(Gui, ref int, Action{TabBuilder}, bool, Action{int, string}?, bool, IReadOnlyList{string}?, string?, string, int)"/>
+    public static ControlNode VerticalTabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
+        bool showBorder = true,
+        Action<int, string>? onTabClosed = null,
+        bool enabled = true,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0) =>
+        TabSet(gui, ref activeTabIndex, buildTabs, TabLook.Vertical, showBorder, onTabClosed, enabled, classes, id,
+            filePath, lineNumber);
+
+    /// <summary>Rounded tabs in a borderless bar (<c>tabbar.pill</c>), spaced by the control spacing.</summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="activeTabIndex">The active tab, updated when the user picks or closes one.</param>
+    /// <param name="buildTabs">Adds the tabs.</param>
+    /// <param name="onTabClosed">Called with the index and key of a tab the user closed.</param>
+    /// <param name="enabled">Whether any tab can be picked.</param>
+    /// <param name="classes">Stylesheet classes for the tab container.</param>
+    /// <param name="id">Stable state id, needed by <see cref="RestoreTabs"/>; defaults to the call site.</param>
+    /// <param name="filePath">Call site, supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
+    /// <returns>The <c>tabs</c> node; <see cref="NodeSignals.Changed"/> on the call that moved the active tab.</returns>
+    public static ControlNode PillTabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
+        Action<int, string>? onTabClosed = null,
+        bool enabled = true,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0) =>
+        TabSet(gui, ref activeTabIndex, buildTabs, TabLook.Pill, true, onTabClosed, enabled, classes, id,
+            filePath, lineNumber);
+
+    /// <summary>A tab bar without content, for callers that draw the active page themselves.</summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="activeTabIndex">The active tab, updated when the user picks one.</param>
+    /// <param name="titles">What each tab shows.</param>
+    /// <param name="showBorder">Whether the bar draws its box; false adds the <c>plain</c> class.</param>
+    /// <param name="enabled">Whether any tab can be picked.</param>
+    /// <param name="classes">Stylesheet classes for the tab container.</param>
+    /// <param name="id">Stable state id; defaults to the call site.</param>
+    /// <param name="filePath">Call site, supplied by the compiler.</param>
+    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
+    /// <returns>The <c>tabs</c> node; <see cref="NodeSignals.Changed"/> on the call that moved the active tab.</returns>
+    public static ControlNode TabBar(this Gui gui, ref int activeTabIndex, IReadOnlyList<Content> titles,
+        bool showBorder = true,
+        bool enabled = true,
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        ExcaliburStyles.Ensure(gui);
+        ArgumentNullException.ThrowIfNull(titles);
+        return TabSet(gui, ref activeTabIndex, builder =>
+        {
+            foreach (var title in titles)
+            {
+                builder.Tab(title);
+            }
+        }, TabLook.Bar, showBorder, null, enabled, classes, id, filePath, lineNumber);
+    }
 
-        var stateId = string.IsNullOrEmpty(id) ? gui.AutomaticId(filePath, lineNumber) : id;
-        var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
+    static ControlNode TabSet(Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs, TabLook look,
+        bool showBorder, Action<int, string>? onTabClosed, bool enabled, IReadOnlyList<string>? classes, string? id,
+        string filePath, int lineNumber)
+    {
+        ExcaliburStyles.Ensure(gui);
+        var stateId = id ?? gui.AutomaticId(filePath, lineNumber);
+        var initial = activeTabIndex;
+        var state = gui.ControlState(stateId, () => new TabsState { ActiveTabIndex = initial });
 
         if (gui.Pass == Pass.Pass1Build && state.RequestedActiveTabIndex is { } requested)
         {
@@ -47,136 +123,156 @@ public static partial class ControlsExtensions
             state.RequestedActiveTabIndex = null;
         }
 
-        if (!LoadTabs(state, buildTabs, ref activeTabIndex))
+        var hasTabs = LoadTabs(state, buildTabs, ref activeTabIndex, enabled);
+        var node = gui.StyledControl("tabs", classes, stateId, NoModifiers, disabled: !enabled,
+            filePath: filePath, lineNumber: lineNumber);
+        UseControlFontSize(gui, node);
+        SizeTabSet(gui, node, state, look, hasTabs);
+
+        if (hasTabs)
         {
-            return;
+            using (node.Enter())
+            {
+                RenderTabBar(gui, state, look, showBorder);
+                RenderActiveTabContent(gui, state, look == TabLook.Pill || showBorder ? null : PlainClass);
+            }
         }
 
-        var totalHeight = CalculateTabsHeight(state, tabBarHeight);
-        var variantClasses = showBorder ? null : PlainClass;
-
-        using (gui.StyledNode("tabs", classes, stateId).Expand().Height(totalHeight).Direction(Axis.Vertical).Enter())
+        if (gui.Pass == Pass.Pass1Build)
         {
-            using (gui.StyledNode("tabbar", variantClasses).Height(state.TabBarHeight).Direction(Axis.Horizontal).Enter())
-            {
-                for (var i = 0; i < state.Tabs.Count; i++)
-                {
-                    RenderTabButton(gui, state, i, fontSize);
-                }
-            }
-
-            RenderActiveTabContent(gui, state, variantClasses);
+            state.SuppressActivation = false;
         }
 
         ApplyTabClose(state, onTabClosed);
+        if (state.ActiveTabIndex != initial)
+        {
+            node.Raise(NodeSignals.Changed);
+        }
+
         activeTabIndex = state.ActiveTabIndex;
+        return node;
     }
 
-    /// <summary>A tab container that returns the active tab index instead of changing a field.</summary>
-    /// <param name="gui">The GUI context.</param>
-    /// <param name="activeTabIndex">The active tab.</param>
-    /// <param name="buildTabs">Adds the tabs.</param>
-    /// <param name="tabBarHeight">Height of the bar.</param>
-    /// <param name="fontSize">Label size.</param>
-    /// <param name="showBorder">Whether the bar and panel draw their box; false adds the <c>plain</c> class.</param>
-    /// <param name="id">Stable state id; defaults to the call site.</param>
-    /// <param name="onTabClosed">Called with the index and title of a tab the user closed.</param>
-    /// <param name="classes">Stylesheet classes for the tab container.</param>
-    /// <param name="filePath">Call site, supplied by the compiler.</param>
-    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
-    /// <returns>The active tab after this frame.</returns>
-    public static int Tabs(this Gui gui, int activeTabIndex, Action<TabBuilder> buildTabs,
-        float tabBarHeight = 32,
-        float fontSize = ControlMetrics.FontSize,
-        bool showBorder = true,
-        string id = "",
-        Action<int, string>? onTabClosed = null,
-        IReadOnlyList<string>? classes = null,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
+    /// <summary>The container's size where the sheet leaves it unset: a bar row plus a page, or the bars' side.</summary>
+    static void SizeTabSet(Gui gui, LayoutNode node, TabsState state, TabLook look, bool hasTabs)
     {
-        var temp = activeTabIndex;
-        gui.Tabs(ref temp, buildTabs, tabBarHeight, fontSize, showBorder, id, onTabClosed, classes, filePath, lineNumber);
-        return temp;
+        if (!hasTabs)
+        {
+            SizeUnlessStyled(node, Size.Pixels(0), Size.Pixels(0));
+            return;
+        }
+
+        var page = state.Tabs.Exists(static t => t.Content is not null) ? TabPanelHeight : 0f;
+        SizeUnlessStyled(node, Size.Expand(),
+            look == TabLook.Bar ? Size.Pixels(gui.ControlStyle.FieldHeight + page) : Size.Expand());
+        node.Direction(look == TabLook.Vertical ? Axis.Horizontal : Axis.Vertical);
     }
 
-    /// <summary>A tab bar without content, for callers that draw the active page themselves.</summary>
-    /// <param name="gui">The GUI context.</param>
-    /// <param name="tabTitles">The tab labels.</param>
-    /// <param name="activeTabIndex">The active tab, updated when the user picks one.</param>
-    /// <param name="height">Height of the bar.</param>
-    /// <param name="fontSize">Label size.</param>
-    /// <param name="showBorder">Whether the bar draws its box; false adds the <c>plain</c> class.</param>
-    /// <param name="classes">Stylesheet classes for the tab container.</param>
-    /// <param name="filePath">Call site, supplied by the compiler.</param>
-    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
-    public static void TabBar(this Gui gui, string[] tabTitles, ref int activeTabIndex,
-        float height = ControlMetrics.FieldHeight,
-        float fontSize = ControlMetrics.FontSize,
-        bool showBorder = true,
-        IReadOnlyList<string>? classes = null,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
+    static void RenderTabBar(Gui gui, TabsState state, TabLook look, bool showBorder)
     {
-        height = gui.ControlStyle.FieldHeightOr(height);
+        var spacing = gui.ControlStyle.Spacing;
+        var bar = gui.StyledNode("tabbar", look switch
+        {
+            TabLook.Vertical => showBorder ? VerticalClass : VerticalPlainClasses,
+            TabLook.Pill => PillClass,
+            _ => showBorder ? null : PlainClass
+        });
+        switch (look)
+        {
+            case TabLook.Vertical:
+                SizeUnlessStyled(bar, Size.Pixels(VerticalTabWidth), Size.Expand());
+                bar.Direction(Axis.Vertical);
+                break;
+            case TabLook.Pill:
+                SizeUnlessStyled(bar, null, Size.Pixels(gui.ControlStyle.CompactHeight + spacing * 2));
+                bar.Direction(Axis.Horizontal).Gap(spacing).Padding(spacing);
+                break;
+            default:
+                SizeUnlessStyled(bar, null, Size.Pixels(gui.ControlStyle.FieldHeight));
+                bar.Direction(Axis.Horizontal);
+                break;
+        }
 
-        gui.Tabs(ref activeTabIndex, builder =>
+        using (bar.Enter())
+        {
+            for (var i = 0; i < state.Tabs.Count; i++)
             {
-                foreach (var title in tabTitles)
-                {
-                    builder.Tab(title);
-                }
-            }, height, fontSize, showBorder,
-            classes: classes, filePath: filePath, lineNumber: lineNumber);
+                RenderTab(gui, state, i, look);
+            }
+        }
     }
 
-    static TabsState GetOrCreateTabsState(Gui gui, string id, int initialActiveIndex, float tabBarHeight) =>
-        gui.ControlState(id,
-            () => new TabsState { ActiveTabIndex = initialActiveIndex, TabBarHeight = tabBarHeight });
-
-    static float CalculateTabsHeight(TabsState state, float tabBarHeight) =>
-        tabBarHeight + (state.Tabs.Any(static t => t.Content != null) ? 200 : 0);
-
-    /// <summary>A styled <c>tab</c> node: <c>:selected</c> when active, <c>:disabled</c> when the tab is.</summary>
-    static LayoutNode TabNode(Gui gui, TabInfo tab, bool isActive) =>
-        gui.StyledNode("tab", tab.Classes, modifiers: isActive ? SelectedModifier : NoModifiers,
-            disabled: !tab.Enabled);
-
-    static void RenderTabButton(Gui gui, TabsState state, int tabIndex, float fontSize)
+    /// <summary>
+    /// One tab: its title and, when closable, the close button. Bar tabs are keyboard selectable; vertical and pill
+    /// tabs select on click. Sized to the title unless the sheet sets a size.
+    /// </summary>
+    static void RenderTab(Gui gui, TabsState state, int tabIndex, TabLook look)
     {
         var tab = state.Tabs[tabIndex];
         var isActive = state.ActiveTabIndex == tabIndex;
-        var node = TabNode(gui, tab, isActive);
-        var tabWidth = CalculateTabWidth(gui, tab.Title, fontSize, tab.Closable, node.Scope);
-
-        using (node.Width(tabWidth).Height(state.TabBarHeight).Direction(Axis.Horizontal)
-                   .AlignContentY(0.5f).Enter())
+        var node = gui.StyledNode("tab", tab.Classes, modifiers: isActive ? SelectedModifier : NoModifiers,
+            disabled: !tab.Enabled);
+        if (look == TabLook.Vertical)
         {
-            var behavior = gui.Selectable(isActive, new ControlBehaviorOptions(
-                Enabled: tab.Enabled, Role: ControlRole.Tab, Label: tab.Title));
-            if (behavior.Activated)
-            {
-                state.ActiveTabIndex = tabIndex;
-            }
+            SizeUnlessStyled(node, Size.Percentage(1f), Size.Pixels(VerticalTabHeight));
+            PadUnlessStyled(node, gui.ControlStyle.Spacing, 0);
+        }
+        else
+        {
+            SizeUnlessStyled(node, Size.FitContent(), Size.Percentage(1f));
+            PadUnlessStyled(node, TabPaddingX, 0);
+            node.AlignContentX(0.5f);
+        }
 
-            if (gui.Pass == Pass.Pass2Render)
+        using (node.Direction(Axis.Horizontal).Gap(TabCloseGap).AlignContentY(0.5f).Enter())
+        {
+            ControlBehaviorResult? behavior = null;
+            if (look == TabLook.Bar)
             {
-                HandleTabBehavior(gui, state, tabIndex, tab, behavior);
-                if (isActive)
+                behavior = gui.Selectable(isActive, new ControlBehaviorOptions(
+                    Enabled: tab.Enabled, Role: ControlRole.Tab, Label: tab.Title.Label));
+                if (behavior.Value.Activated && !state.SuppressActivation)
                 {
-                    DrawTabMarker(gui, vertical: false);
+                    state.ActiveTabIndex = tabIndex;
                 }
             }
 
-            using (gui.Node().Expand().Height(state.TabBarHeight).AlignContentX(0.5f).AlignContentY(0.5f).Enter())
+            if (gui.Pass == Pass.Pass2Render && isActive && look != TabLook.Pill)
             {
-                gui.DrawText(tab.Title, fontSize, centerInRect: true);
+                DrawTabMarker(gui, vertical: look == TabLook.Vertical);
             }
 
-            if (tab.Closable)
+            RenderTabTitle(gui, tab, look);
+            var overClose = tab.Closable && RenderTabCloseButton(gui, state, tabIndex);
+            if (gui.Pass != Pass.Pass2Render)
             {
-                RenderTabCloseButton(gui, state, tabIndex);
+                return;
             }
+
+            if (behavior is { } result)
+            {
+                HandleTabBehavior(gui, state, tabIndex, tab, result);
+            }
+            else
+            {
+                HandleTabPointer(gui, state, tabIndex, tab, overClose);
+            }
+        }
+    }
+
+    /// <summary>The title; a vertical tab's title takes the free width so the close button sits at the edge.</summary>
+    static void RenderTabTitle(Gui gui, TabInfo tab, TabLook look)
+    {
+        if (look != TabLook.Vertical)
+        {
+            gui.Content(tab.Title);
+            return;
+        }
+
+        using (gui.Node().ExpandWidth().Height(Size.FitContent()).Direction(Axis.Horizontal).AlignContentY(0.5f)
+                   .Enter())
+        {
+            gui.Content(tab.Title);
         }
     }
 
@@ -190,7 +286,22 @@ public static partial class ControlsExtensions
 
         if (closed && tab.Enabled)
         {
-            state.TabToClose = (tabIndex, tab.Title);
+            state.TabToClose = (tabIndex, tab.Key!);
+        }
+    }
+
+    /// <summary>Selects on click (not on the close button) and closes on a middle click; render pass only.</summary>
+    static void HandleTabPointer(Gui gui, TabsState state, int tabIndex, TabInfo tab, bool overClose)
+    {
+        var interactable = gui.GetInteractable();
+        if (interactable.OnClick() && tab.Enabled && !overClose)
+        {
+            state.ActiveTabIndex = tabIndex;
+        }
+
+        if (interactable.OnClick(MouseButton.Middle) && tab.Enabled && tab.Closable)
+        {
+            state.TabToClose = (tabIndex, tab.Key!);
         }
     }
 
@@ -232,55 +343,6 @@ public static partial class ControlsExtensions
         }
     }
 
-    const float TabCloseButtonSize = 18f;
-
-    static float CalculateTabWidth(Gui gui, string title, float fontSize, bool closable, LayoutNodeScope? scope = null)
-    {
-        return gui.MeasureTextWidth(title, fontSize, scope) + 24 + (closable ? TabCloseButtonSize + 6 : 0);
-    }
-
-    /// <summary>True when the pointer sits over the "×" that closes a closable tab.</summary>
-    static bool OverTabCloseButton(bool closable, Rect rect, Vector2 mousePos)
-    {
-        if (!closable)
-        {
-            return false;
-        }
-
-        var closeRect = new Rect(rect.X + rect.W - TabCloseButtonSize - 4,
-            rect.Y + (rect.H - TabCloseButtonSize) * 0.5f, TabCloseButtonSize + 8, TabCloseButtonSize + 8);
-        return closeRect.Contains(mousePos);
-    }
-
-    static void RenderTabCloseButton(Gui gui, TabsState state, int tabIndex)
-    {
-        var tab = state.Tabs[tabIndex];
-
-        using (gui.StyledNode("tab-close").Width(TabCloseButtonSize).Height(TabCloseButtonSize).Enter())
-        {
-            if (gui.Pass != Pass.Pass2Render)
-            {
-                return;
-            }
-
-            var rect = gui.CurrentNode.Rect;
-            var font = gui.GetTextFont(12f).SkFont;
-            font.MeasureText("×", out var bounds);
-            var pos = new Vector2(rect.X + (rect.W - bounds.Width) * 0.5f,
-                rect.Y + (rect.H + bounds.Height) * 0.5f);
-            gui.CurrentNode.DrawList.Add(new Text("×", pos, font, new SKPaint
-            {
-                Color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value,
-                IsAntialias = true
-            }));
-
-            if (gui.GetInteractable().OnClick() && tab.Enabled)
-            {
-                state.TabToClose = (tabIndex, tab.Title);
-            }
-        }
-    }
-
     /// <summary>Draws the active tab's <c>marker</c> part: a bar under it, or beside it in a vertical bar.</summary>
     static void DrawTabMarker(Gui gui, bool vertical)
     {
@@ -290,148 +352,22 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>
-    /// Clears all tabs states (useful for cleanup)
+    /// Rebuilds the tab list, keys each tab, leaves out tabs the user closed (closure lives in the widget), and clamps
+    /// the active index. Returns whether any tab remains.
     /// </summary>
-    public static void ClearTabsStates(this Gui gui)
-    {
-        gui.ClearControlStates<TabsState>();
-    }
-
-    /// <summary>
-    /// Reopens every tab in a tab stack that was closed with a middle-click. The tab stack must have
-    /// been given that <paramref name="id"/> when <c>Tabs</c>/<c>VerticalTabs</c>/<c>PillTabs</c> was called.
-    /// </summary>
-    public static void RestoreTabs(this Gui gui, string id)
-    {
-        var state = gui.TryGetControlState<TabsState>(id);
-        if (state is null)
-        {
-            return;
-        }
-
-        state.Closed.Clear();
-        state.ActiveTabIndex = 0;
-    }
-}
-
-/// <summary>
-/// Extended tab controls with additional features
-/// </summary>
-public static partial class ControlsExtensions
-{
-    /// <summary>Tabs stacked on the side (<c>tabbar.vertical</c>), with the content to their right.</summary>
-    /// <param name="gui">The GUI context.</param>
-    /// <param name="activeTabIndex">The active tab, updated when the user picks or closes one.</param>
-    /// <param name="buildTabs">Adds the tabs.</param>
-    /// <param name="tabWidth">Width of the bar.</param>
-    /// <param name="fontSize">Label size.</param>
-    /// <param name="showBorder">Whether the bar and panel draw their box; false adds the <c>plain</c> class.</param>
-    /// <param name="id">Stable state id; defaults to the call site.</param>
-    /// <param name="onTabClosed">Called with the index and title of a tab the user closed.</param>
-    /// <param name="classes">Stylesheet classes for the tab container.</param>
-    /// <param name="filePath">Call site, supplied by the compiler.</param>
-    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
-    public static void VerticalTabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
-        float tabWidth = 120,
-        float fontSize = ControlMetrics.FontSize,
-        bool showBorder = true,
-        string id = "",
-        Action<int, string>? onTabClosed = null,
-        IReadOnlyList<string>? classes = null,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
-    {
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        ExcaliburStyles.Ensure(gui);
-
-        var stateId = string.IsNullOrEmpty(id) ? gui.AutomaticId(filePath, lineNumber) : id;
-        var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, 32);
-
-        if (!LoadTabs(state, buildTabs, ref activeTabIndex))
-        {
-            return;
-        }
-
-        using (gui.StyledNode("tabs", classes, stateId).Expand().Direction(Axis.Horizontal).Enter())
-        {
-            using (gui.StyledNode("tabbar", showBorder ? VerticalClass : VerticalPlainClasses).Width(tabWidth)
-                       .Expand().Direction(Axis.Vertical).Enter())
-            {
-                for (var i = 0; i < state.Tabs.Count; i++)
-                {
-                    RenderVerticalTabButton(gui, state, i, tabWidth, fontSize);
-                }
-            }
-
-            RenderActiveTabContent(gui, state, showBorder ? null : PlainClass);
-        }
-
-        ApplyTabClose(state, onTabClosed);
-        activeTabIndex = state.ActiveTabIndex;
-    }
-
-    /// <summary>Rounded tabs in a borderless bar (<c>tabbar.pill</c>).</summary>
-    /// <param name="gui">The GUI context.</param>
-    /// <param name="activeTabIndex">The active tab, updated when the user picks or closes one.</param>
-    /// <param name="buildTabs">Adds the tabs.</param>
-    /// <param name="tabBarHeight">Height of the bar.</param>
-    /// <param name="fontSize">Label size.</param>
-    /// <param name="spacing">Gap and padding around the pills.</param>
-    /// <param name="id">Stable state id; defaults to the call site.</param>
-    /// <param name="onTabClosed">Called with the index and title of a tab the user closed.</param>
-    /// <param name="classes">Stylesheet classes for the tab container.</param>
-    /// <param name="filePath">Call site, supplied by the compiler.</param>
-    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
-    public static void PillTabs(this Gui gui, ref int activeTabIndex, Action<TabBuilder> buildTabs,
-        float tabBarHeight = 40,
-        float fontSize = ControlMetrics.FontSize,
-        float spacing = ControlMetrics.Spacing,
-        string id = "",
-        Action<int, string>? onTabClosed = null,
-        IReadOnlyList<string>? classes = null,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
-    {
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        spacing = gui.ControlStyle.SpacingOr(spacing);
-        ExcaliburStyles.Ensure(gui);
-
-        var stateId = string.IsNullOrEmpty(id) ? gui.AutomaticId(filePath, lineNumber) : id;
-        var state = GetOrCreateTabsState(gui, stateId, activeTabIndex, tabBarHeight);
-
-        if (!LoadTabs(state, buildTabs, ref activeTabIndex))
-        {
-            return;
-        }
-
-        using (gui.StyledNode("tabs", classes, stateId).Expand().Direction(Axis.Vertical).Enter())
-        {
-            using (gui.StyledNode("tabbar", PillClass).Height(state.TabBarHeight).Direction(Axis.Horizontal)
-                       .Gap(spacing).Padding(spacing).Enter())
-            {
-                for (var i = 0; i < state.Tabs.Count; i++)
-                {
-                    RenderPillTabButton(gui, state, i, fontSize);
-                }
-            }
-
-            RenderActiveTabContent(gui, state, null);
-        }
-
-        ApplyTabClose(state, onTabClosed);
-        activeTabIndex = state.ActiveTabIndex;
-    }
-
-    /// <summary>
-    /// Rebuilds the tab list, leaving out tabs the user closed (middle-click closure lives in the widget), and
-    /// clamps the active index. Returns whether any tab remains.
-    /// </summary>
-    static bool LoadTabs(TabsState state, Action<TabBuilder> buildTabs, ref int activeTabIndex)
+    static bool LoadTabs(TabsState state, Action<TabBuilder> buildTabs, ref int activeTabIndex, bool enabled)
     {
         var builder = new TabBuilder();
         buildTabs(builder);
         state.Tabs = builder.GetTabs();
-        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Title));
+        for (var i = 0; i < state.Tabs.Count; i++)
+        {
+            var tab = state.Tabs[i];
+            tab.Key ??= tab.Title.Label ?? $"#{i}";
+            tab.Enabled &= enabled;
+        }
+
+        state.Tabs.RemoveAll(tab => state.Closed.Contains(tab.Key!));
 
         if (activeTabIndex < 0 || activeTabIndex >= state.Tabs.Count)
         {
@@ -451,7 +387,8 @@ public static partial class ControlsExtensions
         }
 
         state.TabToClose = null;
-        state.Closed.Add(closeRequest.Title);
+        state.SuppressActivation = true;
+        state.Closed.Add(closeRequest.Key);
 
         var openCount = state.Tabs.Count - 1;
         if (closeRequest.Index < state.ActiveTabIndex)
@@ -463,77 +400,25 @@ public static partial class ControlsExtensions
             state.ActiveTabIndex = Math.Min(closeRequest.Index, Math.Max(0, openCount - 1));
         }
 
-        onTabClosed?.Invoke(closeRequest.Index, closeRequest.Title);
+        onTabClosed?.Invoke(closeRequest.Index, closeRequest.Key);
     }
 
-    /// <summary>Selects on click (not on the close button) and closes on a middle click; render pass only.</summary>
-    static void HandleTabPointer(Gui gui, TabsState state, int tabIndex, TabInfo tab)
+    /// <summary>Clears all tabs states (useful for cleanup).</summary>
+    public static void ClearTabsStates(this Gui gui) => gui.ClearControlStates<TabsState>();
+
+    /// <summary>
+    /// Reopens every tab in a tab container that the user closed. The container must have been given that
+    /// <paramref name="id"/> when <c>Tabs</c>/<c>VerticalTabs</c>/<c>PillTabs</c> was called.
+    /// </summary>
+    public static void RestoreTabs(this Gui gui, string id)
     {
-        var interactable = gui.GetInteractable();
-        if (interactable.OnClick() && tab.Enabled
-            && !OverTabCloseButton(tab.Closable, gui.CurrentNode.Rect, gui.LocalMousePosition))
+        var state = gui.TryGetControlState<TabsState>(id);
+        if (state is null)
         {
-            state.ActiveTabIndex = tabIndex;
+            return;
         }
 
-        if (interactable.OnClick(MouseButton.Middle) && tab.Enabled && tab.Closable)
-        {
-            state.TabToClose = (tabIndex, tab.Title);
-        }
-    }
-
-    static void RenderVerticalTabButton(Gui gui, TabsState state, int tabIndex, float tabWidth, float fontSize)
-    {
-        var tab = state.Tabs[tabIndex];
-        var isActive = state.ActiveTabIndex == tabIndex;
-
-        using (TabNode(gui, tab, isActive).Width(tabWidth).Height(36).Padding(8).Direction(Axis.Horizontal).Enter())
-        {
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                HandleTabPointer(gui, state, tabIndex, tab);
-                if (isActive)
-                {
-                    DrawTabMarker(gui, vertical: true);
-                }
-            }
-
-            using (gui.Node().Expand().Height(36).AlignContentY(0.5f).Enter())
-            {
-                gui.DrawText(tab.Title, fontSize, centerInRect: false);
-            }
-
-            if (tab.Closable)
-            {
-                RenderTabCloseButton(gui, state, tabIndex);
-            }
-        }
-    }
-
-    static void RenderPillTabButton(Gui gui, TabsState state, int tabIndex, float fontSize)
-    {
-        var tab = state.Tabs[tabIndex];
-        var isActive = state.ActiveTabIndex == tabIndex;
-        var node = TabNode(gui, tab, isActive);
-        var tabWidth = CalculateTabWidth(gui, tab.Title, fontSize, tab.Closable, node.Scope);
-
-        using (node.Width(tabWidth).Height(state.TabBarHeight - 16).Direction(Axis.Horizontal)
-                   .Enter())
-        {
-            if (gui.Pass == Pass.Pass2Render)
-            {
-                HandleTabPointer(gui, state, tabIndex, tab);
-            }
-
-            using (gui.Node().Expand().Height(state.TabBarHeight - 16).AlignContentX(0.5f).AlignContentY(0.5f).Enter())
-            {
-                gui.DrawText(tab.Title, fontSize, centerInRect: true);
-            }
-
-            if (tab.Closable)
-            {
-                RenderTabCloseButton(gui, state, tabIndex);
-            }
-        }
+        state.Closed.Clear();
+        state.ActiveTabIndex = 0;
     }
 }

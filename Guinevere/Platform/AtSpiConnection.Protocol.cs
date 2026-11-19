@@ -111,7 +111,7 @@ sealed partial class AtSpiConnection
         AccessibleMethods[method](this, path, element, parameters);
 
     static string Attributes(AccessibilityElement element) =>
-        $"(@a{{ss}} {{'guinevere-role': {Quote(element.Role)}, 'id': {Quote(element.Id)}, "
+        $"(@a{{ss}} {{'guinevere-role': {Quote(element.Role.Name)}, 'id': {Quote(element.Id)}, "
         + $"'virtualized': {Quote(element.Virtualized ? "true" : "false")}}},)";
 
     static string InterfaceArray(string path) =>
@@ -247,27 +247,45 @@ sealed partial class AtSpiConnection
         return $"[uint32 {(uint)bits}, uint32 {(uint)(bits >> 32)}]";
     }
 
+    /// <summary>AT-SPI role numbers and names for the standard <see cref="ControlRole"/> set.</summary>
     static readonly Dictionary<string, (uint Value, string Name)> Roles = new(StringComparer.Ordinal)
     {
-        ["Application"] = (75, "application"),
-        ["Window"] = (23, "frame"),
-        ["Graph"] = (6, "canvas"),
-        ["Node"] = (39, "panel"),
-        ["Group"] = (99, "grouping"),
-        ["Port"] = (43, "push button"),
-        ["Edge"] = (88, "link"),
-        ["Button"] = (43, "push button"),
-        ["Checkbox"] = (7, "check box"),
-        ["Switch"] = (7, "check box"),
-        ["Radio"] = (44, "radio button"),
-        ["Tab"] = (37, "page tab"),
-        ["Slider"] = (51, "slider"),
-        ["ComboBox"] = (11, "combo box"),
-        ["Menu"] = (33, "menu"),
-        ["MenuItem"] = (35, "menu item"),
-        ["TextInput"] = (79, "entry")
+        [ControlRole.Application.Name] = (75, "application"),
+        [ControlRole.Window.Name] = (23, "frame"),
+        [ControlRole.Panel.Name] = (39, "panel"),
+        [ControlRole.Group.Name] = (99, "grouping"),
+        [ControlRole.Canvas.Name] = (6, "canvas"),
+        [ControlRole.Text.Name] = (29, "label"),
+        [ControlRole.Link.Name] = (88, "link"),
+        [ControlRole.List.Name] = (31, "list"),
+        [ControlRole.ListItem.Name] = (32, "list item"),
+        [ControlRole.Tree.Name] = (65, "tree"),
+        [ControlRole.TreeItem.Name] = (91, "tree item"),
+        [ControlRole.Button.Name] = (43, "push button"),
+        [ControlRole.Checkbox.Name] = (7, "check box"),
+        [ControlRole.Radio.Name] = (44, "radio button"),
+        [ControlRole.Tab.Name] = (37, "page tab"),
+        [ControlRole.Slider.Name] = (51, "slider"),
+        [ControlRole.ComboBox.Name] = (11, "combo box"),
+        [ControlRole.Menu.Name] = (33, "menu"),
+        [ControlRole.MenuItem.Name] = (35, "menu item"),
+        [ControlRole.TextInput.Name] = (79, "entry")
     };
 
-    static uint Role(string role) => Roles.TryGetValue(role, out var value) ? value.Value : 39;
-    static string RoleName(string role) => Roles.TryGetValue(role, out var value) ? value.Name : "panel";
+    /// <summary>The nearest known role along the <see cref="ControlRole.Base"/> chain; a panel otherwise.</summary>
+    static (uint Value, string Name) Resolve(ControlRole role)
+    {
+        for (var current = role; current is not null; current = current.Base)
+        {
+            if (Roles.TryGetValue(current.Name, out var value))
+            {
+                return value;
+            }
+        }
+
+        return (39, "panel");
+    }
+
+    static uint Role(ControlRole role) => Resolve(role).Value;
+    static string RoleName(ControlRole role) => Resolve(role).Name;
 }

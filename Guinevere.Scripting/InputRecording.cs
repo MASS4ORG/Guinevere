@@ -10,7 +10,7 @@ public sealed class InputRecording
     /// <summary>Owns the ordered immutable frames.</summary>
     public InputRecording(IEnumerable<RecordedInputFrame> frames)
     {
-        Frames = Array.AsReadOnly(frames.ToArray());
+        Frames = Array.AsReadOnly([.. frames]);
     }
 
     /// <summary>Frames in delivery order.</summary>

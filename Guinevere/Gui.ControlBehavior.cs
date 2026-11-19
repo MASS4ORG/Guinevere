@@ -178,7 +178,7 @@ public partial class Gui
 
     void PublishBehaviorSemantics(HeadlessBehaviorState behavior, ControlBehaviorOptions options)
     {
-        var semantics = new ControlSemantics(CurrentNode.Id, options.Role, options.Label, options.Value,
+        var semantics = new ControlSemantics(CurrentNode.Id, options.Role ?? ControlRole.None, options.Label, options.Value,
             CurrentNode.Rect, ComposeState(options, behavior.Hovered, behavior.Pressed, behavior.Focused, behavior.Dragging));
         if (ControlSemantics is { } sink)
         {

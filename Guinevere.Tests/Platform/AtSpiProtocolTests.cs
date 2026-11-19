@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Guinevere.Graphs;
 using Guinevere.Tests.Mocks;
 
 namespace Guinevere.Tests.Platform;
@@ -36,15 +37,15 @@ public sealed class AtSpiProtocolTests
         Assert.NotNull(bridge);
         using var client = new AtSpiClient(bridge.BusName!);
         var flags = ControlVisualState.Focused | ControlVisualState.Selected | ControlVisualState.Checked;
-        var element = new AccessibilityElement("item", "parent", "Group", "A 'quoted' \\ label\nλ", "Description\r\t",
+        var element = new AccessibilityElement("item", "parent", ControlRole.Group, "A 'quoted' \\ label\nλ", "Description\r\t",
             new Rect(10, 20, 100, 30), flags, Actions: ["Focus", "Activate"], ScopeId: "scope", Key: "key",
             SourceId: "source", TargetId: "target", Expanded: false);
         void Publish()
         {
             bridge.BeginFrame();
-            bridge.PublishElement(new("parent", null, "Graph", "Parent", "", default, ControlVisualState.None));
-            bridge.PublishElement(new("source", null, "Port", "Source", "", default, ControlVisualState.None));
-            bridge.PublishElement(new("target", null, "Port", "Target", "", default, ControlVisualState.None));
+            bridge.PublishElement(new("parent", null, GraphRoles.Graph, "Parent", "", default, ControlVisualState.None));
+            bridge.PublishElement(new("source", null, GraphRoles.Port, "Source", "", default, ControlVisualState.None));
+            bridge.PublishElement(new("target", null, GraphRoles.Port, "Target", "", default, ControlVisualState.None));
             bridge.PublishElement(element);
             bridge.Announce("scope", "Operation completed", "item");
             bridge.Announce("missing", "An announcement without an element");

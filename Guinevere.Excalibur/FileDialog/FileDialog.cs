@@ -157,14 +157,15 @@ public static partial class ControlsExtensions
             return;
         }
 
-        if (gui.Button("Cancel", width: 90f, height: 28f, fontSize: fontSize))
+        gui.SetTextSize(fontSize);
+        if (gui.Button("Cancel").Width(90f).Height(28f).Clicked)
         {
             state.Close(null);
         }
 
         var choice = state.Choice();
-        if (gui.Button(state.ConfirmLabel(), width: 120f, height: 28f, fontSize: fontSize,
-                enabled: choice is not null, classes: PrimaryClass))
+        if (gui.Button(state.ConfirmLabel(), enabled: choice is not null, classes: PrimaryClass)
+                .Width(120f).Height(28f).Clicked)
         {
             _ = ConfirmAsync(state).AsTask();
         }

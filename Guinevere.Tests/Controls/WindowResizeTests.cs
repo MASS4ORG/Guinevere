@@ -72,7 +72,7 @@ public class WindowResizeTests
             gui.DrawText("Studio");
         }
 
-        gui.Button("Content", gui.ScreenRect.W, gui.ScreenRect.H - 36);
+        gui.Button("Content").Width(gui.ScreenRect.W).Height(gui.ScreenRect.H - 36);
     }
 
     /// <summary>Resizes each edge and corner while keeping the opposite edges anchored.</summary>
@@ -266,7 +266,7 @@ public class WindowResizeTests
                 gui.SetClipped(true);
                 using var bar = gui.AppBar(resizable: true);
             }
-            if (gui.Button("Content", 400, 264))
+            if (gui.Button("Content").Width(400).Height(264).Clicked)
             {
                 clicks++;
             }

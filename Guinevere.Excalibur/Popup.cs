@@ -40,7 +40,7 @@ public static partial class ControlsExtensions
     public static void Popup(this Gui gui, ref bool isOpen, Action content,
         float width = 300,
         float height = 200,
-        string title = "",
+        Content title = default,
         Vector2? position = null,
         bool modal = false,
         bool closeOnClickOutside = true,
@@ -88,7 +88,7 @@ public static partial class ControlsExtensions
     public static bool Popup(this Gui gui, bool isOpen, Action content,
         float width = 300,
         float height = 200,
-        string title = "",
+        Content title = default,
         Vector2? position = null,
         bool modal = false,
         bool closeOnClickOutside = true,
@@ -111,7 +111,7 @@ public static partial class ControlsExtensions
     public static void ModalPopup(this Gui gui, ref bool isOpen, Action content,
         float width = 300,
         float height = 200,
-        string title = "",
+        Content title = default,
         Vector2? position = null,
         float titleBarHeight = 30,
         IReadOnlyList<string>? classes = null,
@@ -125,69 +125,85 @@ public static partial class ControlsExtensions
             titleBarHeight, classes, id, filePath, lineNumber);
     }
 
+    static readonly string[] ClosedModifier = ["closed"];
+
     /// <summary>
-    /// Creates a tooltip popup that follows the mouse
+    /// A <c>tooltip</c> that follows the pointer, fitting its content plus the scope's control spacing, at most
+    /// <paramref name="maxWidth"/> wide. The text takes the compact control font size unless the sheet sets one.
     /// </summary>
-    public static void Tooltip(this Gui gui, string text, bool show = true,
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="content">What the tooltip shows: text, an icon, a localized string or other widgets.</param>
+    /// <param name="show">When false the tooltip matches <c>:closed</c> (hidden by the default sheets).</param>
+    /// <param name="offset">Offset from the pointer.</param>
+    /// <param name="maxWidth">Widest the tooltip may grow.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="id">Optional id for <c>tooltip#id</c> rules and a stable identity; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The tooltip's node; a tooltip reports no events.</returns>
+    public static LayoutNode Tooltip(this Gui gui, Content content, bool show = true,
         Vector2? offset = null,
         float maxWidth = 200,
-        float fontSize = ControlMetrics.CompactFontSize,
-        float padding = ControlMetrics.Spacing,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
-        padding = gui.ControlStyle.SpacingOr(padding);
-
         ExcaliburStyles.Ensure(gui);
-        // Always create tooltip node for consistency
-        var mousePos = gui.LocalMousePosition;
-        var tooltipOffset = offset ?? new Vector2(10, -25);
-        var tooltipPos = mousePos + tooltipOffset;
+        var fontSize = gui.ControlStyle.CompactFontSize;
+        var padding = gui.ControlStyle.Spacing;
 
-        // Calculate tooltip size
-        using var font = new SKFont { Size = fontSize };
-        var tooltipText = text;
-        font.MeasureText(tooltipText, out var textBounds);
-        var tooltipWidth = Math.Min(textBounds.Width + padding * 2, maxWidth);
-        var tooltipHeight = textBounds.Height + padding * 2;
+        // The box fits its content through layout; this text estimate only keeps it on screen in the build pass.
+        var label = content.Label;
+        var width = Math.Min((label is null ? 0f : gui.MeasureTextWidth(label, fontSize)) + padding * 2, maxWidth);
+        var height = fontSize * gui.FontScale + padding * 2;
+        var position = ConstrainToScreen(gui, gui.LocalMousePosition + (offset ?? new Vector2(10, -25)), width, height);
 
-        // Adjust position to keep tooltip on screen
-        tooltipPos = ConstrainToScreen(gui, tooltipPos, tooltipWidth, tooltipHeight);
+        var node = gui.StyledNode("tooltip", classes, id,
+            modifiers: show && !content.IsEmpty ? NoModifiers : ClosedModifier,
+            filePath: filePath, lineNumber: lineNumber);
+        if (!node.Scope.HasLocal<LayoutNodeScopeTextSize>())
+        {
+            gui.SetTextSize(fontSize, node.Scope);
+        }
 
-        // ReSharper disable once ExplicitCallerInfoArgument - keep the caller's original location for a stable NodeId
-        using (gui.StyledNode("tooltip", classes, id, modifiers: show && !string.IsNullOrEmpty(text) ? [] : ["closed"],
-                       filePath: filePath, lineNumber: lineNumber).Width(tooltipWidth).Height(tooltipHeight)
-                   .AbsoluteScreen(tooltipPos.X, tooltipPos.Y).HitTestVisible(false)
-                   .AlignContentX(0.5f).AlignContentY(0.5f).Enter())
+        FitUnlessStyled(node);
+        node.Padding(padding).MaxWidth(maxWidth).AbsoluteScreen(position.X, position.Y).HitTestVisible(false)
+            .Direction(Axis.Horizontal).AlignContent(0.5f);
+        using (node.Enter())
         {
             gui.SetZIndex(TooltipZIndex);
             gui.SetEscapesAncestorClips();
-
-            gui.DrawText(tooltipText, fontSize, centerInRect: false).HitTestVisible(false);
+            gui.Content(content);
         }
+
+        return node;
     }
 
     /// <summary>
-    /// Creates a tooltip that appears after the pointer has hovered <paramref name="node"/> for
-    /// <paramref name="delay"/> seconds, and hides as soon as the pointer leaves it. Positioned
-    /// just below the node rather than glued to the cursor.
+    /// A tooltip that appears after the pointer has hovered <paramref name="node"/> for <paramref name="delay"/>
+    /// seconds, and hides as soon as the pointer leaves it. Positioned just below the node rather than glued to the
+    /// cursor.
     /// </summary>
-    public static void Tooltip(this Gui gui, LayoutNode node, string text, float delay = 0.45f,
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="node">The node the tooltip describes, such as a button the caller just built.</param>
+    /// <param name="content">What the tooltip shows.</param>
+    /// <param name="delay">Seconds of hovering before it shows.</param>
+    /// <param name="offset">Offset from the node's top-left; defaults to just below it.</param>
+    /// <param name="maxWidth">Widest the tooltip may grow.</param>
+    /// <param name="classes">Extra classes for the sheet.</param>
+    /// <param name="id">Optional id for the hover state and <c>tooltip#id</c> rules; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The tooltip's node.</returns>
+    public static LayoutNode Tooltip(this Gui gui, LayoutNode node, Content content, float delay = 0.45f,
         Vector2? offset = null,
         float maxWidth = 200,
-        float fontSize = ControlMetrics.CompactFontSize,
-        float padding = ControlMetrics.Spacing,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        fontSize = gui.ControlStyle.CompactFontSizeOr(fontSize);
-        padding = gui.ControlStyle.SpacingOr(padding);
-
         id ??= gui.AutomaticId(filePath, lineNumber);
         ExcaliburStyles.Ensure(gui);
         var state = gui.ControlState(id, static () => new TooltipState());
@@ -200,8 +216,8 @@ public static partial class ControlsExtensions
             state.AnchorScreenRect = node.LocalToScreen(node.Rect);
         }
 
-        gui.Tooltip(text, show, offset ?? new Vector2(0, anchorRect.H),
-            maxWidth, fontSize, padding, classes, id, filePath, lineNumber);
+        return gui.Tooltip(content, show, offset ?? new Vector2(0, anchorRect.H), maxWidth, classes, id, filePath,
+            lineNumber);
     }
 
     static bool TooltipIsVisible(Gui gui, TooltipState state, Rect anchorRect, float delay)
@@ -248,9 +264,9 @@ public static partial class ControlsExtensions
     }
 
     static void RenderPopup(Gui gui, PopupState state, Action content, float width, float height,
-        string title, float titleBarHeight, IReadOnlyList<string>? classes, string id)
+        Content title, float titleBarHeight, IReadOnlyList<string>? classes, string id)
     {
-        var totalHeight = string.IsNullOrEmpty(title) ? height : height + titleBarHeight;
+        var totalHeight = title.IsEmpty ? height : height + titleBarHeight;
 
         var popupNode = gui.StyledNode("popup", classes, id, modifiers: state.IsOpen ? [] : ["closed"]).Width(width).Height(totalHeight)
             .AbsoluteScreen(state.Position.X, state.Position.Y).HitTestVisible(state.IsOpen);
@@ -265,13 +281,13 @@ public static partial class ControlsExtensions
             gui.SetEscapesAncestorClips();
 
             // Always create title bar node for consistency
-            if (!string.IsNullOrEmpty(title))
+            if (!title.IsEmpty)
             {
                 RenderPopupTitleBar(gui, title, width, titleBarHeight, state.IsOpen);
             }
 
             // Always create content area node for consistency
-            var contentY = string.IsNullOrEmpty(title) ? 0 : titleBarHeight;
+            var contentY = title.IsEmpty ? 0 : titleBarHeight;
             using (gui.StyledNode("popup-content").Width(width).Height(height).HitTestVisible(state.IsOpen)
                        .Top(contentY)
                        .Padding(8)
@@ -330,13 +346,13 @@ public static partial class ControlsExtensions
         return false;
     }
 
-    static void RenderPopupTitleBar(Gui gui, string title, float width, float height,
+    static void RenderPopupTitleBar(Gui gui, Content title, float width, float height,
         bool isOpen)
     {
         using (gui.StyledNode("popup-title").Width(width).Height(height).Padding(8, 0).AlignContentY(0.5f)
                    .HitTestVisible(isOpen).Enter())
         {
-            gui.DrawText(title, centerInRect: false).HitTestVisible(isOpen);
+            gui.Content(title);
         }
     }
 

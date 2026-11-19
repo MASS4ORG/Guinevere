@@ -124,8 +124,8 @@ public abstract partial class Program
             gui.DrawText("Guinevere Excalibur", 16, Token(gui, "text"));
             gui.Node().ExpandWidth();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Token(gui, "text"));
-            _nativeTitlebar = gui.Checkbox(_nativeTitlebar, "Native title bar");
-            if (gui.Button("◐", width: 62, height: 28, fontSize: 12))
+            gui.Checkbox(ref _nativeTitlebar, "Native title bar");
+            if (gui.Button("◐", classes: SmallClass).Width(62).Height(28).Clicked)
             {
                 ToggleTheme();
             }

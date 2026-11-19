@@ -69,7 +69,7 @@ public abstract partial class Program
             {
                 gui.FileBrowser(state, width: 504, height: 450, fontSize: 12);
             }
-            else if (gui.Button("Browse again", width: 120, height: 28, fontSize: 12))
+            else if (gui.Button("Browse again", classes: SmallClass).Width(120).Height(28).Clicked)
             {
                 reopen();
             }

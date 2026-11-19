@@ -91,9 +91,9 @@ public sealed class LinuxAccessibility : IAccessibilityCapability, IAccessibilit
     /// <inheritdoc />
     public void Publish(ControlSemantics semantics)
     {
-        PublishElement(new AccessibilityElement(semantics.Id, null, semantics.Role.ToString(),
+        PublishElement(new AccessibilityElement(semantics.Id, null, semantics.Role,
             semantics.Label ?? "", semantics.Value ?? "", semantics.Bounds, semantics.State,
-            Actions: semantics.Role is ControlRole.None or ControlRole.TextInput ? ["Focus"] : ["Focus", "Activate"]));
+            Actions: semantics.Role.Activatable ? ["Focus", "Activate"] : ["Focus"]));
     }
 
     /// <inheritdoc />

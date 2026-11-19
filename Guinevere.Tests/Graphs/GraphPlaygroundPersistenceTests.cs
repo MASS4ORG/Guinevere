@@ -43,7 +43,7 @@ public sealed class GraphPlaygroundPersistenceTests
     {
         using var harness = new FrameHarness(1400, 1000);
         var playground = new GraphPlayground();
-        Action<Gui> draw = playground.Draw;
+        var draw = playground.Draw;
         harness.Frame(draw);
         harness.Frame(draw);
         Activate(harness, draw, "save-json");

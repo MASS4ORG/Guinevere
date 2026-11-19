@@ -98,8 +98,15 @@ sealed partial class TextEditorView
     bool FindToggle(string label, string id, bool value, float width) =>
         FindButton(value ? $"[{label}]" : label, id, width) ? !value : value;
 
-    bool FindButton(string label, string id, float width) =>
-        _gui.Button(label, width, LineHeight + PopupPadding * 2f, _size * 0.85f, id: $"{_node.Id}/{id}");
+    bool FindButton(string label, string id, float width)
+    {
+        using (_gui.Node(Size.FitContent(), Size.FitContent()).Enter())
+        {
+            _gui.SetTextSize(_size * 0.85f);
+            return _gui.Button(label, id: $"{_node.Id}/{id}")
+                .Width(width).Height(LineHeight + PopupPadding * 2f).Clicked;
+        }
+    }
 
     string MatchCount()
     {

@@ -3,7 +3,7 @@ namespace Guinevere;
 public static partial class ControlsExtensions
 {
     static void PublishMenuSemantics(Gui gui, string label, bool enabled, bool isChecked,
-        ControlRole role = ControlRole.MenuItem)
+        ControlRole? role = null)
     {
         if (gui.Pass != Pass.Pass2Render)
         {
@@ -23,7 +23,7 @@ public static partial class ControlsExtensions
         {
             state |= ControlVisualState.Checked;
         }
-        sink?.Publish(new ControlSemantics(gui.CurrentNode.Id, role, label, null,
+        sink?.Publish(new ControlSemantics(gui.CurrentNode.Id, role ?? ControlRole.MenuItem, label, null,
             gui.CurrentNode.Rect, state));
     }
 }

@@ -15,29 +15,26 @@ public static partial class ControlsExtensions
     /// <param name="hover">Background while hovered.</param>
     /// <param name="pressed">Background while held down.</param>
     /// <param name="disabled">Background while <paramref name="enabled"/> is false; falls back to <paramref name="normal"/>.</param>
-    /// <param name="text">Optional caption drawn centered over the background.</param>
-    /// <param name="width">Button width, or <c>0</c> to use the normal image width.</param>
-    /// <param name="height">Button height, or <c>0</c> to use the normal image height.</param>
+    /// <param name="content">Optional caption (any <see cref="Content"/>) centred over the background.</param>
     /// <param name="nineSlice">Corner sizes for nine-slice scaling, or <c>null</c> to stretch the whole image.</param>
     /// <param name="enabled">When false the button shows <paramref name="disabled"/> and never reports a click.</param>
-    /// <param name="fontSize">Caption size; defaults to the style's or the scope's text size.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
-    /// <param name="id">Element id for <c>button#id</c> rules.</param>
+    /// <param name="id">Optional id for <c>button#id</c> rules and a stable identity; the call site is the default.</param>
     /// <param name="filePath">Compiler-supplied; do not pass.</param>
     /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
-    /// <returns><c>true</c> on the frame the button is clicked or activated by keyboard.</returns>
-    public static bool ImageButton(
+    /// <returns>
+    /// The button's node, sized to the normal image unless the sheet or the caller sizes it;
+    /// <see cref="LayoutNode.Clicked"/> is true on the frame it is clicked or activated by keyboard.
+    /// </returns>
+    public static ControlNode ImageButton(
         this Gui gui,
         SKImage normal,
         SKImage hover,
         SKImage pressed,
         SKImage? disabled = null,
-        Text? text = null,
-        float width = 0,
-        float height = 0,
+        Content content = default,
         Insets? nineSlice = null,
         bool enabled = true,
-        float? fontSize = null,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         [CallerFilePath] string filePath = "",
@@ -49,21 +46,36 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(pressed);
 
         var node = StyledButton(gui, ImageClass, classes, id, enabled, filePath, lineNumber);
-        using (node.Width(width > 0 ? width : normal.Width).Height(height > 0 ? height : normal.Height).Enter())
+        if (node.Style.Width is null)
         {
-            if (gui.Pass != Pass.Pass2Render)
+            node.Width(normal.Width);
+        }
+
+        if (node.Style.Height is null)
+        {
+            node.Height(normal.Height);
+        }
+
+        node.Direction(Axis.Horizontal).AlignContent(0.5f);
+        using (node.Enter())
+        {
+            if (gui.Pass == Pass.Pass2Render)
             {
-                return false;
+                // The image is the background: queue it under the sheet's border and focus ring.
+                var image = enabled ? StateImage(gui, normal, hover, pressed) : disabled ?? normal;
+                node.DrawList.Prepend(nineSlice is { } insets
+                    ? new NineSliceDrawable(image, node.Rect, insets)
+                    : new ImageDrawable(image, node.Rect));
+                if (enabled && Activated(gui))
+                {
+                    node.Raise(NodeSignals.Clicked);
+                }
             }
 
-            // The image is the background: queue it under the sheet's border and focus ring.
-            var image = enabled ? StateImage(gui, normal, hover, pressed) : disabled ?? normal;
-            node.DrawList.Prepend(nineSlice is { } insets
-                ? new NineSliceDrawable(image, node.Rect, insets)
-                : new ImageDrawable(image, node.Rect));
-            DrawCaption(gui, node, text, fontSize);
-            return enabled && Activated(gui);
+            gui.Content(content);
         }
+
+        return node;
     }
 
     static readonly string[] ImageClass = ["image"];
@@ -74,19 +86,5 @@ public static partial class ControlsExtensions
         gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
         var interactable = gui.GetInteractable();
         return interactable.OnHold() ? pressed : interactable.OnHover() ? hover : normal;
-    }
-
-    /// <summary>
-    /// Centres the caption by hand (like Button) with the same main/icon font fallback as Gui.DrawText, so emoji and
-    /// icon glyphs render instead of tofu; this control only draws in the render pass.
-    /// </summary>
-    static void DrawCaption(Gui gui, LayoutNode node, Text? text, float? fontSize)
-    {
-        if (string.IsNullOrEmpty(text?.Label))
-        {
-            return;
-        }
-
-        gui.RenderCenteredText(text, fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value);
     }
 }

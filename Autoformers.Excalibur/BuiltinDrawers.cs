@@ -36,12 +36,15 @@ static class BuiltinDrawers
     static void DrawBool(Gui gui, FormField field)
     {
         // Checkbox builds its own nodes, so it runs in both passes; only the render pass writes.
-        var current = !field.HasMixedValue && field.GetValue() is true;
-        var next = gui.Checkbox(current, size: new FormStyle(gui).FontSize + 2f, mixed: field.HasMixedValue);
-
-        if (gui.Pass == Pass.Pass2Render && next != current)
+        var value = !field.HasMixedValue && field.GetValue() is true;
+        var indicator = new FormStyle(gui).FontSize + 2f;
+        using (gui.Node(Size.FitContent(), Size.FitContent()).Enter())
         {
-            field.SetValue(next);
+            gui.CurrentNodeScope.Set(ControlStyles.Value<ControlIndicatorSize, float>(indicator));
+            if (gui.Checkbox(ref value, mixed: field.HasMixedValue))
+            {
+                field.SetValue(value);
+            }
         }
     }
 

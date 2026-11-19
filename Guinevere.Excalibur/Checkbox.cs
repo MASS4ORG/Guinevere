@@ -7,76 +7,38 @@ public static partial class ControlsExtensions
     /// <summary>
     /// A checkbox styled by the <c>checkbox</c> rules of the GUI's sheets; its box is a <c>checkbox &gt; indicator</c>
     /// child matching <c>:checked</c> or <c>:mixed</c>, and the mark is drawn in the indicator's <c>color</c>.
-    /// Clicking the row or pressing Space while focused flips <paramref name="isChecked"/>.
+    /// Clicking the row or pressing Space while focused flips <paramref name="isChecked"/>. The box is the scope's
+    /// indicator size unless the sheet sizes the indicator.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="isChecked">The value, flipped when the checkbox is activated.</param>
-    /// <param name="label">Text after the box.</param>
-    /// <param name="size">Side of the box.</param>
-    /// <param name="fontSize">Label size.</param>
-    /// <param name="spacing">Gap between the box and the label.</param>
-    /// <param name="enabled">When false the checkbox matches <c>:disabled</c> and never changes.</param>
+    /// <param name="label">What follows the box: text, an icon, other widgets or a custom type.</param>
     /// <param name="mixed">Shows the mixed mark and matches <c>:mixed</c> instead of <c>:checked</c>.</param>
+    /// <param name="enabled">When false the checkbox matches <c>:disabled</c> and never changes.</param>
     /// <param name="classes">Extra classes for the sheet.</param>
-    /// <param name="id">Element id for <c>checkbox#id</c> rules.</param>
+    /// <param name="id">Optional id for <c>checkbox#id</c> rules and a stable identity; the call site is the default.</param>
     /// <param name="filePath">Compiler-supplied; do not pass.</param>
     /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
-    public static void Checkbox(this Gui gui, ref bool isChecked, string label = "",
-        float size = ControlMetrics.IndicatorSize,
-        float fontSize = ControlMetrics.FontSize,
-        float spacing = ControlMetrics.Spacing,
-        bool enabled = true, bool mixed = false,
+    /// <returns>
+    /// The checkbox's node, <c>true</c> as a <c>bool</c> on the frame it is activated
+    /// (<see cref="LayoutNode.Changed"/> after a chain).
+    /// </returns>
+    public static ControlNode Checkbox(this Gui gui, ref bool isChecked, Content label = default,
+        bool mixed = false,
+        bool enabled = true,
         IReadOnlyList<string>? classes = null,
         string? id = null,
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        size = gui.ControlStyle.IndicatorSizeOr(size);
-        fontSize = gui.ControlStyle.FontSizeOr(fontSize);
-        spacing = gui.ControlStyle.SpacingOr(spacing);
-
-        CheckboxCore(gui, ref isChecked, label, size, fontSize, spacing, enabled, mixed, classes, id, filePath,
-            lineNumber);
-    }
-
-    /// <summary>A checkbox that returns the value after this frame's activation instead of changing a field.</summary>
-    /// <param name="gui">The GUI context.</param>
-    /// <param name="isChecked">The current value.</param>
-    /// <param name="label">Text after the box.</param>
-    /// <param name="size">Side of the box.</param>
-    /// <param name="fontSize">Label size.</param>
-    /// <param name="spacing">Gap between the box and the label.</param>
-    /// <param name="enabled">When false the checkbox matches <c>:disabled</c> and never changes.</param>
-    /// <param name="mixed">Shows the mixed mark and matches <c>:mixed</c> instead of <c>:checked</c>.</param>
-    /// <param name="classes">Extra classes for the sheet.</param>
-    /// <param name="id">Element id for <c>checkbox#id</c> rules.</param>
-    /// <param name="filePath">Compiler-supplied; do not pass.</param>
-    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
-    /// <returns>The value, flipped on the frame the checkbox is activated.</returns>
-    public static bool Checkbox(this Gui gui, bool isChecked, string label = "",
-        float size = ControlMetrics.IndicatorSize,
-        float fontSize = ControlMetrics.FontSize,
-        float spacing = ControlMetrics.Spacing,
-        bool enabled = true, bool mixed = false,
-        IReadOnlyList<string>? classes = null,
-        string? id = null,
-        [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
-    {
-        gui.Checkbox(ref isChecked, label, size, fontSize, spacing, enabled, mixed, classes, id, filePath, lineNumber);
-        return isChecked;
-    }
-
-    static void CheckboxCore(Gui gui, ref bool isChecked, string label, float size, float fontSize, float spacing,
-        bool enabled, bool mixed, IReadOnlyList<string>? classes, string? id, string filePath, int lineNumber)
-    {
-        var row = ChoiceRowNode(gui, "checkbox", label, size, size, fontSize, spacing, enabled, classes, id, filePath,
-            lineNumber);
+        var size = gui.ControlStyle.IndicatorSize;
+        var row = ChoiceRow(gui, "checkbox", enabled, classes, id, filePath, lineNumber);
         using (row.Enter())
         {
-            if (ChoiceActivated(gui, enabled))
+            if (ChoiceActivated(gui, row, enabled))
             {
                 isChecked = !isChecked;
+                row.Raise(NodeSignals.Changed);
             }
 
             var modifiers = mixed ? MixedModifier : isChecked ? CheckedModifier : NoModifiers;
@@ -84,20 +46,24 @@ public static partial class ControlsExtensions
             {
                 if (gui.Pass == Pass.Pass2Render && (mixed || isChecked))
                 {
-                    RenderCheckboxMark(gui, size, mixed);
+                    RenderCheckboxMark(gui, mixed);
                 }
             }
-            ChoiceLabel(gui, label, fontSize);
+
+            gui.Content(label);
         }
+
+        return row;
     }
 
-    static void RenderCheckboxMark(Gui gui, float size, bool mixed)
+    static void RenderCheckboxMark(Gui gui, bool mixed)
     {
         var rect = gui.CurrentNode.Rect;
+        var size = Math.Min(rect.W, rect.H);
         var color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
         if (mixed)
         {
-            gui.DrawRect(new Rect(rect.X + size * 0.2f, rect.Y + size * 0.45f, size * 0.6f, size * 0.1f), color);
+            gui.DrawRect(new Rect(rect.X + rect.W * 0.2f, rect.Y + rect.H * 0.45f, rect.W * 0.6f, rect.H * 0.1f), color);
             return;
         }
 

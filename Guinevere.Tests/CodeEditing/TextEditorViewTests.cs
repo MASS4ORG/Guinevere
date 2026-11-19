@@ -239,7 +239,7 @@ public sealed class TextEditorViewTests : IDisposable
         Frame(state);
         var popup = FindNode(_node!, node => node.Rect.W > 0 && node.Rect.H > 0 && node != _node && node.Parent == _node);
         Assert.NotNull(popup);
-        Click(state, FrameHarness.Center(popup!));
+        Click(state, FrameHarness.Center(popup));
 
         Assert.Equal("counter\ncounter|", Show(state));
     }

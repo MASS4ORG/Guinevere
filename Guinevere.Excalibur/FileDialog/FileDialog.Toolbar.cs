@@ -8,6 +8,15 @@ public static partial class ControlsExtensions
     /// </summary>
     static readonly string[] CheckedClass = [StyleModifiers.Checked];
 
+    static readonly Icon BackIcon = Icon.FromGlyph("⬅");
+    static readonly Icon ForwardIcon = Icon.FromGlyph("➡");
+    static readonly Icon UpIcon = Icon.FromGlyph("⬆");
+    static readonly Icon RefreshIcon = Icon.FromGlyph("🔄");
+    static readonly Icon EditIcon = Icon.FromGlyph("✏");
+    static readonly Icon DoneIcon = Icon.FromGlyph("✔");
+    static readonly Icon NewFolderIcon = Icon.FromGlyph("➕");
+    static readonly Icon HiddenIcon = Icon.FromGlyph("👁");
+
     static void Toolbar(Gui gui, FileDialogState state, float fontSize)
     {
         var browser = state.Browser;
@@ -16,40 +25,42 @@ public static partial class ControlsExtensions
         using (gui.Node(-1, height).ExpandWidth().Direction(Axis.Horizontal).Gap(4f)
                    .AlignContentY(0.5f).Enter())
         {
-            if (gui.IconButton("⬅", size: height, fontSize: fontSize, enabled: browser.CanGoBack))
+            gui.SetTextSize(fontSize);
+            if (gui.Button(BackIcon.Labeled("Back"), browser.CanGoBack).Width(height).Height(height).Clicked)
             {
                 Move(() => browser.GoBackAsync());
             }
 
-            if (gui.IconButton("➡", size: height, fontSize: fontSize, enabled: browser.CanGoForward))
+            if (gui.Button(ForwardIcon.Labeled("Forward"), browser.CanGoForward).Width(height).Height(height).Clicked)
             {
                 Move(() => browser.GoForwardAsync());
             }
 
-            if (gui.IconButton("⬆", size: height, fontSize: fontSize, enabled: browser.CanGoUp))
+            if (gui.Button(UpIcon.Labeled("Up"), browser.CanGoUp).Width(height).Height(height).Clicked)
             {
                 Move(async () => await browser.GoUpAsync());
             }
 
-            if (gui.IconButton("🔄", size: height, fontSize: fontSize))
+            if (gui.Button(RefreshIcon.Labeled("Refresh")).Width(height).Height(height).Clicked)
             {
                 _ = browser.RefreshAsync().AsTask();
             }
 
             PathBar(gui, state, height, fontSize);
 
-            if (gui.IconButton(state.EditingPath is null ? "✏" : "✔", size: height, fontSize: fontSize))
+            var editIcon = state.EditingPath is null ? EditIcon.Labeled("Edit path") : DoneIcon.Labeled("Go to path");
+            if (gui.Button(editIcon).Width(height).Height(height).Clicked)
             {
                 TogglePathEditing(state);
             }
 
-            if (gui.IconButton("➕", size: height, fontSize: fontSize))
+            if (gui.Button(NewFolderIcon.Labeled("New folder")).Width(height).Height(height).Clicked)
             {
                 _ = NewFolderAsync(state).AsTask();
             }
 
-            if (gui.IconButton("👁", size: height, fontSize: fontSize,
-                    classes: browser.ShowHidden ? CheckedClass : null))
+            if (gui.Button(HiddenIcon.Labeled("Show hidden"), classes: browser.ShowHidden ? CheckedClass : null)
+                    .Width(height).Height(height).Clicked)
             {
                 browser.ShowHidden = !browser.ShowHidden;
             }

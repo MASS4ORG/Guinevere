@@ -8,116 +8,128 @@ public static partial class ControlsExtensions
 
     /// <summary>
     /// A button styled by the <c>button</c> rules of the GUI's sheets (<c>:hover</c>, <c>:active</c>, <c>:focus</c>,
-    /// <c>:disabled</c>). Without an explicit size it fits its text plus the rule's <c>padding</c>.
+    /// <c>:disabled</c>), showing any <see cref="Content"/>: text, emoji, an icon, a localized string, other widgets or a
+    /// custom type. It fits its content plus the rule's <c>padding</c>, centred; an icon-only button adds the <c>icon</c>
+    /// class and is a square of the field height. Size, margin or placement go on the returned node.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
-    /// <param name="text">The caption.</param>
-    /// <param name="width">Button width, or <c>0</c> to fit the text.</param>
-    /// <param name="height">Button height, or <c>0</c> to fit the text.</param>
-    /// <param name="fontSize">Caption size; defaults to the style's or the scope's text size.</param>
+    /// <param name="content">What the button shows; an icon should carry a label (<see cref="Icon.Labeled"/>).</param>
     /// <param name="enabled">When false the button matches <c>:disabled</c> and never reports a click.</param>
     /// <param name="classes">Extra classes for the sheet, such as <c>primary</c>.</param>
-    /// <param name="id">Element id for <c>button#id</c> rules.</param>
-    /// <returns><c>true</c> on the frame the button is clicked or activated by Space/Enter while focused.</returns>
-    public static bool Button(this Gui gui, Text text,
-        float width = 0, float height = 0,
-        float? fontSize = null,
+    /// <param name="id">Optional id for <c>button#id</c> rules and a stable identity; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>
+    /// The button's node, <c>true</c> as a <c>bool</c> (and <see cref="LayoutNode.Clicked"/> after a chain) on the
+    /// frame it is clicked or activated by Space/Enter while focused: <c>if (gui.Button("OK"))</c>.
+    /// </returns>
+    public static ControlNode Button(this Gui gui, Content content,
         bool enabled = true,
         IReadOnlyList<string>? classes = null,
-        string? id = null) =>
-        ButtonCore(gui, text, null, width, height, fontSize, enabled, classes, id);
-
-    /// <summary>A square icon button (class <c>icon</c>) that stores whether it was clicked in <paramref name="clicked"/>.</summary>
-    /// <param name="gui">The GUI context.</param>
-    /// <param name="icon">The glyph, or <c>null</c> for an empty button.</param>
-    /// <param name="clicked">Set to whether the button was clicked or activated this frame.</param>
-    /// <param name="size">Side of the square.</param>
-    /// <param name="fontSize">Glyph size; defaults to the style's or the scope's text size.</param>
-    /// <param name="enabled">When false the button matches <c>:disabled</c> and never reports a click.</param>
-    /// <param name="classes">Extra classes for the sheet.</param>
-    /// <param name="id">Element id for <c>button#id</c> rules.</param>
-    public static void IconButton(this Gui gui, char? icon, ref bool clicked,
-        float size = ControlMetrics.FieldHeight,
-        float? fontSize = null,
-        bool enabled = true,
-        IReadOnlyList<string>? classes = null,
-        string? id = null)
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
-        size = gui.ControlStyle.FieldHeightOr(size);
-        clicked = ButtonCore(gui, icon?.ToString() ?? "", IconClass, size, size, fontSize, enabled, classes, id);
+        var iconOnly = content.Kind == ContentKind.Icon;
+        var node = StyledButton(gui, iconOnly ? IconClass : null, classes, id, enabled, filePath, lineNumber);
+        var side = gui.ControlStyle.FieldHeight;
+        FitUnlessStyled(node, iconOnly ? side : null);
+        node.Direction(Axis.Horizontal).AlignContent(0.5f);
+        using (node.Enter())
+        {
+            ButtonInteraction(gui, node, content.Label, enabled);
+            if (iconOnly)
+            {
+                // Relative, so an icon button sized on its node scales its icon with it.
+                var icon = content.Icon!;
+                gui.Icon(icon, side, icon.Color ?? node.Scope.Get<LayoutNodeScopeTextColor>().Value)
+                    .Width(Size.Percentage(IconFraction)).Height(Size.Percentage(IconFraction));
+            }
+            else
+            {
+                gui.Content(content);
+            }
+        }
+
+        return node;
     }
 
-    /// <summary>A square icon button (class <c>icon</c>) that returns whether it was clicked.</summary>
-    /// <param name="gui">The GUI context.</param>
-    /// <param name="icon">The glyph text.</param>
-    /// <param name="size">Side of the square.</param>
-    /// <param name="fontSize">Glyph size.</param>
-    /// <param name="enabled">When false the button matches <c>:disabled</c> and never reports a click.</param>
-    /// <param name="classes">Extra classes for the sheet.</param>
-    /// <param name="id">Element id for <c>button#id</c> rules.</param>
-    /// <returns><c>true</c> on the frame the button is clicked or activated by Space/Enter while focused.</returns>
-    public static bool IconButton(this Gui gui, string icon,
-        float size = ControlMetrics.FieldHeight,
-        float fontSize = 16,
-        bool enabled = true,
-        IReadOnlyList<string>? classes = null,
-        string? id = null)
+    /// <summary>An icon's side inside an icon button, as a fraction of the button.</summary>
+    const float IconFraction = 2f / 3f;
+
+    /// <summary>
+    /// Sizes the node to its content, or to a <paramref name="square"/> side, on each axis the sheet left unsized.
+    /// </summary>
+    static void FitUnlessStyled(LayoutNode node, float? square = null)
     {
-        size = gui.ControlStyle.FieldHeightOr(size);
-        return ButtonCore(gui, icon, IconClass, size, size, fontSize, enabled, classes, id);
+        var size = square is { } side ? Size.Pixels(side) : Size.FitContent();
+        SizeUnlessStyled(node, size, size);
     }
 
-    /// <summary>A square button displaying a tintable glyph, image or vector icon with a readable semantic label.</summary>
-    public static bool IconButton(this Gui gui, Icon icon, string label,
-        float size = ControlMetrics.FieldHeight, bool enabled = true,
-        IReadOnlyList<string>? classes = null, string? id = null)
+    /// <summary>Sets <paramref name="width"/> and <paramref name="height"/> on each axis the sheet left unsized; null leaves the axis alone.</summary>
+    static void SizeUnlessStyled(LayoutNode node, Size? width, Size? height)
     {
-        var node = StyledButton(gui, IconClass, classes, id, enabled, "", 0);
-        using var scope = node.Width(size).Height(size).Enter();
+        if (width is { } w && node.Style.Width is null)
+        {
+            node.Width(w);
+        }
+
+        if (height is { } h && node.Style.Height is null)
+        {
+            node.Height(h);
+        }
+    }
+
+    /// <summary>Pads the node when the sheet set no padding on any side.</summary>
+    static void PadUnlessStyled(LayoutNode node, float horizontal, float vertical)
+    {
+        var style = node.Style;
+        if (style.PaddingLeft.IsZero && style.PaddingRight.IsZero && style.PaddingTop.IsZero
+            && style.PaddingBottom.IsZero)
+        {
+            node.Padding(horizontal, vertical);
+        }
+    }
+
+    /// <summary>Gives the node's content the scope's control font size unless the sheet set one on it.</summary>
+    static void UseControlFontSize(Gui gui, LayoutNode node)
+    {
+        if (!node.Scope.HasLocal<LayoutNodeScopeTextSize>())
+        {
+            gui.SetTextSize(gui.ControlStyle.FontSize, node.Scope);
+        }
+    }
+
+    /// <summary>
+    /// In the render pass, registers the current button for focus, publishes its semantics and raises
+    /// <see cref="NodeSignals.Clicked"/> on activation.
+    /// </summary>
+    static void ButtonInteraction(Gui gui, LayoutNode node, string? label, bool enabled)
+    {
         if (gui.Pass != Pass.Pass2Render)
         {
-            return false;
+            return;
         }
-        gui.RegisterFocusable(canReceiveFocus: enabled, isInteractable: enabled);
-        var color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        gui.DrawIcon(icon, new Rect(node.Rect.X + 6, node.Rect.Y + 6, size - 12, size - 12), color);
-        PublishMenuSemantics(gui, label, enabled, false, ControlRole.Button);
-        return enabled && Activated(gui);
-    }
 
-    static bool ButtonCore(Gui gui, Text text, string[]? variant, float width, float height, float? fontSize,
-        bool enabled, IReadOnlyList<string>? classes, string? id,
-        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
-    {
-        var node = StyledButton(gui, variant, classes, id, enabled, filePath, lineNumber);
-        var fontSizeEffective = fontSize ?? node.Scope.Get<LayoutNodeScopeTextSize>().Value;
-        var (buttonWidth, buttonHeight) = CalculateButtonDimensions(gui, node, text, width, height, fontSizeEffective);
-
-        using (node.Width(buttonWidth).Height(buttonHeight).Enter())
+        if (enabled)
         {
-            if (gui.Pass != Pass.Pass2Render)
-            {
-                return false;
-            }
+            gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+        }
 
-            if (enabled)
-            {
-                gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
-            }
-
-            RenderCenteredText(gui, text, fontSizeEffective);
-            PublishMenuSemantics(gui, text.Label ?? "", enabled, false, ControlRole.Button);
-            return enabled && Activated(gui);
+        PublishMenuSemantics(gui, label ?? "", enabled, false, ControlRole.Button);
+        if (enabled && Activated(gui))
+        {
+            node.Raise(NodeSignals.Clicked);
         }
     }
 
     /// <summary>The <c>button</c> node with its variant and caller classes, styled from the GUI's sheets.</summary>
-    static LayoutNode StyledButton(Gui gui, string[]? variant, IReadOnlyList<string>? classes, string? id,
+    static ControlNode StyledButton(Gui gui, string[]? variant, IReadOnlyList<string>? classes, string? id,
         bool enabled, string filePath, int lineNumber)
     {
         ExcaliburStyles.Ensure(gui);
         var all = classes is null ? variant : variant is null ? classes : [.. variant, .. classes];
-        return gui.StyledNode("button", all, id, disabled: !enabled, filePath: filePath, lineNumber: lineNumber);
+        return gui.StyledControl("button", all, id, disabled: !enabled, filePath: filePath, lineNumber: lineNumber);
     }
 
     /// <summary>Clicked this frame, or Space/Enter pressed while focused; a click also takes keyboard focus.</summary>
@@ -134,31 +146,6 @@ public static partial class ControlsExtensions
         return clicked || activated;
     }
 
-    static (float width, float height) CalculateButtonDimensions(Gui gui, LayoutNode node, Text text, float width,
-        float height, float fontSize)
-    {
-        if (width > 0 && height > 0)
-        {
-            return (width, height);
-        }
-
-        // Measure through the same main/icon font fallback as Gui.DrawText so emoji and icon text
-        // size the button to the glyphs that will actually render.
-        var textWidth = 0f;
-        var textHeight = 0f;
-        foreach (var (runText, runFont) in TextRuns(gui, text.Label ?? "", fontSize, node.Scope))
-        {
-            runFont.SkFont.MeasureText(runText, out var bounds);
-            textWidth += bounds.Width;
-            textHeight = Math.Max(textHeight, bounds.Height);
-        }
-
-        return (
-            width > 0 ? width : textWidth + node.PaddingLeftPixels + node.PaddingRightPixels,
-            height > 0 ? height : textHeight + node.PaddingTopPixels + node.PaddingBottomPixels
-        );
-    }
-
     static (string Text, Font Font)[] TextRuns(Gui gui, string text, float fontSize, LayoutNodeScope? scope = null)
     {
         scope ??= gui.CurrentNodeScope;
@@ -166,44 +153,5 @@ public static partial class ControlsExtensions
         var iconFont = scope.Get<LayoutNodeScopeIconFont>().Value.Resized(mainFont.Size);
 
         return [.. gui.CreateTextRuns(text, mainFont, iconFont, scope)];
-    }
-
-    /// <summary>Draws a caption centred in the current node, in the scope's text color (which the style sets).</summary>
-    static void RenderCenteredText(this Gui gui, Text? text, float fontSize)
-    {
-        var rect = gui.CurrentNode.Rect;
-        var label = text?.Label ?? string.Empty;
-        if (string.IsNullOrEmpty(label))
-        {
-            return;
-        }
-
-        var paint = new SKPaint { Color = gui.CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value, IsAntialias = true };
-
-        // Draw through the same main/icon font fallback as Gui.DrawText so glyphs the text font
-        // lacks -- emoji, icons -- render from the icon font instead of as tofu.
-        var runs = TextRuns(gui, label, fontSize);
-
-        var totalWidth = 0f;
-        var ascent = 0f;
-        var descent = 0f;
-        foreach (var (runText, runFont) in runs)
-        {
-            runFont.SkFont.MeasureText(runText, out var bounds);
-            totalWidth += bounds.Width;
-            ascent = Math.Max(ascent, -bounds.Top);
-            descent = Math.Max(descent, bounds.Bottom);
-        }
-
-        var cursorX = rect.X + (rect.W - totalWidth) * 0.5f;
-        var baselineY = rect.Y + (rect.H - (ascent + descent)) * 0.5f + ascent;
-
-        foreach (var (runText, runFont) in runs)
-        {
-            gui.CurrentNode.DrawList.Add(
-                new Text(runText, new Vector2(cursorX, baselineY), runFont.SkFont, paint));
-            runFont.SkFont.MeasureText(runText, out var bounds);
-            cursorX += bounds.Width;
-        }
     }
 }

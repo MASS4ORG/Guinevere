@@ -76,7 +76,7 @@ public static partial class ControlsExtensions
             $"{value}; {(open ? "expanded" : "collapsed")}", gui.CurrentNode.Rect, state));
         if (sink is IAccessibilityTreeSink tree)
         {
-            tree.PublishElement(new AccessibilityElement(gui.CurrentNode.Id, null, "ComboBox", label,
+            tree.PublishElement(new AccessibilityElement(gui.CurrentNode.Id, null, ControlRole.ComboBox, label,
                 value, gui.CurrentNode.Rect, state, Actions: ["Focus", "Activate"], Expanded: open));
         }
     }

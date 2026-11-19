@@ -204,7 +204,7 @@ public abstract partial class Program
             gui.DrawText("Middle-click a tab to close it", size: 11,
                 color: Token(gui, "text-dim"));
 
-            if (gui.Button("Restore", width: 72, height: 24, fontSize: 12))
+            if (gui.Button("Restore", classes: SmallClass).Width(72).Height(24).Clicked)
             {
                 gui.RestoreTabs(HorizontalTabsId);
                 _nestedTab = 0;

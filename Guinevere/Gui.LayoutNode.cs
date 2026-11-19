@@ -124,7 +124,22 @@ public partial class Gui : ILayoutNodeEnterExit
     public LayoutNode Node(float width = -1, float height = -1,
         string? id = null,
         [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0)
+        [CallerLineNumber] int lineNumber = 0) =>
+        AcquireNode(id, filePath, lineNumber, width, height, control: false, out _);
+
+    /// <summary>
+    /// Creates the auto-sized <see cref="Guinevere.ControlNode"/> a widget returns; styled widgets get theirs from
+    /// <c>StyledControl</c>.
+    /// </summary>
+    internal ControlNode AcquireControlNode(string? id, string filePath, int lineNumber) =>
+        (ControlNode)AcquireNode(id, filePath, lineNumber, -1, -1, control: true, out _);
+
+    /// <summary>
+    /// Returns this frame's node for the call site: the build-pass node when the render pass revisits it, otherwise a
+    /// reused or new child. A retained node of the other kind (plain or control) is never reused.
+    /// </summary>
+    LayoutNode AcquireNode(string? id, string filePath, int lineNumber, float? width, float? height, bool control,
+        out bool built)
     {
         var identity = NodeIdentity(id, filePath, lineNumber, CurrentNode);
         if (id is null)
@@ -133,15 +148,16 @@ public partial class Gui : ILayoutNodeEnterExit
         }
 
         SubmitIdentity(identity);
-        var nodeExist = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
-        LayoutNode node;
-        if (nodeExist is null)
+        var existing = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
+        if (existing is not null && (existing is ControlNode) != control)
         {
-            node = BuildNode(identity, width, height);
+            existing = null;
         }
-        else
+
+        built = existing is null;
+        var node = existing ?? BuildNode(identity, width, height, control);
+        if (!built)
         {
-            node = nodeExist;
             node.Scope.Rebase();
         }
 
@@ -149,7 +165,7 @@ public partial class Gui : ILayoutNodeEnterExit
         node.Scope.ResetDataScope(CurrentDataScope);
         node.DrawList.Clear();
         node.Pass2NodeCount = 0;
-
+        node.ClearSignals();
         return node;
     }
 
@@ -164,44 +180,34 @@ public partial class Gui : ILayoutNodeEnterExit
         [CallerFilePath] string filePath = "",
         [CallerLineNumber] int lineNumber = 0)
     {
-        var identity = NodeIdentity(id, filePath, lineNumber, CurrentNode);
-        if (id is null)
+        var node = AcquireNode(id, filePath, lineNumber, null, null, control: false, out var built);
+        if (built)
         {
-            CurrentNode.Pass2NodeCount++;
-        }
-
-        SubmitIdentity(identity);
-        var nodeExist = Pass == Pass.Pass1Build ? null : FindImmediateNode(identity);
-        LayoutNode node;
-        if (nodeExist is null)
-        {
-            node = BuildNode(identity, null, null);
             node.ApplyWidth(width);
             node.ApplyHeight(height);
         }
-        else
-        {
-            node = nodeExist;
-            node.Scope.Rebase();
-        }
 
-        node.Scope.ResetDataScope(CurrentDataScope);
-        node.DrawList.Clear();
-        node.Pass2NodeCount = 0;
         return node;
     }
 
     /// <summary>
     /// Adds a child for this frame under the current node, reusing the previous frame's node with the same identity
-    /// (reset to a new node's state) or creating one.
+    /// and kind (reset to a new node's state) or creating one.
     /// </summary>
-    LayoutNode BuildNode(int identity, float? width, float? height)
+    LayoutNode BuildNode(int identity, float? width, float? height, bool control)
     {
         var parent = CurrentNode;
         var node = parent.TakePreviousChild(identity);
+        if (node is not null && (node is ControlNode) != control)
+        {
+            node = null;
+        }
+
         if (node is null)
         {
-            node = new LayoutNode(identity, this, parent, width, height);
+            node = control
+                ? new ControlNode(identity, this, parent, width, height)
+                : new LayoutNode(identity, this, parent, width, height);
         }
         else
         {

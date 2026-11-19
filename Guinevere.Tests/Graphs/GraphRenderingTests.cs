@@ -234,7 +234,7 @@ public sealed class GraphRenderingTests
         using var harness = new FrameHarness(1100, 900);
         var playground = new GraphPlayground();
         playground.SelectScenario(1);
-        Action<Gui> draw = playground.Draw;
+        var draw = playground.Draw;
         var flow = playground.Flow;
         harness.Frame(draw);
         await flow.Flow.Completion;

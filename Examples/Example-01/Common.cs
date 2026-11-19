@@ -3,7 +3,7 @@ namespace Shared;
 /// <summary>Draws the shared demo header with the badge embedded in the example assembly.</summary>
 static class Common
 {
-    static public readonly List<Action> Pending = [];
+    public static readonly List<Action> Pending = [];
 
     /// <summary>
     /// Queues a state change for the start of the next frame. Clicks are seen while rendering, and changing

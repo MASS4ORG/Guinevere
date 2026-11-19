@@ -29,7 +29,7 @@ public static partial class ControlsExtensions
     /// </remarks>
     /// <param name="gui">The GUI for this frame.</param>
     /// <param name="isOpen">Whether the dialog is shown; written back when it closes itself.</param>
-    /// <param name="title">Text drawn in the title bar.</param>
+    /// <param name="title">What the title bar shows: text, an icon, a localized string or other widgets.</param>
     /// <param name="content">Builds the body. Invoked only while the dialog is open.</param>
     /// <param name="width">Dialog width.</param>
     /// <param name="height">Body height, before the title bar and footer.</param>
@@ -45,7 +45,7 @@ public static partial class ControlsExtensions
     /// <param name="id">Stable control and stylesheet identity.</param>
     /// <param name="filePath">Caller-supplied; identifies this call site for its persistent state.</param>
     /// <param name="lineNumber">Caller-supplied; identifies this call site for its persistent state.</param>
-    public static void Dialog(this Gui gui, ref bool isOpen, string title, Action content,
+    public static void Dialog(this Gui gui, ref bool isOpen, Content title, Action content,
         float width = 400,
         float height = 300,
         Action? footer = null,
@@ -238,7 +238,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Draws the title bar. Returns true on the frame its close button was clicked.</summary>
-    static bool TitleBar(Gui gui, string title, float width, float height, bool showCloseButton, bool isOpen)
+    static bool TitleBar(Gui gui, Content title, float width, float height, bool showCloseButton, bool isOpen)
     {
         using (gui.StyledNode("dialog-title").Width(width).Height(height).HitTestVisible(isOpen).Enter())
         {
@@ -246,7 +246,7 @@ public static partial class ControlsExtensions
             {
                 using (gui.Node().Expand().AlignContentY(0.5f).Enter())
                 {
-                    gui.DrawText(title, centerInRect: false);
+                    gui.Content(title);
                 }
 
                 return showCloseButton && CloseButton(gui, height * 0.6f, isOpen);

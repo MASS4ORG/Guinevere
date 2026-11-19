@@ -152,7 +152,12 @@ public sealed partial class ProfilerView
     {
         using (Gui.StyledNode("profiler-toolbar").ExpandWidth().Direction(Axis.Horizontal).Wrap(1).Enter())
         {
-            PauseOnSlowFrame = Gui.Checkbox(PauseOnSlowFrame, "Pause when a frame exceeds", id: "profiler-slow-pause");
+            var pause = PauseOnSlowFrame;
+            if (Gui.Checkbox(ref pause, "Pause when a frame exceeds", id: "profiler-slow-pause"))
+            {
+                PauseOnSlowFrame = pause;
+            }
+
             var limit = SlowFrameMilliseconds;
             if (Gui.NumberField(ref limit, step: .5, min: .01, max: 10_000, width: 72, format: "0.##", id: "profiler-slow-limit"))
             {

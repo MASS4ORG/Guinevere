@@ -76,7 +76,7 @@ public abstract partial class Program
 
     static void TooltipContent(Gui gui)
     {
-        if (gui.Button("Hover me for a tooltip", width: 180, height: 28))
+        if (gui.Button("Hover me for a tooltip").Width(180).Height(28).Clicked)
         {
             gui.Toast("You clicked the tooltip button");
         }

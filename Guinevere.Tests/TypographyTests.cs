@@ -288,7 +288,7 @@ public class TypographyTests
         using var blob = glyphs.Blob(run.Font.SkFont);
 
         Assert.NotNull(blob);
-        Assert.True(blob!.Bounds.Top < run.Glyphs.Blob(run.Font.SkFont)!.Bounds.Top);
+        Assert.True(blob.Bounds.Top < run.Glyphs.Blob(run.Font.SkFont)!.Bounds.Top);
     }
 
     [Fact]

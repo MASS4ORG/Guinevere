@@ -1,30 +1,38 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 public static partial class ControlsExtensions
 {
     /// <summary>
-    /// Draws a selectable label that does not wrap by default. Use <see cref="WrappedLabel"/> for wrapped text.
+    /// A <c>label</c> node fitting its content, which does not wrap. Size, font, color and text effects come from the
+    /// sheet (<c>label.x</c> rules) or the parent scope; alignment and size go on the returned node. Use
+    /// <see cref="WrappedLabel"/> for wrapped text.
     /// </summary>
     /// <param name="gui">The GUI instance.</param>
-    /// <param name="text">The text to draw.</param>
-    /// <param name="fontSize">The font size.</param>
+    /// <param name="content">What to show: text, an icon, a localized string, other widgets or a custom type.</param>
+    /// <param name="selectable">Whether text content supports pointer selection and copying.</param>
     /// <param name="classes">Stylesheet classes for the label.</param>
-    /// <param name="id">Stable stylesheet identity.</param>
-    /// <param name="selectable">Whether the label supports pointer selection and copying.</param>
-    /// <param name="centerInRect">Whether to center the text in its node rect.</param>
-    /// <param name="font">The font to draw with, or null for the default.</param>
-    /// <param name="effects">Text effects to apply.</param>
-    public static void Label(this Gui gui, string text,
-        float? fontSize = null,
+    /// <param name="id">Optional id for <c>label#id</c> rules and a stable identity; the call site is the default.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>The label's node; a label reports no events, so it is a plain <see cref="LayoutNode"/>.</returns>
+    public static LayoutNode Label(this Gui gui, Content content,
         bool selectable = false,
-        bool centerInRect = false,
-        Font? font = null,
-        TextEffects? effects = null,
-        IReadOnlyList<string>? classes = null, string? id = null)
+        IReadOnlyList<string>? classes = null,
+        string? id = null,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         ExcaliburStyles.Ensure(gui);
-        using var scope = gui.StyledNode("label", classes, id).Enter();
-        var size = fontSize ?? gui.CurrentNode.Scope.Get<LayoutNodeScopeTextSize>().Value;
-        gui.DrawText(text, selectable, size, null, font, 0, centerInRect, clip: false, effects, layout: null);
+        var node = gui.StyledNode("label", classes, id, filePath: filePath, lineNumber: lineNumber);
+        FitUnlessStyled(node);
+        node.Direction(Axis.Horizontal).AlignContentY(0.5f);
+        using (node.Enter())
+        {
+            content.BuildIn(gui, selectable);
+        }
+
+        return node;
     }
 }

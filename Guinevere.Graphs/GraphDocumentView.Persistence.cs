@@ -112,7 +112,7 @@ public sealed partial class GraphDocumentView
         if (Editor.Document.CollapsedGroups.Count > 0)
         {
             root["collapsed"] = new JsonArray(Editor.Document.CollapsedGroups.Order()
-                .Select(static id => (JsonNode)JsonValue.Create(id.ToString())!).ToArray());
+                .Select(static id => (JsonNode)JsonValue.Create(id.ToString())).ToArray());
         }
         else
         {

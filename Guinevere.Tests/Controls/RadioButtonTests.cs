@@ -62,7 +62,7 @@ public class RadioButtonTests
     /// Two radios stacked in a 8px-gap group: row 0 spans y [0,24] and - with a 20px radio and a
     /// 14px label, each row is 24px tall - row 1 spans y [32,56].
     /// </summary>
-    static readonly (int Value, string Label)[] TwoOptions = [(0, "Light"), (1, "Dark")];
+    static readonly (int Value, Content Label)[] TwoOptions = [(0, "Light"), (1, "Dark")];
 
     [Fact]
     public void ClickingARadioSelectsItsValue()
@@ -89,21 +89,25 @@ public class RadioButtonTests
     }
 
     [Fact]
-    public void TheReadOnlyOverloadReportsWhetherItsValueIsSelected()
+    public void ClickReportsOnTheNodeAndChangedOnlyWhenTheSelectionMoves()
     {
         var gui = CreateGui();
-        var selected = 1;
-        var firstSelected = false;
-        var secondSelected = false;
+        var selected = 0;
+        bool sameClicked = false, sameChanged = true, groupChanged = false;
 
+        Frame(gui, g => g.RadioButton(ref selected, 0, "Light"));
         Frame(gui, g =>
         {
-            firstSelected = g.RadioButton(selected, 1, "Dark");
-            secondSelected = g.RadioButton(selected, 0, "Light");
-        });
+            var radio = g.RadioButton(ref selected, 0, "Light");
+            sameClicked = radio;
+            sameChanged = radio.Changed;
+        }, ClickAt(10, 10));
+        Frame(gui, g => groupChanged = g.RadioGroup(ref selected, TwoOptions), ClickAt(10, 40));
 
-        Assert.True(firstSelected);
-        Assert.False(secondSelected);
+        Assert.True(sameClicked);
+        Assert.False(sameChanged);
+        Assert.True(groupChanged);
+        Assert.Equal(1, selected);
     }
 
     [Fact]

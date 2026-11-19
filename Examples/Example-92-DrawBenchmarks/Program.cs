@@ -32,7 +32,7 @@ using (var scene = new DrawScene(1100, 850, backend))
             gui.DrawLine(new System.Numerics.Vector2(x, y), new System.Numerics.Vector2(x + 30, y + 15), Color.White);
         }
     }
-    Action<Gui> primitives = Primitives;
+    var primitives = Primitives;
     scene.Frame(primitives);
     scene.Gui.RootNode!.DrawList.EnsureCapacity(count * 3);
     Measure("primitive-record", iterations, () => scene.Record(primitives));

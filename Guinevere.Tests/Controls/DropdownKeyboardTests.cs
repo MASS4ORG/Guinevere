@@ -91,7 +91,7 @@ public sealed class DropdownKeyboardTests
         {
             gui.Dropdown([], ref selected, placeholder: "Empty");
             gui.Dropdown(["Disabled"], ref selected, placeholder: "Disabled choice", enabled: false);
-            clicked |= gui.IconButton(Icon.FromGlyph("+"), "Add item", enabled: false, id: "vector-disabled");
+            clicked |= gui.Button(Icon.FromGlyph("+").Labeled("Add item"), enabled: false, id: "vector-disabled").Clicked;
         }
         h.Frame(Draw);
         var empty = controls.Last(static control => control.Label == "Empty").Id;

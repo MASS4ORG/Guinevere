@@ -104,7 +104,7 @@ public class AppBarTests
         static void Custom(Gui gui)
         {
             using var bar = gui.AppBar();
-            gui.Button("Search", 100, 36);
+            gui.Button("Search").Width(100).Height(36);
         }
         h.Frame(Custom);
         h.Input.MoveTo(Content(h).Children[0].Center);
@@ -208,8 +208,8 @@ public class AppBarTests
             }
 
             gui.DrawText("FPS: 60.0");
-            checkbox = gui.Checkbox(checkbox, "Native title bar");
-            gui.Button("◐", 36, 36);
+            gui.Checkbox(ref checkbox, "Native title bar");
+            gui.Button("◐").Width(36).Height(36);
         }
         h.Frame(Gallery);
         Assert.NotNull(spacer);
@@ -316,7 +316,7 @@ public class AppBarTests
                     clicked++;
                 }
             }
-            else if (gui.Button("Search", 100, 36))
+            else if (gui.Button("Search").Width(100).Height(36).Clicked)
             {
                 clicked++;
             }
@@ -379,12 +379,12 @@ public class AppBarTests
         void Embedded(Gui gui)
         {
             using var bar = gui.AppBar(windowControls: false);
-            if (gui.Button("Run", 50, 36))
+            if (gui.Button("Run").Width(50).Height(36).Clicked)
             {
                 runs++;
             }
 
-            if (gui.Button("Off", 50, 36, enabled: false))
+            if (gui.Button("Off", enabled: false).Width(50).Height(36).Clicked)
             {
                 runs++;
             }
@@ -410,7 +410,7 @@ public class AppBarTests
         void Toggle(Gui gui)
         {
             using var bar = gui.AppBar(windowControls: manage, nativeTitlebar: native);
-            if (gui.Button("Decorations", 100, 36))
+            if (gui.Button("Decorations").Width(100).Height(36).Clicked)
             {
                 native = !native;
             }

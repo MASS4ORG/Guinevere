@@ -196,7 +196,7 @@ public sealed class GraphEditingInteractionTests
         using var harness = new FrameHarness(1100, 900);
         var playground = new GraphPlayground();
         var scene = playground.Sandbox;
-        Action<Gui> draw = playground.Draw;
+        var draw = playground.Draw;
         harness.Frame(draw);
         harness.Frame(draw);
         var id = scene.Graph.Editor.Document.Nodes.First().Id;
@@ -226,7 +226,7 @@ public sealed class GraphEditingInteractionTests
         var playground = new GraphPlayground();
         var sink = Substitute.For<IControlSemanticsSink>();
         harness.Gui.ControlSemantics = sink;
-        Action<Gui> draw = playground.Draw;
+        var draw = playground.Draw;
         harness.Frame(draw);
         harness.Frame(draw);
         Assert.False(playground.ShowPendingScenarios);
