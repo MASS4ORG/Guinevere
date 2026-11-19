@@ -11,7 +11,10 @@ public abstract class TableTestBase
 {
     protected const int Width = 400;
     protected const int Height = 400;
-    protected static readonly TableTheme Theme = new() { RowHeight = 24f, HeaderHeight = 28f };
+    protected const float RowHeight = 24f;
+    protected const float HeaderHeight = 28f;
+    protected const float FontSize = 12f;
+    protected const float CellPadding = 8f;
 
     protected static IReadOnlyList<string> Modifiers(Gui gui, string column) =>
         gui.RootNode!.FindChildById($"table/header/{column}")!.StyleTarget?.Modifiers ?? [];
@@ -65,7 +68,7 @@ public abstract class TableTestBase
 
         for (var frame = 0; frame < frames; frame++)
         {
-            void Draw() => gui.Table(state, source, columns, options, Theme);
+            void Draw() => gui.Table(state, source, columns, options);
 
             gui.Time.Update(0.016);
             gui.SetStage(Pass.Pass1Build);

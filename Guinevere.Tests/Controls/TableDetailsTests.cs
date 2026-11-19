@@ -196,7 +196,7 @@ public class TableDetailsTests : TableTestBase
         var columns = Fixed(2, 100f);
         var options = new TableOptions<int> { RowDetails = details };
         using var harness = new FrameHarness(Width, Height);
-        void Draw(Gui gui) => gui.Table(state, source, columns, options, Theme);
+        void Draw(Gui gui) => gui.Table(state, source, columns, options);
         harness.Frame(Draw);
         harness.Frame(Draw);
 
@@ -280,7 +280,7 @@ public class TableDetailsTests : TableTestBase
             };
             Harness = new FrameHarness(Width, Height);
             State = new TableState();
-            Draw = gui => gui.Table(State, _source, _columns, _options, Theme);
+            Draw = gui => gui.Table(State, _source, _columns, _options);
         }
 
         public FakeDetails Details { get; } = new();
@@ -331,7 +331,7 @@ public class TableDetailsTests : TableTestBase
             Options = new TableOptions<Entry> { RowDetails = new AlwaysDetails() };
             Harness = new FrameHarness(Width, Height);
             State = new TableState();
-            Draw = gui => gui.Table(State, Source, Columns, Options, Theme);
+            Draw = gui => gui.Table(State, Source, Columns, Options);
         }
 
         public TableColumns<Entry> Columns { get; }

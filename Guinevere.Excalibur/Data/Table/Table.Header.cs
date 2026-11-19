@@ -20,12 +20,13 @@ public static partial class ControlsExtensions
     /// </summary>
     static void TableHeader<TRow>(in TableBuild<TRow> b)
     {
-        var (gui, state, _, _, options, _, theme, layout, firstColumn, lastColumn) = b;
-        using (gui.StyledNode("table-header", id: "table/header").Height(theme.HeaderHeight).ExpandWidth()
-                   .Direction(Axis.Horizontal).Enter())
+        var (gui, state, _, _, options, _, metrics, layout, firstColumn, lastColumn, _, enabled) = b;
+        var header = gui.StyledNode("table-header", id: "table/header").ExpandWidth().Direction(Axis.Horizontal);
+        SizeUnlessStyled(header, null, Size.Pixels(metrics.HeaderHeight));
+        using (header.Enter())
         {
             gui.ClipContent();
-            if (options.ColumnMenu && gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick(MouseButton.Right))
+            if (enabled && options.ColumnMenu && gui.Pass == Pass.Pass2Render && gui.GetInteractable().OnClick(MouseButton.Right))
             {
                 state.HeaderMenuOpen = true;
             }
@@ -37,20 +38,20 @@ public static partial class ControlsExtensions
 
             // The offsets run from the table's left edge, so the spacers subtract what the pinned group holds.
             using (gui.StyledNode("table-header-scroll", id: "table/header/scroll").ExpandWidth()
-                       .Height(theme.HeaderHeight).Direction(Axis.Horizontal).Enter())
+                       .Height(metrics.HeaderHeight).Direction(Axis.Horizontal).Enter())
             {
                 gui.SetLocalScrollOffset(new Vector2(BodyScroll(gui, state).X, 0f));
                 gui.ClipContent();
 
                 VirtualRows.SpacerX(gui, "table/header/padLeft", layout.Offsets[firstColumn] - layout.LeftWidth,
-                    theme.HeaderHeight);
+                    metrics.HeaderHeight);
                 for (var c = firstColumn; c < lastColumn; c++)
                 {
                     HeaderCell(b, c);
                 }
 
                 VirtualRows.SpacerX(gui, "table/header/padRight",
-                    layout.Offsets[layout.RightStart] - layout.Offsets[lastColumn], theme.HeaderHeight);
+                    layout.Offsets[layout.RightStart] - layout.Offsets[lastColumn], metrics.HeaderHeight);
             }
 
             if (layout.RightStart < layout.Columns.Length)
@@ -63,7 +64,7 @@ public static partial class ControlsExtensions
                 var scrollbar = gui.GetScrollState(BodyId);
                 if (scrollbar is { ShowScrollbarY: true })
                 {
-                    VirtualRows.SpacerX(gui, "table/header/scrollbar", scrollbar.ScrollbarThickness, theme.HeaderHeight);
+                    VirtualRows.SpacerX(gui, "table/header/scrollbar", scrollbar.ScrollbarThickness, metrics.HeaderHeight);
                 }
             }
         }
@@ -78,8 +79,9 @@ public static partial class ControlsExtensions
     static void PinnedHeader<TRow>(in TableBuild<TRow> b, int firstColumn, int lastColumn, string id, float width)
     {
         var gui = b.Gui;
-        using (gui.StyledNode("table-header-pinned", id: id).Width(width).Height(b.Theme.HeaderHeight)
-                   .Direction(Axis.Horizontal).Enter())
+        var pinned = gui.StyledNode("table-header-pinned", id: id).Width(width).Direction(Axis.Horizontal);
+        SizeUnlessStyled(pinned, null, Size.Pixels(b.Metrics.HeaderHeight));
+        using (pinned.Enter())
         {
             for (var c = firstColumn; c < lastColumn; c++)
             {
@@ -113,7 +115,7 @@ public static partial class ControlsExtensions
 
     static void HeaderCell<TRow>(in TableBuild<TRow> b, int index)
     {
-        var (gui, state, _, _, _, _, theme, layout, _, _) = b;
+        var (gui, state, _, _, _, _, metrics, layout, _, _, _, _) = b;
         var column = layout.Columns[index];
         var id = state.Cache.View!.HeaderIds[index];
         var width = layout.Widths[index];
@@ -129,28 +131,30 @@ public static partial class ControlsExtensions
             _ => ascending ? SecondaryAscending : SecondaryDescending
         };
 
-        using (gui.StyledNode("table-header-cell", id: id, modifiers: modifiers)
-                   .Width(width).Height(theme.HeaderHeight).Direction(Axis.Horizontal).Gap(4f)
-                   .PaddingX(theme.CellPadding).AlignContentX(column.AlignContentX).AlignContentY(column.AlignContentY)
-                   .Enter())
+        var cell = gui.StyledNode("table-header-cell", column.Classes, id, modifiers)
+            .Width(width).Direction(Axis.Horizontal).Gap(4f);
+        SizeUnlessStyled(cell, null, Size.Pixels(metrics.HeaderHeight));
+        PadUnlessStyled(cell, metrics.CellPadding, 0f);
+        CenterVerticallyUnlessStyled(cell);
+        using (cell.Enter())
         {
             gui.ClipContent();
             if (!column.Header.IsEmpty)
             {
-                gui.SetTextSize(theme.FontSize);
+                gui.SetTextSize(metrics.FontSize);
                 gui.Content(column.Header);
             }
             else if (column.Title.Length > 0)
             {
-                gui.DrawText(column.Title, theme.FontSize, centerInRect: false, clip: true);
+                gui.DrawText(column.Title, metrics.FontSize, centerInRect: false, clip: true);
             }
 
             if (position == 0)
             {
-                gui.DrawText(ascending ? WidgetIcons.ChevronUp : WidgetIcons.ChevronDown, theme.FontSize * 0.7f);
+                gui.DrawText(ascending ? WidgetIcons.ChevronUp : WidgetIcons.ChevronDown, metrics.FontSize * 0.7f);
                 if (more > 0)
                 {
-                    gui.DrawText(more <= MoreLabels.Length ? MoreLabels[more - 1] : "+" + more, theme.FontSize * 0.7f);
+                    gui.DrawText(more <= MoreLabels.Length ? MoreLabels[more - 1] : "+" + more, metrics.FontSize * 0.7f);
                 }
             }
 
@@ -165,16 +169,16 @@ public static partial class ControlsExtensions
     /// </summary>
     static void HeaderInteraction<TRow>(in TableBuild<TRow> b, int index, string id)
     {
-        var (gui, state, source, _, options, _, theme, layout, _, _) = b;
+        var (gui, state, source, _, options, _, metrics, layout, _, _, _, enabled) = b;
         var column = layout.Columns[index];
         var resizable = options.Resizable && column.Resizable;
         var view = state.Cache.View!;
         if (resizable)
         {
-            ResizeHandle(gui, state, theme, layout, index, view.ResizeId(index), view.AnchorId(index));
+            ResizeHandle(gui, state, metrics, layout, index, view.ResizeId(index), view.AnchorId(index), enabled);
         }
 
-        if (gui.Pass != Pass.Pass2Render)
+        if (gui.Pass != Pass.Pass2Render || !enabled)
         {
             return;
         }
@@ -236,7 +240,7 @@ public static partial class ControlsExtensions
     /// </summary>
     static void HeaderKeys<TRow>(in TableBuild<TRow> b, int index, bool resizable, TableColumn column)
     {
-        var (gui, state, source, _, options, _, _, layout, _, _) = b;
+        var (gui, state, source, _, options, _, _, layout, _, _, _, _) = b;
         var input = gui.Input;
         if (input.IsKeyPressed(KeyboardKey.Enter) || input.IsKeyPressed(KeyboardKey.Space))
         {
@@ -270,18 +274,18 @@ public static partial class ControlsExtensions
     /// The grab zone on a header's right edge. Dragging it sets the column's width to the width it had at the
     /// press plus the pointer's travel; a double click gives the column its defined width back.
     /// </summary>
-    static void ResizeHandle(Gui gui, TableState state, TableTheme theme, TableLayout layout, int index, string id,
-        string anchorKey)
+    static void ResizeHandle(Gui gui, TableState state, TableMetrics metrics, TableLayout layout, int index, string id,
+        string anchorKey, bool enabled)
     {
         // An absolute child is placed from the cell's padding box, so the cell's own padding is taken off.
         var width = layout.Widths[index];
         using (gui.StyledNode("table-header-resize", id: id)
-                   .Absolute(Math.Max(0f, width - ResizeHandleWidth - theme.CellPadding), 0f)
+                   .Absolute(Math.Max(0f, width - ResizeHandleWidth - metrics.CellPadding), 0f)
                    .Width(ResizeHandleWidth)
-                   .Height(theme.HeaderHeight).Cursor(PointerCursor.ResizeHorizontal).Enter())
+                   .Height(metrics.HeaderHeight).Cursor(PointerCursor.ResizeHorizontal).Enter())
         {
             ref var anchor = ref gui.GetValue(float.NaN, anchorKey);
-            if (gui.Pass != Pass.Pass2Render)
+            if (gui.Pass != Pass.Pass2Render || !enabled)
             {
                 return;
             }

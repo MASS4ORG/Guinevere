@@ -354,7 +354,7 @@ public class TableRowInteractionTests : TableTestBase
             };
             Harness = new FrameHarness(Width, Height);
             State = new TableState();
-            Draw = gui => gui.Table(State, _source, _columns, _options, Theme);
+            Draw = gui => gui.Table(State, _source, _columns, _options);
         }
 
         public FrameHarness Harness { get; }
@@ -421,7 +421,7 @@ public class TableRowInteractionTests : TableTestBase
                 static item => item.FileName);
             Harness = new FrameHarness(Width, Height);
             State = new TableState();
-            Draw = gui => gui.Table(State, _source, _columns, theme: Theme);
+            Draw = gui => gui.Table(State, _source, _columns);
         }
 
         public FrameHarness Harness { get; }

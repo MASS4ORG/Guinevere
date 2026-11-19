@@ -150,7 +150,7 @@ public class TableTests : TableTestBase
         {
             Assert.Equal("size", cell.Column.Id);
             Assert.Equal(100f, cell.Width);
-            Assert.Equal(Theme.RowHeight, cell.Height);
+            Assert.Equal(RowHeight, cell.Height);
             Assert.Equal($"r{cell.Index}/size", cell.Value);
             Assert.Equal(cell.Index, cell.Item);
             Assert.Same(source, cell.Source);
@@ -183,7 +183,7 @@ public class TableTests : TableTestBase
         var columns = new TableColumns<Item>(
         [
             TableColumn<Item>.Of("Version", static item => item.Version),
-            TableColumn<Item>.Of("Downloads", static item => item.Downloads, alignContentX: 1),
+            TableColumn<Item>.Of("Downloads", static item => item.Downloads, classes: ["end"]),
             TableColumn<Item>.Row("Actions", renderer: spy)
         ]);
 
@@ -305,7 +305,7 @@ public class TableTests : TableTestBase
         var gui = RunFrames(new GridSource(2), columns, frames: 2);
 
         Assert.NotEmpty(content.TextSizes);
-        Assert.All(content.TextSizes, static size => Assert.Equal(Theme.FontSize, size));
+        Assert.All(content.TextSizes, static size => Assert.Equal(FontSize, size));
         Assert.Single(HeaderContent(gui, "title"));
     }
 
@@ -454,12 +454,12 @@ public class TableTests : TableTestBase
     public void ARightAlignedCellSitsAtItsTrailingEdge()
     {
         var columns = new TableColumns<int>(
-            [TableColumn<int>.Of("N", static row => $"n{row}", width: 200f, alignContentX: 1)]);
+            [TableColumn<int>.Of("N", static row => $"n{row}", width: 200f, classes: ["end"])]);
         var gui = RunFrames(new GridSource(1), columns, frames: 2);
 
         var cell = gui.RootNode!.FindChildById("table/row0/n")!;
         var text = cell.Children[0];
-        Assert.Equal(cell.Rect.X + cell.Rect.W - Theme.CellPadding, text.Rect.X + text.Rect.W, 1f);
+        Assert.Equal(cell.Rect.X + cell.Rect.W - CellPadding, text.Rect.X + text.Rect.W, 1f);
     }
 
     [Fact]
@@ -482,7 +482,7 @@ public class TableTests : TableTestBase
     {
         var values = new[] { 5, 5, 5 };
         var columns = new TableColumns<int>(
-            [TableColumn<int>.Of("Value", row => values[row], id: "value", alignContentX: 0)]);
+            [TableColumn<int>.Of("Value", row => values[row], id: "value")]);
         var source = new GridSource(3);
         var state = new TableState();
         var gui = RunFrames(source, columns, state, frames: 2);

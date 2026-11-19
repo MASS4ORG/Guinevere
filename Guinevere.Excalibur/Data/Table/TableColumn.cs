@@ -95,11 +95,11 @@ public abstract class TableColumn
     /// <summary>The widest the column may be, in pixels.</summary>
     public float MaxWidth { get; init; } = float.PositiveInfinity;
 
-    /// <summary>Where the header and cell content sit across the column: 0 leading, 0.5 centred, 1 trailing.</summary>
-    public float AlignContentX { get; init; }
-
-    /// <summary>Where the header and cell content sit down the row: 0 top, 0.5 centred, 1 bottom.</summary>
-    public float AlignContentY { get; init; } = 0.5f;
+    /// <summary>
+    /// Stylesheet classes added to this column's header cell and to every one of its cells, such as <c>end</c> or
+    /// <c>center</c> to align the content, or an application class for colour. The list is kept, not copied.
+    /// </summary>
+    public IReadOnlyList<string>? Classes { get; init; }
 
     /// <summary>Whether the column stays at an edge while the rest scrolls sideways.</summary>
     public TablePin Pin { get; init; } = TablePin.None;

@@ -21,7 +21,7 @@ public class TableModelTests
 
         Assert.True(column.InitiallyVisible);
         Assert.Equal(TablePin.None, column.Pin);
-        Assert.Equal(0, column.AlignContentX);
+        Assert.Null(column.Classes);
         Assert.Equal(TableLengthKind.Star, column.Width.Kind);
         Assert.Equal(48f, column.MinWidth);
         Assert.Equal(float.PositiveInfinity, column.MaxWidth);
@@ -32,14 +32,14 @@ public class TableModelTests
     public void TheFactoryAndTheConstructorWithInitializersBuildTheSameColumn()
     {
         var made = TableColumn<int>.Of("Size", static row => row, id: "bytes", width: 90f, minWidth: 30f,
-            maxWidth: 200f, alignContentX: 1, pin: TablePin.Left, visible: false);
+            maxWidth: 200f, classes: ["end"], pin: TablePin.Left, visible: false);
         var built = new TableColumn<int, int>("Size", static row => row)
         {
             Id = "bytes",
             Width = 90f,
             MinWidth = 30f,
             MaxWidth = 200f,
-            AlignContentX = 1,
+            Classes = ["end"],
             Pin = TablePin.Left,
             InitiallyVisible = false
         };
@@ -48,7 +48,7 @@ public class TableModelTests
         Assert.Equal(built.Width, made.Width);
         Assert.Equal(built.MinWidth, made.MinWidth);
         Assert.Equal(built.MaxWidth, made.MaxWidth);
-        Assert.Equal(built.AlignContentX, made.AlignContentX);
+        Assert.Equal(built.Classes, made.Classes);
         Assert.Equal(built.Pin, made.Pin);
         Assert.Equal(built.InitiallyVisible, made.InitiallyVisible);
     }
@@ -229,16 +229,14 @@ public class TableModelTests
     }
 
     [Fact]
-    public void TheFactoriesAndTheInitializerAgreeOnAlignment()
+    public void TheFactoriesPassTheClassesOnAndTheExpanderCentersItself()
     {
-        var made = TableColumn<int>.Of("A", static row => row);
-        var row = TableColumn<int>.Row("B");
-        var built = new TableColumn<int, int>("C", static value => value);
+        var made = TableColumn<int>.Of("A", static row => row, classes: ["end"]);
+        var row = TableColumn<int>.Row("B", classes: ["center"]);
 
-        Assert.Equal(built.AlignContentX, made.AlignContentX);
-        Assert.Equal(built.AlignContentY, made.AlignContentY);
-        Assert.Equal(built.AlignContentY, row.AlignContentY);
-        Assert.Equal(0.5f, built.AlignContentY);
+        Assert.Equal(["end"], made.Classes);
+        Assert.Equal(["center"], row.Classes);
+        Assert.Equal(["center"], TableColumn<int>.Expander().Classes);
     }
 
     [Fact]

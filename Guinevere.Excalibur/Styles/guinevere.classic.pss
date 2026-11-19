@@ -283,6 +283,8 @@ tree-ghost { background-color = $selected; border-radius = 3; color = $text; }
 table { color = $text; }
 table-header { background-color = $surface-hover; border-bottom-color = $border; border-bottom-width = 1; }
 table-header-cell { color = $text-dim; :sorted { color = $text; } }
+table-cell.end, table-header-cell.end { align-items = end; }
+table-cell.center, table-header-cell.center { align-items = center; }
 table-header-resize { :hover { background-color = alpha($text, 14%); } :active { background-color = alpha($text, 24%); } }
 table-row {
     border-bottom-color = $divider;

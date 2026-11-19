@@ -154,7 +154,7 @@ public class TableAccessibilityTests : TableTestBase
             }
 
             State = new TableState();
-            Draw = gui => gui.Table(State, Source, Columns, Options, Theme);
+            Draw = gui => gui.Table(State, Source, Columns, Options);
         }
 
         public TableColumns<Item> Columns { get; }

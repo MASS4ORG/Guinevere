@@ -1,6 +1,6 @@
 namespace Guinevere;
 
-/// <summary>What a table does and says, apart from how big its parts are (<see cref="TableTheme"/>).</summary>
+/// <summary>What a table does and says; stylesheet rules decide how big its parts are and how it looks.</summary>
 public class TableOptions
 {
     /// <summary>
@@ -17,6 +17,12 @@ public class TableOptions
     /// of columns; with a few it only adds spacers.
     /// </summary>
     public bool VirtualizeColumns { get; init; }
+
+    /// <summary>Rows kept built above and below the viewport, so a fast scroll has no gap.</summary>
+    public int RowOverscan { get; init; } = 4;
+
+    /// <summary>Columns kept built beside the viewport when <see cref="VirtualizeColumns"/> is on.</summary>
+    public int ColumnOverscan { get; init; } = 1;
 
     /// <summary>
     /// Lets the user drag a header's right edge, or press Shift with the arrow keys on a focused header, to

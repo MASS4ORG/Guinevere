@@ -13,7 +13,7 @@ public static partial class ControlsExtensions
     /// </summary>
     static void PublishTableSemantics<TRow>(in TableBuild<TRow> b)
     {
-        var (gui, state, _, shown, options, _, _, layout, _, _) = b;
+        var (gui, state, _, shown, options, _, _, layout, _, _, _, _) = b;
         if (state.Accessibility is not { } sink)
         {
             return;
@@ -44,7 +44,7 @@ public static partial class ControlsExtensions
     /// <summary>Publishes one built row and its cells; called while the row's node is current.</summary>
     static void PublishRowSemantics<TRow>(in TableBuild<TRow> b, TableRowSlot slot, TRow item, int row, string key)
     {
-        var (gui, state, _, shown, _, typed, _, _, _, _) = b;
+        var (gui, state, _, shown, _, typed, _, _, _, _, _, _) = b;
         if (state.Accessibility is not { } sink)
         {
             return;
@@ -68,7 +68,7 @@ public static partial class ControlsExtensions
     /// <summary>Publishes one built cell, a child of its row; called while the cell's node is current.</summary>
     static void PublishCellSemantics<TRow>(in TableBuild<TRow> b, TableRowSlot slot, TRow item, int index)
     {
-        var (gui, state, _, shown, _, _, _, _, _, _) = b;
+        var (gui, state, _, shown, _, _, _, _, _, _, _, _) = b;
         if (state.Accessibility is not { } sink)
         {
             return;

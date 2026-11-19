@@ -21,13 +21,17 @@ public static partial class ControlsExtensions
     /// <param name="source">The rows, read by index and only for rows in view.</param>
     /// <param name="columns">The columns, built once and shared between frames.</param>
     /// <param name="options">Behavior and wording. Defaults to <see cref="TableOptions.Default"/>.</param>
-    /// <param name="theme">Layout metrics. Defaults to <see cref="TableTheme.Default"/>.</param>
+    /// <param name="enabled">When false the table matches <c>:disabled</c> and ignores pointer and keyboard input.</param>
     /// <param name="classes">Stylesheet classes for this control.</param>
     /// <param name="id">Stable control and stylesheet identity.</param>
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
-    public static void Table<TRow>(this Gui gui, TableState state, ITableViewSource<TRow> source,
-        TableColumns<TRow> columns, TableOptions? options = null, TableTheme? theme = null,
+    /// <returns>
+    /// The table's node, <c>true</c> as a <c>bool</c> on the frame the selection or the sort changed, or a row was
+    /// activated (<see cref="LayoutNode.Changed"/> and <see cref="LayoutNode.Clicked"/> after a chain).
+    /// </returns>
+    public static ControlNode Table<TRow>(this Gui gui, TableState state, ITableViewSource<TRow> source,
+        TableColumns<TRow> columns, TableOptions? options = null, bool enabled = true,
         IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
@@ -38,7 +42,6 @@ public static partial class ControlsExtensions
         ExcaliburStyles.Ensure(gui);
 
         options ??= TableOptions.Default;
-        theme ??= TableTheme.Default;
 
         state.BeginFrame(gui, source);
         state.Cache.SourceVersion = state.FrameSourceVersion;
@@ -49,18 +52,24 @@ public static partial class ControlsExtensions
 
         var typed = options as TableOptions<TRow>;
         state.Details = typed?.RowDetails;
-        state.Geometry.Update(gui, state, source, typed?.RowDetails, theme.RowHeight);
 
-        var layout = ResolveLayout(gui, state, theme);
-        var (first, last) = options.VirtualizeColumns
-            ? layout.Window(state.FrameScrollX, state.FrameViewportWidth, theme.ColumnOverscan)
-            : (layout.LeftCount, layout.RightStart);
-        var build = new TableBuild<TRow>(gui, state, source, state.Cache.View!.Typed<TRow>(), options, typed, theme,
-            layout, first, last);
-
-        using (gui.StyledNode("table", classes, id, filePath: filePath, lineNumber: lineNumber)
-                   .Expand().Direction(Axis.Vertical).Enter())
+        var node = gui.StyledControl("table", classes, id, disabled: !enabled, filePath: filePath,
+            lineNumber: lineNumber);
+        node.Expand().Direction(Axis.Vertical);
+        UseFontSize(gui, node, TableMetrics.DefaultFontSize);
+        using (node.Enter())
         {
+            var metrics = TableMetrics.Read(gui, node.Scope.Get<LayoutNodeScopeTextSize>().Value);
+            state.Geometry.Update(gui, state, source, typed?.RowDetails, metrics.RowHeight);
+
+            var layout = ResolveLayout(gui, state, metrics);
+            var (first, last) = options.VirtualizeColumns
+                ? layout.Window(state.FrameScrollX, state.FrameViewportWidth, options.ColumnOverscan)
+                : (layout.LeftCount, layout.RightStart);
+            var build = new TableBuild<TRow>(gui, state, source, state.Cache.View!.Typed<TRow>(), options, typed,
+                metrics, layout, first, last, node, enabled);
+            var selectionVersion = state.Selection.Version;
+            var sortVersion = state.Sort.Version;
             state.Accessibility = gui.Pass == Pass.Pass2Render && gui.Platform.TryGet<IAccessibilityTreeSink>(out var tree)
                 ? tree
                 : null;
@@ -69,18 +78,25 @@ public static partial class ControlsExtensions
             TableBody(build);
             RowContextMenu(build);
             PublishTableSemantics(build);
+            if (gui.Pass == Pass.Pass2Render
+                && (state.Selection.Version != selectionVersion || state.Sort.Version != sortVersion))
+            {
+                node.Raise(NodeSignals.Changed);
+            }
         }
+
+        return node;
     }
 
     /// <summary>
     /// The column geometry for this frame, reused until the columns, the width they share or the text
     /// metrics change. Header-sized widths are measured once per column and metrics.
     /// </summary>
-    static TableLayout ResolveLayout(Gui gui, TableState state, TableTheme theme)
+    static TableLayout ResolveLayout(Gui gui, TableState state, TableMetrics metrics)
     {
         var cache = state.Cache;
         var width = state.FrameViewportWidth;
-        if (cache.TryLayout(width, theme.FontSize, theme.CellPadding, out var layout))
+        if (cache.TryLayout(width, metrics.FontSize, metrics.CellPadding, out var layout))
         {
             return layout;
         }
@@ -96,26 +112,26 @@ public static partial class ControlsExtensions
                 continue;
             }
 
-            if (!cache.TryAutoWidth(column, theme.FontSize, theme.CellPadding, out autoWidths[i]))
+            if (!cache.TryAutoWidth(column, metrics.FontSize, metrics.CellPadding, out autoWidths[i]))
             {
-                autoWidths[i] = MeasureTextWidth(MeasuringFont(gui, theme.FontSize), column.Title)
-                                + (theme.CellPadding * 2f);
-                cache.StoreAutoWidth(column, theme.FontSize, theme.CellPadding, autoWidths[i]);
+                autoWidths[i] = MeasureTextWidth(MeasuringFont(gui, metrics.FontSize), column.Title)
+                                + (metrics.CellPadding * 2f);
+                cache.StoreAutoWidth(column, metrics.FontSize, metrics.CellPadding, autoWidths[i]);
             }
         }
 
         layout = TableLayout.Resolve(shown, view.Lengths, width, autoWidths);
-        cache.StoreLayout(layout, width, theme.FontSize, theme.CellPadding);
+        cache.StoreLayout(layout, width, metrics.FontSize, metrics.CellPadding);
         return layout;
     }
 
     static void TableBody<TRow>(in TableBuild<TRow> b)
     {
-        var (gui, state, _, _, options, _, theme, _, _, _) = b;
+        var (gui, state, _, _, options, _, metrics, _, _, _, _, enabled) = b;
         using (gui.StyledNode("table-body", id: BodyId).Expand().Direction(Axis.Vertical).Enter())
         {
             gui.Scroll();
-            if (gui.Pass == Pass.Pass2Render && options.Selection != TableSelectionMode.None)
+            if (gui.Pass == Pass.Pass2Render && enabled && options.Selection != TableSelectionMode.None)
             {
                 gui.RegisterFocusable(claimsArrowKeys: true);
             }
@@ -126,20 +142,20 @@ public static partial class ControlsExtensions
             {
                 if (state.FrameLoading)
                 {
-                    Placeholder(gui, "table-loading", LoadingId, theme, options.LoadingText);
+                    Placeholder(gui, "table-loading", LoadingId, metrics, options.LoadingText);
                 }
                 else
                 {
-                    Placeholder(gui, "table-empty", EmptyId, theme, options.EmptyText);
+                    Placeholder(gui, "table-empty", EmptyId, metrics, options.EmptyText);
                 }
             }
             else
             {
                 var offsets = state.Geometry.Offsets;
                 var window = offsets is null
-                    ? VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, theme.RowHeight, count,
-                        theme.RowOverscan)
-                    : VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, offsets, theme.RowOverscan);
+                    ? VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, metrics.RowHeight, count,
+                        options.RowOverscan)
+                    : VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, offsets, options.RowOverscan);
                 state.Cache.Reserve(window.Last - window.First);
 
                 VirtualRows.Spacer(gui, "table/padTop", window.PadTop);
@@ -152,7 +168,7 @@ public static partial class ControlsExtensions
 
                 if (state.FrameLoading)
                 {
-                    Placeholder(gui, "table-loading", LoadingId, theme, options.LoadingText, theme.RowHeight);
+                    Placeholder(gui, "table-loading", LoadingId, metrics, options.LoadingText, metrics.RowHeight);
                 }
             }
 
@@ -187,12 +203,12 @@ public static partial class ControlsExtensions
         state.FrameScrollY = measure.Y;
     }
 
-    static void Placeholder(Gui gui, string element, string id, TableTheme theme, string text, float? height = null)
+    static void Placeholder(Gui gui, string element, string id, TableMetrics metrics, string text, float? height = null)
     {
-        using (gui.StyledNode(element, id: id).ExpandWidth().Height(height ?? theme.RowHeight * 3f)
+        using (gui.StyledNode(element, id: id).ExpandWidth().Height(height ?? metrics.RowHeight * 3f)
                    .AlignContentX(0.5f).AlignContentY(0.5f).Enter())
         {
-            gui.DrawText(text, theme.FontSize, centerInRect: false);
+            gui.DrawText(text, metrics.FontSize, centerInRect: false);
         }
     }
 }

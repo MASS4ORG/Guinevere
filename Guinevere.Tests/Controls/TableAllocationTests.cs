@@ -47,6 +47,46 @@ public class TableAllocationTests
         Assert.True(bytes < 242_000, $"{bytes} B/frame; measured 219800 while a selectable table scrolls, limit is that plus 10%");
     }
 
+    [Fact]
+    public void AScrollingTableDoesNotGrowTheIdentityTableWithTheRowsScrolled()
+    {
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("A", static row => row),
+            TableColumn<int>.Of("B", static row => row),
+            TableColumn<int>.Of("C", static row => row)
+        ]);
+        var state = new TableState();
+        var source = new RowSource(1_000_000);
+        using var harness = new FrameHarness(560, 400);
+        harness.Gui.IdentityRetainPasses = 64;
+        void Draw(Gui gui) => gui.Table(state, source, columns);
+
+        // Measured: the table holds about 1,070 identities at most (the built rows and cells plus the ones kept for
+        // 64 passes), reached within 500 frames and never exceeded in the next 2,500. A leak would add one
+        // row's worth for each of the 9,000 rows scrolled past, so the bound has room for noise and not for that.
+        const int Bound = 1_500;
+        var early = 0;
+        var late = 0;
+        for (var frame = 0; frame < 3_000; frame++)
+        {
+            harness.Gui.ScrollBy("table/body", new Vector2(0, 72));
+            harness.Frame(Draw);
+            var count = harness.Gui.IdentityCount;
+            if (frame < 500)
+            {
+                early = Math.Max(early, count);
+            }
+            else
+            {
+                late = Math.Max(late, count);
+            }
+        }
+
+        Assert.True(late < Bound, $"{late} identities after 3000 frames, limit {Bound}");
+        Assert.True(late <= early, $"identities grew from {early} to {late} while scrolling");
+    }
+
     static long SteadyBytesPerFrame(bool scroll, bool resize = false, bool select = false)
     {
         _ = BytesPerFrame(scroll, resize, select);

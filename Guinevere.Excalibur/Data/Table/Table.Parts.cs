@@ -6,8 +6,8 @@ namespace Guinevere;
 /// </summary>
 /// <typeparam name="TRow">The type of a row.</typeparam>
 readonly record struct TableBuild<TRow>(Gui Gui, TableState State, ITableViewSource<TRow> Source,
-    TableColumn<TRow>[] Shown, TableOptions Options, TableOptions<TRow>? Typed, TableTheme Theme, TableLayout Layout,
-    int FirstColumn, int LastColumn);
+    TableColumn<TRow>[] Shown, TableOptions Options, TableOptions<TRow>? Typed, TableMetrics Metrics, TableLayout Layout,
+    int FirstColumn, int LastColumn, ControlNode Node, bool Enabled);
 
 public static partial class ControlsExtensions
 {
@@ -22,13 +22,22 @@ public static partial class ControlsExtensions
         ["current"], ["odd", "current"], ["selected", "current"], ["odd", "selected", "current"]
     ];
 
+    /// <summary>Centres a cell's content down the row unless the sheet placed it.</summary>
+    static void CenterVerticallyUnlessStyled(LayoutNode node)
+    {
+        if (node.Style.AlignContentVertical.IsZero)
+        {
+            node.AlignContentY(0.5f);
+        }
+    }
+
     /// <summary>
     /// One body row: the built scrolling cells, with spacers for the ones skipped, then the pinned cells of the
     /// row over the body where the pinned columns sit, then the row's details when it is expanded.
     /// </summary>
     static void TableRow<TRow>(in TableBuild<TRow> b, int row)
     {
-        var (gui, state, source, shown, _, _, theme, layout, firstColumn, lastColumn) = b;
+        var (gui, state, source, shown, _, _, metrics, layout, firstColumn, lastColumn, _, _) = b;
         var slot = state.Cache.Slot(row);
         var key = TableCache.Key(slot, source);
         var item = source[row];
@@ -36,19 +45,21 @@ public static partial class ControlsExtensions
         var states = (row % 2 == 1 ? OddBit : 0) | (selection.Contains(key) ? SelectedBit : 0)
                                                  | (selection.CurrentKey == key ? CurrentBit : 0);
         var modifiers = RowModifierSets[states];
-        using (gui.StyledNode("table-row", id: TableCache.RowId(slot), modifiers: modifiers)
-                   .Height(theme.RowHeight).Width(layout.Total).Direction(Axis.Horizontal).Enter())
+        var rowNode = gui.StyledNode("table-row", id: TableCache.RowId(slot), modifiers: modifiers)
+            .Width(layout.Total).Direction(Axis.Horizontal);
+        SizeUnlessStyled(rowNode, null, Size.Pixels(metrics.RowHeight));
+        using (rowNode.Enter())
         {
             RowInteraction(b, row, key, item);
             PublishRowSemantics(b, slot, item, row, key);
-            VirtualRows.SpacerX(gui, TableCache.PadLeftId(slot), layout.Offsets[firstColumn], theme.RowHeight);
+            VirtualRows.SpacerX(gui, TableCache.PadLeftId(slot), layout.Offsets[firstColumn], metrics.RowHeight);
             for (var c = firstColumn; c < lastColumn; c++)
             {
                 TableCell(b, slot, item, c);
             }
 
             VirtualRows.SpacerX(gui, TableCache.PadRightId(slot), layout.Total - layout.Offsets[lastColumn],
-                theme.RowHeight);
+                metrics.RowHeight);
 
             if (layout.LeftCount > 0 || layout.RightStart < shown.Length)
             {
@@ -100,9 +111,10 @@ public static partial class ControlsExtensions
     {
         var gui = b.Gui;
         var width = pin == TablePin.Left ? b.Layout.LeftWidth : b.Layout.RightWidth;
-        using (gui.StyledNode("table-pinned", id: TableCache.PinnedId(slot, pin), modifiers: modifiers)
-                   .Absolute(at.X, at.Y).Width(width).Height(b.Theme.RowHeight).Direction(Axis.Horizontal)
-                   .BlockInput().Enter())
+        var strip = gui.StyledNode("table-pinned", id: TableCache.PinnedId(slot, pin), modifiers: modifiers)
+            .Absolute(at.X, at.Y).Width(width).Direction(Axis.Horizontal).BlockInput();
+        SizeUnlessStyled(strip, null, Size.Pixels(b.Metrics.RowHeight));
+        using (strip.Enter())
         {
             RowInteraction(b, row, key, item);
             for (var c = firstColumn; c < lastColumn; c++)
@@ -145,14 +157,16 @@ public static partial class ControlsExtensions
         var gui = b.Gui;
         var column = b.Shown[index];
         var width = b.Layout.Widths[index];
-        using (gui.StyledNode("table-cell", id: b.State.Cache.CellId(slot, index))
-                   .Width(width).Height(b.Theme.RowHeight).Direction(Axis.Horizontal).PaddingX(b.Theme.CellPadding)
-                   .AlignContentX(column.AlignContentX).AlignContentY(column.AlignContentY)
-                   .Enter())
+        var cell = gui.StyledNode("table-cell", column.Classes, b.State.Cache.CellId(slot, index))
+            .Width(width).Direction(Axis.Horizontal);
+        SizeUnlessStyled(cell, null, Size.Pixels(b.Metrics.RowHeight));
+        PadUnlessStyled(cell, b.Metrics.CellPadding, 0f);
+        CenterVerticallyUnlessStyled(cell);
+        using (cell.Enter())
         {
             gui.ClipContent();
             column.RenderCell(gui, item, new TableCellFrame<TRow>(slot.Row, index, slot, b.State.Cache, b.Source,
-                b.State, b.Theme.FontSize, width, b.Theme.RowHeight));
+                b.State, b.Metrics.FontSize, width, b.Metrics.RowHeight));
             PublishCellSemantics(b, slot, item, index);
         }
     }

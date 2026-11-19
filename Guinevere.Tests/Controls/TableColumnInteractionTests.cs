@@ -263,7 +263,7 @@ public class TableColumnInteractionTests : TableTestBase
     Action<Gui> Draw(TableState state, TableColumns<int> columns, TableOptions? options = null)
     {
         var source = new GridSource(30);
-        return gui => gui.Table(state, source, columns, options, Theme);
+        return gui => gui.Table(state, source, columns, options);
     }
 
     static Vector2 EdgeOf(FrameHarness harness, string column)

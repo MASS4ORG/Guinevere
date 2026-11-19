@@ -14,7 +14,7 @@ public static partial class ControlsExtensions
         var gui = b.Gui;
         var mode = b.Options.Selection;
         var typed = b.Typed;
-        if (gui.Pass != Pass.Pass2Render
+        if (gui.Pass != Pass.Pass2Render || !b.Enabled
             || (mode == TableSelectionMode.None && typed?.RowMenu is null && typed?.RowActivated is null))
         {
             return;
@@ -38,9 +38,10 @@ public static partial class ControlsExtensions
                 selection.SetCurrent(row, key);
             }
 
-            if (clicks >= 2 && typed?.RowActivated is { } activated)
+            if (clicks >= 2)
             {
-                activated(new TableRowContext<TRow>(row, item, new RowIdentity(key), state));
+                b.Node.Raise(NodeSignals.Clicked);
+                typed?.RowActivated?.Invoke(new TableRowContext<TRow>(row, item, new RowIdentity(key), state));
             }
         }
         else if (state.DragSelecting && gui.Input.IsMouseButtonDown(MouseButton.Left) && selection.CurrentIndex != row
@@ -97,7 +98,7 @@ public static partial class ControlsExtensions
         var gui = b.Gui;
         var mode = b.Options.Selection;
         var state = b.State;
-        if (mode == TableSelectionMode.None || state.FrameRowCount == 0 || !gui.HasFocus(BodyId))
+        if (!b.Enabled || mode == TableSelectionMode.None || state.FrameRowCount == 0 || !gui.HasFocus(BodyId))
         {
             return;
         }
@@ -108,7 +109,7 @@ public static partial class ControlsExtensions
         var selection = state.Selection;
         var last = state.FrameRowCount - 1;
         var current = selection.CurrentIndex;
-        var page = Math.Max(1, (int)(state.FrameViewportHeight / b.Theme.RowHeight) - 1);
+        var page = Math.Max(1, (int)(state.FrameViewportHeight / b.Metrics.RowHeight) - 1);
         int? target = null;
         if (input.IsKeyPressed(KeyboardKey.Down))
         {
@@ -139,7 +140,7 @@ public static partial class ControlsExtensions
         {
             var row = Math.Clamp(moved, 0, last);
             selection.MoveTo(b.Source, mode, row, ctrl, shift);
-            EnsureRowVisible(gui, state, b.Theme, row);
+            EnsureRowVisible(gui, state, b.Metrics, row);
         }
         else if (ctrl && mode == TableSelectionMode.Multiple && input.IsKeyPressed(KeyboardKey.A))
         {
@@ -168,9 +169,10 @@ public static partial class ControlsExtensions
         }
 
         var context = new TableRowContext<TRow>(row, b.Source[row], new RowIdentity(key), b.State);
-        if (enter && b.Typed?.RowActivated is { } activated)
+        if (enter)
         {
-            activated(context);
+            b.Node.Raise(NodeSignals.Clicked);
+            b.Typed?.RowActivated?.Invoke(context);
         }
         else if ((right || left) && b.Typed?.RowDetails is { } details && details.HasDetails(context))
         {
@@ -182,11 +184,11 @@ public static partial class ControlsExtensions
     /// Scrolls the body just far enough to bring a row into view. The new offset reaches the row window one
     /// frame later, which the overscan covers for a step and a page; a jump to either end shows one blank frame.
     /// </summary>
-    static void EnsureRowVisible(Gui gui, TableState state, TableTheme theme, int row)
+    static void EnsureRowVisible(Gui gui, TableState state, TableMetrics metrics, int row)
     {
         var offsets = state.Geometry.Offsets;
-        var top = offsets?.TopOf(row) ?? row * theme.RowHeight;
-        var bottom = top + theme.RowHeight;
+        var top = offsets?.TopOf(row) ?? row * metrics.RowHeight;
+        var bottom = top + metrics.RowHeight;
         var scroll = BodyScroll(gui, state).Y;
         if (top < scroll)
         {

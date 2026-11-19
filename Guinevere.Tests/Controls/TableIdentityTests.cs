@@ -24,7 +24,7 @@ public class TableIdentityTests : TableTestBase
         ]);
         var state = new TableState();
         using var harness = new FrameHarness(Width, Height);
-        void Draw(Gui gui) => gui.Table(state, source, columns, theme: Theme);
+        void Draw(Gui gui) => gui.Table(state, source, columns);
         harness.Frame(Draw);
         harness.Frame(Draw);
         var rowBefore = harness.Gui.RootNode!.FindChildById("table/rowa.zip")!;
@@ -53,7 +53,7 @@ public class TableIdentityTests : TableTestBase
             TableColumn<Item>.Of("Name", static item => item.FileName, id: "name", width: 150f)
         ]);
         using var harness = new FrameHarness(Width, Height);
-        void Draw(Gui gui) => gui.Table(new TableState(), source, columns, theme: Theme);
+        void Draw(Gui gui) => gui.Table(new TableState(), source, columns);
 
         harness.Frame(Draw);
 
@@ -102,7 +102,7 @@ public class TableIdentityTests : TableTestBase
         var state = new TableState();
         var columns = Fixed(1, 100f);
         using var harness = new FrameHarness(Width, Height);
-        void Draw(Gui gui) => gui.Table(state, source, columns, theme: Theme);
+        void Draw(Gui gui) => gui.Table(state, source, columns);
         harness.Frame(Draw);
         harness.Frame(Draw);
         var version = state.FrameSourceVersion;
@@ -123,7 +123,7 @@ public class TableIdentityTests : TableTestBase
         var state = new TableState();
         var columns = Fixed(1, 100f);
         using var harness = new FrameHarness(Width, Height);
-        void Draw(Gui gui) => gui.Table(state, source, columns, theme: Theme);
+        void Draw(Gui gui) => gui.Table(state, source, columns);
         harness.Frame(Draw);
         harness.Frame(Draw);
         var version = state.FrameSourceVersion;
@@ -145,7 +145,7 @@ public class TableIdentityTests : TableTestBase
         var source = new ListTableSource<Item>(Items, static item => item.FileName);
         var state = new TableState();
         using var harness = new FrameHarness(Width, Height);
-        void Draw(Gui gui) => gui.Table(state, source, columns, theme: Theme);
+        void Draw(Gui gui) => gui.Table(state, source, columns);
         harness.Frame(Draw);
         state.Columns.MoveTo(columns[0], columns[1]);
         state.Columns.SetWidth(columns[1], TableLength.Pixels(222f));
@@ -162,7 +162,7 @@ public class TableIdentityTests : TableTestBase
         var next = new TableState();
         next.Restore(saved, rebuilt, fresh);
         using var other = new FrameHarness(Width, Height);
-        void DrawNext(Gui gui) => gui.Table(next, fresh, rebuilt, theme: Theme);
+        void DrawNext(Gui gui) => gui.Table(next, fresh, rebuilt);
         other.Frame(DrawNext);
         other.Frame(DrawNext);
 
