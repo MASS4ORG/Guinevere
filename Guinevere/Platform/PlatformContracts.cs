@@ -122,7 +122,7 @@ public interface IGpuEffectsCapability : IPlatformCapability
 }
 
 /// <summary>Optional accessibility bridge for a complete frame's semantic controls.</summary>
-public interface IAccessibilityCapability : IPlatformCapability, IControlSemanticsSink
+public interface IAccessibilityCapability : IControlSemanticsSink
 {
     void BeginFrame();
     void EndFrame();

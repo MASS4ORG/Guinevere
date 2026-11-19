@@ -147,7 +147,6 @@ public static partial class ControlsExtensions
     static void RenderLeaf(DockContext context, DockLeaf leaf, string path)
     {
         var gui = context.Gui;
-        var theme = context.Theme;
 
         using (gui.Node(-1, -1, path).Expand().Direction(Axis.Vertical).Enter())
         {

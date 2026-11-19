@@ -103,7 +103,7 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(value);
         var key = id ?? gui.AutomaticId(filePath, lineNumber);
-        var state = gui.ControlState(key, () => new EnumChoiceState());
+        var state = gui.ControlState(key, static () => new EnumChoiceState());
         changes = BeginChoices(gui, state.Choices, enabled);
         var metadata = EnumChoicesByType.GetValue(value.GetType(), static type => new EnumChoices(type));
         var multiple = metadata.Flags && presentation != EnumPresentation.Paging;

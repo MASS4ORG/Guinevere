@@ -17,8 +17,8 @@ public unsafe partial class CanvasRenderer
     Queue _presentQueue;
     SurfaceKHR _surface;
 #pragma warning disable CS8625 // assigned in CreateInstance / CreateDevice before first use
-    KhrSurface _khrSurface = null;
-    KhrSwapchain _khrSwapchain = null;
+    KhrSurface _khrSurface;
+    KhrSwapchain _khrSwapchain;
 #pragma warning restore CS8625
     uint _graphicsFamily;
     uint _presentFamily;

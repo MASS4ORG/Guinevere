@@ -35,7 +35,7 @@ sealed class FillDrawable(Rect bounds, float fraction, Color color, FillOptions 
             DrawSpriteOrColor(canvas);
             return;
         }
-        var saved = canvas.SaveLayer((SKRect)bounds, null);
+        var saved = canvas.SaveLayer(bounds, null);
         try
         {
             DrawSpriteOrColor(canvas);

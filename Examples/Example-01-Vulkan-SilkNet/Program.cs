@@ -1,4 +1,3 @@
-using Example01;
 using Guinevere;
 
 namespace Example01VulkanSilkNet;

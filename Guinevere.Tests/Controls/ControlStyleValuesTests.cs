@@ -17,7 +17,7 @@ public class ControlStyleValuesTests
         {
             gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFieldWidth, float>(320f));
 
-            Assert.Equal(320f, gui.ControlStyle.FieldWidthOr(ControlMetrics.FieldWidth));
+            Assert.Equal(320f, gui.ControlStyle.FieldWidth);
             Assert.Equal(ControlMetrics.FieldHeight, gui.ControlStyle.FieldHeight);
         }
 

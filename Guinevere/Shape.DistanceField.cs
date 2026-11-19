@@ -279,7 +279,8 @@ static class ShapeDistanceField
         var a = vertical ? edge - size : edge;
         var b = vertical ? a + width : a + 1;
         var t = field[a] / (field[a] - field[b]);
-        float x = a % width, y = a / width;
+        var row = a / width;
+        float x = a % width, y = row;
         if (vertical)
         {
             y += t;

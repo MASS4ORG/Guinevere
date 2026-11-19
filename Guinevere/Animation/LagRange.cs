@@ -30,7 +30,7 @@ sealed class LagRange
         _value.Sample(now);
         _ghost.Sample(now);
         AdvanceGhost(now, lagDuration, easing);
-        if (target != _target)
+        if (!ImMath.ApproximatelyEquals(target, _target))
         {
             Retarget(target, now, duration, lagDelay, easing);
         }

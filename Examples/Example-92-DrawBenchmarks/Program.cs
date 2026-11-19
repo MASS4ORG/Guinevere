@@ -26,7 +26,8 @@ using (var scene = new DrawScene(1100, 850, backend))
         for (var i = 0; i < count; i++)
         {
             var x = i % 25 * 40f;
-            var y = i / 25 * 20f;
+            var row = i / 25;
+            var y = row * 20f;
             gui.DrawRect(new Rect(x, y, 30, 15), Color.Red, 3);
             gui.DrawCircle(new System.Numerics.Vector2(x + 15, y + 8), 4, Color.Blue);
             gui.DrawLine(new System.Numerics.Vector2(x, y), new System.Numerics.Vector2(x + 30, y + 15), Color.White);
@@ -67,7 +68,8 @@ using (var scene = new DrawScene(1100, 850, backend))
     {
         for (var i = 0; i < 100; i++)
         {
-            gui.DrawShape(new System.Numerics.Vector2(i % 25 * 30, i / 25 * 20), source);
+            var row = i / 25;
+            gui.DrawShape(new System.Numerics.Vector2(i % 25 * 30, row * 20), source);
         }
     };
     scene.Frame(clones);

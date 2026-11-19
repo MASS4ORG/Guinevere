@@ -8,9 +8,6 @@ var quick = args.Contains("--quick");
 var count = quick ? 1_000 : 10_000;
 var iterations = quick ? 500 : 2_000;
 var drawable = new NoopDrawable();
-var packed = Enumerable.Range(0, count)
-    .Select(i => Color.FromArgb(128 + i % 128, (byte)i, (byte)(i >> 2), (byte)(255 - i)))
-    .ToArray();
 var colors = new Color[count];
 var referenceColors = new ReferenceColor[count];
 var skColors = new SKColor[count];

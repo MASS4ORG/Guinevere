@@ -49,17 +49,4 @@ public readonly struct ControlStyleValues(Gui gui)
     public float ComfortableSpacing => Get<ControlComfortableSpacing, float>();
     public float CornerRadius => Get<ControlCornerRadius, float>();
     public float PanelRadius => Get<ControlPanelRadius, float>();
-
-    public float FieldWidthOr(float value) => value == ControlMetrics.FieldWidth ? FieldWidth : value;
-    public float FieldHeightOr(float value) => value == ControlMetrics.FieldHeight ? FieldHeight : value;
-    public float CompactHeightOr(float value) => value == ControlMetrics.CompactHeight ? CompactHeight : value;
-    public float IndicatorSizeOr(float value) => value == ControlMetrics.IndicatorSize ? IndicatorSize : value;
-    public float FontSizeOr(float value) => value == ControlMetrics.FontSize ? FontSize : value;
-    public float CompactFontSizeOr(float value) =>
-        value == ControlMetrics.CompactFontSize ? CompactFontSize : value;
-    public float SpacingOr(float value) => value == ControlMetrics.Spacing ? Spacing : value;
-    public float ComfortableSpacingOr(float value) =>
-        value == ControlMetrics.ComfortableSpacing ? ComfortableSpacing : value;
-    public float CornerRadiusOr(float value) => value == ControlMetrics.CornerRadius ? CornerRadius : value;
-    public float PanelRadiusOr(float value) => value == ControlMetrics.PanelRadius ? PanelRadius : value;
 }

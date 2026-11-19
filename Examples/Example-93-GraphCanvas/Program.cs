@@ -11,9 +11,13 @@ public static class Program
     {
         var gui = new Gui();
         var canvas = new GraphCanvas { ShowMinimap = true, Name = "10,000 view tiles" };
-        var tiles = Enumerable.Range(0, 10000).Select(static i => new GraphElementView(
-            $"tile-{i}", GraphElementRole.Node, new GraphBounds(i % 100 * 220, i / 100 * 130, 160, 80),
-            $"Tile {i}")).ToArray();
+        var tiles = Enumerable.Range(0, 10000).Select(static i =>
+        {
+            var row = i / 100;
+            return new GraphElementView(
+                $"tile-{i}", GraphElementRole.Node, new GraphBounds(i % 100 * 220, row * 130, 160, 80),
+                $"Tile {i}");
+        }).ToArray();
         using var window = new GuiWindow(gui);
         window.RunGui(() =>
         {

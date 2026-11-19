@@ -26,7 +26,7 @@ public readonly record struct ViewportLayout(
     }
 
     static (float Size, float Offset) ResolveAxis(float min, float max, float span, float size, float pivot) =>
-        min == max ? (size, size * pivot) : (span * (max - min), 0);
+        ImMath.ApproximatelyEquals(min, max) ? (size, size * pivot) : (span * (max - min), 0);
 
     static void ValidateSize(Vector2 size)
     {
