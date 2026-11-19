@@ -15,7 +15,7 @@ public partial struct LayoutStyle
     const int MaxWidthSlot = 3;
     const int MinHeightSlot = 4;
     const int MaxHeightSlot = 5;
-    const int AlignSelfSlot = 6;
+    internal const int AlignSelfSlot = 6;
     const int GapSlot = 7;
     const int MarginTopSlot = 8;
     const int MarginRightSlot = 9;
@@ -25,8 +25,8 @@ public partial struct LayoutStyle
     const int PaddingRightSlot = 13;
     const int PaddingBottomSlot = 14;
     const int PaddingLeftSlot = 15;
-    const int AlignContentXSlot = 16;
-    const int AlignContentYSlot = 17;
+    internal const int AlignContentXSlot = 16;
+    internal const int AlignContentYSlot = 17;
     const int AbsoluteXSlot = 18;
     const int AbsoluteYSlot = 19;
     const int SlotCount = 20;
@@ -54,22 +54,27 @@ public partial struct LayoutStyle
 
     readonly TermKind KindOf(int slot) => (TermKind)((_kinds >> (slot * KindBits)) & KindMask);
 
+    /// <summary>The pixel term of <paramref name="slot"/>, without a bounds check.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    readonly float PixelsAt(int slot) =>
+        Unsafe.Add(ref Unsafe.As<SlotFloats, float>(ref Unsafe.AsRef(in _pixels)), slot);
+
+    /// <summary>The extra term of <paramref name="slot"/>, without a bounds check.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    readonly float TermAt(int slot) =>
+        Unsafe.Add(ref Unsafe.As<SlotFloats, float>(ref Unsafe.AsRef(in _terms)), slot);
+
     /// <summary>The value in <paramref name="slot"/>.</summary>
-    readonly Size Read(int slot)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal readonly Size Read(int slot)
     {
-        var pixels = _pixels[slot];
-        var term = _terms[slot];
-        return KindOf(slot) switch
-        {
-            TermKind.None => new Size(pixels),
-            TermKind.Percentage => new Size(pixels, term, 0f, 0f, 0f, 0f, null),
-            TermKind.Ratio => new Size(pixels, 0f, term, 0f, 0f, 0f, null),
-            TermKind.Expand => new Size(pixels, 0f, 0f, term, 0f, 0f, null),
-            TermKind.FitContent => new Size(pixels, 0f, 0f, 0f, term, 0f, null),
-            TermKind.FitLargest => new Size(pixels, 0f, 0f, 0f, 0f, term, null),
-            _ => _complex![slot]
-        };
+        var kind = KindOf(slot);
+        return kind == TermKind.Complex ? ReadComplex(slot) : new Size(PixelsAt(slot), (int)kind, TermAt(slot));
     }
+
+    /// <summary>The multi-term or reference-carrying value in <paramref name="slot"/>.</summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    readonly Size ReadComplex(int slot) => _complex![slot];
 
     /// <summary>Stores <paramref name="value"/> in <paramref name="slot"/>, keeping its pixel term inline in every case.</summary>
     void Write(int slot, in Size value)
@@ -90,12 +95,12 @@ public partial struct LayoutStyle
     }
 
     /// <summary>The expand weight in <paramref name="slot"/>, without building the value.</summary>
-    readonly float Expand(int slot) => KindOf(slot) switch
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    readonly float Expand(int slot)
     {
-        TermKind.Expand => _terms[slot],
-        TermKind.Complex => _complex![slot].ExpandContribution,
-        _ => 0f
-    };
+        var kind = KindOf(slot);
+        return kind == TermKind.Expand ? TermAt(slot) : kind == TermKind.Complex ? ReadComplex(slot).ExpandContribution : 0f;
+    }
 
     /// <summary>Which single non-pixel term a value has, or <see cref="TermKind.Complex"/> for several or references.</summary>
     static TermKind Classify(in Size value, out float term)

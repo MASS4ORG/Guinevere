@@ -124,4 +124,66 @@ public class LayoutStyleStorageTests
         Assert.True(Unsafe.SizeOf<LayoutStyle>() <= 208,
             $"LayoutStyle is {Unsafe.SizeOf<LayoutStyle>()} B; every layout node embeds one, keep it compact");
     }
+
+    [Theory]
+    [MemberData(nameof(Values))]
+    public void TheNonNullableReadersMatchTheNullableOnes(string name)
+    {
+        var value = Make(name);
+        var style = LayoutStyle.Default;
+        style.Width = value;
+        style.Height = value;
+        style.MinWidth = value;
+        style.MaxWidth = value;
+        style.MinHeight = value;
+        style.MaxHeight = value;
+        style.AlignSelf = value;
+
+        Assert.Equal(style.Width!.Value, style.WidthValue);
+        Assert.Equal(style.Height!.Value, style.HeightValue);
+        Assert.Equal(style.MinWidth!.Value, style.MinWidthValue);
+        Assert.Equal(style.MaxWidth!.Value, style.MaxWidthValue);
+        Assert.Equal(style.MinHeight!.Value, style.MinHeightValue);
+        Assert.Equal(style.MaxHeight!.Value, style.MaxHeightValue);
+        Assert.Equal(style.AlignSelf!.Value, style.AlignSelfValue);
+        Assert.True(style.HasMinWidth && style.HasMaxWidth && style.HasMinHeight && style.HasMaxHeight);
+    }
+
+    [Theory]
+    [InlineData(0, 0f, 0f, 0f, 0f, 0f)]
+    [InlineData(1, 0.5f, 0f, 0f, 0f, 0f)]
+    [InlineData(2, 0f, 0.5f, 0f, 0f, 0f)]
+    [InlineData(3, 0f, 0f, 0.5f, 0f, 0f)]
+    [InlineData(4, 0f, 0f, 0f, 0.5f, 0f)]
+    [InlineData(5, 0f, 0f, 0f, 0f, 0.5f)]
+    public void TheCompactConstructorPlacesTheTermByIndex(int index, float percentage, float ratio, float expand,
+        float fitContent, float fitLargest)
+    {
+        var size = new Size(7f, index, 0.5f * (index == 0 ? 0f : 1f));
+
+        Assert.Equal(7f, size.PixelsContribution);
+        Assert.Equal(percentage, size.PercentageContribution);
+        Assert.Equal(ratio, size.RatioContribution);
+        Assert.Equal(expand, size.ExpandContribution);
+        Assert.Equal(fitContent, size.FitContentContribution);
+        Assert.Equal(fitLargest, size.FitLargestContribution);
+        Assert.True(size.References.IsEmpty);
+    }
+
+    [Fact]
+    public void TheWeightAndAlignmentReadersSeeTheStoredTerms()
+    {
+        var style = LayoutStyle.Default;
+        style.Gap = Size.Expand(2f);
+        style.MarginTop = Size.Expand(3f) + 1f;
+        style.MarginLeft = Size.Percentage(0.5f);
+        style.AlignContentVertical = Size.Percentage(0.25f) + 4f;
+
+        Assert.Equal(2f, style.GapExpandWeight);
+        Assert.Equal(3f, style.MarginTopWeight);
+        Assert.Equal(0f, style.MarginLeftWeight);
+        Assert.Equal(0f, style.MarginBottomWeight);
+        Assert.True(style.IsSimple(LayoutStyle.AlignContentYSlot));
+        Assert.Equal(54f, style.PixelsAndPercentage(LayoutStyle.AlignContentYSlot, 200f));
+    }
 }
