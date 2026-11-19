@@ -93,7 +93,7 @@ public partial class Example01
         using (gui.Node().Expand().Padding(12).Enter())
         {
             gui.DrawBackgroundRect(p.Track, 12);
-            gui.DrawRectBorder(gui.CurrentNode.Rect, p.Border, 1f);
+            gui.DrawRectBorder(gui.CurrentNode.Rect, p.Border);
             using (gui.Node().Expand().Direction(_alignDirection).Gap(_alignGap).AlignContent(x, y).Enter())
             {
                 gui.DrawBackgroundRect(new Color(p.Accent, 0.12f), 8);

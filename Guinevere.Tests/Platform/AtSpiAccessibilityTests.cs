@@ -58,7 +58,7 @@ public sealed class AtSpiAccessibilityTests
         WaitFor(() => !client.Accessible(graph, "GetChildren").Contains(path, StringComparison.Ordinal));
         var actions = client.Call(graph, "org.a11y.atspi.Action", "GetActions");
         Assert.Contains("Undo", actions, StringComparison.Ordinal);
-        var undo = actions.Split("('", StringSplitOptions.None).Skip(1)
+        var undo = actions.Split("('").Skip(1)
             .Select(static s => s[..s.IndexOf('\'', StringComparison.Ordinal)]).ToList().IndexOf("Undo");
         Act(client, graph, undo);
         harness.Frame(Draw);

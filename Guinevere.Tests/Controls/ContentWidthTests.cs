@@ -62,7 +62,7 @@ public class ContentWidthTests
     [Fact]
     public void OverflowingTabStripPagesForwardWhenNextIsClicked()
     {
-        using var harness = new FrameHarness(400, 300);
+        using var harness = new FrameHarness();
         string? active = null;
         void Draw(Gui gui)
         {
@@ -88,7 +88,7 @@ public class ContentWidthTests
         Assert.NotNull(next);
         Assert.NotNull(root.FindChildById("strip/t0"));
 
-        harness.Click(Draw, FrameHarness.Center(next!));
+        harness.Click(Draw, FrameHarness.Center(next));
 
         Assert.Null(harness.Gui.RootNode!.FindChildById("strip/t0"));
     }

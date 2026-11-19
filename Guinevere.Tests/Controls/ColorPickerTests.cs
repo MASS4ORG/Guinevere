@@ -372,7 +372,7 @@ public class ColorPickerTests
         using var harness = new FrameHarness(300);
         var options = new ColorPickerOptions
         {
-            Body = (Gui g, ref Hsva v, Color? _) => g.ColorStrip(ref v, HsvChannel.Hue).Width(202).Changed
+            Body = (g, ref v, _) => g.ColorStrip(ref v, HsvChannel.Hue).Width(202).Changed
         };
         var value = new Hsva(0f, 1f, 1f);
         var changed = false;

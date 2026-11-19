@@ -80,7 +80,7 @@ public class TextNavigationTests
         ITextBuffer buffer = new StringTextBuffer("foo_2.bar");
 
         Assert.Equal((start, end), TextNavigation.WordAt(buffer, offset));
-        Assert.Equal((0, 0), TextNavigation.WordAt(new StringTextBuffer(""), 0));
+        Assert.Equal((0, 0), TextNavigation.WordAt(new StringTextBuffer(), 0));
     }
 
     /// <summary>Tabs advance to the next tab stop while ordinary characters advance one column.</summary>

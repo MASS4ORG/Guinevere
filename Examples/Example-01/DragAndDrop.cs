@@ -71,7 +71,7 @@ public partial class Example01
         using (gui.Node(-1, 54, $"card/{item.Id}").ExpandWidth().Padding(12, 0).AlignContentY(0.5f).Gap(2).Enter())
         {
             gui.DrawBackgroundRect(p.Surface, 8);
-            gui.DrawRectBorder(gui.CurrentNode.Rect, p.Border, 1f);
+            gui.DrawRectBorder(gui.CurrentNode.Rect, p.Border);
             gui.DrawText(item.Title, 14, p.Text);
             if (item.NeedsReview)
             {

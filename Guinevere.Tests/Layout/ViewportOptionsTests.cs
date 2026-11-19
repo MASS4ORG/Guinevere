@@ -176,7 +176,7 @@ public class ViewportOptionsTests
     [Fact]
     public void ReferenceCroppingClipsDrawingAndEscapingOverlayInput()
     {
-        using var frame = new FrameHarness(400, 300);
+        using var frame = new FrameHarness();
         var hovered = false;
         void Draw(Gui gui)
         {

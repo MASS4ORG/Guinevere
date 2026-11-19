@@ -45,8 +45,8 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         // Assert
         VerifyFluentReturn(node, result);
         Assert.True(node.Style.ExpandsWidth && node.Style.ExpandsHeight);
-        Assert.Equal(Size.Expand(1.0f), node.Style.Width);
-        Assert.Equal(Size.Expand(1.0f), node.Style.Height);
+        Assert.Equal(Size.Expand(), node.Style.Width);
+        Assert.Equal(Size.Expand(), node.Style.Height);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         // Assert
         VerifyFluentReturn(node, result);
         Assert.True(node.Style.ExpandsWidth);
-        Assert.Equal(Size.Expand(1.0f), node.Style.Width);
+        Assert.Equal(Size.Expand(), node.Style.Width);
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public class LayoutNodeCommandsTests : LayoutNodeTestBase
         // Assert
         VerifyFluentReturn(node, result);
         Assert.True(node.Style.ExpandsHeight);
-        Assert.Equal(Size.Expand(1.0f), node.Style.Height);
+        Assert.Equal(Size.Expand(), node.Style.Height);
     }
 
     /// <summary>

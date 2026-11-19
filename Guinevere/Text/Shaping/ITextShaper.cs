@@ -41,7 +41,7 @@ public sealed class BasicTextShaper : ITextShaper
         ArgumentNullException.ThrowIfNull(text);
         var span = text.AsSpan(start, length);
         var glyphs = font.SkFont.GetGlyphs(span);
-        var advances = font.SkFont.GetGlyphWidths(glyphs, null);
+        var advances = font.SkFont.GetGlyphWidths(glyphs);
         var clusters = new int[glyphs.Length];
         var glyph = 0;
         var offset = 0;

@@ -123,7 +123,7 @@ public sealed class GraphCanvasTests
         Assert.Equal(origin.X - 550 / 1.15, canvas.Camera.Origin.X, 8);
         harness.Input.ReleaseButton(MouseButton.Middle);
         harness.Frame(Draw);
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Input.MoveTo(710, 410);
         harness.Frame(Draw);
         Assert.Equal(origin.X - 550 / 1.15, canvas.Camera.Origin.X, 8);

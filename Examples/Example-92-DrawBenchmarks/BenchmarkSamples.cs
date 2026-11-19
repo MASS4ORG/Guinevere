@@ -23,7 +23,7 @@ static class BenchmarkSamples
                           $"frames/sample {iterations}");
         Console.WriteLine("scenario,sample,ms,bytes,sortMs,replayMs,draws,drawables,callbacks,pixelHash");
         using var scene = new DrawScene(1100, 850, backend, synchronize);
-        foreach (var (name, draw) in new (string, Action<Gui>)[]
+        foreach (var (name, draw) in new[]
                  {
                      ("chart-lines", DrawScenes.ChartLines), ("chart-bars", DrawScenes.ChartBars),
                      ("controls", DrawScenes.Controls), ("text", DrawScenes.TextHeavy),

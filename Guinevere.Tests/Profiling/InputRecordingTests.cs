@@ -9,7 +9,7 @@ public sealed class InputRecordingTests
         input.MoveTo(12, 24);
         input.PressKey(KeyboardKey.LeftControl);
         input.PressKey(KeyboardKey.C);
-        input.PressButton(MouseButton.Left);
+        input.PressButton();
         input.TypeText("Olá 🎮");
         input.Scroll(2);
         input.ConnectController("pad");

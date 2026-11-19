@@ -88,7 +88,7 @@ public unsafe partial class CanvasRenderer
             var canvas = surface.Canvas;
             canvas.Clear(SKColors.Transparent);
             draw(canvas);
-            _grContext!.Flush(true, false);
+            _grContext!.Flush(true);
         }
 
         var end = _endCommands[_currentFrame];

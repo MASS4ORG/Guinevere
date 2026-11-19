@@ -19,7 +19,7 @@ public sealed class FlowScene
     /// <summary>Creates a separate document with the same arithmetic domain and a flow overlay.</summary>
     public FlowScene()
     {
-        _interpreter = new GraphInterpreter(Sandbox.Graph.Semantics, null, null);
+        _interpreter = new GraphInterpreter(Sandbox.Graph.Semantics);
         AttachDocument();
         Sandbox.DocumentLoaded += () => _rebind = true;
     }

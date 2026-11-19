@@ -69,7 +69,7 @@ public sealed class GraphRenderingTests
         {
             ["dashed"] = (dashed, new GraphLinkStyle(Color.Red, 3, Arrow: true, Dash: 10)),
             ["shifted"] = (shifted, new GraphLinkStyle(Color.Red, 3, Dash: 10, DashOffset: 5)),
-            ["routed"] = (routed, new GraphLinkStyle(Color.Red, 2, Arrow: true, Dash: 7, DashOffset: -3)),
+            ["routed"] = (routed, new GraphLinkStyle(Color.Red, Arrow: true, Dash: 7, DashOffset: -3)),
             ["degenerate"] = (degenerate, new GraphLinkStyle(Color.Red, Arrow: true)),
             ["plain"] = (new GraphConnector(new GraphPoint(10, 55), new GraphPoint(190, 55), GraphLinkRouting.Straight),
                 new GraphLinkStyle(Color.Red, 3))

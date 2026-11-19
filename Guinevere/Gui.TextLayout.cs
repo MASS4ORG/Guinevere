@@ -243,7 +243,7 @@ public partial class Gui
         var scale = image.Width > 0f ? run.Width / image.Width : 1f;
         var height = image.Height * scale;
         var destination = new Rect(origin.X + run.X, origin.Y + run.Baseline - height, run.Width, height);
-        AddDraw(new ImageDrawable(image.Image, destination, null, null), node: node);
+        AddDraw(new ImageDrawable(image.Image, destination), node: node);
     }
 
     static void DrawTextBackgrounds(TextLayout layout, Vector2 origin, LayoutNode node)

@@ -13,7 +13,7 @@ sealed class AsciiFontMetrics
         Font = font;
         var alphabet = new string([.. Enumerable.Range(0, 128).Select(static value => (char)value)]);
         Glyphs = font.SkFont.GetGlyphs(alphabet);
-        Widths = font.SkFont.GetGlyphWidths(Glyphs, null);
+        Widths = font.SkFont.GetGlyphWidths(Glyphs);
         var kerning = OpenTypeKerning.For(font.SkFont.Typeface);
         if (kerning.HasKerning)
         {
