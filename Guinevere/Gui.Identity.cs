@@ -32,6 +32,16 @@ public partial class Gui
 
     internal string IdentityName(int identity) => _nodeIdentities.Name(identity);
 
+    /// <summary>Number of identities currently interned; unused ones are evicted after a while.</summary>
+    internal int IdentityCount => _nodeIdentities.Count;
+
+    /// <summary>How many passes an unused identity is kept; lowered by tests to observe eviction quickly.</summary>
+    internal int IdentityRetainPasses
+    {
+        get => _nodeIdentities.RetainPasses;
+        set => _nodeIdentities.RetainPasses = value;
+    }
+
     /// <summary>Returns a cached automatic ID for APIs that require strings, using call site and occurrence.</summary>
     public string AutomaticId(
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",

@@ -35,6 +35,64 @@ public class GuiDataTests
         Assert.NotEqual(harness.Gui.RootNode!.ChildNodes[0].Id, harness.Gui.RootNode.ChildNodes[1].Id);
     }
 
+    /// <summary>Nodes with ids never seen again are forgotten, so a long stream of rows keeps memory flat.</summary>
+    [Fact]
+    public void StreamedNodeIdentitiesAreForgotten()
+    {
+        using var harness = new FrameHarness();
+        harness.Gui.IdentityRetainPasses = 8;
+        for (var frame = 0; frame < 600; frame++)
+        {
+            harness.Frame(gui =>
+            {
+                for (var row = 0; row < 5; row++)
+                {
+                    using (gui.Node(10, 10, $"row{frame}/{row}").Enter())
+                    {
+                        gui.Node(5, 5);
+                    }
+                }
+            });
+        }
+
+        Assert.InRange(harness.Gui.IdentityCount, 1, 400);
+    }
+
+    /// <summary>Automatic data inside a node survives the node being absent far longer than identities are kept.</summary>
+    [Fact]
+    public void DataOutlivesTheEvictionOfItsNode()
+    {
+        using var harness = new FrameHarness();
+        harness.Gui.IdentityRetainPasses = 8;
+        static int Panel(Gui gui, int? write)
+        {
+            using (gui.Node(10, 10, "panel").Enter())
+            {
+                using (gui.Node(5, 5).Enter())
+                {
+                    ref var value = ref gui.GetData(0);
+                    if (write is { } number)
+                    {
+                        value = number;
+                    }
+
+                    return value;
+                }
+            }
+        }
+
+        harness.Frame(gui => Panel(gui, 42));
+        for (var frame = 0; frame < 300; frame++)
+        {
+            harness.Frame(static gui => gui.Node(1, 1));
+        }
+
+        var read = -1;
+        harness.Frame(gui => read = Panel(gui, null));
+
+        Assert.Equal(42, read);
+    }
+
     /// <summary>Setting a node context restores its parent and survives re-entry without leaking style values.</summary>
     [Fact]
     public void NodeScopesInheritAndRestoreData()

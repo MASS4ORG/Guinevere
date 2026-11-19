@@ -26,8 +26,10 @@ public partial class Gui
         }
         else
         {
-            SetDataScope(new AutomaticDataScopeKey(_nodeIdentities.Automatic(CurrentNode.Identity,
-            _itemKey, filePath, lineNumber, control: true, data: CurrentNodeScope.InheritedDataScope)));
+            var identity = _nodeIdentities.Automatic(CurrentNode.Identity, _itemKey, filePath, lineNumber,
+                control: true, data: CurrentNodeScope.InheritedDataScope);
+            _nodeIdentities.Pin(identity);
+            SetDataScope(new AutomaticDataScopeKey(identity));
         }
     }
 
@@ -90,10 +92,19 @@ public partial class Gui
     /// <summary>Forgets all scoped data without disposing caller-owned values; existing references become detached.</summary>
     public void ClearData() => _dataStores.Clear();
 
-    internal int DataIdentity(string? id, string filePath, int lineNumber) => id is null
-        ? _nodeIdentities.Automatic(CurrentNode.Identity, _itemKey, filePath, lineNumber,
-            control: true, data: CurrentDataScope)
-        : _nodeIdentities.Explicit(0, _itemKey, id, CurrentDataScope);
+    /// <summary>
+    /// The identity persistent data (data cells, springs, tweens, automatic ids) is kept under; it is pinned, so it and
+    /// the identities it depends on keep their keys however long the call site goes unused.
+    /// </summary>
+    internal int DataIdentity(string? id, string filePath, int lineNumber)
+    {
+        var identity = id is null
+            ? _nodeIdentities.Automatic(CurrentNode.Identity, _itemKey, filePath, lineNumber,
+                control: true, data: CurrentDataScope)
+            : _nodeIdentities.Explicit(0, _itemKey, id, CurrentDataScope);
+        _nodeIdentities.Pin(identity);
+        return identity;
+    }
 
     DataCell<T> GetDataCell<T>(T defaultValue, int identity)
     {
