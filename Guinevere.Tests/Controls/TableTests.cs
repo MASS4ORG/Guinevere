@@ -352,6 +352,97 @@ public class TableTests : TableTestBase
 
 
     [Fact]
+    public void PinnedColumnsStayInPlaceWhileTheBodyScrollsSideways()
+    {
+        var source = new GridSource(20);
+        var columns = WithPins(6);
+        var state = new TableState();
+        // Three frames: the body's bar, and the width it leaves, are known from the second on.
+        var gui = RunFrames(source, columns, state, frames: 3);
+        var leftBefore = X(gui, "table/row0/pinned-left/left");
+        var rightBefore = X(gui, "table/row0/pinned-right/right");
+
+        gui.ScrollBy("table/body", new Vector2(250, 0));
+        gui = RunFrames(source, columns, state, frames: 3, reuse: gui);
+
+        Assert.Equal(leftBefore, X(gui, "table/row0/pinned-left/left"), 0.5f);
+        Assert.Equal(rightBefore, X(gui, "table/row0/pinned-right/right"), 0.5f);
+        Assert.Equal(X(gui, "table/header/left"), X(gui, "table/row0/pinned-left/left"), 0.5f);
+        Assert.Equal(X(gui, "table/header/right"), X(gui, "table/row0/pinned-right/right"), 0.5f);
+        Assert.Equal(X(gui, "table/header/c2"), X(gui, "table/row0/c2"), 0.5f);
+    }
+
+    [Fact]
+    public void PinnedStripsStayLevelWithTheirRowsWhileTheBodyScrollsDown()
+    {
+        var source = new GridSource(1000);
+        var columns = WithPins(6);
+        var state = new TableState();
+        var gui = RunFrames(source, columns, state, frames: 3);
+
+        gui.ScrollBy("table/body", new Vector2(0, 24 * 7 + 5));
+        gui = RunFrames(source, columns, state, frames: 3, reuse: gui);
+
+        Assert.Equal(gui.RootNode!.FindChildById("table/row9")!.Rect.Y,
+            gui.RootNode!.FindChildById("table/row9/pinned-left")!.Rect.Y, 0.5f);
+    }
+
+    [Fact]
+    public void PinnedCellsAreBuiltOnlyInTheirStripsAndNotInTheRow()
+    {
+        var gui = RunFrames(new GridSource(3), WithPins(6), frames: 2);
+
+        Assert.Equal(["left"], PinnedCellIds(gui, 0, "pinned-left"));
+        Assert.Equal(["right"], PinnedCellIds(gui, 0, "pinned-right"));
+        Assert.DoesNotContain("left", CellIds(gui, 0));
+        Assert.DoesNotContain("right", CellIds(gui, 0));
+        Assert.Contains("c0", CellIds(gui, 0));
+    }
+
+    [Fact]
+    public void AWheelOverAPinnedStripScrollsTheBodyExactlyOnce()
+    {
+        var source = new GridSource(1000);
+        var columns = WithPins(6);
+        var state = new TableState();
+        var gui = RunFrames(source, columns, state, frames: 2);
+        var strip = gui.RootNode!.FindChildById("table/row0/pinned-left")!.Rect;
+        var pointer = new Vector2(strip.X + strip.W / 2f, strip.Y + strip.H / 2f);
+
+        gui = RunFrames(source, columns, state, reuse: gui, pointer: pointer, wheel: -1f);
+
+        Assert.Equal(50f, gui.GetScrollState("table/body")!.ScrollOffset.Y, 0.5f);
+    }
+
+    [Fact]
+    public void VirtualizedColumnsKeepThePinnedOnesBuiltWhileTheMiddleScrolls()
+    {
+        var source = new GridSource(10);
+        var columns = WithPins(200);
+        var options = new TableOptions { VirtualizeColumns = true };
+        var state = new TableState();
+        var gui = RunFrames(source, columns, state, options, frames: 2);
+
+        Assert.InRange(CellIds(gui, row: 0).Count, 1, 6);
+        Assert.Equal(["left"], PinnedCellIds(gui, 0, "pinned-left"));
+
+        gui.ScrollBy("table/body", new Vector2(10_000, 0));
+        gui = RunFrames(source, columns, state, options, frames: 3, reuse: gui);
+
+        Assert.Contains("c100", CellIds(gui, row: 0));
+        Assert.DoesNotContain("c0", CellIds(gui, row: 0));
+        Assert.Equal(["left"], PinnedCellIds(gui, 0, "pinned-left"));
+        Assert.Equal(["right"], PinnedCellIds(gui, 0, "pinned-right"));
+    }
+
+    static TableColumns<int> WithPins(int middle) => new(
+        [TableColumn<int>.Of("Left", static row => $"r{row}", width: 100f, pin: TablePin.Left),
+         .. Enumerable.Range(0, middle).Select(static i => Make(i, null, 100f)),
+         TableColumn<int>.Of("Right", static row => $"r{row}", width: 100f, pin: TablePin.Right)]);
+
+    static float X(Gui gui, string id) => gui.RootNode!.FindChildById(id)!.Rect.X;
+
+    [Fact]
     public void AColumnThatIsNotInitiallyVisibleIsLeftOut()
     {
         var columns = new TableColumns<int>(

@@ -49,7 +49,7 @@ public static partial class ControlsExtensions
         var layout = ResolveLayout(gui, state, theme);
         var (first, last) = options.VirtualizeColumns
             ? layout.Window(state.FrameScrollX, state.FrameViewportWidth, theme.ColumnOverscan)
-            : (0, layout.Columns.Length);
+            : (layout.LeftCount, layout.RightStart);
 
         using (gui.StyledNode("table", classes, id, filePath: filePath, lineNumber: lineNumber)
                    .Expand().Direction(Axis.Vertical).Enter())

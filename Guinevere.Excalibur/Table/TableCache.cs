@@ -13,6 +13,8 @@ sealed class TableRowSlot(int index)
     public string? Id;
     public string? PadLeftId;
     public string? PadRightId;
+    public string? PinnedLeftId;
+    public string? PinnedRightId;
     public string?[] CellIds = [];
 }
 
@@ -118,7 +120,7 @@ sealed class TableCache
 
         slot.Row = row;
         slot.Generation = Generation;
-        slot.Id = slot.PadLeftId = slot.PadRightId = null;
+        slot.Id = slot.PadLeftId = slot.PadRightId = slot.PinnedLeftId = slot.PinnedRightId = null;
         var shown = _columns!.Shown.Length;
         if (slot.CellIds.Length == shown)
         {
@@ -139,9 +141,21 @@ sealed class TableCache
 
     public static string PadRightId(TableRowSlot slot) => slot.PadRightId ??= RowId(slot) + "/padRight";
 
-    /// <summary>Node id of one cell: its row's id and its column's key.</summary>
-    public string CellId(TableRowSlot slot, int column) =>
-        slot.CellIds[column] ??= RowId(slot) + _columns!.CellSuffixes[column];
+    /// <summary>The node id of a row's strip of pinned cells on one side.</summary>
+    public static string PinnedId(TableRowSlot slot, TablePin pin) => pin == TablePin.Left
+        ? slot.PinnedLeftId ??= RowId(slot) + "/pinned-left"
+        : slot.PinnedRightId ??= RowId(slot) + "/pinned-right";
+
+    /// <summary>
+    /// Node id of one cell: its row's id and its column's key. A pinned cell lives in its row's strip on its
+    /// side, so its id carries that strip's name.
+    /// </summary>
+    public string CellId(TableRowSlot slot, int column)
+    {
+        var pin = _columns!.Shown[column].Pin;
+        var container = pin == TablePin.None ? RowId(slot) : PinnedId(slot, pin);
+        return slot.CellIds[column] ??= container + _columns.CellSuffixes[column];
+    }
 
     /// <summary>The text cache of one shown column, made the first time the column draws.</summary>
     /// <typeparam name="TValue">The column's value type.</typeparam>

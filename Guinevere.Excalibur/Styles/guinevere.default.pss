@@ -443,6 +443,14 @@ table-row {
     :odd { background-color = alpha($text, 3%); }
     :hover(0.1 ease-out) { background-color = alpha($text, 8%); }
 }
+/* A pinned strip is opaque, so the cells scrolled beneath it do not show through: the row's tints, mixed onto $surface. */
+table-pinned {
+    background-color = $surface;
+    border-bottom-color = $divider;
+    border-bottom-width = 1;
+    :odd { background-color = mix($surface, $text, 3%); }
+    :hover(0.1 ease-out) { background-color = mix($surface, $text, 8%); }
+}
 table-empty, table-loading { color = $text-dim; }
 
 popup, dialog, toast { color = $text; }

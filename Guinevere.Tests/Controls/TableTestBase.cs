@@ -39,14 +39,16 @@ public abstract class TableTestBase
         }, id: $"c{index}", width: width);
 
     protected static Gui RunFrames<TRow>(ITableViewSource<TRow> source, TableColumns<TRow> columns, TableState? state = null,
-        TableOptions? options = null, int frames = 1, Gui? reuse = null, Action? betweenPasses = null)
+        TableOptions? options = null, int frames = 1, Gui? reuse = null, Action? betweenPasses = null,
+        Vector2? pointer = null, float wheel = 0f)
     {
         using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
         state ??= new TableState();
 
         var input = Substitute.For<IInputHandler>();
-        input.MousePosition.Returns(new Vector2(-100, -100));
-        input.PrevMousePosition.Returns(new Vector2(-100, -100));
+        input.MousePosition.Returns(pointer ?? new Vector2(-100, -100));
+        input.PrevMousePosition.Returns(pointer ?? new Vector2(-100, -100));
+        input.MouseWheelDelta.Returns(wheel);
         var gui = reuse ?? new TestableGui { Input = input };
         gui.Input = input;
         if (gui is TestableGui testable)
@@ -94,6 +96,29 @@ public abstract class TableTestBase
         }
     }
 
+    /// <summary>The column ids of the pinned cells built in one row's strip on one side.</summary>
+    protected static List<string> PinnedCellIds(Gui gui, int row, string side)
+    {
+        var ids = new List<string>();
+        var prefix = $"table/row{row}/{side}/";
+        Visit(gui.RootNode!);
+        return ids;
+
+        void Visit(LayoutNode node)
+        {
+            // The strip's cells only: a cell's own children extend its id.
+            if (node.Id.StartsWith(prefix, StringComparison.Ordinal) && !node.Id[prefix.Length..].Contains('/'))
+            {
+                ids.Add(node.Id[prefix.Length..]);
+            }
+
+            foreach (var child in node.Children)
+            {
+                Visit(child);
+            }
+        }
+    }
+
     /// <summary>The column ids of the cells built in one row.</summary>
     protected static List<string> CellIds(Gui gui, int row)
     {
@@ -107,7 +132,9 @@ public abstract class TableTestBase
             // Cell nodes only: a cell's own children extend its id, and the spacers are not cells.
             if (node.Id.StartsWith(prefix, StringComparison.Ordinal) && !node.Id[prefix.Length..].Contains('/')
                 && !node.Id.EndsWith("padLeft", StringComparison.Ordinal)
-                && !node.Id.EndsWith("padRight", StringComparison.Ordinal))
+                && !node.Id.EndsWith("padRight", StringComparison.Ordinal)
+                && !node.Id.EndsWith("pinned-left", StringComparison.Ordinal)
+                && !node.Id.EndsWith("pinned-right", StringComparison.Ordinal))
             {
                 ids.Add(node.Id[prefix.Length..]);
             }

@@ -142,6 +142,66 @@ public class TableLayoutTests
         Assert.Equal(TableLengthKind.Pixels, ((TableLength)64f).Kind);
     }
 
+    [Fact]
+    public void PinnedEdgesAreCountedAndTheWindowCoversOnlyTheScrollingColumns()
+    {
+        var layout = Resolve(300f, [Pinned("L", TablePin.Left), .. Many(5), Pinned("R", TablePin.Right)]);
+
+        Assert.Equal(1, layout.LeftCount);
+        Assert.Equal(6, layout.RightStart);
+        Assert.Equal(100f, layout.LeftWidth);
+        Assert.Equal(100f, layout.RightWidth);
+        Assert.Equal((1, 2), layout.Window(0f, 300f, 0));
+        Assert.Equal((3, 5), layout.Window(250f, 300f, 0));
+        Assert.Equal((1, 3), layout.Window(0f, 300f, 1));
+    }
+
+    [Fact]
+    public void TheWindowStillCoversTheColumnUnderThePinnedEdgeAtEveryScrollOffset()
+    {
+        var layout = Resolve(300f, [Pinned("L", TablePin.Left), .. Many(5), Pinned("R", TablePin.Right)]);
+
+        foreach (var scroll in new[] { 0f, 50f, 99.5f, 100f, 150f, 250f, 300f, 399f, 400f })
+        {
+            // The middle column whose cells the pinned edge shows first, from the scroll offset itself.
+            var column = Math.Min(layout.RightStart - 1, 1 + (int)(scroll / 100f));
+            var (first, last) = layout.Window(scroll, 300f, 0);
+
+            Assert.True(first <= column && column < last, $"scroll {scroll}: window {first}..{last} misses column {column}");
+        }
+    }
+
+    [Fact]
+    public void ThePinnedGroupsOnlyEverHoldTheirOwnColumnsInTheWindow()
+    {
+        var layout = Resolve(300f, [Pinned("L", TablePin.Left), .. Many(5), Pinned("R", TablePin.Right)]);
+
+        var (first, last) = layout.Window(10_000f, 300f, 5);
+
+        Assert.True(first >= layout.LeftCount);
+        Assert.True(last <= layout.RightStart);
+    }
+
+    [Fact]
+    public void PinnedColumnsAreShownAtTheEdgesInTheirOwnOrder()
+    {
+        var columns = new TableColumns<int>(
+        [
+            TableColumn<int>.Of("A", static row => row, pin: TablePin.Right),
+            TableColumn<int>.Of("B", static row => row),
+            TableColumn<int>.Of("C", static row => row, pin: TablePin.Left),
+            TableColumn<int>.Of("D", static row => row, pin: TablePin.Left, visible: false),
+            TableColumn<int>.Of("E", static row => row, pin: TablePin.Left),
+            TableColumn<int>.Of("F", static row => row, pin: TablePin.Right)
+        ]);
+
+        Assert.Equal(["c", "e", "b", "a", "f"], columns.Set.Shown.Select(static column => column.Id));
+        Assert.Equal([2, 4, 1, 0, 5], columns.Set.ShownOrder);
+    }
+
+    static TableColumn Pinned(string title, TablePin pin) =>
+        TableColumn<int>.Of(title, static row => row, width: 100f, pin: pin);
+
     static TableColumn Col(string title, TableLength? width = null, float? minWidth = null, float? maxWidth = null) =>
         TableColumn<int>.Row(title, width: width, minWidth: minWidth, maxWidth: maxWidth);
 
