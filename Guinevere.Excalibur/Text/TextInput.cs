@@ -226,11 +226,11 @@ public static partial class ControlsExtensions
     /// <c>:disabled</c>); the placeholder is a <c>placeholder</c> child and the selection reads the
     /// <c>selection</c> rule. The caret uses the field's text color. The field is the scope's field width and height
     /// unless a sheet or the returned node says otherwise (<c>.Width(Size.Expand())</c> to fill a row).
+    /// Text is left-aligned unless the sheet's <c>align-items</c> or the returned node's <c>AlignContentX</c> says otherwise.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="text">The edited text.</param>
     /// <param name="placeholder">Text shown while the field is empty.</param>
-    /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
     /// <param name="grabFocus">Keeps the field focused without a click, for one that appears already
     /// being edited — an inline rename. Its value is selected when focus first lands.</param>
     /// <param name="enabled">When false the field matches <c>:disabled</c> and ignores input.</param>
@@ -242,14 +242,14 @@ public static partial class ControlsExtensions
     /// The field's node: <see cref="LayoutNode.Changed"/> on a frame the text changed, <see cref="LayoutNode.Submitted"/>
     /// on Enter while focused; as a <c>bool</c> either one.
     /// </returns>
-    public static ControlNode TextInput(this Gui gui, ref string text, string placeholder = "", float alignX = 0f,
+    public static ControlNode TextInput(this Gui gui, ref string text, string placeholder = "",
         bool grabFocus = false, bool enabled = true, IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         var node = FieldNode(gui, null, classes, id, enabled, gui.ControlStyle.FieldWidth,
             gui.ControlStyle.FieldHeight, filePath, lineNumber);
         var original = text;
-        using (node.AlignContentX(alignX).AlignContentY(0.5f).Enter())
+        using (node.AlignContentY(0.5f).Enter())
         {
             var fontSize = FieldFontSize(gui);
             gui.ClipContent();

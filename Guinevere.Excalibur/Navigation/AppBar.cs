@@ -22,9 +22,9 @@ public static partial class ControlsExtensions
     /// <summary>
     /// Opens a horizontal application bar for ordinary widgets and layout nodes.
     /// Passive content moves the window; optional resize handles replace native borders on supported backends.
+    /// The bar is 36 units high unless an <c>appbar</c> rule sets <c>height</c>; window buttons are as tall as the bar.
     /// </summary>
     /// <param name="gui">The GUI that owns the application bar.</param>
-    /// <param name="height">The bar height in logical desktop units; must be at least 24.</param>
     /// <param name="windowControls">Displays window controls and enables window chrome integration.</param>
     /// <param name="nativeTitlebar">Keeps the native window title bar and decorations visible.</param>
     /// <param name="classes">Stylesheet classes for the application bar.</param>
@@ -33,14 +33,13 @@ public static partial class ControlsExtensions
     /// <param name="minimumWindowSize">The minimum client size in logical desktop units; defaults to 160 by 100.</param>
     /// <param name="filePath">The caller file path used to identify the application bar.</param>
     /// <param name="lineNumber">The caller line number used to identify the application bar.</param>
-    public static AppBarScope AppBar(this Gui gui, float height = 36, bool windowControls = true,
+    public static AppBarScope AppBar(this Gui gui, bool windowControls = true,
         bool nativeTitlebar = false, bool resizable = false,
         Vector2? minimumWindowSize = null,
         IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(gui);
-        ArgumentOutOfRangeException.ThrowIfLessThan(height, 24);
 
         ExcaliburStyles.Ensure(gui);
         id ??= gui.AutomaticId(filePath, lineNumber);
@@ -53,7 +52,10 @@ public static partial class ControlsExtensions
             state.Maximized = chrome?.IsMaximized == true;
         }
 
-        var bar = gui.StyledNode("appbar", classes, id).ExpandWidth().Height(height).Direction(Axis.Horizontal).Enter();
+        var barNode = gui.StyledNode("appbar", classes, id).ExpandWidth().Direction(Axis.Horizontal);
+        SizeUnlessStyled(barNode, null, Size.Pixels(DefaultAppBarHeight));
+        var height = barNode.Style.Height is { IsPixelsOnly: true } styled ? styled.PixelsContribution : DefaultAppBarHeight;
+        var bar = barNode.Enter();
         DrawAppBarChrome(gui, state, chrome, native);
         AppBarResizeHandles(gui, state, chrome, resizable && !native, minimumWindowSize, id);
         var content = gui.Node().ExpandWidth().Height(height).Direction(Axis.Horizontal)
@@ -61,6 +63,9 @@ public static partial class ControlsExtensions
         gui.SetClipped(true);
         return new AppBarScope(gui, bar, content, state, chrome, height);
     }
+
+    /// <summary>The bar height used when no <c>appbar</c> rule sets one.</summary>
+    const float DefaultAppBarHeight = 36f;
 
     static bool AppBarUsesNativeTitlebar(IWindowChromeCapability? chrome, bool nativeTitlebar) =>
         nativeTitlebar || chrome?.CanMove == false;

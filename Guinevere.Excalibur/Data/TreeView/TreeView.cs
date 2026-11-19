@@ -10,12 +10,12 @@ public static partial class ControlsExtensions
     /// <summary>
     /// Draws a scrollable tree from a flattened row list. Rows under a collapsed parent are skipped by
     /// depth, and only the rows inside the viewport become layout nodes, so a tree of thousands costs
-    /// the same as one that fills the screen.
+    /// the same as one that fills the screen. Sheets size it: <c>tree-row</c> <c>height</c>, <c>indent</c> and
+    /// <c>inset</c>, <c>tree-expander</c> and <c>tree-icon</c> <c>width</c>, and <c>font-size</c> on <c>treeview</c>.
     /// </summary>
     /// <param name="gui">The GUI instance.</param>
     /// <param name="state">Expansion and selection, kept by the caller between frames.</param>
     /// <param name="items">Every row of the tree, parents before their children.</param>
-    /// <param name="theme">Layout and interaction metrics. Defaults to <see cref="TreeViewTheme.Default"/>.</param>
     /// <param name="onClick">Called for a click on a row, with the button and the click count.</param>
     /// <param name="dragPayload">
     /// Supplies what a row carries when dragged, or null for a tree whose rows are not drag sources.
@@ -34,7 +34,7 @@ public static partial class ControlsExtensions
     /// <param name="filePath">Call site, supplied by the compiler.</param>
     /// <param name="lineNumber">Call site, supplied by the compiler.</param>
     public static void TreeView(this Gui gui, TreeViewState state, IReadOnlyList<TreeItem> items,
-        TreeViewTheme? theme = null, Action<TreeViewEvent>? onClick = null,
+        Action<TreeViewEvent>? onClick = null,
         Func<TreeItem, object?>? dragPayload = null,
         Action<TreeItem, string>? onRename = null,
         Action<MouseButton>? onEmptyClick = null,
@@ -48,13 +48,15 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(items);
         ExcaliburStyles.Ensure(gui);
 
-        theme ??= TreeViewTheme.Default;
         var visible = Flatten(items, state);
         state.VisibleIds = [.. visible.Select(item => item.Id)];
 
-        using (gui.StyledNode("treeview", classes, id, filePath: filePath, lineNumber: lineNumber)
-                   .Expand().Direction(Axis.Vertical).Enter())
+        var treeNode = gui.StyledNode("treeview", classes, id, filePath: filePath, lineNumber: lineNumber)
+            .Expand().Direction(Axis.Vertical);
+        UseFontSize(gui, treeNode, TreeViewMetrics.DefaultFontSize);
+        using (treeNode.Enter())
         {
+            var theme = TreeViewMetrics.Read(gui, treeNode.Scope.Get<LayoutNodeScopeTextSize>().Value);
             gui.ScrollY();
 
             if (gui.Pass == Pass.Pass2Render)
@@ -92,7 +94,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    static void ProcessTreeInput(Gui gui, TreeViewState state, TreeViewTheme theme,
+    static void ProcessTreeInput(Gui gui, TreeViewState state, TreeViewMetrics theme,
         List<TreeItem> visible, bool rowClicked, Action<TreeViewEvent>? onClick,
         Action<MouseButton>? onEmptyClick)
     {
@@ -159,7 +161,7 @@ public static partial class ControlsExtensions
     /// Moves the selection with the arrow keys: up and down walk the visible rows, right opens a row
     /// or steps into it, left closes it or steps out to the parent, Enter reports an activation.
     /// </summary>
-    static void Navigate(Gui gui, TreeViewState state, TreeViewTheme theme,
+    static void Navigate(Gui gui, TreeViewState state, TreeViewMetrics theme,
         List<TreeItem> visible, Action<TreeViewEvent>? onClick)
     {
         if (visible.Count == 0)
@@ -314,7 +316,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>Keeps the selected row inside the viewport after a keyboard move.</summary>
-    static void ScrollToSelection(Gui gui, TreeViewState state, TreeViewTheme theme, List<TreeItem> visible)
+    static void ScrollToSelection(Gui gui, TreeViewState state, TreeViewMetrics theme, List<TreeItem> visible)
     {
         var index = visible.FindIndex(item => item.Id == state.SelectedId);
         if (index < 0)
@@ -371,7 +373,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    static void RenderRow(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row,
+    static void RenderRow(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item, int row,
         Action<TreeViewEvent>? onClick, Func<TreeItem, object?>? dragPayload,
         Func<object, bool>? dropAccept, Action<TreeItem, object>? onDrop,
         Action<TreeItem, string>? onRename)
@@ -379,13 +381,14 @@ public static partial class ControlsExtensions
         var isSelected = state.SelectedIds.Contains(item.Id);
         var isEditing = onRename is not null && state.EditingId == item.Id;
 
-        using (gui.StyledNode("tree-row", id: $"treeview/row{row}",
-                       modifiers: isSelected ? ["selected"] : []).Height(theme.RowHeight)
-                   .ExpandWidth()
-                   .Direction(Axis.Horizontal)
-                   .Padding((item.Depth * theme.IndentWidth) + theme.ContentPadding, 0)
-                   .Gap(4f)
-                   .Enter())
+        var rowNode = gui.StyledNode("tree-row", id: $"treeview/row{row}",
+                modifiers: isSelected ? ["selected"] : [])
+            .ExpandWidth()
+            .Direction(Axis.Horizontal)
+            .Padding((item.Depth * theme.IndentWidth) + theme.ContentPadding, 0)
+            .Gap(4f);
+        SizeUnlessStyled(rowNode, null, Size.Pixels(theme.RowHeight));
+        using (rowNode.Enter())
         {
             if (!isEditing && dragPayload?.Invoke(item) is { } payload)
             {
@@ -405,8 +408,10 @@ public static partial class ControlsExtensions
 
             if (item.Icon is { } icon)
             {
-                using (gui.Node(theme.IconSize, theme.RowHeight, $"treeview/row{row}/icon").AlignContentX(0.5f)
-                           .AlignContentY(0.5f).Enter())
+                var iconNode = gui.StyledNode("tree-icon", id: $"treeview/row{row}/icon").AlignContentX(0.5f)
+                    .AlignContentY(0.5f);
+                SizeUnlessStyled(iconNode, Size.Pixels(theme.IconSize), Size.Pixels(theme.RowHeight));
+                using (iconNode.Enter())
                 {
                     icon(gui);
                 }
@@ -416,7 +421,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    static void RenderRowLabel(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
+    static void RenderRowLabel(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item,
         bool isEditing, bool isSelected, Action<TreeItem, string>? onRename)
     {
         if (isEditing)
@@ -435,7 +440,7 @@ public static partial class ControlsExtensions
     /// The inline rename field. Enter commits, Escape abandons, and a click anywhere else commits too —
     /// the same bargain a file manager makes, so the box can never be left open by accident.
     /// </summary>
-    static void RenameBox(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
+    static void RenameBox(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item,
         Action<TreeItem, string> onRename)
     {
         var text = state.EditingText;
@@ -469,7 +474,7 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>What follows the pointer while a row is dragged: the row's own label on a chip.</summary>
-    static void DragGhost(Gui gui, TreeViewTheme theme, TreeItem item)
+    static void DragGhost(Gui gui, TreeViewMetrics theme, TreeItem item)
     {
         using (gui.StyledNode("tree-ghost").Height(theme.RowHeight).Padding(6, 0).AlignContentY(0.5f).Enter())
         {
@@ -477,7 +482,7 @@ public static partial class ControlsExtensions
         }
     }
 
-    static void RenderRowInput(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
+    static void RenderRowInput(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item,
         bool isSelected, bool isEditing, Action<TreeViewEvent>? onClick,
         Func<object, bool>? dropAccept, Action<TreeItem, object>? onDrop)
     {
@@ -503,11 +508,11 @@ public static partial class ControlsExtensions
     /// that goes on to be a drag never selects the row; right and middle have no drag to be confused
     /// with, and a context menu wants its press immediately, so they stay on the press edge.
     /// </summary>
-    static void Report(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item,
+    static void Report(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item,
         InteractableElement interactable, MouseButton button, Action<TreeViewEvent>? onClick)
     {
         var clicked = button == MouseButton.Left
-            ? interactable.OnClickCompleted(out var clicks, button, theme.DragThreshold)
+            ? interactable.OnClickCompleted(out var clicks, button, TreeViewMetrics.DragThreshold)
             : interactable.OnClick(out clicks, button);
         if (!clicked)
         {
@@ -529,15 +534,15 @@ public static partial class ControlsExtensions
         onClick?.Invoke(new TreeViewEvent(item, button, clicks));
     }
 
-    static void Expander(Gui gui, TreeViewState state, TreeViewTheme theme, TreeItem item, int row)
+    static void Expander(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item, int row)
     {
         // Blocks the row underneath, so clicking the arrow neither selects nor double-toggles.
-        using (gui.StyledNode("tree-expander", id: $"treeview/row{row}/expander",
-                       modifiers: state.IsCollapsed(item.Id, item.Depth) ? [] : ["expanded"])
-                   .Width(theme.ExpanderWidth).Height(theme.RowHeight)
-                   .BlockInput(item.HasChildren)
-                   .AlignContentX(0.5f).AlignContentY(0.5f)
-                   .Enter())
+        var expander = gui.StyledNode("tree-expander", id: $"treeview/row{row}/expander",
+                modifiers: state.IsCollapsed(item.Id, item.Depth) ? [] : ["expanded"])
+            .BlockInput(item.HasChildren)
+            .AlignContentX(0.5f).AlignContentY(0.5f);
+        SizeUnlessStyled(expander, Size.Pixels(theme.ExpanderWidth), Size.Pixels(theme.RowHeight));
+        using (expander.Enter())
         {
             if (!item.HasChildren)
             {

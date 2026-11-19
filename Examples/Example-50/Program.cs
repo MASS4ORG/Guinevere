@@ -15,7 +15,6 @@ public abstract partial class Program
     // Layout edits are deferred to the next frame's build pass so both passes of a frame see one tree.
     static Action? _pendingLayout;
 
-    static readonly DockTheme DockTheme = new();
     static readonly string[] CenterPanels = ["navigation", "feedback", "styling", "nine-slice", "dialog", "selection"];
     static DockLayout _layout = SeedLayout();
     static string? _saved;
@@ -131,7 +130,7 @@ public abstract partial class Program
             }
         }
 
-        gui.DockSpace(_layout, PanelInfo, RenderPanel, DockTheme, TabStripActions);
+        gui.DockSpace(_layout, PanelInfo, RenderPanel, TabStripActions);
         gui.Toasts();
     }
 

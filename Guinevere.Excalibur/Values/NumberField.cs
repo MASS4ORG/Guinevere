@@ -17,8 +17,8 @@ public static partial class ControlsExtensions
     /// <summary>
     /// A numeric text input. A click places the caret and opens keyboard editing, which commits on Enter or on focus
     /// loss. Invalid text reverts to the previous value, and everything stays clamped to
-    /// [<paramref name="min"/>, <paramref name="max"/>]. Text is right-aligned when
-    /// <paramref name="alignX"/> is 1 and clipped to the box, so a wide number never spills out of the field.
+    /// [<paramref name="min"/>, <paramref name="max"/>]. Text is left-aligned unless the sheet's
+    /// <c>align-items</c> or the returned node's <c>AlignContentX</c> says otherwise, and clipped to the box.
     /// </summary>
     /// <param name="gui">The GUI context.</param>
     /// <param name="value">The number the field edits; clamped into [<paramref name="min"/>, <paramref name="max"/>].</param>
@@ -27,7 +27,6 @@ public static partial class ControlsExtensions
     /// <param name="max">Upper bound on the value, applied to scrubbing and to committed text.</param>
     /// <param name="format">Format applied when echoing numbers back into the field (for example "0.##").</param>
     /// <param name="dragSensitivity">Multiplier on the drag distance, letting one-step span several pixels.</param>
-    /// <param name="alignX">Horizontal alignment of the text, 0 left to 1 right.</param>
     /// <param name="mixed">Shows a dash until the user enters a shared value.</param>
     /// <param name="enabled">Whether the field responds to input.</param>
     /// <param name="classes">Extra classes for the sheet; the field is styled as <c>input.number</c>.</param>
@@ -41,7 +40,7 @@ public static partial class ControlsExtensions
     [PublicAPI]
     public static ControlNode NumberField(this Gui gui, ref double value,
         double step = 1.0, double min = double.MinValue, double max = double.MaxValue, string format = "0.##",
-        double dragSensitivity = 1.0, float alignX = 0f, bool mixed = false, bool enabled = true,
+        double dragSensitivity = 1.0, bool mixed = false, bool enabled = true,
         IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
@@ -66,7 +65,7 @@ public static partial class ControlsExtensions
 
         SyncNumberBuffer(field, value, format, mixed);
 
-        using (node.AlignContentX(alignX).AlignContentY(0.5f).Enter())
+        using (node.AlignContentY(0.5f).Enter())
         {
             var fontSize = FieldFontSize(gui);
             gui.ClipContent();
@@ -98,12 +97,12 @@ public static partial class ControlsExtensions
     [PublicAPI]
     public static ControlNode NumberField(this Gui gui, ref float value,
         float step = 1f, float min = float.MinValue, float max = float.MaxValue, string format = "0.##",
-        float dragSensitivity = 1f, float alignX = 0f, bool mixed = false, bool enabled = true,
+        float dragSensitivity = 1f, bool mixed = false, bool enabled = true,
         IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         double d = value;
-        var node = gui.NumberField(ref d, step, min, max, format, dragSensitivity, alignX, mixed, enabled, classes,
+        var node = gui.NumberField(ref d, step, min, max, format, dragSensitivity, mixed, enabled, classes,
             id, filePath, lineNumber);
         value = (float)d;
         return node;

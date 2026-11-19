@@ -160,15 +160,15 @@ Token names are the palette's property names in kebab case (`SurfaceHover` → `
 | `Splitter` | `splitter` | caller classes and `id` | `:horizontal`, `:vertical`, `:hover`, `:active` while captured | axis size, background, border, radius, outline, shadow, opacity and cursor |
 | `Tabs`/`PillTabs`/`VerticalTabs` | `tabs`, `tabbar`, `tab`, `tabpanel`, `tab-close`, `tab-nav` | `plain`, `pill`, `vertical` plus caller classes | tab `:hover`, `:selected`, `:focus`, `:disabled`; `tab-nav` `:hover`, `:disabled`; `tab-close` `:hover` | tabbar background/border/radius; tab color/background/radius/outline; tabpanel background/border/radius; close radius/color; nav color |
 | `TabStrip` | `tabstrip`, `tab`, `marker`, `tab-close` | caller classes and `id` | tab `:hover`, `:selected`; `tab-close` `:hover` | tabstrip background; tab background/color; marker background; close radius |
-| `DockSpace`/`DockLayout` | `dockspace`, `dock-panel`, `dock-window`, `dock-grip`, `dock-empty`, `dock-ghost`, `drop-indicator`, `drop-preview` | `dock` on floating windows | — | background, border, radius, color and cursor per element |
-| `TreeView` | `treeview`, `tree-row`, `tree-expander`, `tree-ghost` | caller classes and `id` | row `:hover`, `:selected`; expander `:hover` | treeview color; row background/radius; expander color; ghost background/radius/color |
+| `DockSpace`/`DockLayout` | `dockspace`, `dock-panel`, `dock-window`, `dock-grip`, `dock-empty`, `dock-ghost`, `dock-icon`, `drop-indicator`, `drop-preview` | `dock` on floating windows | — | background, border, radius, color and cursor per element; tab icon `width`; dock splitter thickness through `splitter.dock` |
+| `TreeView` | `treeview`, `tree-row`, `tree-expander`, `tree-icon`, `tree-ghost` | caller classes and `id` | row `:hover`, `:selected`; expander `:hover` | treeview color and font-size; row background/radius, `height`, `indent`, `inset`; expander color and width; icon width; ghost background/radius/color |
 | scrollbar | `scrollbar`, child `thumb` (drawn by the styling package) | — | thumb `:hover`, `:active` | scrollbar background; thumb background/radius |
 | `Popup` | `popup`, `popup-content`, `popup-title`, `overlay` | caller classes and `id` | `:closed` while hidden | popup background/border/radius; title background/color; overlay background |
 | `Dialog` | `dialog`, `dialog-title`, `dialog-content`, `dialog-footer`, `dialog-close` | caller classes and `id` | `:closed`; close `:hover` | dialog background/border/radius; title/color; footer border; close radius/color |
 | `Tooltip` | `tooltip` | caller classes and `id` | `:closed` | background/border/radius/color |
 | `Toast` | `toast`, drawn child `accent` | `info`, `positive`, `warning`, `negative` plus caller classes | — | toast background/border/radius/color; accent width/background |
 | `MenuBar`/`Flyout`/`ContextMenu` | `menubar`, `menu`, `menu-title`, `menu-item`, `menu-shortcut`, `menu-separator`, `menu-expander`, `menu-check` | caller classes | `:hover`, `:focus`, `:open`, `:highlighted`, `:disabled` | background/border/radius/color; item background/radius/outline; shortcut and separator color |
-| `AppBar` | `appbar`, `window-button`, `glyph-fill` | — | `window-button` `:hover` | appbar background/color; window-button background; glyph-fill background |
+| `AppBar` | `appbar`, `window-button`, `glyph-fill` | — | `window-button` `:hover` | appbar background/color/height (default 36); window-button background; glyph-fill background |
 | `Breadcrumb` | `breadcrumb`, `crumb`, `underline`, `crumb-separator` | crumb `link`/`current` classes | `:link:hover`, `:link:active`; separator `:hover`, `:open` | crumb color and underline; separator color |
 | `Label`/`WrappedText` | `label`, `wrapped-label` | caller classes and `id` | — | `color`, `font-*` |
 | `ObjectField` | `object-field`, `drop-outline`, `object-pick`, `object-clear` | caller classes and `id` | `:hover`, `:empty`, `:accepting`, `:rejecting`; drop-outline `:accepted` | background/border/radius/color; pick and clear color |
@@ -487,7 +487,11 @@ Widgets take `Content` for text, icons and nested widgets, return their node, an
 | `gui.FileDialog(files, width: 840, height: 460, fontSize: 13)` | `gui.FileDialog(files)` (840 wide, 460 body; size with `.Width()`/`.Height()` (body + 36 + 48), text size with the `ControlFontSize` scope token) |
 | `gui.FileBrowser(files, width: 504, height: 450, fontSize: 12)` | `gui.FileBrowser(files).Width(504).Height(450)` |
 | `gui.TabStrip(items, activeId, theme, "docs", trailing, onDrag)` | `gui.TabStrip(ref activeKey, tabs => tabs.Tab("Docs", key: "docs", closable: true, modified: dirty, onClose: Close), trailing, onDrag, id: "docs")`; picking a tab sets `activeKey` and raises `Changed` |
-| `new DockTheme { TabHeight = 28, FontSize = 13 }` | `DockTheme` keeps `TabIconSize`, `SplitterThickness`, `DropZoneFraction`; tab strips are `ControlStyle.CompactHeight + 2` high with compact text |
+| `new DockTheme { TabHeight = 28, FontSize = 13 }` | removed: tab strips are `ControlStyle.CompactHeight + 2` high with compact text |
+| `gui.DockSpace(layout, info, render, new DockTheme { TabIconSize = 16, SplitterThickness = 8 })` | `gui.DockSpace(layout, info, render)`; rules `dock-icon { width = 16; }` and `splitter.dock { :horizontal { width = 8; } :vertical { height = 8; } }` (defaults 14 and 6); `DropZoneFraction` is fixed at 0.25 |
+| `gui.TreeView(state, items, new TreeViewTheme { RowHeight = 24, IndentWidth = 16 }, onClick)` | `gui.TreeView(state, items, onClick)`; rules `tree-row { height = 24; indent = 16; }` (defaults 20 and 14, `inset = 6` left of the first level), `tree-expander { width = 10; }`, `tree-icon { width = 12; }` and `font-size` on `treeview` (default 12); `DragThreshold` is fixed at 4 |
+| `gui.AppBar(height: 40)` | `gui.AppBar()` with `appbar { height = 40; }` (default 36) |
+| `gui.TextInput(ref t, alignX: 1f)`, `gui.NumberField(ref v, alignX: 1f)` | `gui.TextInput(ref t).AlignContentX(1f)`, or `align-items = right` in an `input` rule; the default is left |
 
 ## License
 

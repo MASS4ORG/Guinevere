@@ -11,7 +11,6 @@ public class TreeViewDragTests : IDisposable
     const int Width = 400;
     const int Height = 200;
 
-    static readonly TreeViewTheme Theme = new() { RowHeight = 20f };
 
     static readonly IReadOnlyList<TreeItem> Items = [new("a", "Row A", 0)];
 
@@ -36,7 +35,7 @@ public class TreeViewDragTests : IDisposable
     {
         void Draw()
         {
-            _gui.TreeView(_state, Items, Theme, e => _clicks.Add(e), dragPayload: _ => new RowPayload("Row A"));
+            _gui.TreeView(_state, Items, e => _clicks.Add(e), dragPayload: _ => new RowPayload("Row A"));
             using (_gui.Node(100, 60, "inspector").AbsoluteScreen(280, 20).Enter())
             {
                 _typed = _gui.DropTarget<RowPayload>("inspector", onDrop: payload => _dropped = payload).State;

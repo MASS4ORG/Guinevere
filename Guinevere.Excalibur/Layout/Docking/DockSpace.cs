@@ -6,6 +6,15 @@ public static partial class ControlsExtensions
 {
     static readonly string[] DockClass = ["dock"];
 
+    /// <summary>The fraction of a region each edge drop zone covers.</summary>
+    const float DropZoneFraction = 0.25f;
+
+    /// <summary>Splitter thickness between docked regions when no <c>splitter.dock</c> rule sets one.</summary>
+    const float DockSplitterThickness = 6f;
+
+    /// <summary>Side of a tab's icon square when no <c>dock-icon</c> rule sets a <c>width</c>.</summary>
+    const float DockTabIconSize = 14f;
+
     /// <summary>
     /// Renders a <see cref="DockLayout"/>: nested splits with draggable splitters, tab groups whose
     /// tabs can be reordered, moved between groups, torn off into floating windows and closed.
@@ -18,7 +27,6 @@ public static partial class ControlsExtensions
     /// <param name="layout">The layout to render. Mutated in place as the user rearranges it.</param>
     /// <param name="panelInfo">Resolves a panel id to its tab label. Return null for an id the host no longer knows.</param>
     /// <param name="renderPanel">Draws a panel's body. Called for the active tab of every visible group.</param>
-    /// <param name="theme">Metrics. Defaults to <see cref="DockTheme.Default"/>; colors come from the sheets.</param>
     /// <param name="renderTabStripActions">
     /// Draws into the space a group's tab strip does not use. Children flow from the right edge, which
     /// is where an overflow or lock button belongs; <see cref="DockTabStrip.FreeArea"/> is there for
@@ -31,14 +39,12 @@ public static partial class ControlsExtensions
     public static void DockSpace(this Gui gui, DockLayout layout,
         Func<string, DockPanelInfo?> panelInfo,
         Action<string, Gui> renderPanel,
-        DockTheme? theme = null,
         Action<DockTabStrip, Gui>? renderTabStripActions = null,
         IReadOnlyList<string>? classes = null, string? id = null,
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         ExcaliburStyles.Ensure(gui);
-        var context = new DockContext(gui, layout, panelInfo, renderPanel, theme ?? DockTheme.Default,
-            renderTabStripActions);
+        var context = new DockContext(gui, layout, panelInfo, renderPanel, renderTabStripActions);
 
         using (gui.StyledNode("dockspace", classes, id, filePath: filePath, lineNumber: lineNumber).Expand().Enter())
         {
@@ -114,11 +120,11 @@ public static partial class ControlsExtensions
             var divider = gui.Splitter(ref fraction, split.Axis, classes: DockClass);
             if (horizontal)
             {
-                divider.Width(context.Theme.SplitterThickness);
+                SizeUnlessStyled(divider, Size.Pixels(DockSplitterThickness), null);
             }
             else
             {
-                divider.Height(context.Theme.SplitterThickness);
+                SizeUnlessStyled(divider, null, Size.Pixels(DockSplitterThickness));
             }
 
             if (divider.Changed)
@@ -197,8 +203,10 @@ public static partial class ControlsExtensions
 
     static void DrawPanelIcon(DockContext context, Action<Gui> icon, string id)
     {
-        var size = context.Theme.TabIconSize;
-        using (context.Gui.Node(size, size, id).Enter())
+        var size = context.Gui.ResolvePart("dock-icon").GetLength("width") ?? DockTabIconSize;
+        var node = context.Gui.StyledNode("dock-icon", id: id);
+        SizeUnlessStyled(node, Size.Pixels(size), Size.Pixels(size));
+        using (node.Enter())
         {
             icon(context.Gui);
         }
@@ -285,7 +293,7 @@ public static partial class ControlsExtensions
                 return;
             }
 
-            var zone = ZoneAt(rect, gui.LocalMousePosition, context.Theme.DropZoneFraction);
+            var zone = ZoneAt(rect, gui.LocalMousePosition, DropZoneFraction);
 
             var drop = gui.DropTarget<DockTabPayload>(rect, $"__zone_{leaf.GetHashCode()}",
                 canAccept: payload => !IsNoOpDrop(payload, leaf, zone),
@@ -429,14 +437,12 @@ public static partial class ControlsExtensions
         DockLayout layout,
         Func<string, DockPanelInfo?> panelInfo,
         Action<string, Gui> renderPanel,
-        DockTheme theme,
         Action<DockTabStrip, Gui>? renderTabStripActions)
     {
         public Gui Gui { get; } = gui;
         public DockLayout Layout { get; } = layout;
         public Func<string, DockPanelInfo?> PanelInfo { get; } = panelInfo;
         public Action<string, Gui> RenderPanel { get; } = renderPanel;
-        public DockTheme Theme { get; } = theme;
         public Action<DockTabStrip, Gui>? RenderTabStripActions { get; } = renderTabStripActions;
         public string? Closing { get; set; }
         public (DockLeaf Leaf, string PanelId)? Activating { get; set; }

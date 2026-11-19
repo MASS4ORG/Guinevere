@@ -106,7 +106,8 @@ public static class FormControls
 
         gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFontSize, float>(style.FontSize));
         var field = gui.NumberField(ref edited, integral ? 1d : 0.01d, min, max, format: integral ? "0" : "0.###",
-            alignX: 1f, mixed: mixed, id: id);
+            mixed: mixed, id: id);
+        field.AlignContentX(1f);
         field.Width(Size.Expand()).Height(style.RowHeight).Padding(4);
 
         result = edited;

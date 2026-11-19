@@ -45,7 +45,7 @@ public abstract partial class Program
         using (gui.Node().Direction(Axis.Horizontal).Wrap(1).Enter())
         {
             gui.DrawText("Alignment").Width(150);
-            gui.TextInput(ref _rightAlignmentInput, placeholder: "Right", alignX: 1f);
+            gui.TextInput(ref _rightAlignmentInput, placeholder: "Right").AlignContentX(1f);
         }
 
         var readOnly = _textInput;
@@ -55,7 +55,7 @@ public abstract partial class Program
     static void NumberControlsRow(Gui gui)
     {
         gui.SetTextColor(Token(gui, "text"));
-        gui.NumberField(ref _numberField, step: 0.25f, min: 0f, max: 100f, alignX: 1f);
+        gui.NumberField(ref _numberField, step: 0.25f, min: 0f, max: 100f).AlignContentX(1f);
         gui.Slider(ref _numberField, step: 0.25f, min: 0f, max: 100f, showValue: true);
         gui.Slider(ref _numberField, step: 0.25f, min: 0f, max: 100f);
         gui.DrawText("Share value", size: 12).ExpandWidth();

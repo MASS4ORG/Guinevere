@@ -227,7 +227,7 @@ public sealed class EnumDropdownTests
                     lineNumber: 0).Width(480);
             }
         }
-        void Draw(Gui gui) => gui.DockSpace(layout, id => new DockPanelInfo(id), Panel, new DockTheme());
+        void Draw(Gui gui) => gui.DockSpace(layout, id => new DockPanelInfo(id), Panel);
         h.Frame(Draw);
         var tab = h.Gui.RootNode!.FindChildById("dock:root/tabs/selection")!;
         h.Click(Draw, tab.Rect.Center);

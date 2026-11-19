@@ -62,6 +62,30 @@ public class AppBarTests
         }
     }
 
+    /// <summary>The bar is 36 units high by default.</summary>
+    [Fact]
+    public void BarDefaultsTo36Units()
+    {
+        using var h = new FrameHarness();
+        h.Frame(Draw);
+        h.Frame(Draw);
+
+        Assert.Equal(36f, Bar(h).Rect.H, 1);
+    }
+
+    /// <summary>An <c>appbar</c> height from a sheet replaces the default.</summary>
+    [Fact]
+    public void SheetHeightWinsOverTheDefault()
+    {
+        using var h = new FrameHarness();
+        h.Gui.StyleSheets.Add(StyleSheet.Parse("appbar { height = 48; }"));
+        h.Frame(Draw);
+        h.Frame(Draw);
+
+        Assert.Equal(48f, Bar(h).Rect.H, 1);
+        Assert.Equal(48f, Content(h).Rect.H, 1);
+    }
+
     /// <summary>Hands each background press to the desktop once and leaves subsequent movement to the OS.</summary>
     [Theory]
     [InlineData(false)]
