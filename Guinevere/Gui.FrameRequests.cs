@@ -16,7 +16,8 @@ public partial class Gui
 
     /// <summary>
     /// Asks the host for another frame as soon as its pacing allows, for state that changes without input. Safe to
-    /// call from any thread; keyed animations, style transitions and built-in timed controls call it themselves.
+    /// call from any thread; keyed animations, style transitions and built-in timed controls call it themselves, and
+    /// <see cref="Post"/> also hands work to the UI thread.
     /// </summary>
     public void RequestFrame()
     {
@@ -75,10 +76,15 @@ public partial class Gui
     }
 
     /// <summary>Requests made before a frame starts are served by it; later ones ask for the next frame.</summary>
-    void BeginFrameRequests()
+    internal void BeginFrameRequests()
     {
         _frameThread = Environment.CurrentManagedThreadId;
-        Volatile.Write(ref _frameRequested, 0);
+        Interlocked.Exchange(ref _frameRequested, 0);
+        if (!_posted.IsEmpty)
+        {
+            Volatile.Write(ref _frameRequested, 1);
+        }
+
         var deadline = Volatile.Read(ref _frameDeadline);
         if (deadline <= Stopwatch.GetTimestamp())
         {

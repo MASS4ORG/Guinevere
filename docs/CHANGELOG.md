@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed: unused node identities are evicted, so views that stream or scroll through many rows keep memory flat
 - Added: `Table` widget #66.
 - Added: `DrawText(ReadOnlySpan<char>)`; new text layouts allocate less #245
+- Added: `Gui.Post(Action)` hands background results to the UI thread #247
 
 ## [6.7.0] - 2026-11-13
 
