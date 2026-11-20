@@ -52,13 +52,14 @@ public class StyleCacheTests
         gui.ResolveStyle("button", classes, state: StyleState.Hover);
         ResolvedStyle? last = null;
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 100; i++)
+        var allocated = AllocationProbe.Steady(() =>
         {
-            last = gui.StyleSheets.Resolve(target);
-            GC.KeepAlive(gui.ResolveStyle("button", classes, state: StyleState.Hover));
-        }
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+            for (var i = 0; i < 100; i++)
+            {
+                last = gui.StyleSheets.Resolve(target);
+                GC.KeepAlive(gui.ResolveStyle("button", classes, state: StyleState.Hover));
+            }
+        });
 
         Assert.Equal(0, allocated);
         Assert.Same(cached, last);

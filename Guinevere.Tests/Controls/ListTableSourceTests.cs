@@ -272,20 +272,19 @@ public class ListTableSourceTests
         TableSort[] keys = [new(Category), new(Size, TableSortDirection.Descending), new(Name)];
         source.ApplySort(keys);
         Publish(source);
-        var frame = Interlocked.Increment(ref _frames);
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        source.ApplySort(keys);
-        source.BeginFrame(frame);
-        var sorting = GC.GetAllocatedBytesForCurrentThread() - before;
-
-        before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 1000; i++)
+        var sorting = AllocationProbe.Steady(() =>
         {
-            _ = source[i];
-        }
-
-        var reading = GC.GetAllocatedBytesForCurrentThread() - before;
+            source.ApplySort(keys);
+            Publish(source);
+        });
+        var reading = AllocationProbe.Steady(() =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                _ = source[i];
+            }
+        });
         Assert.Equal(0, sorting);
         Assert.Equal(0, reading);
     }

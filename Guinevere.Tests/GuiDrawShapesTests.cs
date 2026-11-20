@@ -181,9 +181,7 @@ public class GuiDrawShapesTests
             DirectCalls(gui);
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        DirectCalls(gui);
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, AllocationProbe.Steady(() => DirectCalls(gui)));
         Assert.Equal(0, list.Count);
         gui.CalculateLayout();
         gui.SetStage(Pass.Pass2Render);
@@ -192,10 +190,11 @@ public class GuiDrawShapesTests
             list.Clear();
             DirectCalls(gui);
         }
-        list.Clear();
-        before = GC.GetAllocatedBytesForCurrentThread();
-        DirectCalls(gui);
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        var allocated = AllocationProbe.Steady(() =>
+        {
+            list.Clear();
+            DirectCalls(gui);
+        });
         Assert.Equal(0, allocated);
         Assert.Equal(12, list.Count);
         Assert.Equal(12, list.PrimitiveCount);

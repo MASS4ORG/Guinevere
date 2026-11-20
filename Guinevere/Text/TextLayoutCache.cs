@@ -9,8 +9,8 @@ sealed class TextLayoutCache
     internal const int MaxEntries = 4096;
     internal const long MaxWeight = 524288;
 
-    Dictionary<TextLayoutRequest, TextLayout> _current = [];
-    Dictionary<TextLayoutRequest, TextLayout> _previous = [];
+    Dictionary<TextLayoutRequest, TextLayout> _current = new(TextLayoutRequestComparer.Instance);
+    Dictionary<TextLayoutRequest, TextLayout> _previous = new(TextLayoutRequestComparer.Instance);
     long _currentWeight;
 
     /// <summary>Number of layouts built rather than reused.</summary>
@@ -29,13 +29,31 @@ sealed class TextLayoutCache
             Builds++;
         }
 
-        var weight = request.Weight;
-        if (_current.Count < MaxEntries && weight <= MaxWeight - _currentWeight)
+        Admit(request, layout, request.Weight);
+        return layout;
+    }
+
+    /// <summary>
+    /// Looks plain text up by its characters; a hit creates no string, and a miss creates the one string the layout and
+    /// its cache entry keep.
+    /// </summary>
+    internal TextLayout Get(PlainTextRequest plain, FontRegistry fonts, FontCache? cache = null)
+    {
+        if (_current.GetAlternateLookup<PlainTextRequest>().TryGetValue(plain, out var layout))
         {
-            _current[request] = layout;
-            _currentWeight += weight;
+            return layout;
         }
 
+        if (_previous.GetAlternateLookup<PlainTextRequest>().Remove(plain, out var request, out layout))
+        {
+            Admit(request, layout, plain.Weight);
+            return layout;
+        }
+
+        request = plain.ToRequest();
+        layout = TextLayoutEngine.Create(request, fonts, cache);
+        Builds++;
+        Admit(request, layout, plain.Weight);
         return layout;
     }
 
@@ -45,5 +63,14 @@ sealed class TextLayoutCache
         (_previous, _current) = (_current, _previous);
         _current.Clear();
         _currentWeight = 0;
+    }
+
+    void Admit(TextLayoutRequest request, TextLayout layout, long weight)
+    {
+        if (_current.Count < MaxEntries && weight <= MaxWeight - _currentWeight)
+        {
+            _current[request] = layout;
+            _currentWeight += weight;
+        }
     }
 }

@@ -100,21 +100,22 @@ static partial class TextLayoutEngine
 
         TextLayout Lay(List<LineRange> lineRanges)
         {
-            var placed = new PlacedLine[lineRanges.Count];
+            var count = lineRanges.Count;
+            var placed = Scratch.Sized(ref scratch.Placed, count);
             var widest = 0f;
-            for (var i = 0; i < placed.Length; i++)
+            for (var i = 0; i < count; i++)
             {
                 placed[i] = Place(lineRanges[i]);
                 widest = Math.Max(widest, placed[i].Width + MarkerWidth(lineRanges[i]));
             }
 
             var wraps = request.MaxWidth > 0f && _options.WrapMode != TextWrapMode.None;
-            var width = JustifyLines(placed, wraps ? Math.Min(widest, request.MaxWidth) : widest);
-            var lines = new TextLayoutLine[placed.Length];
-            var runs = new List<TextLayoutRun>();
+            var width = JustifyLines(placed.AsSpan(0, count), wraps ? Math.Min(widest, request.MaxWidth) : widest);
+            var lines = new TextLayoutLine[count];
+            var runs = scratch.Runs;
             var y = 0f;
             var piece = 0;
-            for (var index = 0; index < placed.Length; index++)
+            for (var index = 0; index < count; index++)
             {
                 var range = placed[index].Range;
                 piece = FirstPieceOf(range, piece);
@@ -127,7 +128,7 @@ static partial class TextLayoutEngine
         }
 
         /// <summary>Stretches justified lines to the wrap width and returns the block width that results.</summary>
-        float JustifyLines(PlacedLine[] placed, float width)
+        float JustifyLines(ReadOnlySpan<PlacedLine> placed, float width)
         {
             foreach (var line in placed)
             {
@@ -204,11 +205,7 @@ static partial class TextLayoutEngine
         TextLayoutRun SourceRun(PlacedLine placed, Piece piece, int start, int end, StyledRange styled, float shift)
         {
             var origin = placed.X[start - placed.Range.Start];
-            var offsets = new float[end - start + 1];
-            for (var i = 0; i < offsets.Length; i++)
-            {
-                offsets[i] = placed.X[start + i - placed.Range.Start] - origin;
-            }
+            var offsets = CaretOffsets(placed, start, end, origin);
 
             var text = piece.Kind switch
             {
@@ -224,14 +221,41 @@ static partial class TextLayoutEngine
             };
         }
 
+        /// <summary>
+        /// Caret x of each offset of <c>start..end</c> relative to the run; a run that spans its whole line from the
+        /// line's origin shares the line's array, which nothing changes afterwards.
+        /// </summary>
+        static float[] CaretOffsets(PlacedLine placed, int start, int end, float origin)
+        {
+            if (start == placed.Range.Start && end == placed.Range.End && origin.Equals(0f))
+            {
+                return placed.X;
+            }
+
+            var offsets = new float[end - start + 1];
+            for (var i = 0; i < offsets.Length; i++)
+            {
+                offsets[i] = placed.X[start + i - placed.Range.Start] - origin;
+            }
+
+            return offsets;
+        }
+
         /// <summary>The piece's glyphs inside <c>start..end</c>, placed at their characters' carets.</summary>
         RunGlyphs Glyphs(PlacedLine placed, Piece piece, ShapedText shaped, int start, int end, float origin)
         {
-            var ids = new List<ushort>();
-            var x = new List<float>();
-            var y = shaped.YOffsets is null ? null : new List<float>();
+            var count = 0;
+            for (var g = 0; g < shaped.Glyphs.Length; g++)
+            {
+                count += IsVisibleGlyph(piece.Start + shaped.Clusters[g], start, end) ? 1 : 0;
+            }
+
+            var ids = new ushort[count];
+            var x = new float[count];
+            var y = shaped.YOffsets is null ? null : new float[count];
             var cluster = -1;
             var within = 0f;
+            var next = 0;
             for (var g = 0; g < shaped.Glyphs.Length; g++)
             {
                 var offset = piece.Start + shaped.Clusters[g];
@@ -242,13 +266,18 @@ static partial class TextLayoutEngine
 
                 within = shaped.Clusters[g] == cluster ? within : 0f;
                 cluster = shaped.Clusters[g];
-                ids.Add(shaped.Glyphs[g]);
-                x.Add(placed.X[offset - placed.Range.Start] - origin + within + (shaped.XOffsets?[g] ?? 0f));
-                y?.Add(shaped.YOffsets![g]);
+                ids[next] = shaped.Glyphs[g];
+                x[next] = placed.X[offset - placed.Range.Start] - origin + within + (shaped.XOffsets?[g] ?? 0f);
+                if (y is not null)
+                {
+                    y[next] = shaped.YOffsets![g];
+                }
+
+                next++;
                 within += shaped.Advances[g];
             }
 
-            return new RunGlyphs([.. ids], [.. x], y is null ? null : [.. y]);
+            return new RunGlyphs(ids, x, y);
         }
 
         /// <summary>Whether a source offset belongs to the visible slice and is drawable text.</summary>

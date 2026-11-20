@@ -87,21 +87,31 @@ public class TableAllocationTests
         Assert.True(late <= early, $"identities grew from {early} to {late} while scrolling");
     }
 
-    static long SteadyBytesPerFrame(bool scroll, bool resize = false, bool select = false)
+    [Fact]
+    public void AScrollingTableWithDistinctTextPerColumnStaysWithinItsAllocationBaseline()
     {
-        _ = BytesPerFrame(scroll, resize, select);
-        return BytesPerFrame(scroll, resize, select);
+        var bytes = SteadyBytesPerFrame(scroll: true, distinct: true);
+
+        Assert.True(bytes < 230_000,
+            $"{bytes} B/frame; measured about 220000 while every column shows its own text, 238000 before the " +
+            "text-engine changes, limit 230000");
     }
 
-    static long BytesPerFrame(bool scroll, bool resize = false, bool select = false)
+    static long SteadyBytesPerFrame(bool scroll, bool resize = false, bool select = false, bool distinct = false)
     {
-        // Every column reads the row number, as the baseline was measured: the engine shapes each distinct
-        // text once, so columns of different text would add engine cost (about 12 KB a frame per new text).
+        _ = BytesPerFrame(scroll, resize, select, distinct);
+        return BytesPerFrame(scroll, resize, select, distinct);
+    }
+
+    static long BytesPerFrame(bool scroll, bool resize = false, bool select = false, bool distinct = false)
+    {
+        // The baseline scenarios read the row number in every column, so the engine shapes each distinct text once;
+        // the distinct scenario gives every column its own text and pays that engine cost per column.
         var columns = new TableColumns<int>(
         [
             TableColumn<int>.Of("A", static row => row),
-            TableColumn<int>.Of("B", static row => row),
-            TableColumn<int>.Of("C", static row => row)
+            TableColumn<int>.Of("B", distinct ? new Func<int, int>(static row => row + 10_000_000) : static row => row),
+            TableColumn<int>.Of("C", distinct ? new Func<int, int>(static row => row + 20_000_000) : static row => row)
         ]);
         var state = new TableState();
         var source = new RowSource(1_000_000);

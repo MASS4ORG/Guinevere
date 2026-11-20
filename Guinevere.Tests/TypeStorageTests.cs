@@ -8,10 +8,7 @@ public class TypeStorageTests
     {
         Assert.True(typeof(TextEffects).IsValueType);
 
-        _ = CreateEffects();
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        _ = CreateEffects();
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, AllocationProbe.Steady(static () => _ = CreateEffects()));
 
         static TextEffects CreateEffects()
         {

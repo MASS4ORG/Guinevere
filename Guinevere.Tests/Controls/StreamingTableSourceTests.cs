@@ -235,13 +235,15 @@ public class StreamingTableSourceTests
         source.AppendRange(Enumerable.Range(0, 10_000));
         source.BeginFrame(1);
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 10_000; i++)
+        var allocated = AllocationProbe.Steady(() =>
         {
-            _ = source[i];
-        }
+            for (var i = 0; i < 10_000; i++)
+            {
+                _ = source[i];
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
     }
 
     [Fact]

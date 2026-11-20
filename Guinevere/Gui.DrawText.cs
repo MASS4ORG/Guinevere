@@ -40,6 +40,47 @@ public partial class Gui
     }
 
     /// <summary>
+    /// Draws text held in a buffer, such as a value formatted with <c>TryFormat</c>, like the string overload does.
+    /// A layout already in the engine's cache needs no string, while a layout built for new text creates one string
+    /// that the layout itself keeps.
+    /// </summary>
+    public LayoutNode DrawText(
+        ReadOnlySpan<char> text,
+        float size = 0,
+        Color? color = null,
+        Font? font = null,
+        float wrapWidth = 0,
+        bool centerInRect = true,
+        bool clip = false,
+        TextEffects? effects = null,
+        TextLayoutOptions? layout = null) =>
+        DrawText(text, false, size, color, font, wrapWidth, centerInRect, clip, effects, layout);
+
+    /// <summary>Draws buffered text with optional read-only pointer selection and keyboard copying.</summary>
+    public LayoutNode DrawText(
+        ReadOnlySpan<char> text,
+        bool selectable,
+        float size = 0,
+        Color? color = null,
+        Font? font = null,
+        float wrapWidth = 0,
+        bool centerInRect = true,
+        bool clip = false,
+        TextEffects? effects = null,
+        TextLayoutOptions? layout = null)
+    {
+        var cfg = new DrawConfig(
+            "",
+            font ?? CurrentNodeScope.Get<LayoutNodeScopeTextFont>().Value,
+            size, color, centerInRect, clip, wrapWidth,
+            ResolveTextEffects(effects, CurrentNodeScope), layout, selectable);
+        var options = TextOptionsOf(cfg);
+        var alignment = TextAlignmentOf(cfg, options);
+        var (node, textLayout) = PlainTextBlock(text, cfg.Font, cfg.Size, cfg.WrapWidth, options, alignment);
+        return FinishText(cfg, node, textLayout, alignment);
+    }
+
+    /// <summary>
     /// Draws a glyph (icon) as a layout node: in Pass1Build phase, creates a node sized to the glyph; in Pass2Render phase, draws the glyph in the node's rect.
     /// Returns the node for layout chaining.
     /// </summary>
@@ -84,11 +125,22 @@ public partial class Gui
 
     LayoutNode DrawTextOrGlyph(DrawConfig cfg)
     {
+        var options = TextOptionsOf(cfg);
+        var alignment = TextAlignmentOf(cfg, options);
+        var (node, layout) = TextBlock(cfg.Text, cfg.Font, cfg.Size, cfg.WrapWidth, options, alignment);
+        return FinishText(cfg, node, layout, alignment);
+    }
+
+    TextLayoutOptions TextOptionsOf(DrawConfig cfg) =>
+        cfg.Layout ?? CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
+
+    static TextAlignment TextAlignmentOf(DrawConfig cfg, TextLayoutOptions options) =>
+        options.Alignment ?? (cfg.Center ? TextAlignment.Center : TextAlignment.Start);
+
+    /// <summary>In the render pass, draws the laid-out text of a node and, when selectable, its selection.</summary>
+    LayoutNode FinishText(DrawConfig cfg, LayoutNode node, TextLayout layout, TextAlignment alignment)
+    {
         var color = cfg.Color ?? CurrentNodeScope.Get<LayoutNodeScopeTextColor>().Value;
-        var options = cfg.Layout ?? CurrentNodeScope.Get<LayoutNodeScopeTextLayout>().Value;
-        var alignment = options.Alignment ?? (cfg.Center ? TextAlignment.Center : TextAlignment.Start);
-        var (node, layout) = TextBlock(cfg.Text, cfg.Font, cfg.Size, cfg.WrapWidth, options,
-            alignment);
         if (cfg.Selectable)
         {
             node.Cursor(PointerCursor.Text);
@@ -102,7 +154,7 @@ public partial class Gui
         var origin = TextOrigin(node, layout, alignment);
         if (cfg.Selectable)
         {
-            DrawTextSelection(node, ProcessTextSelection(node, cfg.Text, layout, origin), layout, origin);
+            DrawTextSelection(node, ProcessTextSelection(node, layout.Text, layout, origin), layout, origin);
         }
 
         DrawTextLayout(layout, origin, color, cfg.Effects, cfg.Clip, node);

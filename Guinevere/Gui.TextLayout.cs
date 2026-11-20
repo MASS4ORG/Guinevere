@@ -102,12 +102,19 @@ public partial class Gui
 
     TextLayout LayoutText(TextLayoutRequest request) => _textLayouts.Get(request, Fonts, _textFonts);
 
+    TextLayout LayoutText(PlainTextRequest request) => _textLayouts.Get(request, Fonts, _textFonts);
+
     TextLayoutRequest TextRequest(TextLayoutContent content, Font? font, float size, float maxWidth,
+        TextLayoutOptions options, TextAlignment alignment, LayoutNodeScope scope) =>
+        PlainRequest(default, font, size, maxWidth, options, alignment, scope).ToRequest(content);
+
+    /// <summary>The fonts and constraints of a text block in the scope, around characters held elsewhere.</summary>
+    PlainTextRequest PlainRequest(ReadOnlySpan<char> text, Font? font, float size, float maxWidth,
         TextLayoutOptions options, TextAlignment alignment, LayoutNodeScope scope)
     {
         var scale = FontScaleFor(scope);
         var logical = size > 0 ? size : scope.Get<LayoutNodeScopeTextSize>().Value;
-        return new TextLayoutRequest(content,
+        return new PlainTextRequest(text,
             new FontKey(font ?? scope.Get<LayoutNodeScopeTextFont>().Value, logical * scale),
             new FontKey(scope.Get<LayoutNodeScopeIconFont>().Value, logical * scale),
             new FontKey(scope.Get<LayoutNodeScopeWidgetIconFont>().Value, logical * scale), scale, maxWidth,
@@ -144,6 +151,36 @@ public partial class Gui
         }
 
         return (node, LayoutText(request with { MaxWidth = node.InnerRect.W }));
+    }
+
+    /// <summary>
+    /// <see cref="TextBlock(TextLayoutContent, Font?, float, float, TextLayoutOptions, TextAlignment)"/> for plain text
+    /// held in a buffer: a cached layout needs no string, and a new one creates a single string it keeps.
+    /// </summary>
+    internal (LayoutNode Node, TextLayout Layout) PlainTextBlock(ReadOnlySpan<char> text, Font? font, float size,
+        float wrapWidth, TextLayoutOptions options, TextAlignment alignment)
+    {
+        var request = PlainRequest(text, font, size, Math.Max(0f, wrapWidth), options, alignment, CurrentNodeScope);
+        if (wrapWidth >= 0f)
+        {
+            var layout = LayoutText(request);
+            return (Node(layout.Width, layout.Height), layout);
+        }
+
+        var node = Node();
+        if (Pass == Pass.Pass1Build)
+        {
+            var layout = LayoutText(request);
+            var owned = request.ToRequest(new TextLayoutContent(layout.Text));
+            node.ContentMeasure = width =>
+            {
+                var measured = LayoutText(owned with { MaxWidth = width });
+                return new Vector2(measured.Width, measured.Height);
+            };
+            return (node, layout);
+        }
+
+        return (node, LayoutText(request.WithMaxWidth(node.InnerRect.W)));
     }
 
     /// <summary>Top-left of a layout inside its node, placing the block by its alignment.</summary>

@@ -97,12 +97,14 @@ public class PrimitiveLineReplayTests
         {
             renderer.Render(command, surface.Canvas);
         }
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 1000; i++)
+        var allocated = AllocationProbe.Steady(() =>
         {
-            renderer.Render(command, surface.Canvas);
-        }
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+            for (var i = 0; i < 1000; i++)
+            {
+                renderer.Render(command, surface.Canvas);
+            }
+        });
+        Assert.Equal(0, allocated);
     }
 
     /// <summary>Picture playback keeps reference antialiasing when its final transform is unknown at recording time.</summary>
