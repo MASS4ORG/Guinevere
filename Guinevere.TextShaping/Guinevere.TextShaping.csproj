@@ -31,8 +31,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="SkiaSharp.HarfBuzz" Version="4.153.1" />
-        <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="14.2.1.301" />
+        <PackageReference Include="SkiaSharp.HarfBuzz" Version="4.154.0" />
+        <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="14.2.1.400" />
     </ItemGroup>
 
     <ItemGroup>
