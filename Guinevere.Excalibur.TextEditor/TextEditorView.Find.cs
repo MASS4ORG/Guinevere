@@ -22,7 +22,7 @@ sealed partial class TextEditorView
 
             if (_gui.Pass == Pass.Pass2Render)
             {
-                _gui.DrawBackgroundRect(_theme.Popup, 4f);
+                _gui.DrawBackgroundRect(_colors.Popup, 4f);
             }
 
             var find = _state.Find;
@@ -168,7 +168,7 @@ sealed partial class TextEditorView
         {
             using (text.Enter())
             {
-                _gui.DrawTextLayout(counter, new Vector2(text.Rect.X, text.Rect.Y + PopupPadding), _theme.LineNumber);
+                _gui.DrawTextLayout(counter, new Vector2(text.Rect.X, text.Rect.Y + PopupPadding), _colors.LineNumber);
             }
         }
     }
@@ -196,22 +196,22 @@ sealed partial class TextEditorView
     void DrawFindField(LayoutNode field, TextEditState edit)
     {
         var rect = field.Rect;
-        _gui.DrawRect(rect, edit.IsFocused ? _theme.PopupSelection : _theme.Background, 3f);
+        _gui.DrawRect(rect, edit.IsFocused ? _colors.PopupSelection : _colors.Background, 3f);
         var inner = field.InnerRect;
         var layout = _gui.LayoutText(new RichText(edit.Text), 0, _size);
         if (edit.HasSelection)
         {
             foreach (var bounds in layout.RangeBounds(edit.SelectionStart, edit.SelectionEnd))
             {
-                _gui.DrawRect(new Rect(inner.X + bounds.X, inner.Y, bounds.W, inner.H), _theme.Selection);
+                _gui.DrawRect(new Rect(inner.X + bounds.X, inner.Y, bounds.W, inner.H), _colors.Selection);
             }
         }
 
-        _gui.DrawTextLayout(layout, new Vector2(inner.X, inner.Y), _theme.Text);
+        _gui.DrawTextLayout(layout, new Vector2(inner.X, inner.Y), _colors.Text);
         if (edit.IsFocused && edit.ShowCursor)
         {
             var caret = layout.CaretBounds(edit.CursorPosition);
-            _gui.DrawRect(new Rect(inner.X + caret.X, inner.Y, 1.5f, inner.H), _theme.Caret);
+            _gui.DrawRect(new Rect(inner.X + caret.X, inner.Y, 1.5f, inner.H), _colors.Caret);
         }
     }
 }

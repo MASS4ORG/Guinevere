@@ -3,8 +3,30 @@ namespace Guinevere;
 /// <summary>What the editor control remembers between frames that is not part of the editing state.</summary>
 sealed class TextEditorViewState
 {
+    TextEditorColors _colors;
+    long _colorsFrame = -1;
+
     /// <summary>Bounded long-line metrics retained independently of the shared text-layout cache.</summary>
     internal EditorLineCache Lines { get; } = new();
+
+    /// <summary>How many times the colors were read from the sheets, so tests can check it is once per frame.</summary>
+    internal int ColorReads { get; private set; }
+
+    /// <summary>
+    /// The editor's colors, read from the sheets for the current node on the first call of a frame and reused by the
+    /// build and render passes and every line, glyph and overlay drawn in between.
+    /// </summary>
+    internal TextEditorColors ColorsFor(Gui gui)
+    {
+        if (_colorsFrame != gui.FrameNumber)
+        {
+            _colors = TextEditorColors.Read(gui);
+            _colorsFrame = gui.FrameNumber;
+            ColorReads++;
+        }
+
+        return _colors;
+    }
 
     /// <summary>Seconds since the caret last changed visibility.</summary>
     internal double BlinkTimer;

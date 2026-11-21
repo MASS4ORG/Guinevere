@@ -405,17 +405,33 @@ public sealed class TextEditorViewTests : IDisposable
     }
 
     [Fact]
-    public void SelectionsAndCaretsPaintTheirThemeColors()
+    public void SelectionsPaintTheColorOfTheEditorSelectionRule()
     {
-        var theme = TextEditorTheme.Dark with { Selection = Color.FromArgb(255, 255, 0, 255) };
+        _harness.Gui.StyleSheets.Add(StyleSheet.Parse("editor-selection { background-color = #ff00ff; }"));
         var state = Editor("«wide selection»");
-        _harness.Frame(gui => _node = gui.TextEditor(state, Options with { Theme = theme }, 600, 400).Node);
+        _harness.Frame(gui => _node = gui.TextEditor(state, Options, 600, 400).Node);
 
         using var image = _harness.Snapshot();
         using var pixmap = image.PeekPixels();
         var space = PointOf(state, 4);
         var color = pixmap.GetPixelColor((int)space.X + 2, (int)space.Y);
         Assert.True(color.Red > 200 && color.Blue > 200 && color.Green < 120, color.ToString());
+    }
+
+    /// <summary>The light look comes from the active theme sheet: the editor behind the text turns white.</summary>
+    [Fact]
+    public void ALightThemeSheetPaintsALightEditor()
+    {
+        var state = Editor("short");
+        _harness.Frame(gui =>
+        {
+            ExcaliburStyles.SetTheme(gui, ExcaliburStyles.Light);
+            _node = gui.TextEditor(state, Options, 600, 400).Node;
+        });
+
+        using var image = _harness.Snapshot();
+        using var pixmap = image.PeekPixels();
+        Assert.Equal(new SKColor(255, 255, 255), pixmap.GetPixelColor(580, 380));
     }
 
     static LayoutNode? FindNode(LayoutNode root, Func<LayoutNode, bool> match)

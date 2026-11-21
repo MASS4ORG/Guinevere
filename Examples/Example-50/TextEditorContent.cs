@@ -65,11 +65,7 @@ public abstract partial class Program
                 gui.DrawText(TextEditorStatus(editor), 12, Token(gui, "text"));
             }
 
-            var options = new TextEditorOptions
-            {
-                FontSize = 14,
-                Theme = _radioChoice is 0 or 2 ? TextEditorTheme.Light : TextEditorTheme.Dark,
-            };
+            var options = new TextEditorOptions { FontSize = 14 };
             using (gui.Node().Expand().Enter())
             {
                 gui.TextEditor(editor, options);

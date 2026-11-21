@@ -308,6 +308,61 @@ table-details { border-bottom-color = $divider; border-bottom-width = 1; backgro
 table-expander { color = $text-dim; :hover { color = $text; } }
 table-empty, table-loading { color = $text-dim; }
 
+// Text editor: gui.TextEditor draws its own chrome from these parts and reads them once per frame. Backgrounds use
+// background-color and ink uses color; editor-line-number:current is the number of a line holding a caret,
+// editor-popup also sets the popup's border-color, and syntax-<kind> (keyword, type, function, string, number,
+// comment, operator, punctuation, preprocessor, constant) colors a token kind, with font-style = italic. The editor-*
+// and syntax-* tokens carry the palette, so a color theme re-themes the editor by overriding them.
+$editor-background = #1e1e1e;
+$editor-text = #d4d4d4;
+$editor-gutter = #1e1e1e;
+$editor-line-number = #6e7681;
+$editor-line-number-active = #c8c8c8;
+$editor-current-line = #28282c;
+$editor-selection = #264f78;
+$editor-caret = #aeafad;
+$editor-find-match = #ea5c006e;
+$editor-bracket-match = #788ca050;
+$editor-error = #f14c4c;
+$editor-warning = #cdad00;
+$editor-information = #3794ff;
+$editor-hint = #a0a0a0a0;
+$editor-popup = #252526;
+$editor-popup-border = #454545;
+$editor-popup-selection = #04395e;
+$editor-scrollbar = #7979795a;
+$syntax-keyword = #569cd6;
+$syntax-type = #4ec9b0;
+$syntax-function = #dcdcaa;
+$syntax-string = #ce9178;
+$syntax-number = #b5cea8;
+$syntax-comment = #6a9955;
+$syntax-preprocessor = #c586c0;
+$syntax-constant = #569cd6;
+editor { background-color = $editor-background; color = $editor-text; }
+editor-gutter { background-color = $editor-gutter; }
+editor-line-number { color = $editor-line-number; :current { color = $editor-line-number-active; } }
+editor-current-line { background-color = $editor-current-line; }
+editor-selection { background-color = $editor-selection; }
+editor-caret { color = $editor-caret; }
+editor-find-match { background-color = $editor-find-match; }
+editor-bracket-match { background-color = $editor-bracket-match; }
+editor-error { color = $editor-error; }
+editor-warning { color = $editor-warning; }
+editor-information { color = $editor-information; }
+editor-hint { color = $editor-hint; }
+editor-popup { background-color = $editor-popup; border-color = $editor-popup-border; }
+editor-popup-selection { background-color = $editor-popup-selection; }
+editor-scrollbar { background-color = $editor-scrollbar; }
+syntax-keyword { color = $syntax-keyword; }
+syntax-type { color = $syntax-type; }
+syntax-function { color = $syntax-function; }
+syntax-string { color = $syntax-string; }
+syntax-number { color = $syntax-number; }
+syntax-comment { color = $syntax-comment; font-style = italic; }
+syntax-preprocessor { color = $syntax-preprocessor; }
+syntax-constant { color = $syntax-constant; }
+
 popup, dialog, toast { background-color = $popup; border-color = $border; border-width = 1; color = $text; }
 popup, toast { border-radius = 6; }
 dialog { border-radius = 8; }

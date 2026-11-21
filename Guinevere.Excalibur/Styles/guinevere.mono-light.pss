@@ -40,3 +40,27 @@ $md-inverse-primary = #bbc3d2;
 $md-success = #2f7d3f;
 $md-warning = #8a5100;
 $md-info = #1f6f8b;
+
+// Text editor: the light palette of the editor-* and syntax-* tokens; the squiggle colors keep the base's.
+$editor-background = #ffffff;
+$editor-text = #1e1e1e;
+$editor-gutter = #f5f5f5;
+$editor-line-number = #a0a0a0;
+$editor-line-number-active = #1e1e1e;
+$editor-current-line = #f0f4fa;
+$editor-selection = #add6ff;
+$editor-caret = #000000;
+$editor-find-match = #ffc8006e;
+$editor-bracket-match = #0064c846;
+$editor-popup = #fafafa;
+$editor-popup-border = #c8c8c8;
+$editor-popup-selection = #d2e4ff;
+$editor-scrollbar = #64646446;
+$syntax-keyword = #0000ff;
+$syntax-type = #267f99;
+$syntax-function = #795e26;
+$syntax-string = #a31515;
+$syntax-number = #098658;
+$syntax-comment = #008000;
+$syntax-preprocessor = #af00db;
+$syntax-constant = #0000ff;
