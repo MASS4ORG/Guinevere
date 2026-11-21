@@ -47,6 +47,20 @@ public sealed class FileDialogConfirmationTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveFileAsksForANameWhenTheFieldIsEmpty()
+    {
+        string? completed = null;
+        var state = await Open(FileDialogMode.SaveFile, path => completed = path);
+        state.Name = "  ";
+
+        await ControlsExtensions.ConfirmAsync(state);
+
+        Assert.Equal("Enter a name.", state.Message);
+        Assert.True(state.IsOpen);
+        Assert.Null(completed);
+    }
+
+    [Fact]
     public async Task FolderModesListOnlyDirectories()
     {
         Directory.CreateDirectory(Path.Combine(_root, "sub"));

@@ -96,6 +96,81 @@ public sealed class FileDialogRenderTests : IDisposable
         Assert.Null(FindNode(harness.Gui, "/button"));
     }
 
+    [Fact]
+    public async Task EnterInThePathBoxNavigatesInsteadOfAcceptingTheDialog()
+    {
+        var fileSystem = new InMemoryFileDialogFileSystem().AddFile("docs", "a.txt").AddFile("root.txt");
+        using var rig = await FileDialogRig.OpenAsync(fileSystem);
+        rig.State.Selected = rig.State.Browser.Entries.Single(static entry => entry.Name == "root.txt");
+        rig.SetPathText(fileSystem.P("docs"));
+
+        rig.Press(KeyboardKey.Enter);
+
+        Assert.True(rig.State.IsOpen);
+        Assert.Null(rig.Completed);
+        Assert.Equal(fileSystem.P("docs"), rig.State.Browser.CurrentPath);
+        Assert.Null(rig.State.EditingPath);
+    }
+
+    [Fact]
+    public async Task EnterInTheSearchBoxDoesNotAcceptTheDialog()
+    {
+        var fileSystem = new InMemoryFileDialogFileSystem().AddFile("root.txt");
+        using var rig = await FileDialogRig.OpenAsync(fileSystem);
+        rig.State.Selected = rig.State.Browser.Entries.Single();
+        rig.Click(rig.Find("/search")!);
+
+        rig.Press(KeyboardKey.Enter);
+
+        Assert.True(rig.State.IsOpen);
+        Assert.Null(rig.Completed);
+    }
+
+    [Fact]
+    public async Task EnterInTheListingStillAcceptsTheSelection()
+    {
+        var fileSystem = new InMemoryFileDialogFileSystem().AddFile("root.txt");
+        using var rig = await FileDialogRig.OpenAsync(fileSystem);
+        rig.Click(rig.Find("/row/" + fileSystem.P("root.txt"))!);
+
+        rig.Press(KeyboardKey.Enter);
+
+        Assert.Equal(fileSystem.P("root.txt"), rig.Completed);
+    }
+
+    [Fact]
+    public async Task EnterAfterSearchingThenClickingARowAcceptsTheSelection()
+    {
+        var fileSystem = new InMemoryFileDialogFileSystem().AddFile("root.txt");
+        using var rig = await FileDialogRig.OpenAsync(fileSystem);
+        rig.Click(rig.Find("/search")!);
+        rig.Click(rig.Find("/row/" + fileSystem.P("root.txt"))!);
+
+        rig.Press(KeyboardKey.Enter);
+
+        Assert.Equal(fileSystem.P("root.txt"), rig.Completed);
+    }
+
+    [Fact]
+    public async Task EscapeWhileEditingThePathCancelsTheEditAndKeepsTheDialog()
+    {
+        var fileSystem = new InMemoryFileDialogFileSystem().AddFile("root.txt");
+        using var rig = await FileDialogRig.OpenAsync(fileSystem);
+        rig.SetPathText(fileSystem.P("typed"));
+
+        rig.Press(KeyboardKey.Escape);
+
+        Assert.True(rig.State.IsOpen);
+        Assert.Null(rig.State.EditingPath);
+        Assert.Equal(fileSystem.Root, rig.State.Browser.CurrentPath);
+
+        rig.Press(KeyboardKey.Escape);
+
+        Assert.False(rig.State.IsOpen);
+        Assert.True(rig.Closed);
+        Assert.Null(rig.Completed);
+    }
+
     static LayoutNode? FindNode(Gui gui, string suffix) =>
         Walk(gui.RootNode!).FirstOrDefault(node => node.Id.EndsWith(suffix, StringComparison.Ordinal));
 

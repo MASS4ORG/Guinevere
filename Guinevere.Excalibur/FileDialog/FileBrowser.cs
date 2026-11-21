@@ -12,6 +12,13 @@ public sealed class FileBrowser
     readonly List<FileEntry> _loaded = [];
     CancellationTokenSource? _loading;
 
+    // Read by the UI thread every frame and written by whichever thread finished a read, so all of it goes
+    // through the _loaded lock.
+    string _currentPath = "";
+    string? _error;
+    bool _isLoading;
+    IReadOnlyList<FileEntry> _entries = [];
+
     int _historyIndex = -1;
     FileSortColumn _sort = FileSortColumn.Name;
     bool _ascending = true;
@@ -31,22 +38,44 @@ public sealed class FileBrowser
     public IFileDialogFileSystem FileSystem => _fileSystem;
 
     /// <summary>Whether a directory read is in flight.</summary>
-    public bool IsLoading { get; private set; }
+    public bool IsLoading
+    {
+        get { lock (_loaded) { return _isLoading; } }
+        private set { lock (_loaded) { _isLoading = value; } }
+    }
 
     /// <summary>The directory being shown, absolute. Empty until the first navigation.</summary>
-    public string CurrentPath { get; private set; } = "";
+    public string CurrentPath
+    {
+        get { lock (_loaded) { return _currentPath; } }
+        private set { lock (_loaded) { _currentPath = value; } }
+    }
 
     /// <summary>Why the last listing or operation failed, or null when it succeeded.</summary>
-    public string? Error { get; private set; }
+    public string? Error
+    {
+        get { lock (_loaded) { return _error; } }
+        private set { lock (_loaded) { _error = value; } }
+    }
 
     /// <summary>The current directory's entries, filtered, searched and sorted for display.</summary>
-    public IReadOnlyList<FileEntry> Entries { get; private set; } = [];
+    public IReadOnlyList<FileEntry> Entries
+    {
+        get { lock (_loaded) { return _entries; } }
+        private set { lock (_loaded) { _entries = value; } }
+    }
 
     /// <summary>Whether <see cref="GoBackAsync"/> has somewhere to go.</summary>
-    public bool CanGoBack => _historyIndex > 0;
+    public bool CanGoBack
+    {
+        get { lock (_loaded) { return _historyIndex > 0; } }
+    }
 
     /// <summary>Whether <see cref="GoForwardAsync"/> has somewhere to go.</summary>
-    public bool CanGoForward => _historyIndex >= 0 && _historyIndex < _history.Count - 1;
+    public bool CanGoForward
+    {
+        get { lock (_loaded) { return _historyIndex >= 0 && _historyIndex < _history.Count - 1; } }
+    }
 
     /// <summary>Whether the current directory has a parent.</summary>
     public bool CanGoUp => CurrentPath.Length > 0 && _fileSystem.GetParent(CurrentPath) is not null;
@@ -57,17 +86,7 @@ public sealed class FileBrowser
     /// </summary>
     public async ValueTask<bool> NavigateAsync(string path, CancellationToken cancellationToken = default)
     {
-        CancellationTokenSource next;
-        lock (_loaded)
-        {
-            _loading?.Cancel();
-            _loading?.Dispose();
-            _loading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            next = _loading;
-            IsLoading = true;
-            Error = null;
-        }
-
+        var next = SupersedeLoading(cancellationToken);
         try
         {
             var directory = await _fileSystem.ResolveDirectoryAsync(path, next.Token).ConfigureAwait(false);
@@ -77,31 +96,7 @@ public sealed class FileBrowser
             }
 
             var entries = await _fileSystem.EnumerateAsync(directory, next.Token).ConfigureAwait(false);
-
-            lock (_loaded)
-            {
-                if (!ReferenceEquals(_loading, next))
-                {
-                    return false;
-                }
-
-                CurrentPath = directory;
-                _loaded.Clear();
-                _loaded.AddRange(entries);
-                if (_historyIndex < _history.Count - 1)
-                {
-                    _history.RemoveRange(_historyIndex + 1, _history.Count - _historyIndex - 1);
-                }
-
-                if (_history.Count == 0 || !string.Equals(_history[^1], directory, StringComparison.Ordinal))
-                {
-                    _history.Add(directory);
-                }
-
-                _historyIndex = _history.Count - 1;
-                Rebuild();
-                return true;
-            }
+            return Commit(next, directory, entries);
         }
         catch (OperationCanceledException) when (next.IsCancellationRequested)
         {
@@ -109,11 +104,7 @@ public sealed class FileBrowser
         }
         catch (Exception exception) when (IsFileSystemError(exception))
         {
-            if (ReferenceEquals(_loading, next))
-            {
-                Error = exception.Message;
-            }
-
+            ReportNavigationError(next, path, exception);
             return false;
         }
         finally
@@ -127,6 +118,73 @@ public sealed class FileBrowser
             }
         }
     }
+
+    /// <summary>Cancels any read in flight and starts the loading state for a new one.</summary>
+    CancellationTokenSource SupersedeLoading(CancellationToken cancellationToken)
+    {
+        lock (_loaded)
+        {
+            _loading?.Cancel();
+            _loading?.Dispose();
+            var next = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _loading = next;
+            IsLoading = true;
+            Error = null;
+            return next;
+        }
+    }
+
+    /// <summary>Shows the read directory and records it in the history, unless a newer navigation took over.</summary>
+    bool Commit(CancellationTokenSource read, string directory, IReadOnlyList<FileEntry> entries)
+    {
+        lock (_loaded)
+        {
+            if (!ReferenceEquals(_loading, read))
+            {
+                return false;
+            }
+
+            CurrentPath = directory;
+            _loaded.Clear();
+            _loaded.AddRange(entries);
+            RecordHistory(directory);
+            Rebuild();
+            return true;
+        }
+    }
+
+    /// <summary>Drops the forward history and appends the directory unless it is already the latest entry.</summary>
+    void RecordHistory(string directory)
+    {
+        if (_historyIndex < _history.Count - 1)
+        {
+            _history.RemoveRange(_historyIndex + 1, _history.Count - _historyIndex - 1);
+        }
+
+        if (_history.Count == 0 || !string.Equals(_history[^1], directory, StringComparison.Ordinal))
+        {
+            _history.Add(directory);
+        }
+
+        _historyIndex = _history.Count - 1;
+    }
+
+    /// <summary>Reports a failed read as <see cref="Error"/>, unless a newer navigation superseded it.</summary>
+    void ReportNavigationError(CancellationTokenSource read, string path, Exception exception)
+    {
+        lock (_loaded)
+        {
+            if (ReferenceEquals(_loading, read))
+            {
+                Error = exception is UnauthorizedAccessException
+                    ? $"No permission to open '{path}'."
+                    : exception.Message;
+            }
+        }
+    }
+
+    /// <summary>Forgets the last failure, for a caller that has shown it and moved on.</summary>
+    internal void ClearError() => Error = null;
 
     /// <summary>Re-reads the current path asynchronously.</summary>
     public async ValueTask RefreshAsync(CancellationToken cancellationToken = default)
@@ -178,6 +236,12 @@ public sealed class FileBrowser
             var entries = await _fileSystem.EnumerateAsync(path, cancellationToken).ConfigureAwait(false);
             lock (_loaded)
             {
+                // A navigation that finished while this read was in flight owns the listing now.
+                if (!string.Equals(_currentPath, path, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
                 _loaded.Clear();
                 _loaded.AddRange(entries);
                 Rebuild();
@@ -299,7 +363,12 @@ public sealed class FileBrowser
         Error = null;
         try
         {
-            var target = _history[index];
+            string target;
+            lock (_loaded)
+            {
+                target = _history[index];
+            }
+
             var entries = await _fileSystem.EnumerateAsync(target, cancellationToken).ConfigureAwait(false);
             lock (_loaded)
             {

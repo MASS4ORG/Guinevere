@@ -36,16 +36,20 @@ public static partial class ControlsExtensions
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
+        state.Attach(gui);
 
         var isOpen = state.IsOpen;
         var title = state.Request?.Title ?? "";
         var fontSize = FileFontSize(gui);
         var chrome = DialogTitleHeight(gui) + DialogFooterHeight(gui);
 
+        // Escape belongs to the path box while it is being edited: it cancels the edit, and only the next
+        // press closes the dialog.
         var dialog = DialogCore(gui, ref isOpen, title,
             () => Body(gui, state, fontSize),
             () => Footer(gui, state, fontSize),
-            showCloseButton: true, draggable: true, closeOnEscape: true, closeOnClickOutside: false,
+            showCloseButton: true, draggable: true, closeOnEscape: state.EditingPath is null,
+            closeOnClickOutside: false,
             classes: classes is null ? ["file"] : ["file", .. classes],
             id: id ?? state.ControlId("dialog"),
             width: FileBrowserWidth, height: FileBrowserHeight + chrome,
@@ -92,11 +96,50 @@ public static partial class ControlsExtensions
             NameRow(gui, state, request, fontSize);
             Status(gui, state, fontSize);
 
-            if (gui.Pass == Pass.Pass2Render && gui.Input.IsKeyPressed(KeyboardKey.Enter))
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
+            PlaceInitialFocus(gui, state, request);
+            HandlePathShortcuts(gui, state);
+            if (gui.Input.IsKeyPressed(KeyboardKey.Enter) && EnterConfirms(gui, state))
             {
                 _ = ConfirmAsync(state).AsTask();
             }
         }
+    }
+
+    /// <summary>
+    /// Whether Enter accepts the dialog: only while the listing or the name field has focus, or nothing does.
+    /// Any other focused control, the path and search boxes included, uses Enter for itself.
+    /// </summary>
+    static bool EnterConfirms(Gui gui, FileDialogState state)
+    {
+        if (state.EditingPath is not null)
+        {
+            return false;
+        }
+
+        var focused = gui.Focus.CurrentFocusedId;
+        return focused is null || focused == state.ControlId("listing") || focused == state.ControlId("name");
+    }
+
+    /// <summary>
+    /// When a showing starts or path editing ends, focuses the name field where a name is asked for and the listing
+    /// otherwise, so typing and Enter go where the user expects instead of to the first button.
+    /// </summary>
+    static void PlaceInitialFocus(Gui gui, FileDialogState state, FileDialogRequest request)
+    {
+        // A request made while the path box still holds focus would be lost with the box, so it waits a frame.
+        if (!state.FocusPending || gui.HasFocus(state.ControlId("path")))
+        {
+            return;
+        }
+
+        state.FocusPending = false;
+        var named = request.Mode is FileDialogMode.SaveFile or FileDialogMode.CreateFolder;
+        gui.RequestFocus(state.ControlId(named ? "name" : "listing"));
     }
 
     /// <summary>The name field, and the filter dropdown when the request offers a choice.</summary>
@@ -213,48 +256,96 @@ public static partial class ControlsExtensions
 
         if (state.Choice() is not { } choice)
         {
-            state.Message = request.Mode switch
-            {
-                FileDialogMode.OpenFile => "Select a file.",
-                FileDialogMode.SelectFolder => "Select a folder.",
-                _ => "Enter a name.",
-            };
+            state.Message = MissingChoiceMessage(request.Mode);
             return;
         }
 
-        if (request.Mode == FileDialogMode.OpenFile &&
-            !await state.Browser.FileSystem.FileExistsAsync(choice).ConfigureAwait(false))
+        // Everything after an await that may have left the UI thread is handed back before it touches the state or
+        // calls the host.
+        var checksFile = ChecksFile(state, request, choice);
+        var fileExists = checksFile && await state.Browser.FileSystem.FileExistsAsync(choice).ConfigureAwait(false);
+        await state.ToUiThread();
+        if (!ReferenceEquals(state.Request, request) || RefusesChoice(state, request, choice, checksFile, fileExists))
+        {
+            return;
+        }
+
+        if (request.Mode == FileDialogMode.CreateFolder && !await CreateChosenFolderAsync(state, request, choice))
+        {
+            return;
+        }
+
+        state.Close(choice);
+    }
+
+    /// <summary>What to ask for when the dialog has nothing to confirm yet, by mode.</summary>
+    static string MissingChoiceMessage(FileDialogMode mode) => mode switch
+    {
+        FileDialogMode.OpenFile => "Select a file.",
+        FileDialogMode.SelectFolder => "Select a folder.",
+        _ => "Enter a name.",
+    };
+
+    /// <summary>Whether confirming must check the file exists: opening one, or saving over an unconfirmed one.</summary>
+    static bool ChecksFile(FileDialogState state, FileDialogRequest request, string choice) =>
+        request.Mode == FileDialogMode.OpenFile ||
+        (request.Mode == FileDialogMode.SaveFile && state.PendingOverwrite != choice);
+
+    /// <summary>
+    /// Shows why the choice cannot be accepted and returns true: a vanished file, an overwrite still to be confirmed,
+    /// or the request's own refusal.
+    /// </summary>
+    static bool RefusesChoice(FileDialogState state, FileDialogRequest request, string choice, bool checksFile,
+        bool fileExists)
+    {
+        if (request.Mode == FileDialogMode.OpenFile && !fileExists)
         {
             state.Message = "That file no longer exists.";
-            return;
+            return true;
         }
 
-        if (request.Mode == FileDialogMode.SaveFile && state.PendingOverwrite != choice &&
-            await state.Browser.FileSystem.FileExistsAsync(choice).ConfigureAwait(false))
+        if (request.Mode == FileDialogMode.SaveFile && checksFile && fileExists)
         {
             state.PendingOverwrite = choice;
             state.Message = $"'{Path.GetFileName(choice)}' already exists. Choose Overwrite to replace it.";
-            return;
+            return true;
         }
 
         if (request.Validate?.Invoke(choice) is { } refusal)
         {
             state.Message = refusal;
-            return;
+            return true;
         }
 
-        if (request.Mode == FileDialogMode.CreateFolder &&
-            !await state.Browser.FileSystem.DirectoryExistsAsync(choice).ConfigureAwait(false))
+        return false;
+    }
+
+    /// <summary>
+    /// Creates the folder a create-folder dialog is about to return, unless it already exists. Reports why it could
+    /// not and returns false when the dialog should stay open.
+    /// </summary>
+    static async ValueTask<bool> CreateChosenFolderAsync(FileDialogState state, FileDialogRequest request,
+        string choice)
+    {
+        var browser = state.Browser;
+        var created = (string?)choice;
+        if (!await browser.FileSystem.DirectoryExistsAsync(choice).ConfigureAwait(false))
         {
-            var name = Path.GetFileName(choice);
-            if (await state.Browser.CreateFolderAsync(name).ConfigureAwait(false) is null)
-            {
-                state.Message = state.Browser.Error;
-                return;
-            }
+            created = await browser.CreateFolderAsync(Path.GetFileName(choice)).ConfigureAwait(false);
         }
 
-        state.Close(choice);
+        await state.ToUiThread();
+        if (!ReferenceEquals(state.Request, request))
+        {
+            return false;
+        }
+
+        if (created is null)
+        {
+            state.Message = browser.Error;
+        }
+
+        return created is not null;
     }
 
     /// <summary>
@@ -289,6 +380,7 @@ public static partial class ControlsExtensions
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
         ExcaliburStyles.Ensure(gui);
+        state.Attach(gui);
         var fontSize = FileFontSize(gui);
         var browser = gui.StyledNode("file-browser", classes, id ?? state.ControlId("root"));
         SizeUnlessStyled(browser, FileBrowserWidth, FileBrowserHeight);

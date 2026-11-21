@@ -31,4 +31,28 @@ public interface IFileDialogFileSystem
 
     /// <summary>Returns platform roots and quick-access locations.</summary>
     ValueTask<IReadOnlyList<FilePlace>> GetPlacesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Turns text typed into the path box into an absolute path: quotes and spaces trimmed, <c>~</c> expanded,
+    /// <c>.</c>, <c>..</c> and relative paths resolved against <paramref name="currentPath"/>. The default follows
+    /// the local platform's path rules; a provider with its own path scheme overrides it.
+    /// </summary>
+    string NormalizePath(string input, string currentPath) => FilePathText.Normalize(input, currentPath);
+
+    /// <summary>
+    /// Lists the names of the folders in <paramref name="parentPath"/> that start with <paramref name="prefix"/>,
+    /// ignoring case and ordered by name, for tab completion. Hidden folders appear only when asked for or when the
+    /// prefix itself starts with a dot; the default reads the folder through <see cref="EnumerateAsync"/>.
+    /// </summary>
+    async ValueTask<IReadOnlyList<string>> CompleteFoldersAsync(string parentPath, string prefix, bool includeHidden,
+        CancellationToken cancellationToken = default)
+    {
+        var entries = await EnumerateAsync(parentPath, cancellationToken).ConfigureAwait(false);
+        var hidden = includeHidden || prefix.StartsWith('.');
+        return [.. entries
+            .Where(entry => entry.IsDirectory && (hidden || !entry.IsHidden)
+                && entry.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .Select(static entry => entry.Name)
+            .Order(StringComparer.OrdinalIgnoreCase)];
+    }
 }

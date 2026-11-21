@@ -62,7 +62,7 @@ public static partial class ControlsExtensions
     {
         var browser = state.Browser;
         var editIcon = state.EditingPath is null ? EditIcon.Labeled("Edit path") : DoneIcon.Labeled("Go to path");
-        if (gui.Button(editIcon).Width(height).Height(height).Clicked)
+        if (gui.Button(editIcon, id: state.ControlId(PathToggleId)).Width(height).Height(height).Clicked)
         {
             TogglePathEditing(state);
         }
@@ -106,22 +106,30 @@ public static partial class ControlsExtensions
         state.Message = null;
     }
 
-    /// <summary>The path as clickable crumbs, or as a text box while it is being edited.</summary>
+    /// <summary>
+    /// The path as clickable crumbs, or as a text box while it is being edited. Clicking the bar's empty area
+    /// starts editing, as it does in a file manager.
+    /// </summary>
     static void PathBar(Gui gui, FileDialogState state, float height)
     {
         using (gui.Node().Expand().Enter())
         {
-            if (state.EditingPath is { } editing)
+            if (state.EditingPath is not null)
             {
-                gui.TextInput(ref editing, placeholder: "Path", grabFocus: true, id: state.ControlId("path"))
-                    .Width(Size.Expand()).Height(height);
-                state.EditingPath = editing;
+                PathBox(gui, state, height);
                 return;
             }
 
+            EndPathEdit(state);
+            var bar = gui.GetInteractable();
             gui.ClipContent();
             gui.ScrollX();
-            gui.Breadcrumb(Crumbs(state, Open)).Height(height);
+            var crumbs = gui.Breadcrumb(Crumbs(state, Open)).Height(height);
+
+            if (gui.Pass == Pass.Pass2Render && bar.OnClick() && !crumbs.Rect.Contains(gui.Input.MousePosition))
+            {
+                BeginPathEdit(state);
+            }
         }
 
         void Open(string path)
@@ -161,56 +169,26 @@ public static partial class ControlsExtensions
     }
 
     /// <summary>
-    /// Switches the path bar between crumbs and a text box. Leaving the box navigates to what it
-    /// holds, and says so when that path does not exist rather than silently staying put.
-    /// </summary>
-    static void TogglePathEditing(FileDialogState state)
-    {
-        if (state.EditingPath is not { } typed)
-        {
-            state.EditingPath = state.Browser.CurrentPath;
-            return;
-        }
-
-        state.EditingPath = null;
-        state.Message = null;
-        if (typed.Trim().Length == 0)
-        {
-            return;
-        }
-
-        _ = NavigateTypedAsync(state, typed.Trim()).AsTask();
-    }
-
-    /// <summary>
     /// Creates a folder under the current one and selects it, so the user can rename it by typing in
     /// the name field or step into it. Names it the way a file manager does when the name is taken.
     /// </summary>
-    static async ValueTask NavigateTypedAsync(FileDialogState state, string path)
-    {
-        if (!await state.Browser.NavigateAsync(path).ConfigureAwait(false))
-        {
-            state.Message = $"'{path}' is not a folder.";
-        }
-        else
-        {
-            state.Selected = null;
-        }
-    }
-
-    static async ValueTask NewFolderAsync(FileDialogState state)
+    internal static async ValueTask NewFolderAsync(FileDialogState state)
     {
         var browser = state.Browser;
+        var parent = browser.CurrentPath;
         var name = "New Folder";
         for (var suffix = 2;
-             await browser.FileSystem.DirectoryExistsAsync(Path.Combine(browser.CurrentPath, name)).ConfigureAwait(false);
+             await browser.FileSystem.DirectoryExistsAsync(Path.Combine(parent, name)).ConfigureAwait(false);
              suffix++)
         {
             name = $"New Folder {suffix}";
         }
 
+        var created = await browser.CreateFolderAsync(name).ConfigureAwait(false);
+        await state.ToUiThread();
+
         state.Message = null;
-        if (await browser.CreateFolderAsync(name).ConfigureAwait(false) is not { } created)
+        if (created is null)
         {
             state.Message = browser.Error;
             return;

@@ -285,6 +285,11 @@ Use `gui.FileBrowser(files)` for the same picker embedded in a panel. Pass an
 test fixture. The built-in `PhysicalFileDialogFileSystem` supplies local quick-access folders and
 drives.
 
+Press Ctrl+L, click the empty breadcrumb area, or type `/` or `~` in the listing to edit the path.
+Enter goes to the typed folder (a typed file opens its folder and selects it), Tab and Shift+Tab
+complete the last segment, and Escape cancels the edit before it closes the dialog. A provider with
+its own path scheme overrides `IFileDialogFileSystem.NormalizePath` and `CompleteFoldersAsync`.
+
 ## Menu Bar
 
 Call `menus.Collapsible()` in the builder to show a compact menu toggle. Opening it reveals the titles;

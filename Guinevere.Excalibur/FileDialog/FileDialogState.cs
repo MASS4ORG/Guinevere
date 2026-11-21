@@ -9,6 +9,49 @@ public sealed class FileDialogState
 {
     static int _nextId;
 
+    Gui? _gui;
+
+    /// <summary>The path editing in progress, or null while the bar shows crumbs.</summary>
+    internal PathEditSession? PathEdit { get; set; }
+
+    /// <summary>Whether the showing still has to put keyboard focus where typing is expected.</summary>
+    internal bool FocusPending { get; set; }
+
+    /// <summary>Remembers the GUI drawing this dialog, which is where work from other threads is handed back to.</summary>
+    internal void Attach(Gui gui) => _gui = gui;
+
+    /// <summary>
+    /// Runs <paramref name="work"/> on the UI thread: queued for the start of the next frame once a GUI draws this
+    /// dialog, and inline before that, when nothing else can be reading the state.
+    /// </summary>
+    internal void Dispatch(Action work)
+    {
+        if (_gui is { } gui)
+        {
+            gui.Post(work);
+        }
+        else
+        {
+            work();
+        }
+    }
+
+    /// <summary>
+    /// Completes on the UI thread, so the code after an <c>await</c> that ran elsewhere can write this state. Does
+    /// not wait before a GUI draws the dialog.
+    /// </summary>
+    internal ValueTask ToUiThread()
+    {
+        if (_gui is not { } gui)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        var arrived = new TaskCompletionSource();
+        gui.Post(arrived.SetResult);
+        return new ValueTask(arrived.Task);
+    }
+
     internal float ListingScrollY { get; set; }
     internal float ListingViewportHeight { get; set; } = 460f;
     internal string IdPrefix { get; }
@@ -76,7 +119,7 @@ public sealed class FileDialogState
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
                                               or ArgumentException or NotSupportedException)
         {
-            Message = exception.Message;
+            Dispatch(() => Message = exception.Message);
         }
     }
 
@@ -89,6 +132,20 @@ public sealed class FileDialogState
             Close(null);
         }
 
+        Reset(request);
+        var places = request.Places ?? await LoadPlacesAsync(request, cancellationToken).ConfigureAwait(false);
+
+        var start = request.StartPath ?? Browser.CurrentPath;
+        if (!await Browser.NavigateAsync(start, cancellationToken).ConfigureAwait(false) &&
+            places.FirstOrDefault()?.Path is { } fallback)
+        {
+            await Browser.NavigateAsync(fallback, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Puts the state and the browser's filters back to a fresh showing of <paramref name="request"/>.</summary>
+    void Reset(FileDialogRequest request)
+    {
         Request = request;
         Places = request.Places ?? [];
         Selected = null;
@@ -96,27 +153,30 @@ public sealed class FileDialogState
         Search = "";
         FilterIndex = 0;
         EditingPath = null;
+        PathEdit?.Dispose();
+        PathEdit = null;
+        FocusPending = true;
         Message = null;
         PendingOverwrite = null;
 
         Browser.Search = "";
         Browser.Filter = request.Filters.Count > 0 ? request.Filters[0] : FileDialogFilter.All;
         Browser.DirectoriesOnly = request.Mode is FileDialogMode.SelectFolder or FileDialogMode.CreateFolder;
+    }
 
-        if (request.Places is null)
+    /// <summary>Reads the file system's places and shows them, unless another request replaced this one meanwhile.</summary>
+    async ValueTask<IReadOnlyList<FilePlace>> LoadPlacesAsync(FileDialogRequest request,
+        CancellationToken cancellationToken)
+    {
+        var places = await Browser.FileSystem.GetPlacesAsync(cancellationToken).ConfigureAwait(false);
+        Dispatch(() =>
         {
-            Places = await Browser.FileSystem.GetPlacesAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        var start = request.StartPath ?? Browser.CurrentPath;
-        if (!await Browser.NavigateAsync(start, cancellationToken).ConfigureAwait(false))
-        {
-            var fallback = Places.FirstOrDefault()?.Path;
-            if (fallback is not null)
+            if (ReferenceEquals(Request, request))
             {
-                await Browser.NavigateAsync(fallback, cancellationToken).ConfigureAwait(false);
+                Places = places;
             }
-        }
+        });
+        return places;
     }
 
     /// <summary>
@@ -130,6 +190,8 @@ public sealed class FileDialogState
         Request = null;
         Selected = null;
         EditingPath = null;
+        PathEdit?.Dispose();
+        PathEdit = null;
         Message = null;
         PendingOverwrite = null;
         request?.OnComplete?.Invoke(result);
