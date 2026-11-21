@@ -13,7 +13,7 @@ public sealed partial class FsmScene
             Pump(gui);
         }
 
-        using (gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
+        using (gui.Node().ExpandWidth().Height(Size.Fit).Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
         {
             button(AutoRun ? "Pause" : "Run", "fsm-run", () => AutoRun = !AutoRun);
             button("Step", "fsm-step", Step);
@@ -40,7 +40,7 @@ public sealed partial class FsmScene
             .Direction(Axis.Vertical).Gap(6).Enter();
         var state = Domain.Editor.Document.TryGetNode(FrameActiveState, out var active) ? Domain.Title(active) : "Waiting for observation";
         gui.DrawText($"Instance {SelectedInstance} / {FsmSimulation.InstanceCount} · {state} · tick {_frame.Tick}");
-        using (gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Horizontal).Gap(8).Enter())
+        using (gui.Node().ExpandWidth().Height(Size.Fit).Direction(Axis.Horizontal).Gap(8).Enter())
         {
             gui.Dropdown([.. Domain.Signals.Select(static signal => signal.DisplayName)], ref _signalIndex,
                 width: 210, height: 28, placeholder: "Signal");

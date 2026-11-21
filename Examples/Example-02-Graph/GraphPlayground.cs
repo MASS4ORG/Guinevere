@@ -122,7 +122,7 @@ public sealed class GraphPlayground
     void DrawHeader(Gui gui)
     {
         using var heading = gui.StyledNode("graph-heading", id: "playground-header").ExpandWidth()
-            .Direction(Axis.Horizontal).ContentAlignY(0.5f).Gap(8).Wrap(1).Enter();
+            .Direction(Axis.Horizontal).AlignContentY(0.5f).Gap(8).Wrap(1).Enter();
         gui.Image(Badge, width: 24, height: 24);
         using (gui.Node().Width(270).Height(28).Enter())
         {

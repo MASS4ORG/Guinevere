@@ -244,7 +244,7 @@ public static partial class ControlsExtensions
         padding = gui.ControlStyle.SpacingOr(padding);
 
         using (FieldNode(gui, null, classes, id, enabled, width, height, padding, filePath, lineNumber)
-                   .ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
+                   .AlignContentX(alignX).AlignContentY(0.5f).Enter())
         {
             gui.ClipContent();
             var nodeId = gui.CurrentNode.Id;
@@ -330,7 +330,7 @@ public static partial class ControlsExtensions
         padding = gui.ControlStyle.SpacingOr(padding);
 
         using (FieldNode(gui, PasswordClass, classes, id, enabled, width, height, padding, filePath, lineNumber)
-                   .ContentAlignY(0.5f).Enter())
+                   .AlignContentY(0.5f).Enter())
         {
             gui.ClipContent();
             var nodeId = gui.CurrentNode.Id;
@@ -408,7 +408,7 @@ public static partial class ControlsExtensions
         padding = gui.ControlStyle.SpacingOr(padding);
 
         using (FieldNode(gui, AreaClass, classes, id, enabled, width, height, padding, filePath, lineNumber)
-                   .ContentAlignY(0.5f).Enter())
+                   .AlignContentY(0.5f).Enter())
         {
             gui.ClipContent();
             var nodeId = gui.CurrentNode.Id;

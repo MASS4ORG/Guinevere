@@ -66,7 +66,7 @@ public partial class Example01
 
     static void ResponsiveHeader(Gui gui, ColorPalette p, string title, bool showTabs)
     {
-        using (gui.Node().ExpandWidth().Height(48).Direction(Axis.Horizontal).Gap(8).Padding(14, 0).ContentAlignY(0.5f)
+        using (gui.Node().ExpandWidth().Height(48).Direction(Axis.Horizontal).Gap(8).Padding(14, 0).AlignContentY(0.5f)
                    .Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 10);
@@ -81,8 +81,8 @@ public partial class Example01
 
     static void ResponsiveTabBar(Gui gui, ColorPalette p)
     {
-        using (gui.Node().ExpandWidth().Height(48).Direction(Axis.Horizontal).Gap(6).Padding(8, 0).ContentAlignX(0.5f)
-                   .ContentAlignY(0.5f).Enter())
+        using (gui.Node().ExpandWidth().Height(48).Direction(Axis.Horizontal).Gap(6).Padding(8, 0).AlignContentX(0.5f)
+                   .AlignContentY(0.5f).Enter())
         {
             gui.DrawBackgroundRect(p.SurfaceRaised, 10);
             ResponsiveTabButtons(gui, p);

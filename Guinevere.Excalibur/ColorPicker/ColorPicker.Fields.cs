@@ -240,7 +240,7 @@ public static partial class ControlsExtensions
         [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
     {
         using (StyledButton(gui, IconClass, null, id, enabled, filePath, lineNumber).Width(size).Height(size)
-                   .ContentAlignX(0.5f).ContentAlignY(0.5f).Enter())
+                   .AlignContentX(0.5f).AlignContentY(0.5f).Enter())
         {
             gui.DrawText(glyph, size * 0.5f);
             if (gui.Pass != Pass.Pass2Render || !enabled)

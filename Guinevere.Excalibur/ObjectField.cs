@@ -94,7 +94,7 @@ public static partial class ControlsExtensions
                 gui.DrawStyledBox(gui.ResolvePart("drop-outline", modifiers: ["accepted"]), gui.CurrentNode.Rect);
             }
 
-            using (gui.Node(-1, height).Expand().Padding(6, 0).ContentAlignY(0.5f).Enter())
+            using (gui.Node(-1, height).Expand().Padding(6, 0).AlignContentY(0.5f).Enter())
             {
                 gui.ClipContent();
                 gui.DrawText(text, fontSize);

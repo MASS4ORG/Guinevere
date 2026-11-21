@@ -48,16 +48,16 @@ public class LayoutNodeScopeTests
         Assert.Equal(20f, scope.Get<LayoutNodeScopeTextSize>().Value);
     }
 
-    /// <summary>Nodes created from <see cref="UnitValue"/> sizes re-inherit in the render pass too.</summary>
+    /// <summary>Nodes created from <see cref="Size"/> sizes re-inherit in the render pass too.</summary>
     [Fact]
-    public void UnitValueNodesReinheritInTheRenderPass()
+    public void SizeNodesReinheritInTheRenderPass()
     {
         var scope = Frame(static (gui, render) =>
         {
-            using (gui.Node(UnitValue.Pixels(40), UnitValue.Pixels(40)).Enter())
+            using (gui.Node(Size.Pixels(40), Size.Pixels(40)).Enter())
             {
                 gui.SetTextColor(render ? Color.Red : Color.Green);
-                using (gui.Node(UnitValue.Percentage(0.5f), UnitValue.Pixels(10)).Enter())
+                using (gui.Node(Size.Percentage(0.5f), Size.Pixels(10)).Enter())
                 {
                     gui.SetTextSize(20);
                     return gui.CurrentNodeScope;

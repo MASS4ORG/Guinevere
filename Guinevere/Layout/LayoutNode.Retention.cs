@@ -28,16 +28,9 @@ public partial class LayoutNode
     {
         RetainChildren();
         Style = LayoutStyle.Default;
-        if (width.HasValue)
-        {
-            Style.Width = width.Value;
-        }
-
-        if (height.HasValue)
-        {
-            Style.Height = height.Value;
-        }
-
+        Style.Width = InitialSize(width);
+        Style.Height = InitialSize(height);
+        RefreshSpacing();
         StyleTarget = null;
         ContentMeasure = null;
         ResetLayoutState();
@@ -45,21 +38,13 @@ public partial class LayoutNode
         DrawList.Clear();
         ResetInteraction();
         Scope.ResetForBuild();
-        if (width == 0)
-        {
-            ExpandWidth();
-        }
-
-        if (height == 0)
-        {
-            ExpandHeight();
-        }
     }
 
     /// <summary>Starts a root frame: children become reusable, frame-local state is cleared; the root scope persists.</summary>
     internal void BeginRootFrame()
     {
         RetainChildren();
+        StampBuildGeneration();
         MatchCursor = 0;
         DrawList.Clear();
         ResetInteraction();
@@ -96,6 +81,7 @@ public partial class LayoutNode
         _ancestorScrollOffset = Vector2.Zero;
         _resolvedWidthForHeightPass = 0f;
         _hasMeasuredContent = false;
+        _spacingBasis = Vector2.Zero;
     }
 
     /// <summary>

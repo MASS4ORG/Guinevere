@@ -16,7 +16,7 @@ A tour of Guinevere's core layout, text, motion, interaction and styling systems
 - **Scrolling**: two independent `ScrollY` columns.
 
 ### Motion
-- **Easing & Blend**: `UnitValue.Lerp` between pixels and a percentage driven by `AnimateFloat`; six easing curves racing at a chosen duration.
+- **Easing & Blend**: `Size.Lerp` between pixels and a percentage driven by `AnimateFloat`; six easing curves racing at a chosen duration.
 - **Springs**: `Smoothdamp`, `AnimateSpring`, `AnimateFloat`, color and pointer followers, a reduce-motion switch, and cards using `SetTransform` that grow on hover and spin on click.
 
 ### Interaction

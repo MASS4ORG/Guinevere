@@ -57,7 +57,7 @@ public static partial class ControlsExtensions
         DrawAppBarChrome(gui, state, chrome, native);
         AppBarResizeHandles(gui, state, chrome, resizable && !native, minimumWindowSize, id);
         var content = gui.Node().ExpandWidth().Height(height).Direction(Axis.Horizontal)
-            .ContentAlignY(0.5f).Padding(8, 0).Gap(8).Enter();
+            .AlignContentY(0.5f).Padding(8, 0).Gap(8).Enter();
         gui.SetClipped(true);
         return new AppBarScope(gui, bar, content, state, chrome, height);
     }

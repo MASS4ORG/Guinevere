@@ -68,7 +68,7 @@ public partial class Example01
 
     static void WorkCard(Gui gui, ColorPalette p, WorkItem item)
     {
-        using (gui.Node(-1, 54, $"card/{item.Id}").ExpandWidth().Padding(12, 0).ContentAlignY(0.5f).Gap(2).Enter())
+        using (gui.Node(-1, 54, $"card/{item.Id}").ExpandWidth().Padding(12, 0).AlignContentY(0.5f).Gap(2).Enter())
         {
             gui.DrawBackgroundRect(p.Surface, 8);
             gui.DrawRectBorder(gui.CurrentNode.Rect, p.Border, 1f);
@@ -80,7 +80,7 @@ public partial class Example01
 
             gui.DragSource($"card/{item.Id}", item, tag: BoardTag, ghost: ghost =>
             {
-                using (ghost.Node(190, 38).Padding(10, 0).ContentAlignY(0.5f).Enter())
+                using (ghost.Node(190, 38).Padding(10, 0).AlignContentY(0.5f).Enter())
                 {
                     ghost.DrawBackgroundRect(p.Accent, 8);
                     ghost.DrawText(item.Title, 13, p.AccentText);

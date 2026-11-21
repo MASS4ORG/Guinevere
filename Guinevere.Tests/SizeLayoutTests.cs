@@ -1,24 +1,24 @@
 namespace Guinevere.Tests;
 
 /// <summary>Correctness fixtures for composable layout size expressions.</summary>
-public class UnitValueLayoutTests : LayoutNodeTestBase
+public class SizeLayoutTests : LayoutNodeTestBase
 {
     [Fact]
     public void EqualExpressionsRequireEqualContributions()
     {
-        var mixed = UnitValue.Pixels(20) + UnitValue.Percentage(0.5f) + UnitValue.FitContent();
-        var same = UnitValue.Pixels(20) + UnitValue.Percentage(0.5f) + UnitValue.FitContent();
-        var different = UnitValue.Pixels(20) + UnitValue.Percentage(0.5f) + UnitValue.FitLargest();
+        var mixed = Size.Pixels(20) + Size.Percentage(0.5f) + Size.FitContent();
+        var same = Size.Pixels(20) + Size.Percentage(0.5f) + Size.FitContent();
+        var different = Size.Pixels(20) + Size.Percentage(0.5f) + Size.FitLargest();
 
         Assert.Equal(mixed, same);
         Assert.NotEqual(mixed, different);
-        Assert.NotEqual(UnitValue.Pixels(50), UnitValue.Percentage(0.5f));
+        Assert.NotEqual(Size.Pixels(50), Size.Percentage(0.5f));
     }
 
     [Fact]
     public void LerpBetweenPixelsAndPercentagePreservesBothContributions()
     {
-        var value = UnitValue.Lerp(UnitValue.Pixels(100f), UnitValue.Percentage(0.5f), 0.25f);
+        var value = Size.Lerp(Size.Pixels(100f), Size.Percentage(0.5f), 0.25f);
 
         Assert.Equal(75f, value.PixelsContribution);
         Assert.Equal(0.125f, value.PercentageContribution);
@@ -28,8 +28,8 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     [Fact]
     public void AdditionComposesEverySupportedMode()
     {
-        var value = UnitValue.Pixels(10f) + UnitValue.Percentage(0.2f) + UnitValue.Ratio(0.5f)
-                    + UnitValue.Expand(2f) + UnitValue.FitContent(0.3f) + UnitValue.FitLargest(0.4f);
+        var value = Size.Pixels(10f) + Size.Percentage(0.2f) + Size.Ratio(0.5f)
+                    + Size.Expand(2f) + Size.FitContent(0.3f) + Size.FitLargest(0.4f);
 
         Assert.Equal(10f, value.PixelsContribution);
         Assert.Equal(0.2f, value.PercentageContribution);
@@ -40,12 +40,50 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     }
 
     [Fact]
+    public void SubtractionAndNegationFlipEveryTerm()
+    {
+        var value = Size.Pixels(10f) - (Size.Percentage(0.5f) + Size.Expand(2f));
+
+        Assert.Equal(Size.Pixels(10f) + Size.Percentage(-0.5f) + Size.Expand(-2f), value);
+        Assert.Equal(Size.Pixels(-10f), -Size.Pixels(10f));
+        Assert.True(Size.Pixels(3f).IsPixelsOnly);
+        Assert.False((Size.Pixels(3f) + Size.Ratio(1f)).IsPixelsOnly);
+        Assert.True(default(Size).IsZero);
+    }
+
+    [Fact]
+    public void NodeReferencesMergeByNodeAndDropWhenWeightless()
+    {
+        var gui = CreateTestGui();
+        var a = CreateTestLayoutNode(gui);
+        var b = CreateTestLayoutNode(gui);
+
+        var blended = Size.Lerp(Size.PercentOf(a), Size.PercentOf(b), 0.25f) + Size.PercentOf(a, 0.25f);
+
+        Assert.Equal([new NodeReference(a, 1f), new NodeReference(b, 0.25f)], blended.References.ToArray());
+        Assert.True(Size.PercentOf(a, 0f).IsZero);
+        Assert.True((Size.PercentOf(a) - Size.PercentOf(a)).IsZero);
+        Assert.True((Size.PercentOf(a) * 0f).References.IsEmpty);
+        Assert.NotEqual(Size.PercentOf(a), Size.PercentOf(b));
+        Assert.Throws<ArgumentNullException>(static () => Size.PercentOf(null!));
+    }
+
+    [Fact]
+    public void ToStringUsesStylesheetSyntax()
+    {
+        Assert.Equal("0px", default(Size).ToString());
+        Assert.Equal("12px", Size.Pixels(12f).ToString());
+        Assert.Equal("-25% + ratio(2) + fit(1) + fit-largest(0.5)",
+            (Size.Percentage(-0.25f) + Size.Ratio(2f) + Size.Fit + Size.FitLargest(0.5f)).ToString());
+    }
+
+    [Fact]
     public void BlendedWidthResolvesWithoutModeDiscontinuity()
     {
         var gui = CreateTestGui(400, 200);
         SetGuiStage(gui, Pass.Pass1Build);
         var child = CreateTestLayoutNode(gui, gui.RootNode).Width(
-            UnitValue.Lerp(UnitValue.Pixels(100f), UnitValue.Percentage(0.5f), 0.5f));
+            Size.Lerp(Size.Pixels(100f), Size.Percentage(0.5f), 0.5f));
         child.Height(20f);
         gui.RootNode!.AddChild(child);
 
@@ -65,7 +103,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
         var gui = CreateTestGui(400, 200);
         SetGuiStage(gui, Pass.Pass1Build);
         var child = CreateTestLayoutNode(gui, gui.RootNode)
-            .Width(UnitValue.Lerp(UnitValue.Pixels(100f), UnitValue.Percentage(0.5f), amount))
+            .Width(Size.Lerp(Size.Pixels(100f), Size.Percentage(0.5f), amount))
             .Height(20f);
         gui.RootNode!.AddChild(child);
 
@@ -80,8 +118,8 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
         var gui = CreateTestGui(400, 100);
         SetGuiStage(gui, Pass.Pass1Build);
         gui.RootNode!.Style.Direction = Axis.Horizontal;
-        var first = CreateTestLayoutNode(gui, gui.RootNode).Width(UnitValue.Expand()).Height(20f);
-        var second = CreateTestLayoutNode(gui, gui.RootNode).Width(UnitValue.Expand(3f)).Height(20f);
+        var first = CreateTestLayoutNode(gui, gui.RootNode).Width(Size.Expand()).Height(20f);
+        var second = CreateTestLayoutNode(gui, gui.RootNode).Width(Size.Expand(3f)).Height(20f);
         gui.RootNode.AddChild(first);
         gui.RootNode.AddChild(second);
 
@@ -96,7 +134,7 @@ public class UnitValueLayoutTests : LayoutNodeTestBase
     {
         var gui = CreateTestGui(400, 100);
         SetGuiStage(gui, Pass.Pass1Build);
-        var container = CreateTestLayoutNode(gui, gui.RootNode).Width(UnitValue.FitLargest()).Height(20f);
+        var container = CreateTestLayoutNode(gui, gui.RootNode).Width(Size.FitLargest()).Height(20f);
         container.Style.Direction = Axis.Vertical;
         container.AddChild(CreateTestLayoutNode(gui, container, 40f, 10f));
         container.AddChild(CreateTestLayoutNode(gui, container, 90f, 10f));

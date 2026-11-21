@@ -46,8 +46,8 @@ public class GuiFontsTests
             Assert.Equal(expected, gui.FontScale);
             Assert.Equal(20 * expected, gui.GetTextFont(20).Size);
             var node = gui.DrawText("Text", 20);
-            Assert.Equal(gui.MeasureTextWidth("Text", 20), node.Style.Width);
-            Assert.Equal(24 * expected, node.Style.Height, 4);
+            Assert.Equal(gui.MeasureTextWidth("Text", 20), node.Style.Width!.Value.PixelsContribution);
+            Assert.Equal(24 * expected, node.Style.Height!.Value.PixelsContribution, 4);
         });
     }
 

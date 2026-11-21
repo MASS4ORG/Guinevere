@@ -137,6 +137,7 @@ public partial class Gui
 
         // Clear the previous tree completely
         ClearTransforms();
+        AdvanceBuildGeneration();
         if (RootNode is null)
         {
             RootNode = CreateRootNode(ScreenRect);

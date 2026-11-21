@@ -4,7 +4,7 @@ using System.Globalization;
 namespace Guinevere;
 
 /// <summary>Parsers for the scalar value forms used in <c>.pss</c> declarations.</summary>
-public static class StyleValue
+public static partial class StyleValue
 {
     /// <summary>
     /// Formats a typed value as <c>.pss</c> text: colors as <c>#rrggbbaa</c>, numbers in invariant culture, booleans

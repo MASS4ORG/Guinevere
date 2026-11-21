@@ -119,7 +119,7 @@ public static partial class ControlsExtensions
     static void RenderTabActions(Gui gui, TabStripTheme theme, string idPrefix, Action<Gui>? trailing)
     {
         using (gui.Node(-1, theme.Height, $"{idPrefix}/actions")
-                   .ExpandWidth().Direction(Axis.Horizontal).ContentAlignX(1f).Enter())
+                   .ExpandWidth().Direction(Axis.Horizontal).AlignContentX(1f).Enter())
         {
             trailing?.Invoke(gui);
         }
@@ -132,7 +132,7 @@ public static partial class ControlsExtensions
         var width = TabWidth(item, theme, gui.MeasureTextWidth(item.Label, theme.FontSize, node.Scope));
 
         using (node.Width(width)
-                   .Height(theme.Height).Direction(Axis.Horizontal).Padding(8, 0).Gap(6f).ContentAlignY(0.5f).Enter())
+                   .Height(theme.Height).Direction(Axis.Horizontal).Padding(8, 0).Gap(6f).AlignContentY(0.5f).Enter())
         {
             if (gui.Pass == Pass.Pass2Render)
             {
@@ -190,7 +190,7 @@ public static partial class ControlsExtensions
     {
         // Blocks the tab underneath, so closing never also activates.
         using (gui.StyledNode("tab-close", id: $"{id}/close").Width(12).Height(Math.Max(1, theme.Height - 8))
-                   .ContentAlignX(0.5f).ContentAlignY(0.5f).BlockInput()
+                   .AlignContentX(0.5f).AlignContentY(0.5f).BlockInput()
                    .Enter())
         {
             if (gui.Pass == Pass.Pass2Render)

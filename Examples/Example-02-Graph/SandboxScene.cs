@@ -113,7 +113,7 @@ public sealed partial class SandboxScene
     void DrawStepper(Gui gui, GraphNodeVisual visual)
     {
         using var row = gui.Node().ExpandWidth().Height((float)StepperHeight).Direction(Axis.Horizontal).Gap(8)
-            .ContentAlignY(0.5f).Enter();
+            .AlignContentY(0.5f).Enter();
         StepButton(gui, visual, "-", "decrement", -1);
         using (gui.Node().Expand().AlignContent(0.5f, 0.5f).Enter())
         {

@@ -132,10 +132,10 @@ public partial class Example01
             gui.DrawBackgroundRect(p.Track, 12);
             gui.ScrollY(p.Track, p.Border);
 
-            Label(gui, p, "WidthPercent: 25% / 50% / 75%");
+            Label(gui, p, "Width(Size.Percentage): 25% / 50% / 75%");
             foreach (var fraction in new[] { 0.25f, 0.5f, 0.75f })
             {
-                using (gui.Node(height: 24).WidthPercent(fraction).AlignContent(0.5f, 0.5f).Enter())
+                using (gui.Node(height: 24).Width(Size.Percentage(fraction)).AlignContent(0.5f, 0.5f).Enter())
                 {
                     gui.DrawBackgroundRect(p.Accent, 6);
                     gui.DrawText($"{fraction:P0}", 12, p.AccentText);

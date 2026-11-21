@@ -119,7 +119,7 @@ public class SplitterTests
         var fraction = 0.5f;
         void Draw(Gui g)
         {
-            using (g.Node().Width(UnitValue.Pixels(0)).Height(100).Direction(Axis.Horizontal).Enter())
+            using (g.Node().Width(Size.Pixels(0)).Height(100).Direction(Axis.Horizontal).Enter())
             {
                 g.Splitter(ref fraction, Axis.Horizontal, id: "divider");
             }

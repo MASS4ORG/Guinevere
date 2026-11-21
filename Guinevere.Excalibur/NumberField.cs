@@ -74,7 +74,7 @@ public static partial class ControlsExtensions
 
         SyncNumberBuffer(field, value, format, mixed);
 
-        using (node.ContentAlignX(alignX).ContentAlignY(0.5f).Enter())
+        using (node.AlignContentX(alignX).AlignContentY(0.5f).Enter())
         {
             gui.ClipContent();
             var interactable = gui.GetInteractable();

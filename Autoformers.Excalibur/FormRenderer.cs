@@ -81,7 +81,7 @@ public static class FormRenderer
     {
         var style = new FormStyle(gui);
         using (gui.Node(-1, style.RowHeight, $"{id}/head").ExpandWidth().Direction(Axis.Horizontal).Gap(6f)
-                   .ContentAlignY(0.5f).Enter())
+                   .AlignContentY(0.5f).Enter())
         {
             if (section.EnabledField is { } enabled)
             {

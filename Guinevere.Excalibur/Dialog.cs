@@ -154,8 +154,8 @@ public static partial class ControlsExtensions
         }
 
         using (gui.StyledNode("dialog-footer").Width(width).Height(height).Top(top)
-                   .Direction(Axis.Horizontal).Padding(16, 8).Gap(8).ContentAlignX(1f)
-                   .ContentAlignY(0.5f).Enter())
+                   .Direction(Axis.Horizontal).Padding(16, 8).Gap(8).AlignContentX(1f)
+                   .AlignContentY(0.5f).Enter())
         {
             if (isOpen)
             {
@@ -242,9 +242,9 @@ public static partial class ControlsExtensions
     {
         using (gui.StyledNode("dialog-title").Width(width).Height(height).HitTestVisible(isOpen).Enter())
         {
-            using (gui.Node().Expand().Direction(Axis.Horizontal).Padding(16, 0).ContentAlignY(0.5f).Enter())
+            using (gui.Node().Expand().Direction(Axis.Horizontal).Padding(16, 0).AlignContentY(0.5f).Enter())
             {
-                using (gui.Node().Expand().ContentAlignY(0.5f).Enter())
+                using (gui.Node().Expand().AlignContentY(0.5f).Enter())
                 {
                     gui.DrawText(title, centerInRect: false);
                 }
@@ -258,7 +258,7 @@ public static partial class ControlsExtensions
     static bool CloseButton(Gui gui, float size, bool isOpen)
     {
         using (gui.StyledNode("dialog-close").Width(size).Height(size)
-                   .ContentAlignX(0.5f).ContentAlignY(0.5f).HitTestVisible(isOpen).Enter())
+                   .AlignContentX(0.5f).AlignContentY(0.5f).HitTestVisible(isOpen).Enter())
         {
             gui.DrawText(WidgetIcons.Xmark);
             if (gui.Pass != Pass.Pass2Render || !isOpen)

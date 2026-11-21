@@ -47,8 +47,8 @@ public sealed partial class GuiProfiler
         var id = Number(node.Identity);
         var parent = node.Parent is { } parentNode ? Number(parentNode.Identity) : "";
         Inspect(id, parent, "layout", node.StyleTarget?.Type ?? "node", node.Id, node.Rect);
-        Inspect(id, parent, "constraints", "width", node.Style.Width.ToString());
-        Inspect(id, parent, "constraints", "height", node.Style.Height.ToString());
+        Inspect(id, parent, "constraints", "width", node.Style.Width?.ToString() ?? "auto");
+        Inspect(id, parent, "constraints", "height", node.Style.Height?.ToString() ?? "auto");
         Inspect(id, parent, "interactables", "pointer", node.IsPointerInteractive ? "interactive" : "passive", node.Rect);
         Inspect(id, parent, "constraints", "padding", FormattableString.Invariant(
             $"{node.Style.PaddingLeft},{node.Style.PaddingTop},{node.Style.PaddingRight},{node.Style.PaddingBottom}"));

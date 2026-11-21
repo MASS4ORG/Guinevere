@@ -39,7 +39,7 @@ public sealed class GroupsScene
                 _inspected = id;
                 _title = group.Title;
             }
-            using (gui.Node().ExpandWidth().Height(UnitValue.Fit).Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
+            using (gui.Node().ExpandWidth().Height(Size.Fit).Direction(Axis.Horizontal).Gap(8).Wrap(1).Enter())
             {
                 DemoControls.TextInput(gui, ref _title, "Group title", "group-title", width: 220);
                 button("Rename", "rename-group", () => view.RenameGroup(id, _title));

@@ -43,7 +43,7 @@ public static class FormControls
         using (gui.Node(-1, rowHeight, id).ExpandWidth().Direction(Axis.Horizontal).Gap(6f).Enter())
         {
             MarkModified(gui, modified);
-            using (gui.Node(style.LabelWidth, style.RowHeight, $"{id}/label").ContentAlignY(0.5f).Enter())
+            using (gui.Node(style.LabelWidth, style.RowHeight, $"{id}/label").AlignContentY(0.5f).Enter())
             {
                 var interactive = labelInteraction is not null && gui.Pass == Pass.Pass2Render;
                 var hot = interactive && gui.GetInteractable().OnHover();
@@ -139,7 +139,7 @@ public static class FormControls
         ArgumentNullException.ThrowIfNull(gui);
         var style = new FormStyle(gui);
 
-        using (gui.Node(-1, style.RowHeight, id).ExpandWidth().BlockInput().ContentAlignX(0.5f).ContentAlignY(0.5f)
+        using (gui.Node(-1, style.RowHeight, id).ExpandWidth().BlockInput().AlignContentX(0.5f).AlignContentY(0.5f)
                    .Enter())
         {
             var interactable = gui.GetInteractable();
@@ -163,7 +163,7 @@ public static class FormControls
         ArgumentNullException.ThrowIfNull(gui);
         var style = new FormStyle(gui);
 
-        using (gui.Node(style.RowHeight, style.RowHeight, id).BlockInput().ContentAlignX(0.5f).ContentAlignY(0.5f)
+        using (gui.Node(style.RowHeight, style.RowHeight, id).BlockInput().AlignContentX(0.5f).AlignContentY(0.5f)
                    .Enter())
         {
             var interactable = gui.GetInteractable();

@@ -15,7 +15,7 @@ sealed class TitleDrawer : IAttributeDrawer
 
         using (gui.Node(-1, -1, $"{id}/title").ExpandWidth().Direction(Axis.Vertical).Gap(2f).Enter())
         {
-            using (gui.Node(-1, style.RowHeight, $"{id}/title/text").ExpandWidth().ContentAlignY(0.5f).Enter())
+            using (gui.Node(-1, style.RowHeight, $"{id}/title/text").ExpandWidth().AlignContentY(0.5f).Enter())
             {
                 gui.DrawText(title.Title, style.FontSize + 1f, style.Ink, centerInRect: false,
                     effects: FormControls.Emphasis(title.Bold, style.Ink));
@@ -65,7 +65,7 @@ sealed class RequiredDrawer : IAttributeDrawer
 
             var style = new FormStyle(gui);
             using (gui.Node(-1, style.RowHeight, $"{id}/required/error").ExpandWidth().Padding(0f, 6f, 0f, 6f)
-                       .ContentAlignY(0.5f).Enter())
+                       .AlignContentY(0.5f).Enter())
             {
                 var negative = style.Negative;
                 if (gui.Pass == Pass.Pass2Render)

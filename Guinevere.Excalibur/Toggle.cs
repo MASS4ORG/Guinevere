@@ -50,7 +50,7 @@ public static partial class ControlsExtensions
             var modifiers = isOn ? CheckedModifier : NoModifiers;
             var thumb = height * 0.8f;
             using (ChoicePart(gui, "track", width, height, modifiers).Padding((height - thumb) * 0.5f)
-                       .ContentAlignX(thumbSide).ContentAlignY(0.5f).Enter())
+                       .AlignContentX(thumbSide).AlignContentY(0.5f).Enter())
             using (ChoicePart(gui, "thumb", thumb, thumb, modifiers).Enter())
             {
             }

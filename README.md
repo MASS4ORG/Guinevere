@@ -103,15 +103,20 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 ### Layout
 
 - Flexible box model: margins, padding, gaps, alignment
-- Horizontal/vertical flow with `Direction(Axis.Horizontal|Vertical)`
+- Horizontal/vertical flow with `Direction(Axis.Horizontal|Vertical)` (alias `FlowDir`)
 - Responsive sizing: `Expand()`, `ExpandWidth()`, `ExpandHeight()`
-- Composable sizing: blend pixels, percentages, aspect ratios, remaining space, content size, and largest-child size
-- Composable constraints: `MinWidth(UnitValue.Pixels(20) + UnitValue.Expand(0.5f))` and matching
-  min/max APIs on both axes. The pixel overloads and `LayoutStyle` float fields remain supported;
-  expression constraints use separate nullable fields, so existing source remains valid. Recompile
-  against this version because `LayoutStyle`'s binary layout has changed. Expression bounds below
-  zero resolve to zero; when a minimum exceeds its maximum, the minimum wins.
-- Content alignment with `AlignContent(x, y)`
+- Every distance is a `Size`: width, height, min/max bounds, gap, margins, padding, alignment offsets and absolute
+  positions blend pixels, percentages, aspect ratios, remaining space, content size and largest-child size. Plain
+  numbers convert to pixels. Bounds below zero resolve to zero; when a minimum exceeds its maximum, the minimum wins.
+- Node-relative sizes: `Size.PercentOf(node, t)` sizes from another node of the same frame, settling within the
+  frame and reporting stale or cyclic references
+- Free-space distribution: an expanding gap or margin (`Gap(Size.Expand())`, `MarginLeft(Size.Expand())`) shares
+  leftover space, and `Spacing(SpacingTypes.SpaceBetween | SpaceAround | SpaceEvenly | Center …)` distributes it
+- Content alignment with `AlignContent(x, y)`, `AlignContentX/Y` and `AlignSelf`: plain numbers are fractions of
+  the free space; a `Size` adds pixel offsets
+- Blending: `AddWidth`/`AddHeight`, `LerpWidth`/`LerpHeight` and `Add`/`Lerp` forms for bounds, gap, padding and margin
+- Rectangle slicing for drawing: `rect.AlignLeft(Size.Percentage(0.5f))`, `AlignCenterY`, `Padding(x, y)`,
+  `HPadding`, `Expand`, `AddY`, `SetHeight` and more
 
   ```csharp
   // Flexible layout with alignment and spacing
@@ -130,11 +135,14 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   gui.Node().ExpandWidth().Height(100).Margin(10, 20).Padding(5, 10, 15, 20);
 
   // A continuous animation from 120 pixels to half the parent width.
-  var width = UnitValue.Lerp(UnitValue.Pixels(120), UnitValue.Percentage(0.5f), progress);
+  var width = Size.Lerp(Size.Pixels(120), Size.Percentage(0.5f), progress);
   gui.Node().Width(width).Height(80);
 
   // Contributions can also be composed directly.
-  gui.Node().Width(UnitValue.FitContent() + UnitValue.Pixels(24));
+  gui.Node().Width(Size.FitContent() + Size.Pixels(24)).Padding(Size.Percentage(0.02f));
+
+  // A tab container blending the heights of two tabs while sliding between them.
+  container.Height(Size.Lerp(Size.PercentOf(firstTab), Size.PercentOf(secondTab), slide));
   ```
 
 ### Interaction & Focus
@@ -236,7 +244,7 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
 
 - Smooth value/state transitions
 - `AnimationFloat` and `AnimateBool01()` helpers
-- Layout sizes can interpolate between arbitrary `UnitValue` modes without switching modes mid-animation
+- Layout sizes can interpolate between arbitrary `Size` modes without switching modes mid-animation
 - Easing functions: `Linear`, `EaseIn/Out`, `SmoothStep`, `BackOut`, `ElasticOut`, `BounceOut`
 - Live metrics: `ActiveAnimationCount`
 
@@ -246,12 +254,12 @@ A **GPU accelerated immediate mode GUI system** built on SkiaSharp, designed for
   animFloat.AnimateTo(target, 0.3f, Easing.ElasticOut);
   var v = animFloat.GetValue();
 
-  var animatedWidth = UnitValue.Lerp(
-      UnitValue.Pixels(100),
-      UnitValue.Percentage(0.6f) + UnitValue.FitContent(0.15f),
+  var animatedWidth = Size.Lerp(
+      Size.Pixels(100),
+      Size.Percentage(0.6f) + Size.FitContent(0.15f),
       fade);
   gui.Node().Width(animatedWidth);
-
+/mass4/dev/Guinevere/.zed
   // Status
   gui.DrawText($"Active animations: {gui.ActiveAnimationCount}", 12, Color.White);
   ```

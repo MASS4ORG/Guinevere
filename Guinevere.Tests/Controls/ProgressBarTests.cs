@@ -142,7 +142,7 @@ public class ProgressBarTests
         harness.Frame(g =>
         {
             g.DrawBackgroundRect(Color.White);
-            using (g.Node().Width(UnitValue.Pixels(parentWidth)).Height(20).Enter())
+            using (g.Node().Width(Size.Pixels(parentWidth)).Height(20).Enter())
             {
                 g.ProgressBar(fraction, width: -1);
             }

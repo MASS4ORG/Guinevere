@@ -95,11 +95,11 @@ public static partial class ControlsExtensions
         var height = RowHeight + 6f;
 
         using (gui.Node(-1, height).ExpandWidth().Direction(Axis.Horizontal).Gap(RegionGap)
-                   .ContentAlignY(0.5f).Enter())
+                   .AlignContentY(0.5f).Enter())
         {
             if (named)
             {
-                using (gui.StyledNode("file-label").Width(52f).Height(height).ContentAlignY(0.5f).Enter())
+                using (gui.StyledNode("file-label").Width(52f).Height(height).AlignContentY(0.5f).Enter())
                 {
                     gui.DrawText(request.Mode == FileDialogMode.CreateFolder ? "Folder" : "Name",
                         fontSize, centerInRect: false);
@@ -142,7 +142,7 @@ public static partial class ControlsExtensions
             return;
         }
 
-        using (gui.StyledNode("file-status").Height(RowHeight).ExpandWidth().ContentAlignY(0.5f).Enter())
+        using (gui.StyledNode("file-status").Height(RowHeight).ExpandWidth().AlignContentY(0.5f).Enter())
         {
             gui.DrawText(message, fontSize - 1f, centerInRect: false);
         }
@@ -256,7 +256,7 @@ public static partial class ControlsExtensions
         {
             Body(gui, state, fontSize);
             using (gui.Node(-1, 36f).ExpandWidth().Direction(Axis.Horizontal).Gap(RegionGap)
-                       .ContentAlignX(1f).ContentAlignY(0.5f).Enter())
+                       .AlignContentX(1f).AlignContentY(0.5f).Enter())
             {
                 Footer(gui, state, fontSize);
             }

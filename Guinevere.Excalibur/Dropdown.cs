@@ -160,7 +160,7 @@ public static partial class ControlsExtensions
     {
         var modifiers = state.IsOpen && enabled ? OpenModifier : NoModifiers;
         using (Sized(gui.StyledNode("dropdown", classes, $"{id}/button", modifiers, disabled: !enabled), width, height)
-                   .Direction(Axis.Horizontal).Padding(padding, 0).ContentAlignY(0.5f).Enter())
+                   .Direction(Axis.Horizontal).Padding(padding, 0).AlignContentY(0.5f).Enter())
         {
             gui.CurrentNode.On<KeyDownEvent>(e => DropdownKey(gui, e, id, options.Length, selectedIndex, state, enabled));
             if (gui.Pass == Pass.Pass2Render)
@@ -242,7 +242,7 @@ public static partial class ControlsExtensions
             {
                 var modifiers = i == selectedIndex ? SelectedModifier : NoModifiers;
                 using (gui.StyledNode("option", id: $"{id}/list/{i}", modifiers: modifiers).Height(rowHeight)
-                           .ExpandWidth().Padding(padding, 0).ContentAlignY(0.5f).Enter())
+                           .ExpandWidth().Padding(padding, 0).AlignContentY(0.5f).Enter())
                 {
                     var option = i;
                     gui.CurrentNode.On<KeyDownEvent>(e => DropdownOptionKey(gui, e, id, options.Length, option, state));

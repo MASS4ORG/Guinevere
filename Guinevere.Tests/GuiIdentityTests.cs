@@ -270,7 +270,7 @@ public class GuiIdentityTests
         harness.Frame(gui =>
         {
             var pixels = gui.Node(20.5f, 10.5f, id: "pixels");
-            var units = gui.Node(UnitValue.Pixels(20), UnitValue.Pixels(10), id: "units");
+            var units = gui.Node(Size.Pixels(20), Size.Pixels(10), id: "units");
             if (gui.Pass == Pass.Pass1Build)
             {
                 build["pixels"] = pixels;

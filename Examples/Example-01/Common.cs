@@ -20,7 +20,7 @@ static class Common
     {
         gui.SetTextColor(textColor ?? Color.White);
         using (gui.Node().Height(40).Padding(15, 0).Direction(Axis.Horizontal)
-                   .ContentAlignY(0.5f).Gap(8).Enter())
+                   .AlignContentY(0.5f).Gap(8).Enter())
         {
             gui.Image(Badge, width: 26, height: 26);
             gui.DrawText(title, 16);

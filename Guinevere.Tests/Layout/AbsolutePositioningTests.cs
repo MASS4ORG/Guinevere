@@ -89,8 +89,9 @@ public class AbsolutePositioningTests
         {
             using (g.Node(200, 100, "host").Enter())
             {
-                g.Node(-1, -1, "half").WidthPercent(0.5f).HeightPercent(0.5f).Absolute(0, 0);
-                g.Node(-1, -1, "screenHalf").WidthPercent(0.5f).HeightPercent(0.5f).AbsoluteScreen(0, 0);
+                var half = Size.Percentage(0.5f);
+                g.Node(-1, -1, "half").Width(half).Height(half).Absolute(0, 0);
+                g.Node(-1, -1, "screenHalf").Width(half).Height(half).AbsoluteScreen(0, 0);
             }
         });
 

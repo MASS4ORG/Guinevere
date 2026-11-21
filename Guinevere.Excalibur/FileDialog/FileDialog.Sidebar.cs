@@ -30,14 +30,14 @@ public static partial class ControlsExtensions
 
         using (gui.StyledNode("file-place", id: state.ControlId($"place/{place.Path}"),
                        modifiers: current ? ["selected"] : []).Height(RowHeight).ExpandWidth()
-                   .Direction(Axis.Horizontal).Gap(6f).PaddingX(6f).ContentAlignY(0.5f).Enter())
+                   .Direction(Axis.Horizontal).Gap(6f).PaddingX(6f).AlignContentY(0.5f).Enter())
         {
             var interactable = gui.GetInteractable();
 
 
             gui.DrawText(place.Icon, fontSize, gui.ResolvePart("file-detail").GetColor("color"));
 
-            using (gui.Node().Expand().ContentAlignY(0.5f).Enter())
+            using (gui.Node().Expand().AlignContentY(0.5f).Enter())
             {
                 gui.ClipContent();
                 gui.DrawText(place.Label, fontSize, centerInRect: false, clip: true);
