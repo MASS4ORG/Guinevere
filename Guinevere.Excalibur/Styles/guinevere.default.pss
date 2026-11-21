@@ -198,6 +198,33 @@ button.segment {
     :disabled { background-color = transparent; color = $text-disabled; }
 }
 
+// Button groups: gui.ButtonGroup (action, single and multiple selection). The items sit edge to edge; PSS has no
+// positional selectors, so the control gives each item the classes "horizontal" or "vertical" and "only", "first",
+// "middle" or "last". The sheet rounds the outer corners of the group and drops the border a neighbor already draws.
+button-group { color = $text; }
+button-group-item {
+    padding = 0 16;
+    background-color = transparent;
+    border-color = $control-border;
+    border-width = 1;
+    color = $text;
+    font-weight = $md-label-large-weight;
+    cursor = pointer;
+    :hover(0.12 ease-out) { background-color = alpha($text, 8%); }
+    :active(0.08 ease-out) { background-color = alpha($text, 10%); }
+    :focus { outline = 2px $focus-ring; outline-offset = -2; }
+    :checked { background-color = $md-secondary-container; color = $md-on-secondary-container; }
+    :disabled { background-color = transparent; border-color = alpha($text, 12%); color = $text-disabled; cursor = default; }
+}
+button-group-item:disabled:checked { background-color = alpha($text, 12%); }
+button-group-item.only { border-radius = $md-shape-small; }
+button-group-item.horizontal.first { border-radius = $md-shape-small 0 0 $md-shape-small; }
+button-group-item.horizontal.middle { border-left-width = 0; }
+button-group-item.horizontal.last { border-radius = 0 $md-shape-small $md-shape-small 0; border-left-width = 0; }
+button-group-item.vertical.first { border-radius = $md-shape-small $md-shape-small 0 0; }
+button-group-item.vertical.middle { border-top-width = 0; }
+button-group-item.vertical.last { border-radius = 0 0 $md-shape-small $md-shape-small; border-top-width = 0; }
+
 // Choice family: gui.Checkbox, gui.RadioButton and gui.Toggle. The row holds the label; its indicator (checkbox,
 // radio) or track (toggle) is a child matching :checked, and :mixed for checkboxes.
 checkbox, radio, toggle {

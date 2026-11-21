@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added: `Table` widget #66.
 - Added: `DrawText(ReadOnlySpan<char>)` #245
 - Added: `Gui.Post(Action)` #247
+- Added: `ButtonGroup` widget #55
 - Changed: `Size` is now used by every layout distance #15
 - Changed (breaking): Excalibur widgets return ControlNode
 - Changed (breaking): more widgets migrated to pss #244

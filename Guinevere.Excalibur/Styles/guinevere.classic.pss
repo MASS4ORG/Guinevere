@@ -69,6 +69,31 @@ button.image {
     :disabled { border-width = 0; opacity = 0.6; }
 }
 
+// Button groups: gui.ButtonGroup. The control gives each item the classes "horizontal" or "vertical" and "only",
+// "first", "middle" or "last"; the rules round the outer corners and drop the border a neighbor already draws.
+button-group { color = $text; }
+button-group-item {
+    padding = 0 16;
+    background-color = $surface;
+    border-color = $border;
+    border-width = 1;
+    color = $text;
+    cursor = pointer;
+    :hover { background-color = $surface-hover; }
+    :active { background-color = $surface-active; }
+    :focus { outline = 2px $accent-hover; outline-offset = -2; }
+    :checked { background-color = $selected; color = $text-on-accent; }
+    :disabled { color = $text-disabled; cursor = default; }
+}
+button-group-item:disabled:checked { background-color = $border; }
+button-group-item.only { border-radius = $radius; }
+button-group-item.horizontal.first { border-radius = $radius 0 0 $radius; }
+button-group-item.horizontal.middle { border-left-width = 0; }
+button-group-item.horizontal.last { border-radius = 0 $radius $radius 0; border-left-width = 0; }
+button-group-item.vertical.first { border-radius = $radius $radius 0 0; }
+button-group-item.vertical.middle { border-top-width = 0; }
+button-group-item.vertical.last { border-radius = 0 0 $radius $radius; border-top-width = 0; }
+
 // Choice family: gui.Checkbox, gui.RadioButton and gui.Toggle. The row holds the label; its indicator (checkbox,
 // radio) or track (toggle) is a child matching :checked, and :mixed for checkboxes.
 checkbox, radio, toggle {

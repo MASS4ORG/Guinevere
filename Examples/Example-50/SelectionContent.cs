@@ -14,6 +14,14 @@ public abstract partial class Program
     static IReadOnlyList<string> _multiSelection = ["Option 2"];
     static DemoPermissions _permissions = DemoPermissions.Read;
     static DemoMode _enumMode;
+    static int _groupAlignment = 1;
+    static int _groupLayer;
+    static string _groupAction = "none yet";
+    static readonly HashSet<int> GroupFormats = [0];
+    static readonly ButtonGroupItem[] GroupActions = ["Cut", "Copy", new("Paste", Enabled: false), "Delete"];
+    static readonly ButtonGroupItem[] GroupAlignments = ["Left", "Center", "Right"];
+    static readonly ButtonGroupItem[] GroupFormatItems = ["Bold", "Italic", "Underline", new("Strike", Enabled: false)];
+    static readonly ButtonGroupItem[] GroupLayers = ["Front", "Middle", "Back"];
 
     [Flags, PublicAPI]
     enum DemoPermissions
@@ -72,6 +80,7 @@ public abstract partial class Program
             Section(gui, "Checkboxes", () => CheckboxRow(gui));
             Section(gui, "Toggles", () => ToggleRow(gui));
             Section(gui, "Radio Buttons", () => RadioButtonRow(gui));
+            Section(gui, "Button groups", () => ButtonGroupRow(gui));
             Section(gui, "Dropdowns", () => DropdownRow(gui));
             Section(gui, "Multiple selection and enums", () => MultiDropdownRow(gui));
             Section(gui, "Color fields", () =>
@@ -114,6 +123,35 @@ public abstract partial class Program
             gui.RadioGroup(ref _radioChoice,
                 [(0, "Light"), (1, "Dark"), (2, "Mono Light"), (3, "Mono Dark")]);
             gui.RadioButton(ref _radioChoice, 4, "Disabled radio", enabled: false);
+        }
+    }
+
+    static void ButtonGroupRow(Gui gui)
+    {
+        using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(20).Enter())
+        {
+            // Action mode: nothing is selected, the clicked item is reported. Tab enters the group once and the
+            // arrow keys move between enabled items.
+            if (gui.ButtonGroup(GroupActions, out var clicked))
+            {
+                _groupAction = GroupActions[clicked].Content.Label ?? "";
+            }
+
+            // Single selection (a segmented control): Space or Enter selects the item the arrows moved to.
+            gui.ButtonGroup(ref _groupAlignment, GroupAlignments);
+
+            // Multiple selection: each item toggles in the caller's set.
+            gui.ButtonGroup(GroupFormats, GroupFormatItems);
+        }
+
+        using (gui.Node().Height(100).Direction(Axis.Horizontal).Gap(20).Enter())
+        {
+            gui.ButtonGroup(ref _groupLayer, GroupLayers, Axis.Vertical);
+            var align = GroupAlignments[_groupAlignment].Content.Label;
+            var formats = string.Join(", ", GroupFormats.Order().Select(static i => GroupFormatItems[i].Content.Label));
+            var layer = GroupLayers[_groupLayer].Content.Label;
+            gui.DrawText($"Action: {_groupAction}   Align: {align}   Formats: {formats}   Layer: {layer}", 14,
+                Token(gui, "text"));
         }
     }
 
