@@ -383,7 +383,10 @@ public static partial class ControlsExtensions
         using (gui.StyledNode("popup-title").ExpandWidth().Height(height).Padding(8, 0).AlignContentY(0.5f)
                    .HitTestVisible(isOpen).Enter())
         {
-            gui.Content(title);
+            if (isOpen)
+            {
+                gui.Content(title);
+            }
         }
     }
 
