@@ -18,6 +18,9 @@ public sealed class Selector
 
     internal bool HasCombinator => _parts.Length > 1;
 
+    /// <summary>Whether any compound of the selector names an element id.</summary>
+    internal bool UsesId => Array.Exists(_parts, static part => part.Id is not null);
+
     Selector(Part[] parts)
     {
         _parts = parts;

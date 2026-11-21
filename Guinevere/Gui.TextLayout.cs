@@ -9,7 +9,11 @@ public readonly record struct RichTextResult(LayoutNode Node, TextLayout Layout,
 
 public partial class Gui
 {
+    /// <summary>Most colors whose flat text paint is kept; animated colors beyond it restart the cache.</summary>
+    const int MaxFlatTextPaints = 256;
+
     readonly TextLayoutCache _textLayouts = new();
+    readonly Dictionary<Color, SKPaint> _flatTextPaints = [];
 
     /// <summary>Number of text layouts built rather than reused from the cache.</summary>
     internal int TextLayoutBuilds => _textLayouts.Builds;
@@ -139,6 +143,12 @@ public partial class Gui
             return (Node(layout.Width, layout.Height), layout);
         }
 
+        return FillWidthBlock(request);
+    }
+
+    /// <summary>The node of a text block that wraps to the width layout gives it, with the layout to draw.</summary>
+    (LayoutNode Node, TextLayout Layout) FillWidthBlock(TextLayoutRequest request)
+    {
         var node = Node();
         if (Pass == Pass.Pass1Build)
         {
@@ -168,19 +178,22 @@ public partial class Gui
         }
 
         var node = Node();
-        if (Pass == Pass.Pass1Build)
-        {
-            var layout = LayoutText(request);
-            var owned = request.ToRequest(new TextLayoutContent(layout.Text));
-            node.ContentMeasure = width =>
-            {
-                var measured = LayoutText(owned with { MaxWidth = width });
-                return new Vector2(measured.Width, measured.Height);
-            };
-            return (node, layout);
-        }
+        return Pass == Pass.Pass1Build
+            ? (node, MeasurePlainBlock(node, request))
+            : (node, LayoutText(request.WithMaxWidth(node.InnerRect.W)));
+    }
 
-        return (node, LayoutText(request.WithMaxWidth(node.InnerRect.W)));
+    /// <summary>Lays out buffered text and lets the node measure it again at any width, from a string the layout keeps.</summary>
+    TextLayout MeasurePlainBlock(LayoutNode node, PlainTextRequest request)
+    {
+        var layout = LayoutText(request);
+        var owned = request.ToRequest(new TextLayoutContent(layout.Text));
+        node.ContentMeasure = width =>
+        {
+            var measured = LayoutText(owned with { MaxWidth = width });
+            return new Vector2(measured.Width, measured.Height);
+        };
+        return layout;
     }
 
     /// <summary>Top-left of a layout inside its node, placing the block by its alignment.</summary>
@@ -227,6 +240,56 @@ public partial class Gui
 
         ObserveText(node, layout);
         DrawTextBackgrounds(layout, origin, node);
+        if (effects is { } layered)
+        {
+            DrawLayeredRuns(layout, origin, color, layered, clip, node);
+        }
+        else
+        {
+            DrawFlatRuns(layout, origin, color, clip, node);
+        }
+
+        DrawTextDecorations(layout, origin, color, node);
+    }
+
+    /// <summary>Queues the runs of a layout without effects, sharing one paint per color across draws.</summary>
+    void DrawFlatRuns(TextLayout layout, Vector2 origin, Color color, bool clip, LayoutNode node)
+    {
+        foreach (var run in layout.RunSpan)
+        {
+            if (run.Image is { } image)
+            {
+                DrawInlineImage(run, image, origin, node);
+                continue;
+            }
+
+            if (run.Glyphs?.Blob(run.Font.SkFont) is { } blob)
+            {
+                AddDraw(new Text(blob, run.Text, origin + new Vector2(run.X, run.Baseline), run.Font.SkFont,
+                    FlatTextPaint(run.Style.Color ?? color), null), clip, node);
+            }
+        }
+    }
+
+    SKPaint FlatTextPaint(Color color)
+    {
+        if (_flatTextPaints.TryGetValue(color, out var paint))
+        {
+            return paint;
+        }
+
+        if (_flatTextPaints.Count >= MaxFlatTextPaints)
+        {
+            _flatTextPaints.Clear();
+        }
+
+        return _flatTextPaints[color] = new SKPaint { IsAntialias = true, Color = color };
+    }
+
+    /// <summary>Queues the runs of a layout once per effect layer, back to front.</summary>
+    void DrawLayeredRuns(TextLayout layout, Vector2 origin, Color color, TextEffects effects, bool clip,
+        LayoutNode node)
+    {
         var paints = new Dictionary<Color, List<(SKPaint Paint, Vector2 Offset)>>();
         List<(SKPaint Paint, Vector2 Offset)> PaintsFor(Color value)
         {
@@ -241,7 +304,7 @@ public partial class Gui
         var layerCount = PaintsFor(color).Count;
         for (var layer = 0; layer < layerCount; layer++)
         {
-            foreach (var run in layout.Runs)
+            foreach (var run in layout.RunSpan)
             {
                 if (run.Image is { } image)
                 {
@@ -263,8 +326,6 @@ public partial class Gui
                     paint, effects), clip, node);
             }
         }
-
-        DrawTextDecorations(layout, origin, color, node);
     }
 
     void ObserveText(LayoutNode node, TextLayout layout)
@@ -285,11 +346,12 @@ public partial class Gui
 
     static void DrawTextBackgrounds(TextLayout layout, Vector2 origin, LayoutNode node)
     {
-        foreach (var line in layout.Lines)
+        var runs = layout.RunSpan;
+        foreach (var line in layout.LineSpan)
         {
             for (var i = line.FirstRun; i < line.FirstRun + line.RunCount; i++)
             {
-                var run = layout.Runs[i];
+                var run = runs[i];
                 if (run.Style.Background is { } background && run.Width > 0f)
                 {
                     AddTextRect(node, background, origin.X + run.X, origin.Y + line.Y, run.Width, line.Height);
@@ -300,7 +362,7 @@ public partial class Gui
 
     static void DrawTextDecorations(TextLayout layout, Vector2 origin, Color color, LayoutNode node)
     {
-        foreach (var run in layout.Runs)
+        foreach (var run in layout.RunSpan)
         {
             var decoration = run.Style.Decoration ?? TextDecoration.None;
             if (decoration != TextDecoration.None && run.Width > 0f)

@@ -5,8 +5,8 @@ namespace Guinevere.Tests.Controls;
 /// <summary>
 /// Holds the table's steady-state allocation near its measurement in Debug, the configuration the gate runs in
 /// (static 131.8 KB and scrolling 215.8 KB a frame, up from 127.2 and 211.1 for the resize grab zones, the
-/// per-row identity and the interaction hooks); the limits are the earlier best plus 10% and stay. The scenario runs twice in
-/// the process and only the second run counts, because the first pays one-time costs. A change that raises a
+/// per-row identity and the interaction hooks); the limits are the earlier best plus 10% and stay. The scenario is
+/// measured once it reaches a steady state, so one-time costs do not count. A change that raises a
 /// number moves the limit on purpose and says why in the wiki page guinevere-table-allocation. Zero allocation is
 /// the engine's goal, not the table's.
 /// </summary>
@@ -97,13 +97,8 @@ public class TableAllocationTests
             "text-engine changes, limit 230000");
     }
 
-    static long SteadyBytesPerFrame(bool scroll, bool resize = false, bool select = false, bool distinct = false)
-    {
-        _ = BytesPerFrame(scroll, resize, select, distinct);
-        return BytesPerFrame(scroll, resize, select, distinct);
-    }
-
-    static long BytesPerFrame(bool scroll, bool resize = false, bool select = false, bool distinct = false)
+    internal static long SteadyBytesPerFrame(bool scroll, bool resize = false, bool select = false,
+        bool distinct = false)
     {
         // The baseline scenarios read the row number in every column, so the engine shapes each distinct text once;
         // the distinct scenario gives every column its own text and pays that engine cost per column.
@@ -135,19 +130,7 @@ public class TableAllocationTests
             harness.Frame(Draw);
         }
 
-        for (var frame = 0; frame < WarmFrames; frame++)
-        {
-            Step();
-        }
-
-        GC.Collect();
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var frame = 0; frame < MeasuredFrames; frame++)
-        {
-            Step();
-        }
-
-        return (GC.GetAllocatedBytesForCurrentThread() - before) / MeasuredFrames;
+        return AllocationProbe.BytesPerFrame(Step, WarmFrames, MeasuredFrames);
     }
 
     sealed class RowSource(int rows) : ITableViewSource<int>

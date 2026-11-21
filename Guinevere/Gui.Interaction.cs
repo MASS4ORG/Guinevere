@@ -59,6 +59,7 @@ public partial class Gui
 
     readonly Dictionary<string, bool> _dragStates = [];
     readonly Dictionary<string, PressAnchor> _pressAnchors = [];
+    readonly List<string> _staleDragIds = [];
     Vector2 _pointerLastFrame;
     bool _hasPointerLastFrame;
     (string Id, MouseButton Button)? _pointerCapture;
@@ -325,7 +326,8 @@ public partial class Gui
     /// </summary>
     void ClearCompletedDrags()
     {
-        var keysToRemove = new List<string>();
+        var keysToRemove = _staleDragIds;
+        keysToRemove.Clear();
         foreach (var kvp in _dragStates)
         {
             if (!kvp.Value)

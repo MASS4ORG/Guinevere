@@ -7,6 +7,9 @@ public static partial class ControlsExtensions
     /// <summary>Rows kept built above and below the viewport, so a fast scroll has no gap.</summary>
     const int Overscan = 4;
 
+    static readonly string[] SelectedModifiers = ["selected"];
+    static readonly string[] ExpandedModifiers = ["expanded"];
+
     /// <summary>
     /// Draws a scrollable tree from a flattened row list. Rows under a collapsed parent are skipped by
     /// depth, and only the rows inside the viewport become layout nodes, so a tree of thousands costs
@@ -49,7 +52,6 @@ public static partial class ControlsExtensions
         ExcaliburStyles.Ensure(gui);
 
         var visible = Flatten(items, state);
-        state.VisibleIds = [.. visible.Select(item => item.Id)];
 
         var treeNode = gui.StyledNode("treeview", classes, id, filePath: filePath, lineNumber: lineNumber)
             .Expand().Direction(Axis.Vertical);
@@ -134,11 +136,13 @@ public static partial class ControlsExtensions
     /// </summary>
     static List<TreeItem> Flatten(IReadOnlyList<TreeItem> items, TreeViewState state)
     {
-        var visible = new List<TreeItem>(items.Count);
+        var visible = state.VisibleItems;
+        visible.Clear();
         var hiddenBelow = int.MaxValue;
 
-        foreach (var item in items)
+        for (var i = 0; i < items.Count; i++)
         {
+            var item = items[i];
             if (item.Depth > hiddenBelow)
             {
                 continue;
@@ -367,9 +371,10 @@ public static partial class ControlsExtensions
     {
         var isSelected = state.SelectedIds.Contains(item.Id);
         var isEditing = onRename is not null && state.EditingId == item.Id;
+        var ids = state.RowIds(row);
 
-        var rowNode = gui.StyledNode("tree-row", id: $"treeview/row{row}",
-                modifiers: isSelected ? ["selected"] : [])
+        var rowNode = gui.StyledNode("tree-row", id: ids.Node,
+                modifiers: isSelected ? SelectedModifiers : [])
             .ExpandWidth()
             .Direction(Axis.Horizontal)
             .Padding((item.Depth * theme.IndentWidth) + theme.ContentPadding, 0)
@@ -379,11 +384,7 @@ public static partial class ControlsExtensions
         {
             if (!isEditing && dragPayload?.Invoke(item) is { } payload)
             {
-                // `object` on purpose: this control only ever sees the payload untyped, and the source
-                // resolves that to the payload's own type, so a typed target elsewhere in the frame —
-                // an inspector field, say — can accept a row.
-                gui.DragSource<object>($"treeview/row/{item.Id}", payload,
-                    ghost: g => DragGhost(g, theme, item));
+                AddDragSource(gui, theme, item, payload);
             }
 
             if (gui.Pass == Pass.Pass2Render)
@@ -391,22 +392,33 @@ public static partial class ControlsExtensions
                 RenderRowInput(gui, state, theme, item, isSelected, isEditing, onClick, dropAccept, onDrop);
             }
 
-            Expander(gui, state, theme, item, row);
+            Expander(gui, state, theme, item, ids);
 
             if (item.Icon is { } icon)
             {
-                var iconNode = gui.StyledNode("tree-icon", id: $"treeview/row{row}/icon").AlignContentX(0.5f)
-                    .AlignContentY(0.5f);
-                SizeUnlessStyled(iconNode, Size.Pixels(theme.IconSize), Size.Pixels(theme.RowHeight));
-                using (iconNode.Enter())
-                {
-                    icon(gui);
-                }
+                RenderRowIcon(gui, theme, ids, icon);
             }
 
             RenderRowLabel(gui, state, theme, item, isEditing, isSelected, onRename);
         }
     }
+
+    static void RenderRowIcon(Gui gui, TreeViewMetrics theme, TreeRowIds ids, Action<Gui> icon)
+    {
+        var iconNode = gui.StyledNode("tree-icon", id: ids.Icon).AlignContentX(0.5f)
+            .AlignContentY(0.5f);
+        SizeUnlessStyled(iconNode, Size.Pixels(theme.IconSize), Size.Pixels(theme.RowHeight));
+        using (iconNode.Enter())
+        {
+            icon(gui);
+        }
+    }
+
+    static void AddDragSource(Gui gui, TreeViewMetrics theme, TreeItem item, object payload) =>
+        // `object` on purpose: this control only ever sees the payload untyped, and the source
+        // resolves that to the payload's own type, so a typed target elsewhere in the frame —
+        // an inspector field, say — can accept a row.
+        gui.DragSource<object>($"treeview/row/{item.Id}", payload, ghost: g => DragGhost(g, theme, item));
 
     static void RenderRowLabel(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item,
         bool isEditing, bool isSelected, Action<TreeItem, string>? onRename)
@@ -521,11 +533,11 @@ public static partial class ControlsExtensions
         onClick?.Invoke(new TreeViewEvent(item, button, clicks));
     }
 
-    static void Expander(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item, int row)
+    static void Expander(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item, TreeRowIds ids)
     {
         // Blocks the row underneath, so clicking the arrow neither selects nor double-toggles.
-        var expander = gui.StyledNode("tree-expander", id: $"treeview/row{row}/expander",
-                modifiers: state.IsCollapsed(item.Id, item.Depth) ? [] : ["expanded"])
+        var expander = gui.StyledNode("tree-expander", id: ids.Expander,
+                modifiers: state.IsCollapsed(item.Id, item.Depth) ? [] : ExpandedModifiers)
             .BlockInput(item.HasChildren)
             .AlignContentX(0.5f).AlignContentY(0.5f);
         SizeUnlessStyled(expander, Size.Pixels(theme.ExpanderWidth), Size.Pixels(theme.RowHeight));

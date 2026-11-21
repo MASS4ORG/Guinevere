@@ -12,6 +12,7 @@ public partial class FocusManager
     readonly Dictionary<string, FocusNavigationScopeState> _scopes = new();
     readonly List<string> _scopeStack = [];
     readonly HashSet<string> _frameScopeIds = [];
+    readonly List<string> _staleIds = [];
     string? _currentFocusedId;
     string? _nextFrameFocusId;
     bool _focusChangedThisFrame;
@@ -464,11 +465,16 @@ public partial class FocusManager
     public void EndFrame()
     {
         // Remove controls that weren't registered this frame
-        var controlsToRemove = _focusableControls.Keys
-            .Where(id => !_frameControlOrder.Contains(id))
-            .ToList();
+        _staleIds.Clear();
+        foreach (var id in _focusableControls.Keys)
+        {
+            if (!_frameControlOrder.Contains(id))
+            {
+                _staleIds.Add(id);
+            }
+        }
 
-        foreach (var id in controlsToRemove)
+        foreach (var id in _staleIds)
         {
             _focusableControls.Remove(id);
 
@@ -482,10 +488,21 @@ public partial class FocusManager
 
         RestoreActiveScope();
 
-        foreach (var id in _scopes.Keys.Where(id => !_frameScopeIds.Contains(id)).ToList())
+        _staleIds.Clear();
+        foreach (var id in _scopes.Keys)
+        {
+            if (!_frameScopeIds.Contains(id))
+            {
+                _staleIds.Add(id);
+            }
+        }
+
+        foreach (var id in _staleIds)
         {
             _scopes.Remove(id);
         }
+
+        _staleIds.Clear();
     }
 
     /// <summary>
@@ -514,9 +531,20 @@ public partial class FocusManager
         return parents;
     }
 
-    List<string> GetNavigableIds() => [.. _frameControlOrder
-        .Where(id => _focusableControls.TryGetValue(id, out var control) && control.CanReceiveFocus
-            && (ActiveScopeId is null || control.ScopeId == ActiveScopeId))];
+    List<string> GetNavigableIds()
+    {
+        var ids = new List<string>(_frameControlOrder.Count);
+        foreach (var id in _frameControlOrder)
+        {
+            if (_focusableControls.TryGetValue(id, out var control) && control.CanReceiveFocus
+                && (ActiveScopeId is null || control.ScopeId == ActiveScopeId))
+            {
+                ids.Add(id);
+            }
+        }
+
+        return ids;
+    }
 
     static bool IsInDirection(Vector2 delta, FocusDirection direction) => direction switch
     {

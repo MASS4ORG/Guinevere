@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using SkiaSharp;
 
@@ -27,6 +28,11 @@ static class StyleBoxValues
 {
     /// <summary>CSS <c>medium</c> outline width, used when only a color is given.</summary>
     const float DefaultOutlineWidth = 3f;
+
+    /// <summary>Most distinct <c>border-radius</c> texts kept parsed; a stylesheet uses a handful.</summary>
+    const int MaxCachedCornerValues = 512;
+
+    static readonly ConcurrentDictionary<string, RadiusToken[]> CornerCache = new(StringComparer.Ordinal);
 
     static readonly Dictionary<string, float> SideAngles = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -133,6 +139,13 @@ static class StyleBoxValues
         return shadows;
     }
 
+    /// <summary>
+    /// <see cref="Shadows"/> for a style's value without building a list when it has none, so a box without shadows
+    /// allocates nothing.
+    /// </summary>
+    public static IReadOnlyList<BoxShadow> ShadowLayers(string? value) =>
+        string.IsNullOrWhiteSpace(value) || IsNone(value) ? Array.Empty<BoxShadow>() : Shadows(value);
+
     /// <summary><c>[inset] x y [blur [spread]] [color]</c> in any order of color and keyword; black by default.</summary>
     static BoxShadow? TryShadow(string layer)
     {
@@ -172,50 +185,74 @@ static class StyleBoxValues
     /// CSS <c>border-radius</c> shorthand with 1–4 values (top-left, top-right, bottom-right, bottom-left); a
     /// percentage is of the box's shorter side. Elliptical <c>/</c> radii keep only the horizontal part.
     /// </summary>
-    public static SKPoint[] Radii(string? value, Rect box)
+    public static void Radii(string? value, Rect box, Span<SKPoint> radii)
     {
-        var radii = new SKPoint[4];
-        if (Corners(value, Math.Min(box.W, box.H)) is not { } corners)
+        radii.Clear();
+        if (string.IsNullOrWhiteSpace(value) || ParsedCorners(value) is not { Length: > 0 } corners)
         {
-            return radii;
+            return;
         }
 
         // CSS fills missing corners from their opposite: 1 → all, 2 → (TL/BR, TR/BL), 3 → (TL, TR/BL, BR).
-        int[] source = corners.Length switch { 1 => [0, 0, 0, 0], 2 => [0, 1, 0, 1], 3 => [0, 1, 2, 1], _ => [0, 1, 2, 3] };
+        var shorter = Math.Min(box.W, box.H);
         for (var i = 0; i < 4; i++)
         {
-            radii[i] = new SKPoint(corners[source[i]], corners[source[i]]);
+            var radius = corners[CornerSource(corners.Length, i)].In(shorter);
+            radii[i] = new SKPoint(radius, radius);
         }
-
-        return radii;
     }
 
-    /// <summary>The 1–4 listed radii, or <c>null</c> when the value is missing or malformed.</summary>
-    static float[]? Corners(string? value, float shorter)
+    static int CornerSource(int count, int corner) => count switch
     {
-        var tokens = string.IsNullOrWhiteSpace(value) ? [] : Split(value.Split('/')[0], ' ');
-        if (tokens.Count is 0 or > 4)
+        1 => 0,
+        2 => corner % 2,
+        3 => corner == 3 ? 1 : corner,
+        _ => corner
+    };
+
+    /// <summary>The listed radii of a value, parsed once per distinct text; empty when it is malformed.</summary>
+    static RadiusToken[] ParsedCorners(string value)
+    {
+        if (CornerCache.TryGetValue(value, out var corners))
         {
-            return null;
+            return corners;
         }
 
-        var corners = new float[tokens.Count];
+        if (CornerCache.Count >= MaxCachedCornerValues)
+        {
+            CornerCache.Clear();
+        }
+
+        return CornerCache[value] = ParseCorners(value);
+    }
+
+    /// <summary>The 1–4 listed radii, or none when the value is malformed.</summary>
+    static RadiusToken[] ParseCorners(string value)
+    {
+        var tokens = Split(value.Split('/')[0], ' ');
+        if (tokens.Count is 0 or > 4)
+        {
+            return [];
+        }
+
+        var corners = new RadiusToken[tokens.Count];
         for (var i = 0; i < tokens.Count; i++)
         {
-            if (!TryCorner(tokens[i], shorter, out corners[i]))
+            if (!StyleValue.TryLength(tokens[i], out var length, out var percent))
             {
-                return null;
+                return [];
             }
+
+            corners[i] = new RadiusToken(length, percent);
         }
 
         return corners;
     }
 
-    static bool TryCorner(string token, float shorter, out float radius)
+    /// <summary>One listed radius: a length, or a fraction of the box's shorter side.</summary>
+    readonly record struct RadiusToken(float Length, bool Percent)
     {
-        var parsed = StyleValue.TryLength(token, out var length, out var percent);
-        radius = Math.Max(0f, percent ? length * shorter : length);
-        return parsed;
+        public float In(float shorter) => Math.Max(0f, Percent ? Length * shorter : Length);
     }
 
     /// <summary>

@@ -83,6 +83,36 @@ public class StyleCacheTests
         Assert.Equal(6, sheets.CachedCount);
     }
 
+    /// <summary>Without an id selector, nodes that differ only by id share one entry.</summary>
+    [Fact]
+    public void IdsShareAnEntryWhenNoSheetUsesAnIdSelector()
+    {
+        var sheets = Collection("button { width = 1; }\nbutton.big { width = 5; }");
+        var first = sheets.Resolve(new StyleTarget("button", "row1", ["big"]));
+
+        Assert.Same(first, sheets.Resolve(new StyleTarget("button", "row2", ["big"])));
+        Assert.Same(first, sheets.Resolve(new StyleTarget("button", null, ["big"])));
+        Assert.Equal(1, sheets.CachedCount);
+    }
+
+    /// <summary>An id selector, on the element or an ancestor, brings ids back into the key, also once added later.</summary>
+    [Fact]
+    public void AnIdSelectorBringsIdsBackIntoTheKey()
+    {
+        var sheets = Collection("button { width = 1; }");
+        var inPanel = new StyleTarget("button", "a", [], Ancestors: [new StyleTarget("Panel", "side", [])]);
+        var elsewhere = inPanel with { Ancestors = [new StyleTarget("Panel", "main", [])] };
+        Assert.Equal("1", sheets.Resolve(inPanel).Get("width"));
+        Assert.Equal("1", sheets.Resolve(elsewhere).Get("width"));
+        Assert.Equal(1, sheets.CachedCount);
+
+        sheets.Add(StyleSheet.Parse("#side button { width = 7; }"));
+
+        Assert.Equal("7", sheets.Resolve(inPanel).Get("width"));
+        Assert.Equal("1", sheets.Resolve(elsewhere).Get("width"));
+        Assert.Equal(2, sheets.CachedCount);
+    }
+
     /// <summary>Inserted keys are snapshots: reusing the caller's lists later cannot corrupt the cache.</summary>
     [Fact]
     public void InsertSnapshotsCallerLists()

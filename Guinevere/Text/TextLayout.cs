@@ -122,6 +122,12 @@ public sealed class TextLayout
     /// <summary>Styled runs of every line, in drawing order.</summary>
     public IReadOnlyList<TextLayoutRun> Runs => _runs;
 
+    /// <summary>The runs as a span, for drawing loops that must not box an enumerator.</summary>
+    internal ReadOnlySpan<TextLayoutRun> RunSpan => _runs;
+
+    /// <summary>The lines as a span, for drawing loops that must not box an enumerator.</summary>
+    internal ReadOnlySpan<TextLayoutLine> LineSpan => _lines;
+
     /// <summary>Link ranges of the source.</summary>
     public IReadOnlyList<TextLink> Links => _links;
 
