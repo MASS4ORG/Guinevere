@@ -103,46 +103,85 @@ public static class StylingExtensions
             [CallerLineNumber] int lineNumber = 0)
         {
             var parent = gui.CurrentNode;
-            var node = gui.Node(-1, -1, id, filePath, lineNumber);
-            var styling = StateOf(gui);
-            if (styling.Sheets.Count == 0)
-            {
-                return node;
-            }
+            return Style(gui, parent, gui.Node(-1, -1, id, filePath, lineNumber), type, classes, id, modifiers,
+                variables, disabled);
+        }
 
-            var state = disabled ? StyleState.Disabled : StyleState.None;
-            var target = CreateStyleTarget(styling.Ancestors, parent, type, classes, id, modifiers ?? classes, state);
-            node.StyleTarget = target with { Ancestors = null };
-            var inherited = parent.Scope.Get<StyleTokens>();
+        /// <summary>
+        /// Creates the styled <see cref="ControlNode"/> a widget returns, styled exactly like <c>StyledNode</c>. Use it
+        /// for custom widgets so callers can write <c>if (gui.MyWidget(...))</c> and chain layout on the result.
+        /// </summary>
+        /// <param name="type">Element type name matched by a bare-type selector, or <c>null</c>.</param>
+        /// <param name="classes">Class names matched by <c>.class</c> selectors.</param>
+        /// <param name="id">Element id matched by an <c>#id</c> selector and used as identity, or <c>null</c>.</param>
+        /// <param name="modifiers">Active semantic modifiers; defaults to <paramref name="classes"/>.</param>
+        /// <param name="variables">Typed variables exposed to declarations as <c>$name</c>.</param>
+        /// <param name="disabled">Whether the element is disabled, matched by <c>:disabled</c>.</param>
+        /// <param name="filePath">Compiler-supplied; do not pass.</param>
+        /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+        /// <returns>The control node, ready to <c>.Enter()</c>.</returns>
+        public ControlNode StyledControl(
+            string? type = null,
+            IReadOnlyList<string>? classes = null,
+            string? id = null,
+            IReadOnlyList<string>? modifiers = null,
+            IReadOnlyList<StyleVariable>? variables = null,
+            bool disabled = false,
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0)
+        {
+            var parent = gui.CurrentNode;
+            var node = gui.AcquireControlNode(id, filePath, lineNumber);
+            Style(gui, parent, node, type, classes, id, modifiers, variables, disabled);
+            return node;
+        }
+    }
 
-            if (gui.Pass == Pass.Pass1Build)
-            {
-                var style = Transition(gui, node, styling, styling.Sheets.Resolve(target, variables, inherited));
-                StyleLayout.Apply(node, style);
-                ApplyInherited(gui, node, style, styling, inherited);
-                InspectStyle(gui, node, style, "style.build");
-                return node;
-            }
-
-            var live = state | InteractionState(gui, node, disabled);
-            node.StyleTarget = target with { State = live, Ancestors = null };
-            var liveStyle = Transition(gui, node, styling,
-                styling.Sheets.Resolve(target with { State = live }, variables, inherited));
-            ApplyInherited(gui, node, liveStyle, styling, inherited);
-            InspectStyle(gui, node, liveStyle, "style.render");
-            if (StyleTransform.From(liveStyle, node.Rect) is { } transform)
-            {
-                gui.SetTransform(transform, node.Scope);
-            }
-
-            if (StyleBox.From(liveStyle, node.Rect, gui) is { } box)
-            {
-                node.DrawList.Add(box);
-            }
-
+    /// <summary>Styles a freshly acquired node from the GUI's sheets; see <c>StyledNode</c> for the pass rules.</summary>
+    static LayoutNode Style(Gui gui, LayoutNode parent, LayoutNode node, string? type, IReadOnlyList<string>? classes,
+        string? id, IReadOnlyList<string>? modifiers, IReadOnlyList<StyleVariable>? variables, bool disabled)
+    {
+        var styling = StateOf(gui);
+        if (styling.Sheets.Count == 0)
+        {
             return node;
         }
 
+        var state = disabled ? StyleState.Disabled : StyleState.None;
+        var target = CreateStyleTarget(styling.Ancestors, parent, type, classes, id, modifiers ?? classes, state);
+        node.StyleTarget = target with { Ancestors = null };
+        var inherited = parent.Scope.Get<StyleTokens>();
+
+        if (gui.Pass == Pass.Pass1Build)
+        {
+            var style = Transition(gui, node, styling, styling.Sheets.Resolve(target, variables, inherited));
+            StyleLayout.Apply(node, style);
+            ApplyInherited(gui, node, style, styling, inherited);
+            InspectStyle(gui, node, style, "style.build");
+            return node;
+        }
+
+        var live = state | InteractionState(gui, node, disabled);
+        node.StyleTarget = target with { State = live, Ancestors = null };
+        var liveStyle = Transition(gui, node, styling,
+            styling.Sheets.Resolve(target with { State = live }, variables, inherited));
+        ApplyInherited(gui, node, liveStyle, styling, inherited);
+        InspectStyle(gui, node, liveStyle, "style.render");
+        if (StyleTransform.From(liveStyle, node.Rect) is { } transform)
+        {
+            gui.SetTransform(transform, node.Scope);
+        }
+
+        if (StyleBox.From(liveStyle, node.Rect, gui) is { } box)
+        {
+            node.DrawList.Add(box);
+        }
+
+        return node;
+    }
+
+    extension(Gui gui)
+    {
         /// <summary>
         /// Sets a style token for the current node and its subtree, like an inherited CSS custom property: styled
         /// descendants read <c>$name</c> as <paramref name="value"/>, above sheet and host tokens.

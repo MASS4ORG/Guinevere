@@ -67,7 +67,7 @@ public sealed class ProfilerViewTests
         registration.Profiler.Detailed = true;
         target.Frame(() => target.Gui.Node(40, 30, "test-node"));
         Frame(view, host);
-        var item = bridge.Elements.Values.Single(element => element.Role == "treeitem" && element.Name.Contains("test-node", StringComparison.Ordinal));
+        var item = bridge.Elements.Values.Single(element => element.Role == ControlRole.TreeItem && element.Name.Contains("test-node", StringComparison.Ordinal));
         Assert.True(item.Virtualized);
         bridge.Actions.Enqueue(new AccessibilityAction("object", item.Key));
         bridge.Actions.Enqueue(new AccessibilityAction("panel", "text"));
@@ -146,7 +146,7 @@ public sealed class ProfilerViewTests
         view.Command("copy");
         Frame(view, host);
         Assert.Contains("42", host.Input.GetClipboardText());
-        var skinButton = Assert.IsType<LayoutNode>(FindNode(view.Gui, "profiler:skin"));
+        var skinButton = Assert.IsType<ControlNode>(FindNode(view.Gui, "profiler:skin"));
         view.Gui.RequestFocus(skinButton.Id);
         Frame(view, host);
         host.Input.PressKey(KeyboardKey.Enter);

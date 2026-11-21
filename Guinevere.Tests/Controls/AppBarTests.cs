@@ -62,6 +62,30 @@ public class AppBarTests
         }
     }
 
+    /// <summary>The bar is 36 units high by default.</summary>
+    [Fact]
+    public void BarDefaultsTo36Units()
+    {
+        using var h = new FrameHarness();
+        h.Frame(Draw);
+        h.Frame(Draw);
+
+        Assert.Equal(36f, Bar(h).Rect.H, 1);
+    }
+
+    /// <summary>An <c>appbar</c> height from a sheet replaces the default.</summary>
+    [Fact]
+    public void SheetHeightWinsOverTheDefault()
+    {
+        using var h = new FrameHarness();
+        h.Gui.StyleSheets.Add(StyleSheet.Parse("appbar { height = 48; }"));
+        h.Frame(Draw);
+        h.Frame(Draw);
+
+        Assert.Equal(48f, Bar(h).Rect.H, 1);
+        Assert.Equal(48f, Content(h).Rect.H, 1);
+    }
+
     /// <summary>Hands each background press to the desktop once and leaves subsequent movement to the OS.</summary>
     [Theory]
     [InlineData(false)]
@@ -104,7 +128,7 @@ public class AppBarTests
         static void Custom(Gui gui)
         {
             using var bar = gui.AppBar();
-            gui.Button("Search", 100, 36);
+            gui.Button("Search").Width(100).Height(36);
         }
         h.Frame(Custom);
         h.Input.MoveTo(Content(h).Children[0].Center);
@@ -208,8 +232,8 @@ public class AppBarTests
             }
 
             gui.DrawText("FPS: 60.0");
-            checkbox = gui.Checkbox(checkbox, "Native title bar");
-            gui.Button("◐", 36, 36);
+            gui.Checkbox(ref checkbox, "Native title bar");
+            gui.Button("◐").Width(36).Height(36);
         }
         h.Frame(Gallery);
         Assert.NotNull(spacer);
@@ -316,7 +340,7 @@ public class AppBarTests
                     clicked++;
                 }
             }
-            else if (gui.Button("Search", 100, 36))
+            else if (gui.Button("Search").Width(100).Height(36).Clicked)
             {
                 clicked++;
             }
@@ -379,12 +403,12 @@ public class AppBarTests
         void Embedded(Gui gui)
         {
             using var bar = gui.AppBar(windowControls: false);
-            if (gui.Button("Run", 50, 36))
+            if (gui.Button("Run").Width(50).Height(36).Clicked)
             {
                 runs++;
             }
 
-            if (gui.Button("Off", 50, 36, enabled: false))
+            if (gui.Button("Off", enabled: false).Width(50).Height(36).Clicked)
             {
                 runs++;
             }
@@ -410,7 +434,7 @@ public class AppBarTests
         void Toggle(Gui gui)
         {
             using var bar = gui.AppBar(windowControls: manage, nativeTitlebar: native);
-            if (gui.Button("Decorations", 100, 36))
+            if (gui.Button("Decorations").Width(100).Height(36).Clicked)
             {
                 native = !native;
             }

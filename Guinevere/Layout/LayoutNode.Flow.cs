@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace Guinevere;
 
@@ -52,11 +53,15 @@ public partial class LayoutNode
     /// </summary>
     void PositionAbsoluteChildren(Rect contentRect)
     {
-        if (_absoluteChildCount == 0)
+        if (_absoluteChildCount != 0)
         {
-            return;
+            PlaceAbsoluteChildren(contentRect);
         }
+    }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    void PlaceAbsoluteChildren(Rect contentRect)
+    {
         foreach (var child in ChildNodes)
         {
             if (!child.Style.IsAbsolute)

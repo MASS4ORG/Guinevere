@@ -44,6 +44,10 @@ public sealed record Icon
     /// <summary>The color used when the call site passes no tint; <c>null</c> falls back to the scope text color.</summary>
     public Color? Color { get; init; }
 
+    /// <summary>This icon as widget <see cref="Content"/> with a readable label, such as an icon-only button's name.</summary>
+    /// <param name="label">The label used for semantics and tooltips.</param>
+    public Content Labeled(string label) => ((Content)this).Labeled(label);
+
     /// <summary>A glyph icon.</summary>
     /// <param name="glyph">The glyph text, such as <c>""</c>.</param>
     /// <param name="font">The glyph's font, or <c>null</c> for the scope fallback chain.</param>

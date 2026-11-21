@@ -38,7 +38,7 @@ void DrawTarget()
     using var scope = target.StyledNode("counter-app").Expand().Direction(Axis.Vertical).Padding(24).Enter();
     if (target.Input.IsKeyPressed(KeyboardKey.A)) { nativeInputObserved = true; }
     target.Label($"Counter: {counter}");
-    if (target.Button("Increment", width: 180, height: 40, id: "increment")) { counter++; }
+    if (target.Button("Increment", id: "increment").Width(180).Height(40).Clicked) { counter++; }
     target.SetData(counter, "counter");
     using (target.Node().ExpandWidth().Direction(Axis.Horizontal).Wrap(1).Gap(4).Enter())
     {

@@ -19,7 +19,7 @@ public sealed class PreviewScene
     {
         _domain = domain;
         _outputTitle = outputTitle;
-        _interpreter = new GraphInterpreter(domain.Semantics, null, null);
+        _interpreter = new GraphInterpreter(domain.Semantics);
         Renderer = new PreviewRenderer(domain);
         Sandbox = new SandboxScene(name, canvasId, domain)
         {

@@ -99,15 +99,15 @@ public class GuiTransformTests
         harness.Input.MoveTo(new Vector2(85, 85));
         harness.Frame(Draw);
         mask = Interactions.Click;
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         harness.Frame(Draw);
         mask = Interactions.Hold;
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         harness.Frame(Draw);
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         mask = Interactions.Hover;
         harness.Input.MoveTo(new Vector2(95, 95));
         harness.Frame(Draw);
@@ -265,14 +265,14 @@ public class GuiTransformTests
 
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(85, 85));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         Assert.True(held);
         harness.Input.MoveTo(new Vector2(150, 150));
         harness.Frame(Draw);
         Assert.True(held);
         Assert.Equal(new Vector2(65, 65), delta);
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         harness.Frame(Draw);
         Assert.False(held);
     }

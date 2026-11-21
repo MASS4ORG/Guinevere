@@ -4,7 +4,14 @@ namespace Controls01;
 
 public abstract partial class Program
 {
+    /// <summary>The <c>small</c> button class, sized by the sheet below rather than by a parameter.</summary>
+    static readonly string[] SmallClass = ["small"];
+
     const string Style = """
+                         // button sizes for the whole example
+                         button.small { font-size = 12; }
+                         button.large { font-size = 18; }
+
                          // tokens
                          $bg        = #12151d;
                          $card      = #202634;

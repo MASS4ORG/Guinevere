@@ -28,10 +28,10 @@ public sealed class RecordedInputFrame
         Previous = previous;
         Wheel = wheel;
         Text = text;
-        HeldKeys = Array.AsReadOnly(heldKeys.ToArray());
-        PressedKeys = Array.AsReadOnly(pressedKeys.ToArray());
-        HeldButtons = Array.AsReadOnly(heldButtons.ToArray());
-        PressedButtons = Array.AsReadOnly(pressedButtons.ToArray());
+        HeldKeys = Array.AsReadOnly([.. heldKeys]);
+        PressedKeys = Array.AsReadOnly([.. pressedKeys]);
+        HeldButtons = Array.AsReadOnly([.. heldButtons]);
+        PressedButtons = Array.AsReadOnly([.. pressedButtons]);
         Events = Copy(events);
         Devices = Copy(devices?.Select(CopyDevice));
         Connections = Copy(connections);
@@ -52,10 +52,10 @@ public sealed class RecordedInputFrame
 
     static GameInputDevice CopyDevice(GameInputDevice device) => device with
     {
-        Buttons = Array.AsReadOnly(device.Buttons.ToArray()),
-        Axes = Array.AsReadOnly(device.Axes.ToArray()),
-        Hats = Array.AsReadOnly(device.Hats.ToArray()),
-        TouchpadContacts = Array.AsReadOnly(device.TouchpadContacts.ToArray())
+        Buttons = Array.AsReadOnly([.. device.Buttons]),
+        Axes = Array.AsReadOnly([.. device.Axes]),
+        Hats = Array.AsReadOnly([.. device.Hats]),
+        TouchpadContacts = Array.AsReadOnly([.. device.TouchpadContacts])
     };
 
     /// <summary>Recorded target time delta.</summary>

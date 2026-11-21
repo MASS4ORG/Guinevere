@@ -11,8 +11,11 @@ public sealed class GraphCanvasTests
         using var harness = new FrameHarness();
         var canvas = new GraphCanvas { ShowMinimap = true };
         var items = Enumerable.Range(0, 10000).Select(static i =>
-            new GraphElementView($"tile{i}", GraphElementRole.Node,
-                new GraphBounds(i % 100 * 200, i / 100 * 120, 100, 80), $"Tile {i}")).ToArray();
+        {
+            var row = i / 100;
+            return new GraphElementView($"tile{i}", GraphElementRole.Node,
+                new GraphBounds(i % 100 * 200, row * 120, 100, 80), $"Tile {i}");
+        }).ToArray();
         var build = new Dictionary<string, string>();
         var render = new Dictionary<string, string>();
         LayoutNode? surface = null;
@@ -120,7 +123,7 @@ public sealed class GraphCanvasTests
         Assert.Equal(origin.X - 550 / 1.15, canvas.Camera.Origin.X, 8);
         harness.Input.ReleaseButton(MouseButton.Middle);
         harness.Frame(Draw);
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Input.MoveTo(710, 410);
         harness.Frame(Draw);
         Assert.Equal(origin.X - 550 / 1.15, canvas.Camera.Origin.X, 8);

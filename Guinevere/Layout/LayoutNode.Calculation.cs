@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 /// <summary>
@@ -200,12 +202,20 @@ public partial class LayoutNode
     /// <summary>This node's set width resolved for the space offered; the caller checks a width is set.</summary>
     float OwnWidth(float available, float perpendicular, float expandShare = 0f) => Style.WidthIsFixed
         ? Style.FixedWidth
-        : ResolveWidth(Style.Width!.Value, available, perpendicular, expandShare);
+        : ResolveRelativeWidth(available, perpendicular, expandShare);
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    float ResolveRelativeWidth(float available, float perpendicular, float expandShare) =>
+        ResolveWidth(Style.WidthValue, available, perpendicular, expandShare);
 
     /// <summary>This node's set height resolved for the space offered; the caller checks a height is set.</summary>
     float OwnHeight(float available, float perpendicular, float expandShare = 0f) => Style.HeightIsFixed
         ? Style.FixedHeight
-        : ResolveHeight(Style.Height!.Value, available, perpendicular, expandShare);
+        : ResolveRelativeHeight(available, perpendicular, expandShare);
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    float ResolveRelativeHeight(float available, float perpendicular, float expandShare) =>
+        ResolveHeight(Style.HeightValue, available, perpendicular, expandShare);
 
     float ClampResolvedWidth(float width, float available, float perpendicular, float expandShare)
     {
@@ -219,10 +229,16 @@ public partial class LayoutNode
             return ClampPixels(width, Style.MinWidthPixels, Style.MaxWidthPixels);
         }
 
-        var min = Style.MinWidth is { } minValue
-            ? Math.Max(0f, ResolveWidth(minValue, available, perpendicular, expandShare)) : 0f;
-        var max = Style.MaxWidth is { } maxValue
-            ? Math.Max(0f, ResolveWidth(maxValue, available, perpendicular, expandShare)) : float.MaxValue;
+        return ClampRelativeWidth(width, available, perpendicular, expandShare);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    float ClampRelativeWidth(float width, float available, float perpendicular, float expandShare)
+    {
+        var min = Style.HasMinWidth
+            ? Math.Max(0f, ResolveWidth(Style.MinWidthValue, available, perpendicular, expandShare)) : 0f;
+        var max = Style.HasMaxWidth
+            ? Math.Max(0f, ResolveWidth(Style.MaxWidthValue, available, perpendicular, expandShare)) : float.MaxValue;
         if (!float.IsFinite(min) || !float.IsFinite(max))
         {
             throw new InvalidOperationException($"Width constraint of node '{Id}' resolved to a non-finite value.");
@@ -244,10 +260,16 @@ public partial class LayoutNode
             return ClampPixels(height, Style.MinHeightPixels, Style.MaxHeightPixels);
         }
 
-        var min = Style.MinHeight is { } minValue
-            ? Math.Max(0f, ResolveHeight(minValue, available, perpendicular, expandShare)) : 0f;
-        var max = Style.MaxHeight is { } maxValue
-            ? Math.Max(0f, ResolveHeight(maxValue, available, perpendicular, expandShare)) : float.MaxValue;
+        return ClampRelativeHeight(height, available, perpendicular, expandShare);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    float ClampRelativeHeight(float height, float available, float perpendicular, float expandShare)
+    {
+        var min = Style.HasMinHeight
+            ? Math.Max(0f, ResolveHeight(Style.MinHeightValue, available, perpendicular, expandShare)) : 0f;
+        var max = Style.HasMaxHeight
+            ? Math.Max(0f, ResolveHeight(Style.MaxHeightValue, available, perpendicular, expandShare)) : float.MaxValue;
         if (!float.IsFinite(min) || !float.IsFinite(max))
         {
             throw new InvalidOperationException($"Height constraint of node '{Id}' resolved to a non-finite value.");
@@ -256,7 +278,7 @@ public partial class LayoutNode
         return Math.Min(Math.Max(height, min), Math.Max(max, min));
     }
 
-    float ResolveWidth(Size value, float available, float perpendicular, float expandShare = 0f)
+    float ResolveWidth(in Size value, float available, float perpendicular, float expandShare = 0f)
     {
         var width = value.ResolveBasis(available, perpendicular, expandShare);
         if (value.FitContentContribution != 0f)
@@ -272,7 +294,7 @@ public partial class LayoutNode
         return value.References.IsEmpty ? width : width + ResolveReferences(value, horizontal: true);
     }
 
-    float ResolveHeight(Size value, float available, float perpendicular, float expandShare = 0f)
+    float ResolveHeight(in Size value, float available, float perpendicular, float expandShare = 0f)
     {
         var height = value.ResolveBasis(available, perpendicular, expandShare);
         if (value.FitContentContribution != 0f)

@@ -16,7 +16,7 @@ sealed class GraphNativeAccessibility(IAccessibilityTreeSink sink, IAccessibilit
     public void PublishGraph(GraphElementSemantics semantics)
     {
         var view = semantics.View;
-        sink.PublishElement(new AccessibilityElement(semantics.Id, semantics.ParentId, view.Role.ToString(),
+        sink.PublishElement(new AccessibilityElement(semantics.Id, semantics.ParentId, GraphRoles.For(view.Role),
             view.Name, Description(view), semantics.ScreenBounds, State(semantics), semantics.Virtualized,
             semantics.Actions?.Select(static a => a.ToString()).ToArray(), Scope(semantics),
             view.Role == GraphElementRole.Graph ? null : view.Key,

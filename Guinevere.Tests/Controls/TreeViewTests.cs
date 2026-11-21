@@ -53,7 +53,6 @@ public class TreeViewTests
     const int Width = 400;
     const int Height = 400;
 
-    static readonly TreeViewTheme Theme = new() { RowHeight = 20f };
 
     static IReadOnlyList<TreeItem> Tree(int roots, int childrenPerRoot)
     {
@@ -87,7 +86,7 @@ public class TreeViewTests
 
         for (var frame = 0; frame < frames; frame++)
         {
-            void Draw() => gui.TreeView(state, items, Theme, onClick, onRename: onRename);
+            void Draw() => gui.TreeView(state, items, onClick, onRename: onRename);
 
             gui.Time.Update(0.016);
             gui.SetStage(Pass.Pass1Build);
@@ -179,6 +178,49 @@ public class TreeViewTests
             }
         }
     }
+
+    /// <summary>Without a rule the rows are 20 px apart and the window covers the viewport plus the overscan.</summary>
+    [Fact]
+    public void DefaultRowMetricsAreUnchanged()
+    {
+        var items = Tree(roots: 200, childrenPerRoot: 0);
+        var gui = RunFrames(items, new TreeViewState(), frames: 3);
+
+        Assert.Equal(20f, RectOf(gui, "treeview/row0").H, 1);
+        Assert.Equal(20f, RectOf(gui, "treeview/row1").Y - RectOf(gui, "treeview/row0").Y, 1);
+        Assert.Equal(29, RowNodeCount(gui));
+    }
+
+    /// <summary>A <c>tree-row</c> height from a sheet sets the row pitch and the virtual window.</summary>
+    [Fact]
+    public void SheetRowHeightWinsOverTheDefault()
+    {
+        var items = Tree(roots: 200, childrenPerRoot: 0);
+        var gui = new TestableGui { Input = OffscreenInput() };
+        gui.StyleSheets.Add(StyleSheet.Parse("tree-row { height = 30; }"));
+        RunFrames(items, new TreeViewState(), frames: 3, reuse: gui);
+
+        Assert.Equal(30f, RectOf(gui, "treeview/row0").H, 1);
+        Assert.Equal(30f, RectOf(gui, "treeview/row1").Y - RectOf(gui, "treeview/row0").Y, 1);
+        Assert.Equal(22, RowNodeCount(gui));
+    }
+
+    /// <summary>The indent and expander width come from the sheet too.</summary>
+    [Fact]
+    public void SheetIndentAndExpanderWidthWinOverTheDefaults()
+    {
+        var items = Tree(roots: 1, childrenPerRoot: 1);
+        var state = new TreeViewState();
+        state.SetExpanded("root0", true);
+        var gui = new TestableGui { Input = OffscreenInput() };
+        gui.StyleSheets.Add(StyleSheet.Parse("tree-row { indent = 30; } tree-expander { width = 20; }"));
+        RunFrames(items, state, frames: 3, reuse: gui);
+
+        Assert.Equal(20f, RectOf(gui, "treeview/row1/expander").W, 1);
+        Assert.Equal(30f + 6f, RectOf(gui, "treeview/row1/expander").X - RectOf(gui, "treeview/row1").X, 1);
+    }
+
+    static Rect RectOf(Gui gui, string id) => gui.RootNode!.FindChildById(id)!.Rect;
 
     /// <summary>
     /// A selection made outside the tree — the inspector pinging what a reference points at — scrolls

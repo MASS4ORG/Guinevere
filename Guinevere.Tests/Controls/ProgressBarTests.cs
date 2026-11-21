@@ -68,7 +68,23 @@ public class ProgressBarTests
         float expectedHeight)
     {
         using var harness = new FrameHarness(200, 40);
-        harness.Frame(g => g.ProgressBar(0.5f, width, height, id: "loading"));
+        harness.Frame(g =>
+        {
+            var bar = g.ProgressBar(0.5f, id: "loading");
+            if (width > 0f)
+            {
+                bar.Width(width);
+            }
+            else if (width == 0f)
+            {
+                bar.Width(Size.Expand());
+            }
+
+            if (height is { } h)
+            {
+                bar.Height(h);
+            }
+        });
         var node = Assert.Single(harness.Gui.RootNode!.Children);
         Assert.Equal(expectedWidth, node.Rect.W);
         Assert.Equal(expectedHeight, node.Rect.H);
@@ -89,7 +105,7 @@ public class ProgressBarTests
         {
             g.DrawBackgroundRect(Color.White);
             g.SetStyleToken("fill", Color.Red);
-            g.ProgressBar(0.5f, width: 200, classes: ["custom"], id: "loading");
+            g.ProgressBar(0.5f, classes: ["custom"], id: "loading").Width(200);
         });
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);
@@ -112,7 +128,7 @@ public class ProgressBarTests
             """));
         for (var i = 0; i < 30; i++)
         {
-            harness.Frame(static g => g.ProgressBar(null, width: 200));
+            harness.Frame(static g => g.ProgressBar(null).Width(200));
         }
 
         using var image = harness.Snapshot();
@@ -126,9 +142,9 @@ public class ProgressBarTests
     public void OnlyIndeterminateProgressRequestsFrames()
     {
         using var harness = new FrameHarness(200, 40);
-        harness.Frame(static g => g.ProgressBar(0.5f, width: 200));
+        harness.Frame(static g => g.ProgressBar(0.5f).Width(200));
         Assert.Equal(double.PositiveInfinity, harness.Gui.FrameWaitSeconds);
-        harness.Frame(static g => g.ProgressBar(null, width: 200));
+        harness.Frame(static g => g.ProgressBar(null).Width(200));
         Assert.Equal(0, harness.Gui.FrameWaitSeconds);
     }
 
@@ -144,7 +160,7 @@ public class ProgressBarTests
             g.DrawBackgroundRect(Color.White);
             using (g.Node().Width(Size.Pixels(parentWidth)).Height(20).Enter())
             {
-                g.ProgressBar(fraction, width: -1);
+                g.ProgressBar(fraction);
             }
         });
         using var image = harness.Snapshot();

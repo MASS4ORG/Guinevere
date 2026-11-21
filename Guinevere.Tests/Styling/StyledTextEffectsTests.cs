@@ -138,8 +138,8 @@ public class StyledTextEffectsTests
     {
         using var harness = new FrameHarness(240, 80);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse(
-            ".shadow { text-shadow = 18 0 0 #ff0000, 18 0 0 #0000ff; }"));
-        harness.Frame(static gui => gui.Label("Styled", fontSize: 28, classes: ["shadow"]));
+            ".shadow { text-shadow = 18 0 0 #ff0000, 18 0 0 #0000ff; } .large { font-size = 28; }"));
+        harness.Frame(static gui => gui.Label("Styled", classes: ["shadow", "large"]));
 
         using var image = harness.Snapshot();
         using var pixels = SKBitmap.FromImage(image);

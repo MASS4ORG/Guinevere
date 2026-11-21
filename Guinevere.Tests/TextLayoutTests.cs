@@ -66,7 +66,7 @@ public class TextLayoutTests
     [Fact]
     public void OffsetAtReturnsEachCharacterFromItsCaretPosition()
     {
-        var layout = Layout("Hello world", 0);
+        var layout = Layout("Hello world");
 
         for (var offset = 0; offset <= 11; offset++)
         {
@@ -161,7 +161,7 @@ public class TextLayoutTests
     [InlineData(TextAlignment.End, 1f)]
     public void AlignmentOffsetsShorterLines(TextAlignment alignment, float factor)
     {
-        var layout = Layout("a\nlonger line", 0, alignment: alignment);
+        var layout = Layout("a\nlonger line", alignment: alignment);
 
         var first = layout.Lines[0];
         Assert.Equal((layout.Width - first.Width) * factor, first.X, 3);

@@ -64,8 +64,8 @@ public abstract class Program
             .SolidColor(fill)
             .LinearGradientColor(red ? new Color(0xFF1038FF) : new Color(0x367BFFFF),
                 red ? new Color(0x9B0000FF) : new Color(0x1230A0FF), 45, 1.3f)
-            .InnerShadow(light, new Vector2(9, 9), 10, 0)
-            .InnerShadow(dark, new Vector2(-8, -8), 16, 0)
+            .InnerShadow(light, new Vector2(9, 9), 10)
+            .InnerShadow(dark, new Vector2(-8, -8), 16)
             .OuterShadow(new Color(0x000000CC), new Vector2(0, 3), 4, 2);
 
         gui.DrawText(frame.Text, 20).Width(700).Absolute(center.X - 350, center.Y + 245);

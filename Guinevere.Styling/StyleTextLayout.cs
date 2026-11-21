@@ -52,7 +52,7 @@ struct StyleTextLayout(TextLayoutOptions options)
         {
             if (Alignments.TryGetValue(v, out var align))
             {
-                Set(ref d.Alignment, (TextAlignment?)align, ref d.Changed);
+                Set(ref d.Alignment, align, ref d.Changed);
             }
         },
         ["text-align-last"] = static (ref d, v) =>

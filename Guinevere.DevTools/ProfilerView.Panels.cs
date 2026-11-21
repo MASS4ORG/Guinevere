@@ -31,7 +31,7 @@ public sealed partial class ProfilerView
 
     void ToolButton(string label, string command, bool enabled = true)
     {
-        if (Gui.Button(label, enabled: enabled, id: $"profiler:{command}"))
+        if (Gui.Button(label, enabled, id: $"profiler:{command}"))
         {
             Command(command);
         }

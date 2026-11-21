@@ -145,8 +145,8 @@ sealed partial class AtSpiConnection : IDisposable
         Marshal.WriteIntPtr(_vtable, Marshal.GetFunctionPointerForDelegate(_method));
         Marshal.WriteIntPtr(_vtable, IntPtr.Size, Marshal.GetFunctionPointerForDelegate(_property));
         Marshal.WriteIntPtr(_vtable, IntPtr.Size * 2, Marshal.GetFunctionPointerForDelegate(_setProperty));
-        _elements[Root] = new("root", null, "Application", _title, "", default, ControlVisualState.None, Actions: []);
-        _elements[Window] = new("window", "root", "Window", _title, "", default, ControlVisualState.None, Actions: []);
+        _elements[Root] = new("root", null, ControlRole.Application, _title, "", default, ControlVisualState.None, Actions: []);
+        _elements[Window] = new("window", "root", ControlRole.Window, _title, "", default, ControlVisualState.None, Actions: []);
         BuildChildren();
         Register(Root, true);
         Register(Window, false);

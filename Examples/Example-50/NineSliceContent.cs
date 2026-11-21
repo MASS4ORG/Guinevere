@@ -28,7 +28,7 @@ public abstract partial class Program
                 gui.NumberField(ref _sliceWidth, min: 1, max: 400, id: "slice-width");
                 gui.DrawText("Destination height", color: Token(gui, "text"));
                 gui.NumberField(ref _sliceHeight, min: 1, max: 240, id: "slice-height");
-                _sliceGuides = gui.Checkbox(_sliceGuides, "Show destination guides");
+                gui.Checkbox(ref _sliceGuides, "Show destination guides");
                 // Destination dimensions stay identical in both passes when a numeric field commits during rendering.
                 ref var size = ref gui.GetData((Width: 0f, Height: 0f), id: "slice-preview-size");
                 if (gui.Pass == Pass.Pass1Build)
@@ -36,14 +36,17 @@ public abstract partial class Program
                     (size.Width, size.Height) = ((float)_sliceWidth, (float)_sliceHeight);
                 }
 
-                gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, size.Width, size.Height, _sliceGuides,
-                    id: "slice-live");
+                gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, _sliceGuides, id: "slice-live")
+                    .Width(size.Width).Height(size.Height);
                 gui.DrawText("Wide, tall and smaller than the corner sum", 14, Token(gui, "text"));
                 using (gui.Node().Direction(Axis.Horizontal).Gap(12).Enter())
                 {
-                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, 180, 40, _sliceGuides, "slice-wide");
-                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, 40, 120, _sliceGuides, "slice-tall");
-                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, 12, 12, _sliceGuides, "slice-small");
+                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, _sliceGuides, "slice-wide")
+                        .Width(180).Height(40);
+                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, _sliceGuides, "slice-tall")
+                        .Width(40).Height(120);
+                    gui.NineSlicePreview(SliceTexture.Value, _sliceBorder, _sliceGuides, "slice-small")
+                        .Width(12).Height(12);
                 }
             }
         }

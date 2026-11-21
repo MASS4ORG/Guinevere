@@ -40,7 +40,7 @@ public sealed class RenderEffectStack : IDisposable
         {
             ArgumentNullException.ThrowIfNull(effect);
         }
-        _effects = effects.ToArray();
+        _effects = [.. effects];
         Release();
     }
 

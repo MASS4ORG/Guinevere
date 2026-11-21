@@ -223,7 +223,7 @@ public sealed class GraphDocumentViewTests
         var semantics = Substitute.For<IControlSemanticsSink>();
         harness.Gui.ControlSemantics = semantics;
         var playground = new GraphPlayground();
-        Action<Gui> draw = playground.Draw;
+        var draw = playground.Draw;
         harness.Frame(draw);
         harness.Frame(draw);
         harness.Gui.Focus.RequestFocus("sandbox-canvas");

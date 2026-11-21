@@ -64,7 +64,7 @@ public class TextInputSelectionTests
 
             var text = Text;
 
-            void Draw() => _gui.TextInput(ref text, width: 280, height: 24, fontSize: 12, id: _id);
+            void Draw() => _gui.TextInput(ref text, id: _id).Width(280).Height(24);
 
             _gui.Time.Update(0.016);
             _gui.SetStage(Pass.Pass1Build);
@@ -289,8 +289,7 @@ public class TextInputSelectionTests
             input.IsKeyPressed(Arg.Any<KeyboardKey>()).Returns(false);
             input.IsKeyDown(Arg.Any<KeyboardKey>()).Returns(false);
 
-            void Draw() => gui.TextInput(ref text, width: 280, height: 24, fontSize: 12,
-                enabled: false, id: id);
+            void Draw() => gui.TextInput(ref text, enabled: false, id: id).Width(280).Height(24);
 
             gui.Time.Update(0.016);
             gui.SetStage(Pass.Pass1Build);

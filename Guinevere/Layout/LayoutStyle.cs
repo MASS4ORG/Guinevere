@@ -6,125 +6,127 @@ namespace Guinevere;
 /// </summary>
 /// <remarks>
 /// Setters keep a mask of which values are set and which need a basis, so layout can test the common pixel-only
-/// case with one read instead of copying each <see cref="Size"/>.
+/// case with one read instead of copying each <see cref="Size"/>. Values are stored compactly (see
+/// <c>LayoutStyle.Storage.cs</c>), because every node carries one.
 /// </remarks>
 public partial struct LayoutStyle
 {
-    Size _width, _height, _minWidth, _maxWidth, _minHeight, _maxHeight, _alignSelf;
-    Size _gap, _marginTop, _marginRight, _marginBottom, _marginLeft;
-    Size _paddingTop, _paddingRight, _paddingBottom, _paddingLeft;
+    SlotFloats _pixels;
+    SlotFloats _terms;
+    ulong _kinds;
+    Size[]? _complex;
     StyleFlags _flags;
 
     /// <summary>The width; null sizes to content along the parent's flow and stretches across it.</summary>
     public Size? Width
     {
-        readonly get => Get(_width, StyleFlags.WidthSet);
-        set => SetOptional(ref _width, value, StyleFlags.WidthSet, StyleFlags.WidthRelative);
+        readonly get => Get(WidthSlot, StyleFlags.WidthSet);
+        set => SetOptional(WidthSlot, value, StyleFlags.WidthSet, StyleFlags.WidthRelative);
     }
 
     /// <summary>The height; null sizes to content along the parent's flow and stretches across it.</summary>
     public Size? Height
     {
-        readonly get => Get(_height, StyleFlags.HeightSet);
-        set => SetOptional(ref _height, value, StyleFlags.HeightSet, StyleFlags.HeightRelative);
+        readonly get => Get(HeightSlot, StyleFlags.HeightSet);
+        set => SetOptional(HeightSlot, value, StyleFlags.HeightSet, StyleFlags.HeightRelative);
     }
 
     /// <summary>Lower bound on the resolved width, or null for none.</summary>
     public Size? MinWidth
     {
-        readonly get => Get(_minWidth, StyleFlags.MinWidthSet);
-        set => SetOptional(ref _minWidth, value, StyleFlags.MinWidthSet, StyleFlags.MinWidthRelative);
+        readonly get => Get(MinWidthSlot, StyleFlags.MinWidthSet);
+        set => SetOptional(MinWidthSlot, value, StyleFlags.MinWidthSet, StyleFlags.MinWidthRelative);
     }
 
     /// <summary>Upper bound on the resolved width, or null for none.</summary>
     public Size? MaxWidth
     {
-        readonly get => Get(_maxWidth, StyleFlags.MaxWidthSet);
-        set => SetOptional(ref _maxWidth, value, StyleFlags.MaxWidthSet, StyleFlags.MaxWidthRelative);
+        readonly get => Get(MaxWidthSlot, StyleFlags.MaxWidthSet);
+        set => SetOptional(MaxWidthSlot, value, StyleFlags.MaxWidthSet, StyleFlags.MaxWidthRelative);
     }
 
     /// <summary>Lower bound on the resolved height, or null for none.</summary>
     public Size? MinHeight
     {
-        readonly get => Get(_minHeight, StyleFlags.MinHeightSet);
-        set => SetOptional(ref _minHeight, value, StyleFlags.MinHeightSet, StyleFlags.MinHeightRelative);
+        readonly get => Get(MinHeightSlot, StyleFlags.MinHeightSet);
+        set => SetOptional(MinHeightSlot, value, StyleFlags.MinHeightSet, StyleFlags.MinHeightRelative);
     }
 
     /// <summary>Upper bound on the resolved height, or null for none.</summary>
     public Size? MaxHeight
     {
-        readonly get => Get(_maxHeight, StyleFlags.MaxHeightSet);
-        set => SetOptional(ref _maxHeight, value, StyleFlags.MaxHeightSet, StyleFlags.MaxHeightRelative);
+        readonly get => Get(MaxHeightSlot, StyleFlags.MaxHeightSet);
+        set => SetOptional(MaxHeightSlot, value, StyleFlags.MaxHeightSet, StyleFlags.MaxHeightRelative);
     }
 
     /// <summary>This node's placement across its parent's flow, overriding the parent's content alignment.</summary>
     public Size? AlignSelf
     {
-        readonly get => Get(_alignSelf, StyleFlags.AlignSelfSet);
-        set => SetOptional(ref _alignSelf, value, StyleFlags.AlignSelfSet, StyleFlags.None);
+        readonly get => Get(AlignSelfSlot, StyleFlags.AlignSelfSet);
+        set => SetOptional(AlignSelfSlot, value, StyleFlags.AlignSelfSet, StyleFlags.None);
     }
 
     /// <summary>Space between adjacent children; percentages use this node's content box on the flow axis.</summary>
     public Size Gap
     {
-        readonly get => _gap;
-        set => Set(ref _gap, value, StyleFlags.GapRelative);
+        readonly get => Read(GapSlot);
+        set => Set(GapSlot, value, StyleFlags.GapRelative);
     }
 
     /// <summary>Space above the node; percentages use the parent's content height.</summary>
     public Size MarginTop
     {
-        readonly get => _marginTop;
-        set => Set(ref _marginTop, value, StyleFlags.MarginTopRelative);
+        readonly get => Read(MarginTopSlot);
+        set => Set(MarginTopSlot, value, StyleFlags.MarginTopRelative);
     }
 
     /// <summary>Space right of the node; percentages use the parent's content width.</summary>
     public Size MarginRight
     {
-        readonly get => _marginRight;
-        set => Set(ref _marginRight, value, StyleFlags.MarginRightRelative);
+        readonly get => Read(MarginRightSlot);
+        set => Set(MarginRightSlot, value, StyleFlags.MarginRightRelative);
     }
 
     /// <summary>Space below the node; percentages use the parent's content height.</summary>
     public Size MarginBottom
     {
-        readonly get => _marginBottom;
-        set => Set(ref _marginBottom, value, StyleFlags.MarginBottomRelative);
+        readonly get => Read(MarginBottomSlot);
+        set => Set(MarginBottomSlot, value, StyleFlags.MarginBottomRelative);
     }
 
     /// <summary>Space left of the node; percentages use the parent's content width.</summary>
     public Size MarginLeft
     {
-        readonly get => _marginLeft;
-        set => Set(ref _marginLeft, value, StyleFlags.MarginLeftRelative);
+        readonly get => Read(MarginLeftSlot);
+        set => Set(MarginLeftSlot, value, StyleFlags.MarginLeftRelative);
     }
 
     /// <summary>Space inside the top edge; percentages use the parent's content height.</summary>
     public Size PaddingTop
     {
-        readonly get => _paddingTop;
-        set => Set(ref _paddingTop, value, StyleFlags.PaddingTopRelative);
+        readonly get => Read(PaddingTopSlot);
+        set => Set(PaddingTopSlot, value, StyleFlags.PaddingTopRelative);
     }
 
     /// <summary>Space inside the right edge; percentages use the parent's content width.</summary>
     public Size PaddingRight
     {
-        readonly get => _paddingRight;
-        set => Set(ref _paddingRight, value, StyleFlags.PaddingRightRelative);
+        readonly get => Read(PaddingRightSlot);
+        set => Set(PaddingRightSlot, value, StyleFlags.PaddingRightRelative);
     }
 
     /// <summary>Space inside the bottom edge; percentages use the parent's content height.</summary>
     public Size PaddingBottom
     {
-        readonly get => _paddingBottom;
-        set => Set(ref _paddingBottom, value, StyleFlags.PaddingBottomRelative);
+        readonly get => Read(PaddingBottomSlot);
+        set => Set(PaddingBottomSlot, value, StyleFlags.PaddingBottomRelative);
     }
 
     /// <summary>Space inside the left edge; percentages use the parent's content width.</summary>
     public Size PaddingLeft
     {
-        readonly get => _paddingLeft;
-        set => Set(ref _paddingLeft, value, StyleFlags.PaddingLeftRelative);
+        readonly get => Read(PaddingLeftSlot);
+        set => Set(PaddingLeftSlot, value, StyleFlags.PaddingLeftRelative);
     }
 
     /// <summary>Whether the margins were set per side rather than uniformly.</summary>
@@ -132,10 +134,18 @@ public partial struct LayoutStyle
     public bool HasSpecificMargins { get; set; }
 
     /// <summary>Horizontal placement of the children in the free space: percentage of it plus a pixel offset.</summary>
-    public Size AlignContentHorizontal { get; set; }
+    public Size AlignContentHorizontal
+    {
+        readonly get => Read(AlignContentXSlot);
+        set => Write(AlignContentXSlot, value);
+    }
 
     /// <summary>Vertical placement of the children in the free space: percentage of it plus a pixel offset.</summary>
-    public Size AlignContentVertical { get; set; }
+    public Size AlignContentVertical
+    {
+        readonly get => Read(AlignContentYSlot);
+        set => Write(AlignContentYSlot, value);
+    }
 
     /// <summary>How free space along the flow axis is distributed between children.</summary>
     public SpacingTypes Spacing { get; set; }
@@ -154,10 +164,18 @@ public partial struct LayoutStyle
     public bool IsAbsolute { get; set; }
 
     /// <summary>Horizontal offset of an absolute node in <see cref="AbsoluteOrigin"/> space.</summary>
-    public Size AbsoluteX { get; set; }
+    public Size AbsoluteX
+    {
+        readonly get => Read(AbsoluteXSlot);
+        set => Write(AbsoluteXSlot, value);
+    }
 
     /// <summary>Vertical offset of an absolute node in <see cref="AbsoluteOrigin"/> space.</summary>
-    public Size AbsoluteY { get; set; }
+    public Size AbsoluteY
+    {
+        readonly get => Read(AbsoluteYSlot);
+        set => Write(AbsoluteYSlot, value);
+    }
 
     /// <summary>The coordinate space the absolute offsets are expressed in.</summary>
     public AbsoluteOrigin AbsoluteOrigin { get; set; }
@@ -172,10 +190,10 @@ public partial struct LayoutStyle
     public static LayoutStyle Default => new() { Direction = Axis.Vertical, AbsoluteOrigin = AbsoluteOrigin.Parent };
 
     /// <summary>Whether the width takes a share of the remaining space.</summary>
-    public readonly bool ExpandsWidth => Has(StyleFlags.WidthRelative) && _width.ExpandContribution != 0f;
+    public readonly bool ExpandsWidth => Has(StyleFlags.WidthRelative) && !IsZeroTerm(Expand(WidthSlot));
 
     /// <summary>Whether the height takes a share of the remaining space.</summary>
-    public readonly bool ExpandsHeight => Has(StyleFlags.HeightRelative) && _height.ExpandContribution != 0f;
+    public readonly bool ExpandsHeight => Has(StyleFlags.HeightRelative) && !IsZeroTerm(Expand(HeightSlot));
 
     /// <summary>The content alignment along <paramref name="direction"/>.</summary>
     /// <param name="direction">The layout direction.</param>
@@ -189,19 +207,19 @@ public partial struct LayoutStyle
 
     readonly bool Has(StyleFlags flag) => (_flags & flag) != 0;
 
-    readonly Size? Get(in Size value, StyleFlags set) => Has(set) ? value : null;
+    readonly Size? Get(int slot, StyleFlags set) => Has(set) ? Read(slot) : null;
 
-    void SetOptional(ref Size field, Size? value, StyleFlags set, StyleFlags relative)
+    void SetOptional(int slot, Size? value, StyleFlags set, StyleFlags relative)
     {
-        field = value.GetValueOrDefault();
+        Write(slot, value.GetValueOrDefault());
         _flags = value is { } size
             ? (_flags | set) & ~relative | (size.IsPixelsOnly ? StyleFlags.None : relative)
             : _flags & ~(set | relative);
     }
 
-    void Set(ref Size field, Size value, StyleFlags relative)
+    void Set(int slot, Size value, StyleFlags relative)
     {
-        field = value;
+        Write(slot, value);
         _flags = value.IsPixelsOnly ? _flags & ~relative : _flags | relative;
     }
 }

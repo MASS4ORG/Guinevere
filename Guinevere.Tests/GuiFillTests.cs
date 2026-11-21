@@ -264,7 +264,7 @@ public class GuiFillTests
         using var pixels = Render(static gui =>
         {
             gui.DrawFill(new Rect(0, 0, 0, 10), 1);
-            gui.DrawFill(new Rect(0, 0, 10, 0), 1);
+            gui.DrawFill(new Rect(0, 0, 10), 1);
             gui.DrawFill(new Rect(10, 10, 80, 80), 1,
                 new FillOptions { Kind = FillKind.Radial, SweepAngle = 0 });
             gui.DrawFill(new Rect(20, 20, 60, 60), 1, new FillOptions { Kind = FillKind.Radial });

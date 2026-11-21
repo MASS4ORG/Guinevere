@@ -16,7 +16,7 @@ public class FlyoutTests
             .Item("Open", () => _ran.Add("Open"), shortcut: "Ctrl+O")
             .Separator()
             .Submenu("More", sub => sub.Item("Nested"))
-            .Item("Off", () => _ran.Add("Off"), enabled: false), itemHeight: ItemHeight);
+            .Item("Off", () => _ran.Add("Off"), enabled: false));
 
     static Vector2 Row(int index) => new(Origin.X + 30, Origin.Y + ItemHeight * (index + 0.5f));
 

@@ -19,9 +19,10 @@ public sealed class MultiDropdownTests
 
         internal void Draw(Gui gui)
         {
-            var result = gui.MultiDropdown(Options, Selected, comparer: Comparer, width: 220, height: 24,
+            gui.MultiDropdown(Options, Selected, out var result, comparer: Comparer,
                 maxVisibleItems: 4, enabled: Enabled, chips: Chips, mixed: Mixed,
-                isMixed: option => Mixed && option == "Alpha", filePath: "multi", lineNumber: 0);
+                isMixed: option => Mixed && option == "Alpha", filePath: "multi", lineNumber: 0)
+                .Width(220).Height(24);
             if (result.Changed)
             {
                 Selected = result.Selected;
@@ -280,8 +281,8 @@ public sealed class MultiDropdownTests
             using (gui.Node(120, 24, "panel").AbsoluteScreen(250, 270).Enter())
             {
                 gui.ClipContent();
-                var result = gui.MultiDropdown(["Alpha", "Beta"], selected, width: 120, height: 24,
-                    filePath: "edge", lineNumber: 0);
+                gui.MultiDropdown(["Alpha", "Beta"], selected, out var result, filePath: "edge", lineNumber: 0)
+                    .Width(120).Height(24);
                 if (result.Changed)
                 {
                     selected = result.Selected;

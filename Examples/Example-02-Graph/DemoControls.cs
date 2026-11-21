@@ -13,16 +13,11 @@ public static class DemoControls
     /// <summary>Draws a labeled Excalibur action, using an icon and tooltip for common commands.</summary>
     public static bool Button(Gui gui, string label, string id)
     {
-        using var host = gui.Node().Width(Size.Fit).Height(28).Enter();
-        var clicked = DemoIcons.Actions.TryGetValue(label, out var icon)
-            ? gui.IconButton(icon, label, size: 28, id: id)
-            : gui.Button(label, height: 28, id: id);
-        if (icon is null)
-        {
-            Publish(gui, id, label, null, ControlRole.Button);
-        }
-        gui.Tooltip(gui.CurrentNode, label);
-        return clicked;
+        var button = DemoIcons.Actions.TryGetValue(label, out var icon)
+            ? gui.Button(icon.Labeled(label), id: id).Width(28)
+            : gui.Button(label, id: id);
+        gui.Tooltip(button.Height(28), label);
+        return button.Clicked;
     }
 
     /// <summary>Draws an Excalibur text field with a stable readable label and optional application keys.</summary>
@@ -34,7 +29,7 @@ public static class DemoControls
         {
             gui.CurrentNode.On(onKey);
         }
-        gui.TextInput(ref text, width: width, height: 28, placeholder: label, id: id);
+        gui.TextInput(ref text, placeholder: label, id: id).Width(width).Height(28);
         Publish(gui, id, label, text, ControlRole.TextInput);
     }
 

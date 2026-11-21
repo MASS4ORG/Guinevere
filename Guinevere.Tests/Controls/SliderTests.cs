@@ -42,7 +42,7 @@ public class SliderTests
 
             var value = Value;
 
-            void Draw() => _gui.Slider(ref value, 0f, 10f, step: step, width: 300, height: 30, enabled: enabled);
+            void Draw() => _gui.Slider(ref value, 0f, 10f, step: step, enabled: enabled).Width(300).Height(30);
 
             _gui.Time.Update(0.016);
             _gui.SetStage(Pass.Pass1Build);
@@ -144,7 +144,7 @@ public class SliderTests
         harness.Frame(g =>
         {
             g.DrawBackgroundRect(Color.White);
-            g.Slider(ref value, 0, 1, width: 200, height: 40, classes: ["custom"], id: "volume");
+            g.Slider(ref value, 0, 1, classes: ["custom"], id: "volume").Width(200).Height(40);
         });
         var node = Assert.Single(harness.Gui.RootNode!.Children);
         Assert.Equal(new Rect(0, 0, 200, 40), node.Rect);
@@ -166,7 +166,7 @@ public class SliderTests
         void Draw(Gui g)
         {
             g.DrawBackgroundRect(Color.White);
-            g.Slider(ref value, 0, 1, width: 200, height: 40, id: "volume");
+            g.Slider(ref value, 0, 1, id: "volume").Width(200).Height(40);
         }
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(150, 20));
@@ -195,7 +195,7 @@ public class SliderTests
         void Draw(Gui g)
         {
             g.DrawBackgroundRect(Color.White);
-            g.Slider(ref value, 0, 1, width: 200, height: 40, enabled: enabled, id: "volume");
+            g.Slider(ref value, 0, 1, enabled: enabled, id: "volume").Width(200).Height(40);
         }
         SKColor Pixel(int x)
         {
@@ -231,7 +231,7 @@ public class SliderTests
     {
         using var harness = new FrameHarness(200, 40);
         var value = 5f;
-        void Draw(Gui g) => g.Slider(ref value, min, max, width: 200, height: 40, step: 0.5f, id: "volume");
+        void Draw(Gui g) => g.Slider(ref value, min, max, step: 0.5f, id: "volume").Width(200).Height(40);
         harness.Frame(Draw);
         harness.Click(Draw, new Vector2(100, 20));
         harness.Input.PressKey(key);
@@ -246,7 +246,7 @@ public class SliderTests
         using var harness = new FrameHarness(200, 40);
         var value = 0.5f;
         var enabled = true;
-        void Draw(Gui g) => g.Slider(ref value, 0, 1, width: 200, height: 40, enabled: enabled, id: "volume");
+        void Draw(Gui g) => g.Slider(ref value, 0, 1, enabled: enabled, id: "volume").Width(200).Height(40);
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(100, 20));
         harness.Input.PressButton();
@@ -259,16 +259,14 @@ public class SliderTests
         Assert.Equal(0.5f, value);
     }
 
-    /// <summary>Value labels inherit stylesheet typography and allow an explicit font size.</summary>
-    [Theory]
-    [InlineData(null)]
-    [InlineData(16f)]
-    public void ValueLabelUsesTheScopeFont(float? fontSize)
+    /// <summary>Value labels inherit stylesheet typography.</summary>
+    [Fact]
+    public void ValueLabelUsesTheScopeFont()
     {
         using var harness = new FrameHarness(300, 60);
         harness.Gui.StyleSheets.Add(StyleSheet.Parse("slider { font-size = 22; gap = 12; }"));
         var value = 2.5f;
-        harness.Frame(g => g.Slider(ref value, 0, 10, showValue: true, fontSize: fontSize));
+        harness.Frame(g => g.Slider(ref value, 0, 10, showValue: true));
         var node = Assert.Single(harness.Gui.RootNode!.Children);
         Assert.Equal(22f, node.Scope.Get<LayoutNodeScopeTextSize>().Value);
         Assert.Equal(12f, node.Style.Gap);

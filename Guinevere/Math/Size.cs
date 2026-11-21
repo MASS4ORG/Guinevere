@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Guinevere;
@@ -15,7 +16,7 @@ public readonly struct Size : IEquatable<Size>
     /// <summary>Creates a pixel distance.</summary>
     public Size(float pixels) : this(pixels, 0f, 0f, 0f, 0f, 0f, null) { }
 
-    Size(float pixels, float percentage, float ratio, float expand, float fitContent, float fitLargest,
+    internal Size(float pixels, float percentage, float ratio, float expand, float fitContent, float fitLargest,
         NodeReference[]? references)
     {
         PixelsContribution = pixels;
@@ -25,6 +26,22 @@ public readonly struct Size : IEquatable<Size>
         FitContentContribution = fitContent;
         FitLargestContribution = fitLargest;
         _references = references;
+    }
+
+    /// <summary>
+    /// Creates a value from compact storage: <paramref name="term"/> goes to the contribution numbered
+    /// <paramref name="termIndex"/> (1 percentage, 2 ratio, 3 expand, 4 fit content, 5 fit largest), or nowhere for 0.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal Size(float pixels, int termIndex, float term)
+    {
+        PixelsContribution = pixels;
+        PercentageContribution = termIndex == 1 ? term : 0f;
+        RatioContribution = termIndex == 2 ? term : 0f;
+        ExpandContribution = termIndex == 3 ? term : 0f;
+        FitContentContribution = termIndex == 4 ? term : 0f;
+        FitLargestContribution = termIndex == 5 ? term : 0f;
+        _references = null;
     }
 
     /// <summary>Weighted absolute-pixel contribution.</summary>

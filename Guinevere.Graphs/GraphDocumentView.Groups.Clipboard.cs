@@ -49,7 +49,7 @@ public sealed partial class GraphDocumentView
         }
         else
         {
-            layout["collapsed"] = new JsonArray(collapsed.Select(static id => (JsonNode)JsonValue.Create(id.ToString())!).ToArray());
+            layout["collapsed"] = new JsonArray(collapsed.Select(static id => (JsonNode)JsonValue.Create(id.ToString())).ToArray());
         }
     }
 

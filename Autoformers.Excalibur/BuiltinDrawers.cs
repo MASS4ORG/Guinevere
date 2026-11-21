@@ -36,12 +36,15 @@ static class BuiltinDrawers
     static void DrawBool(Gui gui, FormField field)
     {
         // Checkbox builds its own nodes, so it runs in both passes; only the render pass writes.
-        var current = !field.HasMixedValue && field.GetValue() is true;
-        var next = gui.Checkbox(current, size: new FormStyle(gui).FontSize + 2f, mixed: field.HasMixedValue);
-
-        if (gui.Pass == Pass.Pass2Render && next != current)
+        var value = !field.HasMixedValue && field.GetValue() is true;
+        var indicator = new FormStyle(gui).FontSize + 2f;
+        using (gui.Node(Size.FitContent(), Size.FitContent()).Enter())
         {
-            field.SetValue(next);
+            gui.CurrentNodeScope.Set(ControlStyles.Value<ControlIndicatorSize, float>(indicator));
+            if (gui.Checkbox(ref value, mixed: field.HasMixedValue))
+            {
+                field.SetValue(value);
+            }
         }
     }
 
@@ -49,11 +52,19 @@ static class BuiltinDrawers
     {
         var style = new FormStyle(gui);
         var current = field.HasMixedValue ? string.Empty : field.GetValue() as string ?? string.Empty;
-        var next = field.Attribute<TextAreaAttribute>() is { } area
-            ? gui.TextArea(current, width: 0, height: TextAreaHeight(gui, current, area), fontSize: style.FontSize,
-                padding: 4, id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "")
-            : gui.TextInput(current, width: 0, height: style.RowHeight, fontSize: style.FontSize,
-                padding: 4, id: $"{id}/text", placeholder: field.HasMixedValue ? "—" : "");
+        var next = current;
+        var placeholder = field.HasMixedValue ? "—" : "";
+        gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFontSize, float>(style.FontSize));
+        if (field.Attribute<TextAreaAttribute>() is { } area)
+        {
+            gui.TextArea(ref next, placeholder, id: $"{id}/text").Width(Size.Expand())
+                .Height(TextAreaHeight(gui, current, area)).Padding(4);
+        }
+        else
+        {
+            gui.TextInput(ref next, placeholder, id: $"{id}/text").Width(Size.Expand()).Height(style.RowHeight)
+                .Padding(4);
+        }
 
         if (!string.Equals(next, current, StringComparison.Ordinal))
         {
@@ -92,7 +103,7 @@ static class BuiltinDrawers
         var presentation = field.Attribute<EnumButtonsAttribute>() is not null
             ? EnumPresentation.ToggleButtons
             : field.Attribute<EnumPagingAttribute>() is not null ? EnumPresentation.Paging : EnumPresentation.Dropdown;
-        string Display(Enum option)
+        Content Display(Enum option)
         {
             var index = Array.IndexOf(metadata.Names, option.ToString());
             return index >= 0 ? labels[index]
@@ -106,9 +117,9 @@ static class BuiltinDrawers
                 && EnumSelection.Contains(own, option) != first);
         }
 
-        gui.EnumDropdown(current, out var changes, presentation, Display, width: 0,
-            height: style.RowHeight, fontSize: style.FontSize, mixed: field.HasMixedValue,
-            isMixed: Mixed, filePath: $"{id}/enum");
+        gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFontSize, float>(style.FontSize));
+        gui.EnumDropdown(current, out _, out var changes, presentation, Display, mixed: field.HasMixedValue,
+            isMixed: Mixed, id: $"{id}/enum").Width(Size.Expand()).Height(style.RowHeight);
         ApplyEnumChanges(field, changes, presentation);
     }
 

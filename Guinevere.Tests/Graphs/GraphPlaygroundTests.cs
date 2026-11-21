@@ -39,7 +39,7 @@ public sealed class GraphPlaygroundTests
     {
         using var harness = new FrameHarness(1000, 700);
         var scene = new GraphPlayground();
-        Action<Gui> draw = scene.Draw;
+        var draw = scene.Draw;
         harness.Frame(draw);
         harness.Frame(draw);
         Focus(harness, draw, "add-node");
@@ -83,7 +83,7 @@ public sealed class GraphPlaygroundTests
         var scene = new GraphPlayground();
         scene.Sandbox.Canvas.ShowMinimap = false;
         scene.Sandbox.Canvas.Camera.SetView(default, zoom);
-        Action<Gui> draw = scene.Draw;
+        var draw = scene.Draw;
         harness.Frame(draw);
         harness.Frame(draw);
         var first = scene.Sandbox.Nodes[0];
@@ -123,7 +123,7 @@ public sealed class GraphPlaygroundTests
     {
         using var harness = new FrameHarness(1000, 700);
         var scene = new GraphPlayground();
-        Action<Gui> draw = scene.Draw;
+        var draw = scene.Draw;
         harness.Frame(draw);
         harness.Frame(draw);
         var cards = scene.Sandbox.Nodes;

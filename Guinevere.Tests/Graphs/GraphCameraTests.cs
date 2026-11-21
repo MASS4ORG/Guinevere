@@ -126,7 +126,7 @@ public sealed class GraphCameraTests
         Assert.Equal(map.Unmap(new Vector2(20, 30)), map.Unmap(new Vector2(-10000, -10000)));
         Assert.Throws<ArgumentOutOfRangeException>(static () => new GraphMinimap(default, default, default));
         Assert.Throws<ArgumentOutOfRangeException>(
-            static () => new GraphMinimap(default, default, new Rect(0, 0, 10, 0)));
+            static () => new GraphMinimap(default, default, new Rect(0, 0, 10)));
         Assert.True(float.IsFinite(new GraphMinimap(default, default, target).Viewport.X));
     }
 }

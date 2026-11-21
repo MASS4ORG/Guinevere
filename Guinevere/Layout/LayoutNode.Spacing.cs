@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Guinevere;
 
 /// <summary>
@@ -64,10 +66,18 @@ public partial class LayoutNode
             return;
         }
 
-        _marginTopWeight = style.MarginTop.ExpandContribution;
-        _marginRightWeight = style.MarginRight.ExpandContribution;
-        _marginBottomWeight = style.MarginBottom.ExpandContribution;
-        _marginLeftWeight = style.MarginLeft.ExpandContribution;
+        RefreshRelativeSpacing();
+    }
+
+    /// <summary>Spacing that needs a basis; apart so the pixel-only path of <see cref="RefreshSpacing"/> stays small.</summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    void RefreshRelativeSpacing()
+    {
+        ref readonly var style = ref Style;
+        _marginTopWeight = style.MarginTopWeight;
+        _marginRightWeight = style.MarginRightWeight;
+        _marginBottomWeight = style.MarginBottomWeight;
+        _marginLeftWeight = style.MarginLeftWeight;
         ResolveSpacing();
     }
 
@@ -109,9 +119,12 @@ public partial class LayoutNode
     /// <summary>The fixed part of one gap for a content box; its expand weight is shared during placement.</summary>
     /// <param name="along">Content size along the flow.</param>
     /// <param name="across">Content size across the flow.</param>
-    float GapPixels(float along, float across) => Style.GapIsPixels
-        ? Style.GapPixels
-        : Style.Gap.ResolveBasis(along, across) + ResolveReferences(Style.Gap, Style.Direction == Axis.Horizontal);
+    float GapPixels(float along, float across) =>
+        Style.GapIsPixels ? Style.GapPixels : RelativeGapPixels(along, across);
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    float RelativeGapPixels(float along, float across) =>
+        Style.Gap.ResolveBasis(along, across) + ResolveReferences(Style.Gap, Style.Direction == Axis.Horizontal);
 
     /// <summary>Gives every child the content box its padding and margins resolve against.</summary>
     void SetChildSpacingBasis(Vector2 contentSize)
@@ -127,6 +140,15 @@ public partial class LayoutNode
         alignment.PixelsContribution + alignment.PercentageContribution * free
         + (alignment.References.IsEmpty ? 0f : ResolveReferences(alignment, horizontal));
 
+    /// <summary>An alignment offset read from a style slot, without building the value unless it has references.</summary>
+    float ResolveAlignment(in LayoutStyle style, int slot, float free, bool horizontal) => style.IsSimple(slot)
+        ? style.PixelsAndPercentage(slot, free)
+        : ResolveComplexAlignment(style, slot, free, horizontal);
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    float ResolveComplexAlignment(in LayoutStyle style, int slot, float free, bool horizontal) =>
+        ResolveAlignment(style.Read(slot), free, horizontal);
+
     /// <summary>How free space along a flow is placed before the first child, per gap and per expand weight.</summary>
     /// <param name="Leading">Offset of the first child.</param>
     /// <param name="Between">Space added to every gap.</param>
@@ -141,7 +163,7 @@ public partial class LayoutNode
     {
         free = Math.Max(0f, free);
         var (leading, between, trailing) = SpacingWeights(Style.Spacing);
-        between += Style.Gap.ExpandContribution;
+        between += Style.GapExpandWeight;
         var weights = leading + trailing + between * (FlowChildren.Count - 1);
         foreach (var child in FlowChildren)
         {
@@ -152,14 +174,18 @@ public partial class LayoutNode
 
         if (sizesExpand || weights <= 0f || free <= 0f)
         {
-            var alignment = Style.Spacing switch
+            var leadingShare = Style.Spacing switch
             {
-                SpacingTypes.Start => Guinevere.Size.Percentage(0f),
-                SpacingTypes.Center => Guinevere.Size.Percentage(0.5f),
-                SpacingTypes.End => Guinevere.Size.Percentage(1f),
-                _ => Style.GetAlignContentForDirection(horizontal ? Axis.Horizontal : Axis.Vertical),
+                SpacingTypes.Start => 0f,
+                SpacingTypes.Center => 0.5f,
+                SpacingTypes.End => 1f,
+                _ => -1f,
             };
-            return new FlowDistribution(ResolveAlignment(alignment, free, horizontal), 0f, 0f);
+            var offset = leadingShare >= 0f
+                ? leadingShare * free
+                : ResolveAlignment(Style, horizontal ? LayoutStyle.AlignContentXSlot : LayoutStyle.AlignContentYSlot,
+                    free, horizontal);
+            return new FlowDistribution(offset, 0f, 0f);
         }
 
         var perWeight = free / weights;
@@ -189,9 +215,9 @@ public partial class LayoutNode
         }
 
         return child.Style.HasAlignSelf
-            ? ResolveAlignment(child.Style.AlignSelf!.Value, free, horizontal)
-            : ResolveAlignment(horizontal ? Style.AlignContentHorizontal : Style.AlignContentVertical, free,
-                horizontal);
+            ? ResolveAlignment(child.Style, LayoutStyle.AlignSelfSlot, free, horizontal)
+            : ResolveAlignment(Style, horizontal ? LayoutStyle.AlignContentXSlot : LayoutStyle.AlignContentYSlot,
+                free, horizontal);
     }
 
     /// <summary>The leading expand weight of a child's margin along a flow.</summary>

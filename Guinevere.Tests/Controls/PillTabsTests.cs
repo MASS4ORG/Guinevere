@@ -72,6 +72,9 @@ public class PillTabsTests
         harness.Frame(gui => Draw(gui));
 
         Assert.Equal(-1, _active);
-        Assert.Empty(harness.Gui.RootNode!.Children);
+        var tabs = Assert.Single(harness.Gui.RootNode!.Children);
+        Assert.Empty(tabs.Children);
+        Assert.Equal(0f, tabs.Rect.W);
+        Assert.Equal(0f, tabs.Rect.H);
     }
 }

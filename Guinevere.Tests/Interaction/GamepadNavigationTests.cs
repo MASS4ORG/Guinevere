@@ -204,7 +204,7 @@ public class GamepadNavigationTests
                         activations++;
                     }
                 }
-            }, width: 200, height: 150, id: "dialog");
+            }, id: "dialog").Width(200).Height(186);
         }
         harness.Frame(Draw);
         harness.Frame(Draw);

@@ -405,7 +405,7 @@ public sealed class TextEditorViewBoxSelectionTests : IDisposable
         for (var row = 0; row < 3; row++)
         {
             var color = pixels.GetPixelColor((int)from.X + 2, (int)(top.Y - rowHeight * 0.5f + row * rowHeight) + 1);
-            Assert.Equal((SKColor)_options.Theme.Selection, color);
+            Assert.Equal(_options.Theme.Selection, color);
         }
     }
 }

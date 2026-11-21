@@ -12,7 +12,8 @@ static class DrawScenes
         for (var i = 0; i < 1000; i++)
         {
             var x = i % 50 * 20f + 5;
-            var y = i / 50 * 35f + 5;
+            var row = i / 50;
+            var y = row * 35f + 5;
             gui.DrawLine(new Vector2(x, y), new Vector2(x + 8, y), new Color(0x4080c080), 2);
         }
     }
@@ -23,7 +24,8 @@ static class DrawScenes
         for (var i = 0; i < 1000; i++)
         {
             var x = i % 50 * 20f + 5;
-            var y = i / 50 * 35f + 5;
+            var row = i / 50;
+            var y = row * 35f + 5;
             gui.DrawRect(new Rect(x, y, 8, 12), new Color(0x4080c080));
         }
     }

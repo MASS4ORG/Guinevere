@@ -3,7 +3,7 @@ namespace Guinevere;
 /// <summary>A portable logical accessible, including elements without a rendered layout node.</summary>
 /// <param name="Id">Stable identity within the host.</param>
 /// <param name="ParentId">Logical parent, or null for a window child.</param>
-/// <param name="Role">Semantic role understood by the native adapter.</param>
+/// <param name="Role">Semantic role; the native adapter falls back along <see cref="ControlRole.Base"/> for roles it does not know.</param>
 /// <param name="Name">Human-readable accessible name.</param>
 /// <param name="Description">Type, state and validation details.</param>
 /// <param name="Bounds">Bounds in window coordinates.</param>
@@ -15,7 +15,7 @@ namespace Guinevere;
 /// <param name="SourceId">Source of a relationship such as a graph edge.</param>
 /// <param name="TargetId">Target of a relationship such as a graph edge.</param>
 /// <param name="Expanded">Expanded state of a container, when applicable.</param>
-public sealed record AccessibilityElement(string Id, string? ParentId, string Role, string Name,
+public sealed record AccessibilityElement(string Id, string? ParentId, ControlRole Role, string Name,
     string Description, Rect Bounds, ControlVisualState State, bool Virtualized = false,
     IReadOnlyList<string>? Actions = null, string? ScopeId = null, string? Key = null,
     string? SourceId = null, string? TargetId = null, bool? Expanded = null);

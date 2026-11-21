@@ -140,7 +140,7 @@ public class GuiIdentityTests
             foreach (var item in order)
             {
                 using var key = gui.ItemKey(item);
-                gui.TextInput(ref values[item], width: 100, height: 30);
+                gui.TextInput(ref values[item]).Width(100).Height(30);
             }
         }
         harness.Frame(Draw);
@@ -371,9 +371,12 @@ public class GuiIdentityTests
         using var harness = new FrameHarness();
         harness.Frame(static gui =>
         {
-            gui.TextInput("plain");
-            gui.PasswordInput("secret");
-            gui.TextArea("multiline");
+            var plain = "plain";
+            gui.TextInput(ref plain);
+            var secret = "secret";
+            gui.PasswordInput(ref secret);
+            var multiline = "multiline";
+            gui.TextArea(ref multiline);
             var number = 2f;
             gui.NumberField(ref number);
         });

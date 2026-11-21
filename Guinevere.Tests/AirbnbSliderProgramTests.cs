@@ -16,7 +16,7 @@ public class AirbnbSliderProgramTests
         harness.Frame(Draw);
         var center = new Vector2(250, 250);
         harness.Input.MoveTo(center + Angle.Turns(1 / 12f - 0.25f).GetDirectionVector() * 120);
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         var capture = harness.Gui.PointerCapture;
         Assert.NotNull(capture);
@@ -30,7 +30,7 @@ public class AirbnbSliderProgramTests
             Assert.Equal((int)Math.Round(turn * 12), month);
         }
 
-        harness.Input.ReleaseButton(MouseButton.Left);
+        harness.Input.ReleaseButton();
         harness.Frame(Draw);
         Assert.Null(harness.Gui.PointerCapture);
         var released = harness.Gui.GetFloat(0f, "month / 12.0f");
@@ -49,7 +49,7 @@ public class AirbnbSliderProgramTests
         void Draw(Gui gui) => Program.DrawAirBnBMonthSlider(gui, ref month);
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(250, 250));
-        harness.Input.PressButton(MouseButton.Left);
+        harness.Input.PressButton();
         harness.Frame(Draw);
         harness.Input.MoveTo(new Vector2(450, 250));
         harness.Frame(Draw);

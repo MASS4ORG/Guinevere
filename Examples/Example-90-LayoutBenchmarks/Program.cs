@@ -685,9 +685,9 @@ static class StyledFrames
                     case Mode.Buttons: gui.Button("Save"); break;
                     case Mode.Sliders:
                         var value = 0.3f;
-                        gui.Slider(ref value, 0, 1, width: 30, height: 20);
+                        gui.Slider(ref value, 0, 1).Width(30).Height(20);
                         break;
-                    case Mode.Progress: gui.ProgressBar(0.4f, width: 30); break;
+                    case Mode.Progress: gui.ProgressBar(0.4f).Width(30); break;
                     case Mode.Splitters:
                         using (gui.Node(30, 20).Direction(Axis.Horizontal).Enter())
                         {

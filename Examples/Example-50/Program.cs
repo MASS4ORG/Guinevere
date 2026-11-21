@@ -15,7 +15,6 @@ public abstract partial class Program
     // Layout edits are deferred to the next frame's build pass so both passes of a frame see one tree.
     static Action? _pendingLayout;
 
-    static readonly DockTheme DockTheme = new();
     static readonly string[] CenterPanels = ["navigation", "feedback", "styling", "nine-slice", "dialog", "selection"];
     static DockLayout _layout = SeedLayout();
     static string? _saved;
@@ -124,14 +123,14 @@ public abstract partial class Program
             gui.DrawText("Guinevere Excalibur", 16, Token(gui, "text"));
             gui.Node().ExpandWidth();
             gui.DrawText($"FPS: {gui.Time.SmoothFps:N1}", 12, Token(gui, "text"));
-            _nativeTitlebar = gui.Checkbox(_nativeTitlebar, "Native title bar");
-            if (gui.Button("◐", width: 62, height: 28, fontSize: 12))
+            gui.Checkbox(ref _nativeTitlebar, "Native title bar");
+            if (gui.Button("◐", classes: SmallClass).Width(62).Height(28).Clicked)
             {
                 ToggleTheme();
             }
         }
 
-        gui.DockSpace(_layout, PanelInfo, RenderPanel, DockTheme, TabStripActions);
+        gui.DockSpace(_layout, PanelInfo, RenderPanel, TabStripActions);
         gui.Toasts();
     }
 
@@ -204,7 +203,7 @@ public abstract partial class Program
             return;
         }
 
-        using (gui.Node(18, DockTheme.TabHeight, $"dock-actions/{panelId}").Enter())
+        using (gui.Node(18, ControlMetrics.CompactHeight + 2f, $"dock-actions/{panelId}").Enter())
         {
             var result = gui.Pressable(new ControlBehaviorOptions(Role: ControlRole.Button, Label: "Panel actions"),
                 state =>

@@ -2,10 +2,11 @@ using Guinevere.Tests.Mocks;
 
 namespace Guinevere.Tests.Controls;
 
-/// <summary>Behaviour of the stylesheet-driven button family: <c>Button</c>, <c>IconButton</c>, <c>ImageButton</c>.</summary>
+/// <summary>Behaviour of the stylesheet-driven button family: <c>Button</c> with any content, <c>ImageButton</c>.</summary>
 public class ButtonFamilyTests
 {
     static readonly Vector2 Inside = new(20, 20);
+    static readonly Icon Plus = Icon.FromGlyph("+");
 
     static SKImage Solid(SKColor color)
     {
@@ -14,28 +15,23 @@ public class ButtonFamilyTests
         return SKImage.FromBitmap(bitmap);
     }
 
-    /// <summary>A click reports once, through each button kind.</summary>
+    /// <summary>A click reports once on the returned node, through text, icon and built content and the image button.</summary>
     [Fact]
     public void ClickReportsActivation()
     {
         using var harness = new FrameHarness(200, 100);
         using var image = Solid(SKColors.Red);
-        bool button = false, icon = false, charIcon = false, picture = false;
+        bool text = false, icon = false, built = false, picture = false;
 
-        harness.Click(g => button |= g.Button("Go", 60, 30), Inside);
-        harness.Click(g => icon |= g.IconButton("+", 30), Inside);
-        harness.Click(g =>
-        {
-            var clicked = false;
-            g.IconButton('x', ref clicked, 30);
-            charIcon |= clicked;
-        }, Inside);
-        harness.Click(g => picture |= g.ImageButton(image, image, image, text: "Go"), Inside);
+        harness.Click(g => text |= g.Button("Go").Width(60).Height(30).Clicked, Inside);
+        harness.Click(g => icon |= g.Button(Plus.Labeled("Add")).Clicked, Inside);
+        harness.Click(g => built |= g.Button(Content.Build(() => g.Node(50, 30))).Clicked, Inside);
+        harness.Click(g => picture |= g.ImageButton(image, image, image, content: "Go").Clicked, Inside);
 
-        Assert.True(button && icon && charIcon && picture);
+        Assert.True(text && icon && built && picture);
     }
 
-    /// <summary>Disabled buttons never report, whatever the pointer does; a null icon draws an empty square.</summary>
+    /// <summary>Disabled buttons never report, whatever the pointer does.</summary>
     [Fact]
     public void DisabledNeverActivates()
     {
@@ -43,14 +39,10 @@ public class ButtonFamilyTests
         using var image = Solid(SKColors.Red);
         var reported = false;
 
-        harness.Click(g => reported |= g.Button("Go", 60, 30, enabled: false), Inside);
-        harness.Click(g => reported |= g.ImageButton(image, image, image, Solid(SKColors.Gray), enabled: false), Inside);
-        harness.Click(g =>
-        {
-            var clicked = false;
-            g.IconButton(null, ref clicked, 30, enabled: false);
-            reported |= clicked;
-        }, Inside);
+        harness.Click(g => reported |= g.Button("Go", enabled: false).Width(60).Height(30).Clicked, Inside);
+        harness.Click(g => reported |= g.ImageButton(image, image, image, Solid(SKColors.Gray), enabled: false)
+            .Clicked, Inside);
+        harness.Click(g => reported |= g.Button(Plus, enabled: false).Clicked, Inside);
 
         Assert.False(reported);
     }
@@ -60,14 +52,57 @@ public class ButtonFamilyTests
     public void FocusedActivatesWithSpace()
     {
         using var harness = new FrameHarness(200, 100);
-        harness.Click(g => g.Button("Go", 60, 30), Inside);
-
         var activated = false;
+        void Draw(Gui g) => activated |= g.Button("Go").Width(60).Height(30).Clicked;
+        harness.Click(Draw, Inside);
+        activated = false;
+
         harness.Input.MoveTo(new Vector2(-50, -50));
         harness.Input.PressKey(KeyboardKey.Space);
-        harness.Frame(g => activated |= g.Button("Go", 60, 30));
+        harness.Frame(Draw);
 
         Assert.True(activated);
+    }
+
+    /// <summary>
+    /// A text button fits its caption plus padding; an icon-only one is a field-height square with the <c>icon</c>
+    /// class and an icon scaled to two thirds of it, also after the caller resizes the node.
+    /// </summary>
+    [Fact]
+    public void SizesFollowContentUnlessTheNodeIsSized()
+    {
+        using var harness = new FrameHarness(300, 200);
+        LayoutNode? text = null, icon = null, big = null;
+        harness.Frame(g =>
+        {
+            text = g.Button("Caption");
+            icon = g.Button(Plus);
+            big = g.Button(Plus).Width(60).Height(60);
+        });
+
+        var caption = Assert.Single(text!.ChildNodes);
+        Assert.Equal(caption.Rect.W + text.PaddingLeftPixels + text.PaddingRightPixels, text.Rect.W, 0.5f);
+        Assert.Equal(harness.Gui.ControlStyle.FieldHeight, icon!.Rect.W);
+        Assert.Equal(icon.Rect.W, icon.Rect.H);
+        Assert.Contains("icon", icon.StyleTarget!.Value.Classes);
+        Assert.Equal(40f, Assert.Single(big!.ChildNodes).Rect.W, 0.5f);
+    }
+
+    /// <summary>Two buttons from different lines keep separate identities, and an explicit id wins.</summary>
+    [Fact]
+    public void IdentityIsTheCallSiteUnlessAnIdIsGiven()
+    {
+        using var harness = new FrameHarness();
+        LayoutNode? first = null, second = null, named = null;
+        harness.Frame(g =>
+        {
+            first = g.Button("A");
+            second = g.Button("A");
+            named = g.Button("A", id: "save");
+        });
+
+        Assert.NotEqual(first!.Id, second!.Id);
+        Assert.Equal("save", named!.Id);
     }
 
     /// <summary>

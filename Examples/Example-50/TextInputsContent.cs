@@ -32,29 +32,30 @@ public abstract partial class Program
         using (gui.Node().Direction(Axis.Horizontal).Wrap(1).Enter())
         {
             gui.DrawText("Regular Text").Width(150);
-            _textInput = gui.TextInput(_textInput, placeholder: "Enter text here...");
+            gui.TextInput(ref _textInput, placeholder: "Enter text here...");
         }
 
         using (gui.Node().Direction(Axis.Horizontal).Wrap(1).Enter())
         {
             gui.DrawText("Password").Width(150);
-            _passwordInput = gui.PasswordInput(_passwordInput, placeholder: "Password");
+            gui.PasswordInput(ref _passwordInput, placeholder: "Password");
             gui.DrawText(_passwordInput).Width(150);
         }
 
         using (gui.Node().Direction(Axis.Horizontal).Wrap(1).Enter())
         {
             gui.DrawText("Alignment").Width(150);
-            _rightAlignmentInput = gui.TextInput(_rightAlignmentInput, placeholder: "Right", alignX: 1f);
+            gui.TextInput(ref _rightAlignmentInput, placeholder: "Right").AlignContentX(1f);
         }
 
-        gui.TextInput(_textInput, placeholder: "Disabled/Read only", enabled: false);
+        var readOnly = _textInput;
+        gui.TextInput(ref readOnly, placeholder: "Disabled/Read only", enabled: false);
     }
 
     static void NumberControlsRow(Gui gui)
     {
         gui.SetTextColor(Token(gui, "text"));
-        gui.NumberField(ref _numberField, step: 0.25f, min: 0f, max: 100f, alignX: 1f);
+        gui.NumberField(ref _numberField, step: 0.25f, min: 0f, max: 100f).AlignContentX(1f);
         gui.Slider(ref _numberField, step: 0.25f, min: 0f, max: 100f, showValue: true);
         gui.Slider(ref _numberField, step: 0.25f, min: 0f, max: 100f);
         gui.DrawText("Share value", size: 12).ExpandWidth();
@@ -62,7 +63,7 @@ public abstract partial class Program
 
     static void TextAreaRow(Gui gui)
     {
-        _textArea = gui.TextArea(_textArea, height: 90, placeholder: "Enter multiline text...");
+        gui.TextArea(ref _textArea, placeholder: "Enter multiline text...").Height(90);
     }
 
     static readonly Color DisabledInputFill = Color.FromArgb(255, 245, 246, 247);

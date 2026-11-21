@@ -177,7 +177,7 @@ public sealed partial class GraphDocumentView
         using var frame = gui.StyledNode("graph-group", modifiers: modifiers).Expand().Padding(0)
             .HitTestVisible(false).Enter();
         using var header = gui.StyledNode("graph-group-header").ExpandWidth()
-            .Height(GraphStyles.Length(_groupHeaderStyle, "height")).Absolute(0, 0).HitTestVisible(true)
+            .Height(GraphStyles.Length(_groupHeaderStyle, "height")).Absolute(0, 0).HitTestVisible()
             .Direction(Axis.Horizontal).AlignContentY(0.5f).Enter();
         gui.CurrentNode.On<PointerDownEvent>(e =>
         {

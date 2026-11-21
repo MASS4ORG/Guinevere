@@ -1,0 +1,450 @@
+using System.Runtime.CompilerServices;
+
+namespace Guinevere;
+
+public static partial class ControlsExtensions
+{
+    static readonly string[] DockClass = ["dock"];
+
+    /// <summary>The fraction of a region each edge drop zone covers.</summary>
+    const float DropZoneFraction = 0.25f;
+
+    /// <summary>Splitter thickness between docked regions when no <c>splitter.dock</c> rule sets one.</summary>
+    const float DockSplitterThickness = 6f;
+
+    /// <summary>Side of a tab's icon square when no <c>dock-icon</c> rule sets a <c>width</c>.</summary>
+    const float DockTabIconSize = 14f;
+
+    /// <summary>
+    /// Renders a <see cref="DockLayout"/>: nested splits with draggable splitters, tab groups whose
+    /// tabs can be reordered, moved between groups, torn off into floating windows and closed.
+    /// </summary>
+    /// <remarks>
+    /// Every edit is applied to <paramref name="layout"/> when the pointer is released, never while
+    /// the frame is being built, so the node tree stays identical across the two passes.
+    /// </remarks>
+    /// <param name="gui">The GUI instance.</param>
+    /// <param name="layout">The layout to render. Mutated in place as the user rearranges it.</param>
+    /// <param name="panelInfo">Resolves a panel id to its tab label. Return null for an id the host no longer knows.</param>
+    /// <param name="renderPanel">Draws a panel's body. Called for the active tab of every visible group.</param>
+    /// <param name="renderTabStripActions">
+    /// Draws into the space a group's tab strip does not use. Children flow from the right edge, which
+    /// is where an overflow or lock button belongs; <see cref="DockTabStrip.FreeArea"/> is there for
+    /// anyone who would rather position content absolutely.
+    /// </param>
+    /// <param name="filePath">Call site, supplied by the compiler.</param>
+    /// <param name="classes">Stylesheet classes for the dock space.</param>
+    /// <param name="id">Stable stylesheet identity.</param>
+    /// <param name="lineNumber">Call site, supplied by the compiler.</param>
+    public static void DockSpace(this Gui gui, DockLayout layout,
+        Func<string, DockPanelInfo?> panelInfo,
+        Action<string, Gui> renderPanel,
+        Action<DockTabStrip, Gui>? renderTabStripActions = null,
+        IReadOnlyList<string>? classes = null, string? id = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+    {
+        ExcaliburStyles.Ensure(gui);
+        var context = new DockContext(gui, layout, panelInfo, renderPanel, renderTabStripActions);
+
+        using (gui.StyledNode("dockspace", classes, id, filePath: filePath, lineNumber: lineNumber).Expand().Enter())
+        {
+            // Declared before any zone so that a drop the zones do not claim falls through to here
+            // and tears the panel off: overlapping targets resolve last-declared-wins.
+            TearOffTarget(context, gui.CurrentNode.Rect);
+
+            if (layout.Root is null)
+            {
+                EmptyDockSpace(context);
+            }
+            else
+            {
+                RenderNode(context, layout.Root, "dock:root");
+            }
+
+            RenderFloating(context);
+            gui.DragGhost();
+
+            // A close click is the one edit that has no drop to wait for. Applying it at the end of
+            // the render pass keeps both passes of this frame agreeing on the tree and defers the
+            // change to the next frame's build pass. A tab activation is deferred the same way: the
+            // strip reports it during the render pass, and switching the body mid-frame would render
+            // the new panel in one pass only, wiping its controls' build-pass state.
+            if (gui.Pass == Pass.Pass2Render && context.Closing is { } closing)
+            {
+                layout.Remove(closing);
+            }
+
+            if (gui.Pass == Pass.Pass2Render && context.Activating is { } activating)
+            {
+                Activate(context, activating.Leaf, activating.PanelId);
+            }
+        }
+    }
+
+    static void RenderNode(DockContext context, DockNode node, string path)
+    {
+        switch (node)
+        {
+            case DockSplit split:
+                RenderSplit(context, split, path);
+                return;
+            case DockLeaf leaf:
+                RenderLeaf(context, leaf, path);
+                return;
+        }
+    }
+
+    static void RenderSplit(DockContext context, DockSplit split, string path)
+    {
+        var gui = context.Gui;
+        var horizontal = split.Axis == Axis.Horizontal;
+
+        using (gui.Node(-1, -1, path).Expand().Direction(split.Axis).Enter())
+        {
+            var first = gui.Node(-1, -1, $"{path}/a");
+            if (horizontal)
+            {
+                first.ExpandWidth(split.Fraction).ExpandHeight();
+            }
+            else
+            {
+                first.ExpandHeight(split.Fraction).ExpandWidth();
+            }
+
+            using (first.Enter())
+            {
+                RenderNode(context, split.First, $"{path}/a");
+            }
+
+            var fraction = split.Fraction;
+            var divider = gui.Splitter(ref fraction, split.Axis, classes: DockClass);
+            if (horizontal)
+            {
+                SizeUnlessStyled(divider, Size.Pixels(DockSplitterThickness), null);
+            }
+            else
+            {
+                SizeUnlessStyled(divider, null, Size.Pixels(DockSplitterThickness));
+            }
+
+            if (divider.Changed)
+            {
+                split.Fraction = fraction;
+                context.Layout.MarkChanged();
+            }
+
+            var second = gui.Node(-1, -1, $"{path}/b");
+            if (horizontal)
+            {
+                second.ExpandWidth(1f - split.Fraction).ExpandHeight();
+            }
+            else
+            {
+                second.ExpandHeight(1f - split.Fraction).ExpandWidth();
+            }
+
+            using (second.Enter())
+            {
+                RenderNode(context, split.Second, $"{path}/b");
+            }
+        }
+    }
+
+    static void RenderLeaf(DockContext context, DockLeaf leaf, string path)
+    {
+        var gui = context.Gui;
+
+        using (gui.Node(-1, -1, path).Expand().Direction(Axis.Vertical).Enter())
+        {
+            var leafRect = gui.CurrentNode.Rect;
+
+            var active = leaf.ActivePanelId;
+            var strip = gui.TabStrip(ref active, tabs => AddPanelTabs(context, leaf, tabs, $"{path}/tabs"),
+                g => context.RenderTabStripActions?.Invoke(
+                    new DockTabStrip(leaf, leaf.ActivePanelId, g.CurrentNode.Rect), g),
+                (panelId, id) => DragTab(context, leaf, panelId, id), id: $"{path}/tabs");
+
+            if (strip.Changed && active is not null)
+            {
+                context.Activating = (leaf, active);
+            }
+
+            var tabHeight = strip.Rect.H > 0 ? strip.Rect.H : gui.ControlStyle.CompactHeight + 2f;
+
+            using (gui.StyledNode("dock-panel", id: $"{path}/body").Expand().Enter())
+            {
+                gui.ClipContent();
+
+                if (leaf.ActivePanelId is { } activeId && context.PanelInfo(activeId) is not null)
+                {
+                    context.RenderPanel(activeId, gui);
+                }
+            }
+
+            DropZones(context, leaf, new Rect(leafRect.X, leafRect.Y + tabHeight,
+                leafRect.W, Math.Max(0, leafRect.H - tabHeight)));
+        }
+    }
+
+    /// <summary>Adds one tab per panel of the leaf; the panel's icon draws in a square before its title.</summary>
+    static void AddPanelTabs(DockContext context, DockLeaf leaf, TabBuilder tabs, string tabsId)
+    {
+        foreach (var panelId in leaf.PanelIds)
+        {
+            var info = context.PanelInfo(panelId) ?? new DockPanelInfo(panelId);
+            var iconId = $"{tabsId}/{panelId}/icon";
+            var title = info.Icon is { } icon
+                ? Content.Row(Content.Build(() => DrawPanelIcon(context, icon, iconId)), info.Title)
+                : (Content)info.Title;
+            tabs.Tab(title.Labeled(info.Title), closable: info.Closable, key: panelId,
+                onClose: () => context.Closing = panelId);
+        }
+    }
+
+    static void DrawPanelIcon(DockContext context, Action<Gui> icon, string id)
+    {
+        var size = context.Gui.ResolvePart("dock-icon").GetLength("width") ?? DockTabIconSize;
+        var node = context.Gui.StyledNode("dock-icon", id: id);
+        SizeUnlessStyled(node, Size.Pixels(size), Size.Pixels(size));
+        using (node.Enter())
+        {
+            icon(context.Gui);
+        }
+    }
+
+    static void Activate(DockContext context, DockLeaf leaf, string panelId)
+    {
+        var index = leaf.PanelIds.IndexOf(panelId);
+        if (index < 0 || index == leaf.ActiveIndex)
+        {
+            return;
+        }
+
+        leaf.ActiveIndex = index;
+        context.Layout.MarkChanged();
+    }
+
+    /// <summary>Starts a tab drag, and accepts a drop from a sibling tab as a reorder.</summary>
+    static bool DragTab(DockContext context, DockLeaf leaf, string panelId, string id)
+    {
+        var gui = context.Gui;
+        var title = (context.PanelInfo(panelId) ?? new DockPanelInfo(panelId)).Title;
+
+        var dragging = gui.DragSource(id, new DockTabPayload(panelId, leaf), ghost: g =>
+        {
+            using (g.StyledNode("dock-ghost").Width(120).Height(g.ControlStyle.CompactHeight + 2f).Enter())
+            {
+                g.DrawText(title, g.ControlStyle.CompactFontSize);
+            }
+        });
+
+        var index = leaf.PanelIds.IndexOf(panelId);
+        var drop = gui.DropTarget<DockTabPayload>(gui.CurrentNode.Rect, id,
+            canAccept: payload => ReferenceEquals(payload.Leaf, leaf) && payload.PanelId != panelId,
+            onDrop: payload =>
+            {
+                DockLayout.Reorder(leaf, leaf.PanelIds.IndexOf(payload.PanelId), index);
+                context.Layout.MarkChanged();
+            });
+
+        if (drop.IsAccepted && drop.Payload is { } payload)
+        {
+            var rect = gui.CurrentNode.Rect;
+            var after = leaf.PanelIds.IndexOf(payload.PanelId) < index;
+            gui.DrawRect(new Rect(after ? rect.X + rect.W - 2 : rect.X, rect.Y + 3, 2,
+                Math.Max(1, rect.H - 6)), PartColor(gui, "drop-indicator", "background-color"));
+        }
+
+        return dragging;
+    }
+
+    /// <summary>
+    /// Hands the host whatever width the tabs left over. The node exists in both passes even without a
+    /// callback, so the strip's structure does not change when a host adds or drops one.
+    /// </summary>
+    /// <summary>
+    /// Overlays the five drop zones of a group while a tab is being dragged, and highlights the one
+    /// under the cursor with a preview of the region the panel would take.
+    /// </summary>
+    /// <summary>
+    /// While a tab is being dragged, offers the whole group as a drop target and previews where the
+    /// panel would land. The edge bands take priority and everything else is the center, so no part of
+    /// a group is dead space that silently tears the panel off instead.
+    /// </summary>
+    static void DropZones(DockContext context, DockLeaf leaf, Rect rect)
+    {
+        var gui = context.Gui;
+        if (!gui.IsDragging)
+        {
+            return;
+        }
+
+        using (gui.Node(-1, -1, $"__dropZones_{leaf.GetHashCode()}").AbsoluteScreen(rect.X, rect.Y).Enter())
+        {
+            gui.SetZIndex(Gui.DragGhostZIndex - 1);
+
+            if (gui.Pass != Pass.Pass2Render)
+            {
+                return;
+            }
+
+            if (rect is { W: <= 0 } or { H: <= 0 })
+            {
+                return;
+            }
+
+            var zone = ZoneAt(rect, gui.LocalMousePosition, DropZoneFraction);
+
+            var drop = gui.DropTarget<DockTabPayload>(rect, $"__zone_{leaf.GetHashCode()}",
+                canAccept: payload => !IsNoOpDrop(payload, leaf, zone),
+                onDrop: payload => context.Layout.DockInto(payload.PanelId, leaf, zone));
+
+            if (!drop.IsAccepted)
+            {
+                return;
+            }
+
+            var preview = ZoneRect(rect, zone, zone == DockZone.Center ? 1f : 0.5f);
+            var style = gui.ResolvePart("drop-preview");
+            gui.DrawStyledBox(style, preview);
+        }
+    }
+
+    /// <summary>Which zone a point falls in: an edge band if it is within one, otherwise the center.</summary>
+    static DockZone ZoneAt(Rect rect, Vector2 point, float fraction)
+    {
+        foreach (var zone in EdgeZones)
+        {
+            if (ZoneRect(rect, zone, fraction).Contains(point))
+            {
+                return zone;
+            }
+        }
+
+        return DockZone.Center;
+    }
+
+    static bool IsNoOpDrop(DockTabPayload payload, DockLeaf leaf, DockZone zone) =>
+        zone == DockZone.Center && ReferenceEquals(payload.Leaf, leaf) && leaf.PanelIds.Count == 1;
+
+    /// <summary>Sentinel for "no drag anchor recorded"; a real window position never reaches it.</summary>
+    static readonly Vector2 NoAnchor = new(float.NaN, float.NaN);
+
+    static readonly DockZone[] EdgeZones =
+        [DockZone.Left, DockZone.Right, DockZone.Top, DockZone.Bottom];
+
+    static Rect ZoneRect(Rect rect, DockZone zone, float fraction) => zone switch
+    {
+        DockZone.Left => new Rect(rect.X, rect.Y, rect.W * fraction, rect.H),
+        DockZone.Right => new Rect(rect.X + rect.W * (1f - fraction), rect.Y, rect.W * fraction, rect.H),
+        DockZone.Top => new Rect(rect.X, rect.Y, rect.W, rect.H * fraction),
+        DockZone.Bottom => new Rect(rect.X, rect.Y + rect.H * (1f - fraction), rect.W, rect.H * fraction),
+        _ => new Rect(
+            rect.X + rect.W * (1f - fraction) / 2f,
+            rect.Y + rect.H * (1f - fraction) / 2f,
+            rect.W * fraction,
+            rect.H * fraction)
+    };
+
+    static void TearOffTarget(DockContext context, Rect rect)
+    {
+        var gui = context.Gui;
+        if (gui.Pass != Pass.Pass2Render || !gui.IsDragging)
+        {
+            return;
+        }
+
+        gui.DropTarget<DockTabPayload>(rect, "__dockTearOff",
+            onDrop: payload =>
+            {
+                var panelId = payload.PanelId;
+                var at = gui.Input.MousePosition;
+                context.Layout.Float(panelId, new Rect(at.X - 60, at.Y - 12, 320, 240));
+            });
+    }
+
+    static void RenderFloating(DockContext context)
+    {
+        var gui = context.Gui;
+
+        for (var i = 0; i < context.Layout.Floating.Count; i++)
+        {
+            var window = context.Layout.Floating[i];
+            var bounds = window.Bounds;
+
+            using (gui.StyledNode("dock-window", id: $"dock:float/{i}").Width(bounds.W).Height(bounds.H)
+                       .AbsoluteScreen(bounds.X, bounds.Y)
+                       .BlockInput()
+                       .Direction(Axis.Vertical)
+                       .Enter())
+            {
+                gui.SetZIndex(100 + i);
+
+                using (gui.StyledNode("dock-grip", id: $"dock:float/{i}/grip").Height(18).ExpandWidth().Enter())
+                {
+                    if (gui.Pass == Pass.Pass2Render)
+                    {
+
+                        // Anchored to the window's position at the press, then offset by the pointer's
+                        // total travel — accumulating per-frame deltas drifts away from the cursor.
+                        ref var anchor = ref gui.GetValue(NoAnchor, $"dock:float/{i}/gripAnchor");
+
+                        if (gui.GetInteractable().OnDrag(out var drag))
+                        {
+                            if (float.IsNaN(anchor.X))
+                            {
+                                anchor = new Vector2(bounds.X, bounds.Y);
+                            }
+
+                            var moved = anchor + drag.TotalDelta;
+                            if (moved.X != bounds.X || moved.Y != bounds.Y)
+                            {
+                                window.Bounds = bounds with { X = moved.X, Y = moved.Y };
+                                context.Layout.MarkChanged();
+                            }
+                        }
+                        else
+                        {
+                            anchor = NoAnchor;
+                        }
+                    }
+                }
+
+                using (gui.Node(-1, -1, $"dock:float/{i}/body").Expand().Enter())
+                {
+                    RenderNode(context, window.Root, $"dock:float/{i}/root");
+                }
+            }
+        }
+    }
+
+    static void EmptyDockSpace(DockContext context)
+    {
+        var gui = context.Gui;
+
+        using (gui.StyledNode("dock-empty", id: "dock:empty").Expand().Enter())
+        {
+            gui.DrawText("No panels open", gui.ControlStyle.CompactFontSize);
+        }
+    }
+
+    /// <summary>
+    /// The per-frame plumbing a dock render needs, plus the one deferred edit that cannot wait for a
+    /// drop: a close click, applied after the frame so the tree does not change between passes.
+    /// </summary>
+    sealed class DockContext(
+        Gui gui,
+        DockLayout layout,
+        Func<string, DockPanelInfo?> panelInfo,
+        Action<string, Gui> renderPanel,
+        Action<DockTabStrip, Gui>? renderTabStripActions)
+    {
+        public Gui Gui { get; } = gui;
+        public DockLayout Layout { get; } = layout;
+        public Func<string, DockPanelInfo?> PanelInfo { get; } = panelInfo;
+        public Action<string, Gui> RenderPanel { get; } = renderPanel;
+        public Action<DockTabStrip, Gui>? RenderTabStripActions { get; } = renderTabStripActions;
+        public string? Closing { get; set; }
+        public (DockLeaf Leaf, string PanelId)? Activating { get; set; }
+    }
+}

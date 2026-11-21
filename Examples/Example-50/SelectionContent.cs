@@ -44,11 +44,11 @@ public abstract partial class Program
     static readonly ColorPickerOptions CompactPicker = new()
     {
         Width = 180,
-        Body = static (Gui gui, ref Hsva value, Color? _) =>
+        Body = static (gui, ref value, _) =>
         {
-            var changed = gui.ColorArea(ref value, width: 0, height: 150);
-            changed |= gui.ColorStrip(ref value, HsvChannel.Hue, length: 0);
-            changed |= gui.ColorStrip(ref value, HsvChannel.Alpha, length: 0);
+            var changed = gui.ColorArea(ref value).Width(Size.Expand()).Height(150).Changed;
+            changed |= gui.ColorStrip(ref value, HsvChannel.Hue).Width(Size.Expand()).Changed;
+            changed |= gui.ColorStrip(ref value, HsvChannel.Alpha).Width(Size.Expand()).Changed;
             return changed;
         }
     };
@@ -123,18 +123,17 @@ public abstract partial class Program
         {
             using (gui.Node().Width(200).Enter())
             {
-                gui.Dropdown(DropdownOptions, ref _dropdown1, placeholder: "Choose an option...");
+                gui.Dropdown([.. DropdownOptions], ref _dropdown1, placeholder: "Choose an option...");
             }
 
             using (gui.Node().Width(200).Enter())
             {
                 // A token set on a node themes its whole subtree, including the dropdown's option list.
                 gui.SetStyleToken("selected", Color.FromArgb(255, 76, 175, 80));
-                gui.Dropdown(DropdownOptions, ref _dropdown2);
+                gui.Dropdown([.. DropdownOptions], ref _dropdown2);
             }
 
-            gui.Dropdown(DropdownOptions, ref _dropdown1, placeholder: "Disabled dropdown",
-                enabled: false);
+            gui.Dropdown([.. DropdownOptions], ref _dropdown1, placeholder: "Disabled dropdown", enabled: false);
         }
     }
 
@@ -142,19 +141,19 @@ public abstract partial class Program
     {
         using (gui.Node().Height(40).Direction(Axis.Horizontal).Gap(10).Enter())
         {
-            var selection = gui.MultiDropdown(DropdownOptions, _multiSelection, width: 240, chips: true);
+            gui.MultiDropdown(DropdownOptions, _multiSelection, out var selection, chips: true).Width(240);
             if (selection.Changed)
             {
                 _multiSelection = selection.Selected;
             }
 
-            gui.EnumDropdown(ref _permissions, width: 200);
-            gui.EnumDropdown(ref _enumMode, EnumPresentation.Paging, width: 200);
+            gui.EnumDropdown(ref _permissions);
+            gui.EnumDropdown(ref _enumMode, EnumPresentation.Paging);
         }
 
         using (gui.Node().Height(40).Direction(Axis.Horizontal).Enter())
         {
-            gui.EnumDropdown(ref _permissions, EnumPresentation.ToggleButtons, width: 480);
+            gui.EnumDropdown(ref _permissions, EnumPresentation.ToggleButtons).Width(480);
         }
     }
 

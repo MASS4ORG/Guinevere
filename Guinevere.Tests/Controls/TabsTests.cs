@@ -66,10 +66,12 @@ public class TabsTests
         return input;
     }
 
+    /// <summary>Presses over the tab's title (its first child), clear of a close button beside it.</summary>
     static IInputHandler MouseAt(LayoutNode tab, MouseButton button)
     {
         var input = NoInput();
-        var center = new Vector2(tab.Rect.X + tab.Rect.W * 0.5f, tab.Rect.Y + tab.Rect.H * 0.5f);
+        var title = tab.Children.Count > 0 ? tab.Children[0] : tab;
+        var center = new Vector2(title.Rect.X + title.Rect.W * 0.5f, title.Rect.Y + title.Rect.H * 0.5f);
         input.MousePosition.Returns(center);
         input.PrevMousePosition.Returns(center);
         input.IsMouseButtonPressed(button).Returns(true);
@@ -272,6 +274,69 @@ public class TabsTests
 
         Frame(gui, ref activeTab, closed);
         Assert.Single(FindTabBar(gui.RootNode!, 1).Children);
+    }
+
+    /// <summary>Closing an inactive tab with its "×" keeps the active tab; the click does not select the neighbor that shifts into its place.</summary>
+    [Fact]
+    public void ClosingAnInactiveTabKeepsTheActiveOne()
+    {
+        var gui = CreateGui();
+        var closed = new List<(int, string)>();
+        var activeTab = 0;
+        (string, bool)[] specs = [("A", true), ("B", true), ("C", true)];
+
+        Frame(gui, ref activeTab, closed, null, specs);
+        var tab = FindTabBar(gui.RootNode!, 3).Children[1];
+        var closeCentre = new Vector2(tab.Rect.X + tab.Rect.W - 13f, tab.Rect.Y + tab.Rect.H * 0.5f);
+        var input = NoInput();
+        input.MousePosition.Returns(closeCentre);
+        input.PrevMousePosition.Returns(closeCentre);
+        input.IsMouseButtonPressed(MouseButton.Left).Returns(true);
+        Frame(gui, ref activeTab, closed, input, specs);
+        Frame(gui, ref activeTab, closed, null, specs);
+
+        Assert.Equal((1, "B"), Assert.Single(closed));
+        Assert.Equal(0, activeTab);
+    }
+
+    /// <summary>Titles take any content; the container reports Changed once, on the call that moved the active tab.</summary>
+    [Fact]
+    public void ChangedFiresOnceWhenTheActiveTabMoves()
+    {
+        var gui = CreateGui();
+        var active = 0;
+        var changes = 0;
+
+        Run();
+        Run(MouseAt(FindTabBar(gui.RootNode!, 2).Children[1], MouseButton.Left));
+        Run();
+        Run();
+
+        Assert.Equal(1, active);
+        Assert.Equal(1, changes);
+
+        void Run(IInputHandler? input = null)
+        {
+            using var surface = SKSurface.Create(new SKImageInfo(Width, Height));
+            gui.Input = input ?? NoInput();
+            gui.Time.Update(0.016);
+            gui.SetStage(Pass.Pass1Build);
+            gui.BeginFrame(surface.Canvas);
+            Draw();
+            gui.CalculateLayout();
+            gui.SetStage(Pass.Pass2Render);
+            Draw();
+            gui.Render();
+            gui.EndFrame();
+        }
+
+        void Draw()
+        {
+            if (gui.Tabs(ref active, static tabs => tabs.Tab("A").Tab(Content.Row('★', "B"))))
+            {
+                changes++;
+            }
+        }
     }
 
     [Fact]

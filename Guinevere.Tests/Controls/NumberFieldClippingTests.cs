@@ -21,11 +21,11 @@ public sealed class NumberFieldClippingTests
             using var scope = gui.Node(100, 30, "fieldHost").Absolute(100, 30).Enter();
             if (numeric)
             {
-                gui.NumberField(ref number, width: 100, height: 30, alignX: align, id: "number");
+                gui.NumberField(ref number, id: "number").AlignContentX(align).Width(100).Height(30);
             }
             else
             {
-                gui.TextInput(ref text, width: 100, height: 30, alignX: align, id: "text");
+                gui.TextInput(ref text, id: "text").AlignContentX(align).Width(100).Height(30);
             }
         }
         h.Frame(Draw);
@@ -45,5 +45,28 @@ public sealed class NumberFieldClippingTests
                 }
             }
         }
+    }
+
+    /// <summary>A sheet <c>align-items</c> aligns the text; without one the text stays left.</summary>
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("input { align-items = right; }", true)]
+    public void SheetAlignItemsAlignsTheInputText(string? sheet, bool right)
+    {
+        using var h = new FrameHarness(300, 100);
+        if (sheet is not null)
+        {
+            h.Gui.StyleSheets.Add(StyleSheet.Parse(sheet));
+        }
+
+        var text = "ab";
+        void Draw(Gui gui) => gui.TextInput(ref text, id: "text").Width(200);
+        h.Frame(Draw);
+        h.Frame(Draw);
+
+        var field = h.Gui.RootNode!.FindChildById("text")!;
+        var content = field.Children.Where(c => c.Rect.W > 0).Max(c => c.Rect.X + c.Rect.W);
+        var farEdge = field.Rect.X + field.Rect.W - 20;
+        Assert.Equal(right, content > farEdge);
     }
 }

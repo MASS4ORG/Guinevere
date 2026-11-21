@@ -76,7 +76,7 @@ public abstract partial class Program
 
     static void TooltipContent(Gui gui)
     {
-        if (gui.Button("Hover me for a tooltip", width: 180, height: 28))
+        if (gui.Button("Hover me for a tooltip").Width(180).Height(28).Clicked)
         {
             gui.Toast("You clicked the tooltip button");
         }
@@ -94,7 +94,7 @@ public abstract partial class Program
 
             using (gui.Node().Height(12).Direction(Axis.Horizontal).Gap(10).Enter())
             {
-                gui.ProgressBar(fraction, height: 12);
+                gui.ProgressBar(fraction).Height(12);
 
                 gui.DrawText($"{fraction:P0}", size: 12, color: Token(gui, "accent"),
                     centerInRect: false);
@@ -103,14 +103,14 @@ public abstract partial class Program
             using (gui.Node().Expand().Enter())
             {
                 gui.SetStyleToken("accent", Hsb(fraction * 240f));
-                gui.ProgressBar(fraction, height: 10);
+                gui.ProgressBar(fraction).Height(10);
             }
 
             using (gui.Node().ExpandWidth().Enter())
             {
                 gui.SetStyleToken("divider", Color.FromArgb(255, 224, 224, 224));
                 gui.SetStyleToken("accent", Color.FromArgb(255, 76, 175, 80));
-                gui.ProgressBar(null, height: 14);
+                gui.ProgressBar(null).Height(14);
             }
         }
     }

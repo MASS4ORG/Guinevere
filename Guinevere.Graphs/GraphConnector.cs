@@ -202,7 +202,8 @@ public readonly record struct GraphConnector(
             return;
         }
         var count = pattern.Count % 2 == 0 ? pattern.Count : pattern.Count * 2;
-        var period = pattern.Sum() * (count / pattern.Count);
+        var repeats = count / pattern.Count;
+        var period = pattern.Sum() * repeats;
         var phase = ((-style.DashOffset % period) + period) % period;
         for (var i = 1; i < points.Length; i++)
         {

@@ -14,7 +14,6 @@ public sealed class DockFixture
     /// <summary>Canvas height the scripts are written against.</summary>
     public const int Height = 900;
 
-    static readonly DockTheme FixtureTheme = new();
 
     /// <summary>The layout being driven, rearranged as a script drags things around.</summary>
     public DockLayout Layout { get; } = Seed();
@@ -23,7 +22,7 @@ public sealed class DockFixture
     public void Render(Gui gui)
     {
         gui.DrawRect(gui.ScreenRect, Color.FromArgb(255, 18, 20, 25));
-        gui.DockSpace(Layout, PanelInfo, RenderPanel, FixtureTheme);
+        gui.DockSpace(Layout, PanelInfo, RenderPanel);
     }
 
     /// <summary>Creates a Gui and input pair wired to a fresh fixture.</summary>

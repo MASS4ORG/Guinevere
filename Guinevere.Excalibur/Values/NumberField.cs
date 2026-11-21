@@ -1,0 +1,227 @@
+using System.Runtime.CompilerServices;
+
+namespace Guinevere;
+
+public static partial class ControlsExtensions
+{
+    sealed class NumberFieldState
+    {
+        public readonly TextEditState Buffer = new("0");
+        public bool Captured;
+        public int ClickCount;
+        public bool Committed;
+    }
+
+    static readonly string[] NumberClass = ["number"];
+
+    /// <summary>
+    /// A numeric text input. A click places the caret and opens keyboard editing, which commits on Enter or on focus
+    /// loss. Invalid text reverts to the previous value, and everything stays clamped to
+    /// [<paramref name="min"/>, <paramref name="max"/>]. Text is left-aligned unless the sheet's
+    /// <c>align-items</c> or the returned node's <c>AlignContentX</c> says otherwise, and clipped to the box.
+    /// </summary>
+    /// <param name="gui">The GUI context.</param>
+    /// <param name="value">The number the field edits; clamped into [<paramref name="min"/>, <paramref name="max"/>].</param>
+    /// <param name="step">Units per pixel of horizontal drag; vertical drag uses the same step.</param>
+    /// <param name="min">Lower bound on the value, applied to scrubbing and to committed text.</param>
+    /// <param name="max">Upper bound on the value, applied to scrubbing and to committed text.</param>
+    /// <param name="format">Format applied when echoing numbers back into the field (for example "0.##").</param>
+    /// <param name="dragSensitivity">Multiplier on the drag distance, letting one-step span several pixels.</param>
+    /// <param name="mixed">Shows a dash until the user enters a shared value.</param>
+    /// <param name="enabled">Whether the field responds to input.</param>
+    /// <param name="classes">Extra classes for the sheet; the field is styled as <c>input.number</c>.</param>
+    /// <param name="id">Optional stable id; two numeric fields on the same frame must not share one.</param>
+    /// <param name="filePath">Compiler-supplied; do not pass.</param>
+    /// <param name="lineNumber">Compiler-supplied; do not pass.</param>
+    /// <returns>
+    /// The field's node: <see cref="LayoutNode.Changed"/> when the value changed, <see cref="LayoutNode.Submitted"/>
+    /// when the user committed a valid number; as a <c>bool</c> either one.
+    /// </returns>
+    [PublicAPI]
+    public static ControlNode NumberField(this Gui gui, ref double value,
+        double step = 1.0, double min = double.MinValue, double max = double.MaxValue, string format = "0.##",
+        double dragSensitivity = 1.0, bool mixed = false, bool enabled = true,
+        IReadOnlyList<string>? classes = null, string? id = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(gui);
+        if (max < min)
+        {
+            (min, max) = (max, min);
+        }
+
+        value = Clamp(value, min, max);
+
+        var node = FieldNode(gui, NumberClass, classes, id, enabled, gui.ControlStyle.FieldWidth,
+            gui.ControlStyle.FieldHeight, filePath, lineNumber);
+        var nodeId = node.Id;
+        var field = gui.ControlState(nodeId, static () => new NumberFieldState());
+
+        var original = value;
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            field.Committed = false;
+        }
+
+        SyncNumberBuffer(field, value, format, mixed);
+
+        using (node.AlignContentY(0.5f).Enter())
+        {
+            var fontSize = FieldFontSize(gui);
+            gui.ClipContent();
+            var interactable = gui.GetInteractable();
+            HandleNumberFieldInteraction(gui, field, ref value, interactable, min, max, format, fontSize, enabled);
+
+            DrawSelection(gui, field.Buffer, field.Buffer.Text, fontSize);
+            DrawInputText(gui, field.Buffer.Text, mixed ? "—" : "", fontSize, enabled);
+            DrawCursor(gui, field.Buffer, field.Buffer.Text, fontSize);
+        }
+
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            if (!value.Equals(original))
+            {
+                node.Raise(NodeSignals.Changed);
+            }
+
+            if (field.Committed)
+            {
+                node.Raise(NodeSignals.Submitted);
+            }
+        }
+
+        return node;
+    }
+
+    /// <summary>Float wrapper over the double field, for callers whose values are floats.</summary>
+    [PublicAPI]
+    public static ControlNode NumberField(this Gui gui, ref float value,
+        float step = 1f, float min = float.MinValue, float max = float.MaxValue, string format = "0.##",
+        float dragSensitivity = 1f, bool mixed = false, bool enabled = true,
+        IReadOnlyList<string>? classes = null, string? id = null,
+        [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+    {
+        double d = value;
+        var node = gui.NumberField(ref d, step, min, max, format, dragSensitivity, mixed, enabled, classes,
+            id, filePath, lineNumber);
+        value = (float)d;
+        return node;
+    }
+
+    static void SyncNumberBuffer(NumberFieldState field, double value, string format, bool mixed)
+    {
+        var formatted = mixed ? "" : FormatNumber(value, format);
+        if (!string.Equals(field.Buffer.External, formatted, StringComparison.Ordinal))
+        {
+            field.Buffer.Text = formatted;
+            field.Buffer.External = formatted;
+            field.Buffer.MoveTo(formatted.Length, extend: false);
+        }
+    }
+
+    static void HandleNumberFieldInteraction(Gui gui, NumberFieldState field, ref double value,
+        InteractableElement interactable, double min, double max, string format,
+        float fontSize, bool enabled)
+    {
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
+        if (!enabled)
+        {
+            field.Buffer.IsFocused = false;
+            field.Captured = false;
+            value = Clamp(value, min, max);
+            return;
+        }
+
+        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+        gui.Focus.RegisterTextInput(gui.CurrentNode.Id);
+        var hasFocus = gui.HasFocus();
+        HandleNumberFieldPointer(gui, field, interactable, fontSize);
+
+        var wasEditing = field.Buffer.IsFocused;
+        field.Buffer.IsFocused = hasFocus;
+
+        if (field.Buffer.IsFocused)
+        {
+            if (gui.Input.IsKeyPressed(KeyboardKey.Enter))
+            {
+                value = CommitNumber(field, value, min, max, format);
+                field.Buffer.IsFocused = false;
+                gui.ClearFocus();
+            }
+            else
+            {
+                TextEditor.ProcessKeyboard(gui, field.Buffer);
+            }
+        }
+        else if (wasEditing)
+        {
+            value = CommitNumber(field, value, min, max, format);
+        }
+    }
+
+    static void HandleNumberFieldPointer(Gui gui, NumberFieldState field, InteractableElement interactable,
+        float fontSize)
+    {
+        var mouse = gui.LocalMousePosition;
+
+        if (interactable.OnClick(out var clicks))
+        {
+            field.Captured = true;
+            field.ClickCount = clicks;
+        }
+
+        if (field.Captured)
+        {
+            var buttonDown = gui.Input.IsMouseButtonDown(MouseButton.Left);
+            if (!buttonDown)
+            {
+                gui.RequestFocus(FocusReason.Mouse);
+                var at = TextEditor.PositionAt(gui, mouse, gui.CurrentNode.InnerRect,
+                    field.Buffer.Text, fontSize);
+                if (field.ClickCount >= 3)
+                {
+                    field.Buffer.SelectAll();
+                }
+                else if (field.ClickCount == 2)
+                {
+                    var (start, end) = TextEditor.WordAt(field.Buffer.Text, at);
+                    field.Buffer.MoveTo(start, extend: false);
+                    field.Buffer.MoveTo(end, extend: true);
+                }
+                else
+                {
+                    field.Buffer.MoveTo(at, extend: false);
+                }
+
+                field.Buffer.BlinkTimer = 0f;
+                field.Captured = false;
+            }
+        }
+
+    }
+
+    static double CommitNumber(NumberFieldState field, double fallback, double min, double max,
+        string format)
+    {
+        var valid = double.TryParse(field.Buffer.Text.Trim(),
+            System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture,
+            out var number) && double.IsFinite(number);
+        field.Committed = valid;
+        var parsed = valid
+            ? Clamp(number, min, max)
+            : Clamp(fallback, min, max);
+
+        field.Buffer.SetValue(FormatNumber(parsed, format));
+        return parsed;
+    }
+
+    static string FormatNumber(double value, string format) =>
+        value.ToString(format, System.Globalization.CultureInfo.InvariantCulture);
+
+    static double Clamp(double value, double min, double max) =>
+        Math.Clamp(value, min, max);
+}

@@ -63,7 +63,7 @@ public class LanguageProviderTests
         var list = WordCompletionProvider.Complete(buffer, buffer.Length);
 
         Assert.NotNull(list);
-        Assert.Equal(buffer.Length - 3, list!.ReplaceStart);
+        Assert.Equal(buffer.Length - 3, list.ReplaceStart);
         Assert.Equal(["counter", "count", "country"], list.Items.Select(static item => item.Label));
         Assert.Null(WordCompletionProvider.Complete(buffer, 0));
     }

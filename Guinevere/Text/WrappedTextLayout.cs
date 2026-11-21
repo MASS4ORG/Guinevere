@@ -177,7 +177,7 @@ public static class WrappedTextLayout
 
         var visible = lines.GetRange(0, options.MaxLines);
         var last = visible[^1];
-        var marker = options.Ellipsis ?? "";
+        var marker = options.Ellipsis;
         visible[^1] = maxWidth > 0f ? FitMarker(last, marker, text, maxWidth, measure) : last with { Marker = marker };
         return visible;
     }

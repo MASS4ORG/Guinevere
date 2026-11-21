@@ -104,12 +104,14 @@ public static class FormControls
         var style = new FormStyle(gui);
         var edited = value;
 
-        var committed = gui.NumberField(ref edited, integral ? 1d : 0.01d, min, max, width: 0, height: style.RowHeight,
-            format: integral ? "0" : "0.###", fontSize: style.FontSize, padding: 4, id: id, alignX: 1f,
-            mixed: mixed);
+        gui.CurrentNodeScope.Set(ControlStyles.Value<ControlFontSize, float>(style.FontSize));
+        var field = gui.NumberField(ref edited, integral ? 1d : 0.01d, min, max, format: integral ? "0" : "0.###",
+            mixed: mixed, id: id);
+        field.AlignContentX(1f);
+        field.Width(Size.Expand()).Height(style.RowHeight).Padding(4);
 
         result = edited;
-        return committed || !edited.Equals(value);
+        return field || !edited.Equals(value);
     }
 
     /// <summary>A labelled row of X/Y fields writing through <paramref name="set"/> and touching <paramref name="owner"/>.</summary>

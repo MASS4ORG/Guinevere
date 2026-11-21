@@ -11,12 +11,12 @@ public sealed partial class ProfilerView
         {
             return;
         }
-        sink!.PublishElement(new AccessibilityElement("profiler", null, "window", "Profiler",
+        sink!.PublishElement(new AccessibilityElement("profiler", null, ControlRole.Window, "Profiler",
             "F6 next panel; F8 pause/resume; F10 step. Tab navigates controls; arrows navigate inspection rows.",
             Gui.ScreenRect, ControlVisualState.None, Actions: Commands, ScopeId: "profiler"));
         foreach (var panel in Panels)
         {
-            sink.PublishElement(new AccessibilityElement($"profiler/panel/{panel}", "profiler", "panel", panel,
+            sink.PublishElement(new AccessibilityElement($"profiler/panel/{panel}", "profiler", ControlRole.Panel, panel,
                 "Select this panel before using keyboard docking controls.", Rect.Zero,
                 panel == ActivePanel ? ControlVisualState.Selected : ControlVisualState.None,
                 Virtualized: true, Actions: ["panel"], ScopeId: "profiler", Key: panel));
@@ -25,7 +25,7 @@ public sealed partial class ProfilerView
         {
             var id = source.Info.Id.ToString();
             sink.PublishElement(new AccessibilityElement($"profiler/source/{id}", "profiler/panel/sources",
-                "listitem", source.Info.Name, source.Info.Kind, Rect.Zero,
+                ControlRole.ListItem, source.Info.Name, source.Info.Kind, Rect.Zero,
                 source.Info.Id == _sourceId ? ControlVisualState.Selected : ControlVisualState.None,
                 Virtualized: true, Actions: ["source"], ScopeId: "profiler", Key: id));
         }
@@ -33,7 +33,7 @@ public sealed partial class ProfilerView
         {
             var key = frame.Generation.ToString(System.Globalization.CultureInfo.InvariantCulture);
             sink.PublishElement(new AccessibilityElement($"profiler/frame/{key}", "profiler/panel/sources",
-                "listitem", $"Frame {frame.Frame}", $"{frame.Dropped} dropped items", Rect.Zero,
+                ControlRole.ListItem, $"Frame {frame.Frame}", $"{frame.Dropped} dropped items", Rect.Zero,
                 ReferenceEquals(frame, Capture) ? ControlVisualState.Selected : ControlVisualState.None,
                 Virtualized: true, Actions: ["frame"], ScopeId: "profiler", Key: key));
         }
@@ -51,7 +51,7 @@ public sealed partial class ProfilerView
         {
             var parent = item.ParentId.Length > 0 ? $"{prefix}/{item.ParentId}" : "profiler/panel/layout";
             sink.PublishElement(new AccessibilityElement($"{prefix}/{item.Id}", parent,
-                "treeitem", $"{item.Name} {item.Value}",
+                ControlRole.TreeItem, $"{item.Name} {item.Value}",
                 $"Captured bounds {item.X},{item.Y} {item.Width}×{item.Height}; source {capture.Source.Name}",
                 Rect.Zero, item.Id == SelectedObject ? ControlVisualState.Selected : ControlVisualState.None,
                 Virtualized: true, Actions: ["object"], ScopeId: "profiler", Key: item.Id));
@@ -64,7 +64,7 @@ public sealed partial class ProfilerView
                 continue;
             }
             sink.PublishElement(new AccessibilityElement($"{prefix}/property/{index}", "profiler",
-                "text", item.Name, $"{item.Category}: {item.Value}", Rect.Zero, ControlVisualState.None,
+                ControlRole.Text, item.Name, $"{item.Category}: {item.Value}", Rect.Zero, ControlVisualState.None,
                 Virtualized: true, ScopeId: "profiler"));
         }
     }

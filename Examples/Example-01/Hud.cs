@@ -34,7 +34,7 @@ public partial class Example01
                 lagDuration: 0.8f, id: "health");
             var healthColor = gui.AnimateColor(Color.Lerp(Color.Red, Color.Lime, Math.Clamp(state.Health / 25, 0, 1)),
                 0.2f, id: "health-color");
-            var progress = state.Animate ? (float)(gui.Time.Elapsed % 4) / 4f : 0.65f;
+            var progress = state.Animate ? gui.Time.Elapsed % 4 / 4f : 0.65f;
             if (state.Animate)
             {
                 gui.RequestFrame();

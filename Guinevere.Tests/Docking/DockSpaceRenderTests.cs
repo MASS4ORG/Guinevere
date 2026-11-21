@@ -17,7 +17,7 @@ public class DockSpaceRenderTests
         using var h = new FrameHarness();
         var leaf = new DockLeaf("scene", "game", "output");
         var layout = new DockLayout { Root = leaf };
-        void Draw(Gui gui) => gui.DockSpace(layout, id => new DockPanelInfo(id), (_, _) => { }, Theme);
+        void Draw(Gui gui) => gui.DockSpace(layout, id => new DockPanelInfo(id), (_, _) => { });
         h.Frame(Draw);
         var source = h.Gui.RootNode!.FindChildById($"dock:root/tabs/{(reverse ? "output" : "scene")}")!;
         var target = h.Gui.RootNode.FindChildById($"dock:root/tabs/{(reverse ? "scene" : "output")}")!;
@@ -60,25 +60,34 @@ public class DockSpaceRenderTests
     public void ModifiedTabCanCloseFromItsInsetButton()
     {
         using var h = new FrameHarness();
-        TabStripResult result = default;
-        void Draw(Gui gui) => result = gui.TabStrip(
-            [new TabStripItem("scene", "Scene", Modified: true)], "scene");
+        var active = "scene";
+        string? closed = null;
+        var changed = false;
+        void Draw(Gui gui)
+        {
+            var strip = gui.TabStrip(ref active, tabs => tabs.Tab("Scene", key: "scene", closable: true,
+                modified: true, onClose: () => closed = "scene"), id: "tabstrip");
+            changed |= strip.Changed;
+        }
+
         h.Frame(Draw);
         var close = h.Gui.RootNode!.FindChildById("tabstrip/scene/close")!;
         h.Input.MoveTo(close.Center);
         h.Frame(Draw);
         h.Input.PressButton();
+        changed = false;
         h.Frame(Draw);
-        Assert.Equal("scene", result.Closed?.Id);
-        Assert.Null(result.Activated);
+        Assert.Equal("scene", closed);
+        Assert.Equal("scene", active);
+        Assert.False(changed);
     }
 
     const float SplitterThickness = 6f;
-
-    static readonly DockTheme Theme = new() { SplitterThickness = SplitterThickness, TabHeight = 20f };
+    const float TabIconSize = 14f;
 
     static Gui RenderDock(DockLayout layout, out List<string> rendered, int width = 400, int height = 300,
-        Func<string, DockPanelInfo?>? panelInfo = null, Action<DockTabStrip, Gui>? tabStripActions = null)
+        Func<string, DockPanelInfo?>? panelInfo = null, Action<DockTabStrip, Gui>? tabStripActions = null,
+        string? sheet = null)
     {
         var painted = new List<string>();
         using var surface = SKSurface.Create(new SKImageInfo(width, height));
@@ -89,6 +98,10 @@ public class DockSpaceRenderTests
 
         var gui = new TestableGui { Input = input };
         gui.SetScreenRect(width, height);
+        if (sheet is not null)
+        {
+            gui.StyleSheets.Add(StyleSheet.Parse(sheet));
+        }
 
         void Draw() => gui.DockSpace(layout,
             panelInfo ?? (id => new DockPanelInfo(id)),
@@ -99,7 +112,6 @@ public class DockSpaceRenderTests
                     painted.Add(id);
                 }
             },
-            Theme,
             tabStripActions);
 
         gui.SetStage(Pass.Pass1Build);
@@ -194,14 +206,15 @@ public class DockSpaceRenderTests
     }
 
     [Fact]
-    public void ATabStripTakesItsHeightFromTheThemeAndTheBodyTakesTheRest()
+    public void ATabStripIsTheCompactStripHeightAndTheBodyTakesTheRest()
     {
         var layout = new DockLayout { Root = new DockLeaf("scene") };
 
         var gui = RenderDock(layout, out _);
 
-        Assert.Equal(Theme.TabHeight, RectOf(gui, "dock:root/tabs").H, 1);
-        Assert.Equal(300f - Theme.TabHeight, RectOf(gui, "dock:root/body").H, 1);
+        var stripHeight = gui.ControlStyle.CompactHeight + 2f;
+        Assert.Equal(stripHeight, RectOf(gui, "dock:root/tabs").H, 1);
+        Assert.Equal(300f - stripHeight, RectOf(gui, "dock:root/body").H, 1);
     }
 
     [Fact]
@@ -214,7 +227,7 @@ public class DockSpaceRenderTests
     }
 
     [Fact]
-    public void ATabWithAnIconReservesTheThemesIconBoxAndDrawsItOncePerPass()
+    public void ATabWithAnIconReservesTheDefaultIconBoxAndDrawsItOncePerPass()
     {
         var layout = new DockLayout { Root = new DockLeaf("scene") };
         var drawn = 0;
@@ -228,11 +241,25 @@ public class DockSpaceRenderTests
 
         var icon = gui.RootNode!.FindChildById("dock:root/tabs/scene/icon");
         Assert.NotNull(icon);
-        Assert.Equal(Theme.TabIconSize, icon.Rect.W, 1);
-        Assert.Equal(Theme.TabIconSize, icon.Rect.H, 1);
+        Assert.Equal(TabIconSize, icon.Rect.W, 1);
+        Assert.Equal(TabIconSize, icon.Rect.H, 1);
 
         // Built in both passes: a node that only exists in the render pass never gets a rect.
         Assert.Equal(2, drawn);
+    }
+
+    [Fact]
+    public void SheetIconWidthWinsOverTheDefault()
+    {
+        var layout = new DockLayout { Root = new DockLeaf("scene") };
+        var gui = RenderDock(layout, out _,
+            panelInfo: static _ => new DockPanelInfo("Scene", Icon: static g => g.DrawBackgroundRect(Color.Red)),
+            sheet: "dock-icon { width = 20; }");
+
+        var icon = gui.RootNode!.FindChildById("dock:root/tabs/scene/icon");
+        Assert.NotNull(icon);
+        Assert.Equal(20f, icon.Rect.W, 1);
+        Assert.Equal(20f, icon.Rect.H, 1);
     }
 
     [Fact]

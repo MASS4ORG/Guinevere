@@ -19,7 +19,7 @@ public class TransformedControlsTests
             using (gui.Node(400, 60).Enter())
             {
                 gui.SetTransform(Matrix3x2.CreateScale(2f));
-                gui.Slider(ref value, 0f, 10f, width: 300, height: 30);
+                gui.Slider(ref value, 0f, 10f).Width(300).Height(30);
             }
         }
 
@@ -41,7 +41,7 @@ public class TransformedControlsTests
             using (gui.Node(800, 600).Enter())
             {
                 gui.SetTransform(Matrix3x2.CreateScale(2f));
-                gui.Popup(ref open, () => { }, 100, 100, position: new Vector2(10, 10));
+                gui.Popup(ref open, () => { }, position: new Vector2(10, 10)).Width(100).Height(100);
             }
         }
 
