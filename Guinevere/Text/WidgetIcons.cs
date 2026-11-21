@@ -9,6 +9,8 @@ public static class WidgetIcons
     public const string ChevronRight = "\uf054";
     /// <summary>Down disclosure chevron.</summary>
     public const string ChevronDown = "\uf078";
+    /// <summary>Up disclosure chevron.</summary>
+    public const string ChevronUp = "\uf077";
     /// <summary>Close mark.</summary>
     public const string Xmark = "\uf00d";
     /// <summary>Folder.</summary>

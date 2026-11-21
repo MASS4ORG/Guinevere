@@ -350,20 +350,29 @@ public unsafe partial class GuiWindow : IInputHandler, IWindowIdentityCapability
     }
 
     /// <summary>
-    /// Releases all resources used by the GuiWindow.
+    /// Releases all resources used by the GuiWindow. Safe to call more than once, and it never throws: after a
+    /// run loop that faulted the native window cannot be reset, so that failure is logged and the exception that
+    /// ended the loop stays the one the caller sees.
     /// </summary>
     public void Dispose()
     {
-        _accessibility?.Dispose();
-        _inputContext.Dispose();
-        _renderer.Dispose();
-        _window.Dispose();
-        _fontText.Dispose();
-        _fontIcon.Dispose();
-        _fontWidgetIcon.Dispose();
-        _appearance.Dispose();
+        if (!_lifecycle.BeginDispose())
+        {
+            return;
+        }
+
+        Teardown("accessibility", () => _accessibility?.Dispose());
+        Teardown("input", () => _inputContext?.Dispose());
+        Teardown("renderer", _renderer.Dispose);
+        Teardown("window", _window.Dispose);
+        Teardown("text font", _fontText.Dispose);
+        Teardown("icon font", _fontIcon.Dispose);
+        Teardown("widget icon font", _fontWidgetIcon.Dispose);
+        Teardown("appearance monitor", _appearance.Dispose);
         GC.SuppressFinalize(this);
     }
+
+    void ReportSuppressed(string message, Exception exception) => _logger.Warning(exception, "{Message}", message);
 
     /// <summary>
     /// Shows or hides the window title bar.

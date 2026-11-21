@@ -130,19 +130,26 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     public void RunGui(Action draw)
     {
         Pacing.ApplyOverride(Environment.GetEnvironmentVariable("GUINEVERE_PACING"));
-        while (!_close.Approved)
+        _lifecycle.Run(() =>
         {
-            WaitForFrame();
-            ObserveCloseRequest();
-            if (_close.Approved)
+            while (!_close.Approved)
             {
-                break;
-            }
+                WaitForFrame();
+                ObserveCloseRequest();
+                if (_close.Approved)
+                {
+                    break;
+                }
 
-            RenderFrame(draw);
-            Pacing.FrameRendered();
-        }
+                RenderFrame(draw);
+                Pacing.FrameRendered();
+            }
+        });
     }
+
+    readonly WindowLifecycle _lifecycle = new();
+
+    void Teardown(string step, Action release) => _lifecycle.Teardown(step, release);
 
     /// <summary>
     /// When frames render: on demand by default; clear <see cref="FramePacer.OnDemand"/> to render continuously.
@@ -260,18 +267,25 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     }
 
     /// <summary>
-    /// Releases all resources used by the GuiWindow.
+    /// Releases all resources used by the GuiWindow. Safe to call more than once, and it never throws: a failure
+    /// while releasing is reported on standard error, so the exception that ended a faulted run loop stays the one
+    /// the caller sees.
     /// </summary>
     public void Dispose()
     {
-        _accessibility?.Dispose();
-        _desktopPointer.Dispose();
-        _canvasRenderer.Dispose();
-        _fontText.Dispose();
-        _fontIcon.Dispose();
-        _fontWidgetIcon.Dispose();
-        _appearance.Dispose();
-        Raylib.CloseWindow();
+        if (!_lifecycle.BeginDispose())
+        {
+            return;
+        }
+
+        Teardown("accessibility", () => _accessibility?.Dispose());
+        Teardown("desktop pointer", _desktopPointer.Dispose);
+        Teardown("renderer", _canvasRenderer.Dispose);
+        Teardown("text font", _fontText.Dispose);
+        Teardown("icon font", _fontIcon.Dispose);
+        Teardown("widget icon font", _fontWidgetIcon.Dispose);
+        Teardown("appearance monitor", _appearance.Dispose);
+        Teardown("window", Raylib.CloseWindow);
     }
 
     #region Cursor and pointer

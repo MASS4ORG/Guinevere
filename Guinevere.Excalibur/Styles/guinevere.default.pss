@@ -434,6 +434,34 @@ tree-row {
 tree-expander { color = $text-dim; :hover { color = $text; } }
 tree-ghost { background-color = $md-secondary-container; border-radius = $md-shape-small; color = $md-on-secondary-container; }
 
+table { color = $text; }
+table-header { background-color = $surface-hover; border-bottom-color = $border; border-bottom-width = 1; }
+table-header-cell { color = $text-dim; :sorted { color = $text; } }
+table-cell.end, table-header-cell.end { align-items = end; }
+table-cell.center, table-header-cell.center { align-items = center; }
+table-header-resize { :hover(0.1 ease-out) { background-color = alpha($text, 14%); } :active { background-color = alpha($text, 24%); } }
+table-row {
+    border-bottom-color = $divider;
+    border-bottom-width = 1;
+    :odd { background-color = alpha($text, 3%); }
+    :hover(0.1 ease-out) { background-color = alpha($text, 8%); }
+    :selected { background-color = $selected; color = $md-on-secondary-container; }
+    :current { border-color = $accent; border-width = 1; }
+}
+/* A pinned strip is opaque, so the cells scrolled beneath it do not show through: the row's tints, mixed onto $surface. */
+table-pinned {
+    background-color = $surface;
+    border-bottom-color = $divider;
+    border-bottom-width = 1;
+    :odd { background-color = mix($surface, $text, 3%); }
+    :hover(0.1 ease-out) { background-color = mix($surface, $text, 8%); }
+    :selected { background-color = $selected; color = $md-on-secondary-container; }
+    :current { border-color = $accent; border-width = 1; }
+}
+table-details { border-bottom-color = $divider; border-bottom-width = 1; background-color = alpha($text, 2%); }
+table-expander { color = $text-dim; :hover { color = $text; } }
+table-empty, table-loading { color = $text-dim; }
+
 popup, dialog, toast { color = $text; }
 popup { background-color = $popup; border-radius = $md-shape-medium; box-shadow = 0 2 6 2 #00000026, 0 1 2 0 #0000004d; }
 dialog {

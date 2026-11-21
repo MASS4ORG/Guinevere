@@ -190,43 +190,48 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     /// Runs the GUI application with the specified draw callback until the window closes.
     /// </summary>
     /// <param name="draw">The callback method that defines the GUI layout and rendering.</param>
-    public unsafe void RunGui(Action draw)
+    public void RunGui(Action draw)
     {
         _guiCallback = draw;
         Pacing.ApplyOverride(Environment.GetEnvironmentVariable("GUINEVERE_PACING"));
         _gui.WakeHost = GLFW.PostEmptyEvent;
         try
         {
-            Context.MakeCurrent();
-            var clock = Stopwatch.StartNew();
-            while (!GLFW.WindowShouldClose(WindowPtr))
-            {
-                // Input edges compare against the state saved here, so it is saved before waiting for events.
-                NewInputFrame();
-                PollGameInput();
-                double wait;
-                while (!GLFW.WindowShouldClose(WindowPtr) && (wait = Pacing.WaitSeconds(_gui, InputHeld)) > 0)
-                {
-                    GLFW.WaitEventsTimeout(Math.Min(wait, 0.008));
-                    PollGameInput();
-                }
-                ProcessWindowEvents(false);
-                if (GLFW.WindowShouldClose(WindowPtr))
-                {
-                    break;
-                }
-
-                var frame = new FrameEventArgs(clock.Elapsed.TotalSeconds);
-                clock.Restart();
-                OnUpdateFrame(frame);
-                OnRenderFrame(frame);
-                _gameInput.NewFrame();
-                Pacing.FrameRendered();
-            }
+            _lifecycle.Run(RunLoop);
         }
         finally
         {
             _gui.WakeHost = null;
+        }
+    }
+
+    unsafe void RunLoop()
+    {
+        Context.MakeCurrent();
+        var clock = Stopwatch.StartNew();
+        while (!GLFW.WindowShouldClose(WindowPtr))
+        {
+            // Input edges compare against the state saved here, so it is saved before waiting for events.
+            NewInputFrame();
+            PollGameInput();
+            double wait;
+            while (!GLFW.WindowShouldClose(WindowPtr) && (wait = Pacing.WaitSeconds(_gui, InputHeld)) > 0)
+            {
+                GLFW.WaitEventsTimeout(Math.Min(wait, 0.008));
+                PollGameInput();
+            }
+            ProcessWindowEvents(false);
+            if (GLFW.WindowShouldClose(WindowPtr))
+            {
+                break;
+            }
+
+            var frame = new FrameEventArgs(clock.Elapsed.TotalSeconds);
+            clock.Restart();
+            OnUpdateFrame(frame);
+            OnRenderFrame(frame);
+            _gameInput.NewFrame();
+            Pacing.FrameRendered();
         }
     }
 
@@ -301,18 +306,29 @@ public partial class GuiWindow : GameWindow, IInputHandler, IWindowIdentityCapab
     }
 
     /// <summary>
-    /// Releases all resources used by the GuiWindow.
+    /// Releases all resources used by the GuiWindow. Safe to call more than once, and it never throws: a failure
+    /// while releasing is reported on standard error, so the exception that ended a faulted run loop stays the one
+    /// the caller sees.
     /// </summary>
     public new void Dispose()
     {
-        _accessibility?.Dispose();
-        base.Dispose();
-        _canvasRenderer.Dispose();
-        _fontText.Dispose();
-        _fontIcon.Dispose();
-        _fontWidgetIcon.Dispose();
-        _appearance.Dispose();
+        if (!_lifecycle.BeginDispose())
+        {
+            return;
+        }
+
+        Teardown("accessibility", () => _accessibility?.Dispose());
+        Teardown("window", base.Dispose);
+        Teardown("renderer", _canvasRenderer.Dispose);
+        Teardown("text font", _fontText.Dispose);
+        Teardown("icon font", _fontIcon.Dispose);
+        Teardown("widget icon font", _fontWidgetIcon.Dispose);
+        Teardown("appearance monitor", _appearance.Dispose);
     }
+
+    readonly WindowLifecycle _lifecycle = new();
+
+    void Teardown(string step, Action release) => _lifecycle.Teardown(step, release);
 
     /// <summary>
     /// Gets a string resource from the assembly's embedded resources.

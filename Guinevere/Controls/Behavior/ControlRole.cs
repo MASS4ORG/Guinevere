@@ -89,4 +89,12 @@ public record ControlRole
     public static ControlRole MenuItem { get; } = new("MenuItem");
     /// <summary>A text entry field.</summary>
     public static ControlRole TextInput { get; } = new("TextInput", activatable: false);
+    /// <summary>A grid of rows and columns.</summary>
+    public static ControlRole Table { get; } = new("Table", activatable: false);
+    /// <summary>The header of one table column.</summary>
+    public static ControlRole ColumnHeader { get; } = new("ColumnHeader", activatable: false);
+    /// <summary>One row of a table.</summary>
+    public static ControlRole Row { get; } = new("Row", activatable: false);
+    /// <summary>One cell of a table row.</summary>
+    public static ControlRole Cell { get; } = new("Cell", activatable: false);
 }

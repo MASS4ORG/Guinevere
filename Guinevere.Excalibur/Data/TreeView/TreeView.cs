@@ -66,9 +66,8 @@ public static partial class ControlsExtensions
 
             // Both passes must pick the same rows, and a node's rect is only resolved in the render
             // pass — so the window comes from what the previous frame measured.
-            var first = Math.Max(0, (int)(state.FrameScrollY / theme.RowHeight) - Overscan);
-            var take = (int)(state.FrameViewportHeight / theme.RowHeight) + (Overscan * 2) + 1;
-            var last = Math.Min(visible.Count, first + take);
+            var window = VirtualRows.Window(state.FrameScrollY, state.FrameViewportHeight, theme.RowHeight,
+                visible.Count, Overscan);
             var rowClicked = false;
             void RowClick(TreeViewEvent e)
             {
@@ -76,14 +75,14 @@ public static partial class ControlsExtensions
                 onClick?.Invoke(e);
             }
 
-            Spacer(gui, "treeview/padTop", first * theme.RowHeight);
+            VirtualRows.Spacer(gui, "treeview/padTop", window.PadTop);
 
-            for (var i = first; i < last; i++)
+            for (var i = window.First; i < window.Last; i++)
             {
                 RenderRow(gui, state, theme, visible[i], i, RowClick, dragPayload, dropAccept, onDrop, onRename);
             }
 
-            Spacer(gui, "treeview/padBottom", (visible.Count - last) * theme.RowHeight);
+            VirtualRows.Spacer(gui, "treeview/padBottom", window.PadBottom);
 
             if (gui.Pass != Pass.Pass2Render)
             {
@@ -352,25 +351,13 @@ public static partial class ControlsExtensions
     /// </summary>
     static void Measure(Gui gui, TreeViewState state)
     {
-        var rect = gui.CurrentNode.Rect;
-        if (rect.H > 0)
+        var measure = VirtualRows.Measure(gui);
+        if (measure.Height > 0)
         {
-            state.FrameViewportHeight = rect.H;
+            state.FrameViewportHeight = measure.Height;
         }
 
-        state.FrameScrollY = gui.GetScrollState(gui.CurrentNode.Id) is { } scroll ? scroll.ScrollOffset.Y : 0f;
-    }
-
-    static void Spacer(Gui gui, string id, float height)
-    {
-        if (height <= 0)
-        {
-            return;
-        }
-
-        using (gui.Node(-1, height, id).ExpandWidth().Enter())
-        {
-        }
+        state.FrameScrollY = measure.Y;
     }
 
     static void RenderRow(Gui gui, TreeViewState state, TreeViewMetrics theme, TreeItem item, int row,
