@@ -212,13 +212,15 @@ public class StyleExpressionTests
         gui.StyleSheets.Add(StyleSheet.Parse("box { width = 2 * 3; bg-color = mix(red, blue, 0.5); }"));
         var first = gui.ResolveStyle("box");
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 100; i++)
+        var allocated = AllocationProbe.Steady(() =>
         {
-            GC.KeepAlive(gui.ResolveStyle("box"));
-        }
+            for (var i = 0; i < 100; i++)
+            {
+                GC.KeepAlive(gui.ResolveStyle("box"));
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
         Assert.Equal(("6", "#800080ff"), (first.Get("width"), first.Get("bg-color")));
     }
 

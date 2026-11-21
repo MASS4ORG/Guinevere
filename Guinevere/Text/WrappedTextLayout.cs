@@ -71,10 +71,11 @@ public static class WrappedTextLayout
 
     /// <summary>
     /// The wrapping and truncation rules over source offsets, so styled text whose width depends on where a
-    /// range sits can share them with plain text.
+    /// range sits can share them with plain text; an empty <paramref name="buffer"/> takes the lines when no
+    /// truncation or splitting replaces them.
     /// </summary>
     internal static List<LineRange> WrapRanges(string text, float maxWidth, RangeMeasure measure,
-        TextLayoutOptions options)
+        TextLayoutOptions options, List<LineRange>? buffer = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         if (options.LineHeight <= 0f || options.MaxLines < 0)
@@ -83,7 +84,7 @@ public static class WrappedTextLayout
         }
 
         var mode = maxWidth > 0f ? options.WrapMode : TextWrapMode.None;
-        var lines = new List<LineRange>();
+        var lines = buffer ?? [];
         var paragraphStart = 0;
         while (true)
         {

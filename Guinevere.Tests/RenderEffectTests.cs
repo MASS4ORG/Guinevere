@@ -299,12 +299,14 @@ public class RenderEffectTests
         {
             _ = stack.Paint(false, 1);
         }
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 100; i++)
+        var allocated = AllocationProbe.Steady(() =>
         {
-            _ = stack.Paint(false, 1);
-        }
-        Assert.Equal(before, GC.GetAllocatedBytesForCurrentThread());
+            for (var i = 0; i < 100; i++)
+            {
+                _ = stack.Paint(false, 1);
+            }
+        });
+        Assert.Equal(0, allocated);
     }
 
     /// <summary>An explicitly unsupported renderer reports its fallback without applying the filter.</summary>

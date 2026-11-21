@@ -32,23 +32,23 @@ public class NodeIdentityRegistryTests
     {
         var registry = new NodeIdentityRegistry();
         var root = registry.Explicit(0, 0, "0");
-        // Exercise the exact measurement helper before the assertion; its counter/loop cannot tier or OSR midway.
+        // The warm-up fills the descriptor caches; RunLookups is unoptimized so its loop cannot be re-jitted midway.
+        // Steady tolerates one transient allocation blip.
         for (var i = 0; i < 32; i++)
         {
-            MeasureLookups(registry, root, 1_000);
+            RunLookups(registry, root, 1_000);
         }
-        Assert.Equal(0, MeasureLookups(registry, root, 10_000));
+
+        Assert.Equal(0, AllocationProbe.Steady(() => RunLookups(registry, root, 10_000)));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    static long MeasureLookups(NodeIdentityRegistry registry, int root, int iterations)
+    static void RunLookups(NodeIdentityRegistry registry, int root, int iterations)
     {
-        var before = GC.GetAllocatedBytesForCurrentThread();
         for (var i = 0; i < iterations; i++)
         {
             Lookup(registry, root);
         }
-        return GC.GetAllocatedBytesForCurrentThread() - before;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

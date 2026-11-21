@@ -16,9 +16,6 @@ readonly record struct TextLayoutRequest(TextLayoutContent Content, FontKey Font
     ITextShaper Shaper)
 {
     internal long Weight => Content.Weight + Options.TabStops.Count * 2L + Font.Weight + Emoji.Weight + Widget.Weight;
-
-    /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(Content, Font, Scale, MaxWidth, Options, FontsVersion);
 }
 
 /// <summary>
@@ -35,16 +32,19 @@ static partial class TextLayoutEngine
     /// <summary>Per-range spacing in pixels and kerning, after inheriting the block's options.</summary>
     readonly record struct RangeSpacing(float Letter, float Word, bool Kerning);
 
-    sealed partial class Build(TextLayoutRequest request, FontRegistry? fonts, FontCache? cache)
+    sealed partial class Build(TextLayoutRequest request, FontRegistry? fonts, FontCache? cache, Scratch scratch)
     {
         readonly Font _base = request.Font.Resolve(cache: cache);
         readonly Font _widget = request.Widget.Resolve(cache: cache);
         readonly string _text = request.Content.Text;
-        readonly StyledRange[] _ranges = request.Content.Ranges;
+        readonly StyledRange[] _ranges = request.Content.Styled?.Ranges
+            ?? scratch.PlainRange(request.Content.Text.Length);
         readonly TextLayoutOptions _options = request.Options;
-        readonly Dictionary<float, Font> _emoji = [];
-        readonly List<Piece> _pieces = [];
-        readonly List<int> _tabs = [];
+        readonly List<Piece> _pieces = scratch.Pieces;
+        readonly List<int> _tabs = scratch.Tabs;
+        Dictionary<float, Font>? _otherEmoji;
+        Font? _emoji;
+        float _emojiSize;
         Font[] _rangeFonts = [];
         string _display = "";
         float[] _advance = [];
@@ -52,21 +52,21 @@ static partial class TextLayoutEngine
 
         internal TextLayout Run()
         {
-            _rangeFonts = new Font[_ranges.Length];
+            _rangeFonts = Scratch.Sized(ref scratch.RangeFonts, _ranges.Length);
             for (var i = 0; i < _ranges.Length; i++)
             {
                 _rangeFonts[i] = ResolveFont(_ranges[i].Style);
             }
 
             _display = DisplayText();
-            _advance = new float[_text.Length];
+            _advance = Scratch.Sized(ref scratch.Advance, _text.Length);
             for (var i = 0; i < _ranges.Length; i++)
             {
                 AppendPieces(i);
             }
 
             _prefix = Prefix();
-            var ranges = WrappedTextLayout.WrapRanges(_text, request.MaxWidth, Measure, _options);
+            var ranges = WrappedTextLayout.WrapRanges(_text, request.MaxWidth, Measure, _options, scratch.Lines);
             return Lay(ranges);
         }
 
@@ -87,11 +87,24 @@ static partial class TextLayoutEngine
             fonts?.Resolve(font.Families ?? $"\"{font.FamilyName}\"", size, weight, italic)
             ?? font.Resized(size, cache).Restyled(weight, italic, cache);
 
+        /// <summary>The emoji font at a size; the first size sits in fields, further sizes in a dictionary.</summary>
         Font EmojiAt(float size)
         {
-            if (!_emoji.TryGetValue(size, out var font))
+            if (_emoji is null)
             {
-                _emoji[size] = font = request.Emoji.Resolve(size, cache);
+                _emojiSize = size;
+                return _emoji = request.Emoji.Resolve(size, cache);
+            }
+
+            if (_emojiSize.Equals(size))
+            {
+                return _emoji;
+            }
+
+            _otherEmoji ??= [];
+            if (!_otherEmoji.TryGetValue(size, out var font))
+            {
+                _otherEmoji[size] = font = request.Emoji.Resolve(size, cache);
             }
 
             return font;
@@ -149,7 +162,8 @@ static partial class TextLayoutEngine
                 return;
             }
 
-            var fontRanges = new List<FontRange>();
+            var fontRanges = scratch.FontRanges;
+            fontRanges.Clear();
             FontTextLayout.AppendRanges(fontRanges, _display, range.Start, range.End, font, _widget,
                 EmojiAt(font.Size), cache);
             var spacing = Spacing(index);
@@ -224,7 +238,7 @@ static partial class TextLayoutEngine
         /// <summary>Running advance sums, so any tab-free range measures in constant time.</summary>
         float[] Prefix()
         {
-            var prefix = new float[_text.Length + 1];
+            var prefix = Scratch.Sized(ref scratch.Prefix, _text.Length + 1);
             for (var i = 0; i < _text.Length; i++)
             {
                 prefix[i + 1] = prefix[i] + _advance[i];
@@ -325,6 +339,16 @@ static partial class TextLayoutEngine
     }
 
     /// <summary>Lays out <paramref name="request"/>; <paramref name="fonts"/> supplies real bold and italic faces.</summary>
-    internal static TextLayout Create(TextLayoutRequest request, FontRegistry? fonts, FontCache? cache = null) =>
-        new Build(request, fonts, cache).Run();
+    internal static TextLayout Create(TextLayoutRequest request, FontRegistry? fonts, FontCache? cache = null)
+    {
+        var scratch = Scratch.Acquire();
+        try
+        {
+            return new Build(request, fonts, cache, scratch).Run();
+        }
+        finally
+        {
+            scratch.Release();
+        }
+    }
 }

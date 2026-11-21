@@ -109,6 +109,7 @@ public partial class Gui
     /// <param name="fontWidgetIcon">Optional font for explicit widget icons.</param>
     public void BeginFrame(SKCanvas canvas, Font? font = null, Font? fontIcon = null, Font? fontWidgetIcon = null)
     {
+        DrainPosted();
         FrameObserver?.BeginFrame(this);
         BeginIdentityPass();
         BeginFrameRequests();

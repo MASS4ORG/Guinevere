@@ -138,8 +138,15 @@ public class RowOffsetIndexTests
             index.Set(row, 120f);
         }
 
-        _ = VirtualRows.Window(1000f, 600f, index, 4);
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var sum = 0f;
+        var allocated = AllocationProbe.Steady(() => sum = ScrollThrough(index));
+
+        Assert.Equal(0L, allocated);
+        Assert.True(sum > 0f);
+    }
+
+    static float ScrollThrough(RowOffsetIndex index)
+    {
         var sum = 0f;
         for (var i = 0; i < 10_000; i++)
         {
@@ -148,7 +155,6 @@ public class RowOffsetIndexTests
             sum += index.TopOf(window.First) + index.RowAt(scroll);
         }
 
-        Assert.Equal(0L, GC.GetAllocatedBytesForCurrentThread() - before);
-        Assert.NotEqual(0f, sum);
+        return sum;
     }
 }

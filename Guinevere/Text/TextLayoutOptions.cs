@@ -68,7 +68,27 @@ public sealed record TextLayoutOptions
         || (Scalars().Equals(other.Scalars()) && TabStops.SequenceEqual(other.TabStops)));
 
     /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(Scalars(), TabStops.Count);
+    public override int GetHashCode()
+    {
+        // Hashing the scalar tuple would box its nested rest tuple on every cache lookup.
+        var hash = new HashCode();
+        hash.Add(WrapMode);
+        hash.Add(LineHeight);
+        hash.Add(MaxLines);
+        hash.Add(Ellipsis);
+        hash.Add(LetterSpacing);
+        hash.Add(WordSpacing);
+        hash.Add(TabSize);
+        hash.Add(FirstLineIndent);
+        hash.Add(HangingIndent);
+        hash.Add(Alignment);
+        hash.Add(LastLineAlignment);
+        hash.Add(Case);
+        hash.Add(Kerning);
+        hash.Add(MissingGlyph);
+        hash.Add(TabStops.Count);
+        return hash.ToHashCode();
+    }
 
     /// <summary>Every option except the tab stop list, which compares by its elements.</summary>
     (TextWrapMode, float, int, string, float, float, float, float, float, TextAlignment?, TextAlignment, TextCase,

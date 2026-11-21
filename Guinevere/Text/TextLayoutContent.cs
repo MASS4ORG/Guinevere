@@ -7,7 +7,10 @@ readonly record struct TextLayoutContent(string Text, RichTextContent? Styled = 
 
     internal TextLink[] Links => Styled?.Links ?? [];
 
-    internal long Weight => Text.Length + (Styled?.Ranges.Length ?? 1) * 16L;
+    internal long Weight => WeightOf(Text.Length, Styled?.Ranges.Length ?? 1);
+
+    /// <summary>The cache budget of text with the given length and number of style ranges.</summary>
+    internal static long WeightOf(int textLength, int rangeCount) => textLength + rangeCount * 16L;
 
     /// <summary>Plain content without allocating a range snapshot.</summary>
     public static implicit operator TextLayoutContent(string text) => new(text);

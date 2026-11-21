@@ -290,13 +290,14 @@ public class TableCacheTests
         var text = cache.TextCacheFor<int>(0);
         _ = text.Text(cache, slot, 123_456);
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 10_000; i++)
+        var allocated = AllocationProbe.Steady(() =>
         {
-            _ = text.Text(cache, slot, 123_456);
-        }
+            for (var i = 0; i < 10_000; i++)
+            {
+                _ = text.Text(cache, slot, 123_456);
+            }
+        });
 
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
         Assert.True(allocated < 256, $"10000 unchanged cells allocated {allocated} bytes: the value was boxed or reformatted");
     }
 

@@ -257,6 +257,119 @@ public class TextLayoutCacheTests
         icons.Dispose();
     }
 
+    static readonly TextLayoutOptions DefaultOptions = new();
+
+    static PlainTextRequest Plain(ReadOnlySpan<char> text, FontKey font, float maxWidth = 0f) =>
+        new(text, font, font, font, 1f, maxWidth, DefaultOptions, TextAlignment.Start, 0, BasicTextShaper.Instance);
+
+    /// <summary>The two forms of one request hash alike and compare equal; a styled request never matches.</summary>
+    [Fact]
+    public void ComparerTreatsSpanAndStringRequestsAsOneKeyAndStyledOnesAsAnother()
+    {
+        var font = Font.FromFamilyName("sans-serif", 14);
+        var key = new FontKey(font, 14);
+        var comparer = TextLayoutRequestComparer.Instance;
+        var plain = Plain("Hello".AsSpan(), key);
+        var owned = plain.ToRequest(new TextLayoutContent("Hello"));
+        var styled = plain.ToRequest(new RichText("Hello").Style(0, 5, TextSpanStyle.Bold).Content);
+
+        Assert.Equal(comparer.GetHashCode(owned), comparer.GetHashCode(plain));
+        Assert.True(comparer.Equals(plain, owned));
+        Assert.True(comparer.Equals(owned, plain.ToRequest()));
+        Assert.Equal(comparer.GetHashCode(owned), comparer.GetHashCode(plain.ToRequest()));
+        Assert.False(comparer.Equals(plain, styled));
+        Assert.NotEqual(comparer.GetHashCode(styled), comparer.GetHashCode(plain));
+        Assert.False(comparer.Equals(Plain("Hellp".AsSpan(), key), owned));
+        Assert.False(comparer.Equals(Plain("Hello".AsSpan(), key, 80f), owned));
+        Assert.False(comparer.Equals(Plain("Hello".AsSpan(), new FontKey(font, 16)), owned));
+        font.Dispose();
+    }
+
+    /// <summary>A plain request takes the same cache budget as the equal request built from its content.</summary>
+    [Fact]
+    public void PlainAndOwnedRequestsReportTheSameWeight()
+    {
+        var font = Font.FromFamilyName("sans-serif", 14);
+        var plain = Plain("Hello world".AsSpan(), new FontKey(font, 14));
+
+        Assert.Equal(plain.ToRequest().Weight, plain.Weight);
+        Assert.Equal(TextLayoutContent.WeightOf(11, 1), plain.Weight - plain.Font.Weight * 3);
+        font.Dispose();
+    }
+
+    /// <summary>A lookup by characters finds the string-keyed layout in either generation and builds nothing.</summary>
+    [Fact]
+    public void SpanLookupReusesStringKeyedLayoutsAcrossGenerations()
+    {
+        using var harness = new FrameHarness();
+        var fonts = harness.Gui.Fonts;
+        var font = Font.FromFamilyName("sans-serif", 14);
+        var key = new FontKey(font, 14);
+        var cache = new TextLayoutCache();
+        var request = Plain("Hello".AsSpan(), key).ToRequest();
+        var first = cache.Get(request, fonts);
+        var buffer = "Hello".ToCharArray();
+
+        Assert.Same(first, cache.Get(Plain(buffer, key), fonts));
+        cache.NextFrame();
+        Assert.Same(first, cache.Get(Plain(buffer, key), fonts));
+        Assert.Same(first, cache.Get(request, fonts));
+        Assert.Equal(1, cache.Builds);
+        cache.NextFrame();
+        cache.NextFrame();
+        Assert.NotSame(first, cache.Get(Plain(buffer, key), fonts));
+        Assert.Equal(2, cache.Builds);
+        font.Dispose();
+    }
+
+    /// <summary>A cached lookup by characters allocates nothing, and a new layout allocates a bounded amount.</summary>
+    [Fact]
+    public void SpanLookupAllocatesNothingOnAHitAndLittleOnAMiss()
+    {
+        using var harness = new FrameHarness();
+        var fonts = harness.Gui.Fonts;
+        var font = Font.FromFamilyName("sans-serif", 14);
+        var key = new FontKey(font, 14);
+        var cache = new TextLayoutCache();
+        var textFonts = new FontCache();
+        var buffer = new char[16];
+        const int Value = 123456;
+        Value.TryFormat(buffer, out var written);
+        for (var i = 0; i < 100; i++)
+        {
+            cache.Get(Plain(buffer.AsSpan(0, written), key), fonts, textFonts);
+        }
+
+        var hitAllocation = AllocationProbe.Steady(() =>
+        {
+            for (var i = 0; i < 1_000; i++)
+            {
+                Value.TryFormat(buffer, out var count);
+                cache.Get(Plain(buffer.AsSpan(0, count), key), fonts, textFonts);
+            }
+        });
+
+        Assert.Equal(0, hitAllocation);
+
+        const int Misses = 500;
+        for (var i = 0; i < 100; i++)
+        {
+            (Value + i + 1).TryFormat(buffer, out written);
+            cache.Get(Plain(buffer.AsSpan(0, written), key), fonts, textFonts);
+        }
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var i = 0; i < Misses; i++)
+        {
+            (Value + 1_000 + i).TryFormat(buffer, out written);
+            cache.Get(Plain(buffer.AsSpan(0, written), key), fonts, textFonts);
+        }
+
+        var perLayout = (GC.GetAllocatedBytesForCurrentThread() - before) / Misses;
+        Assert.True(perLayout < 1_800, $"{perLayout} B per new layout; measured 1530 with the cache entry and string");
+        font.Dispose();
+    }
+
     /// <summary>Equivalent font instances share identity and preserve their native rendering settings when resized.</summary>
     [Fact]
     public void FontSnapshotsCompareByValueAndPreserveDescriptorsAndSize()

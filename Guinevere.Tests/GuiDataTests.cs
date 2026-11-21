@@ -306,13 +306,15 @@ public class GuiDataTests
                 using var scope = gui.EnterDataScope(123);
                 gui.SetData(1, "value");
             }
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 100; i++)
+            var allocated = AllocationProbe.Steady(() =>
             {
-                using var scope = gui.EnterDataScope(123);
-                gui.SetData(gui.GetData(0, "value") + 1, "value");
-            }
-            Assert.Equal(before, GC.GetAllocatedBytesForCurrentThread());
+                for (var i = 0; i < 100; i++)
+                {
+                    using var scope = gui.EnterDataScope(123);
+                    gui.SetData(gui.GetData(0, "value") + 1, "value");
+                }
+            });
+            Assert.Equal(0, allocated);
         });
     }
 

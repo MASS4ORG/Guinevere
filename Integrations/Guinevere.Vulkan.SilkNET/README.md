@@ -29,7 +29,7 @@ public abstract class Program
 
 Skia draws on the GPU straight into the swapchain images. When a Skia Vulkan context cannot be created, Skia rasterizes on the CPU and the frame is copied into the swapchain image; `GUINEVERE_RENDERER=raster` forces that path. `CanvasRenderer.IsGpuAccelerated` reports which one runs.
 
-The window renders on demand by default: it waits for input between frames. It renders a few frames after each input event, continuously while a button or key is held, whenever keyed animations, style transitions and timed controls (tooltips, toasts, caret blink, indeterminate progress) are moving, and at least every `Pacing.MaxIdleSeconds` (0.5 s). Content that changes without input, such as a playing game viewport or progress from a background task, calls `gui.RequestFrame()` (safe from any thread) or `gui.RequestFrameIn(seconds)` for a timer. Games and other content that changes every frame can render continuously instead:
+The window renders on demand by default: it waits for input between frames. It renders a few frames after each input event, continuously while a button or key is held, whenever keyed animations, style transitions and timed controls (tooltips, toasts, caret blink, indeterminate progress) are moving, and at least every `Pacing.MaxIdleSeconds` (0.5 s). Content that changes without input, such as a playing game viewport or progress from a background task, calls `gui.RequestFrame()` (safe from any thread) or `gui.RequestFrameIn(seconds)` for a timer. Background work hands results to the UI thread with `gui.Post(action)`, which runs the action at the start of the next frame. Games and other content that changes every frame can render continuously instead:
 
 ```csharp
 using var win = new GuiWindow(gui);
