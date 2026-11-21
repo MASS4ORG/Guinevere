@@ -31,6 +31,7 @@
         <ProjectReference Include="../Autoformers/Autoformers.csproj"/>
         <ProjectReference Include="../Autoformers.Excalibur/Autoformers.Excalibur.csproj"/>
         <ProjectReference Include="../Guinevere/Guinevere.csproj"/>
+        <ProjectReference Include="../Guinevere.Charts/Guinevere.Charts.csproj"/>
         <ProjectReference Include="../Guinevere.Profiling/Guinevere.Profiling.csproj"/>
         <ProjectReference Include="../Integrations/Guinevere.OpenGL.OpenTK/Guinevere.OpenGL.OpenTK.csproj" Aliases="OpenTk"/>
         <ProjectReference Include="../Integrations/Guinevere.Vulkan.SilkNET/Guinevere.Vulkan.SilkNET.csproj" Aliases="Vulkan"/>

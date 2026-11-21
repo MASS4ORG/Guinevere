@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <PackageId>MASS4.Guinevere.Charts</PackageId>
+        <Description>Allocation-conscious chart geometry and drawing for Guinevere.</Description>
+        <Version>6.7.0</Version>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="/" />
+        <ProjectReference Include="../Guinevere/Guinevere.csproj" />
+        <ProjectReference Include="../Guinevere.Styling/Guinevere.Styling.csproj" />
+    </ItemGroup>
+</Project>

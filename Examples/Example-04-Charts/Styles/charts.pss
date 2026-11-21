@@ -1,0 +1,25 @@
+$md-surface = #181e28;
+$md-on-surface = #e5ebf4;
+$md-secondary-container = #28466d;
+$md-on-secondary-container = #f2f6fd;
+
+charts-gallery {
+    background-color = #101620;
+    color = $md-on-surface;
+    padding = 20;
+    gap = 12;
+}
+
+charts-gallery label { color = $md-on-surface; }
+
+chart {
+    background-color = #181e28;
+    border-radius = 8;
+    padding = 14;
+}
+
+chart chart-axis { border-color = #9aabc4; }
+chart chart-grid { border-color = #344155; }
+chart chart-label { color = #d8e2f2; }
+chart chart-selection { background-color = #59a0f6; }
+chart chart-tooltip { color = #ffffff; background-color = #202a3b; }

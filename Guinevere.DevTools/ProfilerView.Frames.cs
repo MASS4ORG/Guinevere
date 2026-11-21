@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Numerics;
+using Guinevere.Charts;
 using Guinevere.Profiling;
 
 namespace Guinevere.DevTools;
@@ -133,7 +134,8 @@ public sealed partial class ProfilerView
                 return;
             }
             var area = Gui.CurrentNode.Rect;
-            var hovered = strip.OnHover() ? FrameAt(area, Gui.Input.MousePosition.X) : -1;
+            var band = new BarBand(area, _frames.Count, MinimumFrameSlots);
+            var hovered = strip.OnHover() ? band.HitTest(Gui.Input.MousePosition) : -1;
             if (hovered >= 0 && strip.OnClick())
             {
                 Command("frame", _frames[hovered].Generation.ToString(CultureInfo.InvariantCulture));
@@ -143,7 +145,7 @@ public sealed partial class ProfilerView
                 _hoveredFrame = hovered;
                 Gui.RequestFrame();
             }
-            DrawFrames(area, hovered);
+            DrawFrames(area, band, hovered);
         }
     }
 
@@ -190,52 +192,44 @@ public sealed partial class ProfilerView
         return text;
     }
 
-    static double Percentile(double[] values, double fraction)
+    static double Percentile(Span<double> values, double fraction)
     {
-        var sorted = values.Order().ToArray();
-        return sorted[Math.Clamp((int)Math.Ceiling(fraction * sorted.Length) - 1, 0, sorted.Length - 1)];
+        values.Sort();
+        return values[(int)Math.Ceiling(fraction * values.Length) - 1];
     }
 
-    float SlotWidth(Rect area) => area.W / Math.Max(MinimumFrameSlots, _frames.Count);
-
-    /// <summary>Recorded frame index under a pointer x; newest frames are right-aligned.</summary>
-    int FrameAt(Rect area, float x)
+    void DrawFrames(Rect area, BarBand band, int hovered)
     {
-        var slot = SlotWidth(area);
-        var first = area.X + area.W - _frames.Count * slot;
-        var index = (int)Math.Floor((x - first) / slot);
-        return index >= 0 && index < _frames.Count ? index : -1;
-    }
-
-    void DrawFrames(Rect area, int hovered)
-    {
-        var durations = _frames.Select(static frame => frame.Milliseconds).ToArray();
+        Span<double> durations = stackalloc double[_frames.Count];
+        for (var index = 0; index < _frames.Count; index++)
+        {
+            durations[index] = _frames[index].Milliseconds;
+        }
         // Scale to typical frames so one startup outlier cannot flatten the strip; taller bars clip with a hitch cap.
         var scale = Math.Max(Percentile(durations, .9) * 1.5, .05);
         var pixels = (area.H - 4) / scale;
-        var slot = SlotWidth(area);
-        var first = area.X + area.W - _frames.Count * slot;
         var untracked = StyleColor("profiler-untracked", "background-color");
         var hitch = StyleColor("profiler-hitch", "background-color");
         var selected = SelectedFrame;
         for (var index = 0; index < _frames.Count; index++)
         {
-            var x = first + index * slot;
+            var slot = band.Slot(index);
+            var duration = _frames[index].Milliseconds;
             if (index == hovered)
             {
-                Gui.DrawRect(new Rect(x, area.Y, slot, area.H), StyleColor("profiler-hover", "background-color"));
+                Gui.DrawRect(slot, StyleColor("profiler-hover", "background-color"));
             }
-            var height = (float)Math.Min(area.H - 4, durations[index] * pixels);
-            var bar = new Rect(x + .5f, area.Y + area.H - height, Math.Max(1, slot - 1), height);
-            Gui.DrawRect(bar, untracked);
-            DrawFrameSegments(_frames[index], bar, pixels);
-            if (durations[index] > Math.Min(BudgetMilliseconds, scale))
+            if (band.DrawBar(Gui, index, duration, scale, untracked, out var bar, gap: 1, topInset: 4))
             {
-                Gui.DrawRect(new Rect(bar.X, bar.Y, bar.W, 3), hitch);
+                DrawFrameSegments(_frames[index], bar, pixels);
+                if (duration > Math.Min(BudgetMilliseconds, scale))
+                {
+                    Gui.DrawRect(new Rect(bar.X, bar.Y, bar.W, 3), hitch);
+                }
             }
             if (ReferenceEquals(_frames[index], selected))
             {
-                Gui.DrawRectBorder(new Rect(x - .5f, area.Y + 1, slot + 1, area.H - 2),
+                Gui.DrawRectBorder(new Rect(slot.X - .5f, area.Y + 1, slot.W + 1, area.H - 2),
                     StyleColor("profiler-selection", "border-color"), 1.5f);
             }
         }
@@ -266,8 +260,12 @@ public sealed partial class ProfilerView
         }
         var lane = frame.Scopes.Min(static entry => entry.Track);
         var y = bar.Y + bar.H;
-        foreach (var scope in frame.Scopes.Where(entry => entry.ParentId == 0 && entry.Track == lane))
+        foreach (var scope in frame.Scopes)
         {
+            if (scope.ParentId != 0 || scope.Track != lane)
+            {
+                continue;
+            }
             var height = (float)Math.Min(y - bar.Y, frame.ToMilliseconds(scope.End - scope.Start) * pixels);
             if (height <= 0)
             {
