@@ -171,6 +171,56 @@ public class MenuNavigationTests
         Assert.Empty(Groups(h.Gui.RootNode!));
     }
 
+    /// <summary>Menu rows acquire focus from keyboard navigation and release it when the pointer moves.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PointerMovementDoesNotSelectMenuRows(bool cascade)
+    {
+        using var h = new FrameHarness();
+        var open = true;
+        static void Items(FlyoutBuilder menu) => menu.Item("Undo", enabled: false).Separator()
+            .Item("Settings").Item("Keyboard Shortcuts");
+        void Draw(Gui gui)
+        {
+            if (cascade)
+            {
+                gui.CascadeMenu(ref open, new Vector2(30, 45), Items);
+                return;
+            }
+
+            gui.MenuBar(static bar => bar.Collapsible().Menu("Edit", Items));
+        }
+
+        h.Frame(Draw);
+        if (!cascade)
+        {
+            h.Click(Draw, h.Gui.RootNode!.Children[0].Center);
+        }
+
+        h.Frame(Draw);
+        var menu = Group(h, 0);
+        var settingsId = menu.Children[2].Id;
+        var shortcutsId = menu.Children[3].Id;
+        Assert.False(h.Gui.HasFocus(settingsId));
+
+        h.Input.PressKey(KeyboardKey.Down);
+        h.Frame(Draw);
+        h.Input.ReleaseKey(KeyboardKey.Down);
+        h.Frame(Draw);
+        Assert.True(h.Gui.HasFocus(settingsId));
+
+        h.Input.MoveTo(menu.Children[3].Center);
+        h.Frame(Draw);
+        for (var index = 0; index < 4; index++)
+        {
+            h.Input.MoveTo(new Vector2(250 + index, 100));
+            h.Frame(Draw);
+            Assert.False(h.Gui.HasFocus(settingsId));
+            Assert.False(h.Gui.HasFocus(shortcutsId));
+        }
+    }
+
     /// <summary>Expanded compact menus anchor their dropdown under the selected title.</summary>
     [Fact]
     public void ExpandedCompactMenuAnchorsUnderTheSelectedTitle()

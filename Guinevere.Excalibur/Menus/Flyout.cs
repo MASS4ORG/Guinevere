@@ -43,7 +43,7 @@ public static partial class ControlsExtensions
         state.Classes = classes;
         state.StyleId = id;
         state.PopupId = explicitId;
-        PreparePopupMenuFrame(gui, state, isOpen, appearance);
+        PreparePopupMenuFrame(gui, state, id, isOpen, appearance);
         if (state.FrameOpenIndex < 0)
         {
             return;
@@ -63,7 +63,7 @@ public static partial class ControlsExtensions
 
         using (var focusScope = gui.EnterFocusNavigationScope($"{id}/focus"))
         {
-            focusScope.SetActive();
+            focusScope.SetActiveWithoutAutoFocus();
             RenderMenuGroup(gui, state, id, builder.Items, position, 0,
                 fontSize, padding, CascadeMenuZIndex);
         }

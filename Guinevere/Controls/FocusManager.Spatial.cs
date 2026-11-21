@@ -47,6 +47,22 @@ public partial class FocusManager
 
     void RestoreActiveScope()
     {
+        var restore = CloseInactiveScopes();
+        var candidates = GetNavigableIds();
+        if (restore is not null && candidates.Contains(restore))
+        {
+            RequestFocus(restore);
+        }
+        else if (ActiveScopeId is { } scope && _scopes[scope].AutoFocus
+                 && !candidates.Contains(_nextFrameFocusId ?? ""))
+        {
+            RestoreScopeFocus(scope);
+        }
+    }
+
+    /// <summary>Closes scopes absent this frame and returns the opener of the outermost closed scope.</summary>
+    string? CloseInactiveScopes()
+    {
         string? restore = null;
         while (ActiveScopeId is { } active && !_frameScopeIds.Contains(active))
         {
@@ -55,14 +71,6 @@ public partial class FocusManager
             ActiveScopeId = closing.ParentId;
         }
 
-        var candidates = GetNavigableIds();
-        if (restore is not null && candidates.Contains(restore))
-        {
-            RequestFocus(restore);
-        }
-        else if (ActiveScopeId is { } scope && !candidates.Contains(_nextFrameFocusId ?? ""))
-        {
-            RestoreScopeFocus(scope);
-        }
+        return restore;
     }
 }
