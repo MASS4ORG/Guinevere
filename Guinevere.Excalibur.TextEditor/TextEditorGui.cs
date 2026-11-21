@@ -12,7 +12,7 @@ public static class TextEditorGui
     /// </summary>
     /// <param name="gui">The GUI.</param>
     /// <param name="state">The editor's state, kept by the caller across frames.</param>
-    /// <param name="options">Fonts, gutter and colors, or null for the defaults.</param>
+    /// <param name="options">Font, line height and gutter, or null for the defaults. Colors come from the sheets.</param>
     /// <param name="width">Width in pixels, or zero to fill the parent.</param>
     /// <param name="height">Height in pixels, or zero to fill the parent.</param>
     /// <param name="id">A stable node id, or null to derive one from the call site.</param>
@@ -25,6 +25,7 @@ public static class TextEditorGui
     {
         ArgumentNullException.ThrowIfNull(gui);
         ArgumentNullException.ThrowIfNull(state);
+        ExcaliburStyles.Ensure(gui);
         options ??= TextEditorOptions.Default;
         var version = state.Document.Version;
         var node = gui.Node(width > 0 ? width : -1, height > 0 ? height : -1, id, filePath, lineNumber);

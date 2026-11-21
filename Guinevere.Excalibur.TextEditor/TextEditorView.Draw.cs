@@ -4,7 +4,7 @@ sealed partial class TextEditorView
 {
     void Draw()
     {
-        _gui.DrawRect(Inner, _theme.Background);
+        _gui.DrawRect(Inner, _colors.Background);
         var (first, count) = VisibleRows();
         var document = _state.Document;
         var caretLines = document.Selections.Select(selection => Buffer.LineOf(selection.Caret)).ToHashSet();
@@ -13,7 +13,7 @@ sealed partial class TextEditorView
             var line = _state.Folds.LineOfRow(row);
             if (_options.HighlightCurrentLine && caretLines.Contains(line) && document.Primary.IsEmpty)
             {
-                _gui.DrawRect(new Rect(Inner.X, RowY(row), Inner.W, LineHeight), _theme.CurrentLine);
+                _gui.DrawRect(new Rect(Inner.X, RowY(row), Inner.W, LineHeight), _colors.CurrentLine);
             }
         }
 
@@ -26,7 +26,7 @@ sealed partial class TextEditorView
             var line = _state.Folds.LineOfRow(row);
             var layout = LineLayout(line);
             _view.WidestLine = Math.Max(_view.WidestLine, layout.Width);
-            layout.Draw(_gui, new Vector2(origin, RowY(row)), _theme.Text, _state.ScrollX, TextWidth);
+            layout.Draw(_gui, new Vector2(origin, RowY(row)), _colors.Text, _state.ScrollX, TextWidth);
             if (_state.IsFolded(line))
             {
                 DrawFoldedMarker(origin + layout.Width, RowY(row));
@@ -78,7 +78,7 @@ sealed partial class TextEditorView
             if (!selection.IsEmpty)
             {
                 ForRangeOnRows(selection.Start, selection.End, first, count, true,
-                    rect => _gui.DrawRect(rect, _theme.Selection));
+                    rect => _gui.DrawRect(rect, _colors.Selection));
             }
         }
     }
@@ -98,7 +98,7 @@ sealed partial class TextEditorView
         for (; index < matches.Count && matches[index].Start <= to; index++)
         {
             ForRangeOnRows(matches[index].Start, matches[index].End, first, count, false,
-                rect => _gui.DrawRect(rect, _theme.FindMatch, 2f));
+                rect => _gui.DrawRect(rect, _colors.FindMatch, 2f));
         }
     }
 
@@ -138,7 +138,7 @@ sealed partial class TextEditorView
         var (first, count) = VisibleRows();
         foreach (var offset in (ReadOnlySpan<int>)[pair.Open, pair.Close])
         {
-            ForRangeOnRows(offset, offset + 1, first, count, false, rect => _gui.DrawRect(rect, _theme.BracketMatch, 2f));
+            ForRangeOnRows(offset, offset + 1, first, count, false, rect => _gui.DrawRect(rect, _colors.BracketMatch, 2f));
         }
     }
 
@@ -146,11 +146,11 @@ sealed partial class TextEditorView
     {
         var width = DigitWidth * 3f;
         var rect = new Rect(x + DigitWidth, y + LineHeight * 0.2f, width, LineHeight * 0.6f);
-        _gui.DrawRect(rect, _theme.Selection, 3f);
+        _gui.DrawRect(rect, _colors.Selection, 3f);
         for (var i = 0; i < 3; i++)
         {
             _gui.DrawCircleFilled(new Vector2(rect.X + width * (i + 1) / 4f, rect.Y + rect.H * 0.5f),
-                Math.Max(1f, LineHeight * 0.06f), _theme.Text);
+                Math.Max(1f, LineHeight * 0.06f), _colors.Text);
         }
     }
 
@@ -160,7 +160,7 @@ sealed partial class TextEditorView
         foreach (var diagnostic in _state.Diagnostics)
         {
             var end = diagnostic.Start + Math.Max(1, diagnostic.Length);
-            var color = _theme.ColorOf(diagnostic.Severity);
+            var color = _colors.ColorOf(diagnostic.Severity);
             ForRangeOnRows(diagnostic.Start, end, first, count, false, rect => Squiggle(rect, color));
         }
     }
@@ -203,7 +203,7 @@ sealed partial class TextEditorView
         {
             if (CaretRect(selection.Caret) is { } rect && rect.X >= TextLeft - TextPadding)
             {
-                _gui.DrawRect(rect, _theme.Caret);
+                _gui.DrawRect(rect, _colors.Caret);
             }
         }
     }
@@ -226,15 +226,15 @@ sealed partial class TextEditorView
         var layout = Layout(new RichText(text).Style(0, text.Length,
             new TextSpanStyle { Decoration = TextDecoration.Underline }));
         var origin = new Vector2(caret.X, caret.Y);
-        _gui.DrawRect(new Rect(caret.X, caret.Y, layout.Width, LineHeight), _theme.Background);
-        _gui.DrawTextLayout(layout, origin, _theme.Text);
+        _gui.DrawRect(new Rect(caret.X, caret.Y, layout.Width, LineHeight), _colors.Background);
+        _gui.DrawTextLayout(layout, origin, _colors.Text);
         var cursor = layout.CaretBounds(Math.Clamp(ime.CompositionCaret, 0, text.Length));
-        _gui.DrawRect(new Rect(origin.X + cursor.X, caret.Y, 2f, LineHeight), _theme.Caret);
+        _gui.DrawRect(new Rect(origin.X + cursor.X, caret.Y, 2f, LineHeight), _colors.Caret);
     }
 
     void DrawGutter(int first, int count, HashSet<int> caretLines)
     {
-        _gui.DrawRect(new Rect(Inner.X, Inner.Y, GutterWidth, Inner.H), _theme.Gutter);
+        _gui.DrawRect(new Rect(Inner.X, Inner.Y, GutterWidth, Inner.H), _colors.Gutter);
         var markerWidth = _options.FoldMarkers ? LineHeight : DigitWidth;
         for (var row = first; row < first + count; row++)
         {
@@ -243,7 +243,7 @@ sealed partial class TextEditorView
             if (_options.LineNumbers)
             {
                 var number = Layout(new RichText((line + 1).ToString()));
-                var color = caretLines.Contains(line) ? _theme.ActiveLineNumber : _theme.LineNumber;
+                var color = caretLines.Contains(line) ? _colors.ActiveLineNumber : _colors.LineNumber;
                 _gui.DrawTextLayout(number, new Vector2(Inner.X + GutterWidth - markerWidth - number.Width, y), color);
             }
 
@@ -259,7 +259,7 @@ sealed partial class TextEditorView
     void DrawFoldMarker(Vector2 center, bool folded)
     {
         var r = LineHeight * 0.18f;
-        var color = _theme.LineNumber;
+        var color = _colors.LineNumber;
         if (folded)
         {
             _gui.DrawTriangleFilled(center + new Vector2(-r * 0.6f, -r), center + new Vector2(-r * 0.6f, r),
@@ -276,7 +276,7 @@ sealed partial class TextEditorView
     {
         if (MaxScrollY > 0f)
         {
-            _gui.DrawRect(ThumbRect(), _theme.Scrollbar, 3f);
+            _gui.DrawRect(ThumbRect(), _colors.Scrollbar, 3f);
         }
     }
 }

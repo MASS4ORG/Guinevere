@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Changed: `Size` is now used by every layout distance #15
 - Changed (breaking): Excalibur widgets return ControlNode
 - Changed (breaking): more widgets migrated to pss #244
+- Changed (breaking): editor colors from pss
 - Changed: steady frames allocation #242
 - Fixed: maintain focus during pointer navigation.
 

@@ -13,7 +13,7 @@ sealed partial class TextEditorView
     readonly Gui _gui;
     readonly TextEditorState _state;
     readonly TextEditorOptions _options;
-    readonly TextEditorTheme _theme;
+    readonly TextEditorColors _colors;
     readonly LayoutNode _node;
     readonly TextEditorViewState _view;
     readonly List<SyntaxToken> _tokens = [];
@@ -29,9 +29,9 @@ sealed partial class TextEditorView
         _gui = gui;
         _state = state;
         _options = options;
-        _theme = options.Theme;
         _node = node;
         _view = state.View;
+        _colors = _view.ColorsFor(gui);
     }
 
     ITextBuffer Buffer => _state.Document.Buffer;
@@ -175,7 +175,7 @@ sealed partial class TextEditorView
             foreach (var token in _tokens)
             {
                 if (token.Length > 0 && token.Start + token.Length <= text.Length
-                    && _theme.Syntax.StyleOf(token.Kind) is { } style)
+                    && _colors.StyleOf(token.Kind) is { } style)
                 {
                     rich.Style(token.Start, token.Length, style);
                 }

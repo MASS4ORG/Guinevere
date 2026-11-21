@@ -55,6 +55,33 @@ sealed partial class TextEditorView
     {
         var items = _view.ShowCompletion ? _view.CompletionItems : [];
         var rows = Math.Min(items.Count, CompletionRows);
+        var popup = CompletionPopupNode(items, rows);
+        using (popup.Enter())
+        {
+            _gui.SetZIndex(ZIndex);
+            _gui.SetEscapesAncestorClips();
+            if (_gui.Pass != Pass.Pass2Render || rows == 0)
+            {
+                return;
+            }
+
+            var rect = popup.Rect;
+            var first = DrawCompletionRows(rect, items, rows);
+            if (_gui.GetInteractable(popup).OnClick() && _state.Completion is { } session)
+            {
+                session.Selected = first + (int)((_gui.LocalMousePosition.Y - rect.Y - PopupPadding) / LineHeight);
+                _state.Execute("acceptSuggestion");
+                _gui.RequestFocus(_node.Id);
+            }
+        }
+    }
+
+    /// <summary>
+    /// The completion popup's node, sized to its widest item and <paramref name="rows"/> lines and placed under the
+    /// caret, or above it when there is no room below. An empty popup takes no space and lets input through.
+    /// </summary>
+    LayoutNode CompletionPopupNode(IReadOnlyList<CompletionItem> items, int rows)
+    {
         var width = rows == 0 ? 0f : items.Take(50).Max(item => Layout(Label(item)).Width) + PopupPadding * 4f;
         var height = rows == 0 ? 0f : rows * LineHeight + PopupPadding * 2f;
         var caret = _view.CaretRect;
@@ -66,52 +93,45 @@ sealed partial class TextEditorView
             popup.BlockInput();
         }
 
-        using (popup.Enter())
+        return popup;
+    }
+
+    /// <summary>
+    /// Paints the completion popup's frame and the window of <paramref name="rows"/> items that keeps the selection
+    /// visible, and returns the index of the first item shown.
+    /// </summary>
+    int DrawCompletionRows(Rect rect, IReadOnlyList<CompletionItem> items, int rows)
+    {
+        _gui.DrawRect(rect, _colors.PopupBorder, 4f);
+        _gui.DrawRect(new Rect(rect.X + 1, rect.Y + 1, rect.W - 2, rect.H - 2), _colors.Popup, 4f);
+        var first = Math.Clamp(_view.CompletionSelected - rows + 1, 0, Math.Max(0, items.Count - rows));
+        for (var i = 0; i < rows; i++)
         {
-            _gui.SetZIndex(ZIndex);
-            _gui.SetEscapesAncestorClips();
-            if (_gui.Pass != Pass.Pass2Render || rows == 0)
+            var top = rect.Y + PopupPadding + i * LineHeight;
+            if (first + i == _view.CompletionSelected)
             {
-                return;
+                _gui.DrawRect(new Rect(rect.X + 2, top, rect.W - 4, LineHeight), _colors.PopupSelection, 3f);
             }
 
-            var rect = popup.Rect;
-            _gui.DrawRect(rect, _theme.PopupBorder, 4f);
-            _gui.DrawRect(new Rect(rect.X + 1, rect.Y + 1, rect.W - 2, rect.H - 2), _theme.Popup, 4f);
-            var first = Math.Clamp(_view.CompletionSelected - rows + 1, 0, Math.Max(0, items.Count - rows));
-            for (var i = 0; i < rows; i++)
-            {
-                var top = rect.Y + PopupPadding + i * LineHeight;
-                if (first + i == _view.CompletionSelected)
-                {
-                    _gui.DrawRect(new Rect(rect.X + 2, top, rect.W - 4, LineHeight), _theme.PopupSelection, 3f);
-                }
-
-                _gui.DrawTextLayout(Layout(Label(items[first + i])), new Vector2(rect.X + PopupPadding * 2f, top),
-                    _theme.Text);
-            }
-
-            if (_gui.GetInteractable(popup).OnClick() && _state.Completion is { } session)
-            {
-                session.Selected = first + (int)((_gui.LocalMousePosition.Y - rect.Y - PopupPadding) / LineHeight);
-                _state.Execute("acceptSuggestion");
-                _gui.RequestFocus(_node.Id);
-            }
+            _gui.DrawTextLayout(Layout(Label(items[first + i])), new Vector2(rect.X + PopupPadding * 2f, top),
+                _colors.Text);
         }
+
+        return first;
     }
 
     RichText Label(CompletionItem item)
     {
         var text = item.Detail is null ? item.Label : $"{item.Label}  {item.Detail}";
         var rich = new RichText(text);
-        if (_theme.Syntax.StyleOf(item.Kind) is { } style)
+        if (_colors.StyleOf(item.Kind) is { } style)
         {
             rich.Style(0, item.Label.Length, style);
         }
 
         if (item.Detail is not null)
         {
-            rich.Style(item.Label.Length, text.Length - item.Label.Length, TextSpanStyle.Colored(_theme.LineNumber));
+            rich.Style(item.Label.Length, text.Length - item.Label.Length, TextSpanStyle.Colored(_colors.LineNumber));
         }
 
         return rich;
@@ -135,17 +155,17 @@ sealed partial class TextEditorView
 
             if (_gui.Pass == Pass.Pass2Render)
             {
-                _gui.DrawBackgroundRect(_theme.PopupBorder, 4f);
+                _gui.DrawBackgroundRect(_colors.PopupBorder, 4f);
                 var rect = hover.Rect;
-                _gui.DrawRect(new Rect(rect.X + 1, rect.Y + 1, rect.W - 2, rect.H - 2), _theme.Popup, 4f);
+                _gui.DrawRect(new Rect(rect.X + 1, rect.Y + 1, rect.W - 2, rect.H - 2), _colors.Popup, 4f);
             }
 
             _gui.Markdown(text, style: new MarkdownStyle
             {
                 FontSize = _size * 0.95f,
-                Text = _theme.Text,
+                Text = _colors.Text,
                 CodeFont = _font,
-                Syntax = _theme.Syntax
+                Syntax = _colors.ToSyntaxTheme()
             });
         }
     }
