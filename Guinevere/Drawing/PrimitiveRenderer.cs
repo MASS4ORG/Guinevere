@@ -118,11 +118,17 @@ sealed partial class PrimitiveRenderer : IDisposable
         canvas.DrawVertices(vertices, SKBlendMode.Modulate, paint);
     }
 
-    /// <summary>Releases replay scratch resources without touching caller-owned shapes or paints.</summary>
+    /// <summary>
+    /// Releases replay scratch resources without touching caller-owned shapes or paints; the renderer can serve the
+    /// next replay, which creates its scratch resources again.
+    /// </summary>
     public void Dispose()
     {
         _paint?.Dispose();
         _roundRect?.Dispose();
         _pathBuilder?.Dispose();
+        _paint = null;
+        _roundRect = null;
+        _pathBuilder = null;
     }
 }

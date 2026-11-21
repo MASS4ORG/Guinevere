@@ -13,6 +13,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
     Dictionary<string, string>? _globals;
     Dictionary<string, string?>? _tokenValues;
     bool? _hasTransitions;
+    bool? _usesIds;
 
     internal event Action? FontFacesChanged;
 
@@ -68,6 +69,13 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
         }
 
         var globals = _globals ??= StyleResolver.LayerVariables(this, _tokens);
+        if (_usesIds is null)
+        {
+            _usesIds = this.Any(static sheet => sheet.Rules.Any(static rule => rule.Selectors.Any(
+                static selector => selector.UsesId)));
+            _cache.IgnoreIds = !_usesIds.Value;
+        }
+
         if (!_cache.TryGet(target, out var entry))
         {
             entry = StyleResolver.ResolveEntry(this, target, globals);
@@ -151,6 +159,7 @@ public sealed class StyleSheetCollection : Collection<StyleSheet>
         _globals = null;
         _tokenValues = null;
         _hasTransitions = null;
+        _usesIds = null;
     }
 
     static string TokenKey(string name)

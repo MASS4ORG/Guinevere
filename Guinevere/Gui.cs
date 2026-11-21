@@ -3,6 +3,10 @@ namespace Guinevere;
 public partial class Gui
 {
     readonly List<(int Z, int Sequence, int End, LayoutNode Node)> _renderNodes = [];
+    readonly PrimitiveRenderer _primitiveRenderer = new();
+    LayoutNodeScopeTextFont? _frameTextFont;
+    LayoutNodeScopeIconFont? _frameEmojiFont;
+    LayoutNodeScopeWidgetIconFont? _frameWidgetFont;
     readonly List<LayoutNode> _clipAncestors = [];
     /// <summary>
     /// A property that represents the core rendering surface for graphical operations.
@@ -172,17 +176,33 @@ public partial class Gui
         var textFont = font ?? Fonts.ResolveRole(FontRole.Ui);
         if (textFont is not null)
         {
-            SetTextFont(textFont);
+            CurrentNodeScope.Set(FrameTextFont(textFont));
         }
 
         var emojiFont = fontIcon ?? Fonts.ResolveRole(FontRole.Emoji) ?? textFont;
         if (emojiFont is not null)
         {
-            SetEmojiFont(emojiFont);
+            CurrentNodeScope.Set(FrameEmojiFont(emojiFont));
         }
 
         return textFont;
     }
+
+    // The three values below are applied every frame, so each is kept while its font is unchanged; they are immutable.
+    LayoutNodeScopeTextFont FrameTextFont(Font font) =>
+        _frameTextFont is { } kept && ReferenceEquals(kept.Value, font)
+            ? kept
+            : _frameTextFont = new LayoutNodeScopeTextFont { Value = font };
+
+    LayoutNodeScopeIconFont FrameEmojiFont(Font font) =>
+        _frameEmojiFont is { } kept && ReferenceEquals(kept.Value, font)
+            ? kept
+            : _frameEmojiFont = new LayoutNodeScopeIconFont { Value = font };
+
+    LayoutNodeScopeWidgetIconFont FrameWidgetFont(Font font) =>
+        _frameWidgetFont is { } kept && ReferenceEquals(kept.Value, font)
+            ? kept
+            : _frameWidgetFont = new LayoutNodeScopeWidgetIconFont { Value = font };
 
     void ApplyFrameWidgetFont(Font? textFont, Font? fontIcon, Font? fontWidgetIcon)
     {
@@ -191,8 +211,9 @@ public partial class Gui
             Fonts.Register(fontWidgetIcon.FamilyName, fontWidgetIcon);
         }
 
-        SetWidgetIconFont(fontWidgetIcon ?? Fonts.ResolveRole(FontRole.Icon) ?? fontIcon
-            ?? Fonts.ResolveRole(FontRole.Emoji) ?? textFont ?? LayoutNodeScopeIconFont.Default.Value);
+        var widgetFont = fontWidgetIcon ?? Fonts.ResolveRole(FontRole.Icon) ?? fontIcon
+            ?? Fonts.ResolveRole(FontRole.Emoji) ?? textFont ?? LayoutNodeScopeIconFont.Default.Value;
+        CurrentNodeScope.Set(FrameWidgetFont(widgetFont));
     }
 
     /// <summary>
@@ -269,8 +290,17 @@ public partial class Gui
         RenderSortTime = RenderElapsed(started);
         started = StartRenderTimer();
         FrameObserver?.Phase("replay");
-        using var renderer = new PrimitiveRenderer();
-        RenderNodes(renderer);
+        var renderer = _primitiveRenderer;
+        renderer.Statistics = default;
+        try
+        {
+            RenderNodes(renderer);
+        }
+        finally
+        {
+            renderer.Dispose();
+        }
+
         RenderStatistics = renderer.Statistics;
         RenderReplayTime = RenderElapsed(started);
     }
@@ -395,9 +425,10 @@ public partial class Gui
         var index = list.Count;
         list.Add((node.Scope.Get<LayoutNodeScopeZIndex>().Value, index, index, node));
 
-        foreach (var child in node.Children)
+        var children = node.Children;
+        for (var i = 0; i < children.Count; i++)
         {
-            NodeFlatList(child, list);
+            NodeFlatList(children[i], list);
         }
 
         list[index] = list[index] with { End = list.Count - 1 };

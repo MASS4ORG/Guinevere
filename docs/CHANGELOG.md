@@ -6,13 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: `Table` widget #66.
+- Added: `DrawText(ReadOnlySpan<char>)` #245
+- Added: `Gui.Post(Action)` #247
 - Changed: `Size` is now used by every layout distance #15
 - Changed (breaking): Excalibur widgets return ControlNode
-- Changed (breaking): removed `alignX`, `AppBar` height, `TreeViewTheme` and `DockTheme`; sheets and the returned node set them #244
-- Fixed: unused node identities are evicted, so views that stream or scroll through many rows keep memory flat
-- Added: `Table` widget #66.
-- Added: `DrawText(ReadOnlySpan<char>)`; new text layouts allocate less #245
-- Added: `Gui.Post(Action)` hands background results to the UI thread #247
+- Changed (breaking): more widgets migrated to pss #244
+- Changed: steady frames allocation #242
 - Fixed: maintain focus during pointer navigation.
 
 ## [6.7.0] - 2026-11-13

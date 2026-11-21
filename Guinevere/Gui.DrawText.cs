@@ -164,16 +164,10 @@ public partial class Gui
     /// <summary>
     /// Builds the ordered layers one line of text is drawn with, back to front: drop shadow,
     /// outline, fill, inner shadow. Each layer carries a position offset (used for the inner
-    /// shadow). With no <see cref="TextEffects"/> this is a single flat-color fill.
+    /// shadow).
     /// </summary>
-    static List<(SKPaint Paint, Vector2 Offset)> BuildTextPaints(Color color, TextEffects? effects, Rect bounds)
+    static List<(SKPaint Paint, Vector2 Offset)> BuildTextPaints(Color color, TextEffects effect, Rect bounds)
     {
-        if (effects is null)
-        {
-            return [(new SKPaint { IsAntialias = true, Color = color }, Vector2.Zero)];
-        }
-
-        var effect = effects.Value;
         var layers = new List<(SKPaint, Vector2)>(4 + (effect.DropShadows?.Count ?? 0));
         AddLegacyDropShadow(layers, effect.DropShadow);
         AddDropShadows(layers, effect.DropShadows);

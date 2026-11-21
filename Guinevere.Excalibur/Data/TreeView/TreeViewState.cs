@@ -6,8 +6,12 @@ namespace Guinevere;
 /// </summary>
 public sealed class TreeViewState
 {
+    /// <summary>Rows whose ids stay cached; a window of rows never spans more, so scrolling reuses the slots.</summary>
+    const int RowIdSlots = 256;
+
     readonly HashSet<string> _collapsed = [];
     readonly HashSet<string> _expanded = [];
+    readonly TreeRowIds?[] _rowIds = new TreeRowIds?[RowIdSlots];
 
     /// <summary>The selected row's id, or null.</summary>
     public string? SelectedId
@@ -28,8 +32,36 @@ public sealed class TreeViewState
     /// <summary>The selected row ids in selection order.</summary>
     public IReadOnlyList<string> SelectedIds => _selectedIds;
 
-    /// <summary>Rows participating in keyboard and pointer ranges this frame.</summary>
-    internal IReadOnlyList<string> VisibleIds { get; set; } = Array.Empty<string>();
+    /// <summary>The rows the last flatten left visible; each pass refills the one buffer instead of building a list.</summary>
+    internal List<TreeItem> VisibleItems { get; } = [];
+
+    /// <summary>Rows participating in keyboard and pointer ranges this frame, built when an input needs them.</summary>
+    internal IReadOnlyList<string> VisibleIds
+    {
+        get
+        {
+            var ids = new string[VisibleItems.Count];
+            for (var i = 0; i < ids.Length; i++)
+            {
+                ids[i] = VisibleItems[i].Id;
+            }
+
+            return ids;
+        }
+    }
+
+    /// <summary>The node ids of one row, kept so a frame does not format them again.</summary>
+    internal TreeRowIds RowIds(int row)
+    {
+        var slot = row % RowIdSlots;
+        var ids = _rowIds[slot];
+        if (ids is null || ids.Row != row)
+        {
+            _rowIds[slot] = ids = new TreeRowIds(row);
+        }
+
+        return ids;
+    }
 
     /// <summary>Replaces selected rows and the active row without changing expansion.</summary>
     public void SetSelection(IEnumerable<string> ids, string? active = null)
@@ -195,5 +227,20 @@ public sealed class TreeViewState
 
     /// <summary>The viewport height the virtualization used this frame.</summary>
     internal float FrameViewportHeight { get; set; } = 600f;
+}
 
+/// <summary>The layout node ids of a tree row and its parts.</summary>
+sealed class TreeRowIds(int row)
+{
+    /// <summary>The row's index among the visible rows.</summary>
+    public int Row { get; } = row;
+
+    /// <summary>Id of the row node.</summary>
+    public string Node { get; } = $"treeview/row{row}";
+
+    /// <summary>Id of the row's icon node.</summary>
+    public string Icon { get; } = $"treeview/row{row}/icon";
+
+    /// <summary>Id of the row's expander node.</summary>
+    public string Expander { get; } = $"treeview/row{row}/expander";
 }

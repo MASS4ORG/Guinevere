@@ -44,9 +44,10 @@ public class StyleBoxValuesTests
     [InlineData(null, 0, 0, 0, 0)]
     public void RadiiFollowShorthand(string? value, float tl, float tr, float br, float bl)
     {
-        var radii = StyleBoxValues.Radii(value, new Rect(0, 0, 100, 40));
+        Span<SKPoint> radii = stackalloc SKPoint[4];
+        StyleBoxValues.Radii(value, new Rect(0, 0, 100, 40), radii);
 
-        Assert.Equal([tl, tr, br, bl], radii.Select(static r => r.X));
+        Assert.Equal(new[] { tl, tr, br, bl }, new[] { radii[0].X, radii[1].X, radii[2].X, radii[3].X });
     }
 
     /// <summary>The outline shorthand and longhands combine; missing colors or <c>none</c> draw nothing.</summary>

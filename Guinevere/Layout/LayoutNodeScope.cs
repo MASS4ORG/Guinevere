@@ -108,6 +108,17 @@ public class LayoutNodeScope(ILayoutNodeEnterExit? nodeManager, LayoutNode node)
     public LayoutNodeScope Set(IEnumerable<ILayoutNodeScopeValue> records)
     {
         ArgumentNullException.ThrowIfNull(records);
+        if (records is IReadOnlyList<ILayoutNodeScopeValue> list)
+        {
+            // Indexed, so a frame that applies the same defaults again does not box an enumerator.
+            for (var i = 0; i < list.Count; i++)
+            {
+                Set(list[i].Slot, list[i]);
+            }
+
+            return this;
+        }
+
         foreach (var record in records)
         {
             Set(record.Slot, record);

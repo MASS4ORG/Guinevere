@@ -41,7 +41,7 @@ sealed class StyleBox : IDrawable, IInkBounds
         var (fill, opaqueGradient) = Fill(style, bounds);
         var bitmap = gui is null ? null : StyledBackgrounds.Resolve(gui, style);
         fill = BitmapFill(fill, bitmap, bounds);
-        var shadows = StyleBoxValues.Shadows(style.Get("box-shadow"));
+        var shadows = StyleBoxValues.ShadowLayers(style.Get("box-shadow"));
         var border = StyleBoxValues.Border(style);
         var outline = StyleBoxValues.Outline(style);
         if (fill is null && bitmap is null && shadows.Count == 0 && border is null && outline is null)
@@ -50,7 +50,9 @@ sealed class StyleBox : IDrawable, IInkBounds
         }
 
         var box = new SKRoundRect();
-        box.SetRectRadii(bounds, StyleBoxValues.Radii(style.Get("border-radius"), rect));
+        Span<SKPoint> radii = stackalloc SKPoint[4];
+        StyleBoxValues.Radii(style.Get("border-radius"), rect, radii);
+        box.SetRectRadii(bounds, radii);
         var shape = Shaped(box, fill, shadows);
         if (opaqueGradient)
         {
@@ -77,13 +79,14 @@ sealed class StyleBox : IDrawable, IInkBounds
     }
 
     /// <summary>The rounded box as a <see cref="Shape"/> with its fill (transparent when none) and CSS shadows.</summary>
-    static Shape Shaped(SKRoundRect box, SKPaint? fill, List<BoxShadow> shadows)
+    static Shape Shaped(SKRoundRect box, SKPaint? fill, IReadOnlyList<BoxShadow> shadows)
     {
         var builder = new SKPathBuilder();
         builder.AddRoundRect(box);
         var shape = Shape.FromPath(builder.Detach(), fill ?? new SKPaint { Color = SKColors.Transparent });
-        foreach (var shadow in shadows)
+        for (var i = 0; i < shadows.Count; i++)
         {
+            var shadow = shadows[i];
             var offset = new Vector2(shadow.X, shadow.Y);
             if (shadow.Inset)
             {

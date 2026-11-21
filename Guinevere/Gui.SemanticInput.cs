@@ -113,8 +113,33 @@ public partial class Gui
         var input = RawInput;
         var moved = input.MousePosition != _promptPointerPosition;
         _promptPointerPosition = input.MousePosition;
-        return moved || input.MouseWheelDelta != 0 || AllButtons.Any(input.IsMouseButtonPressed)
-            || AllKeys.Any(input.IsKeyPressed);
+        return moved || input.MouseWheelDelta != 0 || AnyButtonPressed(input) || AnyKeyPressed(input);
+    }
+
+    static bool AnyButtonPressed(IInputHandler input)
+    {
+        foreach (var button in AllButtons)
+        {
+            if (input.IsMouseButtonPressed(button))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static bool AnyKeyPressed(IInputHandler input)
+    {
+        foreach (var key in AllKeys)
+        {
+            if (input.IsKeyPressed(key))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void NavigateSemanticInput()

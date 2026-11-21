@@ -11,7 +11,27 @@ sealed class StyleCache
     /// <summary>Entry limit; reaching it clears the cache so dynamic class names cannot grow it unbounded.</summary>
     public const int Capacity = 4096;
 
-    readonly Dictionary<StyleCacheKey, StyleCacheEntry> _entries = new(StyleCacheKeyComparer.Instance);
+    readonly StyleCacheKeyComparer _comparer = new();
+    readonly Dictionary<StyleCacheKey, StyleCacheEntry> _entries;
+
+    public StyleCache() => _entries = new Dictionary<StyleCacheKey, StyleCacheEntry>(_comparer);
+
+    /// <summary>
+    /// Whether keys leave element ids out. Only an <c>#id</c> selector can tell two ids apart, so without one a row
+    /// built under a new id still finds the style of its siblings. Changing it drops the entries.
+    /// </summary>
+    public bool IgnoreIds
+    {
+        get => _comparer.IgnoreIds;
+        set
+        {
+            if (value != _comparer.IgnoreIds)
+            {
+                _entries.Clear();
+                _comparer.IgnoreIds = value;
+            }
+        }
+    }
 
     /// <summary>Number of cached targets.</summary>
     public int Count => _entries.Count;
@@ -78,7 +98,8 @@ readonly struct StyleCacheKey(StyleTarget target)
 /// </summary>
 sealed class StyleCacheKeyComparer : IEqualityComparer<StyleCacheKey>
 {
-    public static readonly StyleCacheKeyComparer Instance = new();
+    /// <summary>Whether ids are left out of equality and hashing.</summary>
+    public bool IgnoreIds { get; set; }
 
     public bool Equals(StyleCacheKey x, StyleCacheKey y)
     {
@@ -121,10 +142,10 @@ sealed class StyleCacheKeyComparer : IEqualityComparer<StyleCacheKey>
         return hash.ToHashCode();
     }
 
-    static bool SameElement(in StyleTarget a, in StyleTarget b) =>
+    bool SameElement(in StyleTarget a, in StyleTarget b) =>
         a.State == b.State
         && string.Equals(a.Type, b.Type, StringComparison.Ordinal)
-        && string.Equals(a.Id, b.Id, StringComparison.Ordinal)
+        && (IgnoreIds || string.Equals(a.Id, b.Id, StringComparison.Ordinal))
         && SameList(a.Classes, b.Classes)
         && SameList(a.Modifiers, b.Modifiers);
 
@@ -152,10 +173,14 @@ sealed class StyleCacheKeyComparer : IEqualityComparer<StyleCacheKey>
         return true;
     }
 
-    static void AddElement(ref HashCode hash, in StyleTarget target)
+    void AddElement(ref HashCode hash, in StyleTarget target)
     {
         hash.Add(target.Type);
-        hash.Add(target.Id);
+        if (!IgnoreIds)
+        {
+            hash.Add(target.Id);
+        }
+
         hash.Add((int)target.State);
         AddList(ref hash, target.Classes);
         AddList(ref hash, target.Modifiers);

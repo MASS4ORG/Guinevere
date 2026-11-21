@@ -8,7 +8,8 @@ namespace Guinevere;
 /// </summary>
 public readonly struct InteractableElement
 {
-    readonly SKPath _shape;
+    readonly SKPath? _shape;
+    readonly Rect _rect;
     readonly Gui _gui;
     readonly string _id;
     readonly LayoutNode? _node;
@@ -20,9 +21,7 @@ public readonly struct InteractableElement
     /// </summary>
     public InteractableElement(Rect rect, Gui gui, string? id, LayoutNode? node = null)
     {
-        var builder = new SKPathBuilder();
-        builder.AddRect(rect);
-        _shape = builder.Detach();
+        _rect = rect;
         _gui = gui;
         _id = id ?? $"rect_{rect.X}_{rect.Y}_{rect.W}_{rect.H}";
         _node = node;
@@ -51,7 +50,7 @@ public readonly struct InteractableElement
     {
         var pos = LocalPointer();
 
-        if (!_shape.Contains(pos.X, pos.Y))
+        if (!Contains(pos))
         {
             return false;
         }
@@ -85,7 +84,7 @@ public readonly struct InteractableElement
 
         var position = _gui.Input.MousePosition;
         var local = LocalPointer();
-        if (!_shape.Contains(local.X, local.Y))
+        if (!Contains(local))
         {
             return false;
         }
@@ -97,6 +96,52 @@ public readonly struct InteractableElement
 
         return true;
     }
+
+    /// <summary>
+    /// Whether a point is inside the hit shape. A rectangle decides points clearly inside or outside itself with
+    /// comparisons, and only asks Skia for a point on its border or for a degenerate rectangle, so no path is built
+    /// for a hover test.
+    /// </summary>
+    bool Contains(Vector2 point)
+    {
+        if (_shape is { } shape)
+        {
+            return shape.Contains(point.X, point.Y);
+        }
+
+        if (_rect.W > 0f && _rect.H > 0f)
+        {
+            var side = RectSide(point);
+            if (side != RectSideKind.Border)
+            {
+                return side == RectSideKind.Inside;
+            }
+        }
+
+        using var builder = new SKPathBuilder();
+        builder.AddRect(_rect);
+        using var path = builder.Detach();
+        return path.Contains(point.X, point.Y);
+    }
+
+    enum RectSideKind { Outside, Border, Inside }
+
+    /// <summary>Whether a point is clearly outside, clearly inside, or on the border of a rectangle with area.</summary>
+    RectSideKind RectSide(Vector2 point)
+    {
+        if (IsOutsideRect(point))
+        {
+            return RectSideKind.Outside;
+        }
+
+        return IsInsideRect(point) ? RectSideKind.Inside : RectSideKind.Border;
+    }
+
+    bool IsOutsideRect(Vector2 point) => point.X < _rect.X || point.X > _rect.X + _rect.W
+        || point.Y < _rect.Y || point.Y > _rect.Y + _rect.H;
+
+    bool IsInsideRect(Vector2 point) => point.X > _rect.X && point.X < _rect.X + _rect.W
+        && point.Y > _rect.Y && point.Y < _rect.Y + _rect.H;
 
     /// <summary>The pointer in the hit shape's layout coordinates, through any transform on the node.</summary>
     Vector2 LocalPointer()

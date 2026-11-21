@@ -67,8 +67,15 @@ public static class StyledBackgrounds
             Diagnostics.Clear();
         }
 
-        internal StyleBitmapBackground? Get(ResolvedStyle style) =>
-            _styles.GetValue(style, s => new StrongBox<StyleBitmapBackground?>(Build(s))).Value;
+        internal StyleBitmapBackground? Get(ResolvedStyle style)
+        {
+            if (_styles.TryGetValue(style, out var cached))
+            {
+                return cached.Value;
+            }
+
+            return _styles.GetValue(style, s => new StrongBox<StyleBitmapBackground?>(Build(s))).Value;
+        }
 
         StyleBitmapBackground? Build(ResolvedStyle style)
         {
