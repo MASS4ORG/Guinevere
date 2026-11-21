@@ -1,3 +1,5 @@
+using Guinevere.Tests.Mocks;
+
 namespace Guinevere.Tests.Controls;
 
 /// <summary>
@@ -235,6 +237,75 @@ public sealed class FileBrowserTests : IDisposable
         Assert.Equal("Alpha,beta", string.Join(",", virtualBrowser.Entries.Select(static entry => entry.Name)));
         virtualBrowser.SortBy(FileSortColumn.Modified);
         Assert.Equal("Alpha,beta", string.Join(",", virtualBrowser.Entries.Select(static entry => entry.Name)));
+    }
+
+    /// <summary>A folder that cannot be opened says so in words, and the listing stays where it was.</summary>
+    [Fact]
+    public async Task ADeniedFolderReportsThatThereIsNoPermission()
+    {
+        var tree = new InMemoryFileDialogFileSystem().AddDirectory("open").AddDirectory("locked").Deny("locked");
+        var browser = new FileBrowser(tree);
+        await browser.NavigateAsync(tree.P("open"), TestContext.Current.CancellationToken);
+
+        Assert.False(await browser.NavigateAsync(tree.P("locked"), TestContext.Current.CancellationToken));
+
+        Assert.Equal($"No permission to open '{tree.P("locked")}'.", browser.Error);
+        Assert.Equal(tree.P("open"), browser.CurrentPath);
+        browser.ClearError();
+        Assert.Null(browser.Error);
+    }
+
+    /// <summary>A read that outlives the folder it was started for must not replace the new folder's listing.</summary>
+    [Fact]
+    public async Task ASlowRefreshDoesNotOverwriteALaterNavigation()
+    {
+        var tree = new InMemoryFileDialogFileSystem().AddFile("old.txt").AddFile("docs", "new.txt");
+        var browser = new FileBrowser(tree);
+        await browser.NavigateAsync(tree.Root, TestContext.Current.CancellationToken);
+        var release = new TaskCompletionSource();
+        tree.Gate = release.Task;
+        var refresh = browser.RefreshAsync(TestContext.Current.CancellationToken).AsTask();
+
+        tree.Gate = null;
+        await browser.NavigateAsync(tree.P("docs"), TestContext.Current.CancellationToken);
+        release.SetResult();
+        await refresh;
+
+        Assert.Equal(tree.P("docs"), browser.CurrentPath);
+        Assert.Equal("new.txt", Assert.Single(browser.Entries).Name);
+    }
+
+    /// <summary>The state the UI reads every frame is readable while another thread navigates.</summary>
+    [Fact]
+    public async Task TheListingCanBeReadWhileAnotherThreadNavigates()
+    {
+        var tree = new InMemoryFileDialogFileSystem().AddFile("a", "x.txt").AddFile("b", "y.txt");
+        var browser = new FileBrowser(tree);
+        await browser.NavigateAsync(tree.P("a"), TestContext.Current.CancellationToken);
+        var stop = false;
+        var reader = Task.Run(() =>
+        {
+            var torn = 0;
+            while (!Volatile.Read(ref stop))
+            {
+                var path = browser.CurrentPath;
+                if (path.Length == 0 || browser.Entries is null || browser.CanGoBack && browser.CanGoForward)
+                {
+                    torn++;
+                }
+            }
+
+            return torn;
+        }, TestContext.Current.CancellationToken);
+
+        for (var i = 0; i < 200; i++)
+        {
+            await Task.Run(() => browser.NavigateAsync(tree.P(i % 2 == 0 ? "b" : "a")).AsTask(),
+                TestContext.Current.CancellationToken);
+        }
+
+        Volatile.Write(ref stop, true);
+        Assert.Equal(0, await reader);
     }
 
     /// <summary>Cancellation is available as an explicit result instead of relying on a null path.</summary>

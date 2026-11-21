@@ -15,10 +15,9 @@ public static partial class ControlsExtensions
     /// </summary>
     static void Listing(Gui gui, FileDialogState state, float fontSize)
     {
-
-        using (gui.StyledNode("file-list").Expand().Direction(Axis.Vertical).Enter())
+        using (gui.StyledNode("file-list", id: state.ControlId("listing")).Expand().Direction(Axis.Vertical).Enter())
         {
-
+            ListingFocus(gui);
             ListingHeader(gui, state, fontSize);
 
             using (gui.Node().Expand().Direction(Axis.Vertical).Gap(1f).Padding(4f).Enter())
@@ -27,35 +26,64 @@ public static partial class ControlsExtensions
 
                 if (state.Browser.Entries.Count == 0)
                 {
-                    using (gui.StyledNode("file-label").Height(RowHeight).ExpandWidth().AlignContentY(0.5f).Enter())
-                    {
-                        gui.DrawText(state.Browser.IsLoading ? "Loading…" :
-                                state.Browser.Error is null ? "Nothing here" : "Cannot read this folder",
-                            fontSize, gui.ResolvePart("file-detail").GetColor("color"), centerInRect: false);
-                    }
-
+                    ListingPlaceholder(gui, state, fontSize);
                     return;
                 }
 
-                var entries = state.Browser.Entries;
-                var first = Math.Max(0, (int)(state.ListingScrollY / (RowHeight + 1f)) - ListingOverscan);
-                var take = (int)(state.ListingViewportHeight / (RowHeight + 1f)) + (ListingOverscan * 2) + 1;
-                var last = Math.Min(entries.Count, first + take);
-
-                ListingSpacer(gui, state.ControlId("pad-top"), first * (RowHeight + 1f));
-                for (var i = first; i < last; i++)
-                {
-                    Row(gui, state, entries[i], fontSize);
-                }
-
-                ListingSpacer(gui, state.ControlId("pad-bottom"), (entries.Count - last) * (RowHeight + 1f));
-
-                if (gui.Pass == Pass.Pass2Render)
-                {
-                    state.ListingViewportHeight = Math.Max(1f, gui.CurrentNode.Rect.H);
-                    state.ListingScrollY = gui.GetScrollState(gui.CurrentNode.Id)?.ScrollOffset.Y ?? 0f;
-                }
+                ListingRows(gui, state, fontSize);
             }
+        }
+    }
+
+    /// <summary>
+    /// Makes the listing a focus target of its own, so Enter after picking a row accepts it rather than
+    /// pressing whichever button had focus, and clicking its empty area takes focus off the toolbar.
+    /// </summary>
+    static void ListingFocus(Gui gui)
+    {
+        if (gui.Pass != Pass.Pass2Render)
+        {
+            return;
+        }
+
+        gui.RegisterFocusable(canReceiveFocus: true, isInteractable: true);
+        if (gui.GetInteractable().OnClick())
+        {
+            gui.RequestFocus(FocusReason.Mouse);
+        }
+    }
+
+    /// <summary>The one line shown instead of rows: loading, empty, or unreadable.</summary>
+    static void ListingPlaceholder(Gui gui, FileDialogState state, float fontSize)
+    {
+        using (gui.StyledNode("file-label").Height(RowHeight).ExpandWidth().AlignContentY(0.5f).Enter())
+        {
+            gui.DrawText(state.Browser.IsLoading ? "Loading…" :
+                    state.Browser.Error is null ? "Nothing here" : "Cannot read this folder",
+                fontSize, gui.ResolvePart("file-detail").GetColor("color"), centerInRect: false);
+        }
+    }
+
+    /// <summary>Draws only the rows near the viewport, padded by spacers, and records the viewport.</summary>
+    static void ListingRows(Gui gui, FileDialogState state, float fontSize)
+    {
+        var entries = state.Browser.Entries;
+        var first = Math.Max(0, (int)(state.ListingScrollY / (RowHeight + 1f)) - ListingOverscan);
+        var take = (int)(state.ListingViewportHeight / (RowHeight + 1f)) + (ListingOverscan * 2) + 1;
+        var last = Math.Min(entries.Count, first + take);
+
+        ListingSpacer(gui, state.ControlId("pad-top"), first * (RowHeight + 1f));
+        for (var i = first; i < last; i++)
+        {
+            Row(gui, state, entries[i], fontSize);
+        }
+
+        ListingSpacer(gui, state.ControlId("pad-bottom"), (entries.Count - last) * (RowHeight + 1f));
+
+        if (gui.Pass == Pass.Pass2Render)
+        {
+            state.ListingViewportHeight = Math.Max(1f, gui.CurrentNode.Rect.H);
+            state.ListingScrollY = gui.GetScrollState(gui.CurrentNode.Id)?.ScrollOffset.Y ?? 0f;
         }
     }
 
@@ -149,6 +177,7 @@ public static partial class ControlsExtensions
             }
 
             Select(state, entry);
+            gui.RequestFocus(state.ControlId("listing"), FocusReason.Mouse);
             if (clicks >= 2)
             {
                 Activate(state, entry);

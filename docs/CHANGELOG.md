@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Changed (breaking): more widgets migrated to pss #244
 - Changed (breaking): editor colors from pss
 - Changed: steady frames allocation #242
+- Fixed: harden FileDialog
 - Fixed: maintain focus during pointer navigation.
 
 ## [6.7.0] - 2026-11-13
