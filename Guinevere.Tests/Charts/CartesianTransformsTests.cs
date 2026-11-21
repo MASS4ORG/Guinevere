@@ -5,6 +5,21 @@ namespace Guinevere.Tests.Charts;
 /// <summary>Checks the numeric range, tick, decimation and histogram contracts.</summary>
 public sealed class CartesianTransformsTests
 {
+    /// <summary>Zooming restores detail and preserves original indices and the line crossing each viewport edge.</summary>
+    [Fact]
+    public void VisibleDecimationKeepsOriginalIndicesAndBoundaryNeighbors()
+    {
+        ChartPoint[] points = [new(0, 0), new(1, 5), new(1, 9), new(2, 4), new(3, 16), new(4, 1), new(5, 0)];
+        Span<int> indices = stackalloc int[5];
+        Assert.Equal(5, CartesianTransforms.DecimateVisible(points, new ChartRange(1, 2), indices));
+        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, indices.ToArray());
+        Assert.Equal(2, CartesianTransforms.DecimateVisible(points, new ChartRange(2.1, 2.9), indices));
+        Assert.Equal(new[] { 3, 4 }, indices[..2].ToArray());
+        Assert.Equal(3, CartesianTransforms.DecimateVisible(points, new ChartRange(3.1, 4.1), indices));
+        Assert.Equal(new[] { 4, 5, 6 }, indices[..3].ToArray());
+        Assert.Equal(0, CartesianTransforms.DecimateVisible(points, new ChartRange(6, 7), indices));
+    }
+
     /// <summary>Ranges with an overflowing width still support unit coordinate transforms.</summary>
     [Fact]
     public void RangeHandlesOppositeLargeEndpointsAndInvalidDefault()

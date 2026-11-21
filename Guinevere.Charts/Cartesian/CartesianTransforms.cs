@@ -47,11 +47,53 @@ public static class CartesianTransforms
     /// <remarks>Input must be finite and nondecreasing in X. Invalid input or insufficient capacity returns zero. The output may be shorter than capacity.</remarks>
     public static int Decimate(ReadOnlySpan<ChartPoint> source, Span<int> destination)
     {
-        if (source.IsEmpty || destination.IsEmpty || (source.Length > 1 && destination.Length < 2))
+        if (destination.IsEmpty || !IsOrderedFinite(source))
         {
             return 0;
         }
-        if (!IsOrderedFinite(source))
+        return DecimateRange(source, destination, 0);
+    }
+
+    /// <summary>Decimates the visible portion of an ordered series and retains neighboring points for clipping.</summary>
+    /// <remarks>Pass a finite series with nondecreasing X. Returns source indices, or zero if the viewport and series are disjoint.</remarks>
+    public static int DecimateVisible(ReadOnlySpan<ChartPoint> orderedSource, ChartRange visibleX, Span<int> destination)
+    {
+        if (orderedSource.IsEmpty || !visibleX.IsValid ||
+            orderedSource[0].X > visibleX.Max || orderedSource[^1].X < visibleX.Min)
+        {
+            return 0;
+        }
+        var start = Math.Max(0, FindEdge(orderedSource, visibleX.Min, includeEqual: false) - 1);
+        var end = FindEdge(orderedSource, visibleX.Max, includeEqual: true);
+        if (end < orderedSource.Length)
+        {
+            end++;
+        }
+        return DecimateRange(orderedSource[start..end], destination, start);
+    }
+
+    static int FindEdge(ReadOnlySpan<ChartPoint> source, double x, bool includeEqual)
+    {
+        var lo = 0;
+        var hi = source.Length;
+        while (lo < hi)
+        {
+            var mid = lo + (hi - lo) / 2;
+            if (includeEqual ? source[mid].X <= x : source[mid].X < x)
+            {
+                lo = mid + 1;
+            }
+            else
+            {
+                hi = mid;
+            }
+        }
+        return lo;
+    }
+
+    static int DecimateRange(ReadOnlySpan<ChartPoint> source, Span<int> destination, int offset)
+    {
+        if (source.IsEmpty || destination.IsEmpty || (source.Length > 1 && destination.Length < 2))
         {
             return 0;
         }
@@ -59,11 +101,11 @@ public static class CartesianTransforms
         {
             for (var i = 0; i < source.Length; i++)
             {
-                destination[i] = i;
+                destination[i] = offset + i;
             }
             return source.Length;
         }
-        destination[0] = 0;
+        destination[0] = offset;
         var count = 1;
         var buckets = (destination.Length - 2) / 2;
         var interior = source.Length - 2;
@@ -84,13 +126,13 @@ public static class CartesianTransforms
                     max = i;
                 }
             }
-            destination[count++] = Math.Min(min, max);
+            destination[count++] = offset + Math.Min(min, max);
             if (min != max)
             {
-                destination[count++] = Math.Max(min, max);
+                destination[count++] = offset + Math.Max(min, max);
             }
         }
-        destination[count++] = source.Length - 1;
+        destination[count++] = offset + source.Length - 1;
         return count;
     }
 

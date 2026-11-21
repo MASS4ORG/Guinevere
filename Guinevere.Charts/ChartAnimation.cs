@@ -20,13 +20,36 @@ public static class ChartAnimation
         }
         for (var i = 0; i < from.Length; i++)
         {
-            var a = from[i];
-            var b = to[i];
-            values[i] = double.IsFinite(a) && double.IsFinite(b) ? double.Lerp(a, b, progress) : double.NaN;
+            values[i] = InterpolateValue(from[i], to[i], progress);
         }
         return from.Length;
     }
 
-    static bool HasShiftedOverlap(ReadOnlySpan<double> input, Span<double> output) =>
+    /// <summary>Interpolates both coordinates of matching samples. A coordinate missing at either endpoint stays missing during the transition.</summary>
+    public static int InterpolatePoints(ReadOnlySpan<ChartPoint> from, ReadOnlySpan<ChartPoint> to, double progress,
+        Span<ChartPoint> points)
+    {
+        if (!double.IsFinite(progress) || from.Length != to.Length || points.Length < from.Length ||
+            HasShiftedOverlap(from, points) || HasShiftedOverlap(to, points))
+        {
+            return 0;
+        }
+        if (progress <= 0 || progress >= 1)
+        {
+            (progress <= 0 ? from : to).CopyTo(points);
+            return from.Length;
+        }
+        for (var i = 0; i < from.Length; i++)
+        {
+            points[i] = new ChartPoint(InterpolateValue(from[i].X, to[i].X, progress),
+                InterpolateValue(from[i].Y, to[i].Y, progress));
+        }
+        return from.Length;
+    }
+
+    static double InterpolateValue(double from, double to, double progress) =>
+        double.IsFinite(from) && double.IsFinite(to) ? double.Lerp(from, to, progress) : double.NaN;
+
+    static bool HasShiftedOverlap<T>(ReadOnlySpan<T> input, Span<T> output) =>
         input.Overlaps(output, out var offset) && offset != 0;
 }

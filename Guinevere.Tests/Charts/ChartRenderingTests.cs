@@ -46,6 +46,46 @@ public sealed class ChartRenderingTests
         Assert.Equal(0, pixels.GetPixel(80, 79).Alpha);
     }
 
+    /// <summary>A smoothed line follows the samples, differs from the straight chord, and leaves gaps.</summary>
+    [Fact]
+    public void SmoothLineFollowsSamplesWithoutBridgingGaps()
+    {
+        using var harness = new FrameHarness(120, 120);
+        var plot = new CartesianPlot(new Rect(10, 10, 100, 100), new ChartRange(0, 1), new ChartRange(0, 1));
+        ChartPoint[] points = [new(0, .1), new(1, .9), new(.5, double.NaN), new(.6, .1)];
+        harness.Frame(gui => CartesianChart.DrawSmoothLine(gui, plot, points, Color.Red, 3));
+        using var snapshot = harness.Snapshot();
+        using var pixels = SKBitmap.FromImage(snapshot);
+
+        Assert.True(pixels.GetPixel(35, 87).Alpha > 128);
+        Assert.Equal(0, pixels.GetPixel(35, 80).Alpha);
+        Assert.Equal(0, pixels.GetPixel(80, 60).Alpha);
+        Assert.True(pixels.GetPixel(108, 20).Alpha > 128);
+    }
+
+    /// <summary>All four scales place valid tick marks outside their plot edges.</summary>
+    [Fact]
+    public void ScaleTicksFaceOutward()
+    {
+        using var harness = new FrameHarness(120, 120);
+        var plot = new CartesianPlot(new Rect(10, 10, 100, 100), new ChartRange(0, 10), new ChartRange(0, 1));
+        harness.Frame(gui =>
+        {
+            CartesianChart.DrawScale(gui, plot, ChartAxisSide.Top, [2, -2], Color.Red, tickLength: 6);
+            CartesianChart.DrawScale(gui, plot, ChartAxisSide.Bottom, [2], Color.Red, tickLength: 6);
+            CartesianChart.DrawScale(gui, plot, ChartAxisSide.Left, [.2], Color.Red, tickLength: 6);
+            CartesianChart.DrawScale(gui, plot, ChartAxisSide.Right, [.2], Color.Red, tickLength: 6);
+        });
+        using var snapshot = harness.Snapshot();
+        using var pixels = SKBitmap.FromImage(snapshot);
+
+        Assert.True(pixels.GetPixel(30, 6).Alpha > 0);
+        Assert.True(pixels.GetPixel(30, 114).Alpha > 0);
+        Assert.True(pixels.GetPixel(6, 90).Alpha > 0);
+        Assert.True(pixels.GetPixel(114, 90).Alpha > 0);
+        Assert.Equal(0, pixels.GetPixel(30, 14).Alpha);
+    }
+
     /// <summary>Bars and bubbles identify the topmost source item and miss invalid samples.</summary>
     [Fact]
     public void CartesianHitsKeepSourceIndices()
@@ -89,6 +129,7 @@ public sealed class ChartRenderingTests
         RadarProjection.CreateAxes(axes);
         double[] xTicks = [.25, .5, .75];
         double[] yTicks = [.5];
+        BarChartRect[] bars = [new(new Rect(15, 15, 10, 10), 0, 0)];
         var axisColor = Color.White;
         var gridColor = Color.Gray;
 
@@ -106,6 +147,14 @@ public sealed class ChartRenderingTests
 
         Assert.Equal(0, AllocationProbe.Steady(Record));
         Assert.Equal(30, commands.PrimitiveCount);
+        commands.EnsureCapacity(128);
+        Assert.Equal(0, AllocationProbe.Steady(() =>
+        {
+            commands.Clear();
+            CartesianChart.DrawSmoothLine(gui, plot, points, axisColor);
+            CartesianChart.DrawScale(gui, plot, ChartAxisSide.Right, yTicks, axisColor);
+            BarChart.Draw(gui, bars, colors);
+        }));
         gui.EndFrame();
     }
 
@@ -183,10 +232,15 @@ public sealed class ChartRenderingTests
         var vertices = new Vector2[3];
         var bins = new int[12];
         var ticks = new double[12];
+        var bars = new BarChartRect[6];
+        int[] stacks = [0, 0, 1];
+        double[] categories = [12, 200];
+        double[] groupedValues = [12, -3, 5, -3, 6, 15];
 
         void Update()
         {
             CartesianTransforms.Decimate(points, indices);
+            CartesianTransforms.DecimateVisible(points, new ChartRange(100, 1000), indices);
             CartesianTransforms.Histogram(values, plot.Y, bins);
             CartesianTransforms.GenerateTicks(plot.Y, ticks.Length, ticks);
             CartesianChart.HitPoints(plot, points, new Vector2(30, 60));
@@ -194,6 +248,8 @@ public sealed class ChartRenderingTests
             PieChart.HitTest(plot.Area, segments.AsSpan(0, slices), new Vector2(240, 180));
             RadarProjection.Project(ranges, values, vertices);
             RadarChart.HitSeries(plot.Area, vertices, new Vector2(220, 80));
+            var count = BarChart.Project(plot, categories, groupedValues, stacks, bars, width: 12);
+            BarChart.HitTest(bars.AsSpan(0, count), new Vector2(10, 280));
         }
 
         Assert.Equal(0, AllocationProbe.Steady(Update));

@@ -32,4 +32,18 @@ public sealed class ChartAnimationTests
         Assert.Equal(0, ChartAnimation.Interpolate([1], [2], double.NaN, values));
         Assert.Equal(0, ChartAnimation.Interpolate(values.AsSpan(0, 3), [2, 3, 4], .5, values.AsSpan(1)));
     }
+
+    /// <summary>Point transitions retain source order and can reuse the starting buffer.</summary>
+    [Fact]
+    public void InterpolatesPointsAndRetainsGaps()
+    {
+        ChartPoint[] from = [new(0, 2), new(4, double.NaN)];
+        ChartPoint[] to = [new(2, -4), new(4, 7)];
+        Assert.Equal(0, ChartAnimation.InterpolatePoints(from, to, double.NaN, from));
+        Assert.Equal(2, ChartAnimation.InterpolatePoints(from, to, .5, from));
+        Assert.Equal(new ChartPoint(1, -1), from[0]);
+        Assert.True(double.IsNaN(from[1].Y));
+        Assert.Equal(2, ChartAnimation.InterpolatePoints(from, to, 1, from));
+        Assert.Equal(to, from);
+    }
 }

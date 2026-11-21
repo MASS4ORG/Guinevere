@@ -26,14 +26,20 @@ public static class Program
             for (var view = 0; view < ChartsGallery.ViewCount; view++)
             {
                 gallery.SelectView(view);
+                Render($"view {view}");
+            }
+            gallery.CheckVariants(Render);
+            return;
+
+            void Render(string scenario)
+            {
                 gui.UpdateFrameTime(1d / 60);
                 gui.RenderFrame(surface.Canvas, gallery.Draw);
                 if (gallery.PlotCommands == 0)
                 {
-                    throw new InvalidOperationException($"Chart view {view} produced no draw commands.");
+                    throw new InvalidOperationException($"Chart {scenario} produced no draw commands.");
                 }
             }
-            return;
         }
         using var window = new GuiWindow(gui, width: Width, height: Height, title: "Guinevere Charts");
         window.RunGui(gallery.Draw);

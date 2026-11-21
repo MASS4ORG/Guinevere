@@ -12,11 +12,37 @@ public enum ChartAxis
     Y
 }
 
+/// <summary>Places a scale on one edge of a Cartesian plot.</summary>
+public enum ChartAxisSide
+{
+    /// <summary>The horizontal scale above the plot.</summary>
+    Top,
+    /// <summary>The horizontal scale below the plot.</summary>
+    Bottom,
+    /// <summary>The vertical scale to the left of the plot.</summary>
+    Left,
+    /// <summary>The vertical scale to the right of the plot.</summary>
+    Right
+}
+
+/// <summary>Places a label along one dimension of its available bounds.</summary>
+public enum ChartLabelAlignment
+{
+    /// <summary>Aligns to the left or top.</summary>
+    Start,
+    /// <summary>Centers the label.</summary>
+    Center,
+    /// <summary>Aligns to the right or bottom.</summary>
+    End
+}
+
 /// <summary>Draws chart labels in caller-supplied screen-space bounds.</summary>
 public static class ChartLabels
 {
-    /// <summary>Draws an unwrapped label at the top-left when its entire layout fits.</summary>
-    public static bool Draw(Gui gui, Rect bounds, ReadOnlySpan<char> text, Color color, float size = 0, Font? font = null)
+    /// <summary>Draws an aligned, unwrapped label when its entire layout fits. Use the same method for titles.</summary>
+    public static bool Draw(Gui gui, Rect bounds, ReadOnlySpan<char> text, Color color, float size = 0,
+        Font? font = null, ChartLabelAlignment horizontal = ChartLabelAlignment.Start,
+        ChartLabelAlignment vertical = ChartLabelAlignment.Start)
     {
         if (gui.Pass != Pass.Pass2Render || !ChartArea.IsValid(bounds) || text.IsEmpty)
         {
@@ -27,9 +53,18 @@ public static class ChartLabels
         {
             return false;
         }
-        gui.DrawTextLayout(layout, bounds.Position, color);
+        var origin = bounds.Position + new Vector2(Align(bounds.W - layout.Width, horizontal),
+            Align(bounds.H - layout.Height, vertical));
+        gui.DrawTextLayout(layout, origin, color);
         return true;
     }
+
+    static float Align(float room, ChartLabelAlignment alignment) => alignment switch
+    {
+        ChartLabelAlignment.Center => room / 2,
+        ChartLabelAlignment.End => room,
+        _ => 0,
+    };
 
     /// <summary>Draws a tooltip near its anchor, clamped to the available bounds, or omits it if it cannot fit.</summary>
     public static bool DrawTooltip(Gui gui, Rect bounds, Vector2 anchor, ReadOnlySpan<char> text, ChartStyle style,
@@ -58,12 +93,18 @@ public static class ChartLabels
     /// <summary>Draws ascending ticks in axis order, omitting labels that overlap or extend outside the supplied bounds.</summary>
     public static int DrawTicks(Gui gui, CartesianPlot plot, Rect bounds, ChartAxis axis, ReadOnlySpan<double> ticks,
         Color color, float size = 0, Font? font = null, ReadOnlySpan<char> format = default)
+        => DrawTicks(gui, plot, bounds, axis == ChartAxis.X ? ChartAxisSide.Bottom : ChartAxisSide.Left,
+            ticks, color, size, font, format);
+
+    /// <summary>Draws ascending tick labels for the specified scale edge, omitting overlaps and labels outside bounds.</summary>
+    public static int DrawTicks(Gui gui, CartesianPlot plot, Rect bounds, ChartAxisSide side, ReadOnlySpan<double> ticks,
+        Color color, float size = 0, Font? font = null, ReadOnlySpan<char> format = default)
     {
         if (gui.Pass != Pass.Pass2Render || !plot.IsValid || !ChartArea.IsValid(bounds))
         {
             return 0;
         }
-        var horizontal = axis == ChartAxis.X;
+        var horizontal = side is ChartAxisSide.Top or ChartAxisSide.Bottom;
         var range = horizontal ? plot.X : plot.Y;
         var occupied = float.NegativeInfinity;
         var drawn = 0;
@@ -78,9 +119,7 @@ public static class ChartLabels
                 continue;
             }
             var layout = gui.LayoutPlainText(text[..written], size: size, font: font);
-            var location = horizontal
-                ? new Vector2(plot.Project(normalized, 0).X - layout.Width / 2, bounds.Y)
-                : new Vector2(bounds.X + bounds.W - layout.Width, plot.Project(0, normalized).Y - layout.Height / 2);
+            var location = TickLabelPosition(plot, bounds, side, normalized, layout);
             var leading = horizontal ? location.X : location.Y;
             if (leading < occupied || !Fits(bounds, location, layout))
             {
@@ -91,6 +130,19 @@ public static class ChartLabels
             drawn++;
         }
         return drawn;
+    }
+
+    static Vector2 TickLabelPosition(CartesianPlot plot, Rect bounds, ChartAxisSide side, double normalized,
+        TextLayout layout)
+    {
+        var screen = plot.Project(normalized, normalized);
+        return side switch
+        {
+            ChartAxisSide.Top => new Vector2(screen.X - layout.Width / 2, bounds.Y + bounds.H - layout.Height),
+            ChartAxisSide.Bottom => new Vector2(screen.X - layout.Width / 2, bounds.Y),
+            ChartAxisSide.Right => new Vector2(bounds.X, screen.Y - layout.Height / 2),
+            _ => new Vector2(bounds.X + bounds.W - layout.Width, screen.Y - layout.Height / 2),
+        };
     }
 
     static bool Fits(Rect bounds, Vector2 location, TextLayout layout) =>

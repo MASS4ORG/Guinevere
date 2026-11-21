@@ -20,14 +20,15 @@ public sealed partial class ProfilerView
     string? _hoveredScope;
 
     /// <summary>One completed scope placed on a flame-chart row, with time not covered by its children.</summary>
-    readonly record struct FlameScope(ProfileEvent Event, long Self);
+    readonly record struct FlameScope(ProfileEvent Event, long Self, int Series);
 
     /// <summary>Selected frame as nested horizontal bars: one lane per track, one row per nesting depth.</summary>
     void FlameChart(FrameRecord frame)
     {
         PrepareFlame(frame);
+        DrawFlameNavigation(frame);
         Gui.Label(_hoveredScope ?? "Hover a scope for its timing; click to select it for copying.");
-        var height = RulerHeight + Math.Max(1, _flameRows) * ScopeRowHeight + 4;
+        var height = RulerHeight + Math.Max(1, Math.Min(VisibleFlameRows, _flameRows)) * ScopeRowHeight + 4;
         using (Gui.StyledNode("profiler-flame", id: "profiler-timeline").ExpandWidth().Height(height).Enter())
         {
             var chart = Gui.GetInteractable();
@@ -36,36 +37,31 @@ public sealed partial class ProfilerView
                 return;
             }
             var area = Gui.CurrentNode.Rect;
-            DrawRuler(frame, area);
-            var plot = new TimelinePlot(new Rect(area.X, area.Y + RulerHeight, area.W, area.H - RulerHeight),
-                new ChartRange(0, Math.Max(1, frame.End - frame.Start)), ScopeRowHeight);
-            var hovered = TrackScopePointer(frame, plot, chart);
-            for (var index = 0; index < _flame.Length; index++)
+            var plotArea = new Rect(area.X, area.Y + RulerHeight, area.W, area.H - RulerHeight - 4);
+            var plot = new TimelinePlot(plotArea, NavigateFlame(frame, plotArea, chart), ScopeRowHeight);
+            if (!plot.IsValid)
             {
-                var scope = _flame[index];
-                var span = _flameIntervals[index] with { Color = SeriesColor(scope.Event.Name) };
-                if (TimelineChart.DrawInterval(Gui, plot, span, out var bounds, horizontalGap: 1, rowGap: 2, radius: 2))
-                {
-                    DrawScope(frame, bounds, scope, index == hovered);
-                }
+                return;
             }
+            DrawRuler(frame, area, plot.Time);
+            var hovered = TrackScopePointer(frame, plot, chart);
+            DrawVisibleFlame(frame, plot, hovered);
         }
     }
 
     /// <summary>Updates hover text and click selection; returns the hovered scope index or -1.</summary>
     int TrackScopePointer(FrameRecord frame, TimelinePlot plot, InteractableElement chart)
     {
-        var hovered = chart.OnHover() ? TimelineChart.HitTest(plot, _flameIntervals, Gui.Input.MousePosition,
-            minimumWidth: 3, horizontalGap: 1, rowGap: 2) : -1;
+        var hovered = chart.OnHover() ? HitFlame(plot, Gui.Input.MousePosition) : -1;
         if (hovered != _hoveredFlameIndex)
         {
             _hoveredFlameIndex = hovered;
             _hoveredScope = hovered >= 0 ? ScopeText(frame, _flame[hovered]) : null;
             Gui.RequestFrame();
         }
-        if (_hoveredScope is { } text && chart.OnClick())
+        if (hovered >= 0 && chart.OnClick())
         {
-            _selectedText = text;
+            SelectFlame(frame, hovered);
         }
         return hovered;
     }
@@ -101,6 +97,7 @@ public sealed partial class ProfilerView
         if (!FlameLayout.TryCalculateDepths(parents, depths))
         {
             depths.AsSpan().Clear();
+            parents.AsSpan().Fill(-1);
         }
         var offsets = TrackOffsets(scopes, depths, out _flameRows);
         _flame = new FlameScope[scopes.Length];
@@ -109,12 +106,18 @@ public sealed partial class ProfilerView
         {
             var scope = scopes[i];
             var row = offsets[scope.Track] + depths[i];
-            _flame[i] = new FlameScope(scope, scope.End - scope.Start - children[i]);
+            _flame[i] = new FlameScope(scope, scope.End - scope.Start - children[i], SeriesIndex(scope.Name));
             _flameIntervals[i] = new TimelineSpan(scope.Start - frame.Start, scope.End - frame.Start, row, default);
         }
+        PrepareFlameLanes();
+        _flameParents = parents;
         _flameFrame = frame;
+        ResetFlameViewport(frame);
+        _flameSelected = -1;
+        _flameBreadcrumb = null;
         _hoveredFlameIndex = -1;
         _hoveredScope = null;
+        UpdateFlameSearch();
     }
 
     static Dictionary<int, int> TrackOffsets(ReadOnlySpan<ProfileEvent> scopes, ReadOnlySpan<int> depths, out int rows)
@@ -188,17 +191,17 @@ public sealed partial class ProfilerView
     }
 
     /// <summary>Millisecond grid with the smallest round step that keeps labels at least 70 pixels apart.</summary>
-    void DrawRuler(FrameRecord frame, Rect area)
+    void DrawRuler(FrameRecord frame, Rect area, ChartRange visibleTime)
     {
-        var total = Math.Max(frame.Milliseconds, 1e-9);
+        var range = new ChartRange(visibleTime.Min * 1000 / frame.Frequency, visibleTime.Max * 1000 / frame.Frequency);
         Span<double> ticks = stackalloc double[32];
-        var count = CartesianTransforms.GenerateTicks(new ChartRange(0, total),
+        var count = CartesianTransforms.GenerateTicks(range,
             1 + Math.Clamp((int)(area.W / 70), 1, ticks.Length - 1), ticks);
         Span<char> label = stackalloc char[64];
         var color = StyleColor("profiler-budget", "border-color");
         foreach (var tick in ticks[..count])
         {
-            var x = area.X + (float)(tick / total) * area.W;
+            var x = area.X + (float)range.Normalize(tick) * area.W;
             Gui.DrawLine(new Vector2(x, area.Y), new Vector2(x, area.Y + area.H), color, .5f);
             if (tick.TryFormat(label[..^3], out var written, "0.###", CultureInfo.InvariantCulture))
             {
@@ -210,13 +213,15 @@ public sealed partial class ProfilerView
     }
 
     /// <summary>Stable color per scope name for this viewer, drawn from the skin's eight series selectors.</summary>
-    Color SeriesColor(string name)
+    Color SeriesColor(string name) => StyleColor(SeriesSelectors[SeriesIndex(name)], "background-color");
+
+    int SeriesIndex(string name)
     {
         if (!_series.TryGetValue(name, out var index))
         {
             _series[name] = index = _series.Count % SeriesSelectors.Length;
         }
-        return StyleColor(SeriesSelectors[index], "background-color");
+        return index;
     }
 
     Color StyleColor(string selector, string property) =>

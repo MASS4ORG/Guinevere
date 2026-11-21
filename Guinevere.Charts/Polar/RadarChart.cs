@@ -5,6 +5,56 @@ namespace Guinevere.Charts;
 /// <summary>Draws axes and projected series for a radar chart.</summary>
 public static class RadarChart
 {
+    /// <summary>Draws labels around the radar axes. Labels that would overlap or leave the bounds are omitted.</summary>
+    /// <remarks>Supply one label per axis. The caller buffer records the bounds of the labels drawn, in draw order.</remarks>
+    public static int DrawAxisLabels(Gui gui, Rect area, Rect labelBounds, ReadOnlySpan<Vector2> axes,
+        ReadOnlySpan<string> labels, Span<Rect> placed, Color color, float size = 0, float gap = 12, Font? font = null)
+    {
+        if (gui.Pass != Pass.Pass2Render || !ChartArea.IsValid(area) || !ChartArea.IsValid(labelBounds) ||
+            axes.Length != labels.Length || !float.IsFinite(gap) || gap < 0)
+        {
+            return 0;
+        }
+        var count = 0;
+        var radius = Math.Min(area.W, area.H) / 2 + gap;
+        var center = area.Center;
+        for (var i = 0; i < axes.Length && count < placed.Length; i++)
+        {
+            if (!IsFinite(axes[i]) || string.IsNullOrEmpty(labels[i]))
+            {
+                continue;
+            }
+            var layout = gui.LayoutPlainText(labels[i], size: size, font: font);
+            var anchor = center + axes[i] * radius;
+            var bounds = new Rect(anchor.X - layout.Width / 2, anchor.Y - layout.Height / 2, layout.Width, layout.Height);
+            if (!CanPlaceLabel(labelBounds, bounds, placed[..count]))
+            {
+                continue;
+            }
+            gui.DrawTextLayout(layout, bounds.Position, color);
+            placed[count++] = bounds;
+        }
+        return count;
+    }
+
+    static bool CanPlaceLabel(Rect available, Rect label, ReadOnlySpan<Rect> placed)
+    {
+        if (!ChartArea.IsValid(label) || label.X < available.X || label.Y < available.Y ||
+            label.X + label.W > available.X + available.W || label.Y + label.H > available.Y + available.H)
+        {
+            return false;
+        }
+        foreach (var existing in placed)
+        {
+            if (label.X < existing.X + existing.W && existing.X < label.X + label.W &&
+                label.Y < existing.Y + existing.H && existing.Y < label.Y + label.H)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /// <summary>Draws spokes and evenly spaced polygonal rings using unit axis vertices in dimension order.</summary>
     public static void DrawGrid(Gui gui, Rect area, ReadOnlySpan<Vector2> axes, int rings, Color color)
     {

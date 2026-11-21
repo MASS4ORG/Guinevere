@@ -5,6 +5,26 @@ namespace Guinevere.Tests.Charts;
 /// <summary>Checks circular slice generation, numeric edge cases and pointer mapping.</summary>
 public sealed class PieChartTests
 {
+    /// <summary>An arc can be combined with an independent inner ring without overlapping its hit region.</summary>
+    [Fact]
+    public void ArcAndConcentricRingHitTestingAgreeWithRadii()
+    {
+        Span<PieSegment> outer = stackalloc PieSegment[1];
+        Span<PieSegment> inner = stackalloc PieSegment[1];
+        Assert.Equal(1, PieChart.CreateSegments([4], outer, angularSweep: Math.PI));
+        Assert.Equal(1, PieChart.CreateSegments([8], inner));
+        var area = new Rect(0, 0, 100, 100);
+
+        Assert.Equal(0, PieChart.HitTest(area, outer, new Vector2(50, 90), .6));
+        Assert.Equal(-1, PieChart.HitTest(area, outer, new Vector2(50, 10), .6));
+        Assert.Equal(-1, PieChart.HitTest(area, outer, new Vector2(50, 70), .6));
+        Assert.Equal(0, PieChart.HitTest(area, inner, new Vector2(50, 70), .2, outerRadius: .55));
+        Assert.Equal(-1, PieChart.HitTest(area, inner, new Vector2(50, 90), .2, outerRadius: .55));
+        Assert.Throws<ArgumentOutOfRangeException>(static () => PieChart.CreateSegments([4], [], angularSweep: Math.Tau + 1));
+        Assert.Throws<ArgumentOutOfRangeException>(static () => PieChart.CreateSegments([4], [], startAngle: double.NaN));
+        Assert.Throws<ArgumentOutOfRangeException>(static () => PieChart.CreateSegments([4], [], angularGap: -1));
+    }
+
     /// <summary>Valid slices retain the index of their input weights.</summary>
     [Fact]
     public void CreateSegmentsPreservesSourceIndicesAndIgnoresInvalidWeights()

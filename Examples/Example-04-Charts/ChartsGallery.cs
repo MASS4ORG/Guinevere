@@ -15,7 +15,7 @@ sealed partial class ChartsGallery
     static readonly ChartRange TrendTime = new(0, 100);
     static readonly ChartRange TrendValues = new(-1.3, 1.3);
     static readonly ChartRange Categories = new(-.5, 11.5);
-    static readonly ChartRange CategoryValues = new(0, 12);
+    static readonly ChartRange CategoryValues = new(-12, 12);
     static readonly ChartRange Samples = new(0, 1);
     static readonly ChartRange HistogramValues = new(0, 36);
     static readonly ChartRange FrameTime = new(0, 80);
@@ -28,16 +28,17 @@ sealed partial class ChartsGallery
     readonly ChartPoint[] _trend = new ChartPoint[100_000];
     readonly ChartPoint[] _reference = new ChartPoint[1_000];
     readonly int[] _decimated = new int[1_000];
-    readonly ChartPoint[] _bars = new ChartPoint[12];
     readonly ChartPoint[] _scatter = new ChartPoint[80];
     readonly float[] _radii = new float[80];
     readonly ChartPoint[] _histogram = new ChartPoint[12];
-    readonly int _decimatedCount;
+    int _decimatedCount;
+    ChartRange _decimatedRange;
+    bool _smoothLine;
+    bool _farScales;
     int _view;
     int _selected = -1;
     ChartRange _x;
     ChartRange _y;
-    bool _donut = true;
     int _firstRow;
     int _nav;
 
@@ -53,15 +54,12 @@ sealed partial class ChartsGallery
             var x = TrendTime.Denormalize(i / (double)(_trend.Length - 1));
             _trend[i] = new ChartPoint(x, Math.Sin(x * .3) * .75 + Math.Sin(x * 7) * .17);
         }
-        _decimatedCount = CartesianTransforms.Decimate(_trend, _decimated);
         for (var i = 0; i < _reference.Length; i++)
         {
             var x = TrendTime.Denormalize(i / (double)(_reference.Length - 1));
             _reference[i] = new ChartPoint(x, Math.Sin(x * .3) * .56 + .18);
-        }
-        for (var i = 0; i < _bars.Length; i++)
-        {
-            _bars[i] = new ChartPoint(i, 2 + i * 7 % 10);
+            _referenceOriginal[i] = _reference[i];
+            _referenceAlternative[i] = new ChartPoint(x, Math.Cos(x * .25) * .68 - .18);
         }
         for (var i = 0; i < _scatter.Length; i++)
         {
@@ -83,6 +81,7 @@ sealed partial class ChartsGallery
         }
         PreparePolar();
         PrepareFlame();
+        PrepareBars();
         SelectView(0);
     }
 
@@ -92,13 +91,36 @@ sealed partial class ChartsGallery
         (_x, _y) = view switch
         {
             0 => (TrendTime, TrendValues),
-            1 => (Categories, CategoryValues),
+            1 => _horizontalBars ? (CategoryValues, Categories) : (Categories, CategoryValues),
             4 => (Samples, HistogramValues),
             7 or 8 => (FrameTime, Samples),
             _ => (Samples, Samples),
         };
         _selected = -1;
         _firstRow = 0;
+    }
+
+    internal void CheckVariants(Action<string> render)
+    {
+        SelectView(0);
+        _smoothLine = _farScales = true;
+        render("smooth line with top and right scales");
+        for (var orientation = 0; orientation < 2; orientation++)
+        {
+            _horizontalBars = orientation == 1;
+            SelectView(1);
+            for (_barMode = 0; _barMode < BarModes.Length; _barMode++)
+            {
+                render($"bar mode {_barMode}, horizontal {_horizontalBars}");
+            }
+        }
+        SelectView(5);
+        for (_pieMode = 0; _pieMode < PieModes.Length; _pieMode++)
+        {
+            render($"pie mode {_pieMode}");
+        }
+        _emptyPie = true;
+        render("empty pie");
     }
 
     internal void Draw()
@@ -132,7 +154,9 @@ sealed partial class ChartsGallery
             return;
         }
         var style = ChartStyle.Resolve(_gui);
-        var plotArea = new Rect(area.X + 58, area.Y + 20, area.W - 82, area.H - 76);
+        var farScales = _view == 0 && _farScales;
+        var top = _view == 0 ? 44 : 20;
+        var plotArea = new Rect(area.X + (farScales ? 24 : 58), area.Y + top, area.W - 82, area.H - 56 - top);
         var shell = new CartesianPlot(plotArea, _x, _y);
         if (_view is < 5 or 7 or 8)
         {
@@ -141,6 +165,9 @@ sealed partial class ChartsGallery
         var before = _gui.CurrentNode.DrawList.Count;
         switch (_view)
         {
+            case 1:
+                DrawMultiBars(shell, area, style, interaction);
+                break;
             case 5:
                 DrawPie(plotArea, area, style, interaction);
                 break;
@@ -161,17 +188,17 @@ sealed partial class ChartsGallery
     void DrawCommands(int view)
     {
         using var toolbar = _gui.Node().ExpandWidth().Direction(Axis.Horizontal).Wrap(1).Gap(6).Enter();
+        if (view == 0)
+        {
+            DrawLineOptions();
+        }
+        if (view == 1)
+        {
+            DrawBarOptions();
+        }
         if (view is 5)
         {
-            if (_gui.Button(_donut ? "Show pie" : "Show donut", id: "hole"))
-            {
-                _donut = !_donut;
-            }
-            if (_gui.Button("Change values", id: "pie-values"))
-            {
-                StartPieAnimation();
-            }
-            _gui.Label("Click a slice to separate it.");
+            DrawPieOptions();
             return;
         }
         if (view is 6)
@@ -230,20 +257,16 @@ sealed partial class ChartsGallery
         DrawAxes(plot, bounds, style);
         var pointer = _gui.Input.MousePosition;
         var hover = interaction.OnHover();
-        var index = -1;
-        var points = _view switch { 0 => _trend, 1 => _bars, 4 => _histogram, _ => _scatter };
-        var width = Math.Max(1, plot.Area.W / points.Length * .7f);
         if (_view == 0)
         {
-            var indices = _decimated.AsSpan(0, _decimatedCount);
-            CartesianChart.DrawLine(_gui, plot, _reference, Palette[1], 2);
-            CartesianChart.DrawLine(_gui, plot, points, Palette[0], 2, indices);
-            index = hover ? CartesianChart.HitLineSample(plot, points, pointer, 9, indices) : -1;
-            ChartLegend.Draw(_gui, new Rect(plot.Area.X, bounds.Y + bounds.H - 24, plot.Area.W, 24),
-                CartesianLegend, style.Label);
+            DrawTrend(plot, bounds, style, interaction, pointer, hover);
+            return;
         }
-        else if (_view is 1 or 4)
+        var points = _view == 4 ? _histogram : _scatter;
+        int index;
+        if (_view == 4)
         {
+            var width = Math.Max(1, plot.Area.W / points.Length * .7f);
             CartesianChart.DrawBars(_gui, plot, points, Palette[0], width);
             index = hover ? CartesianChart.HitBars(plot, points, pointer, width) : -1;
         }
@@ -254,17 +277,28 @@ sealed partial class ChartsGallery
             index = hover ? CartesianChart.HitPoints(plot, points, pointer, radii: radii) : -1;
         }
         Pick(interaction, index);
-        if ((uint)_selected < (uint)points.Length && plot.TryProject(points[_selected], out var position))
+        DrawSampleSelection(plot, style, points, _selected);
+        if (index >= 0)
+        {
+            DrawSampleTooltip(bounds, style, pointer, points[index]);
+        }
+    }
+
+    void DrawSampleSelection(CartesianPlot plot, ChartStyle style, ReadOnlySpan<ChartPoint> points, int selection)
+    {
+        if ((uint)selection < (uint)points.Length && plot.TryProject(points[selection], out var position))
         {
             _gui.DrawCircleBorder(position, 7, style.Selection, 2);
         }
-        if (index >= 0)
+    }
+
+    void DrawSampleTooltip(Rect bounds, ChartStyle style, Vector2 pointer, ChartPoint point,
+        ReadOnlySpan<char> prefix = default)
+    {
+        Span<char> text = stackalloc char[80];
+        if (text.TryWrite(CultureInfo.InvariantCulture, $"{prefix}x {point.X:F2} · y {point.Y:F2}", out var length))
         {
-            Span<char> text = stackalloc char[80];
-            if (text.TryWrite(CultureInfo.InvariantCulture, $"x {points[index].X:F2} · y {points[index].Y:F2}", out var length))
-            {
-                ChartLabels.DrawTooltip(_gui, bounds, pointer, text[..length], style);
-            }
+            ChartLabels.DrawTooltip(_gui, bounds, pointer, text[..length], style);
         }
     }
 
@@ -275,10 +309,20 @@ sealed partial class ChartsGallery
         var xCount = CartesianTransforms.GenerateTicks(plot.X, x.Length, x);
         var yCount = vertical ? CartesianTransforms.GenerateTicks(plot.Y, y.Length, y) : 0;
         CartesianChart.DrawGrid(_gui, plot, x[..xCount], y[..yCount], style.Axis, style.Grid);
-        ChartLabels.DrawTicks(_gui, plot, new Rect(bounds.X, plot.Area.Y + plot.Area.H + 4, bounds.W, 22),
-            ChartAxis.X, x[..xCount], style.Label, size: 11);
-        ChartLabels.DrawTicks(_gui, plot, new Rect(bounds.X, bounds.Y, plot.Area.X - bounds.X - 5, plot.Area.H + 40),
-            ChartAxis.Y, y[..yCount], style.Label, size: 11);
+        var far = _view == 0 && _farScales;
+        var xSide = far ? ChartAxisSide.Top : ChartAxisSide.Bottom;
+        var ySide = far ? ChartAxisSide.Right : ChartAxisSide.Left;
+        CartesianChart.DrawScale(_gui, plot, xSide, x[..xCount], style.Axis);
+        ChartLabels.DrawTicks(_gui, plot,
+            new Rect(bounds.X, far ? plot.Area.Y - 24 : plot.Area.Y + plot.Area.H + 5, bounds.W, 19),
+            xSide, x[..xCount], style.Label, size: 11);
+        if (vertical)
+        {
+            CartesianChart.DrawScale(_gui, plot, ySide, y[..yCount], style.Axis);
+            var labelX = far ? plot.Area.X + plot.Area.W + 5 : bounds.X;
+            ChartLabels.DrawTicks(_gui, plot, new Rect(labelX, plot.Area.Y - 10, 53, plot.Area.H + 20),
+                ySide, y[..yCount], style.Label, size: 11);
+        }
     }
 
     bool Pick(InteractableElement interaction, int index)

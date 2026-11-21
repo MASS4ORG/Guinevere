@@ -8,6 +8,16 @@ public static class CartesianChart
     /// <summary>Draws a line through all samples or the supplied decimated indices. Invalid samples break the line.</summary>
     public static void DrawLine(Gui gui, CartesianPlot plot, ReadOnlySpan<ChartPoint> points, Color color,
         float thickness = 1, ReadOnlySpan<int> indices = default)
+        => DrawLineCore(gui, plot, points, color, thickness, indices, smooth: false);
+
+    /// <summary>Draws smooth interpolated segments through the supplied samples without exceeding each segment's Y range.</summary>
+    /// <remarks>Samples sharing an X coordinate are joined vertically. Invalid samples break the line.</remarks>
+    public static void DrawSmoothLine(Gui gui, CartesianPlot plot, ReadOnlySpan<ChartPoint> points, Color color,
+        float thickness = 1, ReadOnlySpan<int> indices = default)
+        => DrawLineCore(gui, plot, points, color, thickness, indices, smooth: true);
+
+    static void DrawLineCore(Gui gui, CartesianPlot plot, ReadOnlySpan<ChartPoint> points, Color color,
+        float thickness, ReadOnlySpan<int> indices, bool smooth)
     {
         if (gui.Pass != Pass.Pass2Render || !plot.IsValid || !float.IsFinite(thickness) || thickness <= 0)
         {
@@ -21,9 +31,41 @@ public static class CartesianChart
             var current = (uint)index < (uint)points.Length
                 ? new ChartPoint(plot.X.Normalize(points[index].X), plot.Y.Normalize(points[index].Y))
                 : new ChartPoint(double.NaN, double.NaN);
+            if (smooth)
+            {
+                DrawSmoothSegment(gui, plot, previous, current, color, thickness);
+            }
+            else
+            {
+                DrawSegment(gui, plot, previous, current, color, thickness);
+            }
+            previous = current;
+        }
+    }
+
+    static void DrawSmoothSegment(Gui gui, CartesianPlot plot, ChartPoint from, ChartPoint to, Color color,
+        float thickness)
+    {
+        var dx = to.X - from.X;
+        var dy = to.Y - from.Y;
+        if (!double.IsFinite(dx) || !double.IsFinite(dy) || Math.Max(from.X, to.X) < 0 ||
+            Math.Min(from.X, to.X) > 1 || Math.Max(from.Y, to.Y) < 0 || Math.Min(from.Y, to.Y) > 1)
+        {
+            return;
+        }
+        var width = Math.Abs(dx) * plot.Area.W;
+        var height = Math.Abs(dy) * plot.Area.H;
+        var steps = (int)Math.Clamp(Math.Ceiling(Math.Min(width, height) / 4), 1, 24);
+        var previous = from;
+        for (var step = 1; step < steps; step++)
+        {
+            var t = (double)step / steps;
+            var eased = t * t * (3 - 2 * t);
+            var current = new ChartPoint(double.Lerp(from.X, to.X, t), double.Lerp(from.Y, to.Y, eased));
             DrawSegment(gui, plot, previous, current, color, thickness);
             previous = current;
         }
+        DrawSegment(gui, plot, previous, to, color, thickness);
     }
 
     /// <summary>Returns the nearest visible line sample within a pixel radius, or -1.</summary>
@@ -152,6 +194,37 @@ public static class CartesianChart
             }
         }
         gui.DrawRectBorder(plot.Area, axisColor);
+    }
+
+    /// <summary>Draws an edge scale and outward-facing marks at the supplied data values.</summary>
+    public static void DrawScale(Gui gui, CartesianPlot plot, ChartAxisSide side, ReadOnlySpan<double> ticks,
+        Color color, float tickLength = 4)
+    {
+        if (gui.Pass != Pass.Pass2Render || !plot.IsValid || !float.IsFinite(tickLength) || tickLength < 0)
+        {
+            return;
+        }
+        var (start, end, direction, range) = side switch
+        {
+            ChartAxisSide.Top => (plot.Project(0, 1), plot.Project(1, 1), -Vector2.UnitY, plot.X),
+            ChartAxisSide.Bottom => (plot.Project(0, 0), plot.Project(1, 0), Vector2.UnitY, plot.X),
+            ChartAxisSide.Right => (plot.Project(1, 0), plot.Project(1, 1), Vector2.UnitX, plot.Y),
+            _ => (plot.Project(0, 0), plot.Project(0, 1), -Vector2.UnitX, plot.Y),
+        };
+        gui.DrawLine(start, end, color);
+        if (tickLength <= 0)
+        {
+            return;
+        }
+        foreach (var tick in ticks)
+        {
+            var t = range.Normalize(tick);
+            if (CartesianPlot.IsUnit(t))
+            {
+                var point = Vector2.Lerp(start, end, (float)t);
+                gui.DrawLine(point, point + direction * tickLength, color);
+            }
+        }
     }
 
     static bool HasRadii(ReadOnlySpan<ChartPoint> points, ReadOnlySpan<float> radii) =>
