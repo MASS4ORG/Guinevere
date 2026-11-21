@@ -46,7 +46,7 @@ public partial class App
 
 | Group | APIs | Purpose |
 |-------|------|---------|
-| Actions | `Button`, `ImageButton` | Pointer and keyboard-activated buttons with focus feedback. |
+| Actions | `Button`, `ImageButton`, `ButtonGroup` | Pointer and keyboard-activated buttons with focus feedback, and attached groups that act, select one or select many. |
 | Selection | `Checkbox`, `Toggle`, `RadioButton`, `RadioGroup`, `Dropdown`, `MultiDropdown`, `EnumDropdown` | Boolean, exclusive, list and flag selection, with searchable multi-selection and enum presentations. |
 | Text and values | `TextInput`, `PasswordInput`, `TextArea`, `NumberField`, `Slider`, `ObjectField` | Text editing, scrub editing, numeric ranges, and compact object fields. |
 | Display | `Image`, `ProgressBar`, `WrappedText`, `Toast`, `Toasts`, `ClearToasts` | Images, progress, wrapping, and transient notifications. |
@@ -149,6 +149,7 @@ Token names are the palette's property names in kebab case (`SurfaceHover` → `
 | `Button` | `button` | caller classes; `primary` in the default sheet | `:hover`, `:active`, `:focus`, `:disabled` | `background-color`/`background`, `border-*`, `border-radius`, `padding` (fit size), `color`, `font-*`, `outline`, `box-shadow`, `opacity`, `cursor` |
 | `Button(icon)` | `button` | `icon` + caller classes | as `Button`, plus `:checked` (pass `checked` as a class) | as `Button` |
 | `ImageButton` | `button` | `image` + caller classes | as `Button`; the images swap by state | as `Button`; the image is drawn under the border and outline |
+| `ButtonGroup` | `button-group`, children `button-group-item` | `vertical` on the group; each item carries `horizontal` or `vertical` plus `only`, `first`, `middle` or `last`; caller classes and `id` | item `:hover`, `:active`, `:focus`, `:disabled`, `:checked` (selected items) | item background, border, radius, padding, color and outline; the position classes round the outer corners and drop the shared border (`border-left-width` or `border-top-width` = 0) |
 | `Checkbox` | `checkbox`, drawn child `indicator` | caller classes and `id` | `:hover`, `:active`, `:focus`, `:disabled`, `:checked`, `:mixed` | row `color`/`cursor`; indicator background, border, radius and color; focus `outline`; root box/text properties |
 | `RadioButton` | `radio`, drawn children `indicator`, `dot` | caller classes and `id` | `:hover`, `:active`, `:focus`, `:disabled`, `:checked` | as `Checkbox`; `dot` background/border/radius |
 | `Toggle` | `toggle`, drawn children `track`, `thumb` | caller classes and `id` | `:hover`, `:focus`, `:disabled`, `:checked` | as `Checkbox`; track background/radius; thumb background/border/radius |
@@ -205,6 +206,16 @@ gui.Dropdown(["Draft", "Review", "Published"], ref _status);
 
 Buttons and dropdowns receive mouse focus; use Tab to move through controls and Enter or Space to
 activate buttons. Open popovers and dialogs constrain Tab to their visible controls.
+
+`ButtonGroup` joins items edge to edge, horizontally or vertically (`Axis`), and takes any `Content` per item (`ButtonGroupItem` converts from a string, an icon or content, and adds `Enabled` and an optional `Id`). The overload picks the mode, and the caller always owns the selection:
+
+```csharp
+if (gui.ButtonGroup(["Cut", "Copy", "Paste"], out var clicked)) Run(clicked);          // action: index of the click
+gui.ButtonGroup(ref _align, ["Left", "Center", "Right"]);                              // single select, -1 for none
+gui.ButtonGroup(_formats, ["Bold", "Italic", new("Strike", Enabled: false)]);          // multi select, an ISet<int>
+```
+
+The group is one Tab stop, so Tab enters and leaves it whatever the item count. While focus is inside, Left/Right (Up/Down when vertical) move to the previous or next enabled item and wrap, Home and End jump to the ends, and Space or Enter activates the focused item. Arrows only move focus, even in single-select mode; the item is selected by Space, Enter or a click, so browsing never fires a change per key press. Tab enters a single-select group at its selected item; otherwise it returns to the last focused one. A click focuses the item it hits. The node reports `Clicked` on every activation and `Changed` when the selection or set changed.
 
 ## Searchable selection
 
