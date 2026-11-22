@@ -7,6 +7,7 @@
         <Mass4EnforcedDiagnostics>$(Mass4EnforcedDiagnostics);IDE0370;IDE0380;CA1707;IDE1006</Mass4EnforcedDiagnostics>
         <WarningsAsErrors Condition="'$(CI)' == 'true'">$(WarningsAsErrors);$(Mass4EnforcedDiagnostics)</WarningsAsErrors>
         <AnalysisLevel>10.0</AnalysisLevel>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <!-- `Directory.Build.local.props` points to local checkouts instead of the published packages (git-ignored) -->

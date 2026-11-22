@@ -195,7 +195,14 @@ public sealed class FileBrowserTests : IDisposable
     [Fact]
     public async Task ADanglingLinkIsStillListed()
     {
-        File.CreateSymbolicLink(Path.Combine(_root, "dangling"), Path.Combine(_root, "gone"));
+        try
+        {
+            File.CreateSymbolicLink(Path.Combine(_root, "dangling"), Path.Combine(_root, "gone"));
+        }
+        catch (IOException error) when (OperatingSystem.IsWindows() && error.HResult == unchecked((int)0x80070522))
+        {
+            throw Xunit.Sdk.SkipException.ForSkip("Creating symbolic links requires Windows Developer Mode or privileges.");
+        }
 
         await _browser.RefreshAsync(TestContext.Current.CancellationToken);
 

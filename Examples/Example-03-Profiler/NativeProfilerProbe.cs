@@ -77,9 +77,9 @@ sealed class NativeProfilerProbe : IGuiFrameController, IDisposable
     {
         var host = typeof(GuiWindow).Assembly;
         var configuration = host.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration;
-        using var image = canvas.Surface.Snapshot();
+        using var image = canvas.Surface?.Snapshot();
         Console.WriteLine($"{RuntimeInformation.OSDescription}; {RuntimeInformation.FrameworkDescription}; {RuntimeInformation.ProcessArchitecture}");
-        Console.WriteLine($"Host {host.Location}; configuration={configuration}; texture-backed={image.IsTextureBacked}");
+        Console.WriteLine($"Host {host.Location}; configuration={configuration}; texture-backed={image?.IsTextureBacked}");
         Console.WriteLine($"Host SHA256={Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(host.Location)))}");
     }
 

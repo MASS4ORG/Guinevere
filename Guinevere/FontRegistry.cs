@@ -231,7 +231,17 @@ public sealed class FontRegistry : IDisposable
     {
         using var style = new SKFontStyle(weight, (int)SKFontStyleWidth.Normal,
             italic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
-        var face = SKFontManager.Default.MatchFamily(family, style);
+        var systemFamily = OperatingSystem.IsWindows() ? family.ToLowerInvariant() switch
+        {
+            "monospace" => "Consolas",
+            "sans-serif" or "system-ui" => "Segoe UI",
+            "serif" => "Times New Roman",
+            "cursive" => "Comic Sans MS",
+            "fantasy" => "Impact",
+            "emoji" => "Segoe UI Emoji",
+            _ => family
+        } : family;
+        var face = SKFontManager.Default.MatchFamily(systemFamily, style);
         if (face is null)
         {
             return null;

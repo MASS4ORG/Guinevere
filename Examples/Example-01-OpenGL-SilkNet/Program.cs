@@ -2,8 +2,10 @@ using Guinevere;
 
 namespace Example01OpenGLSilkNet;
 
+/// <summary>Entry point for the Example 01 OpenGL SilkNet example.</summary>
 public abstract class Program
 {
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         var gui = new Gui();

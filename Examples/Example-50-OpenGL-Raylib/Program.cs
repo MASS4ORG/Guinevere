@@ -2,8 +2,10 @@ using Guinevere;
 
 namespace Example50OpenGLRaylib;
 
+/// <summary>Entry point for the Example 50 OpenGL Raylib example.</summary>
 public abstract class Program
 {
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         var gui = new Gui();

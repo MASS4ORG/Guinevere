@@ -4,8 +4,10 @@ using static System.MathF;
 
 namespace Example71PanGuiHelloTriangle;
 
+/// <summary>Entry point for the Example 71 PanGui HelloTriangle example.</summary>
 public abstract class Program
 {
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         var gui = new Gui();

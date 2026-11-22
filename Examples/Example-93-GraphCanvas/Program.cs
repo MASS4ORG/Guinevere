@@ -4,9 +4,11 @@ using Guinevere.Graphs;
 namespace Example93;
 
 /// <summary>A view-only stress sample with 10,000 tiles and no semantic graph document.</summary>
+/// <summary>Entry point for the Example 93 GraphCanvas example.</summary>
 public static class Program
 {
     /// <summary>Runs the core-only canvas through the Silk.NET window integration.</summary>
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         var gui = new Gui();

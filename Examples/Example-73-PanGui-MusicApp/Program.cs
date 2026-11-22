@@ -4,6 +4,7 @@ using Math = System.Math;
 
 namespace Example73PanGuiMusicApp;
 
+/// <summary>Entry point for the Example 73 PanGui MusicApp example.</summary>
 public partial class Program
 {
     // Style constants
@@ -15,6 +16,8 @@ public partial class Program
     readonly Font _fonts = Font.LoadFont("fa-regular-400");
     Gui _gui = null!;
     GuiWindow _window = null!;
+
+    /// <summary>Starts the example application.</summary>
 
     public static void Main()
     {

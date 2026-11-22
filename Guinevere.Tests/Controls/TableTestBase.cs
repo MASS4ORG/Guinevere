@@ -117,7 +117,7 @@ public abstract class TableTestBase
         void Visit(LayoutNode node)
         {
             // The strip's cells only: a cell's own children extend its id.
-            if (node.Id.StartsWith(prefix, StringComparison.Ordinal) && !node.Id[prefix.Length..].Contains('/'))
+            if (node.Id.StartsWith(prefix, StringComparison.Ordinal) && node.Id[prefix.Length..].IndexOfAny(['/', '\\']) < 0)
             {
                 ids.Add(node.Id[prefix.Length..]);
             }
@@ -140,7 +140,7 @@ public abstract class TableTestBase
         void Visit(LayoutNode node)
         {
             // Cell nodes only: a cell's own children extend its id, and the spacers are not cells.
-            if (node.Id.StartsWith(prefix, StringComparison.Ordinal) && !node.Id[prefix.Length..].Contains('/')
+            if (node.Id.StartsWith(prefix, StringComparison.Ordinal) && node.Id[prefix.Length..].IndexOfAny(['/', '\\']) < 0
                 && !node.Id.EndsWith("padLeft", StringComparison.Ordinal)
                 && !node.Id.EndsWith("padRight", StringComparison.Ordinal)
                 && !node.Id.EndsWith("pinned-left", StringComparison.Ordinal)

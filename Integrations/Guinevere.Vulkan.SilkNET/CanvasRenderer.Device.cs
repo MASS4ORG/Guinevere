@@ -17,8 +17,10 @@ public unsafe partial class CanvasRenderer
     Queue _presentQueue;
     SurfaceKHR _surface;
 #pragma warning disable CS8625 // assigned in CreateInstance / CreateDevice before first use
-    KhrSurface _khrSurface;
-    KhrSwapchain _khrSwapchain;
+    KhrSurface? _surfaceExtension;
+    KhrSwapchain? _swapchainExtension;
+    KhrSurface _khrSurface => _surfaceExtension ?? throw new InvalidOperationException("Surface extension is unavailable");
+    KhrSwapchain _khrSwapchain => _swapchainExtension ?? throw new InvalidOperationException("Swapchain extension is unavailable");
 #pragma warning restore CS8625
     uint _graphicsFamily;
     uint _presentFamily;
@@ -60,7 +62,7 @@ public unsafe partial class CanvasRenderer
             SilkMarshal.Free(engineName);
         }
 
-        if (!_vk.TryGetInstanceExtension(_instance, out _khrSurface))
+        if (!_vk.TryGetInstanceExtension(_instance, out _surfaceExtension))
         {
             throw new InvalidOperationException("Failed to get KHR Surface extension");
         }
@@ -251,7 +253,7 @@ public unsafe partial class CanvasRenderer
 
         _vk.GetDeviceQueue(_device, _graphicsFamily, 0, out _graphicsQueue);
         _vk.GetDeviceQueue(_device, _presentFamily, 0, out _presentQueue);
-        if (!_vk.TryGetDeviceExtension(_instance, _device, out _khrSwapchain))
+        if (!_vk.TryGetDeviceExtension(_instance, _device, out _swapchainExtension))
         {
             throw new InvalidOperationException("Failed to get KHR Swapchain extension");
         }

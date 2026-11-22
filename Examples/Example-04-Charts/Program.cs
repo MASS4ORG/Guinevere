@@ -5,9 +5,12 @@ using SkiaSharp;
 namespace Example04;
 
 /// <summary>Runs the Excalibur charts gallery through the desktop host or the software smoke path.</summary>
+/// <summary>Entry point for the Example 04 Charts example.</summary>
 public static class Program
 {
     /// <summary>Opens the gallery, or renders each chart using a software surface with <c>--headless</c>.</summary>
+    /// <summary>Starts the example application.</summary>
+    /// <param name="args">Command-line arguments supplied to the application.</param>
     public static void Main(string[] args)
     {
         const int Width = 1120;

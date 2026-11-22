@@ -7,6 +7,7 @@ namespace Controls01;
 /// The Excalibur control gallery hung on the docking system: every widget group is a dock panel that
 /// can be split, tabbed, reordered, floated or closed. The toolbar saves, restores and resets layouts.
 /// </summary>
+/// <summary>Entry point for the Example 50 example.</summary>
 public abstract partial class Program
 {
     static bool _nativeTitlebar;

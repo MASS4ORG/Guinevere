@@ -2,6 +2,8 @@ using Guinevere;
 
 namespace Example75PaperUIDashboard;
 
+/// <summary>Runs the Paper UI dashboard example.</summary>
+/// <summary>Entry point for the Example 75 PaperUI Dashboard example.</summary>
 public abstract class Program
 {
     static Gui _gui = null!;
@@ -29,6 +31,8 @@ public abstract class Program
     static readonly string[] TabNames = ["Dashboard", "Analytics", "Profile", "Settings"];
     static readonly double[] ChartData = [0.2, 0.5, 0.3, 0.8, 0.4, 0.7, 0.6];
 
+    /// <summary>Creates the dashboard window and runs its frame loop.</summary>
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         InitializeTheme();
@@ -901,8 +905,13 @@ public abstract class Program
     }
 }
 
+/// <summary>Color helpers used by the dashboard example.</summary>
 public static class ColorExtensions
 {
+    /// <summary>Reduces a color's saturation while retaining its alpha channel.</summary>
+    /// <param name="color">The color to adjust.</param>
+    /// <param name="saturationFactor">A value from zero for grayscale to one for the original color.</param>
+    /// <returns>The color with adjusted saturation.</returns>
     public static Color Desaturate(this Color color, float saturationFactor = 1.0f)
     {
         // Clamp saturation factor between 0 (fully desaturated) and 1 (original color)
