@@ -2,8 +2,10 @@ using Guinevere;
 
 namespace Example70PanGuiHelloWorld;
 
+/// <summary>Entry point for the Example 70 PanGui HelloWorld example.</summary>
 public abstract class Program
 {
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         var gui = new Gui();

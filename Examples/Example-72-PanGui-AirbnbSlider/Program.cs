@@ -4,11 +4,13 @@ using Guinevere;
 namespace Example72PanGuiAirbnbSlider;
 
 /// <summary>Shows a circular month slider with continuous dragging and layered shape effects.</summary>
+/// <summary>Entry point for the Example 72 PanGui AirbnbSlider example.</summary>
 public abstract class Program
 {
     static int _month = 1;
 
     /// <summary>Runs the Airbnb slider window.</summary>
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         var gui = new Gui();

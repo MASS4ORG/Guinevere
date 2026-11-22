@@ -4,1402 +4,2798 @@
 
 namespace Example75PaperUIDashboard;
 
+/// <summary>Font Awesome glyphs and code point bounds used by the dashboard.</summary>
 public abstract class Icons
 {
+    /// <summary>Font file name used by the icon font loader.</summary>
     public const string FontIconFileNameFar = "fa-regular-400.ttf";
+    /// <summary>Font file name used by the icon font loader.</summary>
     public const string FontIconFileNameFas = "fa-solid-900.ttf";
 
+    /// <summary>Boundary of the supported icon code point range.</summary>
     public const int IconMin = 0xe005;
+    /// <summary>Boundary of the supported icon code point range.</summary>
     public const int IconMax16 = 0xf8ff;
+    /// <summary>Boundary of the supported icon code point range.</summary>
     public const int IconMax = 0xf8ff;
+    /// <summary>Font glyph for the Num0 icon.</summary>
     public const string Num0 = "\u0030";
+    /// <summary>Font glyph for the Num1 icon.</summary>
     public const string Num1 = "\u0031";
+    /// <summary>Font glyph for the Num2 icon.</summary>
     public const string Num2 = "\u0032";
+    /// <summary>Font glyph for the Num3 icon.</summary>
     public const string Num3 = "\u0033";
+    /// <summary>Font glyph for the Num4 icon.</summary>
     public const string Num4 = "\u0034";
+    /// <summary>Font glyph for the Num5 icon.</summary>
     public const string Num5 = "\u0035";
+    /// <summary>Font glyph for the Num6 icon.</summary>
     public const string Num6 = "\u0036";
+    /// <summary>Font glyph for the Num7 icon.</summary>
     public const string Num7 = "\u0037";
+    /// <summary>Font glyph for the Num8 icon.</summary>
     public const string Num8 = "\u0038";
+    /// <summary>Font glyph for the Num9 icon.</summary>
     public const string Num9 = "\u0039";
+    /// <summary>Font glyph for the A icon.</summary>
     public const string A = "\u0041";
+    /// <summary>Font glyph for the Address Book icon.</summary>
     public const string AddressBook = "\uf2b9";
+    /// <summary>Font glyph for the Address Card icon.</summary>
     public const string AddressCard = "\uf2bb";
+    /// <summary>Font glyph for the Align Center icon.</summary>
     public const string AlignCenter = "\uf037";
+    /// <summary>Font glyph for the Align Justify icon.</summary>
     public const string AlignJustify = "\uf039";
+    /// <summary>Font glyph for the Align Left icon.</summary>
     public const string AlignLeft = "\uf036";
+    /// <summary>Font glyph for the Align Right icon.</summary>
     public const string AlignRight = "\uf038";
+    /// <summary>Font glyph for the Anchor icon.</summary>
     public const string Anchor = "\uf13d";
+    /// <summary>Font glyph for the Anchor Circle Check icon.</summary>
     public const string AnchorCircleCheck = "\ue4aa";
+    /// <summary>Font glyph for the Anchor Circle Exclamation icon.</summary>
     public const string AnchorCircleExclamation = "\ue4ab";
+    /// <summary>Font glyph for the Anchor Circle Xmark icon.</summary>
     public const string AnchorCircleXmark = "\ue4ac";
+    /// <summary>Font glyph for the Anchor Lock icon.</summary>
     public const string AnchorLock = "\ue4ad";
+    /// <summary>Font glyph for the Angle Down icon.</summary>
     public const string AngleDown = "\uf107";
+    /// <summary>Font glyph for the Angle Left icon.</summary>
     public const string AngleLeft = "\uf104";
+    /// <summary>Font glyph for the Angle Right icon.</summary>
     public const string AngleRight = "\uf105";
+    /// <summary>Font glyph for the Angle Up icon.</summary>
     public const string AngleUp = "\uf106";
+    /// <summary>Font glyph for the Angles Down icon.</summary>
     public const string AnglesDown = "\uf103";
+    /// <summary>Font glyph for the Angles Left icon.</summary>
     public const string AnglesLeft = "\uf100";
+    /// <summary>Font glyph for the Angles Right icon.</summary>
     public const string AnglesRight = "\uf101";
+    /// <summary>Font glyph for the Angles Up icon.</summary>
     public const string AnglesUp = "\uf102";
+    /// <summary>Font glyph for the Ankh icon.</summary>
     public const string Ankh = "\uf644";
+    /// <summary>Font glyph for the Apple Whole icon.</summary>
     public const string AppleWhole = "\uf5d1";
+    /// <summary>Font glyph for the Archway icon.</summary>
     public const string Archway = "\uf557";
+    /// <summary>Font glyph for the Arrow Down icon.</summary>
     public const string ArrowDown = "\uf063";
+    /// <summary>Font glyph for the Arrow Down19 icon.</summary>
     public const string ArrowDown19 = "\uf162";
+    /// <summary>Font glyph for the Arrow Down91 icon.</summary>
     public const string ArrowDown91 = "\uf886";
+    /// <summary>Font glyph for the Arrow Down Az icon.</summary>
     public const string ArrowDownAz = "\uf15d";
+    /// <summary>Font glyph for the Arrow Down Long icon.</summary>
     public const string ArrowDownLong = "\uf175";
+    /// <summary>Font glyph for the Arrow Down Short Wide icon.</summary>
     public const string ArrowDownShortWide = "\uf884";
+    /// <summary>Font glyph for the Arrow Down Up Across Line icon.</summary>
     public const string ArrowDownUpAcrossLine = "\ue4af";
+    /// <summary>Font glyph for the Arrow Down Up Lock icon.</summary>
     public const string ArrowDownUpLock = "\ue4b0";
+    /// <summary>Font glyph for the Arrow Down Wide Short icon.</summary>
     public const string ArrowDownWideShort = "\uf160";
+    /// <summary>Font glyph for the Arrow Down Za icon.</summary>
     public const string ArrowDownZa = "\uf881";
+    /// <summary>Font glyph for the Arrow Left icon.</summary>
     public const string ArrowLeft = "\uf060";
+    /// <summary>Font glyph for the Arrow Left Long icon.</summary>
     public const string ArrowLeftLong = "\uf177";
+    /// <summary>Font glyph for the Arrow Pointer icon.</summary>
     public const string ArrowPointer = "\uf245";
+    /// <summary>Font glyph for the Arrow Right icon.</summary>
     public const string ArrowRight = "\uf061";
+    /// <summary>Font glyph for the Arrow Right Arrow Left icon.</summary>
     public const string ArrowRightArrowLeft = "\uf0ec";
+    /// <summary>Font glyph for the Arrow Right From Bracket icon.</summary>
     public const string ArrowRightFromBracket = "\uf08b";
+    /// <summary>Font glyph for the Arrow Right Long icon.</summary>
     public const string ArrowRightLong = "\uf178";
+    /// <summary>Font glyph for the Arrow Right To Bracket icon.</summary>
     public const string ArrowRightToBracket = "\uf090";
+    /// <summary>Font glyph for the Arrow Right To City icon.</summary>
     public const string ArrowRightToCity = "\ue4b3";
+    /// <summary>Font glyph for the Arrow Rotate Left icon.</summary>
     public const string ArrowRotateLeft = "\uf0e2";
+    /// <summary>Font glyph for the Arrow Rotate Right icon.</summary>
     public const string ArrowRotateRight = "\uf01e";
+    /// <summary>Font glyph for the Arrow Trend Down icon.</summary>
     public const string ArrowTrendDown = "\ue097";
+    /// <summary>Font glyph for the Arrow Trend Up icon.</summary>
     public const string ArrowTrendUp = "\ue098";
+    /// <summary>Font glyph for the Arrow Turn Down icon.</summary>
     public const string ArrowTurnDown = "\uf149";
+    /// <summary>Font glyph for the Arrow Turn Up icon.</summary>
     public const string ArrowTurnUp = "\uf148";
+    /// <summary>Font glyph for the Arrow Up icon.</summary>
     public const string ArrowUp = "\uf062";
+    /// <summary>Font glyph for the Arrow Up19 icon.</summary>
     public const string ArrowUp19 = "\uf163";
+    /// <summary>Font glyph for the Arrow Up91 icon.</summary>
     public const string ArrowUp91 = "\uf887";
+    /// <summary>Font glyph for the Arrow Up Az icon.</summary>
     public const string ArrowUpAz = "\uf15e";
+    /// <summary>Font glyph for the Arrow Up From Bracket icon.</summary>
     public const string ArrowUpFromBracket = "\ue09a";
+    /// <summary>Font glyph for the Arrow Up From Ground Water icon.</summary>
     public const string ArrowUpFromGroundWater = "\ue4b5";
+    /// <summary>Font glyph for the Arrow Up From Water Pump icon.</summary>
     public const string ArrowUpFromWaterPump = "\ue4b6";
+    /// <summary>Font glyph for the Arrow Up Long icon.</summary>
     public const string ArrowUpLong = "\uf176";
+    /// <summary>Font glyph for the Arrow Up Right Dots icon.</summary>
     public const string ArrowUpRightDots = "\ue4b7";
+    /// <summary>Font glyph for the Arrow Up Right From Square icon.</summary>
     public const string ArrowUpRightFromSquare = "\uf08e";
+    /// <summary>Font glyph for the Arrow Up Short Wide icon.</summary>
     public const string ArrowUpShortWide = "\uf885";
+    /// <summary>Font glyph for the Arrow Up Wide Short icon.</summary>
     public const string ArrowUpWideShort = "\uf161";
+    /// <summary>Font glyph for the Arrow Up Za icon.</summary>
     public const string ArrowUpZa = "\uf882";
+    /// <summary>Font glyph for the Arrows Down To Line icon.</summary>
     public const string ArrowsDownToLine = "\ue4b8";
+    /// <summary>Font glyph for the Arrows Down To People icon.</summary>
     public const string ArrowsDownToPeople = "\ue4b9";
+    /// <summary>Font glyph for the Arrows Left Right icon.</summary>
     public const string ArrowsLeftRight = "\uf07e";
+    /// <summary>Font glyph for the Arrows Left Right To Line icon.</summary>
     public const string ArrowsLeftRightToLine = "\ue4ba";
+    /// <summary>Font glyph for the Arrows Rotate icon.</summary>
     public const string ArrowsRotate = "\uf021";
+    /// <summary>Font glyph for the Arrows Spin icon.</summary>
     public const string ArrowsSpin = "\ue4bb";
+    /// <summary>Font glyph for the Arrows Split Up And Left icon.</summary>
     public const string ArrowsSplitUpAndLeft = "\ue4bc";
+    /// <summary>Font glyph for the Arrows To Circle icon.</summary>
     public const string ArrowsToCircle = "\ue4bd";
+    /// <summary>Font glyph for the Arrows To Dot icon.</summary>
     public const string ArrowsToDot = "\ue4be";
+    /// <summary>Font glyph for the Arrows To Eye icon.</summary>
     public const string ArrowsToEye = "\ue4bf";
+    /// <summary>Font glyph for the Arrows Turn Right icon.</summary>
     public const string ArrowsTurnRight = "\ue4c0";
+    /// <summary>Font glyph for the Arrows Turn To Dots icon.</summary>
     public const string ArrowsTurnToDots = "\ue4c1";
+    /// <summary>Font glyph for the Arrows Up Down icon.</summary>
     public const string ArrowsUpDown = "\uf07d";
+    /// <summary>Font glyph for the Arrows Up Down Left Right icon.</summary>
     public const string ArrowsUpDownLeftRight = "\uf047";
+    /// <summary>Font glyph for the Arrows Up To Line icon.</summary>
     public const string ArrowsUpToLine = "\ue4c2";
+    /// <summary>Font glyph for the Asterisk icon.</summary>
     public const string Asterisk = "\u002a";
+    /// <summary>Font glyph for the At icon.</summary>
     public const string At = "\u0040";
+    /// <summary>Font glyph for the Atom icon.</summary>
     public const string Atom = "\uf5d2";
+    /// <summary>Font glyph for the Audio Description icon.</summary>
     public const string AudioDescription = "\uf29e";
+    /// <summary>Font glyph for the Austral Sign icon.</summary>
     public const string AustralSign = "\ue0a9";
+    /// <summary>Font glyph for the Award icon.</summary>
     public const string Award = "\uf559";
+    /// <summary>Font glyph for the B icon.</summary>
     public const string B = "\u0042";
+    /// <summary>Font glyph for the Baby icon.</summary>
     public const string Baby = "\uf77c";
+    /// <summary>Font glyph for the Baby Carriage icon.</summary>
     public const string BabyCarriage = "\uf77d";
+    /// <summary>Font glyph for the Backward icon.</summary>
     public const string Backward = "\uf04a";
+    /// <summary>Font glyph for the Backward Fast icon.</summary>
     public const string BackwardFast = "\uf049";
+    /// <summary>Font glyph for the Backward Step icon.</summary>
     public const string BackwardStep = "\uf048";
+    /// <summary>Font glyph for the Bacon icon.</summary>
     public const string Bacon = "\uf7e5";
+    /// <summary>Font glyph for the Bacteria icon.</summary>
     public const string Bacteria = "\ue059";
+    /// <summary>Font glyph for the Bacterium icon.</summary>
     public const string Bacterium = "\ue05a";
+    /// <summary>Font glyph for the Bag Shopping icon.</summary>
     public const string BagShopping = "\uf290";
+    /// <summary>Font glyph for the Bahai icon.</summary>
     public const string Bahai = "\uf666";
+    /// <summary>Font glyph for the Baht Sign icon.</summary>
     public const string BahtSign = "\ue0ac";
+    /// <summary>Font glyph for the Ban icon.</summary>
     public const string Ban = "\uf05e";
+    /// <summary>Font glyph for the Ban Smoking icon.</summary>
     public const string BanSmoking = "\uf54d";
+    /// <summary>Font glyph for the Bandage icon.</summary>
     public const string Bandage = "\uf462";
+    /// <summary>Font glyph for the Bangladeshi Taka Sign icon.</summary>
     public const string BangladeshiTakaSign = "\ue2e6";
+    /// <summary>Font glyph for the Barcode icon.</summary>
     public const string Barcode = "\uf02a";
+    /// <summary>Font glyph for the Bars icon.</summary>
     public const string Bars = "\uf0c9";
+    /// <summary>Font glyph for the Bars Progress icon.</summary>
     public const string BarsProgress = "\uf828";
+    /// <summary>Font glyph for the Bars Staggered icon.</summary>
     public const string BarsStaggered = "\uf550";
+    /// <summary>Font glyph for the Baseball icon.</summary>
     public const string Baseball = "\uf433";
+    /// <summary>Font glyph for the Baseball Bat Ball icon.</summary>
     public const string BaseballBatBall = "\uf432";
+    /// <summary>Font glyph for the Basket Shopping icon.</summary>
     public const string BasketShopping = "\uf291";
+    /// <summary>Font glyph for the Basketball icon.</summary>
     public const string Basketball = "\uf434";
+    /// <summary>Font glyph for the Bath icon.</summary>
     public const string Bath = "\uf2cd";
+    /// <summary>Font glyph for the Battery Empty icon.</summary>
     public const string BatteryEmpty = "\uf244";
+    /// <summary>Font glyph for the Battery Full icon.</summary>
     public const string BatteryFull = "\uf240";
+    /// <summary>Font glyph for the Battery Half icon.</summary>
     public const string BatteryHalf = "\uf242";
+    /// <summary>Font glyph for the Battery Quarter icon.</summary>
     public const string BatteryQuarter = "\uf243";
+    /// <summary>Font glyph for the Battery Three Quarters icon.</summary>
     public const string BatteryThreeQuarters = "\uf241";
+    /// <summary>Font glyph for the Bed icon.</summary>
     public const string Bed = "\uf236";
+    /// <summary>Font glyph for the Bed Pulse icon.</summary>
     public const string BedPulse = "\uf487";
+    /// <summary>Font glyph for the Beer Mug Empty icon.</summary>
     public const string BeerMugEmpty = "\uf0fc";
+    /// <summary>Font glyph for the Bell icon.</summary>
     public const string Bell = "\uf0f3";
+    /// <summary>Font glyph for the Bell Concierge icon.</summary>
     public const string BellConcierge = "\uf562";
+    /// <summary>Font glyph for the Bell Slash icon.</summary>
     public const string BellSlash = "\uf1f6";
+    /// <summary>Font glyph for the Bezier Curve icon.</summary>
     public const string BezierCurve = "\uf55b";
+    /// <summary>Font glyph for the Bicycle icon.</summary>
     public const string Bicycle = "\uf206";
+    /// <summary>Font glyph for the Binoculars icon.</summary>
     public const string Binoculars = "\uf1e5";
+    /// <summary>Font glyph for the Biohazard icon.</summary>
     public const string Biohazard = "\uf780";
+    /// <summary>Font glyph for the Bitcoin Sign icon.</summary>
     public const string BitcoinSign = "\ue0b4";
+    /// <summary>Font glyph for the Blender icon.</summary>
     public const string Blender = "\uf517";
+    /// <summary>Font glyph for the Blender Phone icon.</summary>
     public const string BlenderPhone = "\uf6b6";
+    /// <summary>Font glyph for the Blog icon.</summary>
     public const string Blog = "\uf781";
+    /// <summary>Font glyph for the Bold icon.</summary>
     public const string Bold = "\uf032";
+    /// <summary>Font glyph for the Bolt icon.</summary>
     public const string Bolt = "\uf0e7";
+    /// <summary>Font glyph for the Bolt Lightning icon.</summary>
     public const string BoltLightning = "\ue0b7";
+    /// <summary>Font glyph for the Bomb icon.</summary>
     public const string Bomb = "\uf1e2";
+    /// <summary>Font glyph for the Bone icon.</summary>
     public const string Bone = "\uf5d7";
+    /// <summary>Font glyph for the Bong icon.</summary>
     public const string Bong = "\uf55c";
+    /// <summary>Font glyph for the Book icon.</summary>
     public const string Book = "\uf02d";
+    /// <summary>Font glyph for the Book Atlas icon.</summary>
     public const string BookAtlas = "\uf558";
+    /// <summary>Font glyph for the Book Bible icon.</summary>
     public const string BookBible = "\uf647";
+    /// <summary>Font glyph for the Book Bookmark icon.</summary>
     public const string BookBookmark = "\ue0bb";
+    /// <summary>Font glyph for the Book Journal Whills icon.</summary>
     public const string BookJournalWhills = "\uf66a";
+    /// <summary>Font glyph for the Book Medical icon.</summary>
     public const string BookMedical = "\uf7e6";
+    /// <summary>Font glyph for the Book Open icon.</summary>
     public const string BookOpen = "\uf518";
+    /// <summary>Font glyph for the Book Open Reader icon.</summary>
     public const string BookOpenReader = "\uf5da";
+    /// <summary>Font glyph for the Book Quran icon.</summary>
     public const string BookQuran = "\uf687";
+    /// <summary>Font glyph for the Book Skull icon.</summary>
     public const string BookSkull = "\uf6b7";
+    /// <summary>Font glyph for the Book Tanakh icon.</summary>
     public const string BookTanakh = "\uf827";
+    /// <summary>Font glyph for the Bookmark icon.</summary>
     public const string Bookmark = "\uf02e";
+    /// <summary>Font glyph for the Border All icon.</summary>
     public const string BorderAll = "\uf84c";
+    /// <summary>Font glyph for the Border None icon.</summary>
     public const string BorderNone = "\uf850";
+    /// <summary>Font glyph for the Border Top Left icon.</summary>
     public const string BorderTopLeft = "\uf853";
+    /// <summary>Font glyph for the Bore Hole icon.</summary>
     public const string BoreHole = "\ue4c3";
+    /// <summary>Font glyph for the Bottle Droplet icon.</summary>
     public const string BottleDroplet = "\ue4c4";
+    /// <summary>Font glyph for the Bottle Water icon.</summary>
     public const string BottleWater = "\ue4c5";
+    /// <summary>Font glyph for the Bowl Food icon.</summary>
     public const string BowlFood = "\ue4c6";
+    /// <summary>Font glyph for the Bowl Rice icon.</summary>
     public const string BowlRice = "\ue2eb";
+    /// <summary>Font glyph for the Bowling Ball icon.</summary>
     public const string BowlingBall = "\uf436";
+    /// <summary>Font glyph for the Box icon.</summary>
     public const string Box = "\uf466";
+    /// <summary>Font glyph for the Box Archive icon.</summary>
     public const string BoxArchive = "\uf187";
+    /// <summary>Font glyph for the Box Open icon.</summary>
     public const string BoxOpen = "\uf49e";
+    /// <summary>Font glyph for the Box Tissue icon.</summary>
     public const string BoxTissue = "\ue05b";
+    /// <summary>Font glyph for the Boxes Packing icon.</summary>
     public const string BoxesPacking = "\ue4c7";
+    /// <summary>Font glyph for the Boxes Stacked icon.</summary>
     public const string BoxesStacked = "\uf468";
+    /// <summary>Font glyph for the Braille icon.</summary>
     public const string Braille = "\uf2a1";
+    /// <summary>Font glyph for the Brain icon.</summary>
     public const string Brain = "\uf5dc";
+    /// <summary>Font glyph for the Brazilian Real Sign icon.</summary>
     public const string BrazilianRealSign = "\ue46c";
+    /// <summary>Font glyph for the Bread Slice icon.</summary>
     public const string BreadSlice = "\uf7ec";
+    /// <summary>Font glyph for the Bridge icon.</summary>
     public const string Bridge = "\ue4c8";
+    /// <summary>Font glyph for the Bridge Circle Check icon.</summary>
     public const string BridgeCircleCheck = "\ue4c9";
+    /// <summary>Font glyph for the Bridge Circle Exclamation icon.</summary>
     public const string BridgeCircleExclamation = "\ue4ca";
+    /// <summary>Font glyph for the Bridge Circle Xmark icon.</summary>
     public const string BridgeCircleXmark = "\ue4cb";
+    /// <summary>Font glyph for the Bridge Lock icon.</summary>
     public const string BridgeLock = "\ue4cc";
+    /// <summary>Font glyph for the Bridge Water icon.</summary>
     public const string BridgeWater = "\ue4ce";
+    /// <summary>Font glyph for the Briefcase icon.</summary>
     public const string Briefcase = "\uf0b1";
+    /// <summary>Font glyph for the Briefcase Medical icon.</summary>
     public const string BriefcaseMedical = "\uf469";
+    /// <summary>Font glyph for the Broom icon.</summary>
     public const string Broom = "\uf51a";
+    /// <summary>Font glyph for the Broom Ball icon.</summary>
     public const string BroomBall = "\uf458";
+    /// <summary>Font glyph for the Brush icon.</summary>
     public const string Brush = "\uf55d";
+    /// <summary>Font glyph for the Bucket icon.</summary>
     public const string Bucket = "\ue4cf";
+    /// <summary>Font glyph for the Bug icon.</summary>
     public const string Bug = "\uf188";
+    /// <summary>Font glyph for the Bug Slash icon.</summary>
     public const string BugSlash = "\ue490";
+    /// <summary>Font glyph for the Bugs icon.</summary>
     public const string Bugs = "\ue4d0";
+    /// <summary>Font glyph for the Building icon.</summary>
     public const string Building = "\uf1ad";
+    /// <summary>Font glyph for the Building Circle Arrow Right icon.</summary>
     public const string BuildingCircleArrowRight = "\ue4d1";
+    /// <summary>Font glyph for the Building Circle Check icon.</summary>
     public const string BuildingCircleCheck = "\ue4d2";
+    /// <summary>Font glyph for the Building Circle Exclamation icon.</summary>
     public const string BuildingCircleExclamation = "\ue4d3";
+    /// <summary>Font glyph for the Building Circle Xmark icon.</summary>
     public const string BuildingCircleXmark = "\ue4d4";
+    /// <summary>Font glyph for the Building Columns icon.</summary>
     public const string BuildingColumns = "\uf19c";
+    /// <summary>Font glyph for the Building Flag icon.</summary>
     public const string BuildingFlag = "\ue4d5";
+    /// <summary>Font glyph for the Building Lock icon.</summary>
     public const string BuildingLock = "\ue4d6";
+    /// <summary>Font glyph for the Building Ngo icon.</summary>
     public const string BuildingNgo = "\ue4d7";
+    /// <summary>Font glyph for the Building Shield icon.</summary>
     public const string BuildingShield = "\ue4d8";
+    /// <summary>Font glyph for the Building Un icon.</summary>
     public const string BuildingUn = "\ue4d9";
+    /// <summary>Font glyph for the Building User icon.</summary>
     public const string BuildingUser = "\ue4da";
+    /// <summary>Font glyph for the Building Wheat icon.</summary>
     public const string BuildingWheat = "\ue4db";
+    /// <summary>Font glyph for the Bullhorn icon.</summary>
     public const string Bullhorn = "\uf0a1";
+    /// <summary>Font glyph for the Bullseye icon.</summary>
     public const string Bullseye = "\uf140";
+    /// <summary>Font glyph for the Burger icon.</summary>
     public const string Burger = "\uf805";
+    /// <summary>Font glyph for the Burst icon.</summary>
     public const string Burst = "\ue4dc";
+    /// <summary>Font glyph for the Bus icon.</summary>
     public const string Bus = "\uf207";
+    /// <summary>Font glyph for the Bus Simple icon.</summary>
     public const string BusSimple = "\uf55e";
+    /// <summary>Font glyph for the Business Time icon.</summary>
     public const string BusinessTime = "\uf64a";
+    /// <summary>Font glyph for the C icon.</summary>
     public const string C = "\u0043";
+    /// <summary>Font glyph for the Cable Car icon.</summary>
     public const string CableCar = "\uf7da";
+    /// <summary>Font glyph for the Cake Candles icon.</summary>
     public const string CakeCandles = "\uf1fd";
+    /// <summary>Font glyph for the Calculator icon.</summary>
     public const string Calculator = "\uf1ec";
+    /// <summary>Font glyph for the Calendar icon.</summary>
     public const string Calendar = "\uf133";
+    /// <summary>Font glyph for the Calendar Check icon.</summary>
     public const string CalendarCheck = "\uf274";
+    /// <summary>Font glyph for the Calendar Day icon.</summary>
     public const string CalendarDay = "\uf783";
+    /// <summary>Font glyph for the Calendar Days icon.</summary>
     public const string CalendarDays = "\uf073";
+    /// <summary>Font glyph for the Calendar Minus icon.</summary>
     public const string CalendarMinus = "\uf272";
+    /// <summary>Font glyph for the Calendar Plus icon.</summary>
     public const string CalendarPlus = "\uf271";
+    /// <summary>Font glyph for the Calendar Week icon.</summary>
     public const string CalendarWeek = "\uf784";
+    /// <summary>Font glyph for the Calendar Xmark icon.</summary>
     public const string CalendarXmark = "\uf273";
+    /// <summary>Font glyph for the Camera icon.</summary>
     public const string Camera = "\uf030";
+    /// <summary>Font glyph for the Camera Retro icon.</summary>
     public const string CameraRetro = "\uf083";
+    /// <summary>Font glyph for the Camera Rotate icon.</summary>
     public const string CameraRotate = "\ue0d8";
+    /// <summary>Font glyph for the Campground icon.</summary>
     public const string Campground = "\uf6bb";
+    /// <summary>Font glyph for the Candy Cane icon.</summary>
     public const string CandyCane = "\uf786";
+    /// <summary>Font glyph for the Cannabis icon.</summary>
     public const string Cannabis = "\uf55f";
+    /// <summary>Font glyph for the Capsules icon.</summary>
     public const string Capsules = "\uf46b";
+    /// <summary>Font glyph for the Car icon.</summary>
     public const string Car = "\uf1b9";
+    /// <summary>Font glyph for the Car Battery icon.</summary>
     public const string CarBattery = "\uf5df";
+    /// <summary>Font glyph for the Car Burst icon.</summary>
     public const string CarBurst = "\uf5e1";
+    /// <summary>Font glyph for the Car On icon.</summary>
     public const string CarOn = "\ue4dd";
+    /// <summary>Font glyph for the Car Rear icon.</summary>
     public const string CarRear = "\uf5de";
+    /// <summary>Font glyph for the Car Side icon.</summary>
     public const string CarSide = "\uf5e4";
+    /// <summary>Font glyph for the Car Tunnel icon.</summary>
     public const string CarTunnel = "\ue4de";
+    /// <summary>Font glyph for the Caravan icon.</summary>
     public const string Caravan = "\uf8ff";
+    /// <summary>Font glyph for the Caret Down icon.</summary>
     public const string CaretDown = "\uf0d7";
+    /// <summary>Font glyph for the Caret Left icon.</summary>
     public const string CaretLeft = "\uf0d9";
+    /// <summary>Font glyph for the Caret Right icon.</summary>
     public const string CaretRight = "\uf0da";
+    /// <summary>Font glyph for the Caret Up icon.</summary>
     public const string CaretUp = "\uf0d8";
+    /// <summary>Font glyph for the Carrot icon.</summary>
     public const string Carrot = "\uf787";
+    /// <summary>Font glyph for the Cart Arrow Down icon.</summary>
     public const string CartArrowDown = "\uf218";
+    /// <summary>Font glyph for the Cart Flatbed icon.</summary>
     public const string CartFlatbed = "\uf474";
+    /// <summary>Font glyph for the Cart Flatbed Suitcase icon.</summary>
     public const string CartFlatbedSuitcase = "\uf59d";
+    /// <summary>Font glyph for the Cart Plus icon.</summary>
     public const string CartPlus = "\uf217";
+    /// <summary>Font glyph for the Cart Shopping icon.</summary>
     public const string CartShopping = "\uf07a";
+    /// <summary>Font glyph for the Cash Register icon.</summary>
     public const string CashRegister = "\uf788";
+    /// <summary>Font glyph for the Cat icon.</summary>
     public const string Cat = "\uf6be";
+    /// <summary>Font glyph for the Cedi Sign icon.</summary>
     public const string CediSign = "\ue0df";
+    /// <summary>Font glyph for the Cent Sign icon.</summary>
     public const string CentSign = "\ue3f5";
+    /// <summary>Font glyph for the Certificate icon.</summary>
     public const string Certificate = "\uf0a3";
+    /// <summary>Font glyph for the Chair icon.</summary>
     public const string Chair = "\uf6c0";
+    /// <summary>Font glyph for the Chalkboard icon.</summary>
     public const string Chalkboard = "\uf51b";
+    /// <summary>Font glyph for the Chalkboard User icon.</summary>
     public const string ChalkboardUser = "\uf51c";
+    /// <summary>Font glyph for the Champagne Glasses icon.</summary>
     public const string ChampagneGlasses = "\uf79f";
+    /// <summary>Font glyph for the Charging Station icon.</summary>
     public const string ChargingStation = "\uf5e7";
+    /// <summary>Font glyph for the Chart Area icon.</summary>
     public const string ChartArea = "\uf1fe";
+    /// <summary>Font glyph for the Chart Bar icon.</summary>
     public const string ChartBar = "\uf080";
+    /// <summary>Font glyph for the Chart Column icon.</summary>
     public const string ChartColumn = "\ue0e3";
+    /// <summary>Font glyph for the Chart Gantt icon.</summary>
     public const string ChartGantt = "\ue0e4";
+    /// <summary>Font glyph for the Chart Line icon.</summary>
     public const string ChartLine = "\uf201";
+    /// <summary>Font glyph for the Chart Pie icon.</summary>
     public const string ChartPie = "\uf200";
+    /// <summary>Font glyph for the Chart Simple icon.</summary>
     public const string ChartSimple = "\ue473";
+    /// <summary>Font glyph for the Check icon.</summary>
     public const string Check = "\uf00c";
+    /// <summary>Font glyph for the Check Double icon.</summary>
     public const string CheckDouble = "\uf560";
+    /// <summary>Font glyph for the Check To Slot icon.</summary>
     public const string CheckToSlot = "\uf772";
+    /// <summary>Font glyph for the Cheese icon.</summary>
     public const string Cheese = "\uf7ef";
+    /// <summary>Font glyph for the Chess icon.</summary>
     public const string Chess = "\uf439";
+    /// <summary>Font glyph for the Chess Bishop icon.</summary>
     public const string ChessBishop = "\uf43a";
+    /// <summary>Font glyph for the Chess Board icon.</summary>
     public const string ChessBoard = "\uf43c";
+    /// <summary>Font glyph for the Chess King icon.</summary>
     public const string ChessKing = "\uf43f";
+    /// <summary>Font glyph for the Chess Knight icon.</summary>
     public const string ChessKnight = "\uf441";
+    /// <summary>Font glyph for the Chess Pawn icon.</summary>
     public const string ChessPawn = "\uf443";
+    /// <summary>Font glyph for the Chess Queen icon.</summary>
     public const string ChessQueen = "\uf445";
+    /// <summary>Font glyph for the Chess Rook icon.</summary>
     public const string ChessRook = "\uf447";
+    /// <summary>Font glyph for the Chevron Down icon.</summary>
     public const string ChevronDown = "\uf078";
+    /// <summary>Font glyph for the Chevron Left icon.</summary>
     public const string ChevronLeft = "\uf053";
+    /// <summary>Font glyph for the Chevron Right icon.</summary>
     public const string ChevronRight = "\uf054";
+    /// <summary>Font glyph for the Chevron Up icon.</summary>
     public const string ChevronUp = "\uf077";
+    /// <summary>Font glyph for the Child icon.</summary>
     public const string Child = "\uf1ae";
+    /// <summary>Font glyph for the Child Combatant icon.</summary>
     public const string ChildCombatant = "\ue4e0";
+    /// <summary>Font glyph for the Child Dress icon.</summary>
     public const string ChildDress = "\ue59c";
+    /// <summary>Font glyph for the Child Reaching icon.</summary>
     public const string ChildReaching = "\ue59d";
+    /// <summary>Font glyph for the Children icon.</summary>
     public const string Children = "\ue4e1";
+    /// <summary>Font glyph for the Church icon.</summary>
     public const string Church = "\uf51d";
+    /// <summary>Font glyph for the Circle icon.</summary>
     public const string Circle = "\uf111";
+    /// <summary>Font glyph for the Circle Arrow Down icon.</summary>
     public const string CircleArrowDown = "\uf0ab";
+    /// <summary>Font glyph for the Circle Arrow Left icon.</summary>
     public const string CircleArrowLeft = "\uf0a8";
+    /// <summary>Font glyph for the Circle Arrow Right icon.</summary>
     public const string CircleArrowRight = "\uf0a9";
+    /// <summary>Font glyph for the Circle Arrow Up icon.</summary>
     public const string CircleArrowUp = "\uf0aa";
+    /// <summary>Font glyph for the Circle Check icon.</summary>
     public const string CircleCheck = "\uf058";
+    /// <summary>Font glyph for the Circle Chevron Down icon.</summary>
     public const string CircleChevronDown = "\uf13a";
+    /// <summary>Font glyph for the Circle Chevron Left icon.</summary>
     public const string CircleChevronLeft = "\uf137";
+    /// <summary>Font glyph for the Circle Chevron Right icon.</summary>
     public const string CircleChevronRight = "\uf138";
+    /// <summary>Font glyph for the Circle Chevron Up icon.</summary>
     public const string CircleChevronUp = "\uf139";
+    /// <summary>Font glyph for the Circle Dollar To Slot icon.</summary>
     public const string CircleDollarToSlot = "\uf4b9";
+    /// <summary>Font glyph for the Circle Dot icon.</summary>
     public const string CircleDot = "\uf192";
+    /// <summary>Font glyph for the Circle Down icon.</summary>
     public const string CircleDown = "\uf358";
+    /// <summary>Font glyph for the Circle Exclamation icon.</summary>
     public const string CircleExclamation = "\uf06a";
+    /// <summary>Font glyph for the Circle H icon.</summary>
     public const string CircleH = "\uf47e";
+    /// <summary>Font glyph for the Circle Half Stroke icon.</summary>
     public const string CircleHalfStroke = "\uf042";
+    /// <summary>Font glyph for the Circle Info icon.</summary>
     public const string CircleInfo = "\uf05a";
+    /// <summary>Font glyph for the Circle Left icon.</summary>
     public const string CircleLeft = "\uf359";
+    /// <summary>Font glyph for the Circle Minus icon.</summary>
     public const string CircleMinus = "\uf056";
+    /// <summary>Font glyph for the Circle Nodes icon.</summary>
     public const string CircleNodes = "\ue4e2";
+    /// <summary>Font glyph for the Circle Notch icon.</summary>
     public const string CircleNotch = "\uf1ce";
+    /// <summary>Font glyph for the Circle Pause icon.</summary>
     public const string CirclePause = "\uf28b";
+    /// <summary>Font glyph for the Circle Play icon.</summary>
     public const string CirclePlay = "\uf144";
+    /// <summary>Font glyph for the Circle Plus icon.</summary>
     public const string CirclePlus = "\uf055";
+    /// <summary>Font glyph for the Circle Question icon.</summary>
     public const string CircleQuestion = "\uf059";
+    /// <summary>Font glyph for the Circle Radiation icon.</summary>
     public const string CircleRadiation = "\uf7ba";
+    /// <summary>Font glyph for the Circle Right icon.</summary>
     public const string CircleRight = "\uf35a";
+    /// <summary>Font glyph for the Circle Stop icon.</summary>
     public const string CircleStop = "\uf28d";
+    /// <summary>Font glyph for the Circle Up icon.</summary>
     public const string CircleUp = "\uf35b";
+    /// <summary>Font glyph for the Circle User icon.</summary>
     public const string CircleUser = "\uf2bd";
+    /// <summary>Font glyph for the Circle Xmark icon.</summary>
     public const string CircleXmark = "\uf057";
+    /// <summary>Font glyph for the City icon.</summary>
     public const string City = "\uf64f";
+    /// <summary>Font glyph for the Clapperboard icon.</summary>
     public const string Clapperboard = "\ue131";
+    /// <summary>Font glyph for the Clipboard icon.</summary>
     public const string Clipboard = "\uf328";
+    /// <summary>Font glyph for the Clipboard Check icon.</summary>
     public const string ClipboardCheck = "\uf46c";
+    /// <summary>Font glyph for the Clipboard List icon.</summary>
     public const string ClipboardList = "\uf46d";
+    /// <summary>Font glyph for the Clipboard Question icon.</summary>
     public const string ClipboardQuestion = "\ue4e3";
+    /// <summary>Font glyph for the Clipboard User icon.</summary>
     public const string ClipboardUser = "\uf7f3";
+    /// <summary>Font glyph for the Clock icon.</summary>
     public const string Clock = "\uf017";
+    /// <summary>Font glyph for the Clock Rotate Left icon.</summary>
     public const string ClockRotateLeft = "\uf1da";
+    /// <summary>Font glyph for the Clone icon.</summary>
     public const string Clone = "\uf24d";
+    /// <summary>Font glyph for the Closed Captioning icon.</summary>
     public const string ClosedCaptioning = "\uf20a";
+    /// <summary>Font glyph for the Cloud icon.</summary>
     public const string Cloud = "\uf0c2";
+    /// <summary>Font glyph for the Cloud Arrow Down icon.</summary>
     public const string CloudArrowDown = "\uf0ed";
+    /// <summary>Font glyph for the Cloud Arrow Up icon.</summary>
     public const string CloudArrowUp = "\uf0ee";
+    /// <summary>Font glyph for the Cloud Bolt icon.</summary>
     public const string CloudBolt = "\uf76c";
+    /// <summary>Font glyph for the Cloud Meatball icon.</summary>
     public const string CloudMeatball = "\uf73b";
+    /// <summary>Font glyph for the Cloud Moon icon.</summary>
     public const string CloudMoon = "\uf6c3";
+    /// <summary>Font glyph for the Cloud Moon Rain icon.</summary>
     public const string CloudMoonRain = "\uf73c";
+    /// <summary>Font glyph for the Cloud Rain icon.</summary>
     public const string CloudRain = "\uf73d";
+    /// <summary>Font glyph for the Cloud Showers Heavy icon.</summary>
     public const string CloudShowersHeavy = "\uf740";
+    /// <summary>Font glyph for the Cloud Showers Water icon.</summary>
     public const string CloudShowersWater = "\ue4e4";
+    /// <summary>Font glyph for the Cloud Sun icon.</summary>
     public const string CloudSun = "\uf6c4";
+    /// <summary>Font glyph for the Cloud Sun Rain icon.</summary>
     public const string CloudSunRain = "\uf743";
+    /// <summary>Font glyph for the Clover icon.</summary>
     public const string Clover = "\ue139";
+    /// <summary>Font glyph for the Code icon.</summary>
     public const string Code = "\uf121";
+    /// <summary>Font glyph for the Code Branch icon.</summary>
     public const string CodeBranch = "\uf126";
+    /// <summary>Font glyph for the Code Commit icon.</summary>
     public const string CodeCommit = "\uf386";
+    /// <summary>Font glyph for the Code Compare icon.</summary>
     public const string CodeCompare = "\ue13a";
+    /// <summary>Font glyph for the Code Fork icon.</summary>
     public const string CodeFork = "\ue13b";
+    /// <summary>Font glyph for the Code Merge icon.</summary>
     public const string CodeMerge = "\uf387";
+    /// <summary>Font glyph for the Code Pull Request icon.</summary>
     public const string CodePullRequest = "\ue13c";
+    /// <summary>Font glyph for the Coins icon.</summary>
     public const string Coins = "\uf51e";
+    /// <summary>Font glyph for the Colon Sign icon.</summary>
     public const string ColonSign = "\ue140";
+    /// <summary>Font glyph for the Comment icon.</summary>
     public const string Comment = "\uf075";
+    /// <summary>Font glyph for the Comment Dollar icon.</summary>
     public const string CommentDollar = "\uf651";
+    /// <summary>Font glyph for the Comment Dots icon.</summary>
     public const string CommentDots = "\uf4ad";
+    /// <summary>Font glyph for the Comment Medical icon.</summary>
     public const string CommentMedical = "\uf7f5";
+    /// <summary>Font glyph for the Comment Slash icon.</summary>
     public const string CommentSlash = "\uf4b3";
+    /// <summary>Font glyph for the Comment Sms icon.</summary>
     public const string CommentSms = "\uf7cd";
+    /// <summary>Font glyph for the Comments icon.</summary>
     public const string Comments = "\uf086";
+    /// <summary>Font glyph for the Comments Dollar icon.</summary>
     public const string CommentsDollar = "\uf653";
+    /// <summary>Font glyph for the Compact Disc icon.</summary>
     public const string CompactDisc = "\uf51f";
+    /// <summary>Font glyph for the Compass icon.</summary>
     public const string Compass = "\uf14e";
+    /// <summary>Font glyph for the Compass Drafting icon.</summary>
     public const string CompassDrafting = "\uf568";
+    /// <summary>Font glyph for the Compress icon.</summary>
     public const string Compress = "\uf066";
+    /// <summary>Font glyph for the Computer icon.</summary>
     public const string Computer = "\ue4e5";
+    /// <summary>Font glyph for the Computer Mouse icon.</summary>
     public const string ComputerMouse = "\uf8cc";
+    /// <summary>Font glyph for the Cookie icon.</summary>
     public const string Cookie = "\uf563";
+    /// <summary>Font glyph for the Cookie Bite icon.</summary>
     public const string CookieBite = "\uf564";
+    /// <summary>Font glyph for the Copy icon.</summary>
     public const string Copy = "\uf0c5";
+    /// <summary>Font glyph for the Copyright icon.</summary>
     public const string Copyright = "\uf1f9";
+    /// <summary>Font glyph for the Couch icon.</summary>
     public const string Couch = "\uf4b8";
+    /// <summary>Font glyph for the Cow icon.</summary>
     public const string Cow = "\uf6c8";
+    /// <summary>Font glyph for the Credit Card icon.</summary>
     public const string CreditCard = "\uf09d";
+    /// <summary>Font glyph for the Crop icon.</summary>
     public const string Crop = "\uf125";
+    /// <summary>Font glyph for the Crop Simple icon.</summary>
     public const string CropSimple = "\uf565";
+    /// <summary>Font glyph for the Cross icon.</summary>
     public const string Cross = "\uf654";
+    /// <summary>Font glyph for the Crosshairs icon.</summary>
     public const string Crosshairs = "\uf05b";
+    /// <summary>Font glyph for the Crow icon.</summary>
     public const string Crow = "\uf520";
+    /// <summary>Font glyph for the Crown icon.</summary>
     public const string Crown = "\uf521";
+    /// <summary>Font glyph for the Crutch icon.</summary>
     public const string Crutch = "\uf7f7";
+    /// <summary>Font glyph for the Cruzeiro Sign icon.</summary>
     public const string CruzeiroSign = "\ue152";
+    /// <summary>Font glyph for the Cube icon.</summary>
     public const string Cube = "\uf1b2";
+    /// <summary>Font glyph for the Cubes icon.</summary>
     public const string Cubes = "\uf1b3";
+    /// <summary>Font glyph for the Cubes Stacked icon.</summary>
     public const string CubesStacked = "\ue4e6";
+    /// <summary>Font glyph for the D icon.</summary>
     public const string D = "\u0044";
+    /// <summary>Font glyph for the Database icon.</summary>
     public const string Database = "\uf1c0";
+    /// <summary>Font glyph for the Delete Left icon.</summary>
     public const string DeleteLeft = "\uf55a";
+    /// <summary>Font glyph for the Democrat icon.</summary>
     public const string Democrat = "\uf747";
+    /// <summary>Font glyph for the Desktop icon.</summary>
     public const string Desktop = "\uf390";
+    /// <summary>Font glyph for the Dharmachakra icon.</summary>
     public const string Dharmachakra = "\uf655";
+    /// <summary>Font glyph for the Diagram Next icon.</summary>
     public const string DiagramNext = "\ue476";
+    /// <summary>Font glyph for the Diagram Predecessor icon.</summary>
     public const string DiagramPredecessor = "\ue477";
+    /// <summary>Font glyph for the Diagram Project icon.</summary>
     public const string DiagramProject = "\uf542";
+    /// <summary>Font glyph for the Diagram Successor icon.</summary>
     public const string DiagramSuccessor = "\ue47a";
+    /// <summary>Font glyph for the Diamond icon.</summary>
     public const string Diamond = "\uf219";
+    /// <summary>Font glyph for the Diamond Turn Right icon.</summary>
     public const string DiamondTurnRight = "\uf5eb";
+    /// <summary>Font glyph for the Dice icon.</summary>
     public const string Dice = "\uf522";
+    /// <summary>Font glyph for the Dice D20 icon.</summary>
     public const string DiceD20 = "\uf6cf";
+    /// <summary>Font glyph for the Dice D6 icon.</summary>
     public const string DiceD6 = "\uf6d1";
+    /// <summary>Font glyph for the Dice Five icon.</summary>
     public const string DiceFive = "\uf523";
+    /// <summary>Font glyph for the Dice Four icon.</summary>
     public const string DiceFour = "\uf524";
+    /// <summary>Font glyph for the Dice One icon.</summary>
     public const string DiceOne = "\uf525";
+    /// <summary>Font glyph for the Dice Six icon.</summary>
     public const string DiceSix = "\uf526";
+    /// <summary>Font glyph for the Dice Three icon.</summary>
     public const string DiceThree = "\uf527";
+    /// <summary>Font glyph for the Dice Two icon.</summary>
     public const string DiceTwo = "\uf528";
+    /// <summary>Font glyph for the Disease icon.</summary>
     public const string Disease = "\uf7fa";
+    /// <summary>Font glyph for the Display icon.</summary>
     public const string Display = "\ue163";
+    /// <summary>Font glyph for the Divide icon.</summary>
     public const string Divide = "\uf529";
+    /// <summary>Font glyph for the Dna icon.</summary>
     public const string Dna = "\uf471";
+    /// <summary>Font glyph for the Dog icon.</summary>
     public const string Dog = "\uf6d3";
+    /// <summary>Font glyph for the Dollar Sign icon.</summary>
     public const string DollarSign = "\u0024";
+    /// <summary>Font glyph for the Dolly icon.</summary>
     public const string Dolly = "\uf472";
+    /// <summary>Font glyph for the Dong Sign icon.</summary>
     public const string DongSign = "\ue169";
+    /// <summary>Font glyph for the Door Closed icon.</summary>
     public const string DoorClosed = "\uf52a";
+    /// <summary>Font glyph for the Door Open icon.</summary>
     public const string DoorOpen = "\uf52b";
+    /// <summary>Font glyph for the Dove icon.</summary>
     public const string Dove = "\uf4ba";
+    /// <summary>Font glyph for the Down Left And Up Right To Center icon.</summary>
     public const string DownLeftAndUpRightToCenter = "\uf422";
+    /// <summary>Font glyph for the Down Long icon.</summary>
     public const string DownLong = "\uf309";
+    /// <summary>Font glyph for the Download icon.</summary>
     public const string Download = "\uf019";
+    /// <summary>Font glyph for the Dragon icon.</summary>
     public const string Dragon = "\uf6d5";
+    /// <summary>Font glyph for the Draw Polygon icon.</summary>
     public const string DrawPolygon = "\uf5ee";
+    /// <summary>Font glyph for the Droplet icon.</summary>
     public const string Droplet = "\uf043";
+    /// <summary>Font glyph for the Droplet Slash icon.</summary>
     public const string DropletSlash = "\uf5c7";
+    /// <summary>Font glyph for the Drum icon.</summary>
     public const string Drum = "\uf569";
+    /// <summary>Font glyph for the Drum Steelpan icon.</summary>
     public const string DrumSteelpan = "\uf56a";
+    /// <summary>Font glyph for the Drumstick Bite icon.</summary>
     public const string DrumstickBite = "\uf6d7";
+    /// <summary>Font glyph for the Dumbbell icon.</summary>
     public const string Dumbbell = "\uf44b";
+    /// <summary>Font glyph for the Dumpster icon.</summary>
     public const string Dumpster = "\uf793";
+    /// <summary>Font glyph for the Dumpster Fire icon.</summary>
     public const string DumpsterFire = "\uf794";
+    /// <summary>Font glyph for the Dungeon icon.</summary>
     public const string Dungeon = "\uf6d9";
+    /// <summary>Font glyph for the E icon.</summary>
     public const string E = "\u0045";
+    /// <summary>Font glyph for the Ear Deaf icon.</summary>
     public const string EarDeaf = "\uf2a4";
+    /// <summary>Font glyph for the Ear Listen icon.</summary>
     public const string EarListen = "\uf2a2";
+    /// <summary>Font glyph for the Earth Africa icon.</summary>
     public const string EarthAfrica = "\uf57c";
+    /// <summary>Font glyph for the Earth Americas icon.</summary>
     public const string EarthAmericas = "\uf57d";
+    /// <summary>Font glyph for the Earth Asia icon.</summary>
     public const string EarthAsia = "\uf57e";
+    /// <summary>Font glyph for the Earth Europe icon.</summary>
     public const string EarthEurope = "\uf7a2";
+    /// <summary>Font glyph for the Earth Oceania icon.</summary>
     public const string EarthOceania = "\ue47b";
+    /// <summary>Font glyph for the Egg icon.</summary>
     public const string Egg = "\uf7fb";
+    /// <summary>Font glyph for the Eject icon.</summary>
     public const string Eject = "\uf052";
+    /// <summary>Font glyph for the Elevator icon.</summary>
     public const string Elevator = "\ue16d";
+    /// <summary>Font glyph for the Ellipsis icon.</summary>
     public const string Ellipsis = "\uf141";
+    /// <summary>Font glyph for the Ellipsis Vertical icon.</summary>
     public const string EllipsisVertical = "\uf142";
+    /// <summary>Font glyph for the Envelope icon.</summary>
     public const string Envelope = "\uf0e0";
+    /// <summary>Font glyph for the Envelope Circle Check icon.</summary>
     public const string EnvelopeCircleCheck = "\ue4e8";
+    /// <summary>Font glyph for the Envelope Open icon.</summary>
     public const string EnvelopeOpen = "\uf2b6";
+    /// <summary>Font glyph for the Envelope Open Text icon.</summary>
     public const string EnvelopeOpenText = "\uf658";
+    /// <summary>Font glyph for the Envelopes Bulk icon.</summary>
     public const string EnvelopesBulk = "\uf674";
+    /// <summary>Font glyph for the equals icon.</summary>
     public new const string Equals = "\u003d";
+    /// <summary>Font glyph for the Eraser icon.</summary>
     public const string Eraser = "\uf12d";
+    /// <summary>Font glyph for the Ethernet icon.</summary>
     public const string Ethernet = "\uf796";
+    /// <summary>Font glyph for the Euro Sign icon.</summary>
     public const string EuroSign = "\uf153";
+    /// <summary>Font glyph for the Exclamation icon.</summary>
     public const string Exclamation = "\u0021";
+    /// <summary>Font glyph for the Expand icon.</summary>
     public const string Expand = "\uf065";
+    /// <summary>Font glyph for the Explosion icon.</summary>
     public const string Explosion = "\ue4e9";
+    /// <summary>Font glyph for the Eye icon.</summary>
     public const string Eye = "\uf06e";
+    /// <summary>Font glyph for the Eye Dropper icon.</summary>
     public const string EyeDropper = "\uf1fb";
+    /// <summary>Font glyph for the Eye Low Vision icon.</summary>
     public const string EyeLowVision = "\uf2a8";
+    /// <summary>Font glyph for the Eye Slash icon.</summary>
     public const string EyeSlash = "\uf070";
+    /// <summary>Font glyph for the F icon.</summary>
     public const string F = "\u0046";
+    /// <summary>Font glyph for the Face Angry icon.</summary>
     public const string FaceAngry = "\uf556";
+    /// <summary>Font glyph for the Face Dizzy icon.</summary>
     public const string FaceDizzy = "\uf567";
+    /// <summary>Font glyph for the Face Flushed icon.</summary>
     public const string FaceFlushed = "\uf579";
+    /// <summary>Font glyph for the Face Frown icon.</summary>
     public const string FaceFrown = "\uf119";
+    /// <summary>Font glyph for the Face Frown Open icon.</summary>
     public const string FaceFrownOpen = "\uf57a";
+    /// <summary>Font glyph for the Face Grimace icon.</summary>
     public const string FaceGrimace = "\uf57f";
+    /// <summary>Font glyph for the Face Grin icon.</summary>
     public const string FaceGrin = "\uf580";
+    /// <summary>Font glyph for the Face Grin Beam icon.</summary>
     public const string FaceGrinBeam = "\uf582";
+    /// <summary>Font glyph for the Face Grin Beam Sweat icon.</summary>
     public const string FaceGrinBeamSweat = "\uf583";
+    /// <summary>Font glyph for the Face Grin Hearts icon.</summary>
     public const string FaceGrinHearts = "\uf584";
+    /// <summary>Font glyph for the Face Grin Squint icon.</summary>
     public const string FaceGrinSquint = "\uf585";
+    /// <summary>Font glyph for the Face Grin Squint Tears icon.</summary>
     public const string FaceGrinSquintTears = "\uf586";
+    /// <summary>Font glyph for the Face Grin Stars icon.</summary>
     public const string FaceGrinStars = "\uf587";
+    /// <summary>Font glyph for the Face Grin Tears icon.</summary>
     public const string FaceGrinTears = "\uf588";
+    /// <summary>Font glyph for the Face Grin Tongue icon.</summary>
     public const string FaceGrinTongue = "\uf589";
+    /// <summary>Font glyph for the Face Grin Tongue Squint icon.</summary>
     public const string FaceGrinTongueSquint = "\uf58a";
+    /// <summary>Font glyph for the Face Grin Tongue Wink icon.</summary>
     public const string FaceGrinTongueWink = "\uf58b";
+    /// <summary>Font glyph for the Face Grin Wide icon.</summary>
     public const string FaceGrinWide = "\uf581";
+    /// <summary>Font glyph for the Face Grin Wink icon.</summary>
     public const string FaceGrinWink = "\uf58c";
+    /// <summary>Font glyph for the Face Kiss icon.</summary>
     public const string FaceKiss = "\uf596";
+    /// <summary>Font glyph for the Face Kiss Beam icon.</summary>
     public const string FaceKissBeam = "\uf597";
+    /// <summary>Font glyph for the Face Kiss Wink Heart icon.</summary>
     public const string FaceKissWinkHeart = "\uf598";
+    /// <summary>Font glyph for the Face Laugh icon.</summary>
     public const string FaceLaugh = "\uf599";
+    /// <summary>Font glyph for the Face Laugh Beam icon.</summary>
     public const string FaceLaughBeam = "\uf59a";
+    /// <summary>Font glyph for the Face Laugh Squint icon.</summary>
     public const string FaceLaughSquint = "\uf59b";
+    /// <summary>Font glyph for the Face Laugh Wink icon.</summary>
     public const string FaceLaughWink = "\uf59c";
+    /// <summary>Font glyph for the Face Meh icon.</summary>
     public const string FaceMeh = "\uf11a";
+    /// <summary>Font glyph for the Face Meh Blank icon.</summary>
     public const string FaceMehBlank = "\uf5a4";
+    /// <summary>Font glyph for the Face Rolling Eyes icon.</summary>
     public const string FaceRollingEyes = "\uf5a5";
+    /// <summary>Font glyph for the Face Sad Cry icon.</summary>
     public const string FaceSadCry = "\uf5b3";
+    /// <summary>Font glyph for the Face Sad Tear icon.</summary>
     public const string FaceSadTear = "\uf5b4";
+    /// <summary>Font glyph for the Face Smile icon.</summary>
     public const string FaceSmile = "\uf118";
+    /// <summary>Font glyph for the Face Smile Beam icon.</summary>
     public const string FaceSmileBeam = "\uf5b8";
+    /// <summary>Font glyph for the Face Smile Wink icon.</summary>
     public const string FaceSmileWink = "\uf4da";
+    /// <summary>Font glyph for the Face Surprise icon.</summary>
     public const string FaceSurprise = "\uf5c2";
+    /// <summary>Font glyph for the Face Tired icon.</summary>
     public const string FaceTired = "\uf5c8";
+    /// <summary>Font glyph for the Fan icon.</summary>
     public const string Fan = "\uf863";
+    /// <summary>Font glyph for the Faucet icon.</summary>
     public const string Faucet = "\ue005";
+    /// <summary>Font glyph for the Faucet Drip icon.</summary>
     public const string FaucetDrip = "\ue006";
+    /// <summary>Font glyph for the Fax icon.</summary>
     public const string Fax = "\uf1ac";
+    /// <summary>Font glyph for the Feather icon.</summary>
     public const string Feather = "\uf52d";
+    /// <summary>Font glyph for the Feather Pointed icon.</summary>
     public const string FeatherPointed = "\uf56b";
+    /// <summary>Font glyph for the Ferry icon.</summary>
     public const string Ferry = "\ue4ea";
+    /// <summary>Font glyph for the File icon.</summary>
     public const string File = "\uf15b";
+    /// <summary>Font glyph for the File Arrow Down icon.</summary>
     public const string FileArrowDown = "\uf56d";
+    /// <summary>Font glyph for the File Arrow Up icon.</summary>
     public const string FileArrowUp = "\uf574";
+    /// <summary>Font glyph for the File Audio icon.</summary>
     public const string FileAudio = "\uf1c7";
+    /// <summary>Font glyph for the File Circle Check icon.</summary>
     public const string FileCircleCheck = "\ue5a0";
+    /// <summary>Font glyph for the File Circle Exclamation icon.</summary>
     public const string FileCircleExclamation = "\ue4eb";
+    /// <summary>Font glyph for the File Circle Minus icon.</summary>
     public const string FileCircleMinus = "\ue4ed";
+    /// <summary>Font glyph for the File Circle Plus icon.</summary>
     public const string FileCirclePlus = "\ue494";
+    /// <summary>Font glyph for the File Circle Question icon.</summary>
     public const string FileCircleQuestion = "\ue4ef";
+    /// <summary>Font glyph for the File Circle Xmark icon.</summary>
     public const string FileCircleXmark = "\ue5a1";
+    /// <summary>Font glyph for the File Code icon.</summary>
     public const string FileCode = "\uf1c9";
+    /// <summary>Font glyph for the File Contract icon.</summary>
     public const string FileContract = "\uf56c";
+    /// <summary>Font glyph for the File Csv icon.</summary>
     public const string FileCsv = "\uf6dd";
+    /// <summary>Font glyph for the File Excel icon.</summary>
     public const string FileExcel = "\uf1c3";
+    /// <summary>Font glyph for the File Export icon.</summary>
     public const string FileExport = "\uf56e";
+    /// <summary>Font glyph for the File Image icon.</summary>
     public const string FileImage = "\uf1c5";
+    /// <summary>Font glyph for the File Import icon.</summary>
     public const string FileImport = "\uf56f";
+    /// <summary>Font glyph for the File Invoice icon.</summary>
     public const string FileInvoice = "\uf570";
+    /// <summary>Font glyph for the File Invoice Dollar icon.</summary>
     public const string FileInvoiceDollar = "\uf571";
+    /// <summary>Font glyph for the File Lines icon.</summary>
     public const string FileLines = "\uf15c";
+    /// <summary>Font glyph for the File Medical icon.</summary>
     public const string FileMedical = "\uf477";
+    /// <summary>Font glyph for the File Pdf icon.</summary>
     public const string FilePdf = "\uf1c1";
+    /// <summary>Font glyph for the File Pen icon.</summary>
     public const string FilePen = "\uf31c";
+    /// <summary>Font glyph for the File Powerpoint icon.</summary>
     public const string FilePowerpoint = "\uf1c4";
+    /// <summary>Font glyph for the File Prescription icon.</summary>
     public const string FilePrescription = "\uf572";
+    /// <summary>Font glyph for the File Shield icon.</summary>
     public const string FileShield = "\ue4f0";
+    /// <summary>Font glyph for the File Signature icon.</summary>
     public const string FileSignature = "\uf573";
+    /// <summary>Font glyph for the File Video icon.</summary>
     public const string FileVideo = "\uf1c8";
+    /// <summary>Font glyph for the File Waveform icon.</summary>
     public const string FileWaveform = "\uf478";
+    /// <summary>Font glyph for the File Word icon.</summary>
     public const string FileWord = "\uf1c2";
+    /// <summary>Font glyph for the File Zipper icon.</summary>
     public const string FileZipper = "\uf1c6";
+    /// <summary>Font glyph for the Fill icon.</summary>
     public const string Fill = "\uf575";
+    /// <summary>Font glyph for the Fill Drip icon.</summary>
     public const string FillDrip = "\uf576";
+    /// <summary>Font glyph for the Film icon.</summary>
     public const string Film = "\uf008";
+    /// <summary>Font glyph for the Filter icon.</summary>
     public const string Filter = "\uf0b0";
+    /// <summary>Font glyph for the Filter Circle Dollar icon.</summary>
     public const string FilterCircleDollar = "\uf662";
+    /// <summary>Font glyph for the Filter Circle Xmark icon.</summary>
     public const string FilterCircleXmark = "\ue17b";
+    /// <summary>Font glyph for the Fingerprint icon.</summary>
     public const string Fingerprint = "\uf577";
+    /// <summary>Font glyph for the Fire icon.</summary>
     public const string Fire = "\uf06d";
+    /// <summary>Font glyph for the Fire Burner icon.</summary>
     public const string FireBurner = "\ue4f1";
+    /// <summary>Font glyph for the Fire Extinguisher icon.</summary>
     public const string FireExtinguisher = "\uf134";
+    /// <summary>Font glyph for the Fire Flame Curved icon.</summary>
     public const string FireFlameCurved = "\uf7e4";
+    /// <summary>Font glyph for the Fire Flame Simple icon.</summary>
     public const string FireFlameSimple = "\uf46a";
+    /// <summary>Font glyph for the Fish icon.</summary>
     public const string Fish = "\uf578";
+    /// <summary>Font glyph for the Fish Fins icon.</summary>
     public const string FishFins = "\ue4f2";
+    /// <summary>Font glyph for the Flag icon.</summary>
     public const string Flag = "\uf024";
+    /// <summary>Font glyph for the Flag Checkered icon.</summary>
     public const string FlagCheckered = "\uf11e";
+    /// <summary>Font glyph for the Flag Usa icon.</summary>
     public const string FlagUsa = "\uf74d";
+    /// <summary>Font glyph for the Flask icon.</summary>
     public const string Flask = "\uf0c3";
+    /// <summary>Font glyph for the Flask Vial icon.</summary>
     public const string FlaskVial = "\ue4f3";
+    /// <summary>Font glyph for the Floppy Disk icon.</summary>
     public const string FloppyDisk = "\uf0c7";
+    /// <summary>Font glyph for the Florin Sign icon.</summary>
     public const string FlorinSign = "\ue184";
+    /// <summary>Font glyph for the Folder icon.</summary>
     public const string Folder = "\uf07b";
+    /// <summary>Font glyph for the Folder Closed icon.</summary>
     public const string FolderClosed = "\ue185";
+    /// <summary>Font glyph for the Folder Minus icon.</summary>
     public const string FolderMinus = "\uf65d";
+    /// <summary>Font glyph for the Folder Open icon.</summary>
     public const string FolderOpen = "\uf07c";
+    /// <summary>Font glyph for the Folder Plus icon.</summary>
     public const string FolderPlus = "\uf65e";
+    /// <summary>Font glyph for the Folder Tree icon.</summary>
     public const string FolderTree = "\uf802";
+    /// <summary>Font glyph for the Font icon.</summary>
     public const string Font = "\uf031";
+    /// <summary>Font glyph for the Font Awesome icon.</summary>
     public const string FontAwesome = "\uf2b4";
+    /// <summary>Font glyph for the Football icon.</summary>
     public const string Football = "\uf44e";
+    /// <summary>Font glyph for the Forward icon.</summary>
     public const string Forward = "\uf04e";
+    /// <summary>Font glyph for the Forward Fast icon.</summary>
     public const string ForwardFast = "\uf050";
+    /// <summary>Font glyph for the Forward Step icon.</summary>
     public const string ForwardStep = "\uf051";
+    /// <summary>Font glyph for the Franc Sign icon.</summary>
     public const string FrancSign = "\ue18f";
+    /// <summary>Font glyph for the Frog icon.</summary>
     public const string Frog = "\uf52e";
+    /// <summary>Font glyph for the Futbol icon.</summary>
     public const string Futbol = "\uf1e3";
+    /// <summary>Font glyph for the G icon.</summary>
     public const string G = "\u0047";
+    /// <summary>Font glyph for the Gamepad icon.</summary>
     public const string Gamepad = "\uf11b";
+    /// <summary>Font glyph for the Gas Pump icon.</summary>
     public const string GasPump = "\uf52f";
+    /// <summary>Font glyph for the Gauge icon.</summary>
     public const string Gauge = "\uf624";
+    /// <summary>Font glyph for the Gauge High icon.</summary>
     public const string GaugeHigh = "\uf625";
+    /// <summary>Font glyph for the Gauge Simple icon.</summary>
     public const string GaugeSimple = "\uf629";
+    /// <summary>Font glyph for the Gauge Simple High icon.</summary>
     public const string GaugeSimpleHigh = "\uf62a";
+    /// <summary>Font glyph for the Gavel icon.</summary>
     public const string Gavel = "\uf0e3";
+    /// <summary>Font glyph for the Gear icon.</summary>
     public const string Gear = "\uf013";
+    /// <summary>Font glyph for the Gears icon.</summary>
     public const string Gears = "\uf085";
+    /// <summary>Font glyph for the Gem icon.</summary>
     public const string Gem = "\uf3a5";
+    /// <summary>Font glyph for the Genderless icon.</summary>
     public const string Genderless = "\uf22d";
+    /// <summary>Font glyph for the Ghost icon.</summary>
     public const string Ghost = "\uf6e2";
+    /// <summary>Font glyph for the Gift icon.</summary>
     public const string Gift = "\uf06b";
+    /// <summary>Font glyph for the Gifts icon.</summary>
     public const string Gifts = "\uf79c";
+    /// <summary>Font glyph for the Glass Water icon.</summary>
     public const string GlassWater = "\ue4f4";
+    /// <summary>Font glyph for the Glass Water Droplet icon.</summary>
     public const string GlassWaterDroplet = "\ue4f5";
+    /// <summary>Font glyph for the Glasses icon.</summary>
     public const string Glasses = "\uf530";
+    /// <summary>Font glyph for the Globe icon.</summary>
     public const string Globe = "\uf0ac";
+    /// <summary>Font glyph for the Golf Ball Tee icon.</summary>
     public const string GolfBallTee = "\uf450";
+    /// <summary>Font glyph for the Gopuram icon.</summary>
     public const string Gopuram = "\uf664";
+    /// <summary>Font glyph for the Graduation Cap icon.</summary>
     public const string GraduationCap = "\uf19d";
+    /// <summary>Font glyph for the Greater Than icon.</summary>
     public const string GreaterThan = "\u003e";
+    /// <summary>Font glyph for the Greater Than Equal icon.</summary>
     public const string GreaterThanEqual = "\uf532";
+    /// <summary>Font glyph for the Grip icon.</summary>
     public const string Grip = "\uf58d";
+    /// <summary>Font glyph for the Grip Lines icon.</summary>
     public const string GripLines = "\uf7a4";
+    /// <summary>Font glyph for the Grip Lines Vertical icon.</summary>
     public const string GripLinesVertical = "\uf7a5";
+    /// <summary>Font glyph for the Grip Vertical icon.</summary>
     public const string GripVertical = "\uf58e";
+    /// <summary>Font glyph for the Group Arrows Rotate icon.</summary>
     public const string GroupArrowsRotate = "\ue4f6";
+    /// <summary>Font glyph for the Guarani Sign icon.</summary>
     public const string GuaraniSign = "\ue19a";
+    /// <summary>Font glyph for the Guitar icon.</summary>
     public const string Guitar = "\uf7a6";
+    /// <summary>Font glyph for the Gun icon.</summary>
     public const string Gun = "\ue19b";
+    /// <summary>Font glyph for the H icon.</summary>
     public const string H = "\u0048";
+    /// <summary>Font glyph for the Hammer icon.</summary>
     public const string Hammer = "\uf6e3";
+    /// <summary>Font glyph for the Hamsa icon.</summary>
     public const string Hamsa = "\uf665";
+    /// <summary>Font glyph for the Hand icon.</summary>
     public const string Hand = "\uf256";
+    /// <summary>Font glyph for the Hand Back Fist icon.</summary>
     public const string HandBackFist = "\uf255";
+    /// <summary>Font glyph for the Hand Dots icon.</summary>
     public const string HandDots = "\uf461";
+    /// <summary>Font glyph for the Hand Fist icon.</summary>
     public const string HandFist = "\uf6de";
+    /// <summary>Font glyph for the Hand Holding icon.</summary>
     public const string HandHolding = "\uf4bd";
+    /// <summary>Font glyph for the Hand Holding Dollar icon.</summary>
     public const string HandHoldingDollar = "\uf4c0";
+    /// <summary>Font glyph for the Hand Holding Droplet icon.</summary>
     public const string HandHoldingDroplet = "\uf4c1";
+    /// <summary>Font glyph for the Hand Holding Hand icon.</summary>
     public const string HandHoldingHand = "\ue4f7";
+    /// <summary>Font glyph for the Hand Holding Heart icon.</summary>
     public const string HandHoldingHeart = "\uf4be";
+    /// <summary>Font glyph for the Hand Holding Medical icon.</summary>
     public const string HandHoldingMedical = "\ue05c";
+    /// <summary>Font glyph for the Hand Lizard icon.</summary>
     public const string HandLizard = "\uf258";
+    /// <summary>Font glyph for the Hand Middle Finger icon.</summary>
     public const string HandMiddleFinger = "\uf806";
+    /// <summary>Font glyph for the Hand Peace icon.</summary>
     public const string HandPeace = "\uf25b";
+    /// <summary>Font glyph for the Hand Point Down icon.</summary>
     public const string HandPointDown = "\uf0a7";
+    /// <summary>Font glyph for the Hand Point Left icon.</summary>
     public const string HandPointLeft = "\uf0a5";
+    /// <summary>Font glyph for the Hand Point Right icon.</summary>
     public const string HandPointRight = "\uf0a4";
+    /// <summary>Font glyph for the Hand Point Up icon.</summary>
     public const string HandPointUp = "\uf0a6";
+    /// <summary>Font glyph for the Hand Pointer icon.</summary>
     public const string HandPointer = "\uf25a";
+    /// <summary>Font glyph for the Hand Scissors icon.</summary>
     public const string HandScissors = "\uf257";
+    /// <summary>Font glyph for the Hand Sparkles icon.</summary>
     public const string HandSparkles = "\ue05d";
+    /// <summary>Font glyph for the Hand Spock icon.</summary>
     public const string HandSpock = "\uf259";
+    /// <summary>Font glyph for the Handcuffs icon.</summary>
     public const string Handcuffs = "\ue4f8";
+    /// <summary>Font glyph for the Hands icon.</summary>
     public const string Hands = "\uf2a7";
+    /// <summary>Font glyph for the Hands Asl Interpreting icon.</summary>
     public const string HandsAslInterpreting = "\uf2a3";
+    /// <summary>Font glyph for the Hands Bound icon.</summary>
     public const string HandsBound = "\ue4f9";
+    /// <summary>Font glyph for the Hands Bubbles icon.</summary>
     public const string HandsBubbles = "\ue05e";
+    /// <summary>Font glyph for the Hands Clapping icon.</summary>
     public const string HandsClapping = "\ue1a8";
+    /// <summary>Font glyph for the Hands Holding icon.</summary>
     public const string HandsHolding = "\uf4c2";
+    /// <summary>Font glyph for the Hands Holding Child icon.</summary>
     public const string HandsHoldingChild = "\ue4fa";
+    /// <summary>Font glyph for the Hands Holding Circle icon.</summary>
     public const string HandsHoldingCircle = "\ue4fb";
+    /// <summary>Font glyph for the Hands Praying icon.</summary>
     public const string HandsPraying = "\uf684";
+    /// <summary>Font glyph for the Handshake icon.</summary>
     public const string Handshake = "\uf2b5";
+    /// <summary>Font glyph for the Handshake Angle icon.</summary>
     public const string HandshakeAngle = "\uf4c4";
+    /// <summary>Font glyph for the Handshake Simple icon.</summary>
     public const string HandshakeSimple = "\uf4c6";
+    /// <summary>Font glyph for the Handshake Simple Slash icon.</summary>
     public const string HandshakeSimpleSlash = "\ue05f";
+    /// <summary>Font glyph for the Handshake Slash icon.</summary>
     public const string HandshakeSlash = "\ue060";
+    /// <summary>Font glyph for the Hanukiah icon.</summary>
     public const string Hanukiah = "\uf6e6";
+    /// <summary>Font glyph for the Hard Drive icon.</summary>
     public const string HardDrive = "\uf0a0";
+    /// <summary>Font glyph for the Hashtag icon.</summary>
     public const string Hashtag = "\u0023";
+    /// <summary>Font glyph for the Hat Cowboy icon.</summary>
     public const string HatCowboy = "\uf8c0";
+    /// <summary>Font glyph for the Hat Cowboy Side icon.</summary>
     public const string HatCowboySide = "\uf8c1";
+    /// <summary>Font glyph for the Hat Wizard icon.</summary>
     public const string HatWizard = "\uf6e8";
+    /// <summary>Font glyph for the Head Side Cough icon.</summary>
     public const string HeadSideCough = "\ue061";
+    /// <summary>Font glyph for the Head Side Cough Slash icon.</summary>
     public const string HeadSideCoughSlash = "\ue062";
+    /// <summary>Font glyph for the Head Side Mask icon.</summary>
     public const string HeadSideMask = "\ue063";
+    /// <summary>Font glyph for the Head Side Virus icon.</summary>
     public const string HeadSideVirus = "\ue064";
+    /// <summary>Font glyph for the Heading icon.</summary>
     public const string Heading = "\uf1dc";
+    /// <summary>Font glyph for the Headphones icon.</summary>
     public const string Headphones = "\uf025";
+    /// <summary>Font glyph for the Headphones Simple icon.</summary>
     public const string HeadphonesSimple = "\uf58f";
+    /// <summary>Font glyph for the Headset icon.</summary>
     public const string Headset = "\uf590";
+    /// <summary>Font glyph for the Heart icon.</summary>
     public const string Heart = "\uf004";
+    /// <summary>Font glyph for the Heart Circle Bolt icon.</summary>
     public const string HeartCircleBolt = "\ue4fc";
+    /// <summary>Font glyph for the Heart Circle Check icon.</summary>
     public const string HeartCircleCheck = "\ue4fd";
+    /// <summary>Font glyph for the Heart Circle Exclamation icon.</summary>
     public const string HeartCircleExclamation = "\ue4fe";
+    /// <summary>Font glyph for the Heart Circle Minus icon.</summary>
     public const string HeartCircleMinus = "\ue4ff";
+    /// <summary>Font glyph for the Heart Circle Plus icon.</summary>
     public const string HeartCirclePlus = "\ue500";
+    /// <summary>Font glyph for the Heart Circle Xmark icon.</summary>
     public const string HeartCircleXmark = "\ue501";
+    /// <summary>Font glyph for the Heart Crack icon.</summary>
     public const string HeartCrack = "\uf7a9";
+    /// <summary>Font glyph for the Heart Pulse icon.</summary>
     public const string HeartPulse = "\uf21e";
+    /// <summary>Font glyph for the Helicopter icon.</summary>
     public const string Helicopter = "\uf533";
+    /// <summary>Font glyph for the Helicopter Symbol icon.</summary>
     public const string HelicopterSymbol = "\ue502";
+    /// <summary>Font glyph for the Helmet Safety icon.</summary>
     public const string HelmetSafety = "\uf807";
+    /// <summary>Font glyph for the Helmet Un icon.</summary>
     public const string HelmetUn = "\ue503";
+    /// <summary>Font glyph for the Highlighter icon.</summary>
     public const string Highlighter = "\uf591";
+    /// <summary>Font glyph for the Hill Avalanche icon.</summary>
     public const string HillAvalanche = "\ue507";
+    /// <summary>Font glyph for the Hill Rockslide icon.</summary>
     public const string HillRockslide = "\ue508";
+    /// <summary>Font glyph for the Hippo icon.</summary>
     public const string Hippo = "\uf6ed";
+    /// <summary>Font glyph for the Hockey Puck icon.</summary>
     public const string HockeyPuck = "\uf453";
+    /// <summary>Font glyph for the Holly Berry icon.</summary>
     public const string HollyBerry = "\uf7aa";
+    /// <summary>Font glyph for the Horse icon.</summary>
     public const string Horse = "\uf6f0";
+    /// <summary>Font glyph for the Horse Head icon.</summary>
     public const string HorseHead = "\uf7ab";
+    /// <summary>Font glyph for the Hospital icon.</summary>
     public const string Hospital = "\uf0f8";
+    /// <summary>Font glyph for the Hospital User icon.</summary>
     public const string HospitalUser = "\uf80d";
+    /// <summary>Font glyph for the Hot Tub Person icon.</summary>
     public const string HotTubPerson = "\uf593";
+    /// <summary>Font glyph for the Hotdog icon.</summary>
     public const string Hotdog = "\uf80f";
+    /// <summary>Font glyph for the Hotel icon.</summary>
     public const string Hotel = "\uf594";
+    /// <summary>Font glyph for the Hourglass icon.</summary>
     public const string Hourglass = "\uf254";
+    /// <summary>Font glyph for the Hourglass End icon.</summary>
     public const string HourglassEnd = "\uf253";
+    /// <summary>Font glyph for the Hourglass Half icon.</summary>
     public const string HourglassHalf = "\uf252";
+    /// <summary>Font glyph for the Hourglass Start icon.</summary>
     public const string HourglassStart = "\uf251";
+    /// <summary>Font glyph for the House icon.</summary>
     public const string House = "\uf015";
+    /// <summary>Font glyph for the House Chimney icon.</summary>
     public const string HouseChimney = "\ue3af";
+    /// <summary>Font glyph for the House Chimney Crack icon.</summary>
     public const string HouseChimneyCrack = "\uf6f1";
+    /// <summary>Font glyph for the House Chimney Medical icon.</summary>
     public const string HouseChimneyMedical = "\uf7f2";
+    /// <summary>Font glyph for the House Chimney User icon.</summary>
     public const string HouseChimneyUser = "\ue065";
+    /// <summary>Font glyph for the House Chimney Window icon.</summary>
     public const string HouseChimneyWindow = "\ue00d";
+    /// <summary>Font glyph for the House Circle Check icon.</summary>
     public const string HouseCircleCheck = "\ue509";
+    /// <summary>Font glyph for the House Circle Exclamation icon.</summary>
     public const string HouseCircleExclamation = "\ue50a";
+    /// <summary>Font glyph for the House Circle Xmark icon.</summary>
     public const string HouseCircleXmark = "\ue50b";
+    /// <summary>Font glyph for the House Crack icon.</summary>
     public const string HouseCrack = "\ue3b1";
+    /// <summary>Font glyph for the House Fire icon.</summary>
     public const string HouseFire = "\ue50c";
+    /// <summary>Font glyph for the House Flag icon.</summary>
     public const string HouseFlag = "\ue50d";
+    /// <summary>Font glyph for the House Flood Water icon.</summary>
     public const string HouseFloodWater = "\ue50e";
+    /// <summary>Font glyph for the House Flood Water Circle Arrow Right icon.</summary>
     public const string HouseFloodWaterCircleArrowRight = "\ue50f";
+    /// <summary>Font glyph for the House Laptop icon.</summary>
     public const string HouseLaptop = "\ue066";
+    /// <summary>Font glyph for the House Lock icon.</summary>
     public const string HouseLock = "\ue510";
+    /// <summary>Font glyph for the House Medical icon.</summary>
     public const string HouseMedical = "\ue3b2";
+    /// <summary>Font glyph for the House Medical Circle Check icon.</summary>
     public const string HouseMedicalCircleCheck = "\ue511";
+    /// <summary>Font glyph for the House Medical Circle Exclamation icon.</summary>
     public const string HouseMedicalCircleExclamation = "\ue512";
+    /// <summary>Font glyph for the House Medical Circle Xmark icon.</summary>
     public const string HouseMedicalCircleXmark = "\ue513";
+    /// <summary>Font glyph for the House Medical Flag icon.</summary>
     public const string HouseMedicalFlag = "\ue514";
+    /// <summary>Font glyph for the House Signal icon.</summary>
     public const string HouseSignal = "\ue012";
+    /// <summary>Font glyph for the House Tsunami icon.</summary>
     public const string HouseTsunami = "\ue515";
+    /// <summary>Font glyph for the House User icon.</summary>
     public const string HouseUser = "\ue1b0";
+    /// <summary>Font glyph for the Hryvnia Sign icon.</summary>
     public const string HryvniaSign = "\uf6f2";
+    /// <summary>Font glyph for the Hurricane icon.</summary>
     public const string Hurricane = "\uf751";
+    /// <summary>Font glyph for the I icon.</summary>
     public const string I = "\u0049";
+    /// <summary>Font glyph for the Cursor icon.</summary>
     public const string Cursor = "\uf246";
+    /// <summary>Font glyph for the Ice Cream icon.</summary>
     public const string IceCream = "\uf810";
+    /// <summary>Font glyph for the Icicles icon.</summary>
     public const string Icicles = "\uf7ad";
+    /// <summary>Font glyph for the I Icons icon.</summary>
     public const string IIcons = "\uf86d";
+    /// <summary>Font glyph for the Id Badge icon.</summary>
     public const string IdBadge = "\uf2c1";
+    /// <summary>Font glyph for the Id Card icon.</summary>
     public const string IdCard = "\uf2c2";
+    /// <summary>Font glyph for the Id Card Clip icon.</summary>
     public const string IdCardClip = "\uf47f";
+    /// <summary>Font glyph for the Igloo icon.</summary>
     public const string Igloo = "\uf7ae";
+    /// <summary>Font glyph for the Image icon.</summary>
     public const string Image = "\uf03e";
+    /// <summary>Font glyph for the Image Portrait icon.</summary>
     public const string ImagePortrait = "\uf3e0";
+    /// <summary>Font glyph for the Images icon.</summary>
     public const string Images = "\uf302";
+    /// <summary>Font glyph for the Inbox icon.</summary>
     public const string Inbox = "\uf01c";
+    /// <summary>Font glyph for the Indent icon.</summary>
     public const string Indent = "\uf03c";
+    /// <summary>Font glyph for the Indian Rupee Sign icon.</summary>
     public const string IndianRupeeSign = "\ue1bc";
+    /// <summary>Font glyph for the Industry icon.</summary>
     public const string Industry = "\uf275";
+    /// <summary>Font glyph for the Infinity icon.</summary>
     public const string Infinity = "\uf534";
+    /// <summary>Font glyph for the Info icon.</summary>
     public const string Info = "\uf129";
+    /// <summary>Font glyph for the Italic icon.</summary>
     public const string Italic = "\uf033";
+    /// <summary>Font glyph for the J icon.</summary>
     public const string J = "\u004a";
+    /// <summary>Font glyph for the Jar icon.</summary>
     public const string Jar = "\ue516";
+    /// <summary>Font glyph for the Jar Wheat icon.</summary>
     public const string JarWheat = "\ue517";
+    /// <summary>Font glyph for the Jedi icon.</summary>
     public const string Jedi = "\uf669";
+    /// <summary>Font glyph for the Jet Fighter icon.</summary>
     public const string JetFighter = "\uf0fb";
+    /// <summary>Font glyph for the Jet Fighter Up icon.</summary>
     public const string JetFighterUp = "\ue518";
+    /// <summary>Font glyph for the Joint icon.</summary>
     public const string Joint = "\uf595";
+    /// <summary>Font glyph for the Jug Detergent icon.</summary>
     public const string JugDetergent = "\ue519";
+    /// <summary>Font glyph for the K icon.</summary>
     public const string K = "\u004b";
+    /// <summary>Font glyph for the Kaaba icon.</summary>
     public const string Kaaba = "\uf66b";
+    /// <summary>Font glyph for the Key icon.</summary>
     public const string Key = "\uf084";
+    /// <summary>Font glyph for the Keyboard icon.</summary>
     public const string Keyboard = "\uf11c";
+    /// <summary>Font glyph for the Khanda icon.</summary>
     public const string Khanda = "\uf66d";
+    /// <summary>Font glyph for the Kip Sign icon.</summary>
     public const string KipSign = "\ue1c4";
+    /// <summary>Font glyph for the Kit Medical icon.</summary>
     public const string KitMedical = "\uf479";
+    /// <summary>Font glyph for the Kitchen Set icon.</summary>
     public const string KitchenSet = "\ue51a";
+    /// <summary>Font glyph for the Kiwi Bird icon.</summary>
     public const string KiwiBird = "\uf535";
+    /// <summary>Font glyph for the L icon.</summary>
     public const string L = "\u004c";
+    /// <summary>Font glyph for the Land Mine On icon.</summary>
     public const string LandMineOn = "\ue51b";
+    /// <summary>Font glyph for the Landmark icon.</summary>
     public const string Landmark = "\uf66f";
+    /// <summary>Font glyph for the Landmark Dome icon.</summary>
     public const string LandmarkDome = "\uf752";
+    /// <summary>Font glyph for the Landmark Flag icon.</summary>
     public const string LandmarkFlag = "\ue51c";
+    /// <summary>Font glyph for the Language icon.</summary>
     public const string Language = "\uf1ab";
+    /// <summary>Font glyph for the Laptop icon.</summary>
     public const string Laptop = "\uf109";
+    /// <summary>Font glyph for the Laptop Code icon.</summary>
     public const string LaptopCode = "\uf5fc";
+    /// <summary>Font glyph for the Laptop File icon.</summary>
     public const string LaptopFile = "\ue51d";
+    /// <summary>Font glyph for the Laptop Medical icon.</summary>
     public const string LaptopMedical = "\uf812";
+    /// <summary>Font glyph for the Lari Sign icon.</summary>
     public const string LariSign = "\ue1c8";
+    /// <summary>Font glyph for the Layer Group icon.</summary>
     public const string LayerGroup = "\uf5fd";
+    /// <summary>Font glyph for the Leaf icon.</summary>
     public const string Leaf = "\uf06c";
+    /// <summary>Font glyph for the Left Long icon.</summary>
     public const string LeftLong = "\uf30a";
+    /// <summary>Font glyph for the Left Right icon.</summary>
     public const string LeftRight = "\uf337";
+    /// <summary>Font glyph for the Lemon icon.</summary>
     public const string Lemon = "\uf094";
+    /// <summary>Font glyph for the Less Than icon.</summary>
     public const string LessThan = "\u003c";
+    /// <summary>Font glyph for the Less Than Equal icon.</summary>
     public const string LessThanEqual = "\uf537";
+    /// <summary>Font glyph for the Life Ring icon.</summary>
     public const string LifeRing = "\uf1cd";
+    /// <summary>Font glyph for the Lightbulb icon.</summary>
     public const string Lightbulb = "\uf0eb";
+    /// <summary>Font glyph for the Lines Leaning icon.</summary>
     public const string LinesLeaning = "\ue51e";
+    /// <summary>Font glyph for the Link icon.</summary>
     public const string Link = "\uf0c1";
+    /// <summary>Font glyph for the Link Slash icon.</summary>
     public const string LinkSlash = "\uf127";
+    /// <summary>Font glyph for the Lira Sign icon.</summary>
     public const string LiraSign = "\uf195";
+    /// <summary>Font glyph for the List icon.</summary>
     public const string List = "\uf03a";
+    /// <summary>Font glyph for the List Check icon.</summary>
     public const string ListCheck = "\uf0ae";
+    /// <summary>Font glyph for the List Ol icon.</summary>
     public const string ListOl = "\uf0cb";
+    /// <summary>Font glyph for the List Ul icon.</summary>
     public const string ListUl = "\uf0ca";
+    /// <summary>Font glyph for the Litecoin Sign icon.</summary>
     public const string LitecoinSign = "\ue1d3";
+    /// <summary>Font glyph for the Location Arrow icon.</summary>
     public const string LocationArrow = "\uf124";
+    /// <summary>Font glyph for the Location Crosshairs icon.</summary>
     public const string LocationCrosshairs = "\uf601";
+    /// <summary>Font glyph for the Location Dot icon.</summary>
     public const string LocationDot = "\uf3c5";
+    /// <summary>Font glyph for the Location Pin icon.</summary>
     public const string LocationPin = "\uf041";
+    /// <summary>Font glyph for the Location Pin Lock icon.</summary>
     public const string LocationPinLock = "\ue51f";
+    /// <summary>Font glyph for the Lock icon.</summary>
     public const string Lock = "\uf023";
+    /// <summary>Font glyph for the Lock Open icon.</summary>
     public const string LockOpen = "\uf3c1";
+    /// <summary>Font glyph for the Locust icon.</summary>
     public const string Locust = "\ue520";
+    /// <summary>Font glyph for the Lungs icon.</summary>
     public const string Lungs = "\uf604";
+    /// <summary>Font glyph for the Lungs Virus icon.</summary>
     public const string LungsVirus = "\ue067";
+    /// <summary>Font glyph for the M icon.</summary>
     public const string M = "\u004d";
+    /// <summary>Font glyph for the Magnet icon.</summary>
     public const string Magnet = "\uf076";
+    /// <summary>Font glyph for the Magnifying Glass icon.</summary>
     public const string MagnifyingGlass = "\uf002";
+    /// <summary>Font glyph for the Magnifying Glass Arrow Right icon.</summary>
     public const string MagnifyingGlassArrowRight = "\ue521";
+    /// <summary>Font glyph for the Magnifying Glass Chart icon.</summary>
     public const string MagnifyingGlassChart = "\ue522";
+    /// <summary>Font glyph for the Magnifying Glass Dollar icon.</summary>
     public const string MagnifyingGlassDollar = "\uf688";
+    /// <summary>Font glyph for the Magnifying Glass Location icon.</summary>
     public const string MagnifyingGlassLocation = "\uf689";
+    /// <summary>Font glyph for the Magnifying Glass Minus icon.</summary>
     public const string MagnifyingGlassMinus = "\uf010";
+    /// <summary>Font glyph for the Magnifying Glass Plus icon.</summary>
     public const string MagnifyingGlassPlus = "\uf00e";
+    /// <summary>Font glyph for the Manat Sign icon.</summary>
     public const string ManatSign = "\ue1d5";
+    /// <summary>Font glyph for the Map icon.</summary>
     public const string Map = "\uf279";
+    /// <summary>Font glyph for the Map Location icon.</summary>
     public const string MapLocation = "\uf59f";
+    /// <summary>Font glyph for the Map Location Dot icon.</summary>
     public const string MapLocationDot = "\uf5a0";
+    /// <summary>Font glyph for the Map Pin icon.</summary>
     public const string MapPin = "\uf276";
+    /// <summary>Font glyph for the Marker icon.</summary>
     public const string Marker = "\uf5a1";
+    /// <summary>Font glyph for the Mars icon.</summary>
     public const string Mars = "\uf222";
+    /// <summary>Font glyph for the Mars And Venus icon.</summary>
     public const string MarsAndVenus = "\uf224";
+    /// <summary>Font glyph for the Mars And Venus Burst icon.</summary>
     public const string MarsAndVenusBurst = "\ue523";
+    /// <summary>Font glyph for the Mars Double icon.</summary>
     public const string MarsDouble = "\uf227";
+    /// <summary>Font glyph for the Mars Stroke icon.</summary>
     public const string MarsStroke = "\uf229";
+    /// <summary>Font glyph for the Mars Stroke Right icon.</summary>
     public const string MarsStrokeRight = "\uf22b";
+    /// <summary>Font glyph for the Mars Stroke Up icon.</summary>
     public const string MarsStrokeUp = "\uf22a";
+    /// <summary>Font glyph for the Martini Glass icon.</summary>
     public const string MartiniGlass = "\uf57b";
+    /// <summary>Font glyph for the Martini Glass Citrus icon.</summary>
     public const string MartiniGlassCitrus = "\uf561";
+    /// <summary>Font glyph for the Martini Glass Empty icon.</summary>
     public const string MartiniGlassEmpty = "\uf000";
+    /// <summary>Font glyph for the Mask icon.</summary>
     public const string Mask = "\uf6fa";
+    /// <summary>Font glyph for the Mask Face icon.</summary>
     public const string MaskFace = "\ue1d7";
+    /// <summary>Font glyph for the Mask Ventilator icon.</summary>
     public const string MaskVentilator = "\ue524";
+    /// <summary>Font glyph for the Masks Theater icon.</summary>
     public const string MasksTheater = "\uf630";
+    /// <summary>Font glyph for the Mattress Pillow icon.</summary>
     public const string MattressPillow = "\ue525";
+    /// <summary>Font glyph for the Maximize icon.</summary>
     public const string Maximize = "\uf31e";
+    /// <summary>Font glyph for the Medal icon.</summary>
     public const string Medal = "\uf5a2";
+    /// <summary>Font glyph for the Memory icon.</summary>
     public const string Memory = "\uf538";
+    /// <summary>Font glyph for the Menorah icon.</summary>
     public const string Menorah = "\uf676";
+    /// <summary>Font glyph for the Mercury icon.</summary>
     public const string Mercury = "\uf223";
+    /// <summary>Font glyph for the Message icon.</summary>
     public const string Message = "\uf27a";
+    /// <summary>Font glyph for the Meteor icon.</summary>
     public const string Meteor = "\uf753";
+    /// <summary>Font glyph for the Microchip icon.</summary>
     public const string Microchip = "\uf2db";
+    /// <summary>Font glyph for the Microphone icon.</summary>
     public const string Microphone = "\uf130";
+    /// <summary>Font glyph for the Microphone Lines icon.</summary>
     public const string MicrophoneLines = "\uf3c9";
+    /// <summary>Font glyph for the Microphone Lines Slash icon.</summary>
     public const string MicrophoneLinesSlash = "\uf539";
+    /// <summary>Font glyph for the Microphone Slash icon.</summary>
     public const string MicrophoneSlash = "\uf131";
+    /// <summary>Font glyph for the Microscope icon.</summary>
     public const string Microscope = "\uf610";
+    /// <summary>Font glyph for the Mill Sign icon.</summary>
     public const string MillSign = "\ue1ed";
+    /// <summary>Font glyph for the Minimize icon.</summary>
     public const string Minimize = "\uf78c";
+    /// <summary>Font glyph for the Minus icon.</summary>
     public const string Minus = "\uf068";
+    /// <summary>Font glyph for the Mitten icon.</summary>
     public const string Mitten = "\uf7b5";
+    /// <summary>Font glyph for the Mobile icon.</summary>
     public const string Mobile = "\uf3ce";
+    /// <summary>Font glyph for the Mobile Button icon.</summary>
     public const string MobileButton = "\uf10b";
+    /// <summary>Font glyph for the Mobile Retro icon.</summary>
     public const string MobileRetro = "\ue527";
+    /// <summary>Font glyph for the Mobile Screen icon.</summary>
     public const string MobileScreen = "\uf3cf";
+    /// <summary>Font glyph for the Mobile Screen Button icon.</summary>
     public const string MobileScreenButton = "\uf3cd";
+    /// <summary>Font glyph for the Money Bill icon.</summary>
     public const string MoneyBill = "\uf0d6";
+    /// <summary>Font glyph for the Money Bill1 icon.</summary>
     public const string MoneyBill1 = "\uf3d1";
+    /// <summary>Font glyph for the Money Bill1 Wave icon.</summary>
     public const string MoneyBill1Wave = "\uf53b";
+    /// <summary>Font glyph for the Money Bill Transfer icon.</summary>
     public const string MoneyBillTransfer = "\ue528";
+    /// <summary>Font glyph for the Money Bill Trend Up icon.</summary>
     public const string MoneyBillTrendUp = "\ue529";
+    /// <summary>Font glyph for the Money Bill Wave icon.</summary>
     public const string MoneyBillWave = "\uf53a";
+    /// <summary>Font glyph for the Money Bill Wheat icon.</summary>
     public const string MoneyBillWheat = "\ue52a";
+    /// <summary>Font glyph for the Money Bills icon.</summary>
     public const string MoneyBills = "\ue1f3";
+    /// <summary>Font glyph for the Money Check icon.</summary>
     public const string MoneyCheck = "\uf53c";
+    /// <summary>Font glyph for the Money Check Dollar icon.</summary>
     public const string MoneyCheckDollar = "\uf53d";
+    /// <summary>Font glyph for the Monument icon.</summary>
     public const string Monument = "\uf5a6";
+    /// <summary>Font glyph for the Moon icon.</summary>
     public const string Moon = "\uf186";
+    /// <summary>Font glyph for the Mortar Pestle icon.</summary>
     public const string MortarPestle = "\uf5a7";
+    /// <summary>Font glyph for the Mosque icon.</summary>
     public const string Mosque = "\uf678";
+    /// <summary>Font glyph for the Mosquito icon.</summary>
     public const string Mosquito = "\ue52b";
+    /// <summary>Font glyph for the Mosquito Net icon.</summary>
     public const string MosquitoNet = "\ue52c";
+    /// <summary>Font glyph for the Motorcycle icon.</summary>
     public const string Motorcycle = "\uf21c";
+    /// <summary>Font glyph for the Mound icon.</summary>
     public const string Mound = "\ue52d";
+    /// <summary>Font glyph for the Mountain icon.</summary>
     public const string Mountain = "\uf6fc";
+    /// <summary>Font glyph for the Mountain City icon.</summary>
     public const string MountainCity = "\ue52e";
+    /// <summary>Font glyph for the Mountain Sun icon.</summary>
     public const string MountainSun = "\ue52f";
+    /// <summary>Font glyph for the Mug Hot icon.</summary>
     public const string MugHot = "\uf7b6";
+    /// <summary>Font glyph for the Mug Saucer icon.</summary>
     public const string MugSaucer = "\uf0f4";
+    /// <summary>Font glyph for the Music icon.</summary>
     public const string Music = "\uf001";
+    /// <summary>Font glyph for the N icon.</summary>
     public const string N = "\u004e";
+    /// <summary>Font glyph for the Naira Sign icon.</summary>
     public const string NairaSign = "\ue1f6";
+    /// <summary>Font glyph for the Network Wired icon.</summary>
     public const string NetworkWired = "\uf6ff";
+    /// <summary>Font glyph for the Neuter icon.</summary>
     public const string Neuter = "\uf22c";
+    /// <summary>Font glyph for the Newspaper icon.</summary>
     public const string Newspaper = "\uf1ea";
+    /// <summary>Font glyph for the Not Equal icon.</summary>
     public const string NotEqual = "\uf53e";
+    /// <summary>Font glyph for the Notdef icon.</summary>
     public const string Notdef = "\ue1fe";
+    /// <summary>Font glyph for the Note Sticky icon.</summary>
     public const string NoteSticky = "\uf249";
+    /// <summary>Font glyph for the Notes Medical icon.</summary>
     public const string NotesMedical = "\uf481";
+    /// <summary>Font glyph for the O icon.</summary>
     public const string O = "\u004f";
+    /// <summary>Font glyph for the Object Group icon.</summary>
     public const string ObjectGroup = "\uf247";
+    /// <summary>Font glyph for the Object Ungroup icon.</summary>
     public const string ObjectUngroup = "\uf248";
+    /// <summary>Font glyph for the Oil Can icon.</summary>
     public const string OilCan = "\uf613";
+    /// <summary>Font glyph for the Oil Well icon.</summary>
     public const string OilWell = "\ue532";
+    /// <summary>Font glyph for the Om icon.</summary>
     public const string Om = "\uf679";
+    /// <summary>Font glyph for the Otter icon.</summary>
     public const string Otter = "\uf700";
+    /// <summary>Font glyph for the Outdent icon.</summary>
     public const string Outdent = "\uf03b";
+    /// <summary>Font glyph for the P icon.</summary>
     public const string P = "\u0050";
+    /// <summary>Font glyph for the Pager icon.</summary>
     public const string Pager = "\uf815";
+    /// <summary>Font glyph for the Paint Roller icon.</summary>
     public const string PaintRoller = "\uf5aa";
+    /// <summary>Font glyph for the Paintbrush icon.</summary>
     public const string Paintbrush = "\uf1fc";
+    /// <summary>Font glyph for the Palette icon.</summary>
     public const string Palette = "\uf53f";
+    /// <summary>Font glyph for the Pallet icon.</summary>
     public const string Pallet = "\uf482";
+    /// <summary>Font glyph for the Panorama icon.</summary>
     public const string Panorama = "\ue209";
+    /// <summary>Font glyph for the Paper Plane icon.</summary>
     public const string PaperPlane = "\uf1d8";
+    /// <summary>Font glyph for the Paperclip icon.</summary>
     public const string Paperclip = "\uf0c6";
+    /// <summary>Font glyph for the Parachute Box icon.</summary>
     public const string ParachuteBox = "\uf4cd";
+    /// <summary>Font glyph for the Paragraph icon.</summary>
     public const string Paragraph = "\uf1dd";
+    /// <summary>Font glyph for the Passport icon.</summary>
     public const string Passport = "\uf5ab";
+    /// <summary>Font glyph for the Paste icon.</summary>
     public const string Paste = "\uf0ea";
+    /// <summary>Font glyph for the Pause icon.</summary>
     public const string Pause = "\uf04c";
+    /// <summary>Font glyph for the Paw icon.</summary>
     public const string Paw = "\uf1b0";
+    /// <summary>Font glyph for the Peace icon.</summary>
     public const string Peace = "\uf67c";
+    /// <summary>Font glyph for the Pen icon.</summary>
     public const string Pen = "\uf304";
+    /// <summary>Font glyph for the Pen Clip icon.</summary>
     public const string PenClip = "\uf305";
+    /// <summary>Font glyph for the Pen Fancy icon.</summary>
     public const string PenFancy = "\uf5ac";
+    /// <summary>Font glyph for the Pen Nib icon.</summary>
     public const string PenNib = "\uf5ad";
+    /// <summary>Font glyph for the Pen Ruler icon.</summary>
     public const string PenRuler = "\uf5ae";
+    /// <summary>Font glyph for the Pen To Square icon.</summary>
     public const string PenToSquare = "\uf044";
+    /// <summary>Font glyph for the Pencil icon.</summary>
     public const string Pencil = "\uf303";
+    /// <summary>Font glyph for the People Arrows icon.</summary>
     public const string PeopleArrows = "\ue068";
+    /// <summary>Font glyph for the People Carry Box icon.</summary>
     public const string PeopleCarryBox = "\uf4ce";
+    /// <summary>Font glyph for the People Group icon.</summary>
     public const string PeopleGroup = "\ue533";
+    /// <summary>Font glyph for the People Line icon.</summary>
     public const string PeopleLine = "\ue534";
+    /// <summary>Font glyph for the People Pulling icon.</summary>
     public const string PeoplePulling = "\ue535";
+    /// <summary>Font glyph for the People Robbery icon.</summary>
     public const string PeopleRobbery = "\ue536";
+    /// <summary>Font glyph for the People Roof icon.</summary>
     public const string PeopleRoof = "\ue537";
+    /// <summary>Font glyph for the Pepper Hot icon.</summary>
     public const string PepperHot = "\uf816";
+    /// <summary>Font glyph for the Percent icon.</summary>
     public const string Percent = "\u0025";
+    /// <summary>Font glyph for the Person icon.</summary>
     public const string Person = "\uf183";
+    /// <summary>Font glyph for the Person Arrow Down To Line icon.</summary>
     public const string PersonArrowDownToLine = "\ue538";
+    /// <summary>Font glyph for the Person Arrow Up From Line icon.</summary>
     public const string PersonArrowUpFromLine = "\ue539";
+    /// <summary>Font glyph for the Person Biking icon.</summary>
     public const string PersonBiking = "\uf84a";
+    /// <summary>Font glyph for the Person Booth icon.</summary>
     public const string PersonBooth = "\uf756";
+    /// <summary>Font glyph for the Person Breastfeeding icon.</summary>
     public const string PersonBreastfeeding = "\ue53a";
+    /// <summary>Font glyph for the Person Burst icon.</summary>
     public const string PersonBurst = "\ue53b";
+    /// <summary>Font glyph for the Person Cane icon.</summary>
     public const string PersonCane = "\ue53c";
+    /// <summary>Font glyph for the Person Chalkboard icon.</summary>
     public const string PersonChalkboard = "\ue53d";
+    /// <summary>Font glyph for the Person Circle Check icon.</summary>
     public const string PersonCircleCheck = "\ue53e";
+    /// <summary>Font glyph for the Person Circle Exclamation icon.</summary>
     public const string PersonCircleExclamation = "\ue53f";
+    /// <summary>Font glyph for the Person Circle Minus icon.</summary>
     public const string PersonCircleMinus = "\ue540";
+    /// <summary>Font glyph for the Person Circle Plus icon.</summary>
     public const string PersonCirclePlus = "\ue541";
+    /// <summary>Font glyph for the Person Circle Question icon.</summary>
     public const string PersonCircleQuestion = "\ue542";
+    /// <summary>Font glyph for the Person Circle Xmark icon.</summary>
     public const string PersonCircleXmark = "\ue543";
+    /// <summary>Font glyph for the Person Digging icon.</summary>
     public const string PersonDigging = "\uf85e";
+    /// <summary>Font glyph for the Person Dots From Line icon.</summary>
     public const string PersonDotsFromLine = "\uf470";
+    /// <summary>Font glyph for the Person Dress icon.</summary>
     public const string PersonDress = "\uf182";
+    /// <summary>Font glyph for the Person Dress Burst icon.</summary>
     public const string PersonDressBurst = "\ue544";
+    /// <summary>Font glyph for the Person Drowning icon.</summary>
     public const string PersonDrowning = "\ue545";
+    /// <summary>Font glyph for the Person Falling icon.</summary>
     public const string PersonFalling = "\ue546";
+    /// <summary>Font glyph for the Person Falling Burst icon.</summary>
     public const string PersonFallingBurst = "\ue547";
+    /// <summary>Font glyph for the Person Half Dress icon.</summary>
     public const string PersonHalfDress = "\ue548";
+    /// <summary>Font glyph for the Person Harassing icon.</summary>
     public const string PersonHarassing = "\ue549";
+    /// <summary>Font glyph for the Person Hiking icon.</summary>
     public const string PersonHiking = "\uf6ec";
+    /// <summary>Font glyph for the Person Military Pointing icon.</summary>
     public const string PersonMilitaryPointing = "\ue54a";
+    /// <summary>Font glyph for the Person Military Rifle icon.</summary>
     public const string PersonMilitaryRifle = "\ue54b";
+    /// <summary>Font glyph for the Person Military To Person icon.</summary>
     public const string PersonMilitaryToPerson = "\ue54c";
+    /// <summary>Font glyph for the Person Praying icon.</summary>
     public const string PersonPraying = "\uf683";
+    /// <summary>Font glyph for the Person Pregnant icon.</summary>
     public const string PersonPregnant = "\ue31e";
+    /// <summary>Font glyph for the Person Rays icon.</summary>
     public const string PersonRays = "\ue54d";
+    /// <summary>Font glyph for the Person Rifle icon.</summary>
     public const string PersonRifle = "\ue54e";
+    /// <summary>Font glyph for the Person Running icon.</summary>
     public const string PersonRunning = "\uf70c";
+    /// <summary>Font glyph for the Person Shelter icon.</summary>
     public const string PersonShelter = "\ue54f";
+    /// <summary>Font glyph for the Person Skating icon.</summary>
     public const string PersonSkating = "\uf7c5";
+    /// <summary>Font glyph for the Person Skiing icon.</summary>
     public const string PersonSkiing = "\uf7c9";
+    /// <summary>Font glyph for the Person Skiing Nordic icon.</summary>
     public const string PersonSkiingNordic = "\uf7ca";
+    /// <summary>Font glyph for the Person Snowboarding icon.</summary>
     public const string PersonSnowboarding = "\uf7ce";
+    /// <summary>Font glyph for the Person Swimming icon.</summary>
     public const string PersonSwimming = "\uf5c4";
+    /// <summary>Font glyph for the Person Through Window icon.</summary>
     public const string PersonThroughWindow = "\ue5a9";
+    /// <summary>Font glyph for the Person Walking icon.</summary>
     public const string PersonWalking = "\uf554";
+    /// <summary>Font glyph for the Person Walking Arrow Loop Left icon.</summary>
     public const string PersonWalkingArrowLoopLeft = "\ue551";
+    /// <summary>Font glyph for the Person Walking Arrow Right icon.</summary>
     public const string PersonWalkingArrowRight = "\ue552";
+    /// <summary>Font glyph for the Person Walking Dashed Line Arrow Right icon.</summary>
     public const string PersonWalkingDashedLineArrowRight = "\ue553";
+    /// <summary>Font glyph for the Person Walking Luggage icon.</summary>
     public const string PersonWalkingLuggage = "\ue554";
+    /// <summary>Font glyph for the Person Walking With Cane icon.</summary>
     public const string PersonWalkingWithCane = "\uf29d";
+    /// <summary>Font glyph for the Peseta Sign icon.</summary>
     public const string PesetaSign = "\ue221";
+    /// <summary>Font glyph for the Peso Sign icon.</summary>
     public const string PesoSign = "\ue222";
+    /// <summary>Font glyph for the Phone icon.</summary>
     public const string Phone = "\uf095";
+    /// <summary>Font glyph for the Phone Flip icon.</summary>
     public const string PhoneFlip = "\uf879";
+    /// <summary>Font glyph for the Phone Slash icon.</summary>
     public const string PhoneSlash = "\uf3dd";
+    /// <summary>Font glyph for the Phone Volume icon.</summary>
     public const string PhoneVolume = "\uf2a0";
+    /// <summary>Font glyph for the Photo Film icon.</summary>
     public const string PhotoFilm = "\uf87c";
+    /// <summary>Font glyph for the Piggy Bank icon.</summary>
     public const string PiggyBank = "\uf4d3";
+    /// <summary>Font glyph for the Pills icon.</summary>
     public const string Pills = "\uf484";
+    /// <summary>Font glyph for the Pizza Slice icon.</summary>
     public const string PizzaSlice = "\uf818";
+    /// <summary>Font glyph for the Place Of Worship icon.</summary>
     public const string PlaceOfWorship = "\uf67f";
+    /// <summary>Font glyph for the Plane icon.</summary>
     public const string Plane = "\uf072";
+    /// <summary>Font glyph for the Plane Arrival icon.</summary>
     public const string PlaneArrival = "\uf5af";
+    /// <summary>Font glyph for the Plane Circle Check icon.</summary>
     public const string PlaneCircleCheck = "\ue555";
+    /// <summary>Font glyph for the Plane Circle Exclamation icon.</summary>
     public const string PlaneCircleExclamation = "\ue556";
+    /// <summary>Font glyph for the Plane Circle Xmark icon.</summary>
     public const string PlaneCircleXmark = "\ue557";
+    /// <summary>Font glyph for the Plane Departure icon.</summary>
     public const string PlaneDeparture = "\uf5b0";
+    /// <summary>Font glyph for the Plane Lock icon.</summary>
     public const string PlaneLock = "\ue558";
+    /// <summary>Font glyph for the Plane Slash icon.</summary>
     public const string PlaneSlash = "\ue069";
+    /// <summary>Font glyph for the Plane Up icon.</summary>
     public const string PlaneUp = "\ue22d";
+    /// <summary>Font glyph for the Plant Wilt icon.</summary>
     public const string PlantWilt = "\ue5aa";
+    /// <summary>Font glyph for the Plate Wheat icon.</summary>
     public const string PlateWheat = "\ue55a";
+    /// <summary>Font glyph for the Play icon.</summary>
     public const string Play = "\uf04b";
+    /// <summary>Font glyph for the Plug icon.</summary>
     public const string Plug = "\uf1e6";
+    /// <summary>Font glyph for the Plug Circle Bolt icon.</summary>
     public const string PlugCircleBolt = "\ue55b";
+    /// <summary>Font glyph for the Plug Circle Check icon.</summary>
     public const string PlugCircleCheck = "\ue55c";
+    /// <summary>Font glyph for the Plug Circle Exclamation icon.</summary>
     public const string PlugCircleExclamation = "\ue55d";
+    /// <summary>Font glyph for the Plug Circle Minus icon.</summary>
     public const string PlugCircleMinus = "\ue55e";
+    /// <summary>Font glyph for the Plug Circle Plus icon.</summary>
     public const string PlugCirclePlus = "\ue55f";
+    /// <summary>Font glyph for the Plug Circle Xmark icon.</summary>
     public const string PlugCircleXmark = "\ue560";
+    /// <summary>Font glyph for the Plus icon.</summary>
     public const string Plus = "\u002b";
+    /// <summary>Font glyph for the Plus Minus icon.</summary>
     public const string PlusMinus = "\ue43c";
+    /// <summary>Font glyph for the Podcast icon.</summary>
     public const string Podcast = "\uf2ce";
+    /// <summary>Font glyph for the Poo icon.</summary>
     public const string Poo = "\uf2fe";
+    /// <summary>Font glyph for the Poo Storm icon.</summary>
     public const string PooStorm = "\uf75a";
+    /// <summary>Font glyph for the Poop icon.</summary>
     public const string Poop = "\uf619";
+    /// <summary>Font glyph for the Power Off icon.</summary>
     public const string PowerOff = "\uf011";
+    /// <summary>Font glyph for the Prescription icon.</summary>
     public const string Prescription = "\uf5b1";
+    /// <summary>Font glyph for the Prescription Bottle icon.</summary>
     public const string PrescriptionBottle = "\uf485";
+    /// <summary>Font glyph for the Prescription Bottle Medical icon.</summary>
     public const string PrescriptionBottleMedical = "\uf486";
+    /// <summary>Font glyph for the Print icon.</summary>
     public const string Print = "\uf02f";
+    /// <summary>Font glyph for the Pump Medical icon.</summary>
     public const string PumpMedical = "\ue06a";
+    /// <summary>Font glyph for the Pump Soap icon.</summary>
     public const string PumpSoap = "\ue06b";
+    /// <summary>Font glyph for the Puzzle Piece icon.</summary>
     public const string PuzzlePiece = "\uf12e";
+    /// <summary>Font glyph for the Q icon.</summary>
     public const string Q = "\u0051";
+    /// <summary>Font glyph for the Qrcode icon.</summary>
     public const string Qrcode = "\uf029";
+    /// <summary>Font glyph for the Question icon.</summary>
     public const string Question = "\u003f";
+    /// <summary>Font glyph for the Quote Left icon.</summary>
     public const string QuoteLeft = "\uf10d";
+    /// <summary>Font glyph for the Quote Right icon.</summary>
     public const string QuoteRight = "\uf10e";
+    /// <summary>Font glyph for the R icon.</summary>
     public const string R = "\u0052";
+    /// <summary>Font glyph for the Radiation icon.</summary>
     public const string Radiation = "\uf7b9";
+    /// <summary>Font glyph for the Radio icon.</summary>
     public const string Radio = "\uf8d7";
+    /// <summary>Font glyph for the Rainbow icon.</summary>
     public const string Rainbow = "\uf75b";
+    /// <summary>Font glyph for the Ranking Star icon.</summary>
     public const string RankingStar = "\ue561";
+    /// <summary>Font glyph for the Receipt icon.</summary>
     public const string Receipt = "\uf543";
+    /// <summary>Font glyph for the Record Vinyl icon.</summary>
     public const string RecordVinyl = "\uf8d9";
+    /// <summary>Font glyph for the Rectangle Ad icon.</summary>
     public const string RectangleAd = "\uf641";
+    /// <summary>Font glyph for the Rectangle List icon.</summary>
     public const string RectangleList = "\uf022";
+    /// <summary>Font glyph for the Rectangle Xmark icon.</summary>
     public const string RectangleXmark = "\uf410";
+    /// <summary>Font glyph for the Recycle icon.</summary>
     public const string Recycle = "\uf1b8";
+    /// <summary>Font glyph for the Registered icon.</summary>
     public const string Registered = "\uf25d";
+    /// <summary>Font glyph for the Repeat icon.</summary>
     public const string Repeat = "\uf363";
+    /// <summary>Font glyph for the Reply icon.</summary>
     public const string Reply = "\uf3e5";
+    /// <summary>Font glyph for the Reply All icon.</summary>
     public const string ReplyAll = "\uf122";
+    /// <summary>Font glyph for the Republican icon.</summary>
     public const string Republican = "\uf75e";
+    /// <summary>Font glyph for the Restroom icon.</summary>
     public const string Restroom = "\uf7bd";
+    /// <summary>Font glyph for the Retweet icon.</summary>
     public const string Retweet = "\uf079";
+    /// <summary>Font glyph for the Ribbon icon.</summary>
     public const string Ribbon = "\uf4d6";
+    /// <summary>Font glyph for the Right From Bracket icon.</summary>
     public const string RightFromBracket = "\uf2f5";
+    /// <summary>Font glyph for the Right Left icon.</summary>
     public const string RightLeft = "\uf362";
+    /// <summary>Font glyph for the Right Long icon.</summary>
     public const string RightLong = "\uf30b";
+    /// <summary>Font glyph for the Right To Bracket icon.</summary>
     public const string RightToBracket = "\uf2f6";
+    /// <summary>Font glyph for the Ring icon.</summary>
     public const string Ring = "\uf70b";
+    /// <summary>Font glyph for the Road icon.</summary>
     public const string Road = "\uf018";
+    /// <summary>Font glyph for the Road Barrier icon.</summary>
     public const string RoadBarrier = "\ue562";
+    /// <summary>Font glyph for the Road Bridge icon.</summary>
     public const string RoadBridge = "\ue563";
+    /// <summary>Font glyph for the Road Circle Check icon.</summary>
     public const string RoadCircleCheck = "\ue564";
+    /// <summary>Font glyph for the Road Circle Exclamation icon.</summary>
     public const string RoadCircleExclamation = "\ue565";
+    /// <summary>Font glyph for the Road Circle Xmark icon.</summary>
     public const string RoadCircleXmark = "\ue566";
+    /// <summary>Font glyph for the Road Lock icon.</summary>
     public const string RoadLock = "\ue567";
+    /// <summary>Font glyph for the Road Spikes icon.</summary>
     public const string RoadSpikes = "\ue568";
+    /// <summary>Font glyph for the Robot icon.</summary>
     public const string Robot = "\uf544";
+    /// <summary>Font glyph for the Rocket icon.</summary>
     public const string Rocket = "\uf135";
+    /// <summary>Font glyph for the Rotate icon.</summary>
     public const string Rotate = "\uf2f1";
+    /// <summary>Font glyph for the Rotate Left icon.</summary>
     public const string RotateLeft = "\uf2ea";
+    /// <summary>Font glyph for the Rotate Right icon.</summary>
     public const string RotateRight = "\uf2f9";
+    /// <summary>Font glyph for the Route icon.</summary>
     public const string Route = "\uf4d7";
+    /// <summary>Font glyph for the Rss icon.</summary>
     public const string Rss = "\uf09e";
+    /// <summary>Font glyph for the Ruble Sign icon.</summary>
     public const string RubleSign = "\uf158";
+    /// <summary>Font glyph for the Rug icon.</summary>
     public const string Rug = "\ue569";
+    /// <summary>Font glyph for the Ruler icon.</summary>
     public const string Ruler = "\uf545";
+    /// <summary>Font glyph for the Ruler Combined icon.</summary>
     public const string RulerCombined = "\uf546";
+    /// <summary>Font glyph for the Ruler Horizontal icon.</summary>
     public const string RulerHorizontal = "\uf547";
+    /// <summary>Font glyph for the Ruler Vertical icon.</summary>
     public const string RulerVertical = "\uf548";
+    /// <summary>Font glyph for the Rupee Sign icon.</summary>
     public const string RupeeSign = "\uf156";
+    /// <summary>Font glyph for the Rupiah Sign icon.</summary>
     public const string RupiahSign = "\ue23d";
+    /// <summary>Font glyph for the S icon.</summary>
     public const string S = "\u0053";
+    /// <summary>Font glyph for the Sack Dollar icon.</summary>
     public const string SackDollar = "\uf81d";
+    /// <summary>Font glyph for the Sack Xmark icon.</summary>
     public const string SackXmark = "\ue56a";
+    /// <summary>Font glyph for the Sailboat icon.</summary>
     public const string Sailboat = "\ue445";
+    /// <summary>Font glyph for the Satellite icon.</summary>
     public const string Satellite = "\uf7bf";
+    /// <summary>Font glyph for the Satellite Dish icon.</summary>
     public const string SatelliteDish = "\uf7c0";
+    /// <summary>Font glyph for the Scale Balanced icon.</summary>
     public const string ScaleBalanced = "\uf24e";
+    /// <summary>Font glyph for the Scale Unbalanced icon.</summary>
     public const string ScaleUnbalanced = "\uf515";
+    /// <summary>Font glyph for the Scale Unbalanced Flip icon.</summary>
     public const string ScaleUnbalancedFlip = "\uf516";
+    /// <summary>Font glyph for the School icon.</summary>
     public const string School = "\uf549";
+    /// <summary>Font glyph for the School Circle Check icon.</summary>
     public const string SchoolCircleCheck = "\ue56b";
+    /// <summary>Font glyph for the School Circle Exclamation icon.</summary>
     public const string SchoolCircleExclamation = "\ue56c";
+    /// <summary>Font glyph for the School Circle Xmark icon.</summary>
     public const string SchoolCircleXmark = "\ue56d";
+    /// <summary>Font glyph for the School Flag icon.</summary>
     public const string SchoolFlag = "\ue56e";
+    /// <summary>Font glyph for the School Lock icon.</summary>
     public const string SchoolLock = "\ue56f";
+    /// <summary>Font glyph for the Scissors icon.</summary>
     public const string Scissors = "\uf0c4";
+    /// <summary>Font glyph for the Screwdriver icon.</summary>
     public const string Screwdriver = "\uf54a";
+    /// <summary>Font glyph for the Screwdriver Wrench icon.</summary>
     public const string ScrewdriverWrench = "\uf7d9";
+    /// <summary>Font glyph for the Scroll icon.</summary>
     public const string Scroll = "\uf70e";
+    /// <summary>Font glyph for the Scroll Torah icon.</summary>
     public const string ScrollTorah = "\uf6a0";
+    /// <summary>Font glyph for the Sd Card icon.</summary>
     public const string SdCard = "\uf7c2";
+    /// <summary>Font glyph for the Section icon.</summary>
     public const string Section = "\ue447";
+    /// <summary>Font glyph for the Seedling icon.</summary>
     public const string Seedling = "\uf4d8";
+    /// <summary>Font glyph for the Server icon.</summary>
     public const string Server = "\uf233";
+    /// <summary>Font glyph for the Shapes icon.</summary>
     public const string Shapes = "\uf61f";
+    /// <summary>Font glyph for the Share icon.</summary>
     public const string Share = "\uf064";
+    /// <summary>Font glyph for the Share From Square icon.</summary>
     public const string ShareFromSquare = "\uf14d";
+    /// <summary>Font glyph for the Share Nodes icon.</summary>
     public const string ShareNodes = "\uf1e0";
+    /// <summary>Font glyph for the Sheet Plastic icon.</summary>
     public const string SheetPlastic = "\ue571";
+    /// <summary>Font glyph for the Shekel Sign icon.</summary>
     public const string ShekelSign = "\uf20b";
+    /// <summary>Font glyph for the Shield icon.</summary>
     public const string Shield = "\uf132";
+    /// <summary>Font glyph for the Shield Cat icon.</summary>
     public const string ShieldCat = "\ue572";
+    /// <summary>Font glyph for the Shield Dog icon.</summary>
     public const string ShieldDog = "\ue573";
+    /// <summary>Font glyph for the Shield Halved icon.</summary>
     public const string ShieldHalved = "\uf3ed";
+    /// <summary>Font glyph for the Shield Heart icon.</summary>
     public const string ShieldHeart = "\ue574";
+    /// <summary>Font glyph for the Shield Virus icon.</summary>
     public const string ShieldVirus = "\ue06c";
+    /// <summary>Font glyph for the Ship icon.</summary>
     public const string Ship = "\uf21a";
+    /// <summary>Font glyph for the Shirt icon.</summary>
     public const string Shirt = "\uf553";
+    /// <summary>Font glyph for the Shoe Prints icon.</summary>
     public const string ShoePrints = "\uf54b";
+    /// <summary>Font glyph for the Shop icon.</summary>
     public const string Shop = "\uf54f";
+    /// <summary>Font glyph for the Shop Lock icon.</summary>
     public const string ShopLock = "\ue4a5";
+    /// <summary>Font glyph for the Shop Slash icon.</summary>
     public const string ShopSlash = "\ue070";
+    /// <summary>Font glyph for the Shower icon.</summary>
     public const string Shower = "\uf2cc";
+    /// <summary>Font glyph for the Shrimp icon.</summary>
     public const string Shrimp = "\ue448";
+    /// <summary>Font glyph for the Shuffle icon.</summary>
     public const string Shuffle = "\uf074";
+    /// <summary>Font glyph for the Shuttle Space icon.</summary>
     public const string ShuttleSpace = "\uf197";
+    /// <summary>Font glyph for the Sign Hanging icon.</summary>
     public const string SignHanging = "\uf4d9";
+    /// <summary>Font glyph for the Signal icon.</summary>
     public const string Signal = "\uf012";
+    /// <summary>Font glyph for the Signature icon.</summary>
     public const string Signature = "\uf5b7";
+    /// <summary>Font glyph for the Signs Post icon.</summary>
     public const string SignsPost = "\uf277";
+    /// <summary>Font glyph for the Sim Card icon.</summary>
     public const string SimCard = "\uf7c4";
+    /// <summary>Font glyph for the Sink icon.</summary>
     public const string Sink = "\ue06d";
+    /// <summary>Font glyph for the Sitemap icon.</summary>
     public const string Sitemap = "\uf0e8";
+    /// <summary>Font glyph for the Skull icon.</summary>
     public const string Skull = "\uf54c";
+    /// <summary>Font glyph for the Skull Crossbones icon.</summary>
     public const string SkullCrossbones = "\uf714";
+    /// <summary>Font glyph for the Slash icon.</summary>
     public const string Slash = "\uf715";
+    /// <summary>Font glyph for the Sleigh icon.</summary>
     public const string Sleigh = "\uf7cc";
+    /// <summary>Font glyph for the Sliders icon.</summary>
     public const string Sliders = "\uf1de";
+    /// <summary>Font glyph for the Smog icon.</summary>
     public const string Smog = "\uf75f";
+    /// <summary>Font glyph for the Smoking icon.</summary>
     public const string Smoking = "\uf48d";
+    /// <summary>Font glyph for the Snowflake icon.</summary>
     public const string Snowflake = "\uf2dc";
+    /// <summary>Font glyph for the Snowman icon.</summary>
     public const string Snowman = "\uf7d0";
+    /// <summary>Font glyph for the Snowplow icon.</summary>
     public const string Snowplow = "\uf7d2";
+    /// <summary>Font glyph for the Soap icon.</summary>
     public const string Soap = "\ue06e";
+    /// <summary>Font glyph for the Socks icon.</summary>
     public const string Socks = "\uf696";
+    /// <summary>Font glyph for the Solar Panel icon.</summary>
     public const string SolarPanel = "\uf5ba";
+    /// <summary>Font glyph for the Sort icon.</summary>
     public const string Sort = "\uf0dc";
+    /// <summary>Font glyph for the Sort Down icon.</summary>
     public const string SortDown = "\uf0dd";
+    /// <summary>Font glyph for the Sort Up icon.</summary>
     public const string SortUp = "\uf0de";
+    /// <summary>Font glyph for the Spa icon.</summary>
     public const string Spa = "\uf5bb";
+    /// <summary>Font glyph for the Spaghetti Monster Flying icon.</summary>
     public const string SpaghettiMonsterFlying = "\uf67b";
+    /// <summary>Font glyph for the Spell Check icon.</summary>
     public const string SpellCheck = "\uf891";
+    /// <summary>Font glyph for the Spider icon.</summary>
     public const string Spider = "\uf717";
+    /// <summary>Font glyph for the Spinner icon.</summary>
     public const string Spinner = "\uf110";
+    /// <summary>Font glyph for the Splotch icon.</summary>
     public const string Splotch = "\uf5bc";
+    /// <summary>Font glyph for the Spoon icon.</summary>
     public const string Spoon = "\uf2e5";
+    /// <summary>Font glyph for the Spray Can icon.</summary>
     public const string SprayCan = "\uf5bd";
+    /// <summary>Font glyph for the Spray Can Sparkles icon.</summary>
     public const string SprayCanSparkles = "\uf5d0";
+    /// <summary>Font glyph for the Square icon.</summary>
     public const string Square = "\uf0c8";
+    /// <summary>Font glyph for the Square Arrow Up Right icon.</summary>
     public const string SquareArrowUpRight = "\uf14c";
+    /// <summary>Font glyph for the Square Caret Down icon.</summary>
     public const string SquareCaretDown = "\uf150";
+    /// <summary>Font glyph for the Square Caret Left icon.</summary>
     public const string SquareCaretLeft = "\uf191";
+    /// <summary>Font glyph for the Square Caret Right icon.</summary>
     public const string SquareCaretRight = "\uf152";
+    /// <summary>Font glyph for the Square Caret Up icon.</summary>
     public const string SquareCaretUp = "\uf151";
+    /// <summary>Font glyph for the Square Check icon.</summary>
     public const string SquareCheck = "\uf14a";
+    /// <summary>Font glyph for the Square Envelope icon.</summary>
     public const string SquareEnvelope = "\uf199";
+    /// <summary>Font glyph for the Square Full icon.</summary>
     public const string SquareFull = "\uf45c";
+    /// <summary>Font glyph for the Square H icon.</summary>
     public const string SquareH = "\uf0fd";
+    /// <summary>Font glyph for the Square Minus icon.</summary>
     public const string SquareMinus = "\uf146";
+    /// <summary>Font glyph for the Square Nfi icon.</summary>
     public const string SquareNfi = "\ue576";
+    /// <summary>Font glyph for the Square Parking icon.</summary>
     public const string SquareParking = "\uf540";
+    /// <summary>Font glyph for the Square Pen icon.</summary>
     public const string SquarePen = "\uf14b";
+    /// <summary>Font glyph for the Square Person Confined icon.</summary>
     public const string SquarePersonConfined = "\ue577";
+    /// <summary>Font glyph for the Square Phone icon.</summary>
     public const string SquarePhone = "\uf098";
+    /// <summary>Font glyph for the Square Phone Flip icon.</summary>
     public const string SquarePhoneFlip = "\uf87b";
+    /// <summary>Font glyph for the Square Plus icon.</summary>
     public const string SquarePlus = "\uf0fe";
+    /// <summary>Font glyph for the Square Poll Horizontal icon.</summary>
     public const string SquarePollHorizontal = "\uf682";
+    /// <summary>Font glyph for the Square Poll Vertical icon.</summary>
     public const string SquarePollVertical = "\uf681";
+    /// <summary>Font glyph for the Square Root Variable icon.</summary>
     public const string SquareRootVariable = "\uf698";
+    /// <summary>Font glyph for the Square Rss icon.</summary>
     public const string SquareRss = "\uf143";
+    /// <summary>Font glyph for the Square Share Nodes icon.</summary>
     public const string SquareShareNodes = "\uf1e1";
+    /// <summary>Font glyph for the Square Up Right icon.</summary>
     public const string SquareUpRight = "\uf360";
+    /// <summary>Font glyph for the Square Virus icon.</summary>
     public const string SquareVirus = "\ue578";
+    /// <summary>Font glyph for the Square Xmark icon.</summary>
     public const string SquareXmark = "\uf2d3";
+    /// <summary>Font glyph for the Staff Snake icon.</summary>
     public const string StaffSnake = "\ue579";
+    /// <summary>Font glyph for the Stairs icon.</summary>
     public const string Stairs = "\ue289";
+    /// <summary>Font glyph for the Stamp icon.</summary>
     public const string Stamp = "\uf5bf";
+    /// <summary>Font glyph for the Stapler icon.</summary>
     public const string Stapler = "\ue5af";
+    /// <summary>Font glyph for the Star icon.</summary>
     public const string Star = "\uf005";
+    /// <summary>Font glyph for the Star And Crescent icon.</summary>
     public const string StarAndCrescent = "\uf699";
+    /// <summary>Font glyph for the Star Half icon.</summary>
     public const string StarHalf = "\uf089";
+    /// <summary>Font glyph for the Star Half Stroke icon.</summary>
     public const string StarHalfStroke = "\uf5c0";
+    /// <summary>Font glyph for the Star Of David icon.</summary>
     public const string StarOfDavid = "\uf69a";
+    /// <summary>Font glyph for the Star Of Life icon.</summary>
     public const string StarOfLife = "\uf621";
+    /// <summary>Font glyph for the Sterling Sign icon.</summary>
     public const string SterlingSign = "\uf154";
+    /// <summary>Font glyph for the Stethoscope icon.</summary>
     public const string Stethoscope = "\uf0f1";
+    /// <summary>Font glyph for the Stop icon.</summary>
     public const string Stop = "\uf04d";
+    /// <summary>Font glyph for the Stopwatch icon.</summary>
     public const string Stopwatch = "\uf2f2";
+    /// <summary>Font glyph for the Stopwatch20 icon.</summary>
     public const string Stopwatch20 = "\ue06f";
+    /// <summary>Font glyph for the Store icon.</summary>
     public const string Store = "\uf54e";
+    /// <summary>Font glyph for the Store Slash icon.</summary>
     public const string StoreSlash = "\ue071";
+    /// <summary>Font glyph for the Street View icon.</summary>
     public const string StreetView = "\uf21d";
+    /// <summary>Font glyph for the Strikethrough icon.</summary>
     public const string Strikethrough = "\uf0cc";
+    /// <summary>Font glyph for the Stroopwafel icon.</summary>
     public const string Stroopwafel = "\uf551";
+    /// <summary>Font glyph for the Subscript icon.</summary>
     public const string Subscript = "\uf12c";
+    /// <summary>Font glyph for the Suitcase icon.</summary>
     public const string Suitcase = "\uf0f2";
+    /// <summary>Font glyph for the Suitcase Medical icon.</summary>
     public const string SuitcaseMedical = "\uf0fa";
+    /// <summary>Font glyph for the Suitcase Rolling icon.</summary>
     public const string SuitcaseRolling = "\uf5c1";
+    /// <summary>Font glyph for the Sun icon.</summary>
     public const string Sun = "\uf185";
+    /// <summary>Font glyph for the Sun Plant Wilt icon.</summary>
     public const string SunPlantWilt = "\ue57a";
+    /// <summary>Font glyph for the Superscript icon.</summary>
     public const string Superscript = "\uf12b";
+    /// <summary>Font glyph for the Swatchbook icon.</summary>
     public const string Swatchbook = "\uf5c3";
+    /// <summary>Font glyph for the Synagogue icon.</summary>
     public const string Synagogue = "\uf69b";
+    /// <summary>Font glyph for the Syringe icon.</summary>
     public const string Syringe = "\uf48e";
+    /// <summary>Font glyph for the T icon.</summary>
     public const string T = "\u0054";
+    /// <summary>Font glyph for the Table icon.</summary>
     public const string Table = "\uf0ce";
+    /// <summary>Font glyph for the Table Cells icon.</summary>
     public const string TableCells = "\uf00a";
+    /// <summary>Font glyph for the Table Cells Large icon.</summary>
     public const string TableCellsLarge = "\uf009";
+    /// <summary>Font glyph for the Table Columns icon.</summary>
     public const string TableColumns = "\uf0db";
+    /// <summary>Font glyph for the Table List icon.</summary>
     public const string TableList = "\uf00b";
+    /// <summary>Font glyph for the Table Tennis Paddle Ball icon.</summary>
     public const string TableTennisPaddleBall = "\uf45d";
+    /// <summary>Font glyph for the Tablet icon.</summary>
     public const string Tablet = "\uf3fb";
+    /// <summary>Font glyph for the Tablet Button icon.</summary>
     public const string TabletButton = "\uf10a";
+    /// <summary>Font glyph for the Tablet Screen Button icon.</summary>
     public const string TabletScreenButton = "\uf3fa";
+    /// <summary>Font glyph for the Tablets icon.</summary>
     public const string Tablets = "\uf490";
+    /// <summary>Font glyph for the Tachograph Digital icon.</summary>
     public const string TachographDigital = "\uf566";
+    /// <summary>Font glyph for the Tag icon.</summary>
     public const string Tag = "\uf02b";
+    /// <summary>Font glyph for the Tags icon.</summary>
     public const string Tags = "\uf02c";
+    /// <summary>Font glyph for the Tape icon.</summary>
     public const string Tape = "\uf4db";
+    /// <summary>Font glyph for the Tarp icon.</summary>
     public const string Tarp = "\ue57b";
+    /// <summary>Font glyph for the Tarp Droplet icon.</summary>
     public const string TarpDroplet = "\ue57c";
+    /// <summary>Font glyph for the Taxi icon.</summary>
     public const string Taxi = "\uf1ba";
+    /// <summary>Font glyph for the Teeth icon.</summary>
     public const string Teeth = "\uf62e";
+    /// <summary>Font glyph for the Teeth Open icon.</summary>
     public const string TeethOpen = "\uf62f";
+    /// <summary>Font glyph for the Temperature Arrow Down icon.</summary>
     public const string TemperatureArrowDown = "\ue03f";
+    /// <summary>Font glyph for the Temperature Arrow Up icon.</summary>
     public const string TemperatureArrowUp = "\ue040";
+    /// <summary>Font glyph for the Temperature Empty icon.</summary>
     public const string TemperatureEmpty = "\uf2cb";
+    /// <summary>Font glyph for the Temperature Full icon.</summary>
     public const string TemperatureFull = "\uf2c7";
+    /// <summary>Font glyph for the Temperature Half icon.</summary>
     public const string TemperatureHalf = "\uf2c9";
+    /// <summary>Font glyph for the Temperature High icon.</summary>
     public const string TemperatureHigh = "\uf769";
+    /// <summary>Font glyph for the Temperature Low icon.</summary>
     public const string TemperatureLow = "\uf76b";
+    /// <summary>Font glyph for the Temperature Quarter icon.</summary>
     public const string TemperatureQuarter = "\uf2ca";
+    /// <summary>Font glyph for the Temperature Three Quarters icon.</summary>
     public const string TemperatureThreeQuarters = "\uf2c8";
+    /// <summary>Font glyph for the Tenge Sign icon.</summary>
     public const string TengeSign = "\uf7d7";
+    /// <summary>Font glyph for the Tent icon.</summary>
     public const string Tent = "\ue57d";
+    /// <summary>Font glyph for the Tent Arrow Down To Line icon.</summary>
     public const string TentArrowDownToLine = "\ue57e";
+    /// <summary>Font glyph for the Tent Arrow Left Right icon.</summary>
     public const string TentArrowLeftRight = "\ue57f";
+    /// <summary>Font glyph for the Tent Arrow Turn Left icon.</summary>
     public const string TentArrowTurnLeft = "\ue580";
+    /// <summary>Font glyph for the Tent Arrows Down icon.</summary>
     public const string TentArrowsDown = "\ue581";
+    /// <summary>Font glyph for the Tents icon.</summary>
     public const string Tents = "\ue582";
+    /// <summary>Font glyph for the Terminal icon.</summary>
     public const string Terminal = "\uf120";
+    /// <summary>Font glyph for the Text Height icon.</summary>
     public const string TextHeight = "\uf034";
+    /// <summary>Font glyph for the Text Slash icon.</summary>
     public const string TextSlash = "\uf87d";
+    /// <summary>Font glyph for the Text Width icon.</summary>
     public const string TextWidth = "\uf035";
+    /// <summary>Font glyph for the Thermometer icon.</summary>
     public const string Thermometer = "\uf491";
+    /// <summary>Font glyph for the Thumbs Down icon.</summary>
     public const string ThumbsDown = "\uf165";
+    /// <summary>Font glyph for the Thumbs Up icon.</summary>
     public const string ThumbsUp = "\uf164";
+    /// <summary>Font glyph for the Thumbtack icon.</summary>
     public const string Thumbtack = "\uf08d";
+    /// <summary>Font glyph for the Ticket icon.</summary>
     public const string Ticket = "\uf145";
+    /// <summary>Font glyph for the Ticket Simple icon.</summary>
     public const string TicketSimple = "\uf3ff";
+    /// <summary>Font glyph for the Timeline icon.</summary>
     public const string Timeline = "\ue29c";
+    /// <summary>Font glyph for the Toggle Off icon.</summary>
     public const string ToggleOff = "\uf204";
+    /// <summary>Font glyph for the Toggle On icon.</summary>
     public const string ToggleOn = "\uf205";
+    /// <summary>Font glyph for the Toilet icon.</summary>
     public const string Toilet = "\uf7d8";
+    /// <summary>Font glyph for the Toilet Paper icon.</summary>
     public const string ToiletPaper = "\uf71e";
+    /// <summary>Font glyph for the Toilet Paper Slash icon.</summary>
     public const string ToiletPaperSlash = "\ue072";
+    /// <summary>Font glyph for the Toilet Portable icon.</summary>
     public const string ToiletPortable = "\ue583";
+    /// <summary>Font glyph for the Toilets Portable icon.</summary>
     public const string ToiletsPortable = "\ue584";
+    /// <summary>Font glyph for the Toolbox icon.</summary>
     public const string Toolbox = "\uf552";
+    /// <summary>Font glyph for the Tooth icon.</summary>
     public const string Tooth = "\uf5c9";
+    /// <summary>Font glyph for the Torii Gate icon.</summary>
     public const string ToriiGate = "\uf6a1";
+    /// <summary>Font glyph for the Tornado icon.</summary>
     public const string Tornado = "\uf76f";
+    /// <summary>Font glyph for the Tower Broadcast icon.</summary>
     public const string TowerBroadcast = "\uf519";
+    /// <summary>Font glyph for the Tower Cell icon.</summary>
     public const string TowerCell = "\ue585";
+    /// <summary>Font glyph for the Tower Observation icon.</summary>
     public const string TowerObservation = "\ue586";
+    /// <summary>Font glyph for the Tractor icon.</summary>
     public const string Tractor = "\uf722";
+    /// <summary>Font glyph for the Trademark icon.</summary>
     public const string Trademark = "\uf25c";
+    /// <summary>Font glyph for the Traffic Light icon.</summary>
     public const string TrafficLight = "\uf637";
+    /// <summary>Font glyph for the Trailer icon.</summary>
     public const string Trailer = "\ue041";
+    /// <summary>Font glyph for the Train icon.</summary>
     public const string Train = "\uf238";
+    /// <summary>Font glyph for the Train Subway icon.</summary>
     public const string TrainSubway = "\uf239";
+    /// <summary>Font glyph for the Train Tram icon.</summary>
     public const string TrainTram = "\ue5b4";
+    /// <summary>Font glyph for the Transgender icon.</summary>
     public const string Transgender = "\uf225";
+    /// <summary>Font glyph for the Trash icon.</summary>
     public const string Trash = "\uf1f8";
+    /// <summary>Font glyph for the Trash Arrow Up icon.</summary>
     public const string TrashArrowUp = "\uf829";
+    /// <summary>Font glyph for the Trash Can icon.</summary>
     public const string TrashCan = "\uf2ed";
+    /// <summary>Font glyph for the Trash Can Arrow Up icon.</summary>
     public const string TrashCanArrowUp = "\uf82a";
+    /// <summary>Font glyph for the Tree icon.</summary>
     public const string Tree = "\uf1bb";
+    /// <summary>Font glyph for the Tree City icon.</summary>
     public const string TreeCity = "\ue587";
+    /// <summary>Font glyph for the Triangle Exclamation icon.</summary>
     public const string TriangleExclamation = "\uf071";
+    /// <summary>Font glyph for the Trophy icon.</summary>
     public const string Trophy = "\uf091";
+    /// <summary>Font glyph for the Trowel icon.</summary>
     public const string Trowel = "\ue589";
+    /// <summary>Font glyph for the Trowel Bricks icon.</summary>
     public const string TrowelBricks = "\ue58a";
+    /// <summary>Font glyph for the Truck icon.</summary>
     public const string Truck = "\uf0d1";
+    /// <summary>Font glyph for the Truck Arrow Right icon.</summary>
     public const string TruckArrowRight = "\ue58b";
+    /// <summary>Font glyph for the Truck Droplet icon.</summary>
     public const string TruckDroplet = "\ue58c";
+    /// <summary>Font glyph for the Truck Fast icon.</summary>
     public const string TruckFast = "\uf48b";
+    /// <summary>Font glyph for the Truck Field icon.</summary>
     public const string TruckField = "\ue58d";
+    /// <summary>Font glyph for the Truck Field Un icon.</summary>
     public const string TruckFieldUn = "\ue58e";
+    /// <summary>Font glyph for the Truck Front icon.</summary>
     public const string TruckFront = "\ue2b7";
+    /// <summary>Font glyph for the Truck Medical icon.</summary>
     public const string TruckMedical = "\uf0f9";
+    /// <summary>Font glyph for the Truck Monster icon.</summary>
     public const string TruckMonster = "\uf63b";
+    /// <summary>Font glyph for the Truck Moving icon.</summary>
     public const string TruckMoving = "\uf4df";
+    /// <summary>Font glyph for the Truck Pickup icon.</summary>
     public const string TruckPickup = "\uf63c";
+    /// <summary>Font glyph for the Truck Plane icon.</summary>
     public const string TruckPlane = "\ue58f";
+    /// <summary>Font glyph for the Truck Ramp Box icon.</summary>
     public const string TruckRampBox = "\uf4de";
+    /// <summary>Font glyph for the Tty icon.</summary>
     public const string Tty = "\uf1e4";
+    /// <summary>Font glyph for the Turkish Lira Sign icon.</summary>
     public const string TurkishLiraSign = "\ue2bb";
+    /// <summary>Font glyph for the Turn Down icon.</summary>
     public const string TurnDown = "\uf3be";
+    /// <summary>Font glyph for the Turn Up icon.</summary>
     public const string TurnUp = "\uf3bf";
+    /// <summary>Font glyph for the Tv icon.</summary>
     public const string Tv = "\uf26c";
+    /// <summary>Font glyph for the U icon.</summary>
     public const string U = "\u0055";
+    /// <summary>Font glyph for the Umbrella icon.</summary>
     public const string Umbrella = "\uf0e9";
+    /// <summary>Font glyph for the Umbrella Beach icon.</summary>
     public const string UmbrellaBeach = "\uf5ca";
+    /// <summary>Font glyph for the Underline icon.</summary>
     public const string Underline = "\uf0cd";
+    /// <summary>Font glyph for the Universal Access icon.</summary>
     public const string UniversalAccess = "\uf29a";
+    /// <summary>Font glyph for the Unlock icon.</summary>
     public const string Unlock = "\uf09c";
+    /// <summary>Font glyph for the Unlock Keyhole icon.</summary>
     public const string UnlockKeyhole = "\uf13e";
+    /// <summary>Font glyph for the Up Down icon.</summary>
     public const string UpDown = "\uf338";
+    /// <summary>Font glyph for the Up Down Left Right icon.</summary>
     public const string UpDownLeftRight = "\uf0b2";
+    /// <summary>Font glyph for the Up Long icon.</summary>
     public const string UpLong = "\uf30c";
+    /// <summary>Font glyph for the Up Right And Down Left From Center icon.</summary>
     public const string UpRightAndDownLeftFromCenter = "\uf424";
+    /// <summary>Font glyph for the Up Right From Square icon.</summary>
     public const string UpRightFromSquare = "\uf35d";
+    /// <summary>Font glyph for the Upload icon.</summary>
     public const string Upload = "\uf093";
+    /// <summary>Font glyph for the User icon.</summary>
     public const string User = "\uf007";
+    /// <summary>Font glyph for the User Astronaut icon.</summary>
     public const string UserAstronaut = "\uf4fb";
+    /// <summary>Font glyph for the User Check icon.</summary>
     public const string UserCheck = "\uf4fc";
+    /// <summary>Font glyph for the User Clock icon.</summary>
     public const string UserClock = "\uf4fd";
+    /// <summary>Font glyph for the User Doctor icon.</summary>
     public const string UserDoctor = "\uf0f0";
+    /// <summary>Font glyph for the User Gear icon.</summary>
     public const string UserGear = "\uf4fe";
+    /// <summary>Font glyph for the User Graduate icon.</summary>
     public const string UserGraduate = "\uf501";
+    /// <summary>Font glyph for the User Group icon.</summary>
     public const string UserGroup = "\uf500";
+    /// <summary>Font glyph for the User Injured icon.</summary>
     public const string UserInjured = "\uf728";
+    /// <summary>Font glyph for the User Large icon.</summary>
     public const string UserLarge = "\uf406";
+    /// <summary>Font glyph for the User Large Slash icon.</summary>
     public const string UserLargeSlash = "\uf4fa";
+    /// <summary>Font glyph for the User Lock icon.</summary>
     public const string UserLock = "\uf502";
+    /// <summary>Font glyph for the User Minus icon.</summary>
     public const string UserMinus = "\uf503";
+    /// <summary>Font glyph for the User Ninja icon.</summary>
     public const string UserNinja = "\uf504";
+    /// <summary>Font glyph for the User Nurse icon.</summary>
     public const string UserNurse = "\uf82f";
+    /// <summary>Font glyph for the User Pen icon.</summary>
     public const string UserPen = "\uf4ff";
+    /// <summary>Font glyph for the User Plus icon.</summary>
     public const string UserPlus = "\uf234";
+    /// <summary>Font glyph for the User Secret icon.</summary>
     public const string UserSecret = "\uf21b";
+    /// <summary>Font glyph for the User Shield icon.</summary>
     public const string UserShield = "\uf505";
+    /// <summary>Font glyph for the User Slash icon.</summary>
     public const string UserSlash = "\uf506";
+    /// <summary>Font glyph for the User Tag icon.</summary>
     public const string UserTag = "\uf507";
+    /// <summary>Font glyph for the User Tie icon.</summary>
     public const string UserTie = "\uf508";
+    /// <summary>Font glyph for the User Xmark icon.</summary>
     public const string UserXmark = "\uf235";
+    /// <summary>Font glyph for the Users icon.</summary>
     public const string Users = "\uf0c0";
+    /// <summary>Font glyph for the Users Between Lines icon.</summary>
     public const string UsersBetweenLines = "\ue591";
+    /// <summary>Font glyph for the Users Gear icon.</summary>
     public const string UsersGear = "\uf509";
+    /// <summary>Font glyph for the Users Line icon.</summary>
     public const string UsersLine = "\ue592";
+    /// <summary>Font glyph for the Users Rays icon.</summary>
     public const string UsersRays = "\ue593";
+    /// <summary>Font glyph for the Users Rectangle icon.</summary>
     public const string UsersRectangle = "\ue594";
+    /// <summary>Font glyph for the Users Slash icon.</summary>
     public const string UsersSlash = "\ue073";
+    /// <summary>Font glyph for the Users Viewfinder icon.</summary>
     public const string UsersViewfinder = "\ue595";
+    /// <summary>Font glyph for the Utensils icon.</summary>
     public const string Utensils = "\uf2e7";
+    /// <summary>Font glyph for the V icon.</summary>
     public const string V = "\u0056";
+    /// <summary>Font glyph for the Van Shuttle icon.</summary>
     public const string VanShuttle = "\uf5b6";
+    /// <summary>Font glyph for the Vault icon.</summary>
     public const string Vault = "\ue2c5";
+    /// <summary>Font glyph for the Vector Square icon.</summary>
     public const string VectorSquare = "\uf5cb";
+    /// <summary>Font glyph for the Venus icon.</summary>
     public const string Venus = "\uf221";
+    /// <summary>Font glyph for the Venus Double icon.</summary>
     public const string VenusDouble = "\uf226";
+    /// <summary>Font glyph for the Venus Mars icon.</summary>
     public const string VenusMars = "\uf228";
+    /// <summary>Font glyph for the Vest icon.</summary>
     public const string Vest = "\ue085";
+    /// <summary>Font glyph for the Vest Patches icon.</summary>
     public const string VestPatches = "\ue086";
+    /// <summary>Font glyph for the Vial icon.</summary>
     public const string Vial = "\uf492";
+    /// <summary>Font glyph for the Vial Circle Check icon.</summary>
     public const string VialCircleCheck = "\ue596";
+    /// <summary>Font glyph for the Vial Virus icon.</summary>
     public const string VialVirus = "\ue597";
+    /// <summary>Font glyph for the Vials icon.</summary>
     public const string Vials = "\uf493";
+    /// <summary>Font glyph for the Video icon.</summary>
     public const string Video = "\uf03d";
+    /// <summary>Font glyph for the Video Slash icon.</summary>
     public const string VideoSlash = "\uf4e2";
+    /// <summary>Font glyph for the Vihara icon.</summary>
     public const string Vihara = "\uf6a7";
+    /// <summary>Font glyph for the Virus icon.</summary>
     public const string Virus = "\ue074";
+    /// <summary>Font glyph for the Virus Covid icon.</summary>
     public const string VirusCovid = "\ue4a8";
+    /// <summary>Font glyph for the Virus Covid Slash icon.</summary>
     public const string VirusCovidSlash = "\ue4a9";
+    /// <summary>Font glyph for the Virus Slash icon.</summary>
     public const string VirusSlash = "\ue075";
+    /// <summary>Font glyph for the Viruses icon.</summary>
     public const string Viruses = "\ue076";
+    /// <summary>Font glyph for the Voicemail icon.</summary>
     public const string Voicemail = "\uf897";
+    /// <summary>Font glyph for the Volcano icon.</summary>
     public const string Volcano = "\uf770";
+    /// <summary>Font glyph for the Volleyball icon.</summary>
     public const string Volleyball = "\uf45f";
+    /// <summary>Font glyph for the Volume High icon.</summary>
     public const string VolumeHigh = "\uf028";
+    /// <summary>Font glyph for the Volume Low icon.</summary>
     public const string VolumeLow = "\uf027";
+    /// <summary>Font glyph for the Volume Off icon.</summary>
     public const string VolumeOff = "\uf026";
+    /// <summary>Font glyph for the Volume Xmark icon.</summary>
     public const string VolumeXmark = "\uf6a9";
+    /// <summary>Font glyph for the Vr Cardboard icon.</summary>
     public const string VrCardboard = "\uf729";
+    /// <summary>Font glyph for the W icon.</summary>
     public const string W = "\u0057";
+    /// <summary>Font glyph for the Walkie Talkie icon.</summary>
     public const string WalkieTalkie = "\uf8ef";
+    /// <summary>Font glyph for the Wallet icon.</summary>
     public const string Wallet = "\uf555";
+    /// <summary>Font glyph for the Wand Magic icon.</summary>
     public const string WandMagic = "\uf0d0";
+    /// <summary>Font glyph for the Wand Magic Sparkles icon.</summary>
     public const string WandMagicSparkles = "\ue2ca";
+    /// <summary>Font glyph for the Wand Sparkles icon.</summary>
     public const string WandSparkles = "\uf72b";
+    /// <summary>Font glyph for the Warehouse icon.</summary>
     public const string Warehouse = "\uf494";
+    /// <summary>Font glyph for the Water icon.</summary>
     public const string Water = "\uf773";
+    /// <summary>Font glyph for the Water Ladder icon.</summary>
     public const string WaterLadder = "\uf5c5";
+    /// <summary>Font glyph for the Wave Square icon.</summary>
     public const string WaveSquare = "\uf83e";
+    /// <summary>Font glyph for the Weight Hanging icon.</summary>
     public const string WeightHanging = "\uf5cd";
+    /// <summary>Font glyph for the Weight Scale icon.</summary>
     public const string WeightScale = "\uf496";
+    /// <summary>Font glyph for the Wheat Awn icon.</summary>
     public const string WheatAwn = "\ue2cd";
+    /// <summary>Font glyph for the Wheat Awn Circle Exclamation icon.</summary>
     public const string WheatAwnCircleExclamation = "\ue598";
+    /// <summary>Font glyph for the Wheelchair icon.</summary>
     public const string Wheelchair = "\uf193";
+    /// <summary>Font glyph for the Wheelchair Move icon.</summary>
     public const string WheelchairMove = "\ue2ce";
+    /// <summary>Font glyph for the Whiskey Glass icon.</summary>
     public const string WhiskeyGlass = "\uf7a0";
+    /// <summary>Font glyph for the Wifi icon.</summary>
     public const string Wifi = "\uf1eb";
+    /// <summary>Font glyph for the Wind icon.</summary>
     public const string Wind = "\uf72e";
+    /// <summary>Font glyph for the Window Maximize icon.</summary>
     public const string WindowMaximize = "\uf2d0";
+    /// <summary>Font glyph for the Window Minimize icon.</summary>
     public const string WindowMinimize = "\uf2d1";
+    /// <summary>Font glyph for the Window Restore icon.</summary>
     public const string WindowRestore = "\uf2d2";
+    /// <summary>Font glyph for the Wine Bottle icon.</summary>
     public const string WineBottle = "\uf72f";
+    /// <summary>Font glyph for the Wine Glass icon.</summary>
     public const string WineGlass = "\uf4e3";
+    /// <summary>Font glyph for the Wine Glass Empty icon.</summary>
     public const string WineGlassEmpty = "\uf5ce";
+    /// <summary>Font glyph for the Won Sign icon.</summary>
     public const string WonSign = "\uf159";
+    /// <summary>Font glyph for the Worm icon.</summary>
     public const string Worm = "\ue599";
+    /// <summary>Font glyph for the Wrench icon.</summary>
     public const string Wrench = "\uf0ad";
+    /// <summary>Font glyph for the X icon.</summary>
     public const string X = "\u0058";
+    /// <summary>Font glyph for the X Ray icon.</summary>
     public const string XRay = "\uf497";
+    /// <summary>Font glyph for the Xmark icon.</summary>
     public const string Xmark = "\uf00d";
+    /// <summary>Font glyph for the Xmarks Lines icon.</summary>
     public const string XmarksLines = "\ue59a";
+    /// <summary>Font glyph for the Y icon.</summary>
     public const string Y = "\u0059";
+    /// <summary>Font glyph for the Yen Sign icon.</summary>
     public const string YenSign = "\uf157";
+    /// <summary>Font glyph for the Yin Yang icon.</summary>
     public const string YinYang = "\uf6ad";
+    /// <summary>Font glyph for the Z icon.</summary>
     public const string Z = "\u005a";
 }

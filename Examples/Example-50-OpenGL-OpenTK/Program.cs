@@ -2,8 +2,10 @@ using Guinevere;
 
 namespace Example50OpenGLOpenTK;
 
+/// <summary>Entry point for the Example 50 OpenGL OpenTK example.</summary>
 public abstract class Program
 {
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         Environment.SetEnvironmentVariable("OPENTK_4_USE_WAYLAND", "0");

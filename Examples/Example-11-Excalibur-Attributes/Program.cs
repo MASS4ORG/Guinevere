@@ -6,9 +6,11 @@ namespace Example11ExcaliburAttributes;
 /// An attribute-by-attribute tour of Autoformers in the style of a well-known inspector's attribute gallery: every
 /// page shows the live form Autoformers builds beside the real source of its demo class.
 /// </summary>
+/// <summary>Entry point for the Example 11 Excalibur Attributes example.</summary>
 public static class Program
 {
     /// <summary>Opens the tour window.</summary>
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         var gui = new Gui();

@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- Added: .NET 11
 - Added: `Charts` library #68 #74 #75 #76
 - Added: `Table` widget #66.
 - Added: `DrawText(ReadOnlySpan<char>)` #245

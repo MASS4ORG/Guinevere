@@ -286,7 +286,10 @@ public unsafe partial class CanvasRenderer : ICanvasRenderer
 
         if (_instance.Handle != 0)
         {
-            _khrSurface.DestroySurface(_instance, _surface, null);
+            if (_surface.Handle != 0)
+            {
+                _surfaceExtension?.DestroySurface(_instance, _surface, null);
+            }
             _vk.DestroyInstance(_instance, null);
         }
 

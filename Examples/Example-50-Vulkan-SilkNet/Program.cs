@@ -2,8 +2,10 @@ using Guinevere;
 
 namespace Example50VulkanSilkNet;
 
+/// <summary>Entry point for the Example 50 Vulkan SilkNet example.</summary>
 public abstract class Program
 {
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         Environment.SetEnvironmentVariable("SILKNET_USE_WAYLAND", "0");

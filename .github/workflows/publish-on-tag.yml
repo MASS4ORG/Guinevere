@@ -37,7 +37,9 @@ jobs:
               run: bash .github/scripts/validate-release-tag.sh
             - uses: actions/setup-dotnet@v6
               with:
-                  dotnet-version: "10.0.x"
+                  dotnet-version: |
+                      10.0.x
+                      11.0.x
             - name: Test release checkout
               run: ./build.sh TestReport --configuration Release --verbosity minimal
             - name: "NuGet login (OIDC -> short-lived API key)"

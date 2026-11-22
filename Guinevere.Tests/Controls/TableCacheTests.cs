@@ -236,6 +236,7 @@ public class TableCacheTests
         var original = CultureInfo.CurrentCulture;
         try
         {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             var columns = Columns("a");
             var cache = new TableCache();
             cache.Begin(columns.Set, new TableColumnState());

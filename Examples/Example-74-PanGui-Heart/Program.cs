@@ -4,6 +4,7 @@ using Guinevere;
 namespace Example74PanGuiHeart;
 
 /// <summary>Demonstrates shape operations through an animated, shaded heart.</summary>
+/// <summary>Entry point for the Example 74 PanGui Heart example.</summary>
 public abstract class Program
 {
     const float StageDuration = 3.5f;
@@ -33,6 +34,7 @@ public abstract class Program
     ];
 
     /// <summary>Opens the animated shape demonstration.</summary>
+    /// <summary>Starts the example application.</summary>
     public static void Main()
     {
         var gui = new Gui();

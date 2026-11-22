@@ -33,7 +33,7 @@ public sealed class ReleaseWorkflowTests
             Assert.Equal(0, (await Commit(directory)).ExitCode);
             Assert.Equal(0, (await Run("git", directory, "", "tag", tag)).ExitCode);
             var accepted = await Run("bash", directory, "refs/tags/" + tag, GuardScript);
-            Assert.Equal(0, accepted.ExitCode);
+            Assert.True(accepted.ExitCode == 0, accepted.Output);
             Assert.Contains("Validated release tag", accepted.Output);
             Assert.Equal(0, (await Commit(directory)).ExitCode);
             var mismatch = await Run("bash", directory, "refs/tags/" + tag, GuardScript);
@@ -44,7 +44,22 @@ public sealed class ReleaseWorkflowTests
         }
         finally
         {
-            Directory.Delete(directory, recursive: true);
+            foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+            }
+            for (var attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    Directory.Delete(directory, recursive: true);
+                    break;
+                }
+                catch (IOException) when (OperatingSystem.IsWindows() && attempt < 10)
+                {
+                    await Task.Delay(200, TestContext.Current.CancellationToken);
+                }
+            }
         }
     }
 
@@ -99,18 +114,36 @@ public sealed class ReleaseWorkflowTests
     static async Task<(int ExitCode, string Output)> Run(string executable, string directory, string reference,
         params string[] arguments)
     {
+        var isBash = executable == "bash";
+        if (isBash && OperatingSystem.IsWindows())
+        {
+            var gitPath = await Run("git", directory, "", "--exec-path");
+            if (gitPath.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"Could not locate Git for Windows: {gitPath.Output}");
+            }
+            var gitRoot = Directory.GetParent(gitPath.Output.Trim())?.Parent?.Parent
+                ?? throw new InvalidOperationException("Could not locate the Git installation directory.");
+            executable = Path.Combine(gitRoot.FullName, "bin", "bash.exe");
+        }
         var start = new ProcessStartInfo(executable)
         {
             WorkingDirectory = directory,
             RedirectStandardOutput = true,
-            RedirectStandardError = true
+            RedirectStandardError = true,
+            RedirectStandardInput = isBash
         };
         start.Environment["GITHUB_REF"] = reference;
-        foreach (var argument in arguments)
+        foreach (var argument in isBash ? ["-s"] : arguments)
         {
             start.ArgumentList.Add(argument);
         }
         using var process = Process.Start(start)!;
+        if (isBash)
+        {
+            await process.StandardInput.WriteAsync(await File.ReadAllTextAsync(arguments[0]));
+            process.StandardInput.Close();
+        }
         var output = process.StandardOutput.ReadToEndAsync();
         var error = process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();

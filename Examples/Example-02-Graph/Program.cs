@@ -1,6 +1,7 @@
 namespace Example02;
 
 /// <summary>Runs the graph-only playground through the Silk.NET host.</summary>
+/// <summary>Entry point for the Example 02 Graph example.</summary>
 public static class Program
 {
     /// <summary>Opens the playground without an optional styling package.</summary>
