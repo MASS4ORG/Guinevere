@@ -82,6 +82,125 @@ public sealed class ProfilerViewFramesTests
         Assert.StartsWith("Update · track 0 · 3.000 ms total · 2.000 ms self", copied, StringComparison.Ordinal);
     }
 
+    /// <summary>When scopes overlap on the same row, a click selects the last drawn interval at that position.</summary>
+    [Fact]
+    public void OverlappingFlameScopesUseDrawOrderForHits()
+    {
+        using var host = new ProfilerFixture(1100, 800);
+        using var session = new ProfileSession();
+        using var view = new ProfilerView(session);
+        view.Gui.Input = host.Input;
+        view.Gui.ConfigureFonts(host.Font);
+        using var engine = session.Register("Engine", "engine", new StepClock());
+        engine.BeginFrame(1);
+        var earlier = engine.BeginScope("Earlier");
+        using (engine.BeginScope("Overlapping"))
+        {
+            earlier.Dispose();
+        }
+        using (engine.BeginScope("Later")) { }
+        engine.EndFrame();
+        view.Command("panel", "timeline");
+        Frame(view, host);
+        Frame(view, host);
+        var chart = Assert.IsType<LayoutNode>(FindNode(view.Gui, "profiler-timeline")).Rect;
+
+        host.Input.MoveTo(chart.X + chart.W * (2.5f / 7), chart.Y + 25);
+        Frame(view, host);
+        host.Input.PressButton();
+        Frame(view, host);
+        host.Input.ReleaseButton();
+        view.Command("copy");
+        Frame(view, host);
+        Assert.StartsWith("Overlapping ·", host.Input.GetClipboardText(), StringComparison.Ordinal);
+    }
+
+    /// <summary>A large trace culls intervals during zoom and can reveal a match outside the visible rows and time range.</summary>
+    [Fact]
+    public void LargeFlameCaptureCullsAndKeepsSelectionThroughNavigation()
+    {
+        using var host = new ProfilerFixture(1400, 900);
+        using var session = new ProfileSession(new ProfileLimits { Events = 13_000 });
+        using var view = new ProfilerView(session);
+        view.Gui.Input = host.Input;
+        view.Gui.ConfigureFonts(host.Font);
+        using var engine = session.Register("Engine", "engine", new StepClock());
+        engine.BeginFrame(1);
+        using (engine.BeginScope("Frame root"))
+        {
+            for (var i = 0; i < 12_000; i++)
+            {
+                using (engine.BeginScope("Worker scope", track: 1 + i % 40)) { }
+            }
+        }
+        using (var dispatch = engine.BeginScope("Dispatch", track: 40))
+        using (var decode = engine.BeginScope("Decode", track: 40, parentId: dispatch.Id))
+        using (var verify = engine.BeginScope("Verify", track: 40, parentId: decode.Id))
+        using (engine.BeginScope("Needle", track: 40, parentId: verify.Id)) { }
+        var capture = engine.EndFrame();
+        Assert.Equal(12_005, capture.Events.Count);
+
+        view.Command("panel", "timeline");
+        Frame(view, host);
+        Frame(view, host);
+        var plot = Assert.IsType<LayoutNode>(FindNode(view.Gui, "profiler-timeline"));
+        var initial = plot.DrawList.PrimitiveCount;
+        Assert.InRange(initial, 2_000, 5_000);
+        ClickAt(new Vector2(plot.Rect.Center.X, plot.Rect.Y + 20));
+        for (var zoom = 0; zoom < 4; zoom++)
+        {
+            Click("flame-zoom-in");
+        }
+        var zoomed = Assert.IsType<LayoutNode>(FindNode(view.Gui, "profiler-timeline")).DrawList.PrimitiveCount;
+        Assert.InRange(zoomed, 2, initial / 5);
+        view.Command("copy");
+        Frame(view, host);
+        Assert.StartsWith("Frame root ·", host.Input.GetClipboardText(), StringComparison.Ordinal);
+
+        Click("flame-rows-down");
+        var movedPlot = Assert.IsType<LayoutNode>(FindNode(view.Gui, "profiler-timeline")).Rect;
+        host.Input.MoveTo(movedPlot.Center);
+        Frame(view, host);
+        host.Input.PressButton(MouseButton.Middle);
+        Frame(view, host);
+        host.Input.MoveTo(movedPlot.Center + new Vector2(100, 0));
+        Frame(view, host);
+        host.Input.ReleaseButton(MouseButton.Middle);
+        Frame(view, host);
+        Click("flame-rows-up");
+        view.Command("copy");
+        Frame(view, host);
+        Assert.StartsWith("Frame root ·", host.Input.GetClipboardText(), StringComparison.Ordinal);
+
+        Click("flame-search");
+        host.Input.TypeText("Needle");
+        Frame(view, host);
+        Frame(view, host);
+        Click("flame-find");
+        view.Command("copy");
+        Frame(view, host);
+        Assert.StartsWith("Needle ·", host.Input.GetClipboardText(), StringComparison.Ordinal);
+        Assert.NotNull(FindNode(view.Gui, "flame-breadcrumb"));
+        Click("flame-parent");
+        view.Command("copy");
+        Frame(view, host);
+        Assert.StartsWith("Verify ·", host.Input.GetClipboardText(), StringComparison.Ordinal);
+        Click("flame-zoom-out");
+        Click("flame-reset");
+
+        void Click(string id) => ClickAt(Assert.IsAssignableFrom<LayoutNode>(FindNode(view.Gui, id)).Rect.Center);
+
+        void ClickAt(Vector2 position)
+        {
+            host.Input.MoveTo(position);
+            Frame(view, host);
+            host.Input.PressButton();
+            Frame(view, host);
+            host.Input.ReleaseButton();
+            Frame(view, host);
+        }
+    }
+
     [Fact]
     public void ScopeTableSummarizesPathsAndClickSelectsTheSlowestFrame()
     {

@@ -36,11 +36,25 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
     /// <param name="width">The initial width of the window. Default is 800.</param>
     /// <param name="height">The initial height of the window. Default is 600.</param>
     /// <param name="title">The title of the window. Default is empty string.</param>
+    /// <exception cref="InvalidOperationException">Raylib could not initialize the OpenGL window.</exception>
     public GuiWindow(Gui gui, int width = 800, int height = 600, string title = "")
     {
         _width = width;
         _height = height;
         _gui = gui;
+        var fontStream = GetStreamResource("Guinevere.font.ttf");
+        _fontText = Font.FromStream(fontStream);
+        fontStream = GetStreamResource("Guinevere.icons.ttf");
+        _fontIcon = Font.FromStream(fontStream);
+        fontStream = GetStreamResource("Guinevere.widget-icons.ttf");
+        _fontWidgetIcon = Font.FromStream(fontStream);
+        Raylib.SetTraceLogLevel(TraceLogLevel.Warning);
+        Raylib.InitWindow(_width, _height, title);
+        if (!Raylib.IsWindowReady())
+        {
+            throw new InvalidOperationException("Raylib could not initialize the OpenGL window. See the Raylib startup diagnostics.");
+        }
+
         _gui.Input = this;
         _gui.WindowHandler = this;
         _gui.Platform.Register<IWindowChromeCapability>(this);
@@ -53,15 +67,7 @@ public partial class GuiWindow : IDisposable, IInputHandler, IWindowIdentityCapa
         _gui.Platform.Register<ITouchCapability>(_touchInput);
         _gui.Platform.Register<IFileDropCapability>(_fileDrops);
         _gui.Platform.Register<IAppearanceCapability>(_appearance);
-        var fontStream = GetStreamResource("Guinevere.font.ttf");
-        _fontText = Font.FromStream(fontStream);
-        fontStream = GetStreamResource("Guinevere.icons.ttf");
-        _fontIcon = Font.FromStream(fontStream);
-        fontStream = GetStreamResource("Guinevere.widget-icons.ttf");
-        _fontWidgetIcon = Font.FromStream(fontStream);
         _gui.ConfigureFonts(_fontText, _fontIcon, _fontWidgetIcon);
-        Raylib.SetTraceLogLevel(TraceLogLevel.Warning); // Reduce verbose logging
-        Raylib.InitWindow(_width, _height, title);
         _accessibility = LinuxAccessibility.TryRegister(_gui, title, () => Position, Raylib.SetWindowFocused);
         _title = title;
         PlaceInitialWindow();

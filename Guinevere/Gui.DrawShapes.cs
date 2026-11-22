@@ -47,6 +47,20 @@ public partial class Gui
     /// <summary>Queues a filled circle using paint values captured by the draw command.</summary>
     public void DrawCircle(Vector2 center, float radius, Color color) => DrawCircleFilled(center, radius, color);
 
+    /// <summary>Queues a filled circular sector. Angles are clockwise degrees from the positive X axis.</summary>
+    public void DrawRingSector(Vector2 center, float outerRadius, float innerRadius, float startDegrees,
+        float sweepDegrees, Color color)
+    {
+        if (!float.IsFinite(outerRadius) || !float.IsFinite(innerRadius) || innerRadius < 0 ||
+            outerRadius <= innerRadius || !float.IsFinite(startDegrees) || !float.IsFinite(sweepDegrees) ||
+            sweepDegrees <= 0 || !float.IsFinite(center.X) || !float.IsFinite(center.Y))
+        {
+            return;
+        }
+        AddPrimitive(new PrimitiveCommand(PrimitiveKind.RingSector, default, color, outerRadius,
+            Thickness: innerRadius, A: center, B: new Vector2(startDegrees % 360, Math.Min(360, sweepDegrees))));
+    }
+
     /// <summary>Queues a triangle with interpolated vertex colors; omitted colors use the first color.</summary>
     public void DrawTriangleFilled(Vector2 a, Vector2 b, Vector2 c, Color colorA,
         Color? colorB = null, Color? colorC = null) =>

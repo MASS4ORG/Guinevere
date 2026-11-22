@@ -9,6 +9,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Guinevere.Charts/Guinevere.Charts.csproj" />
     <ProjectReference Include="../Guinevere.Profiling/Guinevere.Profiling.csproj" />
     <ProjectReference Include="../Guinevere.Excalibur/Guinevere.Excalibur.csproj" />
     <EmbeddedResource Include="Styles/*.pss" />

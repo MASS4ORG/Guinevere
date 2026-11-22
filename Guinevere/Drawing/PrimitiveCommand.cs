@@ -5,7 +5,8 @@ enum PrimitiveKind : byte
     Rect,
     Circle,
     Line,
-    Triangle
+    Triangle,
+    RingSector
 }
 
 /// <summary>Stores direct geometry and paint values without owning native resources.</summary>
@@ -19,6 +20,7 @@ readonly record struct PrimitiveCommand(
         SKRect bounds = Kind switch
         {
             PrimitiveKind.Circle => new(A.X - Radius, A.Y - Radius, A.X + Radius, A.Y + Radius),
+            PrimitiveKind.RingSector => new(A.X - Radius, A.Y - Radius, A.X + Radius, A.Y + Radius),
             PrimitiveKind.Line => PointBounds(A, B, A),
             PrimitiveKind.Triangle => PointBounds(A, B, C),
             _ => Rect

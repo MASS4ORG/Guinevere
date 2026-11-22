@@ -37,7 +37,31 @@ sealed partial class PrimitiveRenderer : IDisposable
             case PrimitiveKind.Triangle:
                 Triangle(command, canvas, paint);
                 break;
+            case PrimitiveKind.RingSector:
+                RingSector(command, canvas, paint);
+                break;
         }
+    }
+
+    static void RingSector(in PrimitiveCommand command, SKCanvas canvas, SKPaint paint)
+    {
+        var innerRadius = command.Thickness;
+        var radius = command.Radius;
+        if (innerRadius > 0)
+        {
+            paint.Style = SKPaintStyle.Stroke;
+            paint.StrokeWidth = radius - innerRadius;
+            paint.StrokeCap = SKStrokeCap.Butt;
+            radius -= paint.StrokeWidth / 2;
+        }
+        var center = command.A;
+        if (command.B.Y >= 360)
+        {
+            canvas.DrawCircle(center.X, center.Y, radius, paint);
+            return;
+        }
+        var oval = new SKRect(center.X - radius, center.Y - radius, center.X + radius, center.Y + radius);
+        canvas.DrawArc(oval, command.B.X, command.B.Y, innerRadius <= 0, paint);
     }
 
     void Rect(in PrimitiveCommand command, SKCanvas canvas, SKPaint paint)

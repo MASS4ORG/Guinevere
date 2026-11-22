@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Numerics;
+using Guinevere.Charts;
 using Guinevere.Profiling;
 
 namespace Guinevere.DevTools;
@@ -13,18 +14,21 @@ public sealed partial class ProfilerView
     readonly Dictionary<string, int> _series = new(StringComparer.Ordinal);
     FrameRecord? _flameFrame;
     FlameScope[] _flame = [];
+    TimelineSpan[] _flameIntervals = [];
     int _flameRows;
+    int _hoveredFlameIndex = -1;
     string? _hoveredScope;
 
     /// <summary>One completed scope placed on a flame-chart row, with time not covered by its children.</summary>
-    readonly record struct FlameScope(ProfileEvent Event, int Row, long Self);
+    readonly record struct FlameScope(ProfileEvent Event, long Self, int Series);
 
     /// <summary>Selected frame as nested horizontal bars: one lane per track, one row per nesting depth.</summary>
     void FlameChart(FrameRecord frame)
     {
         PrepareFlame(frame);
+        DrawFlameNavigation(frame);
         Gui.Label(_hoveredScope ?? "Hover a scope for its timing; click to select it for copying.");
-        var height = RulerHeight + Math.Max(1, _flameRows) * ScopeRowHeight + 4;
+        var height = RulerHeight + Math.Max(1, Math.Min(VisibleFlameRows, _flameRows)) * ScopeRowHeight + 4;
         using (Gui.StyledNode("profiler-flame", id: "profiler-timeline").ExpandWidth().Height(height).Enter())
         {
             var chart = Gui.GetInteractable();
@@ -33,28 +37,31 @@ public sealed partial class ProfilerView
                 return;
             }
             var area = Gui.CurrentNode.Rect;
-            DrawRuler(frame, area);
-            var hovered = TrackScopePointer(frame, area, chart);
-            for (var index = 0; index < _flame.Length; index++)
+            var plotArea = new Rect(area.X, area.Y + RulerHeight, area.W, area.H - RulerHeight - 4);
+            var plot = new TimelinePlot(plotArea, NavigateFlame(frame, plotArea, chart), ScopeRowHeight);
+            if (!plot.IsValid)
             {
-                DrawScope(frame, area, _flame[index], index == hovered);
+                return;
             }
+            DrawRuler(frame, area, plot.Time);
+            var hovered = TrackScopePointer(frame, plot, chart);
+            DrawVisibleFlame(frame, plot, hovered);
         }
     }
 
     /// <summary>Updates hover text and click selection; returns the hovered scope index or -1.</summary>
-    int TrackScopePointer(FrameRecord frame, Rect area, InteractableElement chart)
+    int TrackScopePointer(FrameRecord frame, TimelinePlot plot, InteractableElement chart)
     {
-        var hovered = chart.OnHover() ? ScopeAt(frame, area, Gui.Input.MousePosition) : -1;
-        var text = hovered >= 0 ? ScopeText(frame, _flame[hovered]) : null;
-        if (text is not null && chart.OnClick())
+        var hovered = chart.OnHover() ? HitFlame(plot, Gui.Input.MousePosition) : -1;
+        if (hovered != _hoveredFlameIndex)
         {
-            _selectedText = text;
-        }
-        if (text != _hoveredScope)
-        {
-            _hoveredScope = text;
+            _hoveredFlameIndex = hovered;
+            _hoveredScope = hovered >= 0 ? ScopeText(frame, _flame[hovered]) : null;
             Gui.RequestFrame();
+        }
+        if (hovered >= 0 && chart.OnClick())
+        {
+            SelectFlame(frame, hovered);
         }
         return hovered;
     }
@@ -66,57 +73,69 @@ public sealed partial class ProfilerView
             return;
         }
         var scopes = frame.Scopes;
-        var byId = scopes.ToDictionary(static entry => entry.Id);
-        var depths = new Dictionary<long, int>();
-        int Depth(ProfileEvent entry)
+        var byId = new Dictionary<long, int>(scopes.Length);
+        for (var i = 0; i < scopes.Length; i++)
         {
-            if (depths.TryGetValue(entry.Id, out var known))
+            byId[scopes[i].Id] = i;
+        }
+        var parents = new int[scopes.Length];
+        var depths = new int[scopes.Length];
+        var children = new long[scopes.Length];
+        for (var i = 0; i < scopes.Length; i++)
+        {
+            var scope = scopes[i];
+            parents[i] = -1;
+            if (byId.TryGetValue(scope.ParentId, out var parent))
             {
-                return known;
+                children[parent] += scope.End - scope.Start;
+                if (scope.Track == scopes[parent].Track)
+                {
+                    parents[i] = parent;
+                }
             }
-            depths[entry.Id] = 0;
-            var depth = byId.TryGetValue(entry.ParentId, out var parent) && parent.Track == entry.Track
-                ? Depth(parent) + 1 : 0;
-            return depths[entry.Id] = depth;
         }
-        var offsets = new Dictionary<int, int>();
-        var rows = 0;
-        foreach (var track in scopes.Select(static entry => entry.Track).Distinct().Order())
+        if (!FlameLayout.TryCalculateDepths(parents, depths))
         {
-            offsets[track] = rows;
-            rows += scopes.Where(entry => entry.Track == track).Max(Depth) + 1;
+            depths.AsSpan().Clear();
+            parents.AsSpan().Fill(-1);
         }
-        var children = scopes.Where(entry => byId.ContainsKey(entry.ParentId))
-            .GroupBy(static entry => entry.ParentId)
-            .ToDictionary(static group => group.Key, static group => group.Sum(static entry => entry.End - entry.Start));
-        _flame = [.. scopes.Select(entry => new FlameScope(entry, offsets[entry.Track] + Depth(entry),
-            entry.End - entry.Start - children.GetValueOrDefault(entry.Id)))];
-        _flameRows = rows;
+        var offsets = TrackOffsets(scopes, depths, out _flameRows);
+        _flame = new FlameScope[scopes.Length];
+        _flameIntervals = new TimelineSpan[scopes.Length];
+        for (var i = 0; i < scopes.Length; i++)
+        {
+            var scope = scopes[i];
+            var row = offsets[scope.Track] + depths[i];
+            _flame[i] = new FlameScope(scope, scope.End - scope.Start - children[i], SeriesIndex(scope.Name));
+            _flameIntervals[i] = new TimelineSpan(scope.Start - frame.Start, scope.End - frame.Start, row, default);
+        }
+        PrepareFlameLanes();
+        _flameParents = parents;
         _flameFrame = frame;
+        ResetFlameViewport(frame);
+        _flameSelected = -1;
+        _flameBreadcrumb = null;
+        _hoveredFlameIndex = -1;
         _hoveredScope = null;
+        UpdateFlameSearch();
     }
 
-    static Rect ScopeRect(FrameRecord frame, Rect area, FlameScope scope)
+    static Dictionary<int, int> TrackOffsets(ReadOnlySpan<ProfileEvent> scopes, ReadOnlySpan<int> depths, out int rows)
     {
-        var duration = (double)Math.Max(1, frame.End - frame.Start);
-        var x = area.X + (float)((scope.Event.Start - frame.Start) / duration) * area.W;
-        var width = (float)((scope.Event.End - scope.Event.Start) / duration) * area.W;
-        return new Rect(x, area.Y + RulerHeight + scope.Row * ScopeRowHeight, Math.Max(1, width - 1), ScopeRowHeight - 2);
-    }
-
-    /// <summary>Scope under the pointer; very narrow scopes keep a 3-pixel hit width.</summary>
-    int ScopeAt(FrameRecord frame, Rect area, Vector2 pointer)
-    {
-        for (var index = _flame.Length - 1; index >= 0; index--)
+        var offsets = new Dictionary<int, int>();
+        for (var i = 0; i < scopes.Length; i++)
         {
-            var rect = ScopeRect(frame, area, _flame[index]);
-            if (pointer.X >= rect.X && pointer.X <= rect.X + Math.Max(3, rect.W)
-                && pointer.Y >= rect.Y && pointer.Y <= rect.Y + rect.H)
-            {
-                return index;
-            }
+            var track = scopes[i].Track;
+            offsets[track] = Math.Max(offsets.GetValueOrDefault(track), depths[i] + 1);
         }
-        return -1;
+        rows = 0;
+        foreach (var track in offsets.Keys.Order())
+        {
+            var height = offsets[track];
+            offsets[track] = rows;
+            rows += height;
+        }
+        return offsets;
     }
 
     static string ScopeText(FrameRecord frame, FlameScope scope)
@@ -127,52 +146,82 @@ public sealed partial class ProfilerView
             $"{scope.Event.Name} · track {scope.Event.Track} · {frame.ToMilliseconds(ticks):F3} ms total · {frame.ToMilliseconds(scope.Self):F3} ms self · {share:F1}% of frame #{frame.Frame}");
     }
 
-    void DrawScope(FrameRecord frame, Rect area, FlameScope scope, bool hovered)
+    void DrawScope(FrameRecord frame, Rect rect, FlameScope scope, bool hovered)
     {
-        var rect = ScopeRect(frame, area, scope);
-        Gui.DrawRect(rect, SeriesColor(scope.Event.Name), 2);
         if (hovered)
         {
             Gui.DrawRectBorder(rect, StyleColor("profiler-selection", "border-color"), 1.5f);
         }
-        var milliseconds = frame.ToMilliseconds(scope.Event.End - scope.Event.Start);
-        string[] labels = [string.Create(CultureInfo.InvariantCulture, $"{scope.Event.Name} {milliseconds:F2} ms"), scope.Event.Name];
-        foreach (var label in labels)
+        if (rect.W <= 6)
         {
-            var layout = Gui.LayoutText(label, size: 11);
-            if (layout.Width + 6 <= rect.W)
+            return;
+        }
+        var value = frame.ToMilliseconds(scope.Event.End - scope.Event.Start);
+        Span<char> label = stackalloc char[256];
+        var length = FormatScopeLabel(scope.Event.Name, value, label);
+        if (length == 0 || !DrawScopeLabel(rect, label[..length]))
+        {
+            DrawScopeLabel(rect, scope.Event.Name);
+        }
+    }
+
+    static int FormatScopeLabel(string name, double milliseconds, Span<char> buffer)
+    {
+        if (name.Length >= buffer.Length - 4 ||
+            !milliseconds.TryFormat(buffer[(name.Length + 1)..^3], out var written, "F2", CultureInfo.InvariantCulture))
+        {
+            return 0;
+        }
+        name.AsSpan().CopyTo(buffer);
+        buffer[name.Length] = ' ';
+        " ms".CopyTo(buffer[(name.Length + written + 1)..]);
+        return name.Length + written + 4;
+    }
+
+    bool DrawScopeLabel(Rect rect, ReadOnlySpan<char> text)
+    {
+        var layout = Gui.LayoutPlainText(text, size: 11);
+        if (layout.Width + 6 > rect.W)
+        {
+            return false;
+        }
+        Gui.DrawTextLayout(layout, new Vector2(rect.X + 3, rect.Y + (rect.H - layout.Height) / 2),
+            StyleColor("profiler-scope-label", "color"));
+        return true;
+    }
+
+    /// <summary>Millisecond grid with the smallest round step that keeps labels at least 70 pixels apart.</summary>
+    void DrawRuler(FrameRecord frame, Rect area, ChartRange visibleTime)
+    {
+        var range = new ChartRange(visibleTime.Min * 1000 / frame.Frequency, visibleTime.Max * 1000 / frame.Frequency);
+        Span<double> ticks = stackalloc double[32];
+        var count = CartesianTransforms.GenerateTicks(range,
+            1 + Math.Clamp((int)(area.W / 70), 1, ticks.Length - 1), ticks);
+        Span<char> label = stackalloc char[64];
+        var color = StyleColor("profiler-budget", "border-color");
+        foreach (var tick in ticks[..count])
+        {
+            var x = area.X + (float)range.Normalize(tick) * area.W;
+            Gui.DrawLine(new Vector2(x, area.Y), new Vector2(x, area.Y + area.H), color, .5f);
+            if (tick.TryFormat(label[..^3], out var written, "0.###", CultureInfo.InvariantCulture))
             {
-                Gui.DrawTextLayout(layout, new Vector2(rect.X + 3, rect.Y + (rect.H - layout.Height) / 2),
-                    StyleColor("profiler-scope-label", "color"));
-                return;
+                " ms".CopyTo(label[written..]);
+                ChartLabels.Draw(Gui, new Rect(x + 3, area.Y + 1, area.X + area.W - x - 3, RulerHeight),
+                    label[..(written + 3)], color, size: 10);
             }
         }
     }
 
-    /// <summary>Millisecond grid with the smallest round step that keeps labels at least 70 pixels apart.</summary>
-    void DrawRuler(FrameRecord frame, Rect area)
-    {
-        var total = Math.Max(frame.Milliseconds, 1e-9);
-        double[] steps = [.001, .002, .005, .01, .02, .05, .1, .2, .5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
-        var step = steps.FirstOrDefault(value => value / total * area.W >= 70, steps[^1]);
-        var color = StyleColor("profiler-budget", "border-color");
-        for (var tick = 0d; tick <= total; tick += step)
-        {
-            var x = area.X + (float)(tick / total) * area.W;
-            Gui.DrawLine(new Vector2(x, area.Y), new Vector2(x, area.Y + area.H), color, .5f);
-            var label = Gui.LayoutText(string.Create(CultureInfo.InvariantCulture, $"{tick:0.###} ms"), size: 10);
-            Gui.DrawTextLayout(label, new Vector2(x + 3, area.Y + 1), color);
-        }
-    }
-
     /// <summary>Stable color per scope name for this viewer, drawn from the skin's eight series selectors.</summary>
-    Color SeriesColor(string name)
+    Color SeriesColor(string name) => StyleColor(SeriesSelectors[SeriesIndex(name)], "background-color");
+
+    int SeriesIndex(string name)
     {
         if (!_series.TryGetValue(name, out var index))
         {
             _series[name] = index = _series.Count % SeriesSelectors.Length;
         }
-        return StyleColor(SeriesSelectors[index], "background-color");
+        return index;
     }
 
     Color StyleColor(string selector, string property) =>

@@ -12,6 +12,7 @@
         <Project Path="Examples/Example-01/Example-01.csproj"/>
         <Project Path="Examples/Example-02-Graph/Example-02-Graph.csproj"/>
         <Project Path="Examples/Example-03-Profiler/Example-03-Profiler.csproj"/>
+        <Project Path="Examples/Example-04-Charts/Example-04-Charts.csproj"/>
         <Project Path="Examples/Example-11-Excalibur-Attributes/Example-11-Excalibur-Attributes.csproj"/>
         <Project Path="Examples/Example-50-OpenGL-OpenTK/Example-50-OpenGL-OpenTK.csproj"/>
         <Project Path="Examples/Example-50-OpenGL-Raylib/Example-50-OpenGL-Raylib.csproj"/>
@@ -43,6 +44,7 @@
     <Project Path="Attributes/Attributes.csproj"/>
     <Project Path="Autoformers/Autoformers.csproj"/>
     <Project Path="Autoformers.Excalibur/Autoformers.Excalibur.csproj"/>
+    <Project Path="Guinevere.Charts/Guinevere.Charts.csproj"/>
     <Project Path="Guinevere.Excalibur/Guinevere.Excalibur.csproj"/>
     <Project Path="Guinevere.Excalibur.TextEditor/Guinevere.Excalibur.TextEditor.csproj"/>
     <Project Path="Guinevere.Graphs/Guinevere.Graphs.csproj"/>

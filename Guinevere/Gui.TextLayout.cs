@@ -48,6 +48,16 @@ public partial class Gui
             AlignmentOf(alignment, options), scope));
     }
 
+    /// <summary>Lays out plain text directly from a buffer. The cache owns a copy when a layout is first built.</summary>
+    public TextLayout LayoutPlainText(ReadOnlySpan<char> text, float maxWidth = 0, float size = 0, Font? font = null,
+        TextLayoutOptions? options = null, TextAlignment? alignment = null)
+    {
+        var scope = CurrentNodeScope;
+        options ??= scope.Get<LayoutNodeScopeTextLayout>().Value;
+        return LayoutText(PlainRequest(text, font, size, Math.Max(0f, maxWidth), options,
+            AlignmentOf(alignment, options), scope));
+    }
+
     /// <summary>The requested alignment, else the options', else the start edge.</summary>
     static TextAlignment AlignmentOf(TextAlignment? requested, TextLayoutOptions options) =>
         requested ?? options.Alignment ?? TextAlignment.Start;
