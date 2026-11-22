@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [7.0.0] - 2026-11-22
+
 - Added: .NET 11
 - Added: `Charts` library #68 #74 #75 #76
 - Added: `Table` widget #66.
@@ -279,7 +281,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - First Commit
 
-[Unreleased]: https://github.com/MASS4ORG/Guinevere/compare/v6.7.0...HEAD
+[Unreleased]: https://github.com/MASS4ORG/Guinevere/compare/v7.0.0...HEAD
+[7.0.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.7.0...v7.0.0
 [6.7.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.6.0...v6.7.0
 [6.6.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.5.0...v6.6.0
 [6.5.0]: https://github.com/MASS4ORG/Guinevere/compare/v6.4.1...v6.5.0
