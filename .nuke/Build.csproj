@@ -16,6 +16,7 @@
 
     <!-- External libraries -->
     <ItemGroup>
+        <PackageReference Include="Microsoft.Build.Framework" Version="18.12.2" />
         <PackageReference Include="Nuke.Common" Version="10.1.0" />
         <!-- overriding these packages to avoid multiple warnings -->
         <PackageReference Include="NuGet.Packaging" Version="8.0.0" />
